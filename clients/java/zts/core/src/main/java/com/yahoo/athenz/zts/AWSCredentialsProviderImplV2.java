@@ -134,8 +134,8 @@ public class AWSCredentialsProviderImplV2 implements AwsCredentialsProvider, Clo
     }
 
     private void initCredProvider(ZTSClient ztsClient, boolean closeZTSClient,
-        String domainName, String roleName, String externalId,
-        Integer minExpiryTime, Integer maxExpiryTime) {
+            String domainName, String roleName, String externalId,
+            Integer minExpiryTime, Integer maxExpiryTime) {
 
         this.domainName = domainName;
         this.roleName = roleName;

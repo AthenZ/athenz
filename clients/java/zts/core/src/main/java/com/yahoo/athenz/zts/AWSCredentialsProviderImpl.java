@@ -103,9 +103,10 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
     }
 
     public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
-                                      String domainName, String roleName, String externalId,
-                                      Integer minExpiryTime, Integer maxExpiryTime,
-                                      ZTSClientNotificationSender ztsClientNotificationSender) {
+            String domainName, String roleName, String externalId,
+            Integer minExpiryTime, Integer maxExpiryTime,
+            ZTSClientNotificationSender ztsClientNotificationSender) {
+
         ZTSClient client = new ZTSClient(ztsUrl, sslContext);
         client.setNotificationSender(ztsClientNotificationSender);
         initCredProvider(client, true, domainName, roleName,
@@ -127,13 +128,12 @@ public class AWSCredentialsProviderImpl implements AWSCredentialsProvider, Close
     public AWSCredentialsProviderImpl(String ztsUrl, SSLContext sslContext,
             String domainName, String roleName) {
 
-        initCredProvider(new ZTSClient(ztsUrl, sslContext), true, domainName, roleName,
-                null, null, null);
+        initCredProvider(new ZTSClient(ztsUrl, sslContext), true, domainName, roleName, null, null, null);
     }
 
     private void initCredProvider(ZTSClient ztsClient, boolean closeZTSClient,
-        String domainName, String roleName, String externalId,
-        Integer minExpiryTime, Integer maxExpiryTime) {
+            String domainName, String roleName, String externalId,
+            Integer minExpiryTime, Integer maxExpiryTime) {
 
         this.domainName = domainName;
         this.roleName = roleName;

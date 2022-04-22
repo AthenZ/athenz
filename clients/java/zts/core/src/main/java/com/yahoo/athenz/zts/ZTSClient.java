@@ -39,6 +39,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
@@ -61,10 +62,6 @@ import org.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.AuthorityConsts;
@@ -78,6 +75,10 @@ import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.common.utils.SSLUtils;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 public class ZTSClient implements Closeable {
 
@@ -670,8 +671,8 @@ public class ZTSClient implements Closeable {
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
 
-    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs, SSLContext sslContext,
-            final String proxyUrl, PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs, final String proxyUrl,
+            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
         //apache http client expects in milliseconds
         HttpHost proxy = null;
         if (proxyUrl != null && !proxyUrl.isEmpty()) {
@@ -723,13 +724,10 @@ public class ZTSClient implements Closeable {
             enablePrefetch = true;
         }
 
-        /* determine our read and connect timeouts */
-
-        int readTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_READ_TIMEOUT, "30000"));
-        int connectTimeout = Integer.parseInt(System.getProperty(ZTS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
+        // determine our read and connect timeouts
 
         PoolingHttpClientConnectionManager connManager = createConnectionManager(sslContext, hostnameVerifier);
-        CloseableHttpClient httpClient = createHttpClient(connectTimeout, readTimeout, sslContext,
+        CloseableHttpClient httpClient = createHttpClient(reqConnectTimeout, reqReadTimeout,
                 proxyUrl, connManager);
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, httpClient);
@@ -2436,9 +2434,9 @@ public class ZTSClient implements Closeable {
         data.setRole(athenzService);
         
         Credentials awsCreds = assumeAWSRole(account, athenzService);
-        data.setAccess(awsCreds.getAccessKeyId());
-        data.setSecret(awsCreds.getSecretAccessKey());
-        data.setToken(awsCreds.getSessionToken());
+        data.setAccess(awsCreds.accessKeyId());
+        data.setSecret(awsCreds.secretAccessKey());
+        data.setToken(awsCreds.sessionToken());
         
         ObjectMapper mapper = new ObjectMapper();
         String jsonData;
@@ -2458,19 +2456,14 @@ public class ZTSClient implements Closeable {
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
         
         final String arn = "arn:aws:iam::" + account + ":role/" + roleName;
-        
-        AssumeRoleRequest req = new AssumeRoleRequest();
-        req.setRoleArn(arn);
-        req.setRoleSessionName(roleName);
-        
-        return req;
+        return AssumeRoleRequest.builder().roleSessionName(roleName).roleArn(arn).build();
     }
     
     Credentials assumeAWSRole(String account, String roleName) {
         
         try {
             AssumeRoleRequest req = getAssumeRoleRequest(account, roleName);
-            return AWSSecurityTokenServiceClientBuilder.defaultClient().assumeRole(req).getCredentials();
+            return StsClient.builder().build().assumeRole(req).credentials();
         } catch (Exception ex) {
             LOG.error("assumeAWSRole - unable to assume role: {}", ex.getMessage());
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
@@ -2504,9 +2497,9 @@ public class ZTSClient implements Closeable {
      * @param domainName name of the domain
      * @param roleName is the name of the role
      * @param externalId (optional) external id to satisfy configured assume role condition
-     * @param minExpiryTime (optional) specifies that the returned RoleToken must be
+     * @param minExpiryTime (optional) specifies that the returned credentials must be
      *          at least valid (min/lower bound) for specified number of seconds,
-     * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
+     * @param maxExpiryTime (optional) specifies that the returned credentials must be
      *          at most valid (max/upper bound) for specified number of seconds.
      * @return AWSCredentialsProvider AWS credential provider
      */
@@ -2514,6 +2507,50 @@ public class ZTSClient implements Closeable {
             String externalId, Integer minExpiryTime, Integer maxExpiryTime) {
         return new AWSCredentialsProviderImpl(this, domainName, roleName, externalId,
                 minExpiryTime, maxExpiryTime);
+    }
+
+    /**
+     * AWSCredential Provider provides AWS Credentials which the caller can
+     * use to authorize an AWS request. It automatically refreshes the credentials
+     * when the current credentials become invalid.
+     * It uses ZTS client to refresh the AWS Credentials. So the ZTS Client must
+     * not be closed while the credential provider is being used.
+     * The caller should close the client when the provider is no longer required.
+     * For a given domain and role return AWS temporary credential provider
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @return AWSCredentialsProvider AWS credential provider
+     */
+    public AwsCredentialsProvider getAWSCredentialProviderV2(String domainName, String roleName) {
+        return new AWSCredentialsProviderImplV2(this, domainName, roleName);
+    }
+
+    /**
+     * AWSCredential Provider provides AWS Credentials which the caller can
+     * use to authorize an AWS request. It automatically refreshes the credentials
+     * when the current credentials become invalid.
+     * It uses ZTS client to refresh the AWS Credentials. So the ZTS Client must
+     * not be closed while the credential provider is being used.
+     * The caller should close the client when the provider is no longer required.
+     * For a given domain and role return AWS temporary credential provider
+     * @param domainName name of the domain
+     * @param roleName is the name of the role
+     * @param externalId (optional) external id to satisfy configured assume role condition
+     * @param expiryTime (optional) specifies that the returned credentials must be
+     *          valid for specified number of seconds
+     * @return AwsCredentialsProvider AWS credential provider
+     */
+    public AwsCredentialsProvider getAWSCredentialProviderV2(String domainName, String roleName,
+            String externalId, Integer expiryTime) {
+        Integer minExpiryTime = null;
+        if (expiryTime != null) {
+            if (expiryTime < tokenMinExpiryTime) {
+                throw new IllegalArgumentException("Expiry Time must be higher than " + tokenMinExpiryTime);
+            } else {
+                minExpiryTime = tokenMinExpiryTime;
+            }
+        }
+        return new AWSCredentialsProviderImplV2(this, domainName, roleName, externalId, minExpiryTime, expiryTime);
     }
 
     /**
@@ -2549,9 +2586,9 @@ public class ZTSClient implements Closeable {
      *
      * @param domainName name of the domain
      * @param roleName is the name of the role
-     * @param minExpiryTime (optional) specifies that the returned RoleToken must be
+     * @param minExpiryTime (optional) specifies that the returned credentials must be
      *          at least valid (min/lower bound) for specified number of seconds,
-     * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
+     * @param maxExpiryTime (optional) specifies that the returned credentials must be
      *          at most valid (max/upper bound) for specified number of seconds.
      * @param externalId (optional) external id to satisfy configured assume role condition
      * @return AWSTemporaryCredentials AWS credentials
@@ -2569,9 +2606,9 @@ public class ZTSClient implements Closeable {
      *
      * @param domainName name of the domain
      * @param roleName is the name of the role
-     * @param minExpiryTime (optional) specifies that the returned RoleToken must be
+     * @param minExpiryTime (optional) specifies that the returned credentials must be
      *          at least valid (min/lower bound) for specified number of seconds,
-     * @param maxExpiryTime (optional) specifies that the returned RoleToken must be
+     * @param maxExpiryTime (optional) specifies that the returned credentials must be
      *          at most valid (max/upper bound) for specified number of seconds.
      * @param externalId (optional) external id to satisfy configured assume role condition
      * @param ignoreCache whether or not ignore the cache for this request

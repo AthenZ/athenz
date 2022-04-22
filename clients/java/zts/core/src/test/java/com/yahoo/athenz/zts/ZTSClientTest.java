@@ -55,7 +55,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -65,6 +64,8 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.impl.SimpleServiceIdentityProvider;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.Timestamp;
+
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 public class ZTSClientTest {
 
@@ -2962,8 +2963,8 @@ public class ZTSClientTest {
         ZTSClient client = new ZTSClient("http://localhost:4080");
         AssumeRoleRequest req = client.getAssumeRoleRequest("1234", "role1");
         assertNotNull(req);
-        assertEquals(req.getRoleArn(), "arn:aws:iam::1234:role/role1");
-        assertEquals(req.getRoleSessionName(), "role1");
+        assertEquals(req.roleArn(), "arn:aws:iam::1234:role/role1");
+        assertEquals(req.roleSessionName(), "role1");
         client.close();
     }
 

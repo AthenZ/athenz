@@ -25,11 +25,11 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.HostnameVerifier;
 
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.Crypto;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import software.amazon.awssdk.services.sts.model.Credentials;
 
 public class ZTSClientMock extends ZTSClient {
 
@@ -63,12 +63,7 @@ public class ZTSClientMock extends ZTSClient {
 
     @Override
     Credentials assumeAWSRole(String account, String roleName) {
-        
-        Credentials creds = new Credentials();
-        creds.setAccessKeyId("access");
-        creds.setSecretAccessKey("secret");
-        creds.setSessionToken("token");
-        return creds;
+        return Credentials.builder().accessKeyId("access").secretAccessKey("secret").sessionToken("token").build();
     }
     
     @Override
