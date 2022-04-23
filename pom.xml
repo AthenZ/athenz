@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.11.0-SNAPSHOT</version>
+  <version>1.11.0-alpha1</version>
 
   <name>AthenZ</name>
   <description>
@@ -71,47 +71,48 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>11.0.9</jetty.version>
-    <jersey.version>3.0.4</jersey.version>
-    <jackson.version>2.13.2</jackson.version>
-    <jackson-databind.version>2.13.2.2</jackson-databind.version>
-    <rdl.version>1.5.4</rdl.version>
+    <apache.httpclient.version>4.5.13</apache.httpclient.version>
+    <aws.version>1.12.205</aws.version>
+    <aws2.version>2.17.176</aws2.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <aws.version>1.12.198</aws.version>
-    <aws2.version>2.17.169</aws2.version>
+    <commons.daemon.version>1.3.0</commons.daemon.version>
     <guava.version>31.1-jre</guava.version>
-    <slf4j.version>1.7.36</slf4j.version>
-    <logback.version>1.2.11</logback.version>
+    <hamcrest.version>2.2</hamcrest.version>
+    <jackson-core.version>2.13.2</jackson-core.version>
+    <jackson-databind.version>2.13.2.2</jackson-databind.version>
     <jakarta.activation.version>2.0.1</jakarta.activation.version>
     <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
-    <jakarta.ws.version>3.0.0</jakarta.ws.version>
-    <mockito.version>4.4.0</mockito.version>
-    <jmockit.version>1.49</jmockit.version>
-    <jjwt.version>0.11.2</jjwt.version>
+    <jakarta.ws.version>3.1.0</jakarta.ws.version>
     <jaxb.api.version>3.0.1</jaxb.api.version>
     <jaxb.impl.version>3.0.2</jaxb.impl.version>
-    <nimbus.jose.version>9.21</nimbus.jose.version>
-    <mysql.connector.version>8.0.28</mysql.connector.version>
-    <commons.daemon.version>1.3.0</commons.daemon.version>
-    <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <jboss.resteasy.version>4.7.5.Final</jboss.resteasy.version>
-    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
-    <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
-    <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+    <jersey.version>3.0.4</jersey.version>
+    <jetty.version>11.0.9</jetty.version>
+    <jjwt.version>0.11.3</jjwt.version>
+    <jmockit.version>1.49</jmockit.version>
+    <logback.version>1.3.0-alpha14</logback.version>
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-    <exec-maven-plugin.version>1.1.1</exec-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+    <maven-exec-plugin.version>1.1.1</maven-exec-plugin.version>
+    <maven-jacoco-plugin.version>0.8.5</maven-jacoco-plugin.version>
+    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+    <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
+    <mockito.version>4.5.1</mockito.version>
+    <mysql.connector.version>8.0.28</mysql.connector.version>
+    <nimbus.jose.version>9.22</nimbus.jose.version>
+    <rdl.version>1.5.4</rdl.version>
+    <slf4j.version>2.0.0-alpha7</slf4j.version>
     <swagger.version>2.2.0</swagger.version>
-    <hamcrest.version>2.2</hamcrest.version>
+
+    <code.coverage.min>0.95</code.coverage.min>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <code.coverage.min>0.95</code.coverage.min>
-    <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
     <sonar.projectKey>AthenzSonar-${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.organization>athenz</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+    <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
   </properties>
 
   <modules>
@@ -178,6 +179,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
           <version>2.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -255,7 +261,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${jacoco-maven-plugin.version}</version>
+        <version>${maven-jacoco-plugin.version}</version>
         <executions>
           <execution>
             <goals>
