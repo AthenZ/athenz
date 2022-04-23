@@ -10,7 +10,8 @@ GOPKGNAME = github.com/AthenZ/athenz/libs/go/ztsroletoken
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
-export GOPATH=$(PWD)
+GOPATH := $(shell pwd)
+export $(GOPATH)
 
 ifdef GO
 

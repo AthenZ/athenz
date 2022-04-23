@@ -13,7 +13,8 @@ SRC=zts-roletoken.go
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
-export GOPATH=$(PWD)
+GOPATH := $(shell pwd)
+export $(GOPATH)
 
 ifdef GO
 
