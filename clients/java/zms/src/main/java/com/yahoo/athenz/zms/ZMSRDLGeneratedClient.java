@@ -34,13 +34,13 @@ public class ZMSRDLGeneratedClient {
     private static final int DEFAULT_CLIENT_CONNECT_TIMEOUT_MS = 5000;
     private static final int DEFAULT_CLIENT_READ_TIMEOUT_MS = 30000;
 
-    private final String baseUrl;
+    private String baseUrl;
     private String credsHeader;
     private String credsToken;
 
     private CloseableHttpClient client;
     private HttpContext httpContext;
-    private final ObjectMapper jsonMapper;
+    private ObjectMapper jsonMapper;
 
     protected CloseableHttpClient createHttpClient(HostnameVerifier hostnameVerifier) {
         RequestConfig config = RequestConfig.custom()
@@ -71,26 +71,24 @@ public class ZMSRDLGeneratedClient {
     }
 
     public ZMSRDLGeneratedClient(final String url) {
-        baseUrl = url;
-        client = createHttpClient(null);
-        jsonMapper = new ObjectMapper();
-        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        initClient(url, createHttpClient(null));
     }
 
     public ZMSRDLGeneratedClient(final String url, HostnameVerifier hostnameVerifier) {
-        baseUrl = url;
-        client = createHttpClient(hostnameVerifier);
-        jsonMapper = new ObjectMapper();
-        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        initClient(url, createHttpClient(hostnameVerifier));
     }
 
     public ZMSRDLGeneratedClient(final String url, CloseableHttpClient httpClient) {
+        initClient(url, httpClient);
+    }
+
+    private void initClient(final String url, CloseableHttpClient httpClient) {
         baseUrl = url;
         client = httpClient;
         jsonMapper = new ObjectMapper();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
-    
+
     public void close() {
         try {
             client.close();
@@ -119,7 +117,6 @@ public class ZMSRDLGeneratedClient {
     public void setHttpClient(CloseableHttpClient httpClient) {
         client = httpClient;
     }
-
 
     public Domain getDomain(String domain) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}")
