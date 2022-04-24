@@ -35,15 +35,21 @@ public class AthenzRequestLog extends CustomRequestLog {
     private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
     private static final String REQUEST_URI_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
     private static final String REQUEST_SSL_SESSION    = "org.eclipse.jetty.servlet.request.ssl_session";
+    private static final String LOOPBACK_ADDRESS       = "127.0.0.1";
 
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
 
     private final String logDateFormat = "dd/MMM/yyyy:HH:mm:ss Z";
     private final String logTimeZone = "GMT";
     private final transient DateCache logDateCache = new DateCache(logDateFormat, Locale.getDefault(), logTimeZone);
-    
+
+    private boolean logForwardedForAddr = false;
     public AthenzRequestLog(String filename) {
         super(filename);
+    }
+
+    public void setLogForwardedForAddr(boolean logForwardedForAddr) {
+        this.logForwardedForAddr = logForwardedForAddr;
     }
 
     private void logLength(StringBuilder buf, long length) {
@@ -92,7 +98,10 @@ public class AthenzRequestLog extends CustomRequestLog {
 
     private void logRemoteAddr(StringBuilder buf, Request request) {
 
-        String addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
+        String addr = null;
+        if (logForwardedForAddr) {
+            addr = request.getHeader(HttpHeader.X_FORWARDED_FOR.toString());
+        }
 
         // if we have no x-forwarded-for header or if the value is specified,
         // but it's not a valid ipv4 or ipv6 address, we'll fall back to the
@@ -101,6 +110,11 @@ public class AthenzRequestLog extends CustomRequestLog {
         if (addr == null || (!InetAddressUtils.isIPv4Address(addr) && !InetAddressUtils.isIPv6Address(addr))) {
             addr = request.getRemoteAddr();
         }
+
+        if (StringUtil.isEmpty(addr)) {
+            addr = LOOPBACK_ADDRESS;
+        }
+
         buf.append(addr);
     }
 

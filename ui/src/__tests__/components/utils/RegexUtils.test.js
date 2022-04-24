@@ -16,7 +16,10 @@
 
 import React from 'react';
 import RegexUtils from '../../../components/utils/RegexUtils';
-import { StaticWorkloadType } from '../../../components/constants/constants';
+import {
+    MICROSEGMENTATION_SERVICE_NAME_REGEX,
+    StaticWorkloadType,
+} from '../../../components/constants/constants';
 
 describe('RegexUtils', () => {
     it('should test regex pattern match', () => {
@@ -43,5 +46,20 @@ describe('RegexUtils', () => {
         expect(
             RegexUtils.validate('a.8.9.9', StaticWorkloadType[4].pattern)
         ).toEqual(null);
+        expect(
+            RegexUtils.validate(
+                'domain:group.member',
+                MICROSEGMENTATION_SERVICE_NAME_REGEX
+            )
+        ).toEqual(false);
+        expect(
+            RegexUtils.validate('*', MICROSEGMENTATION_SERVICE_NAME_REGEX)
+        ).toEqual(true);
+        expect(
+            RegexUtils.validate(
+                'domain.service',
+                MICROSEGMENTATION_SERVICE_NAME_REGEX
+            )
+        ).toEqual(true);
     });
 });

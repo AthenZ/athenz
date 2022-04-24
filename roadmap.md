@@ -3,6 +3,13 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q2 2022
+
+- Micro Segmentation: Service Identity based ACLs
+- Move to Jetty 11.x and Jakarta Servlet API 5.x
+- Move to AWS SDK v2
+- Service Dependency visibility based on access check and token requests
+
 # Q1 2022
 
 - Micro Segmentation: Service Identity based ACLs

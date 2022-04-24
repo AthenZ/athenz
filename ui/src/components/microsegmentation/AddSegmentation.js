@@ -25,14 +25,17 @@ import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import Icon from '../denali/icons/Icon';
 import {
+    MICROSEGMENTATION_SERVICE_NAME_REGEX,
     MODAL_TIME_OUT,
     SEGMENTATION_CATEGORIES,
     SEGMENTATION_PROTOCOL,
+    SERVICE_NAME_REGEX,
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import CheckBox from '../denali/CheckBox';
 import MicrosegmentationValidationModal from '../modal/MicrosegmentationValidationModal';
+import RegexUtils from '../utils/RegexUtils';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -154,6 +157,8 @@ export default class AddSegmentation extends React.Component {
         this.editValidationPolicy = this.editValidationPolicy.bind(this);
         this.validateMicrosegmentationPolicy =
             this.validateMicrosegmentationPolicy.bind(this);
+        this.validateFields = this.validateFields.bind(this);
+        this.validateServiceNames = this.validateServiceNames.bind(this);
 
         this.state = {
             category: this.props.editMode
@@ -503,6 +508,24 @@ export default class AddSegmentation extends React.Component {
         return result;
     }
 
+    validateServiceNames(serviceMembers) {
+        let error = true;
+        serviceMembers.forEach((serviceMember) => {
+            let memberName = serviceMember.memberName
+                ? serviceMember.memberName
+                : serviceMember;
+            if (
+                !RegexUtils.validate(
+                    memberName,
+                    MICROSEGMENTATION_SERVICE_NAME_REGEX
+                )
+            ) {
+                error = false;
+            }
+        });
+        return error;
+    }
+
     validateFields() {
         if (this.state.isCategory) {
             if (
@@ -522,6 +545,19 @@ export default class AddSegmentation extends React.Component {
             ) {
                 this.setState({
                     errorMessage: 'Destination Port is required.',
+                    saving: 'todo',
+                });
+                return 1;
+            }
+
+            if (
+                !this.validateServiceNames(
+                    NameUtils.splitNames(this.state.sourceServiceMembers)
+                ) ||
+                !this.validateServiceNames(this.state.members)
+            ) {
+                this.setState({
+                    errorMessage: 'Invalid source service',
                     saving: 'todo',
                 });
                 return 1;
@@ -557,6 +593,19 @@ export default class AddSegmentation extends React.Component {
             if (!this.state.sourcePort || this.state.sourcePort === '') {
                 this.setState({
                     errorMessage: 'Source port is required.',
+                    saving: 'todo',
+                });
+                return 1;
+            }
+
+            if (
+                !this.validateServiceNames(
+                    NameUtils.splitNames(this.state.destinationServiceMembers)
+                ) ||
+                !this.validateServiceNames(this.state.members)
+            ) {
+                this.setState({
+                    errorMessage: 'Invalid destination service.',
                     saving: 'todo',
                 });
                 return 1;

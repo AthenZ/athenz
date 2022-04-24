@@ -75,6 +75,36 @@ func (cli Zms) ImportDomain(dn string, filename string, admins []string) (*strin
 	}
 }
 
+func (cli Zms) getDomainGroups(dn string, newDomain bool) *zms.Groups {
+	// if this is for a new domain then we don't need to fetch
+	// the existing list of groups
+	if newDomain {
+		return nil
+	}
+	members := false
+	groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, "", "")
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Unable to get list of groups - %v\n", err)
+		groups = nil
+	}
+	return groups
+}
+
+func (cli Zms) getDomainRoles(dn string, newDomain bool) *zms.Roles {
+	// if this is for a new domain then we don't need to fetch
+	// the existing list of roles
+	if newDomain {
+		return nil
+	}
+	members := false
+	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, "", "")
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Unable to get list of roles - %v\n", err)
+		roles = nil
+	}
+	return roles
+}
+
 func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newDomain bool) (*string, error) {
 	var validatedAdmins []string = nil
 	if newDomain {
@@ -90,6 +120,9 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 		err = yaml.Unmarshal(data, &signedDomain)
 	} else {
 		err = json.Unmarshal(data, &signedDomain)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	if dn != string(signedDomain.Name) {
@@ -121,7 +154,12 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 		return nil, err
 	}
 
-	err = cli.importRoles(dn, signedDomain.Roles, validatedAdmins, !newDomain)
+	err = cli.importGroups(dn, signedDomain.Groups, cli.getDomainGroups(dn, newDomain), !newDomain)
+	if err != nil {
+		return nil, err
+	}
+
+	err = cli.importRoles(dn, signedDomain.Roles, cli.getDomainRoles(dn, newDomain), validatedAdmins, !newDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -206,6 +244,11 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 			return nil, err
 		}
 	}
+	lstGroups := dnSpec["groups"].([]interface{})
+	err = cli.importGroupsOld(dn, lstGroups, false)
+	if err != nil {
+		return nil, err
+	}
 	lstRoles := dnSpec["roles"].([]interface{})
 	err = cli.importRolesOld(dn, lstRoles, validatedAdmins, false)
 	if err != nil {
@@ -274,6 +317,12 @@ func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 	}
 	if lstServices, ok := dnSpec["services"].([]interface{}); ok {
 		err = cli.importServicesOld(dn, lstServices, true)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if lstGroups, ok := dnSpec["groups"].([]interface{}); ok {
+		err = cli.importGroupsOld(dn, lstGroups, true)
 		if err != nil {
 			return nil, err
 		}
@@ -1159,4 +1208,3 @@ func (cli Zms) GetDependentDomainList(service string) (*string, error) {
 
 	return cli.dumpByFormat(dependentDomains, oldYamlConverter)
 }
-

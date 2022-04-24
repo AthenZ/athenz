@@ -20,6 +20,7 @@ import TextArea from '../denali/TextArea';
 import Icon from '../denali/icons/Icon';
 import FlatPicker from '../flatpicker/FlatPicker';
 import CheckBox from '../denali/CheckBox';
+import { PENDING_APPROVAL_KEY_ENUM } from '../constants/constants';
 
 const SelectAllRejectTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
@@ -165,10 +166,18 @@ export default class PendingApprovalTableHeader extends React.Component {
         let rejectColor = disabled ? colors.grey500 : colors.statusDanger;
         let approveOnClick = disabled
             ? () => {}
-            : this.props.pendingDecision.bind(this, 'SelectAll', true);
+            : this.props.pendingDecision.bind(
+                  this,
+                  PENDING_APPROVAL_KEY_ENUM.SELECTALL,
+                  true
+              );
         let rejectOnClick = disabled
             ? () => {}
-            : this.props.pendingDecision.bind(this, 'SelectAll', false);
+            : this.props.pendingDecision.bind(
+                  this,
+                  PENDING_APPROVAL_KEY_ENUM.SELECTALL,
+                  false
+              );
         return (
             <tr data-testid='pending-approval-table-header'>
                 <SelectAllRejectTableHeaderCheckBox>
@@ -200,7 +209,10 @@ export default class PendingApprovalTableHeader extends React.Component {
                         width='100%'
                         disabled={disabled}
                         onChange={(event) => {
-                            this.props.auditRefChange('SelectAll', event);
+                            this.props.auditRefChange(
+                                PENDING_APPROVAL_KEY_ENUM.SELECTALL,
+                                event
+                            );
                         }}
                     />
                     {this.props.auditRefMissing ? (
@@ -212,7 +224,7 @@ export default class PendingApprovalTableHeader extends React.Component {
                         <FlatPicker
                             onChange={(date) => {
                                 this.props.dateChange(
-                                    'SelectAll',
+                                    PENDING_APPROVAL_KEY_ENUM.SELECTALL,
                                     date,
                                     'expiry'
                                 );
@@ -228,7 +240,7 @@ export default class PendingApprovalTableHeader extends React.Component {
                         <FlatPicker
                             onChange={(date) => {
                                 this.props.dateChange(
-                                    'SelectAll',
+                                    PENDING_APPROVAL_KEY_ENUM.SELECTALL,
                                     date,
                                     'reviewReminder'
                                 );

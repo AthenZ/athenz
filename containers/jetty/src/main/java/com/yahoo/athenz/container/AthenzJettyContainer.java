@@ -114,8 +114,6 @@ public class AthenzJettyContainer {
     
     public void addRequestLogHandler() {
 
-//        RequestLogHandler requestLogHandler = new RequestLogHandler();
-
         // check to see if we have a slf4j logger name specified. if we don't
         // then we'll just use our NCSARequestLog extended Athenz logger
         // when using the slf4j logger we don't have the option to pass
@@ -136,24 +134,13 @@ public class AthenzJettyContainer {
                     getRootDir() + "/logs/athenz");
             String logName = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_NAME,
                     "access.yyyy_MM_dd.log");
+            boolean logForwardedForAddr = Boolean.parseBoolean(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_LOG_FORWARDED_FOR_ADDR, "false"));
 
             AthenzRequestLog requestLog = new AthenzRequestLog(logDir + File.separator + logName);
+            requestLog.setLogForwardedForAddr(logForwardedForAddr);
             server.setRequestLog(requestLog);
-
-//            requestLog.setAppend(true);
-//            requestLog.setExtended(true);
-//            requestLog.setPreferProxiedForAddress(true);
-//            requestLog.setLogTimeZone("GMT");
-//
-//            String retainDays = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_LOG_RETAIN_DAYS, "31");
-//            int days = Integer.parseInt(retainDays);
-//            if (days > 0) {
-//                requestLog.setRetainDays(days);
-//            }
-//            requestLogHandler.setRequestLog(requestLog);
         }
-        
-        //handlers.addHandler(requestLogHandler);
     }
     
     public void addServletHandlers(String serverHostName) {

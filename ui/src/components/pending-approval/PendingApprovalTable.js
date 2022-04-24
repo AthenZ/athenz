@@ -238,13 +238,15 @@ export default class PendingApprovalTable extends React.Component {
                     selectAllAuditMissing: true,
                 });
             } else {
+                // if reject action, no need to validate date
                 if (
-                    !this.dateUtils.validateDate(
+                    approved &&
+                    (this.dateUtils.validateDate(
                         this.state.selectAllDateExpiry
                     ) ||
-                    !this.dateUtils.validateDate(
-                        this.state.selectAllDateReviewReminder
-                    )
+                        this.dateUtils.validateDate(
+                            this.state.selectAllDateReviewReminder
+                        ))
                 ) {
                     this.setState({
                         errorMessage: DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE,
@@ -317,13 +319,15 @@ export default class PendingApprovalTable extends React.Component {
                     pendingMap: pendingMap,
                 });
             } else {
+                // if reject action, no need to validate date
                 if (
-                    this.dateUtils.validateDate(
+                    approved &&
+                    (this.dateUtils.validateDate(
                         this.state.pendingMap[key].expiryDate
                     ) ||
-                    this.dateUtils.validateDate(
-                        this.state.pendingMap[key].reviewReminder
-                    )
+                        this.dateUtils.validateDate(
+                            this.state.pendingMap[key].reviewReminder
+                        ))
                 ) {
                     this.setState({
                         errorMessage: DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE,
