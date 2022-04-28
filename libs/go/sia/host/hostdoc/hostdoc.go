@@ -19,6 +19,8 @@ package hostdoc
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
+	"io/ioutil"
 	"net"
 	"strings"
 
@@ -47,22 +49,9 @@ type Doc struct {
 	Bytes    []byte
 }
 
-// doc is used mainly for unmarshalling the raw doc
-// it is used for backward compatibility to allow both service and services keys
-type doc struct {
-	Provider string   `json:"provider"`
-	Domain   string   `json:"domain"`
-	Service  string   `json:"service"`
-	Services string   `json:"services"`
-	Profile  string   `json:"profile"`
-	Uuid     string   `json:"uuid"`
-	Ip       []string `json:"ip,omitempty"`
-	Zone     string   `json:"zone"`
-}
-
 // NewPlainDoc returns Doc, the provider string from the host_document, and an error
 func NewPlainDoc(bytes []byte) (*Doc, string, error) {
-	var d doc
+	var d raw.Doc
 	err := json.Unmarshal(bytes, &d)
 	if err != nil {
 		return nil, "", err
@@ -105,4 +94,12 @@ func NewPlainDoc(bytes []byte) (*Doc, string, error) {
 		Ip:       ip,
 		Bytes:    bytes,
 	}, d.Provider, nil
+}
+
+func Write(doc raw.Doc, docPath string) error {
+	docJsonBytes, err := json.Marshal(doc)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(docPath, docJsonBytes, 0644)
 }

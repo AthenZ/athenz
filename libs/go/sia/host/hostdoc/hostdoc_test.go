@@ -17,7 +17,11 @@
 package hostdoc
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -87,7 +91,7 @@ func TestNewHostDocNoDomain(t *testing.T) {
 	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.nodomain"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	_, _,  err = NewPlainDoc(docBytes)
+	_, _, err = NewPlainDoc(docBytes)
 	a.NotNil(err)
 	a.Containsf(err.Error(), "unable to find domain in host_document,", "unexpected err: %v", err)
 }
@@ -98,7 +102,7 @@ func TestNewHostDocMultipleSvcs(t *testing.T) {
 	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.services"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	hostDoc, pvdrStr,  err := NewPlainDoc(docBytes)
+	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
 	a.Nil(err)
 	a.Equal(hostDoc.Domain, "athenz.examples", "domain should match")
 	a.Equalf("httpd", hostDoc.Services[0], "unexpected service, svcs: %+v", hostDoc.Services)
@@ -112,7 +116,7 @@ func TestNewHostDocNoService(t *testing.T) {
 	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.noservice"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	_, _,  err = NewPlainDoc(docBytes)
+	_, _, err = NewPlainDoc(docBytes)
 	a.NotNil(err)
 	a.Containsf(err.Error(), "unable to find service or services in host_document,", "unexpected err: %v", err)
 }
@@ -123,7 +127,7 @@ func TestNewHostDocIp(t *testing.T) {
 	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.ip"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	hostDoc, pvdrStr,  err := NewPlainDoc(docBytes)
+	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
 	a.Nil(err)
 	a.Equal(hostDoc.Domain, "athenz.examples", "domain should match")
 	a.Equalf("infra.provider-baremetal", pvdrStr, "unexpected provider, provider: %+v", hostDoc.Provider)
@@ -137,7 +141,7 @@ func TestNewHostDocIpUncompressed(t *testing.T) {
 	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.ip.uncompressed"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	hostDoc, pvdrStr,  err := NewPlainDoc(docBytes)
+	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
 	a.Nil(err)
 	a.Equal(hostDoc.Domain, "athenz.examples", "domain should match")
 	a.Equalf("infra.provider-baremetal", pvdrStr, "unexpected provider, provider: %+v", hostDoc.Provider)
@@ -152,7 +156,7 @@ func TestNewHostDocIpUpperCase(t *testing.T) {
 	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.ip.uppercase"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	hostDoc, pvdrStr,  err := NewPlainDoc(docBytes)
+	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
 	a.Nil(err)
 	a.Equal(hostDoc.Domain, "athenz.examples", "domain should match")
 	a.Equalf("infra.provider-baremetal", pvdrStr, "unexpected provider, provider: %+v", hostDoc.Provider)
@@ -160,3 +164,82 @@ func TestNewHostDocIpUpperCase(t *testing.T) {
 	a.Truef(hostDoc.Ip["2001:4998:f00a:1fc::5301"], "unexpected ips: %+v", hostDoc.Ip)
 }
 
+func parseHostDocument(hostDocPath string) (*raw.Doc, error) {
+	hostDocBytes, err := ioutil.ReadFile(hostDocPath)
+	if err != nil {
+		return nil, err
+	}
+	if len(hostDocBytes) == 0 {
+		return nil, err
+	}
+	var doc raw.Doc
+	err = json.Unmarshal(hostDocBytes, &doc)
+	if err != nil {
+		return nil, err
+	}
+	return &doc, err
+}
+
+func TestWriteHostDoc(t *testing.T) {
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(t, err, "should be able to create temp folder for sia")
+	defer os.RemoveAll(siaDir)
+
+	type args struct {
+		doc         raw.Doc
+		hostDocPath string
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantErr    bool
+		wantErrStr string
+	}{
+		{
+			name: "should be able to generate host document",
+			args: args{
+				doc: raw.Doc{
+					Provider: "aws",
+					Domain:   "athens",
+					Service:  "dev,stage",
+					Profile:  "dev-profile",
+					Uuid:     "12345",
+					Zone:     "west",
+				},
+				hostDocPath: siaDir + "/host_document",
+			},
+			wantErr: false,
+		}, {
+			name: "should throw an error while writing to the file",
+			args: args{
+				doc: raw.Doc{
+					Provider: "aws",
+					Domain:   "athens",
+					Service:  "dev,stage",
+					Profile:  "dev-profile",
+					Uuid:     "12345",
+					Zone:     "west",
+				},
+				hostDocPath: "/sia.123/host_document",
+			},
+			wantErr:    true,
+			wantErrStr: "open /sia.123/host_document: no such file or directory",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := Write(tt.args.doc, tt.args.hostDocPath)
+			if err != nil {
+				if err.Error() != tt.wantErrStr {
+					t.Errorf("Write() error = %v, wantErrStr %v", err.Error(), tt.wantErrStr)
+				}
+			} else {
+				doc, err := parseHostDocument(tt.args.hostDocPath)
+				if err != nil {
+					t.Errorf("parse host document error = %v", err)
+				}
+				assert.Equal(t, tt.args.doc, *doc, fmt.Sprintf("hostDoc has %v, expected %v", tt.args.doc, *doc))
+			}
+		})
+	}
+}
