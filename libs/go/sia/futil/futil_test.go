@@ -13,10 +13,7 @@ import (
 )
 
 func TestWriteFile(t *testing.T) {
-	dir, err := os.MkdirTemp("", "writeFile")
-	require.Nilf(t, err, "unexpected err: %v", err)
-
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	type args struct {
 		name string
@@ -56,9 +53,7 @@ func TestWriteFile(t *testing.T) {
 }
 
 func TestMakeSiaDirs(t *testing.T) {
-	dir, err := os.MkdirTemp("", "siaDir")
-	require.Nilf(t, err, "unexpected err: %v", err)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	type args struct {
 		dirs []string
@@ -103,10 +98,8 @@ func TestMakeSiaDirs(t *testing.T) {
 }
 
 func TestSymlink(t *testing.T) {
-	sshDir, err := ioutil.TempDir("", "ssh.")
-	require.Nilf(t, err, "unexpected err: %v", err)
+	sshDir := t.TempDir()
 	log.Printf("sshDir: %q", sshDir)
-	defer os.RemoveAll(sshDir)
 
 	source := filepath.Join(sshDir, "source")
 	ioutil.WriteFile(source, []byte("source file"), 0400)
@@ -114,7 +107,7 @@ func TestSymlink(t *testing.T) {
 	existingLink := filepath.Join(sshDir, "existingLink")
 	existingSource := filepath.Join(sshDir, "existingSource")
 	ioutil.WriteFile(existingSource, []byte("earlier source file"), 0000)
-	err = os.Symlink(existingSource, existingLink)
+	err := os.Symlink(existingSource, existingLink)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	regularFile := filepath.Join(sshDir, "regular")

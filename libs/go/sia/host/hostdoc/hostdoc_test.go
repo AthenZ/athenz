@@ -19,11 +19,11 @@ package hostdoc
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -181,9 +181,7 @@ func parseHostDocument(hostDocPath string) (*raw.Doc, error) {
 }
 
 func TestWriteHostDoc(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	defer os.RemoveAll(siaDir)
+	siaDir := t.TempDir()
 
 	type args struct {
 		doc         raw.Doc
