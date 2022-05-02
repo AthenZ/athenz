@@ -27,12 +27,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/access/config"
-	"github.com/dimfeld/httptreemux"
-	"github.com/golang-jwt/jwt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
 	"log"
@@ -48,6 +42,13 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/dimfeld/httptreemux"
+	"github.com/golang-jwt/jwt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type AccessTokenClaims struct {
@@ -84,9 +85,7 @@ func (t *testServer) baseUrl(version string) string {
 }
 
 func TestToBeRefreshed(t *testing.T) {
-	tokenDir, err := ioutil.TempDir("", "tokens")
-	require.Nilf(t, err, "should be able to create a temp directory")
-	//defer os.RemoveAll(tokenDir)
+	tokenDir := t.TempDir()
 
 	log.Printf("temp dir: %s\n", tokenDir)
 	domain := "athenz.examples"
@@ -132,7 +131,7 @@ func TestToBeRefreshed(t *testing.T) {
 	}
 
 	domainDir := filepath.Join(tokenDir, domain)
-	err = os.Mkdir(domainDir, 0755)
+	err := os.Mkdir(domainDir, 0755)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create directory: %s", domainDir))
 
 	tpath := filepath.Join(tokenDir, domain, "reader")
@@ -201,9 +200,7 @@ func TestTokenDirs(t *testing.T) {
 
 // TestAccessTokensSuccess verifies that access tokens are not refreshed on subsequent retry if age of the token is not oldenough
 func TestAccessTokensSuccess(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	//defer os.RemoveAll(hcaDir)
+	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -242,13 +239,13 @@ func TestAccessTokensSuccess(t *testing.T) {
 
 	// 1) Normal Fetch Tokens
 	errs := Fetch(opts)
-	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts)
 
 	// 2) Write token errors
 	// Set old time stamp on a token
 	tpath := filepath.Join(opts.TokenDir, "athenz.demo", "token1")
-	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
+	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time on: %s, err: %v", tpath, err)
 
 	// Set incorrect owner ship
@@ -263,9 +260,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 
 // TestAccessTokensRerun verifies that access tokens are being fetched
 func TestAccessTokensRerun(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	//defer os.RemoveAll(hcaDir)
+	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -300,7 +295,7 @@ func TestAccessTokensRerun(t *testing.T) {
 
 	// 1) Normal Fetch Tokens
 	errs := Fetch(opts)
-	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts)
 
 	// Note the time stamp in 'before'
@@ -338,9 +333,7 @@ func TestAccessTokensRerun(t *testing.T) {
 
 // TestAccessTokensUserAgent verifies that user agent is set in client calls
 func TestAccessTokensUserAgent(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	//defer os.RemoveAll(hcaDir)
+	siaDir := t.TempDir()
 
 	userAgent := "tokencli-1.0.0 colo-a"
 
@@ -381,15 +374,13 @@ func TestAccessTokensUserAgent(t *testing.T) {
 
 	// Normal Fetch Tokens
 	errs := Fetch(opts)
-	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts)
 }
 
 // TestAccessTokensMixedTokenErrors verifies that access tokens fetchable for the good tokens
 func TestAccessTokensMixedTokenErrors(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	//defer os.RemoveAll(hcaDir)
+	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -425,12 +416,12 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 
 	// Fetch tokens, there should be no errors here
 	errs := Fetch(opts)
-	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts)
 
 	// Force an older time stamp on token1
 	tpath := filepath.Join(opts.TokenDir, opts.Tokens[0].Domain, opts.Tokens[0].FileName)
-	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
+	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time, err: %v", err)
 
 	// Force a bad token at token2
@@ -451,9 +442,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 
 // TestAccessTokensApiErrors verifies that ZTS api errors are handled correctly
 func TestAccessTokensApiErrors(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	//defer os.RemoveAll(hcaDir)
+	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -500,12 +489,12 @@ func TestAccessTokensApiErrors(t *testing.T) {
 
 	// Fetch tokens, there should be no errors here
 	errs := Fetch(opts)
-	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts)
 
 	// Handling ZTS 500s
 	tpath := filepath.Join(opts.TokenDir, opts.Tokens[0].Domain, opts.Tokens[0].FileName)
-	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
+	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time, err: %v", err)
 	before, err := os.Stat(tpath)
 	assert.NoErrorf(t, err, "should be able to stat file: %s, err: %v", tpath, err)
@@ -538,9 +527,7 @@ func TestAccessTokensEmpty(t *testing.T) {
 
 // TestAccessTokensBadCerts verifies that an error is returned when no certs are found
 func TestAccessTokensBadCerts(t *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
-	//defer os.RemoveAll(hcaDir)
+	siaDir := t.TempDir()
 
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",

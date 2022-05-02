@@ -18,15 +18,16 @@ package sia
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/devel/ztsmock"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 func setup() {
@@ -56,15 +57,11 @@ func TestGetProviderName(test *testing.T) {
 }
 
 func TestRegisterInstance(test *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
-
-	require.Nil(test, err)
 
 	opts := &options.Options{
 		Domain: "athenz",
@@ -103,7 +100,7 @@ func TestRegisterInstance(test *testing.T) {
 		Document:          nil,
 	}
 
-	err = RegisterInstance([]*attestation.Data{a}, "http://127.0.0.1:5081/zts/v1", &identityDocument, opts)
+	err := RegisterInstance([]*attestation.Data{a}, "http://127.0.0.1:5081/zts/v1", &identityDocument, opts)
 	assert.Nil(test, err, "unable to regster instance")
 
 	_, err = os.Stat(keyFile)
@@ -117,13 +114,9 @@ func TestRegisterInstance(test *testing.T) {
 }
 
 func TestRegisterInstanceMultiple(test *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
-
-	require.Nil(test, err)
 
 	opts := &options.Options{
 		Domain: "athenz",
@@ -162,7 +155,7 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 		Document:          nil,
 	}
 
-	err = RegisterInstance(data, "http://127.0.0.1:5081/zts/v1", &identityDocument, opts)
+	err := RegisterInstance(data, "http://127.0.0.1:5081/zts/v1", &identityDocument, opts)
 	assert.Nil(test, err, "unable to regster instance")
 
 	// Verify the first service
@@ -198,15 +191,13 @@ func copyFile(src, dst string) error {
 }
 
 func TestRefreshInstance(test *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
 
-	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	err := copyFile("devel/data/unit_test_key.pem", keyFile)
 	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
 
 	err = copyFile("devel/data/cert.pem", certFile)
@@ -259,16 +250,14 @@ func TestRefreshInstance(test *testing.T) {
 }
 
 func TestRoleCertificateRequest(test *testing.T) {
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
 	roleCertFile := fmt.Sprintf("%s/testrole.cert.pem", siaDir)
 
-	err = copyFile("devel/data/unit_test_key.pem", keyFile)
+	err := copyFile("devel/data/unit_test_key.pem", keyFile)
 	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
 
 	err = copyFile("devel/data/cert.pem", certFile)
