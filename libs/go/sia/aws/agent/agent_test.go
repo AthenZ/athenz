@@ -30,7 +30,6 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func setup() {
@@ -106,15 +105,11 @@ func TestUpdateFileExisting(test *testing.T) {
 
 func TestRegisterInstance(test *testing.T) {
 
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
-
-	require.Nil(test, err)
 
 	opts := &options.Options{
 		Domain: "athenz",
@@ -138,7 +133,7 @@ func TestRegisterInstance(test *testing.T) {
 		Role: "athenz.hockey",
 	}
 
-	err = RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, false)
+	err := RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, false)
 	assert.Nil(test, err, "unable to register instance")
 
 	if err != nil {
@@ -169,15 +164,13 @@ func copyFile(src, dst string) error {
 
 func TestRefreshInstance(test *testing.T) {
 
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
 
-	err = copyFile("devel/data/key.pem", keyFile)
+	err := copyFile("devel/data/key.pem", keyFile)
 	if err != nil {
 		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
 		return
@@ -228,16 +221,14 @@ func TestRefreshInstance(test *testing.T) {
 
 func TestRoleCertificateRequest(test *testing.T) {
 
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(test, err)
-	defer os.RemoveAll(siaDir)
+	siaDir := test.TempDir()
 
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
 	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
 	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
 	roleCertFile := fmt.Sprintf("%s/testrole.cert.pem", siaDir)
 
-	err = copyFile("devel/data/key.pem", keyFile)
+	err := copyFile("devel/data/key.pem", keyFile)
 	if err != nil {
 		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
 		return

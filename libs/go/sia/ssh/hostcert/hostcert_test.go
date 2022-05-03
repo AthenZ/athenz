@@ -38,11 +38,8 @@ const EC_HOST_CERT = "ssh_host_ecdsa_key-cert.pub"
 
 const sshcaKeyId = "AthenzSSHCA"
 
-func makeSshDir() (string, string, error) {
-	sshDir, err := ioutil.TempDir("", "ssh.")
-	if err != nil {
-		return "", "", err
-	}
+func makeSshDir(t *testing.T) (string, string, error) {
+	sshDir := t.TempDir()
 
 	defaultCert, err := makeHostCert(sshDir, sshcaKeyId, EC_HOST_CERT)
 	if err != nil {
@@ -95,8 +92,7 @@ func makeHostCertFromKey(keyId string, prikey crypto.PrivateKey, pubkey crypto.P
 }
 
 func TestLoad(t *testing.T) {
-	sshDir, validCert, err := makeSshDir()
-	defer os.RemoveAll(sshDir)
+	sshDir, validCert, err := makeSshDir(t)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	invalidCert := filepath.Join(sshDir, "invalid_cert")
@@ -143,8 +139,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestVerifyFn(t *testing.T) {
-	sshDir, validCert, err := makeSshDir()
-	defer os.RemoveAll(sshDir)
+	sshDir, validCert, err := makeSshDir(t)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	notHostCert := filepath.Join(sshDir, "ssh_host_rsa_key.pub")
@@ -206,8 +201,7 @@ func TestVerifyFn(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	sshDir, hostCertFile, err := makeSshDir()
-	defer os.RemoveAll(sshDir)
+	sshDir, hostCertFile, err := makeSshDir(t)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	hostCertBytes, err := ioutil.ReadFile(hostCertFile)

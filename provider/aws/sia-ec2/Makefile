@@ -4,13 +4,15 @@ export GOPRIVATE=github.com
 
 FMT_LOG=/tmp/fmt.log
 
-build: get build_mac build_linux build_windows test
+all: build_darwin build_linux build_windows test
 
-mac:   get build_mac test
+build: get all
+
+mac:   get build_darwin test
 
 linux: get build_linux test
 
-build_mac:
+build_darwin:
 	@echo "Building mac client..."
 	GOOS=darwin go install -ldflags -v $(GOPKGNAME)/...
 

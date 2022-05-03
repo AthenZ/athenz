@@ -139,10 +139,15 @@
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
     <module>clients/go/msd</module>
+    <module>libs/go/sia</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
     <module>libs/go/athenzutils</module>
     <module>libs/go/athenzconf</module>
+    <module>provider/aws/sia-ec2</module>
+    <module>provider/aws/sia-eks</module>
+    <module>provider/aws/sia-fargate</module>
+    <module>provider/azure/sia-vm</module>
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
     <module>utils/zms-svctoken</module>

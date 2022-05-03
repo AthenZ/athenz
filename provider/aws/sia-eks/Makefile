@@ -7,7 +7,9 @@ FMT_LOG=/tmp/fmt.log
 BUILD_VERSION:=development
 CENTOS_VERSION:=7
 
-local: test build
+all: build_darwin build_linux test
+
+local: build test
 
 darwin: build_darwin test
 

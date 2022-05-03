@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -31,9 +30,7 @@ import (
 )
 
 func TestPubKey(t *testing.T) {
-	tmpSshDir, e := ioutil.TempDir("", "ssh")
-	require.Nilf(t, e, "unexpected error: %v", e)
-	defer os.RemoveAll(tmpSshDir)
+	tmpSshDir := t.TempDir()
 
 	sshPubFile := fmt.Sprintf(filepath.Join(tmpSshDir, "ssh_host_ed25519_key.pub"))
 
