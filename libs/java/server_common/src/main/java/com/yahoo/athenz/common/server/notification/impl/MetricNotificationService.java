@@ -65,6 +65,7 @@ public class MetricNotificationService implements NotificationService {
             }
         }
 
+        metric.flush();
         return true;
     }
 }
