@@ -39,14 +39,14 @@ func FromPEMBytes(pemBytes []byte) (*x509.Certificate, error) {
 func IsExpiryAfterThreshold(certFile string, thresholdDays float64) (bool, error) {
 	x509Cert, err := FromFile(certFile)
 	if err != nil {
-		return true, err
+		return false, err
 	}
 
 	thresholdTime := time.Now().Add(time.Duration(thresholdDays * 24) * time.Hour)
 	certExpiry := x509Cert.NotAfter
 	if certExpiry.After(thresholdTime) {
-		return false, nil
+		return true, nil
 	}
 
-	return true, nil
+	return false, nil
 }
