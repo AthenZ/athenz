@@ -200,7 +200,11 @@ func TestTokenDirs(t *testing.T) {
 
 // TestAccessTokensSuccess verifies that access tokens are not refreshed on subsequent retry if age of the token is not oldenough
 func TestAccessTokensSuccess(t *testing.T) {
-	siaDir := t.TempDir()
+	// for this test case we're not going to use t.TempDir() since
+	// we test the ownership access failure and with the test case
+	// the temp dir cleanup fails thus failing the test case.
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(t, err, "should be able to create temp folder for sia")
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -245,7 +249,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 	// 2) Write token errors
 	// Set old time stamp on a token
 	tpath := filepath.Join(opts.TokenDir, "athenz.demo", "token1")
-	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
+	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time on: %s, err: %v", tpath, err)
 
 	// Set incorrect owner ship
