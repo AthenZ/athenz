@@ -395,6 +395,7 @@ public class AthenzJettyContainer {
         }
 
         sslContextFactory.setRenegotiationAllowed(renegotiationAllowed);
+        sslContextFactory.setSniRequired(false);
 
         return sslContextFactory;
     }
@@ -416,20 +417,13 @@ public class AthenzJettyContainer {
         server.addConnector(connector);
     }
     
-    void addHTTPSConnector(HttpConfiguration httpConfig, int httpsPort, boolean proxyProtocol,
+    void addHTTPSConnector(HttpConfiguration httpsConfig, int httpsPort, boolean proxyProtocol,
             String listenHost, int idleTimeout, boolean needClientAuth, JettyConnectionLogger connectionLogger) {
         
         // SSL Context Factory
     
         SslContextFactory.Server sslContextFactory = createSSLContextObject(needClientAuth);
-    
-        // SSL HTTP Configuration
-        
-        HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
-        httpsConfig.setSecureScheme("https");
-        httpsConfig.setSecurePort(httpsPort);
-        httpsConfig.addCustomizer(new SecureRequestCustomizer());
-    
+
         // SSL Connector
         
         ServerConnector sslConnector;
@@ -496,10 +490,16 @@ public class AthenzJettyContainer {
         // HTTPS Connector
 
         if (httpsPort > 0) {
+
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.setSecureScheme("https");
+            httpsConfig.setSecurePort(httpsPort);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
             boolean needClientAuth = Boolean.parseBoolean(
                     System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
 
-            addHTTPSConnector(httpConfig, httpsPort, proxyProtocol, listenHost,
+            addHTTPSConnector(httpsConfig, httpsPort, proxyProtocol, listenHost,
                     idleTimeout, needClientAuth, connectionLogger);
         }
         
@@ -508,7 +508,13 @@ public class AthenzJettyContainer {
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
             
             if (httpsPort > 0) {
-                addHTTPSConnector(httpConfig, statusPort, false, listenHost, idleTimeout, false, connectionLogger);
+
+                HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+                httpsConfig.setSecureScheme("https");
+                httpsConfig.setSecurePort(httpsPort);
+                httpsConfig.addCustomizer(new SecureRequestCustomizer(false, false, -1L, false));
+
+                addHTTPSConnector(httpsConfig, statusPort, false, listenHost, idleTimeout, false, connectionLogger);
             } else if (httpPort > 0) {
                 addHTTPConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
             }
