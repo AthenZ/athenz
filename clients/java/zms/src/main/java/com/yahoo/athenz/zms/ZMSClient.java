@@ -30,6 +30,7 @@ import javax.net.ssl.SSLContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -58,6 +59,7 @@ public class ZMSClient implements Closeable {
     private Principal principal = null;
     private boolean principalCheckDone = false;
     protected ZMSRDLGeneratedClient client = null;
+    static private DnsResolver dnsResolver = null;
 
     private static final String STR_ENV_ROOT = "ROOT";
     private static final String STR_DEF_ROOT = "/home/athenz";
@@ -188,6 +190,14 @@ public class ZMSClient implements Closeable {
      */
     public void close() {
         client.close();
+    }
+
+    /**
+     * Set the DNSResolver to be used by the ZMS Client
+     * @param resolver user supplied dns resolver
+     */
+    public void setDnsResolver(DnsResolver resolver) {
+        dnsResolver = resolver;
     }
 
     public void setZMSRDLGeneratedClient(ZMSRDLGeneratedClient client) {
@@ -321,7 +331,8 @@ public class ZMSClient implements Closeable {
                 .register("https", new SSLConnectionSocketFactory(sslContext))
                 .register("http", new PlainConnectionSocketFactory())
                 .build();
-        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager
+                = new PoolingHttpClientConnectionManager(registry, dnsResolver);
 
         //route is host + port.  Since we have only one, set the max and the route the same
         poolingHttpClientConnectionManager.setDefaultMaxPerRoute(30);

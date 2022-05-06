@@ -49,6 +49,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -110,6 +111,7 @@ public class ZTSClient implements Closeable {
     static private String x509CertDNSName = null;
     static private String confZtsUrl = null;
     static private JwtsSigningKeyResolver resolver = null;
+    static private DnsResolver dnsResolver = null;
     
     private boolean enablePrefetch = true;
     private boolean ztsClientOverride = false;
@@ -520,6 +522,14 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Set the DNSResolver to be used by the ZTS Client
+     * @param resolver user supplied dns resolver
+     */
+    public static void setDnsResolver(DnsResolver resolver) {
+        dnsResolver = resolver;
+    }
+
+    /**
      * Sets a notificationSender that will listen to notifications and send them (usually to domain admins)
      * @param notificationSender notification sender
      */
@@ -732,7 +742,6 @@ public class ZTSClient implements Closeable {
                 proxyUrl, connManager);
 
         ztsClient = new ZTSRDLGeneratedClient(ztsUrl, httpClient);
-        
         principal = identity;
         domain = domainName;
         service = serviceName;
@@ -765,7 +774,8 @@ public class ZTSClient implements Closeable {
                 .register("https", sslSocketFactory)
                 .register("http", new PlainConnectionSocketFactory())
                 .build();
-        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager
+                = new PoolingHttpClientConnectionManager(registry, dnsResolver);
 
         // we'll use the default values from apache http connector - max 20 and per route 2
 

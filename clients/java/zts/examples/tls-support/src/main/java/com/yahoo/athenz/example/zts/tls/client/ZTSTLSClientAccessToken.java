@@ -26,6 +26,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.http.conn.DnsResolver;
 
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
@@ -37,6 +38,8 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ZTSTLSClientAccessToken {
 
@@ -62,6 +65,7 @@ public class ZTSTLSClientAccessToken {
         final String idTokenService = cmd.getOptionValue("idTokenService");
         final String expiryTime = cmd.getOptionValue("expiryTime");
         final String hostnameOverride = cmd.getOptionValue("hostnameOverride");
+        final String resolveHostname = cmd.getOptionValue("resolveHostname");
 
         // we are going to setup our service private key and
         // certificate into a ssl context that we can use with
@@ -72,6 +76,10 @@ public class ZTSTLSClientAccessToken {
                     certPath, keyPath);
             SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                     keyRefresher.getTrustManagerProxy());
+
+            if (resolveHostname != null && !resolveHostname.isEmpty()) {
+                ZTSClient.setDnsResolver(getDnsResolver(resolveHostname));
+            }
 
             if (hostnameOverride != null && !hostnameOverride.isEmpty()) {
                 ZTSClient.setX509CertDnsName(hostnameOverride);
@@ -157,6 +165,10 @@ public class ZTSTLSClientAccessToken {
         hostnameOverride.setRequired(false);
         options.addOption(hostnameOverride);
 
+        Option resolveHostname = new Option("r", "resolveHostname", true, "Resolve hostname to IP support");
+        resolveHostname.setRequired(false);
+        options.addOption(resolveHostname);
+
         Option expiryTime = new Option("e", "expiryTime", true, "Expiry Time in seconds");
         expiryTime.setRequired(false);
         options.addOption(expiryTime);
@@ -174,5 +186,26 @@ public class ZTSTLSClientAccessToken {
         }
         
         return cmd;
+    }
+
+    private static DnsResolver getDnsResolver(final String resolveHostname) throws UnknownHostException {
+
+        int idx = resolveHostname.indexOf(':');
+        if (idx == -1) {
+            return null;
+        }
+        final String hostname = resolveHostname.substring(0, idx);
+        final String ipAddress = resolveHostname.substring(idx + 1);
+
+        final InetAddress[] inetResponse = new InetAddress[1];
+        inetResponse[0] = InetAddress.getByName(resolveHostname.substring(idx + 1));
+
+        DnsResolver dnsResolver = host -> {
+            if (host.equalsIgnoreCase(hostname)) {
+                return inetResponse;
+            }
+            throw new UnknownHostException("unknown host: " + host);
+        };
+        return dnsResolver;
     }
 }
