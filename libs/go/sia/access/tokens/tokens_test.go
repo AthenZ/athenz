@@ -590,6 +590,7 @@ func TestNewTokenOptions(t *testing.T) {
 	tokenOpts, err := NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 
+	// create certs/keys for the given identities
 	makeIdentity(t, tokenOpts)
 
 	errs := Fetch(tokenOpts)
