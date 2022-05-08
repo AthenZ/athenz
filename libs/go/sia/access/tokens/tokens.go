@@ -20,10 +20,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/access/config"
-	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
-	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -31,6 +27,13 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
+	"github.com/AthenZ/athenz/libs/go/sia/futil"
+	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 const USER_AGENT = "User-Agent"
@@ -175,4 +178,36 @@ func makeTokenRequest(domain string, roles []string, expiryTime int) string {
 	}
 	params.Add("scope", scope)
 	return params.Encode()
+}
+
+func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) (*config.TokenOptions, error) {
+	dirs := []string{options.CertDir, options.KeyDir, options.BackUpDir}
+	dirs = append(dirs, TokenDirs(options.TokenDir, options.AccessTokens)...)
+
+	err := futil.MakeDirs(dirs, 0755)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create access-token directories, err: %v", err)
+	}
+
+	tokenOpts := &config.TokenOptions{
+		Domain:    options.Domain,
+		Services:  toServiceNames(options.Services),
+		TokenDir:  options.TokenDir,
+		Tokens:    options.AccessTokens,
+		CertDir:   options.CertDir,
+		KeyDir:    options.KeyDir,
+		ZtsUrl:    ztsUrl,
+		UserAgent: userAgent,
+	}
+	return tokenOpts, nil
+}
+
+func toServiceNames(services []options.Service) []string {
+	var serviceNames []string
+
+	for _, srv := range services {
+		serviceNames = append(serviceNames, srv.Name)
+	}
+
+	return serviceNames
 }
