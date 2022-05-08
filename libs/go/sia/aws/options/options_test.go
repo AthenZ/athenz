@@ -25,9 +25,13 @@ import (
 	"net/http"
 	"os/exec"
 	"os/user"
+	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 
 	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/assert"
@@ -244,6 +248,120 @@ func TestOptionsSingleUserKeepConfigured(t *testing.T) {
 	uid, gid := GetRunsAsUidGid(opts)
 	assert.True(t, uid == -1)
 	assert.True(t, gid == -1)
+}
+
+func toServiceNames(services []Service) []string {
+	var serviceNames []string
+
+	for _, srv := range services {
+		serviceNames = append(serviceNames, srv.Name)
+	}
+
+	return serviceNames
+}
+
+func TestOptionsWithAccessToken(t *testing.T) {
+	a := assert.New(t)
+
+	cfg, configAccount, _ := getConfig("data/sia_config.with-access-tokens", "-service", "http://localhost:80", false, "us-west-2")
+	cfg.KeepPrivileges = true
+	siaDir := "/tmp"
+	opts, err := setOptions(cfg, configAccount, siaDir, "1.0.0")
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+
+	a.Equal(opts.TokenDir, filepath.Join(siaDir, "tokens"))
+	a.Equal(cfg.Service, "api")
+	serviceNames := toServiceNames(opts.Services)
+	a.Contains(serviceNames, "api")
+	a.Contains(serviceNames, "splunk")
+	a.Contains(serviceNames, "logger")
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName: "reader",
+		Service:  "api",
+		Domain:   "athenz.demo",
+		Roles:    []string{"reader"},
+		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		User:     "nobody",
+	}))
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName: "poweruser",
+		Service:  "api",
+		Domain:   "athenz.demo",
+		Roles:    []string{"reader-admin"},
+		Expiry:   10800,
+		User:     "nobody",
+	}))
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName: "consumer",
+		Service:  "api",
+		Domain:   "athenz.demo",
+		Roles:    []string{"reader", "reader-admin"},
+		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		User:     "nobody",
+	}))
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName: "writer",
+		Service:  "api",
+		Domain:   "athenz.demo",
+		Roles:    []string{"writer", "writer-admin"},
+		Expiry:   10800,
+		User:     "nobody",
+	}))
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName: "splunk",
+		Service:  "logger",
+		Domain:   "athenz.demo",
+		Roles:    []string{"splunk"},
+		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		User:     "nobody",
+	}))
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName: "all",
+		Service:  "api",
+		Domain:   "athenz.demo",
+		Roles:    []string{"*"},
+		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		User:     "nobody",
+	}))
+	log.Print(opts)
+}
+
+func TestInvalidAccessTokenRole(t *testing.T) {
+	cfg, configAccount, _ := getConfig("data/sia_config.invalid-role-access-token", "-service", "http://localhost:80", false, "us-west-2")
+	siaDir := "/tmp"
+	opts, err := setOptions(cfg, configAccount, siaDir, "1.0.0")
+	require.NotNilf(t, err, "error should be thrown, error: %v", err)
+	require.Nil(t, opts)
+}
+
+func TestInvalidAccessTokenDomain(t *testing.T) {
+	cfg, configAccount, _ := getConfig("data/sia_config.invalid-domain-access-token", "-service", "http://localhost:80", false, "us-west-2")
+	siaDir := "/tmp"
+	opts, err := setOptions(cfg, configAccount, siaDir, "1.0.0")
+	require.NotNilf(t, err, "error should be thrown, error: %v", err)
+	require.Nil(t, opts)
+}
+
+func assertToken(tokens []config.AccessToken, token config.AccessToken) bool {
+	log.Printf("Looking for Token: %+v", token)
+	for _, t := range tokens {
+		log.Printf("Token: %+v", t)
+		if t.FileName == token.FileName &&
+			t.Service == token.Service &&
+			t.Domain == token.Domain &&
+			reflect.DeepEqual(t.Roles, token.Roles) &&
+			t.Expiry == token.Expiry &&
+			t.User == token.User {
+			return true
+		}
+	}
+	return false
 }
 
 func idCommandId(arg string) int {
