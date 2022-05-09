@@ -491,10 +491,15 @@ public class AthenzJettyContainer {
 
         if (httpsPort > 0) {
 
+            boolean sniRequired = Boolean.parseBoolean(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_REQUIRED, "false"));
+            boolean sniHostCheck = Boolean.parseBoolean(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_HOSTCHECK, "true"));
+
             HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
             httpsConfig.setSecureScheme("https");
             httpsConfig.setSecurePort(httpsPort);
-            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+            httpsConfig.addCustomizer(new SecureRequestCustomizer(sniRequired, sniHostCheck, -1L, false));
 
             boolean needClientAuth = Boolean.parseBoolean(
                     System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
