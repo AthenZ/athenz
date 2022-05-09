@@ -46,4 +46,3 @@ func TestIsExpiryAfterThreshold(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, rotateCert, false)
 }
-

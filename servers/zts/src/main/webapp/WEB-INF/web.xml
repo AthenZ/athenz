@@ -7,7 +7,7 @@
         <servlet-name>zts-server</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>javax.ws.rs.Application</param-name>
+            <param-name>jakarta.ws.rs.Application</param-name>
             <param-value>com.yahoo.athenz.zts.ZTS</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
@@ -39,7 +39,12 @@
     <!-- Authentication filter for swagger -->
     <filter>
         <filter-name>swagger-filter</filter-name>
-        <filter-class>com.yahoo.athenz.zts.servlet.SwaggerFilter</filter-class>
+        <filter-class>com.yahoo.athenz.common.filter.impl.SwaggerFilter</filter-class>
+        <async-supported>true</async-supported>
+        <init-param>
+            <param-name>athenz.swagger.require_cert_auth</param-name>
+            <param-value>false</param-value>
+        </init-param>
     </filter>
     <filter-mapping>
         <filter-name>swagger-filter</filter-name>

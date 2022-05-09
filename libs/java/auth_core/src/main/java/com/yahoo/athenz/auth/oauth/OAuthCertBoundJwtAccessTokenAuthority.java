@@ -22,7 +22,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityKeyStore;
 import com.yahoo.athenz.auth.KeyStore;

@@ -21,10 +21,11 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.zms.ZMSAuthorizer;
 
 import static org.testng.Assert.*;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ import org.mockito.Mockito;
 
 public class ZMSAuthorizerTest {
 
-    private static String ZMS_CLIENT_PROP_TEST_ADMIN = "athenz.zms.client.test_admin";
+    private static final String ZMS_CLIENT_PROP_TEST_ADMIN = "athenz.zms.client.test_admin";
     private static final String AUDIT_REF = "zmsjcltauthtest";
 
     private String systemAdminUser = null;
@@ -47,7 +48,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void testAuthorizer() {
+    public void testAuthorizer() throws URISyntaxException, IOException {
 
         ZMSClient client = getClient(systemAdminUser);
         String domain = "authorizerdom1";
@@ -150,7 +151,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void testAddCredentials() {
+    public void testAddCredentials() throws URISyntaxException, IOException {
         ZMSClient client = getClient(systemAdminUser);
         String domain = "AuthorizerDom5";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, null);
@@ -200,7 +201,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void testAuthorizerNoDomain() {
+    public void testAuthorizerNoDomain() throws URISyntaxException, IOException {
         ZMSClient client = getClient(systemAdminUser);
         String domain = "AuthorizerDom3";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, null);
@@ -243,7 +244,7 @@ public class ZMSAuthorizerTest {
     }
 
     @Test
-    public void testAuthorizerResourceWithDomain() {
+    public void testAuthorizerResourceWithDomain() throws URISyntaxException, IOException {
         ZMSClient client = getClient(systemAdminUser);
         String domain = "AuthorizerDom4";
         ZMSAuthorizer authorizer = new ZMSAuthorizer(zmsUrl, domain);

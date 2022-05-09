@@ -18,7 +18,7 @@ package com.yahoo.athenz.common.server.util.config;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProvider;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;

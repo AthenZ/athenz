@@ -18,7 +18,7 @@ package com.yahoo.athenz.common.server.util.config.providers;
 import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.ConfigEntry;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

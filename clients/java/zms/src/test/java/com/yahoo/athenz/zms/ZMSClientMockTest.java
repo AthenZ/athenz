@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zms;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import java.text.DateFormat;
@@ -46,7 +48,7 @@ public class ZMSClientMockTest {
     @Mock ZMSRDLGeneratedClient mockZMS;
 
     ZMSClient    zclt;
-    String       zmsUrl   = "";
+    String       zmsUrl   = "https://localhost";
     List<String> userList;
     String       auditRef = "zmsjcltmktest";
 
@@ -723,7 +725,7 @@ public class ZMSClientMockTest {
     }
 
     @Test
-    public void testGetPrincipal() {
+    public void testGetPrincipal() throws URISyntaxException, IOException {
 
         ServicePrincipal svcPrincipal = new ServicePrincipal().setDomain("coretech").setService("storage");
         Mockito.doReturn(svcPrincipal).when(mockZMS).getServicePrincipal();
@@ -807,7 +809,7 @@ public class ZMSClientMockTest {
     }
 
     @Test
-    public void testEntityList() {
+    public void testEntityList() throws URISyntaxException, IOException {
 
         String domName  = "johnnies-place";
         List<String> names = new ArrayList<>();

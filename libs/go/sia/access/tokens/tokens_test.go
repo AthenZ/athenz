@@ -93,37 +93,37 @@ func TestToBeRefreshed(t *testing.T) {
 
 	tokens := []config.AccessToken{
 		// case 1: token doesn't exist
-		config.AccessToken{
+		{
 			FileName: "writer",
 			Domain:   domain,
 			Service:  service,
 		},
 		// case 2: token exists, and not expired
-		config.AccessToken{
+		{
 			FileName: "reader",
 			Domain:   domain,
 			Service:  service,
 		},
 		// case 3: token exists, and age is old
-		config.AccessToken{
+		{
 			FileName: "reader-aged",
 			Domain:   domain,
 			Service:  service,
 		},
 		// case 4: non readable token
-		config.AccessToken{
+		{
 			FileName: "reader-fail1",
 			Domain:   domain,
 			Service:  service,
 		},
 		// case 5: readable token, unmarshallable
-		config.AccessToken{
+		{
 			FileName: "reader-fail2",
 			Domain:   domain,
 			Service:  service,
 		},
 		// case 6: readable token, marshallable, no expires_in field
-		config.AccessToken{
+		{
 			FileName: "reader-fail3",
 			Domain:   domain,
 			Service:  service,
@@ -182,12 +182,12 @@ func TestTokenDirs(t *testing.T) {
 		{"Base line",
 			"/tmp",
 			[]config.AccessToken{
-				config.AccessToken{Domain: "media.ops"},
-				config.AccessToken{Domain: "movies.ops"},
+				{Domain: "media.ops"},
+				{Domain: "movies.ops"},
 			},
 			[]string{"/tmp/media.ops", "/tmp/movies.ops"},
 		},
-		{"Empty root", "", []config.AccessToken{config.AccessToken{Domain: "media.ops"}}, []string{"media.ops"}},
+		{"Empty root", "", []config.AccessToken{{Domain: "media.ops"}}, []string{"media.ops"}},
 	}
 
 	for _, tc := range cases {
@@ -198,7 +198,8 @@ func TestTokenDirs(t *testing.T) {
 	}
 }
 
-// TestAccessTokensSuccess verifies that access tokens are not refreshed on subsequent retry if age of the token is not oldenough
+// TestAccessTokensSuccess verifies that access tokens are not refreshed on subsequent
+// retry if age of the token is not old enough
 func TestAccessTokensSuccess(t *testing.T) {
 	// for this test case we're not going to use t.TempDir() since
 	// we test the ownership access failure and with the test case
@@ -227,11 +228,11 @@ func TestAccessTokensSuccess(t *testing.T) {
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
 		Tokens: []config.AccessToken{
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
-			config.AccessToken{FileName: "token2", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1", "role2"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
-			config.AccessToken{FileName: "token3", Service: "httpd", Domain: "athenz.demo", Roles: []string{"*"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
-			config.AccessToken{FileName: "token4", Service: "httpd", Domain: "athenz.demo", Roles: []string{"token4"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.examples", Roles: []string{"token1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token2", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1", "role2"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token3", Service: "httpd", Domain: "athenz.demo", Roles: []string{"*"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token4", Service: "httpd", Domain: "athenz.demo", Roles: []string{"token4"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.examples", Roles: []string{"token1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
@@ -252,7 +253,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time on: %s, err: %v", tpath, err)
 
-	// Set incorrect owner ship
+	// Set incorrect ownership
 	dpath := filepath.Join(opts.TokenDir, "athenz.demo")
 	err = os.Chmod(dpath, 0500)
 	assert.NoErrorf(t, err, "should be able to change permissions on: %s, err: %v", dpath, err)
@@ -287,7 +288,7 @@ func TestAccessTokensRerun(t *testing.T) {
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
 		Tokens: []config.AccessToken{
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
@@ -365,7 +366,7 @@ func TestAccessTokensUserAgent(t *testing.T) {
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
 		Tokens: []config.AccessToken{
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl:    ztsServer.baseUrl("zts/v1"),
 		UserAgent: userAgent,
@@ -407,8 +408,8 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
 		Tokens: []config.AccessToken{
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
-			config.AccessToken{FileName: "token2", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token2", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
@@ -481,7 +482,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
 		Tokens: []config.AccessToken{
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
@@ -540,7 +541,7 @@ func TestAccessTokensBadCerts(t *testing.T) {
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
 		Tokens: []config.AccessToken{
-			config.AccessToken{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl: "http://testurl.invalid",
 	}

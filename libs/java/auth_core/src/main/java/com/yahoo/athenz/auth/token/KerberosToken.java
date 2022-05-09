@@ -76,9 +76,7 @@ public class KerberosToken extends Token {
             }
             userName = Subject.doAs(serviceSubject, privExcAction);
             int index = userName.indexOf('@');
-            ///CLOVER:OFF
             if (index != -1) {
-                ///CLOVER:ON
                 if (userName.indexOf(KRB_USER_REALM, index) == -1) {
                     if (userName.indexOf(USER_REALM, index) != -1) {
                         domain = USER_DOMAIN;
@@ -123,11 +121,9 @@ public class KerberosToken extends Token {
         public String run() throws Exception {
             GSSContext context = GSSManager.getInstance().createContext((GSSCredential) null);
             context.acceptSecContext(kerberosTicket, 0, kerberosTicket.length);
-            ///CLOVER:OFF
             String user = context.getSrcName().toString();
             context.dispose();
             return user;
-            ///CLOVER:ON
         }
     }
 }

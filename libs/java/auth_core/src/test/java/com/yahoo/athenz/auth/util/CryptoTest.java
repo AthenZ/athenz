@@ -21,9 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -1303,6 +1301,38 @@ public class CryptoTest {
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("unknown signature size"));
         }
+    }
+
+    @Test
+    public void testNullSignatureValidation() throws NoSuchAlgorithmException {
+
+        KeyPair keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair();
+
+        byte[] derSignature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPrivate(), Crypto.SHA256);
+        assertNotNull(derSignature);
+        byte[] p1363Signature = Crypto.convertSignatureFromDERToP1363Format(derSignature, Crypto.SHA256);
+        assertNotNull(p1363Signature);
+
+        byte[] testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
+        assertTrue(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPublic(),
+                testDerSignature, Crypto.SHA256));
+
+        // now null out the p1363 signature
+
+        for (int i = 0; i < p1363Signature.length; i++) {
+            p1363Signature[i] = 0;
+        }
+        testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
+        assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPublic(),
+                testDerSignature, Crypto.SHA256));
+
+        // reset the provider to the jdk one since we default to bc
+
+        System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "SunEC");
+        assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPublic(),
+                testDerSignature, Crypto.SHA256));
+
+        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
     }
 
     @Test

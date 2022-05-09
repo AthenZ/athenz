@@ -28,8 +28,8 @@ import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigString;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;

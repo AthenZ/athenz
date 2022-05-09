@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,7 @@ public class Http {
     public static final String WWW_AUTHENTICATE  = "WWW-Authenticate";
     public static final String INVALID_CRED_ATTR = "com.yahoo.athenz.auth.credential.error";
     public static final String AUTH_CHALLENGES   = "com.yahoo.athenz.auth.credential.challenges";
-    public static final String JAVAX_CERT_ATTR   = "javax.servlet.request.X509Certificate";
+    public static final String JAVAX_CERT_ATTR   = "jakarta.servlet.request.X509Certificate";
 
     public static class AuthorityList {
         List<Authority> authorities;
@@ -57,12 +57,12 @@ public class Http {
     }
     
     static String getCookieValue(HttpServletRequest hreq, String name) {
-        
-        javax.servlet.http.Cookie[] cookies = hreq.getCookies();
+
+        jakarta.servlet.http.Cookie[] cookies = hreq.getCookies();
         if (cookies == null) {
             return null;
         }
-        for (javax.servlet.http.Cookie cookie : cookies) {
+        for (jakarta.servlet.http.Cookie cookie : cookies) {
             if (name.equals(cookie.getName())) {
                 return cookie.getValue();
             }
