@@ -36,7 +36,7 @@ func TestWriteFile(t *testing.T) {
 		{
 			name: "write file failure",
 			args: args{
-				name: filepath.Join("/nonexisting", "fail"),
+				name: filepath.Join("/proc", "fail"),
 				data: []byte("failure content"),
 				perm: 0400,
 			},
