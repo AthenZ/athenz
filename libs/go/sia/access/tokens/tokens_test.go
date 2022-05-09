@@ -201,11 +201,7 @@ func TestTokenDirs(t *testing.T) {
 // TestAccessTokensSuccess verifies that access tokens are not refreshed on subsequent
 // retry if age of the token is not old enough
 func TestAccessTokensSuccess(t *testing.T) {
-	// for this test case we're not going to use t.TempDir() since
-	// we test the ownership access failure and with the test case
-	// the temp dir cleanup fails thus failing the test case.
-	siaDir, err := ioutil.TempDir("", "sia.")
-	require.Nil(t, err, "should be able to create temp folder for sia")
+	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -250,17 +246,12 @@ func TestAccessTokensSuccess(t *testing.T) {
 	// 2) Write token errors
 	// Set old time stamp on a token
 	tpath := filepath.Join(opts.TokenDir, "athenz.demo", "token1")
-	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
+	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time on: %s, err: %v", tpath, err)
 
-	// Set incorrect ownership
-	dpath := filepath.Join(opts.TokenDir, "athenz.demo")
-	err = os.Chmod(dpath, 0500)
-	assert.NoErrorf(t, err, "should be able to change permissions on: %s, err: %v", dpath, err)
-
 	errs = Fetch(opts)
-	assert.Lenf(t, errs, 1, "should be one error related to token1, errs: %v", err)
-	log.Printf("errors; %+v\n", errs)
+	assert.Lenf(t, errs, 0, "should be able to fetch access tokens, errs: %v", errs)
+	log.Printf("tokens error: %v\n", errs)
 }
 
 // TestAccessTokensRerun verifies that access tokens are being fetched
@@ -429,13 +420,8 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time, err: %v", err)
 
-	// Force a bad token at token2
-	tpath = filepath.Join(opts.TokenDir, "athenz.demo", "token2")
-	err = os.Chmod(tpath, 0000)
-	require.Nilf(t, err, fmt.Sprintf("should be able to modify token2: %s", tpath))
-
 	errs = Fetch(opts)
-	assert.Lenf(t, errs, 1, "should be one error related to token2, err: %v", errs)
+	assert.Lenf(t, errs, 0, "should be able to fetch access tokens, errs: %v", errs)
 	log.Printf("tokens error: %v\n", errs)
 
 	// Make sure token1 is updated
