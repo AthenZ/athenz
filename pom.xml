@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.11.0-alpha2</version>
+  <version>1.11.0-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
@@ -72,8 +72,8 @@
 
   <properties>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <aws.version>1.12.210</aws.version>
-    <aws2.version>2.17.181</aws2.version>
+    <aws.version>1.12.215</aws.version>
+    <aws2.version>2.17.186</aws2.version>
     <bouncycastle.version>1.70</bouncycastle.version>
     <commons.daemon.version>1.3.0</commons.daemon.version>
     <guava.version>31.1-jre</guava.version>

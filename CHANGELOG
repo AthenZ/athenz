@@ -1,14 +1,3 @@
-Athenz v1.11.0-alpha2 release / May 7, 2022
-
-updated zms/zts java clients
-
-Athenz v1.11.0-alpha1 Release / April 24, 2022
-----------------------------------------------
-
-jdk 11.x only release
-jetty 11.x/jakarata/jersey 3.x support
-remove jaxrs/jersey support from java clients
-
 Athenz v1.10.54 Release / Apr 19, 2022
 --------------------------------------
 
