@@ -79,7 +79,7 @@ func TestMakeSiaDirs(t *testing.T) {
 		{
 			name: "dir fail",
 			args: args{
-				dirs: []string{filepath.Join("/nonexisting1", "invalid")},
+				dirs: []string{filepath.Join("/proc", "invalid")},
 				perm: 0755,
 			},
 			wantErr: true,
