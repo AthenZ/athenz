@@ -29,7 +29,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.container.log.AthenzRequestLog;
+import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 
 import static org.testng.Assert.*;
 
@@ -167,6 +167,7 @@ public class AthenzJettyContainerTest {
         
         // it defaults to https even if we have no value specified
         assertEquals(httpConfig.getSecureScheme(), "https");
+        container.stop();
     }
     
     @Test
@@ -631,7 +632,7 @@ public class AthenzJettyContainerTest {
         stopAtShutdown = server.getStopAtShutdown();
 
         assertEquals(stopTimeout, 0);
-        assertEquals(stopAtShutdown, false);
+        assertFalse(stopAtShutdown);
 
         cleanup();
 
@@ -651,7 +652,7 @@ public class AthenzJettyContainerTest {
         stopAtShutdown = server.getStopAtShutdown();
 
         assertEquals(stopTimeout, 0);
-        assertEquals(stopAtShutdown, false);
+        assertFalse(stopAtShutdown);
 
         cleanup();
 
@@ -669,7 +670,7 @@ public class AthenzJettyContainerTest {
         stopAtShutdown = server.getStopAtShutdown();
 
         assertEquals(stopTimeout, 30000);
-        assertEquals(stopAtShutdown, true);
+        assertTrue(stopAtShutdown);
 
         cleanup();
 
@@ -689,7 +690,7 @@ public class AthenzJettyContainerTest {
         stopAtShutdown = server.getStopAtShutdown();
 
         assertEquals(stopTimeout, 60000);
-        assertEquals(stopAtShutdown, true);
+        assertTrue(stopAtShutdown);
     }
 
     @Test

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.container.log;
+package com.yahoo.athenz.common.server.log.jetty;
 
+import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.server.HttpChannel;
 import org.mockito.Mockito;
