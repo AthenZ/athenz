@@ -17,7 +17,6 @@
 package com.yahoo.athenz.auth.impl;
 
 import com.yahoo.athenz.auth.util.Crypto;
-import org.eclipse.jetty.util.StringUtil;
 
 import java.security.cert.X509Certificate;
 import java.util.Set;
@@ -38,7 +37,7 @@ public class CertificateAuthorityValidator {
     }
 
     private void extractIssuerDNs(final String trustStorePath) {
-        if (!StringUtil.isEmpty(trustStorePath)) {
+        if (trustStorePath != null && !trustStorePath.isEmpty()) {
             issuerDNs = Crypto.extractIssuerDn(trustStorePath);
         }
     }

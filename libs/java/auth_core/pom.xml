@@ -92,11 +92,6 @@
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-util</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
   </dependencies>
 
 </project>

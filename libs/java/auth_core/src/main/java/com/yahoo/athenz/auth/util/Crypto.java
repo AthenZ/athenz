@@ -34,7 +34,6 @@ import javax.security.auth.x500.X500Principal;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bouncycastle.asn1.*;
-import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,7 +254,7 @@ public class Crypto {
     }
 
     /**
-     * Sign the text with with given digest algorithm and private key. Returns the ybase64 encoding of it.
+     * Sign the text with given digest algorithm and private key. Returns the ybase64 encoding of it.
      * @param message the message to sign, as a UTF8 string
      * @param key the private key to sign with
      * @param digestAlgorithm supported values SHA1 and SHA256
@@ -400,8 +399,8 @@ public class Crypto {
     }
 
     /**
-     * https://github.com/apache/commons-codec/blob/master/src/main/java/org/apache/commons/codec/binary/Base64.java
-     * Licensed Under Apache 2.0 https://github.com/apache/commons-codec/blob/master/LICENSE.txt
+     * <a href="https://github.com/apache/commons-codec/blob/master/src/main/java/org/apache/commons/codec/binary/Base64.java">https://github.com/apache/commons-codec/blob/master/src/main/java/org/apache/commons/codec/binary/Base64.java</a>
+     * Licensed Under Apache 2.0 <a href="https://github.com/apache/commons-codec/blob/master/LICENSE.txt">https://github.com/apache/commons-codec/blob/master/LICENSE.txt</a>
      *
      * In apache.commons.code this is a private static function and the wrapper
      * does not generate base64 encoded data that is url safe which is required
@@ -446,7 +445,7 @@ public class Crypto {
     }
 
     /**
-     * Sign the text with with SHA-256 and the private key. Returns the ybase64 encoding of it.
+     * Sign the text with SHA-256 and the private key. Returns the ybase64 encoding of it.
      * @param message the message to sign, as a UTF8 string
      * @param key the private key to sign with
      * @return the ybase64 encoded signature for the data
@@ -1574,7 +1573,7 @@ public class Crypto {
      * @return Set of extracted Issuer Dns
      */
     public static Set<String> extractIssuerDn(String certificateBundlePath) {
-        if (StringUtil.isEmpty(certificateBundlePath)) {
+        if (certificateBundlePath == null || certificateBundlePath.isEmpty()) {
             return new HashSet<>();
         }
         Set<String> issuerDN = new HashSet<>();
