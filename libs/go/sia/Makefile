@@ -1,8 +1,8 @@
 #
-# Makefile to build ZMS Go cli library
+# Makefile to build SIA Go Client library
 # Prerequisite: Go development environment
 #
-# Copyright 2016 Yahoo Inc.
+# Copyright Athenz Authors
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 

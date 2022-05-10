@@ -69,6 +69,9 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
 
+    public static final String ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE = "athenz.zms.client.http_pool_max_per_route";
+    public static final String ZMS_CLIENT_PROP_POOL_MAX_TOTAL     = "athenz.zms.client.http_pool_max_total";
+
     public static final String ZMS_CLIENT_PROP_CERT_ALIAS = "athenz.zms.client.cert_alias";
 
     public static final String ZMS_CLIENT_PROP_KEYSTORE_PATH = "athenz.zms.client.keystore_path";
@@ -334,9 +337,14 @@ public class ZMSClient implements Closeable {
         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager
                 = new PoolingHttpClientConnectionManager(registry, dnsResolver);
 
-        //route is host + port.  Since we have only one, set the max and the route the same
-        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(30);
-        poolingHttpClientConnectionManager.setMaxTotal(20);
+        // we'll use the default values from apache http connector - max 20 and per route 2
+
+        int maxPerRoute = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
+        int maxTotal = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
+
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
+        poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
+
         return poolingHttpClientConnectionManager;
     }
 
