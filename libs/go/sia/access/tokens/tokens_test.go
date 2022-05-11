@@ -161,8 +161,11 @@ func TestToBeRefreshed(t *testing.T) {
 	log.Printf("Creating a token at: %s\n", tpath)
 	err = ioutil.WriteFile(tpath, []byte(fmt.Sprintf("{%q: %q, %q: %q}", "access_token", "signed-string", "token_type", "Bearer")), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
-
-	toRefresh, errors := ToBeRefreshed(tokenDir, tokens)
+	opts := config.TokenOptions{
+		TokenDir: tokenDir,
+		Tokens:   tokens,
+	}
+	toRefresh, errors := ToBeRefreshed(&opts)
 	assert.True(t, len(errors) == 3, fmt.Sprintf("there shoud be errors in fetching ToBeRefreshed tokend, err: %v", err))
 	log.Printf("errors so far: %+v\n", errors)
 

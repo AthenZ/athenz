@@ -729,3 +729,11 @@ func ExecIdCommand(arg string) int {
 	}
 	return id
 }
+
+func EnvOrDefault(name string, defaultValue string) string {
+	v := os.Getenv(name)
+	if v == "" {
+		return defaultValue
+	}
+	return v
+}

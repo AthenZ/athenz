@@ -23,8 +23,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
-
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
@@ -91,15 +89,6 @@ func main() {
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
 	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
 	opts.InstanceId = sia.GetEKSPodId()
-
-	userAgent := fmt.Sprintf("%s %s", Version, region)
-	tokenOpts, err := tokens.NewTokenOptions(opts, ztsUrl, userAgent)
-
-	errs := tokens.Fetch(tokenOpts)
-	if len(errs) != 0 {
-		log.Printf("unable to setup access tokens, errors: %+v", errs)
-	}
-
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
 	}

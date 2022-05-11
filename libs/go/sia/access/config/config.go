@@ -16,6 +16,8 @@
 
 package config
 
+import "time"
+
 // Role models the configuration to be specified in sia_config
 type Role struct {
 	Service string   `json:"service,omitempty"`    // principal service with role access
@@ -35,14 +37,23 @@ type AccessToken struct {
 	Expiry   int      // Expiry of the access token
 }
 
+type StoreTokenOptions int
+
+const (
+	ZTS_RESPONSE      StoreTokenOptions = iota // default - store the entire AccessTokenResponse from ZTS
+	ACCESS_TOKEN_PROP                          // store only the access_token property
+)
+
 // TokenOptions holds all the configurable options for driving Access Tokens functionality
 type TokenOptions struct {
-	Domain    string        // Domain of the instance
-	Services  []string      // Services set on the instance
-	TokenDir  string        // Directory where tokens will be saved, typically /var/lib/sia/tokens
-	Tokens    []AccessToken // List of Access Tokens with their configuration
-	CertDir   string        // Directory where certs can be found, typically /var/lib/sia/certs
-	KeyDir    string        // Directory where keys can be found, typically /var/lib/sia/keys
-	ZtsUrl    string        // ZTS endpoint
-	UserAgent string        // User Agent string to be sent in the client call to ZTS, typically a client version
+	Domain       string            // Domain of the instance
+	Services     []string          // Services set on the instance
+	TokenDir     string            // Directory where tokens will be saved, typically /var/lib/sia/tokens
+	Tokens       []AccessToken     // List of Access Tokens with their configuration
+	CertDir      string            // Directory where certs can be found, typically /var/lib/sia/certs
+	KeyDir       string            // Directory where keys can be found, typically /var/lib/sia/keys
+	ZtsUrl       string            // ZTS endpoint
+	UserAgent    string            // User Agent string to be sent in the client call to ZTS, typically a client version
+	TokenRefresh time.Duration     // Token refresh interval
+	StoreOptions StoreTokenOptions // Store token option, the entire response or access_token only
 }
