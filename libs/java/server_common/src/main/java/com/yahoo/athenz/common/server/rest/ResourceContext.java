@@ -15,8 +15,8 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;

@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import org.mockito.ArgumentMatchers;
@@ -290,9 +290,9 @@ public class HttpTest {
         assertNull(Http.getCookieValue(httpServletRequest, "cookie1"));
         assertNull(Http.getCookieValue(httpServletRequest, "cookie2"));
 
-        javax.servlet.http.Cookie[] cookies = new javax.servlet.http.Cookie[2];
-        cookies[0] = new javax.servlet.http.Cookie("cookie1", "value1");
-        cookies[1] = new javax.servlet.http.Cookie("cookie2", "value2");
+        jakarta.servlet.http.Cookie[] cookies = new jakarta.servlet.http.Cookie[2];
+        cookies[0] = new jakarta.servlet.http.Cookie("cookie1", "value1");
+        cookies[1] = new jakarta.servlet.http.Cookie("cookie2", "value2");
 
         Mockito.when(httpServletRequest.getCookies()).thenReturn(cookies);
         assertEquals(Http.getCookieValue(httpServletRequest, "cookie1"), "value1");

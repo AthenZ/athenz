@@ -4,9 +4,9 @@
 package com.yahoo.athenz.zts;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.core.Response;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 //
 // ZTSHandler is the interface that the service implementation must implement

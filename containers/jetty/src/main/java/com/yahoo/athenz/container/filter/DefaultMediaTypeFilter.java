@@ -15,11 +15,11 @@
  */
 package com.yahoo.athenz.container.filter;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
 
-import static javax.ws.rs.core.HttpHeaders.ACCEPT;
+import static jakarta.ws.rs.core.HttpHeaders.ACCEPT;
 
 /*
  * If requestor specified any type Accepted, this will reset it to a
@@ -38,7 +38,7 @@ public class DefaultMediaTypeFilter implements ContainerRequestFilter {
         String acceptHdr = reqCtx.getHeaderString(ACCEPT);
         if (acceptHdr == null || acceptHdr.contains(MEDIA_TYPE_ANY)) {
             // replace it with JSON
-            javax.ws.rs.core.MultivaluedMap<String, String> headers = reqCtx.getHeaders();
+            jakarta.ws.rs.core.MultivaluedMap<String, String> headers = reqCtx.getHeaders();
             headers.putSingle(ACCEPT, MEDIA_TYPE_JSON);
         }
     }

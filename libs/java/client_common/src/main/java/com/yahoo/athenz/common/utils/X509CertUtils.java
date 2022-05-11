@@ -138,7 +138,7 @@ public class X509CertUtils {
 
     /**
      * extractKeyModulus is a helper function to extract the Key Modulus CN from the leaf certificate
-     * present at the zeroth position in javax.servlet.request.X509Certificate
+     * present at the zeroth position in jakarta.servlet.request.X509Certificate
      * @param certs an array of X509Certificate
      * @return the string representing the key modulus
      */
@@ -168,7 +168,7 @@ public class X509CertUtils {
 
     /**
      * extracSubjectDn is a helper function to extract the Subject DN from the leaf certificate
-     * present at the zeroth position in javax.servlet.request.X509Certificate
+     * present at the zeroth position in jakarta.servlet.request.X509Certificate
      * @param certs an array of X509Certificate
      * @return subject DN as a string
      */
@@ -191,7 +191,7 @@ public class X509CertUtils {
 
     /**
      * extractCn is a helper function to extract the Subject CN from the leaf certificate
-     * present at the zeroth position in javax.servlet.request.X509Certificate
+     * present at the zeroth position in jakarta.servlet.request.X509Certificate
      * @param certs an array of X509Certificate
      * @return the string representing Subject CN
      */
@@ -214,7 +214,7 @@ public class X509CertUtils {
 
     /**
      * extractIssuerDn is a helper function to extract the Issuer DN from the leaf certificate
-     * present at the zeroth position in javax.servlet.request.X509Certificate
+     * present at the zeroth position in jakarta.servlet.request.X509Certificate
      * @param certs an array of X509Certificate
      * @return the string representing issuer DN
      */
@@ -239,7 +239,7 @@ public class X509CertUtils {
 
     /**
      * extractIssuerCn is a helper function to extract the Issuer CN from the leaf certificate
-     * present at the zeroth position in javax.servlet.request.X509Certificate
+     * present at the zeroth position in jakarta.servlet.request.X509Certificate
      * @param certs an array of X509Certificate
      * @return the string representing issuer CN
      */
@@ -262,7 +262,7 @@ public class X509CertUtils {
 
     /**
      * hexKeyMod returns the HEX encoded string of SHA256 of the Key Modulus of the leaf certificate
-     * present at the zeroth position in javax.servlet.request.X509Certificate
+     * present at the zeroth position in jakarta.servlet.request.X509Certificate
      * @param certs an array of X509Certificate
      * @param toUpperCase to indicate whether the hex encoded result should be upper case or not
      * @return the string with hex encoded of SHA256 of the Key Modulus of the leaf certificate

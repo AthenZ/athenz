@@ -15,8 +15,8 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -26,7 +26,6 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
-import org.mockito.internal.matchers.Any;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authorizer;

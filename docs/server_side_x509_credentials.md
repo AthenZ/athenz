@@ -37,13 +37,13 @@ container vendor on how to require client side TLS authentication.
 If your trust store only has Athenz CA certificates, no need to extract and
 verify the issuer. If not, please follow below code example for verification.
 
-The client certificate is accessible from `javax.servlet.request.X509Certificate`
+The client certificate is accessible from `jakarta.servlet.request.X509Certificate`
 HttpServletRequest attribute. Here is how you can get access to the TLS certificate:
 
 ```java
 import java.security.cert.X509Certificate;
-import javax.servlet.http.HttpServletRequest;
-public static final String JAVAX_CERT_ATTR = "javax.servlet.request.X509Certificate";
+import jakarta.servlet.http.HttpServletRequest;
+public static final String JAVAX_CERT_ATTR = "jakarta.servlet.request.X509Certificate";
 
 X509Certificate[] certs = (X509Certificate[]) servletRequest.getAttribute(JAVAX_CERT_ATTR);
 X509Certificate x509cert = null;

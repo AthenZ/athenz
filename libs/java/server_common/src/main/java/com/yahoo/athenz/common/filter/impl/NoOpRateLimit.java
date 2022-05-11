@@ -15,20 +15,15 @@
  */
 package com.yahoo.athenz.common.filter.impl;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
 import com.yahoo.athenz.common.filter.RateLimit;
 
 public class NoOpRateLimit implements RateLimit {
-    private static final Logger LOG = LoggerFactory.getLogger(NoOpRateLimit.class);
 
     @Override
     public boolean filter(ServletRequest servletRequest, ServletResponse servletResponse) {
         return false;
     }
-
 }

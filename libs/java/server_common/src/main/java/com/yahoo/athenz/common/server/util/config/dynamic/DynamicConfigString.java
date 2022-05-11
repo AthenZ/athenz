@@ -17,7 +17,7 @@ package com.yahoo.athenz.common.server.util.config.dynamic;
 
 import com.yahoo.athenz.common.server.util.config.ConfigManager;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Holds a string value for some config-key - always up-to-date.

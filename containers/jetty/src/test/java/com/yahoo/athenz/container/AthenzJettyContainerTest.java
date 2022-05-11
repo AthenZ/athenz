@@ -17,15 +17,8 @@ package com.yahoo.athenz.container;
 
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.rewrite.handler.Rule;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.RequestLog;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.Slf4jRequestLog;
-import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -36,7 +29,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.container.log.AthenzRequestLog;
+import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 
 import static org.testng.Assert.*;
 
@@ -47,7 +40,7 @@ public class AthenzJettyContainerTest {
     
     @BeforeClass
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         System.setProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, "conf");
     }
     
@@ -121,20 +114,7 @@ public class AthenzJettyContainerTest {
         
         container.addRequestLogHandler();
 
-        // now retrieve the request log handler
-        
-        Handler[] handlers = container.getHandlers().getHandlers();
-        RequestLogHandler logHandler = null;
-        for (Handler handler : handlers) {
-            if (handler instanceof RequestLogHandler) {
-                logHandler = (RequestLogHandler) handler;
-                break;
-            }
-        }
-        
-        assertNotNull(logHandler);
-        
-        RequestLog reqLog = logHandler.getRequestLog();
+        RequestLog reqLog = container.getServer().getRequestLog();
         assertNotNull(reqLog);
         assertEquals(reqLog.getClass(), AthenzRequestLog.class);
     }
@@ -148,24 +128,11 @@ public class AthenzJettyContainerTest {
         container.createServer(100);
         
         container.addRequestLogHandler();
-        
-        // now retrieve the request log handler
-        
-        Handler[] handlers = container.getHandlers().getHandlers();
-        RequestLogHandler logHandler = null;
-        for (Handler handler : handlers) {
-            if (handler instanceof RequestLogHandler) {
-                logHandler = (RequestLogHandler) handler;
-                break;
-            }
-        }
-        
-        assertNotNull(logHandler);
-        
-        RequestLog reqLog = logHandler.getRequestLog();
+
+        RequestLog reqLog = container.getServer().getRequestLog();
         assertNotNull(reqLog);
-        assertEquals(reqLog.getClass(), Slf4jRequestLog.class);
-        assertEquals(((Slf4jRequestLog) reqLog).getLoggerName(), "AthenzAccessLogger");
+        assertEquals(reqLog.getClass(), CustomRequestLog.class);
+        assertEquals(((Slf4jRequestLogWriter) ((CustomRequestLog) reqLog).getWriter()).getLoggerName(), "AthenzAccessLogger");
         System.clearProperty(AthenzConsts.ATHENZ_PROP_ACCESS_SLF4J_LOGGER);
     }
     
@@ -200,6 +167,7 @@ public class AthenzJettyContainerTest {
         
         // it defaults to https even if we have no value specified
         assertEquals(httpConfig.getSecureScheme(), "https");
+        container.stop();
     }
     
     @Test
@@ -663,13 +631,14 @@ public class AthenzJettyContainerTest {
         stopTimeout = server.getStopTimeout();
         stopAtShutdown = server.getStopAtShutdown();
 
-        assertEquals(stopTimeout, 30000);
-        assertEquals(stopAtShutdown, false);
+        assertEquals(stopTimeout, 0);
+        assertFalse(stopAtShutdown);
 
         cleanup();
 
         // If the athenz.graceful_shutdown is not true,
         // the ahtenz.graceful_shutdown_timeout is invalid.
+        System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN, "false");
         System.setProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT, "60000");
 
         container = new AthenzJettyContainer();
@@ -682,8 +651,8 @@ public class AthenzJettyContainerTest {
         stopTimeout = server.getStopTimeout();
         stopAtShutdown = server.getStopAtShutdown();
 
-        assertEquals(stopTimeout, 30000);
-        assertEquals(stopAtShutdown, false);
+        assertEquals(stopTimeout, 0);
+        assertFalse(stopAtShutdown);
 
         cleanup();
 
@@ -701,7 +670,7 @@ public class AthenzJettyContainerTest {
         stopAtShutdown = server.getStopAtShutdown();
 
         assertEquals(stopTimeout, 30000);
-        assertEquals(stopAtShutdown, true);
+        assertTrue(stopAtShutdown);
 
         cleanup();
 
@@ -721,7 +690,7 @@ public class AthenzJettyContainerTest {
         stopAtShutdown = server.getStopAtShutdown();
 
         assertEquals(stopTimeout, 60000);
-        assertEquals(stopAtShutdown, true);
+        assertTrue(stopAtShutdown);
     }
 
     @Test

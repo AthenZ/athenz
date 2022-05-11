@@ -21,13 +21,13 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.container.AthenzConsts;
 
-public class HealthCheckFilter implements javax.servlet.Filter {
+public class HealthCheckFilter implements jakarta.servlet.Filter {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckFilter.class);
     
@@ -48,7 +48,7 @@ public class HealthCheckFilter implements javax.servlet.Filter {
     private final int statusBodyLength = STATUS_OK_BODY.length();
     private Map<String, File> uriList = null;
 
-    public void init(FilterConfig config) throws ServletException {
+    public void init(FilterConfig config) {
 
         final String filterPath = config.getInitParameter(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_PATH);
 

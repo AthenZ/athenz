@@ -55,10 +55,10 @@ running in your environment:
 * [UI Server](setup_ui.md)
 
 To build the client and servlet components of this example,
-you need to download and install Oracle JDK 8, Apache Maven and Git client
+you need to download and install JDK 11, Apache Maven and Git client
 if you don't already have these available on your box:
 
-* [Oracle Java Platform JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+* [Java Platform JDK 11](https://adoptium.net/temurin/releases)
 * [Apache Maven](http://maven.apache.org/download.cgi)
 * [Git client](https://git-scm.com/downloads)
 

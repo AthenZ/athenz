@@ -17,13 +17,8 @@ package com.yahoo.athenz.zts;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.zms.RoleMember;
-import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.testng.Assert.*;
 

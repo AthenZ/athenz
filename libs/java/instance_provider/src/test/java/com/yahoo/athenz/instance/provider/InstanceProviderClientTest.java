@@ -17,11 +17,11 @@ package com.yahoo.athenz.instance.provider;
 
 import static org.testng.Assert.*;
 
-import javax.ws.rs.*;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Response;
 
 import org.mockito.Mockito;
 import org.testng.annotations.Test;

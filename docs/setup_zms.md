@@ -1,7 +1,7 @@
 # Setup ZMS (AuthoriZation Management System)
 
 * [Requirements](#requirements)
-    * [JDK 8](#jdk-8)
+    * [JDK 11](#jdk-11)
     * [MySQL Server](#mysql-server)
         * [ZMS Server Schema Setup](#zms-server-schema-setup)
         * [MySQL User and Permissions](#mysql-user-and-permissions)
@@ -20,14 +20,9 @@
 The following tools are required to be installed on hosts
 configured to run ZMS server.
 
-### JDK 8
+### JDK 11
 
-ZMS Server is written in Java and using embedded Jetty.
-
-[Oracle Java Platform JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-
-While ZMS has been developed and tested with Oracle Java Platform JDK 8
-it runs successfully with OpenJDK 8 and 11 as well.
+ZMS Server is written in Java and using embedded Jetty. It requires JDK 11.
 
 ### MySQL Server
 

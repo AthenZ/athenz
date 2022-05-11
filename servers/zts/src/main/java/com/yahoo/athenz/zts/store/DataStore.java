@@ -1768,12 +1768,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             pkeyRLock.unlock();
         }
 
-        ///CLOVER:OFF
         if (publicKey == null && LOGGER.isDebugEnabled()) {
             LOGGER.debug("Public key: {} not available", publicKeyName);
         }
-        ///CLOVER:ON
-        
+
         return publicKey;
     }
 

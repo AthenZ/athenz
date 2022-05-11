@@ -15,19 +15,19 @@
  */
 package com.yahoo.athenz.container.filter;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.ext.Provider;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 
 @Provider
 public class ETagFilter implements ContainerResponseFilter {
 
-    @Context private javax.servlet.http.HttpServletResponse servletResponse;
+    @Context private jakarta.servlet.http.HttpServletResponse servletResponse;
     
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response) {
@@ -64,7 +64,7 @@ public class ETagFilter implements ContainerResponseFilter {
     
     String removeLeadingAndTrailingQuotes(String value) {
         if (value.startsWith("\"")) {
-            value = value.substring(1, value.length());
+            value = value.substring(1);
         }
         if (value.endsWith("\"")) {
             value = value.substring(0, value.length() - 1);

@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.common.server.util;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.mockito.Mockito;
 import org.testng.annotations.Test;

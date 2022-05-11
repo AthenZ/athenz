@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.yahoo.athenz.common.server.util.config.ConfigManager;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;

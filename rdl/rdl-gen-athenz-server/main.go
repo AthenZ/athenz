@@ -247,9 +247,9 @@ func (gen *javaServerGenerator) makeHeaderAssign(r *rdl.Resource) string {
 const javaServerHandlerTemplate = `{{header}}
 {{package}}
 import com.yahoo.rdl.*;
-import javax.ws.rs.core.Response;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 //
 // {{cName}}Handler is the interface that the service implementation must implement
@@ -266,8 +266,8 @@ const javaServerContextTemplate = `{{header}}
 {{package}}
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 //
@@ -288,11 +288,11 @@ public interface ResourceContext {
 const javaServerTemplate = `{{header}}
 {{package}}
 import com.yahoo.rdl.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -550,7 +550,7 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 		if v.Optional {
 			required = "false"
 		}
-		escapedComment := strings.Replace(v.Comment ,`"`, `\"`, -1)
+		escapedComment := strings.Replace(v.Comment, `"`, `\"`, -1)
 		pdecl := ""
 		pdecl += "@Parameter(description = \"" + escapedComment + "\", required = " + required + ") "
 		if v.QueryParam != "" {
@@ -581,7 +581,7 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	default:
 		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
 	}
-	escapedComment := strings.Replace(r.Comment ,`"`, `\"`, -1)
+	escapedComment := strings.Replace(r.Comment, `"`, `\"`, -1)
 	spec += "@Operation(description = \"" + escapedComment + "\")\n    "
 	methName, _ := javaMethodName(reg, r)
 	return spec + "public " + returnType + " " + methName + "(\n        " + strings.Join(params, ",\n        ") + ")"

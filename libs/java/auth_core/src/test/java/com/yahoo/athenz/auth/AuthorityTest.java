@@ -17,7 +17,7 @@ package com.yahoo.athenz.auth;
 
 import org.testng.annotations.Test;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.EnumSet;

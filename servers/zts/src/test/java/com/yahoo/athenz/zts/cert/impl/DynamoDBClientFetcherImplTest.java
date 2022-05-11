@@ -20,7 +20,6 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.google.common.io.Resources;
 import com.yahoo.athenz.zts.ZTSClientNotificationSender;
-import org.eclipse.jetty.util.StringUtil;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 

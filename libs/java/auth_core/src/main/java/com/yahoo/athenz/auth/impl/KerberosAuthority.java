@@ -206,7 +206,6 @@ public class KerberosAuthority implements Authority {
         Subject subject = serviceSubject.get();
         KerberosTicket tgt = null;
         Set<KerberosTicket> tickets = subject.getPrivateCredentials(KerberosTicket.class);
-        /// CLOVER:OFF
         for (KerberosTicket ticket : tickets) {
             if (isTargetPrincipal(ticket, remoteSvcPrincipal)) {
                 tgt = ticket;
@@ -228,7 +227,6 @@ public class KerberosAuthority implements Authority {
             return true;
         }
         return false;
-        ///CLOVER:ON
     }
 
     /**
@@ -285,14 +283,12 @@ public class KerberosAuthority implements Authority {
 
         String userDomain = token.getDomain();
         String userName   = token.getUserName();
-        /// CLOVER:OFF
         if (userName == null) {
             if (errMsg != null) {
                 errMsg.append("KerberosAuthority:authenticate: token validation failure: missing user");
             }
             return null;
         }
-        ///CLOVER:ON
         return SimplePrincipal.create(userDomain, userName, creds, this);
     }
 
@@ -342,11 +338,9 @@ public class KerberosAuthority implements Authority {
             // Otherwise a configuration error will be returned
             if (Boolean.parseBoolean(useTktCache)) {
                 String ticketCacheName = System.getenv("KRB5CCNAME");  // this is what hadoop does
-                ///CLOVER:OFF
                 if (ticketCacheName != null) {
                     options.put("ticketCache", ticketCacheName);
                 } else {
-                    ///CLOVER:ON
                     ticketCacheName = System.getProperty(KRB_PROP_LOGIN_TKT_CACHE_NAME);
                     if (ticketCacheName != null && !ticketCacheName.isEmpty()) {
                         options.put("ticketCache", ticketCacheName);
