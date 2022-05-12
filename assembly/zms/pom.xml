@@ -40,7 +40,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>${logback.version}</version>
+      <version>${logback.server.version}</version>
       <scope>runtime</scope>
     </dependency>
   </dependencies>
@@ -48,6 +48,7 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
@@ -55,8 +56,9 @@
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>3.0.0</version>
+        <version>${maven-assembly-plugin.version}</version>
         <executions>
           <execution>
             <id>package-zms-assembly</id>

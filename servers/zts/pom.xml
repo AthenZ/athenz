@@ -26,6 +26,7 @@
   <artifactId>athenz-zts-server</artifactId>
   <name>athenz-zts-server</name>
   <description>Athenz ZTS Server</description>
+  <packaging>war</packaging>
 
   <properties>
     <code.coverage.min>0.980</code.coverage.min>
@@ -44,6 +45,17 @@
   </dependencyManagement>
   
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.server.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.server.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-auth-core</artifactId>
@@ -238,5 +250,4 @@
     </plugins>
   </build>
 
-  <packaging>war</packaging>
 </project>
