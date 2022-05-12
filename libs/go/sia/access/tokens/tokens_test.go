@@ -176,6 +176,87 @@ func TestToBeRefreshed(t *testing.T) {
 	assert.Equalf(t, toRefresh[1].FileName, "reader-aged", fmt.Sprintf("second item: %+v should be %q", toRefresh[0], "reader-aged"))
 }
 
+func TestToBeRefreshedWithStoreOption(t *testing.T) {
+	tokenDir := t.TempDir()
+
+	log.Printf("temp dir: %s\n", tokenDir)
+	domain := "athenz.examples"
+	service := "httpd"
+
+	tokens := []config.AccessToken{
+		// token exists, and should not be refreshed
+		{
+			FileName: "reader-aged",
+			Domain:   domain,
+			Service:  service,
+		},
+	}
+
+	domainDir := filepath.Join(tokenDir, domain)
+	err := os.Mkdir(domainDir, 0755)
+	require.Nilf(t, err, fmt.Sprintf("should be able to create directory: %s", domainDir))
+
+	tpath := filepath.Join(tokenDir, domain, "reader-aged")
+	log.Printf("Creating a token at: %s\n", tpath)
+	err = ioutil.WriteFile(tpath, token(360000), 0400)
+	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
+	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-time.Minute*90))
+
+	opts := config.TokenOptions{
+		TokenDir: tokenDir,
+		Tokens:   tokens,
+	}
+	toRefresh, _ := ToBeRefreshed(&opts)
+	assert.True(t, len(toRefresh) == 0, fmt.Sprint("there should not be any tokens to refresh"))
+
+	// now set the store option
+	opts.StoreOptions = config.ACCESS_TOKEN_PROP
+
+	toRefresh, _ = ToBeRefreshed(&opts)
+	assert.True(t, len(toRefresh) == 1, fmt.Sprint("reader-aged token should be refreshed"))
+}
+
+func TestTokenWithStoreOption(t *testing.T) {
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(t, err, "should be able to create temp folder for sia")
+
+	// Mock ZTS AccessTokens api
+	ztsRouter := httptreemux.New()
+	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+
+	// Mock Access Tokens
+	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /zts/v1/instance")
+		io.WriteString(w, makeAccessToken(r, eckey))
+	})
+
+	ztsServer := &testServer{}
+	ztsServer.start(ztsRouter)
+	defer ztsServer.stop()
+
+	opts := &config.TokenOptions{
+		Domain:   "iaas.athens",
+		Services: []string{"httpd", "yamas"},
+		CertDir:  filepath.Join(siaDir, "certs"),
+		KeyDir:   filepath.Join(siaDir, "keys"),
+		TokenDir: filepath.Join(siaDir, "tokens"),
+		Tokens: []config.AccessToken{
+			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+		},
+		ZtsUrl:       ztsServer.baseUrl("zts/v1"),
+		StoreOptions: config.ACCESS_TOKEN_PROP,
+	}
+
+	log.Printf("Options fed are: %+v\n", opts)
+
+	makeSiaDirs(t, opts)
+	makeIdentity(t, opts)
+
+	errs := Fetch(opts)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
+	assertAccessTokenPropOnly(t, opts, true)
+}
+
 func TestTokenDirs(t *testing.T) {
 	cases := []struct {
 		Name     string
@@ -600,6 +681,24 @@ func TestNewTokenOptions(t *testing.T) {
 	assertAccessTokens(t, tokenOpts, false)
 }
 
+func TestTokenRefreshOption(t *testing.T) {
+	ztsServer := &testServer{}
+	cfg, configAccount, _ := options.InitFileConfig("data/sia_config.with-access-tokens", "http://localhost:80", false, "us-west-2", "")
+	siaDir := "/tmp"
+
+	opts, err := options.NewOptions(cfg, configAccount, siaDir, "1.0.0", false, "us-west-2")
+	tokenOpts, err := NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+	dur, _ := time.ParseDuration(DEFAULT_REFRESH_DURATION)
+	assert.Equal(t, float64(90), dur.Minutes(), "token refresh should be default")
+
+	_ = os.Setenv(TOKEN_REFRESH_PERIOD_PROP, "1ms")
+	tokenOpts, err = NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
+	require.Nilf(t, err, "error should not be thrown, error: %v", err)
+	assert.Equal(t, int64(1), tokenOpts.TokenRefresh.Milliseconds(), "token refresh should not be specified")
+	_ = os.Unsetenv(TOKEN_REFRESH_PERIOD_PROP)
+}
+
 func fixGidUid(tokens []config.AccessToken) {
 	for i, token := range tokens {
 		if token.Gid >= 0xf0000000 || token.Uid >= 0xf0000000 {
@@ -783,6 +882,30 @@ func makeIdentity(t *testing.T, opts *config.TokenOptions) {
 		if err := keyOut.Close(); err != nil {
 			t.Fatalf("Error closing key.pem: %v", err)
 		}
+	}
+}
+
+// assertAccessTokenPropOnly verifies the token file exist with valid contnet
+func assertAccessTokenPropOnly(t *testing.T, opts *config.TokenOptions, assertGidUid bool) {
+	a := assert.New(t)
+
+	for _, t := range opts.Tokens {
+		fname := filepath.Join(opts.TokenDir, t.Domain, t.FileName)
+		f, err := os.Stat(fname)
+		a.Nil(err)
+
+		a.Equal(os.FileMode(0440), f.Mode())
+
+		if assertGidUid {
+			if statt, ok := f.Sys().(*syscall.Stat_t); ok {
+				a.Equal(statt.Uid, uint32(t.Uid))
+				a.Equal(statt.Gid, uint32(t.Gid))
+			}
+		}
+
+		bytes, err := ioutil.ReadFile(fname)
+		a.Nilf(err, "should be able to read the file, %q", fname)
+		a.NotEmpty(bytes, "token file should not be empty")
 	}
 }
 

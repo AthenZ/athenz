@@ -580,7 +580,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		}()
 
 		go func() {
-			if tokenOpts == nil {
+			if tokenOpts == nil || tokenOpts.TokenRefresh == 0 {
 				return
 			}
 			fetchToken := func() {
@@ -597,7 +597,6 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 			for {
 				select {
 				case <-t2.C:
-					// fetch token on refresh time
 					fetchToken()
 				case <-stop:
 					errors <- nil
@@ -629,12 +628,10 @@ func accessTokenRequest(tokenOpts *config.TokenOptions) error {
 		log.Printf("Failed to create/refresh access token: %s. Retrying in %s", err.Error(), backoffDelay)
 	}
 
-	err := backoff.RetryNotify(
-		func() error {
-			return fetchAccessToken(tokenOpts)
-		},
-		getExponentialBackoffToken(),
-		notifyOnAccessTokenErr)
+	accessTokenFunc := func() error {
+		return fetchAccessToken(tokenOpts)
+	}
+	err := backoff.RetryNotify(accessTokenFunc, getExponentialBackoffToken(), notifyOnAccessTokenErr)
 
 	if err != nil {
 		log.Printf("access tokens errors: %v", err)
@@ -656,8 +653,8 @@ func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, e
 
 func fetchAccessToken(tokenOpts *config.TokenOptions) error {
 
-	errs := tokens.FetchAccessToken(tokenOpts)
-	log.Printf("FetchAccessToken completed successfully with [%d] errors", len(errs))
+	errs := tokens.Fetch(tokenOpts)
+	log.Printf("Fetch access token completed successfully with [%d] errors", len(errs))
 
 	switch len(errs) {
 	case 0:

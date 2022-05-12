@@ -38,9 +38,11 @@ import (
 	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
-const USER_AGENT = "User-Agent"
-
-var tokenRefreshPeriod = util.EnvOrDefault("TOKEN_REFRESH_PERIOD", "1.5h")
+const (
+	USER_AGENT                = "User-Agent"
+	TOKEN_REFRESH_PERIOD_PROP = "TOKEN_REFRESH_PERIOD"
+	DEFAULT_REFRESH_DURATION  = "1.5h"
+)
 
 // ToBeRefreshed looks into /var/lib/sia/tokens folder and returns the list of tokens whose
 // age is half of their validity
@@ -71,7 +73,8 @@ func ToBeRefreshed(opts *config.TokenOptions) ([]config.AccessToken, []error) {
 				continue
 			}
 
-			// if the token is being stored without expiration property, we should refresh immediately
+			// if the token is being stored without expiration property (i.e - not AccessTokenResponse
+			// but AccessTokenResponse::Access_token only), we should refresh immediately
 			if opts.StoreOptions != config.ZTS_RESPONSE {
 				refresh = append(refresh, t)
 				continue
@@ -96,26 +99,7 @@ func ToBeRefreshed(opts *config.TokenOptions) ([]config.AccessToken, []error) {
 	return refresh, errs
 }
 
-type ExtractToken func(*zts.AccessTokenResponse) ([]byte, error)
-
-// FetchAccessToken retrieves the configured set of access tokens from the ZTS Server
-// extract the access_token object and store it in the corresponding token directory
-func FetchAccessToken(opts *config.TokenOptions) []error {
-	extractTokenFunc := func(res *zts.AccessTokenResponse) ([]byte, error) {
-		return json.Marshal(res.Access_token)
-	}
-	return doFetch(opts, extractTokenFunc)
-}
-
-// Fetch retrieves the configured set of access tokens from the ZTS Server and store it in the corresponding token directory
 func Fetch(opts *config.TokenOptions) []error {
-	extractTokenFunc := func(res *zts.AccessTokenResponse) ([]byte, error) {
-		return json.Marshal(res)
-	}
-	return doFetch(opts, extractTokenFunc)
-}
-
-func doFetch(opts *config.TokenOptions, extractTokenFunc ExtractToken) []error {
 	errs := []error{}
 	tlsConfigs, e := loadSvcCerts(opts)
 	if len(e) != 0 {
@@ -148,7 +132,17 @@ func doFetch(opts *config.TokenOptions, extractTokenFunc ExtractToken) []error {
 		}
 
 		fileName := filepath.Join(opts.TokenDir, t.Domain, t.FileName)
-		bytes, err := extractTokenFunc(res)
+
+		tokenBytesToStore := func(res *zts.AccessTokenResponse, opts *config.TokenOptions) ([]byte, error) {
+			if opts.StoreOptions == config.ZTS_RESPONSE {
+				return json.Marshal(res)
+			} else {
+				return json.Marshal(res.Access_token)
+			}
+		}
+
+		bytes, err := tokenBytesToStore(res, opts)
+
 		if err != nil {
 			// note: since it was just unmarshalled into AccessTokenResponse by the ZTS client library, re-marshalling should never be an issue
 			errs = append(errs, fmt.Errorf("unable to marshall the token response for domain: %q, roles: %v, response: %v, err: %v", t.Domain, t.Roles, res, err))
@@ -212,6 +206,9 @@ func makeTokenRequest(domain string, roles []string, expiryTime int) string {
 }
 
 func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) (*config.TokenOptions, error) {
+	if options.AccessTokens == nil {
+		return nil, fmt.Errorf("access-token object is not presented")
+	}
 	dirs := []string{options.CertDir, options.KeyDir, options.BackUpDir}
 	dirs = append(dirs, TokenDirs(options.TokenDir, options.AccessTokens)...)
 
@@ -220,6 +217,7 @@ func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) 
 		return nil, fmt.Errorf("unable to create access-token directories, err: %v", err)
 	}
 
+	tokenRefreshPeriod := util.EnvOrDefault(TOKEN_REFRESH_PERIOD_PROP, DEFAULT_REFRESH_DURATION)
 	tokenRefresh, err := time.ParseDuration(tokenRefreshPeriod)
 	if err != nil {
 		return nil, fmt.Errorf("invalid token refresh period %q, %v", tokenRefreshPeriod, err)

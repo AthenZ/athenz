@@ -361,3 +361,12 @@ func TestUpdateSSHConfigFile(test *testing.T) {
 		})
 	}
 }
+
+func TestNilTokenOptions(test *testing.T) {
+	opts := &options.Options{
+		Domain: "athenz",
+	}
+	token, err := tokenOptions(opts, "")
+	assert.Nil(test, token, "should not create token")
+	assert.NotNil(test, err, "token is not presented")
+}

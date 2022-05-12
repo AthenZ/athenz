@@ -40,8 +40,8 @@ type AccessToken struct {
 type StoreTokenOptions int
 
 const (
-	ZTS_RESPONSE      StoreTokenOptions = iota // default - store the entire AccessTokenResponse from ZTS
-	ACCESS_TOKEN_PROP                          // store only the access_token property
+	ZTS_RESPONSE      StoreTokenOptions = iota // Default - store the entire AccessTokenResponse from ZTS
+	ACCESS_TOKEN_PROP                          // Store only the access_token property
 )
 
 // TokenOptions holds all the configurable options for driving Access Tokens functionality
@@ -55,5 +55,5 @@ type TokenOptions struct {
 	ZtsUrl       string            // ZTS endpoint
 	UserAgent    string            // User Agent string to be sent in the client call to ZTS, typically a client version
 	TokenRefresh time.Duration     // Token refresh interval
-	StoreOptions StoreTokenOptions // Store token option, the entire response or access_token only
+	StoreOptions StoreTokenOptions // Store token option
 }
