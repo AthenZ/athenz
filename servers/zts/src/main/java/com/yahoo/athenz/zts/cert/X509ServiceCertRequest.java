@@ -23,7 +23,7 @@ import com.yahoo.athenz.zts.cache.DataCache;
 
 public class X509ServiceCertRequest extends X509CertRequest {
 
-    private static final String SPIFFE_SERVICE_AGENT = "sa";
+    public static final String SPIFFE_SERVICE_AGENT = "sa";
 
     public X509ServiceCertRequest(String csr) throws CryptoException {
         super(csr);
