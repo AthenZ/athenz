@@ -55,6 +55,10 @@ public class NoOpMetric implements Metric {
     }
 
     @Override
+    public void increment(String metric, long change, final String... attributes) {
+    }
+
+    @Override
     public Object startTiming(String metric, String requestDomainName) {
         return null;
     }
@@ -84,7 +88,7 @@ public class NoOpMetric implements Metric {
     @Override
     public void flush() {
     }
-    
+
     @Override
     public void quit() {
     }

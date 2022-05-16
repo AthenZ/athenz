@@ -96,6 +96,16 @@ public interface Metric {
     }
 
     /**
+     * Increment the counter for the specified metric with the specified attributes
+     * @param metric Name of the counter
+     * @param attributes a sorted array of tag key-value pairs in a flattened array
+     * @param change value by which to increment the counter
+     */
+    default void increment(String metric, long change, final String... attributes) {
+        // No op
+    }
+
+    /**
      * Start the latency timer for the specified metric for the given domainName.
      * The implementation must be able to support simultaneous handling of
      * multiple timer counters (but not the same metric). It's possible that
@@ -199,7 +209,7 @@ public interface Metric {
      * Flush any buffered metrics to destination.
      */
     void flush();
-    
+
     /**
      * Flush buffers and shutdown any tasks.
      */
