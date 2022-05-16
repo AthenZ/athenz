@@ -19,14 +19,16 @@ package sia
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/AthenZ/athenz/provider/aws/sia-fargate/devel/metamock"
 )
 
 func setup() {
-	os.Setenv("ECS_CONTAINER_METADATA_URI_V4", "http://127.0.0.1:5080")
+	os.Setenv("ECS_CONTAINER_METADATA_URI_V4", "http://127.0.0.1:5081")
 
-	go metamock.StartMetaServer("127.0.0.1:5080")
+	go metamock.StartMetaServer("127.0.0.1:5081")
+	time.Sleep(3 * time.Second)
 }
 
 func teardown() {}
@@ -40,7 +42,7 @@ func TestMain(m *testing.M) {
 
 func TestGetFargateData(test *testing.T) {
 	// "TaskARN": "arn:aws:ecs:us-west-2:012345678910:task/9781c248-0edd-4cdb-9a93-f63cb662a5d3",
-	account, taskId, region, err := GetFargateData("http://127.0.0.1:5080")
+	account, taskId, region, err := GetFargateData("http://127.0.0.1:5081")
 	if err != nil {
 		test.Errorf("Unable to get account, task id from fargate: %v", err)
 	}

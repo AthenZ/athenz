@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+	"time"
 )
 
 var (
@@ -31,6 +32,7 @@ var (
 
 func setup() {
 	go metamock.StartMetaServer("127.0.0.1:5083")
+	time.Sleep(3 * time.Second)
 }
 
 func teardown() {}
