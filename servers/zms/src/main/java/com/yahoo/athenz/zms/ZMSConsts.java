@@ -130,6 +130,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS = "athenz.zms.domain_meta_store_factory_class";
     public static final String ZMS_DOMAIN_META_STORE_FACTORY_CLASS      = "com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStoreFactory";
 
+    public static final String ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS    = "athenz.zms.auth_history_store_factory_class";
+
     // properties for our default quota limits
 
     public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";
@@ -360,4 +362,6 @@ public final class ZMSConsts {
 
     public static final String PROVIDER_RESPONSE_ALLOW = "allow";
     public static final String PROVIDER_RESPONSE_DENY = "deny";
+    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE = "athenz.zms.auth_history.dynamodb.table";
+    public static final String ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE = "Athenz-Auth-History";
 }

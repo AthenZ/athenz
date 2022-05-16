@@ -23126,6 +23126,15 @@ public class ZMSImplTest {
         }
         System.clearProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS);
 
+        System.setProperty(ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadAuthHistoryStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid auth history store"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS);
+
         System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "invalid.class");
         try {
             zmsImpl.loadObjectStore();
