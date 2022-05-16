@@ -576,6 +576,38 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/{domainName}/history/auth")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the authorization and token requests history for the domain")
+    public AuthHistoryList getAuthHistoryList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.request, this.response, "getAuthHistoryList");
+            context.authenticate();
+            return this.delegate.getAuthHistoryList(context, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAuthHistoryList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Carry out data check operation for the specified domain.")

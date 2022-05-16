@@ -100,13 +100,13 @@ public class ZMSImplTest {
     private final long fetchDomainDependencyFrequency = 1L; // For the tests, fetch every second
 
     @BeforeClass
-    public void startMemoryMySQL() {
-        zmsTestInitializer.startMemoryMySQL();
+    public void startMemoryDB() {
+        zmsTestInitializer.startMemoryDB();
     }
 
     @AfterClass
-    public void stopMemoryMySQL() {
-        zmsTestInitializer.stopMemoryMySQL();
+    public void stopMemoryDB() {
+        zmsTestInitializer.stopMemoryDB();
     }
 
     @BeforeMethod
@@ -23122,6 +23122,15 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("Invalid metric class"));
         }
         System.clearProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS);
+
+        System.setProperty(ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadAuthHistoryStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid auth history store"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS);
 
         System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "invalid.class");
         try {

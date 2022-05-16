@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.google.common.io.Resources;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.Authority;
@@ -72,6 +73,7 @@ public class DBServiceTest {
     private String pubKeyK2         = null;
     private final String auditRef   = "audittest";
     private EmbeddedMysql mysqld;
+    private DynamoDBProxyServer dynamoDBProxyServer;
 
     // typically used when creating and deleting domains with all the tests
     //
@@ -89,6 +91,7 @@ public class DBServiceTest {
 
     private static final int BASE_PRODUCT_ID = 500000000; // these product ids will lie in 500 million range
     private static final java.util.Random domainProductId = new java.security.SecureRandom();
+
     private static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
@@ -100,6 +103,7 @@ public class DBServiceTest {
 
         MockitoAnnotations.openMocks(this);
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+        dynamoDBProxyServer = ZMSTestUtils.startMemoryDynamoDB();
         System.setProperty(ZMSTestInitializer.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
@@ -108,6 +112,8 @@ public class DBServiceTest {
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.MockAuthHistoryStoreFactory");
 
         Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
@@ -290,6 +296,7 @@ public class DBServiceTest {
     @AfterClass
     public void shutdown() {
         ZMSTestUtils.stopMemoryMySQL(mysqld);
+        ZMSTestUtils.stopMemoryDynamoDB(dynamoDBProxyServer);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
         System.clearProperty(ZMSConsts.ZMS_PROP_USER_AUTHORITY_CLASS);
         System.clearProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER);
@@ -3706,7 +3713,7 @@ public class DBServiceTest {
 
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain("user");
-        DBService dbService = new DBService(null, null, zmsConfig, null);
+        DBService dbService = new DBService(null, null, zmsConfig, null, null);
         assertEquals(120, dbService.defaultRetryCount);
         assertEquals(250, dbService.retrySleepTime);
         assertEquals(60, dbService.defaultOpTimeout);
@@ -3721,7 +3728,7 @@ public class DBServiceTest {
 
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain("user");
-        DBService dbService = new DBService(mockObjStore, null, zmsConfig, null);
+        DBService dbService = new DBService(mockObjStore, null, zmsConfig, null, null);
 
         // regardless of exception, count of 0 or 1 returns false
 

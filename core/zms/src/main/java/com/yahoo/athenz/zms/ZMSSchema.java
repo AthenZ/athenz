@@ -370,6 +370,15 @@ public class ZMSSchema {
             .comment("List of templates with metadata details given a domain")
             .arrayField("metaData", "TemplateMetaData", false, "list of template metadata");
 
+        sb.structType("Entity")
+            .comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
+            .field("name", "ResourceName", false, "name of the entity object")
+            .field("value", "Struct", false, "value of the entity");
+
+        sb.structType("EntityList")
+            .comment("The representation for an enumeration of entities in the namespace")
+            .arrayField("names", "EntityName", false, "list of entity names");
+
         sb.structType("TopLevelDomain", "DomainMeta")
             .comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
             .field("name", "SimpleName", false, "name of the domain")
@@ -389,6 +398,16 @@ public class ZMSSchema {
             .comment("List of valid domain meta attribute values")
             .arrayField("validValues", "String", false, "list of valid values for attribute");
 
+        sb.structType("AuthHistory")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("principal", "ResourceName", false, "")
+            .field("timestamp", "Timestamp", false, "")
+            .field("endpoint", "String", false, "")
+            .field("ttl", "Int64", false, "");
+
+        sb.structType("AuthHistoryList")
+            .arrayField("authHistoryList", "AuthHistory", false, "list of auth history records for domain");
+
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
             .field("policyName", "EntityName", false, "")
@@ -403,15 +422,6 @@ public class ZMSSchema {
             .field("roleWildCardCount", "Int32", false, "total number of assertions containing roles as wildcards")
             .arrayField("providersWithoutTrust", "ServiceName", true, "Service names (domain.service) that dont contain trust role if this is a tenant domain. Might be empty or null, if not a tenant or if all providers support this tenant.")
             .arrayField("tenantsWithoutAssumeRole", "DomainName", true, "Names of Tenant domains that dont contain assume role assertions if this is a provider domain. Might be empty or null, if not a provider or if all tenants support use this provider.");
-
-        sb.structType("Entity")
-            .comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
-            .field("name", "ResourceName", false, "name of the entity object")
-            .field("value", "Struct", false, "value of the entity");
-
-        sb.structType("EntityList")
-            .comment("The representation for an enumeration of entities in the namespace")
-            .arrayField("names", "EntityName", false, "list of entity names");
 
         sb.structType("GroupAuditLog")
             .comment("An audit log entry for group membership change.")
@@ -912,6 +922,20 @@ public class ZMSSchema {
             .comment("List all valid values for the given attribute and user")
             .queryParam("attribute", "attributeName", "String", null, "name of attribute")
             .queryParam("user", "userName", "String", null, "restrict to values associated with the given user")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("AuthHistoryList", "GET", "/domain/{domainName}/history/auth")
+            .comment("Get the authorization and token requests history for the domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

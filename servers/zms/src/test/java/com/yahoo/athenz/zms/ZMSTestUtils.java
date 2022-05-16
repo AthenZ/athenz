@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
+import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.wix.mysql.EmbeddedMysql;
 import com.wix.mysql.Sources;
 import com.wix.mysql.config.MysqldConfig;
@@ -22,6 +24,8 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -51,6 +55,29 @@ public class ZMSTestUtils {
     public static void stopMemoryMySQL(EmbeddedMysql mysqld) {
         System.out.println("Stopping Embedded MySQL server...");
         mysqld.stop();
+    }
+
+    public static DynamoDBProxyServer  startMemoryDynamoDB() {
+        int port = 3312;
+        try {
+            DynamoDBProxyServer dynamoProxy = ServerRunner.createServerFromCommandLineArgs(new String[]{
+                    "-inMemory",
+                    "-port",
+                    Integer.toString(port)
+            });
+            dynamoProxy.start();
+            return dynamoProxy;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static void stopMemoryDynamoDB(DynamoDBProxyServer dynamoDBProxyServer) {
+        try {
+            dynamoDBProxyServer.stop();
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     public static void setDatabaseReadOnlyMode(EmbeddedMysql mysqld, boolean readOnly) {

@@ -433,6 +433,17 @@ func init() {
 	tDomainTemplateDetailsList.ArrayField("metaData", "TemplateMetaData", false, "list of template metadata")
 	sb.AddType(tDomainTemplateDetailsList.Build())
 
+	tEntity := rdl.NewStructTypeBuilder("Struct", "Entity")
+	tEntity.Comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
+	tEntity.Field("name", "ResourceName", false, nil, "name of the entity object")
+	tEntity.Field("value", "Struct", false, nil, "value of the entity")
+	sb.AddType(tEntity.Build())
+
+	tEntityList := rdl.NewStructTypeBuilder("Struct", "EntityList")
+	tEntityList.Comment("The representation for an enumeration of entities in the namespace")
+	tEntityList.ArrayField("names", "EntityName", false, "list of entity names")
+	sb.AddType(tEntityList.Build())
+
 	tTopLevelDomain := rdl.NewStructTypeBuilder("DomainMeta", "TopLevelDomain")
 	tTopLevelDomain.Comment("Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.")
 	tTopLevelDomain.Field("name", "SimpleName", false, nil, "name of the domain")
@@ -456,6 +467,18 @@ func init() {
 	tDomainMetaStoreValidValuesList.ArrayField("validValues", "String", false, "list of valid values for attribute")
 	sb.AddType(tDomainMetaStoreValidValuesList.Build())
 
+	tAuthHistory := rdl.NewStructTypeBuilder("Struct", "AuthHistory")
+	tAuthHistory.Field("domainName", "DomainName", false, nil, "name of the domain")
+	tAuthHistory.Field("principal", "ResourceName", false, nil, "")
+	tAuthHistory.Field("timestamp", "Timestamp", false, nil, "")
+	tAuthHistory.Field("endpoint", "String", false, nil, "")
+	tAuthHistory.Field("ttl", "Int64", false, nil, "")
+	sb.AddType(tAuthHistory.Build())
+
+	tAuthHistoryList := rdl.NewStructTypeBuilder("Struct", "AuthHistoryList")
+	tAuthHistoryList.ArrayField("authHistoryList", "AuthHistory", false, "list of auth history records for domain")
+	sb.AddType(tAuthHistoryList.Build())
+
 	tDanglingPolicy := rdl.NewStructTypeBuilder("Struct", "DanglingPolicy")
 	tDanglingPolicy.Comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
 	tDanglingPolicy.Field("policyName", "EntityName", false, nil, "")
@@ -472,17 +495,6 @@ func init() {
 	tDomainDataCheck.ArrayField("providersWithoutTrust", "ServiceName", true, "Service names (domain.service) that dont contain trust role if this is a tenant domain. Might be empty or null, if not a tenant or if all providers support this tenant.")
 	tDomainDataCheck.ArrayField("tenantsWithoutAssumeRole", "DomainName", true, "Names of Tenant domains that dont contain assume role assertions if this is a provider domain. Might be empty or null, if not a provider or if all tenants support use this provider.")
 	sb.AddType(tDomainDataCheck.Build())
-
-	tEntity := rdl.NewStructTypeBuilder("Struct", "Entity")
-	tEntity.Comment("An entity is a name and a structured value. some entity names/prefixes are reserved (i.e. \"role\",  \"policy\", \"meta\", \"domain\", \"service\")")
-	tEntity.Field("name", "ResourceName", false, nil, "name of the entity object")
-	tEntity.Field("value", "Struct", false, nil, "value of the entity")
-	sb.AddType(tEntity.Build())
-
-	tEntityList := rdl.NewStructTypeBuilder("Struct", "EntityList")
-	tEntityList.Comment("The representation for an enumeration of entities in the namespace")
-	tEntityList.ArrayField("names", "EntityName", false, "list of entity names")
-	sb.AddType(tEntityList.Build())
 
 	tGroupAuditLog := rdl.NewStructTypeBuilder("Struct", "GroupAuditLog")
 	tGroupAuditLog.Comment("An audit log entry for group membership change.")
@@ -963,6 +975,16 @@ func init() {
 	mGetDomainMetaStoreValidValuesList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetDomainMetaStoreValidValuesList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDomainMetaStoreValidValuesList.Build())
+
+	mGetAuthHistoryList := rdl.NewResourceBuilder("AuthHistoryList", "GET", "/domain/{domainName}/history/auth")
+	mGetAuthHistoryList.Comment("Get the authorization and token requests history for the domain")
+	mGetAuthHistoryList.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetAuthHistoryList.Auth("", "", true, "")
+	mGetAuthHistoryList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetAuthHistoryList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetAuthHistoryList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetAuthHistoryList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetAuthHistoryList.Build())
 
 	mGetDomainDataCheck := rdl.NewResourceBuilder("DomainDataCheck", "GET", "/domain/{domainName}/check")
 	mGetDomainDataCheck.Comment("Carry out data check operation for the specified domain.")

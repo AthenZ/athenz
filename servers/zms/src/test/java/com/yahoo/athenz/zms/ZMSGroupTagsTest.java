@@ -32,12 +32,12 @@ public class ZMSGroupTagsTest {
 
     @BeforeClass
     public void startMemoryMySQL() {
-        zmsTestInitializer.startMemoryMySQL();
+        zmsTestInitializer.startMemoryDB();
     }
 
     @AfterClass
     public void stopMemoryMySQL() {
-        zmsTestInitializer.stopMemoryMySQL();
+        zmsTestInitializer.stopMemoryDB();
     }
 
     @BeforeMethod

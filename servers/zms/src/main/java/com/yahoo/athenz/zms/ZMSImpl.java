@@ -57,9 +57,7 @@ import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
-import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.ObjectStoreFactory;
+import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
@@ -218,6 +216,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ObjectMapper jsonMapper;
     protected StatusChecker statusChecker = null;
     protected ObjectStore objectStore = null;
+    protected AuthHistoryStore authHistoryStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
@@ -636,6 +635,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         loadSolutionTemplates();
 
+        // loud authentication history store
+
+        loadAuthHistoryStore();
+
         // our object store - either mysql or file based
 
         loadObjectStore();
@@ -956,11 +959,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setUserAuthority(userAuthority);
 
         objectStore = objFactory.create(keyStore);
-        dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator);
+        dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator, authHistoryStore);
 
         // create our group fetcher based on the db service
 
         groupMemberFetcher = new ZMSGroupMembersFetcher(dbService);
+    }
+
+    void loadAuthHistoryStore() {
+        String authHistoryFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS,
+                ZMSConsts.ZMS_AUTH_HISTORY_STORE_FACTORY_CLASS);
+        AuthHistoryStoreFactory authHistoryStoreFactory;
+        try {
+            authHistoryStoreFactory = (AuthHistoryStoreFactory) Class.forName(authHistoryFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid AuthHistoryStoreFactory class: {} error: {}", authHistoryFactoryClass, e.getMessage());
+            throw new IllegalArgumentException("Invalid auth history store");
+        }
+
+        authHistoryStore = authHistoryStoreFactory.create();
     }
 
     void loadMetricObject() {
@@ -2636,6 +2653,48 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         DomainMetaStoreValidValuesList domainMetaStoreValidValuesList = new DomainMetaStoreValidValuesList();
         domainMetaStoreValidValuesList.setValidValues(values);
         return domainMetaStoreValidValuesList;
+    }
+
+    @Override
+    public AuthHistoryList getAuthHistoryList(ResourceContext ctx, String domainName) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        List<AuthHistoryRecord> authHistoryRecords = dbService.getAuthHistory(domainName);
+        List<AuthHistory> authHistoryList = authHistoryRecords.stream()
+                .map(record -> {
+                    AuthHistory authHistory = new AuthHistory();
+                    authHistory.setDomainName(record.getDomain());
+                    authHistory.setPrincipal(record.getPrincipal());
+                    authHistory.setEndpoint(record.getEndpoint());
+                    authHistory.setTimestamp(getAuthHistoryTimeStamp(record, caller));
+                    authHistory.setTtl(record.getTtl());
+                    return authHistory;
+                })
+                .collect(Collectors.toList());
+        return new AuthHistoryList().setAuthHistoryList(authHistoryList);
+    }
+
+    private Timestamp getAuthHistoryTimeStamp(AuthHistoryRecord authHistoryRecord, String caller) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss");
+            Date date = formatter.parse(authHistoryRecord.getTimestamp());
+            Timestamp timestamp = Timestamp.fromDate(date);
+            return timestamp;
+        } catch (ParseException e) {
+            LOG.error("Error parsing timestamp for authHistoryRecord, timestamp will be empty: " + authHistoryRecord);
+            return null;
+        }
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,

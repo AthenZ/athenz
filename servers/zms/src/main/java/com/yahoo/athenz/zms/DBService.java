@@ -30,9 +30,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.config.MemberDueDays;
-import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
+import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
@@ -54,6 +52,7 @@ public class DBService implements RolesProvider {
     ObjectStore store;
     BitSet auditRefSet;
     AuditLogger auditLogger;
+    private final AuthHistoryStore authHistoryStore;
     Cache<String, DataCache> cacheStore;
     QuotaChecker quotaCheck;
     int retrySleepTime;
@@ -81,11 +80,12 @@ public class DBService implements RolesProvider {
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
 
-    public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator) {
+    public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
 
         this.store = store;
         this.zmsConfig = zmsConfig;
         this.auditLogger = auditLogger;
+        this.authHistoryStore = authHistoryStore;
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
 
         // default timeout in seconds for object store commands
@@ -7987,6 +7987,12 @@ public class DBService implements RolesProvider {
             DomainList domainList = new DomainList();
             domainList.setNames(con.listDomainDependencies(service));
             return domainList;
+        }
+    }
+
+    public List<AuthHistoryRecord> getAuthHistory(String domain) {
+        try (AuthHistoryStoreConnection con = authHistoryStore.getConnection()) {
+            return con.getAuthHistory(domain);
         }
     }
 

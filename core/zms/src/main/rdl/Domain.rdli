@@ -294,3 +294,27 @@ resource DomainMetaStoreValidValuesList GET "/domain/metastore?attribute={attrib
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+type AuthHistory Struct {
+    DomainName domainName; //name of the domain
+    ResourceName principal;
+    Timestamp timestamp;
+    String endpoint;
+    Int64 ttl;
+}
+
+type AuthHistoryList Struct {
+    Array<AuthHistory> authHistoryList; //list of auth history records for domain
+}
+
+//Get the authorization and token requests history for the domain
+resource AuthHistoryList GET "/domain/{domainName}/history/auth" {
+    DomainName domainName; //name of the domain
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

@@ -36,12 +36,12 @@ public class ZMSNotificationsTest {
 
     @BeforeClass
     public void startMemoryMySQL() {
-        zmsTestInitializer.startMemoryMySQL();
+        zmsTestInitializer.startMemoryDB();
     }
 
     @AfterClass
     public void stopMemoryMySQL() {
-        zmsTestInitializer.stopMemoryMySQL();
+        zmsTestInitializer.stopMemoryDB();
     }
 
     @BeforeMethod

@@ -18,6 +18,7 @@
 
 package com.yahoo.athenz.zms;
 
+import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import com.google.common.io.Resources;
 import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.Authority;
@@ -91,13 +92,16 @@ public class ZMSTestInitializer {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
     private EmbeddedMysql mysqld;
+    DynamoDBProxyServer dynamoDBProxyServer;
 
-    public void startMemoryMySQL() {
+    public void startMemoryDB() {
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+        dynamoDBProxyServer = ZMSTestUtils.startMemoryDynamoDB();
     }
 
-    public void stopMemoryMySQL() {
+    public void stopMemoryDB() {
         ZMSTestUtils.stopMemoryMySQL(mysqld);
+        ZMSTestUtils.stopMemoryDynamoDB(dynamoDBProxyServer);
     }
 
     public void setDatabaseReadOnlyMode(boolean readOnlyMode) {
@@ -112,6 +116,8 @@ public class ZMSTestInitializer {
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
+
+        System.setProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.InMemoryAuthHistoryStoreFactory");
 
         when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
         when(mockServletRequest.isSecure()).thenReturn(true);
