@@ -481,7 +481,12 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		)
 	case "token":
 		if tokenOpts != nil {
-			_ = accessTokenRequest(tokenOpts)
+			err := accessTokenRequest(tokenOpts)
+			if err != nil {
+				log.Fatalf("Unable to fetch access token, err: %v\n", err)
+			}
+		} else {
+			log.Print("unable to obtain fetch token, invalid sia_config")
 		}
 	case "post", "register":
 		err := RegisterInstance(data, ztsUrl, opts, false)
@@ -517,6 +522,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		stop := make(chan bool, 1)
 		errors := make(chan error, 1)
 		certUpdates := make(chan bool, 1)
+		identityRefreshed := make(chan bool, 1)
 
 		go func() {
 			for {
@@ -537,6 +543,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 						errors <- fmt.Errorf("refresh identity failed: %v\n", err)
 						return
 					}
+					identityRefreshed <- true
 					log.Printf("identity successfully refreshed for services: %s\n", svcs)
 				} else {
 					initialSetup = false
@@ -589,15 +596,14 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 					log.Printf("fetch access token errors: %s", err.Error())
 				}
 			}
-			// fetch token upon init
-			fetchToken()
-
-			t2 := time.NewTicker(tokenOpts.TokenRefresh)
-			defer t2.Stop()
+			// wait until service identity has refreshed
 			for {
 				select {
-				case <-t2.C:
+				case <-identityRefreshed:
+					log.Printf("service identity has refreshed, about to fetch access token..")
 					fetchToken()
+					go refreshToken(fetchToken, tokenOpts, stop, errors)
+					break
 				case <-stop:
 					errors <- nil
 					return
@@ -611,6 +617,22 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		}
 	}
 	os.Exit(0)
+}
+
+func refreshToken(fetchToken func(), tokenOpts *config.TokenOptions, stop chan bool, errors chan error) {
+	log.Printf("start refresh access-token task every [%s]", fmt.Sprint(tokenOpts.TokenRefresh))
+	t2 := time.NewTicker(tokenOpts.TokenRefresh)
+	defer t2.Stop()
+	for {
+		select {
+		case <-t2.C:
+			log.Printf("refreshing access-token..")
+			fetchToken()
+		case <-stop:
+			errors <- nil
+			return
+		}
+	}
 }
 
 func accessTokenRequest(tokenOpts *config.TokenOptions) error {
