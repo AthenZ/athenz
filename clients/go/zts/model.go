@@ -2351,870 +2351,6 @@ func (self *SSHCertificates) Validate() error {
 }
 
 //
-// InstanceRegisterInformation -
-//
-type InstanceRegisterInformation struct {
-
-	//
-	// the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
-	//
-	Provider ServiceName `json:"provider"`
-
-	//
-	// the domain of the instance
-	//
-	Domain DomainName `json:"domain"`
-
-	//
-	// the service this instance is supposed to run
-	//
-	Service SimpleName `json:"service"`
-
-	//
-	// identity attestation data including document with its signature containing
-	// attributes like IP address, instance-id, account#, etc.
-	//
-	AttestationData string `json:"attestationData"`
-
-	//
-	// the Certificate Signing Request for the expected X.509 certificate in the
-	// response
-	//
-	Csr string `json:"csr"`
-
-	//
-	// deprecated - use sshCertRequest, if present, return an SSH host
-	// certificate. Format is JSON.
-	//
-	Ssh string `json:"ssh,omitempty" rdl:"optional"`
-
-	//
-	// if present, return an SSH host certificate
-	//
-	SshCertRequest *SSHCertRequest `json:"sshCertRequest,omitempty" rdl:"optional"`
-
-	//
-	// if true, return a service token signed by ZTS for this service
-	//
-	Token *bool `json:"token,omitempty" rdl:"optional"`
-
-	//
-	// expiry time in minutes for the certificate (server enforces max expiry)
-	//
-	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
-
-	//
-	// optional hostname in case included in the csr SAN dnsName attribute
-	//
-	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
-
-	//
-	// optional host CNAMEs included in the csr SAN dnsName attribute
-	//
-	HostCnames []DomainName `json:"hostCnames,omitempty" rdl:"optional"`
-}
-
-//
-// NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
-//
-func NewInstanceRegisterInformation(init ...*InstanceRegisterInformation) *InstanceRegisterInformation {
-	var o *InstanceRegisterInformation
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(InstanceRegisterInformation)
-	}
-	return o
-}
-
-type rawInstanceRegisterInformation InstanceRegisterInformation
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterInformation
-//
-func (self *InstanceRegisterInformation) UnmarshalJSON(b []byte) error {
-	var m rawInstanceRegisterInformation
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := InstanceRegisterInformation(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *InstanceRegisterInformation) Validate() error {
-	if self.Provider == "" {
-		return fmt.Errorf("InstanceRegisterInformation.provider is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.provider does not contain a valid ServiceName (%v)", val.Error)
-		}
-	}
-	if self.Domain == "" {
-		return fmt.Errorf("InstanceRegisterInformation.domain is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.domain does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	if self.Service == "" {
-		return fmt.Errorf("InstanceRegisterInformation.service is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.service does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	if self.AttestationData == "" {
-		return fmt.Errorf("InstanceRegisterInformation.attestationData is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.attestationData does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Csr == "" {
-		return fmt.Errorf("InstanceRegisterInformation.csr is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.csr does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Ssh != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.Ssh)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.ssh does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Hostname != "" {
-		val := rdl.Validate(ZTSSchema(), "DomainName", self.Hostname)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterInformation.hostname does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// InstanceRefreshInformation -
-//
-type InstanceRefreshInformation struct {
-
-	//
-	// identity attestation data including document with its signature containing
-	// attributes like IP address, instance-id, account#, etc.
-	//
-	AttestationData string `json:"attestationData,omitempty" rdl:"optional"`
-
-	//
-	// the Certificate Signing Request for the expected X.509 certificate in the
-	// response
-	//
-	Csr string `json:"csr,omitempty" rdl:"optional"`
-
-	//
-	// deprecated - use sshCertRequest, if present, return an SSH host
-	// certificate. Format is JSON.
-	//
-	Ssh string `json:"ssh,omitempty" rdl:"optional"`
-
-	//
-	// if present, return an SSH host certificate
-	//
-	SshCertRequest *SSHCertRequest `json:"sshCertRequest,omitempty" rdl:"optional"`
-
-	//
-	// if true, return a service token signed by ZTS for this service
-	//
-	Token *bool `json:"token,omitempty" rdl:"optional"`
-
-	//
-	// expiry time in minutes for the certificate (server enforces max expiry)
-	//
-	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
-
-	//
-	// optional hostname in case included in the csr SAN dnsName attribute
-	//
-	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
-
-	//
-	// optional host CNAMEs included in the csr SAN dnsName attribute
-	//
-	HostCnames []DomainName `json:"hostCnames,omitempty" rdl:"optional"`
-}
-
-//
-// NewInstanceRefreshInformation - creates an initialized InstanceRefreshInformation instance, returns a pointer to it
-//
-func NewInstanceRefreshInformation(init ...*InstanceRefreshInformation) *InstanceRefreshInformation {
-	var o *InstanceRefreshInformation
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(InstanceRefreshInformation)
-	}
-	return o
-}
-
-type rawInstanceRefreshInformation InstanceRefreshInformation
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a InstanceRefreshInformation
-//
-func (self *InstanceRefreshInformation) UnmarshalJSON(b []byte) error {
-	var m rawInstanceRefreshInformation
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := InstanceRefreshInformation(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *InstanceRefreshInformation) Validate() error {
-	if self.AttestationData != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRefreshInformation.attestationData does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Csr != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRefreshInformation.csr does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Ssh != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.Ssh)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRefreshInformation.ssh does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Hostname != "" {
-		val := rdl.Validate(ZTSSchema(), "DomainName", self.Hostname)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRefreshInformation.hostname does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// InstanceRegisterToken -
-//
-type InstanceRegisterToken struct {
-
-	//
-	// provider service name
-	//
-	Provider ServiceName `json:"provider"`
-
-	//
-	// the domain of the instance
-	//
-	Domain DomainName `json:"domain"`
-
-	//
-	// the service this instance is supposed to run
-	//
-	Service SimpleName `json:"service"`
-
-	//
-	// identity attestation data including document with its signature containing
-	// attributes like IP address, instance-id, account#, etc.
-	//
-	AttestationData string `json:"attestationData"`
-
-	//
-	// additional non-signed attributes that assist in attestation. I.e. "keyId",
-	// "accessKey", etc
-	//
-	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
-}
-
-//
-// NewInstanceRegisterToken - creates an initialized InstanceRegisterToken instance, returns a pointer to it
-//
-func NewInstanceRegisterToken(init ...*InstanceRegisterToken) *InstanceRegisterToken {
-	var o *InstanceRegisterToken
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(InstanceRegisterToken)
-	}
-	return o
-}
-
-type rawInstanceRegisterToken InstanceRegisterToken
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterToken
-//
-func (self *InstanceRegisterToken) UnmarshalJSON(b []byte) error {
-	var m rawInstanceRegisterToken
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := InstanceRegisterToken(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *InstanceRegisterToken) Validate() error {
-	if self.Provider == "" {
-		return fmt.Errorf("InstanceRegisterToken.provider is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterToken.provider does not contain a valid ServiceName (%v)", val.Error)
-		}
-	}
-	if self.Domain == "" {
-		return fmt.Errorf("InstanceRegisterToken.domain is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterToken.domain does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	if self.Service == "" {
-		return fmt.Errorf("InstanceRegisterToken.service is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterToken.service does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	if self.AttestationData == "" {
-		return fmt.Errorf("InstanceRegisterToken.attestationData is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
-		if !val.Valid {
-			return fmt.Errorf("InstanceRegisterToken.attestationData does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// InstanceIdentity -
-//
-type InstanceIdentity struct {
-
-	//
-	// the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
-	//
-	Provider ServiceName `json:"provider"`
-
-	//
-	// name of the identity, fully qualified, i.e. my.domain.service1
-	//
-	Name ServiceName `json:"name"`
-
-	//
-	// unique instance id within provider's namespace
-	//
-	InstanceId PathElement `json:"instanceId"`
-
-	//
-	// an X.509 certificate usable for both client and server in TLS connections
-	//
-	X509Certificate string `json:"x509Certificate,omitempty" rdl:"optional"`
-
-	//
-	// the CA certificate chain to verify all generated X.509 certs
-	//
-	X509CertificateSigner string `json:"x509CertificateSigner,omitempty" rdl:"optional"`
-
-	//
-	// the SSH certificate, signed by the CA (user or host)
-	//
-	SshCertificate string `json:"sshCertificate,omitempty" rdl:"optional"`
-
-	//
-	// the SSH CA's public key for the sshCertificate (user or host)
-	//
-	SshCertificateSigner string `json:"sshCertificateSigner,omitempty" rdl:"optional"`
-
-	//
-	// service token instead of TLS certificate
-	//
-	ServiceToken SignedToken `json:"serviceToken,omitempty" rdl:"optional"`
-
-	//
-	// other config-like attributes determined at boot time
-	//
-	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
-}
-
-//
-// NewInstanceIdentity - creates an initialized InstanceIdentity instance, returns a pointer to it
-//
-func NewInstanceIdentity(init ...*InstanceIdentity) *InstanceIdentity {
-	var o *InstanceIdentity
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(InstanceIdentity)
-	}
-	return o
-}
-
-type rawInstanceIdentity InstanceIdentity
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a InstanceIdentity
-//
-func (self *InstanceIdentity) UnmarshalJSON(b []byte) error {
-	var m rawInstanceIdentity
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := InstanceIdentity(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *InstanceIdentity) Validate() error {
-	if self.Provider == "" {
-		return fmt.Errorf("InstanceIdentity.provider is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.provider does not contain a valid ServiceName (%v)", val.Error)
-		}
-	}
-	if self.Name == "" {
-		return fmt.Errorf("InstanceIdentity.name is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Name)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.name does not contain a valid ServiceName (%v)", val.Error)
-		}
-	}
-	if self.InstanceId == "" {
-		return fmt.Errorf("InstanceIdentity.instanceId is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "PathElement", self.InstanceId)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.instanceId does not contain a valid PathElement (%v)", val.Error)
-		}
-	}
-	if self.X509Certificate != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.x509Certificate does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.X509CertificateSigner != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.X509CertificateSigner)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.x509CertificateSigner does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.SshCertificate != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.SshCertificate)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.sshCertificate does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.SshCertificateSigner != "" {
-		val := rdl.Validate(ZTSSchema(), "String", self.SshCertificateSigner)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.sshCertificateSigner does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.ServiceToken != "" {
-		val := rdl.Validate(ZTSSchema(), "SignedToken", self.ServiceToken)
-		if !val.Valid {
-			return fmt.Errorf("InstanceIdentity.serviceToken does not contain a valid SignedToken (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// CertificateAuthorityBundle -
-//
-type CertificateAuthorityBundle struct {
-
-	//
-	// name of the bundle
-	//
-	Name SimpleName `json:"name"`
-
-	//
-	// set of certificates included in the bundle
-	//
-	Certs string `json:"certs"`
-}
-
-//
-// NewCertificateAuthorityBundle - creates an initialized CertificateAuthorityBundle instance, returns a pointer to it
-//
-func NewCertificateAuthorityBundle(init ...*CertificateAuthorityBundle) *CertificateAuthorityBundle {
-	var o *CertificateAuthorityBundle
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(CertificateAuthorityBundle)
-	}
-	return o
-}
-
-type rawCertificateAuthorityBundle CertificateAuthorityBundle
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a CertificateAuthorityBundle
-//
-func (self *CertificateAuthorityBundle) UnmarshalJSON(b []byte) error {
-	var m rawCertificateAuthorityBundle
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := CertificateAuthorityBundle(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *CertificateAuthorityBundle) Validate() error {
-	if self.Name == "" {
-		return fmt.Errorf("CertificateAuthorityBundle.name is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Name)
-		if !val.Valid {
-			return fmt.Errorf("CertificateAuthorityBundle.name does not contain a valid SimpleName (%v)", val.Error)
-		}
-	}
-	if self.Certs == "" {
-		return fmt.Errorf("CertificateAuthorityBundle.certs is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Certs)
-		if !val.Valid {
-			return fmt.Errorf("CertificateAuthorityBundle.certs does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
-// DomainMetricType - zpe metric attributes
-//
-type DomainMetricType int
-
-//
-// DomainMetricType constants
-//
-const (
-	_ DomainMetricType = iota
-	ACCESS_ALLOWED
-	ACCESS_ALLOWED_DENY
-	ACCESS_ALLOWED_DENY_NO_MATCH
-	ACCESS_ALLOWED_ALLOW
-	ACCESS_ALLOWED_ERROR
-	ACCESS_ALLOWED_TOKEN_INVALID
-	ACCESS_Allowed_TOKEN_EXPIRED
-	ACCESS_ALLOWED_DOMAIN_NOT_FOUND
-	ACCESS_ALLOWED_DOMAIN_MISMATCH
-	ACCESS_ALLOWED_DOMAIN_EXPIRED
-	ACCESS_ALLOWED_DOMAIN_EMPTY
-	ACCESS_ALLOWED_TOKEN_CACHE_FAILURE
-	ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND
-	ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS
-	ACCESS_ALLOWED_TOKEN_VALIDATE
-	LOAD_FILE_FAIL
-	LOAD_FILE_GOOD
-	LOAD_DOMAIN_GOOD
-)
-
-var namesDomainMetricType = []string{
-	ACCESS_ALLOWED:                       "ACCESS_ALLOWED",
-	ACCESS_ALLOWED_DENY:                  "ACCESS_ALLOWED_DENY",
-	ACCESS_ALLOWED_DENY_NO_MATCH:         "ACCESS_ALLOWED_DENY_NO_MATCH",
-	ACCESS_ALLOWED_ALLOW:                 "ACCESS_ALLOWED_ALLOW",
-	ACCESS_ALLOWED_ERROR:                 "ACCESS_ALLOWED_ERROR",
-	ACCESS_ALLOWED_TOKEN_INVALID:         "ACCESS_ALLOWED_TOKEN_INVALID",
-	ACCESS_Allowed_TOKEN_EXPIRED:         "ACCESS_Allowed_TOKEN_EXPIRED",
-	ACCESS_ALLOWED_DOMAIN_NOT_FOUND:      "ACCESS_ALLOWED_DOMAIN_NOT_FOUND",
-	ACCESS_ALLOWED_DOMAIN_MISMATCH:       "ACCESS_ALLOWED_DOMAIN_MISMATCH",
-	ACCESS_ALLOWED_DOMAIN_EXPIRED:        "ACCESS_ALLOWED_DOMAIN_EXPIRED",
-	ACCESS_ALLOWED_DOMAIN_EMPTY:          "ACCESS_ALLOWED_DOMAIN_EMPTY",
-	ACCESS_ALLOWED_TOKEN_CACHE_FAILURE:   "ACCESS_ALLOWED_TOKEN_CACHE_FAILURE",
-	ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND: "ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND",
-	ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS:   "ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS",
-	ACCESS_ALLOWED_TOKEN_VALIDATE:        "ACCESS_ALLOWED_TOKEN_VALIDATE",
-	LOAD_FILE_FAIL:                       "LOAD_FILE_FAIL",
-	LOAD_FILE_GOOD:                       "LOAD_FILE_GOOD",
-	LOAD_DOMAIN_GOOD:                     "LOAD_DOMAIN_GOOD",
-}
-
-//
-// NewDomainMetricType - return a string representation of the enum
-//
-func NewDomainMetricType(init ...interface{}) DomainMetricType {
-	if len(init) == 1 {
-		switch v := init[0].(type) {
-		case DomainMetricType:
-			return v
-		case int:
-			return DomainMetricType(v)
-		case int32:
-			return DomainMetricType(v)
-		case string:
-			for i, s := range namesDomainMetricType {
-				if s == v {
-					return DomainMetricType(i)
-				}
-			}
-		default:
-			panic("Bad init value for DomainMetricType enum")
-		}
-	}
-	return DomainMetricType(0) //default to the first enum value
-}
-
-//
-// String - return a string representation of the enum
-//
-func (e DomainMetricType) String() string {
-	return namesDomainMetricType[e]
-}
-
-//
-// SymbolSet - return an array of all valid string representations (symbols) of the enum
-//
-func (e DomainMetricType) SymbolSet() []string {
-	return namesDomainMetricType
-}
-
-//
-// MarshalJSON is defined for proper JSON encoding of a DomainMetricType
-//
-func (e DomainMetricType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(e.String())
-}
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainMetricType
-//
-func (e *DomainMetricType) UnmarshalJSON(b []byte) error {
-	var j string
-	err := json.Unmarshal(b, &j)
-	if err == nil {
-		s := string(j)
-		for v, s2 := range namesDomainMetricType {
-			if s == s2 {
-				*e = DomainMetricType(v)
-				return nil
-			}
-		}
-		err = fmt.Errorf("Bad enum symbol for type DomainMetricType: %s", s)
-	}
-	return err
-}
-
-//
-// DomainMetric -
-//
-type DomainMetric struct {
-	MetricType DomainMetricType `json:"metricType"`
-	MetricVal  int32            `json:"metricVal"`
-}
-
-//
-// NewDomainMetric - creates an initialized DomainMetric instance, returns a pointer to it
-//
-func NewDomainMetric(init ...*DomainMetric) *DomainMetric {
-	var o *DomainMetric
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainMetric)
-	}
-	return o
-}
-
-type rawDomainMetric DomainMetric
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainMetric
-//
-func (self *DomainMetric) UnmarshalJSON(b []byte) error {
-	var m rawDomainMetric
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainMetric(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *DomainMetric) Validate() error {
-	return nil
-}
-
-//
-// DomainMetrics -
-//
-type DomainMetrics struct {
-
-	//
-	// name of the domain the metrics pertain to
-	//
-	DomainName DomainName `json:"domainName"`
-
-	//
-	// list of the domains metrics
-	//
-	MetricList []*DomainMetric `json:"metricList"`
-}
-
-//
-// NewDomainMetrics - creates an initialized DomainMetrics instance, returns a pointer to it
-//
-func NewDomainMetrics(init ...*DomainMetrics) *DomainMetrics {
-	var o *DomainMetrics
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(DomainMetrics)
-	}
-	return o.Init()
-}
-
-//
-// Init - sets up the instance according to its default field values, if any
-//
-func (self *DomainMetrics) Init() *DomainMetrics {
-	if self.MetricList == nil {
-		self.MetricList = make([]*DomainMetric, 0)
-	}
-	return self
-}
-
-type rawDomainMetrics DomainMetrics
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a DomainMetrics
-//
-func (self *DomainMetrics) UnmarshalJSON(b []byte) error {
-	var m rawDomainMetrics
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := DomainMetrics(m)
-		*self = *((&o).Init())
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *DomainMetrics) Validate() error {
-	if self.DomainName == "" {
-		return fmt.Errorf("DomainMetrics.domainName is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "DomainName", self.DomainName)
-		if !val.Valid {
-			return fmt.Errorf("DomainMetrics.domainName does not contain a valid DomainName (%v)", val.Error)
-		}
-	}
-	if self.MetricList == nil {
-		return fmt.Errorf("DomainMetrics: Missing required field: metricList")
-	}
-	return nil
-}
-
-//
-// Status - The representation for a status object
-//
-type Status struct {
-
-	//
-	// status message code
-	//
-	Code int32 `json:"code"`
-
-	//
-	// status message of the server
-	//
-	Message string `json:"message"`
-}
-
-//
-// NewStatus - creates an initialized Status instance, returns a pointer to it
-//
-func NewStatus(init ...*Status) *Status {
-	var o *Status
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(Status)
-	}
-	return o
-}
-
-type rawStatus Status
-
-//
-// UnmarshalJSON is defined for proper JSON decoding of a Status
-//
-func (self *Status) UnmarshalJSON(b []byte) error {
-	var m rawStatus
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := Status(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-//
-// Validate - checks for missing required fields, etc
-//
-func (self *Status) Validate() error {
-	if self.Message == "" {
-		return fmt.Errorf("Status.message is missing but is a required field")
-	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Message)
-		if !val.Valid {
-			return fmt.Errorf("Status.message does not contain a valid String (%v)", val.Error)
-		}
-	}
-	return nil
-}
-
-//
 // AccessTokenResponse -
 //
 type AccessTokenResponse struct {
@@ -3836,6 +2972,971 @@ func (self *OIDCResponse) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Location)
 		if !val.Valid {
 			return fmt.Errorf("OIDCResponse.location does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// InstanceRegisterInformation -
+//
+type InstanceRegisterInformation struct {
+
+	//
+	// the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// the domain of the instance
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// the service this instance is supposed to run
+	//
+	Service SimpleName `json:"service"`
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// the Certificate Signing Request for the expected X.509 certificate in the
+	// response
+	//
+	Csr string `json:"csr"`
+
+	//
+	// deprecated - use sshCertRequest, if present, return an SSH host
+	// certificate. Format is JSON.
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
+	// if present, return an SSH host certificate
+	//
+	SshCertRequest *SSHCertRequest `json:"sshCertRequest,omitempty" rdl:"optional"`
+
+	//
+	// if true, return a service token signed by ZTS for this service
+	//
+	Token *bool `json:"token,omitempty" rdl:"optional"`
+
+	//
+	// expiry time in minutes for the certificate (server enforces max expiry)
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// optional hostname in case included in the csr SAN dnsName attribute
+	//
+	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
+
+	//
+	// optional host CNAMEs included in the csr SAN dnsName attribute
+	//
+	HostCnames []DomainName `json:"hostCnames,omitempty" rdl:"optional"`
+
+	//
+	// if true, return an Athenz JWK public keys file
+	//
+	PublicKeys *bool `json:"publicKeys,omitempty" rdl:"optional"`
+
+	//
+	// return the public keys file only if modified after the given timestamp
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
+//
+func NewInstanceRegisterInformation(init ...*InstanceRegisterInformation) *InstanceRegisterInformation {
+	var o *InstanceRegisterInformation
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRegisterInformation)
+	}
+	return o
+}
+
+type rawInstanceRegisterInformation InstanceRegisterInformation
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterInformation
+//
+func (self *InstanceRegisterInformation) UnmarshalJSON(b []byte) error {
+	var m rawInstanceRegisterInformation
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := InstanceRegisterInformation(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRegisterInformation) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceRegisterInformation.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Domain == "" {
+		return fmt.Errorf("InstanceRegisterInformation.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Service == "" {
+		return fmt.Errorf("InstanceRegisterInformation.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.service does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("InstanceRegisterInformation.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Csr == "" {
+		return fmt.Errorf("InstanceRegisterInformation.csr is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Ssh != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Ssh)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.ssh does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Hostname != "" {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Hostname)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.hostname does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// InstanceRefreshInformation -
+//
+type InstanceRefreshInformation struct {
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData,omitempty" rdl:"optional"`
+
+	//
+	// the Certificate Signing Request for the expected X.509 certificate in the
+	// response
+	//
+	Csr string `json:"csr,omitempty" rdl:"optional"`
+
+	//
+	// deprecated - use sshCertRequest, if present, return an SSH host
+	// certificate. Format is JSON.
+	//
+	Ssh string `json:"ssh,omitempty" rdl:"optional"`
+
+	//
+	// if present, return an SSH host certificate
+	//
+	SshCertRequest *SSHCertRequest `json:"sshCertRequest,omitempty" rdl:"optional"`
+
+	//
+	// if true, return a service token signed by ZTS for this service
+	//
+	Token *bool `json:"token,omitempty" rdl:"optional"`
+
+	//
+	// expiry time in minutes for the certificate (server enforces max expiry)
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// optional hostname in case included in the csr SAN dnsName attribute
+	//
+	Hostname DomainName `json:"hostname,omitempty" rdl:"optional"`
+
+	//
+	// optional host CNAMEs included in the csr SAN dnsName attribute
+	//
+	HostCnames []DomainName `json:"hostCnames,omitempty" rdl:"optional"`
+
+	//
+	// if true, return an Athenz JWK public keys file
+	//
+	PublicKeys *bool `json:"publicKeys,omitempty" rdl:"optional"`
+
+	//
+	// return the public keys file only if modified after the given timestamp
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRefreshInformation - creates an initialized InstanceRefreshInformation instance, returns a pointer to it
+//
+func NewInstanceRefreshInformation(init ...*InstanceRefreshInformation) *InstanceRefreshInformation {
+	var o *InstanceRefreshInformation
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRefreshInformation)
+	}
+	return o
+}
+
+type rawInstanceRefreshInformation InstanceRefreshInformation
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRefreshInformation
+//
+func (self *InstanceRefreshInformation) UnmarshalJSON(b []byte) error {
+	var m rawInstanceRefreshInformation
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := InstanceRefreshInformation(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRefreshInformation) Validate() error {
+	if self.AttestationData != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Csr != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Ssh != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.Ssh)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.ssh does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Hostname != "" {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Hostname)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.hostname does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// InstanceRegisterToken -
+//
+type InstanceRegisterToken struct {
+
+	//
+	// provider service name
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// the domain of the instance
+	//
+	Domain DomainName `json:"domain"`
+
+	//
+	// the service this instance is supposed to run
+	//
+	Service SimpleName `json:"service"`
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// additional non-signed attributes that assist in attestation. I.e. "keyId",
+	// "accessKey", etc
+	//
+	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceRegisterToken - creates an initialized InstanceRegisterToken instance, returns a pointer to it
+//
+func NewInstanceRegisterToken(init ...*InstanceRegisterToken) *InstanceRegisterToken {
+	var o *InstanceRegisterToken
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceRegisterToken)
+	}
+	return o
+}
+
+type rawInstanceRegisterToken InstanceRegisterToken
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceRegisterToken
+//
+func (self *InstanceRegisterToken) UnmarshalJSON(b []byte) error {
+	var m rawInstanceRegisterToken
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := InstanceRegisterToken(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceRegisterToken) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceRegisterToken.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Domain == "" {
+		return fmt.Errorf("InstanceRegisterToken.domain is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Domain)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.domain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Service == "" {
+		return fmt.Errorf("InstanceRegisterToken.service is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Service)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.service does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("InstanceRegisterToken.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterToken.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// AthenzJWKConfig -
+//
+type AthenzJWKConfig struct {
+
+	//
+	// ZMS JSON Web Key (JWK) List
+	//
+	ZmsJWK *JWKList `json:"zmsJWK"`
+
+	//
+	// ZTS JSON Web Key (JWK) List
+	//
+	ZtsJWK *JWKList `json:"ztsJWK"`
+
+	//
+	// the last modification timestamp of the Athenz JWK configuration
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+}
+
+//
+// NewAthenzJWKConfig - creates an initialized AthenzJWKConfig instance, returns a pointer to it
+//
+func NewAthenzJWKConfig(init ...*AthenzJWKConfig) *AthenzJWKConfig {
+	var o *AthenzJWKConfig
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AthenzJWKConfig)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *AthenzJWKConfig) Init() *AthenzJWKConfig {
+	if self.ZmsJWK == nil {
+		self.ZmsJWK = NewJWKList()
+	}
+	if self.ZtsJWK == nil {
+		self.ZtsJWK = NewJWKList()
+	}
+	return self
+}
+
+type rawAthenzJWKConfig AthenzJWKConfig
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AthenzJWKConfig
+//
+func (self *AthenzJWKConfig) UnmarshalJSON(b []byte) error {
+	var m rawAthenzJWKConfig
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AthenzJWKConfig(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AthenzJWKConfig) Validate() error {
+	if self.ZmsJWK == nil {
+		return fmt.Errorf("AthenzJWKConfig: Missing required field: zmsJWK")
+	}
+	if self.ZtsJWK == nil {
+		return fmt.Errorf("AthenzJWKConfig: Missing required field: ztsJWK")
+	}
+	return nil
+}
+
+//
+// InstanceIdentity -
+//
+type InstanceIdentity struct {
+
+	//
+	// the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
+	//
+	Provider ServiceName `json:"provider"`
+
+	//
+	// name of the identity, fully qualified, i.e. my.domain.service1
+	//
+	Name ServiceName `json:"name"`
+
+	//
+	// unique instance id within provider's namespace
+	//
+	InstanceId PathElement `json:"instanceId"`
+
+	//
+	// an X.509 certificate usable for both client and server in TLS connections
+	//
+	X509Certificate string `json:"x509Certificate,omitempty" rdl:"optional"`
+
+	//
+	// the CA certificate chain to verify all generated X.509 certs
+	//
+	X509CertificateSigner string `json:"x509CertificateSigner,omitempty" rdl:"optional"`
+
+	//
+	// the SSH certificate, signed by the CA (user or host)
+	//
+	SshCertificate string `json:"sshCertificate,omitempty" rdl:"optional"`
+
+	//
+	// the SSH CA's public key for the sshCertificate (user or host)
+	//
+	SshCertificateSigner string `json:"sshCertificateSigner,omitempty" rdl:"optional"`
+
+	//
+	// service token instead of TLS certificate
+	//
+	ServiceToken SignedToken `json:"serviceToken,omitempty" rdl:"optional"`
+
+	//
+	// other config-like attributes determined at boot time
+	//
+	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
+
+	//
+	// the Athenz JSON Web Key (JWK) configuration object
+	//
+	AthenzJWKConfig *AthenzJWKConfig `json:"athenzJWKConfig,omitempty" rdl:"optional"`
+}
+
+//
+// NewInstanceIdentity - creates an initialized InstanceIdentity instance, returns a pointer to it
+//
+func NewInstanceIdentity(init ...*InstanceIdentity) *InstanceIdentity {
+	var o *InstanceIdentity
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(InstanceIdentity)
+	}
+	return o
+}
+
+type rawInstanceIdentity InstanceIdentity
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a InstanceIdentity
+//
+func (self *InstanceIdentity) UnmarshalJSON(b []byte) error {
+	var m rawInstanceIdentity
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := InstanceIdentity(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *InstanceIdentity) Validate() error {
+	if self.Provider == "" {
+		return fmt.Errorf("InstanceIdentity.provider is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Provider)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.provider does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("InstanceIdentity.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.name does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.InstanceId == "" {
+		return fmt.Errorf("InstanceIdentity.instanceId is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "PathElement", self.InstanceId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.instanceId does not contain a valid PathElement (%v)", val.Error)
+		}
+	}
+	if self.X509Certificate != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.x509Certificate does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertificateSigner != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.X509CertificateSigner)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.x509CertificateSigner does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertificate != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.SshCertificate)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.sshCertificate does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.SshCertificateSigner != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.SshCertificateSigner)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.sshCertificateSigner does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ServiceToken != "" {
+		val := rdl.Validate(ZTSSchema(), "SignedToken", self.ServiceToken)
+		if !val.Valid {
+			return fmt.Errorf("InstanceIdentity.serviceToken does not contain a valid SignedToken (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// CertificateAuthorityBundle -
+//
+type CertificateAuthorityBundle struct {
+
+	//
+	// name of the bundle
+	//
+	Name SimpleName `json:"name"`
+
+	//
+	// set of certificates included in the bundle
+	//
+	Certs string `json:"certs"`
+}
+
+//
+// NewCertificateAuthorityBundle - creates an initialized CertificateAuthorityBundle instance, returns a pointer to it
+//
+func NewCertificateAuthorityBundle(init ...*CertificateAuthorityBundle) *CertificateAuthorityBundle {
+	var o *CertificateAuthorityBundle
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(CertificateAuthorityBundle)
+	}
+	return o
+}
+
+type rawCertificateAuthorityBundle CertificateAuthorityBundle
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a CertificateAuthorityBundle
+//
+func (self *CertificateAuthorityBundle) UnmarshalJSON(b []byte) error {
+	var m rawCertificateAuthorityBundle
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := CertificateAuthorityBundle(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *CertificateAuthorityBundle) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("CertificateAuthorityBundle.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("CertificateAuthorityBundle.name does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Certs == "" {
+		return fmt.Errorf("CertificateAuthorityBundle.certs is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Certs)
+		if !val.Valid {
+			return fmt.Errorf("CertificateAuthorityBundle.certs does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// DomainMetricType - zpe metric attributes
+//
+type DomainMetricType int
+
+//
+// DomainMetricType constants
+//
+const (
+	_ DomainMetricType = iota
+	ACCESS_ALLOWED
+	ACCESS_ALLOWED_DENY
+	ACCESS_ALLOWED_DENY_NO_MATCH
+	ACCESS_ALLOWED_ALLOW
+	ACCESS_ALLOWED_ERROR
+	ACCESS_ALLOWED_TOKEN_INVALID
+	ACCESS_Allowed_TOKEN_EXPIRED
+	ACCESS_ALLOWED_DOMAIN_NOT_FOUND
+	ACCESS_ALLOWED_DOMAIN_MISMATCH
+	ACCESS_ALLOWED_DOMAIN_EXPIRED
+	ACCESS_ALLOWED_DOMAIN_EMPTY
+	ACCESS_ALLOWED_TOKEN_CACHE_FAILURE
+	ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND
+	ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS
+	ACCESS_ALLOWED_TOKEN_VALIDATE
+	LOAD_FILE_FAIL
+	LOAD_FILE_GOOD
+	LOAD_DOMAIN_GOOD
+)
+
+var namesDomainMetricType = []string{
+	ACCESS_ALLOWED:                       "ACCESS_ALLOWED",
+	ACCESS_ALLOWED_DENY:                  "ACCESS_ALLOWED_DENY",
+	ACCESS_ALLOWED_DENY_NO_MATCH:         "ACCESS_ALLOWED_DENY_NO_MATCH",
+	ACCESS_ALLOWED_ALLOW:                 "ACCESS_ALLOWED_ALLOW",
+	ACCESS_ALLOWED_ERROR:                 "ACCESS_ALLOWED_ERROR",
+	ACCESS_ALLOWED_TOKEN_INVALID:         "ACCESS_ALLOWED_TOKEN_INVALID",
+	ACCESS_Allowed_TOKEN_EXPIRED:         "ACCESS_Allowed_TOKEN_EXPIRED",
+	ACCESS_ALLOWED_DOMAIN_NOT_FOUND:      "ACCESS_ALLOWED_DOMAIN_NOT_FOUND",
+	ACCESS_ALLOWED_DOMAIN_MISMATCH:       "ACCESS_ALLOWED_DOMAIN_MISMATCH",
+	ACCESS_ALLOWED_DOMAIN_EXPIRED:        "ACCESS_ALLOWED_DOMAIN_EXPIRED",
+	ACCESS_ALLOWED_DOMAIN_EMPTY:          "ACCESS_ALLOWED_DOMAIN_EMPTY",
+	ACCESS_ALLOWED_TOKEN_CACHE_FAILURE:   "ACCESS_ALLOWED_TOKEN_CACHE_FAILURE",
+	ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND: "ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND",
+	ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS:   "ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS",
+	ACCESS_ALLOWED_TOKEN_VALIDATE:        "ACCESS_ALLOWED_TOKEN_VALIDATE",
+	LOAD_FILE_FAIL:                       "LOAD_FILE_FAIL",
+	LOAD_FILE_GOOD:                       "LOAD_FILE_GOOD",
+	LOAD_DOMAIN_GOOD:                     "LOAD_DOMAIN_GOOD",
+}
+
+//
+// NewDomainMetricType - return a string representation of the enum
+//
+func NewDomainMetricType(init ...interface{}) DomainMetricType {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case DomainMetricType:
+			return v
+		case int:
+			return DomainMetricType(v)
+		case int32:
+			return DomainMetricType(v)
+		case string:
+			for i, s := range namesDomainMetricType {
+				if s == v {
+					return DomainMetricType(i)
+				}
+			}
+		default:
+			panic("Bad init value for DomainMetricType enum")
+		}
+	}
+	return DomainMetricType(0) //default to the first enum value
+}
+
+//
+// String - return a string representation of the enum
+//
+func (e DomainMetricType) String() string {
+	return namesDomainMetricType[e]
+}
+
+//
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
+func (e DomainMetricType) SymbolSet() []string {
+	return namesDomainMetricType
+}
+
+//
+// MarshalJSON is defined for proper JSON encoding of a DomainMetricType
+//
+func (e DomainMetricType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainMetricType
+//
+func (e *DomainMetricType) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesDomainMetricType {
+			if s == s2 {
+				*e = DomainMetricType(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type DomainMetricType: %s", s)
+	}
+	return err
+}
+
+//
+// DomainMetric -
+//
+type DomainMetric struct {
+	MetricType DomainMetricType `json:"metricType"`
+	MetricVal  int32            `json:"metricVal"`
+}
+
+//
+// NewDomainMetric - creates an initialized DomainMetric instance, returns a pointer to it
+//
+func NewDomainMetric(init ...*DomainMetric) *DomainMetric {
+	var o *DomainMetric
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainMetric)
+	}
+	return o
+}
+
+type rawDomainMetric DomainMetric
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainMetric
+//
+func (self *DomainMetric) UnmarshalJSON(b []byte) error {
+	var m rawDomainMetric
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainMetric(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainMetric) Validate() error {
+	return nil
+}
+
+//
+// DomainMetrics -
+//
+type DomainMetrics struct {
+
+	//
+	// name of the domain the metrics pertain to
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// list of the domains metrics
+	//
+	MetricList []*DomainMetric `json:"metricList"`
+}
+
+//
+// NewDomainMetrics - creates an initialized DomainMetrics instance, returns a pointer to it
+//
+func NewDomainMetrics(init ...*DomainMetrics) *DomainMetrics {
+	var o *DomainMetrics
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainMetrics)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *DomainMetrics) Init() *DomainMetrics {
+	if self.MetricList == nil {
+		self.MetricList = make([]*DomainMetric, 0)
+	}
+	return self
+}
+
+type rawDomainMetrics DomainMetrics
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a DomainMetrics
+//
+func (self *DomainMetrics) UnmarshalJSON(b []byte) error {
+	var m rawDomainMetrics
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainMetrics(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *DomainMetrics) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("DomainMetrics.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("DomainMetrics.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.MetricList == nil {
+		return fmt.Errorf("DomainMetrics: Missing required field: metricList")
+	}
+	return nil
+}
+
+//
+// Status - The representation for a status object
+//
+type Status struct {
+
+	//
+	// status message code
+	//
+	Code int32 `json:"code"`
+
+	//
+	// status message of the server
+	//
+	Message string `json:"message"`
+}
+
+//
+// NewStatus - creates an initialized Status instance, returns a pointer to it
+//
+func NewStatus(init ...*Status) *Status {
+	var o *Status
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Status)
+	}
+	return o
+}
+
+type rawStatus Status
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Status
+//
+func (self *Status) UnmarshalJSON(b []byte) error {
+	var m rawStatus
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Status(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Status) Validate() error {
+	if self.Message == "" {
+		return fmt.Errorf("Status.message is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Message)
+		if !val.Valid {
+			return fmt.Errorf("Status.message does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

@@ -36,6 +36,12 @@ public class InstanceRegisterInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> hostCnames;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean athenzConf;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp athenzConfModified;
 
     public InstanceRegisterInformation setProvider(String provider) {
         this.provider = provider;
@@ -114,6 +120,20 @@ public class InstanceRegisterInformation {
     public List<String> getHostCnames() {
         return hostCnames;
     }
+    public InstanceRegisterInformation setAthenzConf(Boolean athenzConf) {
+        this.athenzConf = athenzConf;
+        return this;
+    }
+    public Boolean getAthenzConf() {
+        return athenzConf;
+    }
+    public InstanceRegisterInformation setAthenzConfModified(Timestamp athenzConfModified) {
+        this.athenzConfModified = athenzConfModified;
+        return this;
+    }
+    public Timestamp getAthenzConfModified() {
+        return athenzConfModified;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -153,6 +173,12 @@ public class InstanceRegisterInformation {
                 return false;
             }
             if (hostCnames == null ? a.hostCnames != null : !hostCnames.equals(a.hostCnames)) {
+                return false;
+            }
+            if (athenzConf == null ? a.athenzConf != null : !athenzConf.equals(a.athenzConf)) {
+                return false;
+            }
+            if (athenzConfModified == null ? a.athenzConfModified != null : !athenzConfModified.equals(a.athenzConfModified)) {
                 return false;
             }
         }

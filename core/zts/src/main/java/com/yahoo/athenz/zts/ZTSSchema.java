@@ -258,85 +258,6 @@ public class ZTSSchema {
             .arrayField("certificates", "SSHCertificate", false, "set of user ssh certificates")
             .field("certificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)");
 
-        sb.structType("InstanceRegisterInformation")
-            .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
-            .field("domain", "DomainName", false, "the domain of the instance")
-            .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
-            .field("csr", "String", false, "the Certificate Signing Request for the expected X.509 certificate in the response")
-            .field("ssh", "String", true, "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.")
-            .field("sshCertRequest", "SSHCertRequest", true, "if present, return an SSH host certificate")
-            .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
-            .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
-            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
-            .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute");
-
-        sb.structType("InstanceRefreshInformation")
-            .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
-            .field("csr", "String", true, "the Certificate Signing Request for the expected X.509 certificate in the response")
-            .field("ssh", "String", true, "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.")
-            .field("sshCertRequest", "SSHCertRequest", true, "if present, return an SSH host certificate")
-            .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
-            .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
-            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
-            .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute");
-
-        sb.structType("InstanceRegisterToken")
-            .field("provider", "ServiceName", false, "provider service name")
-            .field("domain", "DomainName", false, "the domain of the instance")
-            .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
-            .mapField("attributes", "String", "String", true, "additional non-signed attributes that assist in attestation. I.e. \"keyId\", \"accessKey\", etc");
-
-        sb.structType("InstanceIdentity")
-            .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
-            .field("name", "ServiceName", false, "name of the identity, fully qualified, i.e. my.domain.service1")
-            .field("instanceId", "PathElement", false, "unique instance id within provider's namespace")
-            .field("x509Certificate", "String", true, "an X.509 certificate usable for both client and server in TLS connections")
-            .field("x509CertificateSigner", "String", true, "the CA certificate chain to verify all generated X.509 certs")
-            .field("sshCertificate", "String", true, "the SSH certificate, signed by the CA (user or host)")
-            .field("sshCertificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)")
-            .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
-            .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time");
-
-        sb.structType("CertificateAuthorityBundle")
-            .field("name", "SimpleName", false, "name of the bundle")
-            .field("certs", "String", false, "set of certificates included in the bundle");
-
-        sb.enumType("DomainMetricType")
-            .comment("zpe metric attributes")
-            .element("ACCESS_ALLOWED")
-            .element("ACCESS_ALLOWED_DENY")
-            .element("ACCESS_ALLOWED_DENY_NO_MATCH")
-            .element("ACCESS_ALLOWED_ALLOW")
-            .element("ACCESS_ALLOWED_ERROR")
-            .element("ACCESS_ALLOWED_TOKEN_INVALID")
-            .element("ACCESS_Allowed_TOKEN_EXPIRED")
-            .element("ACCESS_ALLOWED_DOMAIN_NOT_FOUND")
-            .element("ACCESS_ALLOWED_DOMAIN_MISMATCH")
-            .element("ACCESS_ALLOWED_DOMAIN_EXPIRED")
-            .element("ACCESS_ALLOWED_DOMAIN_EMPTY")
-            .element("ACCESS_ALLOWED_TOKEN_CACHE_FAILURE")
-            .element("ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND")
-            .element("ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS")
-            .element("ACCESS_ALLOWED_TOKEN_VALIDATE")
-            .element("LOAD_FILE_FAIL")
-            .element("LOAD_FILE_GOOD")
-            .element("LOAD_DOMAIN_GOOD");
-
-        sb.structType("DomainMetric")
-            .field("metricType", "DomainMetricType", false, "")
-            .field("metricVal", "Int32", false, "");
-
-        sb.structType("DomainMetrics")
-            .field("domainName", "DomainName", false, "name of the domain the metrics pertain to")
-            .arrayField("metricList", "DomainMetric", false, "list of the domains metrics");
-
-        sb.structType("Status")
-            .comment("The representation for a status object")
-            .field("code", "Int32", false, "status message code")
-            .field("message", "String", false, "status message of the server");
-
         sb.structType("AccessTokenResponse")
             .field("access_token", "String", false, "access token")
             .field("token_type", "String", false, "token type e.g. Bearer")
@@ -382,6 +303,95 @@ public class ZTSSchema {
 
         sb.structType("OIDCResponse")
             .field("location", "String", false, "");
+
+        sb.structType("InstanceRegisterInformation")
+            .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
+            .field("domain", "DomainName", false, "the domain of the instance")
+            .field("service", "SimpleName", false, "the service this instance is supposed to run")
+            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+            .field("csr", "String", false, "the Certificate Signing Request for the expected X.509 certificate in the response")
+            .field("ssh", "String", true, "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.")
+            .field("sshCertRequest", "SSHCertRequest", true, "if present, return an SSH host certificate")
+            .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
+            .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
+            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
+            .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
+            .field("athenzConf", "Bool", true, "if true, return an Athenz JWK public keys file")
+            .field("athenzConfModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
+
+        sb.structType("InstanceRefreshInformation")
+            .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+            .field("csr", "String", true, "the Certificate Signing Request for the expected X.509 certificate in the response")
+            .field("ssh", "String", true, "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.")
+            .field("sshCertRequest", "SSHCertRequest", true, "if present, return an SSH host certificate")
+            .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
+            .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
+            .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
+            .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
+            .field("athenzConf", "Bool", true, "if true, return an Athenz JWK public keys file")
+            .field("athenzConfModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
+
+        sb.structType("InstanceRegisterToken")
+            .field("provider", "ServiceName", false, "provider service name")
+            .field("domain", "DomainName", false, "the domain of the instance")
+            .field("service", "SimpleName", false, "the service this instance is supposed to run")
+            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+            .mapField("attributes", "String", "String", true, "additional non-signed attributes that assist in attestation. I.e. \"keyId\", \"accessKey\", etc");
+
+        sb.structType("AthenzJWKConfig")
+            .field("zmsJWK", "JWKList", false, "ZMS JSON Web Key (JWK) List")
+            .field("ztsJWK", "JWKList", false, "ZTS JSON Web Key (JWK) List")
+            .field("modified", "Timestamp", true, "the last modification timestamp of the Athenz JWK configuration");
+
+        sb.structType("InstanceIdentity")
+            .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
+            .field("name", "ServiceName", false, "name of the identity, fully qualified, i.e. my.domain.service1")
+            .field("instanceId", "PathElement", false, "unique instance id within provider's namespace")
+            .field("x509Certificate", "String", true, "an X.509 certificate usable for both client and server in TLS connections")
+            .field("x509CertificateSigner", "String", true, "the CA certificate chain to verify all generated X.509 certs")
+            .field("sshCertificate", "String", true, "the SSH certificate, signed by the CA (user or host)")
+            .field("sshCertificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)")
+            .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
+            .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time")
+            .field("athenzJWKConfig", "AthenzJWKConfig", true, "the Athenz JSON Web Key (JWK) configuration object");
+
+        sb.structType("CertificateAuthorityBundle")
+            .field("name", "SimpleName", false, "name of the bundle")
+            .field("certs", "String", false, "set of certificates included in the bundle");
+
+        sb.enumType("DomainMetricType")
+            .comment("zpe metric attributes")
+            .element("ACCESS_ALLOWED")
+            .element("ACCESS_ALLOWED_DENY")
+            .element("ACCESS_ALLOWED_DENY_NO_MATCH")
+            .element("ACCESS_ALLOWED_ALLOW")
+            .element("ACCESS_ALLOWED_ERROR")
+            .element("ACCESS_ALLOWED_TOKEN_INVALID")
+            .element("ACCESS_Allowed_TOKEN_EXPIRED")
+            .element("ACCESS_ALLOWED_DOMAIN_NOT_FOUND")
+            .element("ACCESS_ALLOWED_DOMAIN_MISMATCH")
+            .element("ACCESS_ALLOWED_DOMAIN_EXPIRED")
+            .element("ACCESS_ALLOWED_DOMAIN_EMPTY")
+            .element("ACCESS_ALLOWED_TOKEN_CACHE_FAILURE")
+            .element("ACCESS_ALLOWED_TOKEN_CACHE_NOT_FOUND")
+            .element("ACCESS_ALLOWED_TOKEN_CACHE_SUCCESS")
+            .element("ACCESS_ALLOWED_TOKEN_VALIDATE")
+            .element("LOAD_FILE_FAIL")
+            .element("LOAD_FILE_GOOD")
+            .element("LOAD_DOMAIN_GOOD");
+
+        sb.structType("DomainMetric")
+            .field("metricType", "DomainMetricType", false, "")
+            .field("metricVal", "Int32", false, "");
+
+        sb.structType("DomainMetrics")
+            .field("domainName", "DomainName", false, "name of the domain the metrics pertain to")
+            .arrayField("metricList", "DomainMetric", false, "list of the domains metrics");
+
+        sb.structType("Status")
+            .comment("The representation for a status object")
+            .field("code", "Int32", false, "status message code")
+            .field("message", "String", false, "status message of the server");
 
         sb.structType("Workload")
             .field("domainName", "DomainName", false, "name of the domain, optional for getWorkloadsByService API call")

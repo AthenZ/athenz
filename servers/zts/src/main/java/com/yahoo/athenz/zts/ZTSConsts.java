@@ -227,7 +227,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_NOTIFICATION_AWS_HEALTH_DOMAIN                  = "athenz.zts.notification_aws_health_domain";
     public static final String ZTS_PROP_NOTIFICATION_API_HOSTNAME                       = "athenz.zts.notification_api_hostname";
-
+    public static final String ZTS_PROP_PUB_KEYS_UPDATE_INTERVAL_HOURS                  = "athenz.zts.pub_keys_update_interval_hours";
     public static final String ZTS_JSON_PARSER_ERROR_RESPONSE = "{\"code\":400,\"message\":\"Invalid Object: checkout https://github.com/AthenZ/athenz/tree/master/core/zts/src/main/rdl for object defintions\"}";
 
     public static final String ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zts.status_checker_factory_class";

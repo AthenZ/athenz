@@ -34,6 +34,9 @@ public class InstanceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> attributes;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public AthenzJWKConfig athenzJWKConfig;
 
     public InstanceIdentity setProvider(String provider) {
         this.provider = provider;
@@ -98,6 +101,13 @@ public class InstanceIdentity {
     public Map<String, String> getAttributes() {
         return attributes;
     }
+    public InstanceIdentity setAthenzJWKConfig(AthenzJWKConfig athenzJWKConfig) {
+        this.athenzJWKConfig = athenzJWKConfig;
+        return this;
+    }
+    public AthenzJWKConfig getAthenzJWKConfig() {
+        return athenzJWKConfig;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -131,6 +141,9 @@ public class InstanceIdentity {
                 return false;
             }
             if (attributes == null ? a.attributes != null : !attributes.equals(a.attributes)) {
+                return false;
+            }
+            if (athenzJWKConfig == null ? a.athenzJWKConfig != null : !athenzJWKConfig.equals(a.athenzJWKConfig)) {
                 return false;
             }
         }

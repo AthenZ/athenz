@@ -97,6 +97,8 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -417,27 +419,7 @@ public class ZTSImplTest {
         List<ServiceIdentity> services = new ArrayList<>();
 
         if (includeServices) {
-
-            ServiceIdentity service = new ServiceIdentity();
-            service.setName(generateServiceIdentityName(domainName, serviceName));
-            service.setProviderEndpoint("https://localhost:4443/zts");
-            setServicePublicKey(service, "0", ZTS_Y64_CERT0);
-
-            List<String> hosts = new ArrayList<>();
-            hosts.add("host1");
-            hosts.add("host2");
-            service.setHosts(hosts);
-            services.add(service);
-
-            service = new ServiceIdentity();
-            service.setName(generateServiceIdentityName(domainName, "backup"));
-            setServicePublicKey(service, "0", ZTS_Y64_CERT0);
-
-            hosts = new ArrayList<>();
-            hosts.add("host2");
-            hosts.add("host3");
-            service.setHosts(hosts);
-            services.add(service);
+            services = createServices(domainName, serviceName);
         }
 
         List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
@@ -494,6 +476,31 @@ public class ZTSImplTest {
         signedDomain.setKeyId("0");
 
         return signedDomain;
+    }
+
+    private List<ServiceIdentity> createServices(String domainName, String serviceName) {
+        List<ServiceIdentity> services = new ArrayList<>();
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(generateServiceIdentityName(domainName, serviceName));
+        service.setProviderEndpoint("https://localhost:4443/zts");
+        setServicePublicKey(service, "0", ZTS_Y64_CERT0);
+
+        List<String> hosts = new ArrayList<>();
+        hosts.add("host1");
+        hosts.add("host2");
+        service.setHosts(hosts);
+        services.add(service);
+
+        service = new ServiceIdentity();
+        service.setName(generateServiceIdentityName(domainName, "backup"));
+        setServicePublicKey(service, "0", ZTS_Y64_CERT0);
+
+        hosts = new ArrayList<>();
+        hosts.add("host2");
+        hosts.add("host3");
+        service.setHosts(hosts);
+        services.add(service);
+        return services;
     }
 
     private SignedDomain createSignedDomainExpiration(String domainName, String serviceName) {
@@ -2164,6 +2171,25 @@ public class ZTSImplTest {
         svc = zts.getServiceIdentity(context, "coretech", "backup");
         assertNotNull(svc);
         assertEquals(svc.getName(), "coretech.backup");
+    }
+
+    @Test
+    public void testGetZmsPubKeys() {
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(
+                Stream.of(createServices("sys.auth", "zts"),
+                                createServices("sys.auth", "zms"))
+                        .flatMap(List::stream).collect(Collectors.toList())
+        );
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+//        List<PublicKeyEntry> ztsPub = zts.getZtsPublicKeys(context);
+//        List<PublicKeyEntry> zmsPub = zts.getZmsPublicKeys(context);
     }
 
     @Test
@@ -13009,7 +13035,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
     }
-  
+
     @Test
     public void testChangeMessage() {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
