@@ -68,6 +68,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.ServletContext;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -159,6 +160,7 @@ public class ZTSImplTest {
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock private HttpServletRequest  mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
+    @Mock private ServletContext mockServletContext;
 
     @BeforeClass
     public void setupClass() {
@@ -2836,10 +2838,12 @@ public class ZTSImplTest {
 
     @Test
     public void testResourceContext() {
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "apiName");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext, mockServletRequest,
+                mockServletResponse, "apiName");
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
+        assertEquals(ctx.servletContext(), mockServletContext);
         assertEquals(ctx.request(), mockServletRequest);
         assertEquals(ctx.response(), mockServletResponse);
 
@@ -4544,7 +4548,7 @@ public class ZTSImplTest {
     @Test
     public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        ResourceContext ctx = zts.newResourceContext(request, null, "apiName");
+        ResourceContext ctx = zts.newResourceContext(null, request, null, "apiName");
         zts.logPrincipalAndGetDomain(ctx);
         assertTrue(request.attributes.isEmpty());
     }
@@ -11108,7 +11112,8 @@ public class ZTSImplTest {
     public void testRecordMetricsUnauthenticated() {
         zts.metric = Mockito.mock(Metric.class);
         Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext, mockServletRequest,
+                mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
         ctx.setRequestDomain(testDomain);

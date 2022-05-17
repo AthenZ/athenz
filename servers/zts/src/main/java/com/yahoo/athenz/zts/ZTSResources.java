@@ -6,6 +6,7 @@ package com.yahoo.athenz.zts;
 import com.yahoo.rdl.*;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.inject.Inject;
@@ -27,7 +28,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccess");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getResourceAccess");
             context.authenticate();
             return this.delegate.getResourceAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -62,7 +63,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessExt");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getResourceAccessExt");
             context.authenticate();
             return this.delegate.getResourceAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -95,7 +96,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentity");
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domainName, serviceName);
         } catch (ResourceException e) {
@@ -125,7 +126,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentityList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentityList");
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName);
         } catch (ResourceException e) {
@@ -157,7 +158,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPublicKeyEntry");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPublicKeyEntry");
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domainName, serviceName, keyId);
         } catch (ResourceException e) {
@@ -185,7 +186,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getHostServices");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getHostServices");
             context.authenticate();
             return this.delegate.getHostServices(context, host);
         } catch (ResourceException e) {
@@ -212,7 +213,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainSignedPolicyData");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainSignedPolicyData");
             context.authenticate();
             return this.delegate.getDomainSignedPolicyData(context, domainName, matchingTag);
         } catch (ResourceException e) {
@@ -243,7 +244,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postSignedPolicyRequest");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postSignedPolicyRequest");
             context.authenticate();
             return this.delegate.postSignedPolicyRequest(context, domainName, request, matchingTag);
         } catch (ResourceException e) {
@@ -276,7 +277,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRoleToken");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRoleToken");
             context.authenticate();
             return this.delegate.getRoleToken(context, domainName, role, minExpiryTime, maxExpiryTime, proxyForPrincipal);
         } catch (ResourceException e) {
@@ -311,7 +312,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postRoleCertificateRequest");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postRoleCertificateRequest");
             context.authenticate();
             return this.delegate.postRoleCertificateRequest(context, domainName, roleName, req);
         } catch (ResourceException e) {
@@ -346,7 +347,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getAccess");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAccess");
             context.authenticate();
             return this.delegate.getAccess(context, domainName, roleName, principal);
         } catch (ResourceException e) {
@@ -379,7 +380,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRoleAccess");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRoleAccess");
             context.authenticate();
             return this.delegate.getRoleAccess(context, domainName, principal);
         } catch (ResourceException e) {
@@ -412,7 +413,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getTenantDomains");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getTenantDomains");
             context.authenticate();
             return this.delegate.getTenantDomains(context, providerDomainName, userName, roleName, serviceName);
         } catch (ResourceException e) {
@@ -445,7 +446,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postInstanceRefreshRequest");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postInstanceRefreshRequest");
             context.authenticate();
             return this.delegate.postInstanceRefreshRequest(context, domain, service, req);
         } catch (ResourceException e) {
@@ -483,7 +484,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getAWSTemporaryCredentials");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAWSTemporaryCredentials");
             context.authenticate();
             return this.delegate.getAWSTemporaryCredentials(context, domainName, role, durationSeconds, externalId);
         } catch (ResourceException e) {
@@ -516,7 +517,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postInstanceRegisterInformation");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postInstanceRegisterInformation");
             context.authenticate();
             return this.delegate.postInstanceRegisterInformation(context, info);
         } catch (ResourceException e) {
@@ -556,7 +557,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postInstanceRefreshInformation");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postInstanceRefreshInformation");
             context.authenticate();
             return this.delegate.postInstanceRefreshInformation(context, provider, domain, service, instanceId, info);
         } catch (ResourceException e) {
@@ -594,7 +595,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getInstanceRegisterToken");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getInstanceRegisterToken");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             return this.delegate.getInstanceRegisterToken(context, provider, domain, service, instanceId);
         } catch (ResourceException e) {
@@ -631,7 +632,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteInstanceIdentity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteInstanceIdentity");
             context.authenticate();
             this.delegate.deleteInstanceIdentity(context, provider, domain, service, instanceId);
         } catch (ResourceException e) {
@@ -666,7 +667,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getCertificateAuthorityBundle");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getCertificateAuthorityBundle");
             context.authenticate();
             return this.delegate.getCertificateAuthorityBundle(context, name);
         } catch (ResourceException e) {
@@ -696,7 +697,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getStatus");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getStatus");
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
@@ -727,7 +728,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postSSHCertRequest");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postSSHCertRequest");
             context.authenticate();
             return this.delegate.postSSHCertRequest(context, certRequest);
         } catch (ResourceException e) {
@@ -760,7 +761,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getOpenIDConfig");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getOpenIDConfig");
             return this.delegate.getOpenIDConfig(context);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -785,7 +786,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getOAuthConfig");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getOAuthConfig");
             return this.delegate.getOAuthConfig(context);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -810,7 +811,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getJWKList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getJWKList");
             return this.delegate.getJWKList(context, rfc);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -836,7 +837,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postAccessTokenRequest");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postAccessTokenRequest");
             context.authenticate();
             return this.delegate.postAccessTokenRequest(context, request);
         } catch (ResourceException e) {
@@ -875,7 +876,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getOIDCResponse");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getOIDCResponse");
             context.authenticate();
             return this.delegate.getOIDCResponse(context, responseType, clientId, redirectUri, scope, state, nonce, keyType);
         } catch (ResourceException e) {
@@ -908,7 +909,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postRoleCertificateRequestExt");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postRoleCertificateRequestExt");
             context.authenticate();
             return this.delegate.postRoleCertificateRequestExt(context, req);
         } catch (ResourceException e) {
@@ -941,7 +942,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRolesRequireRoleCert");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRolesRequireRoleCert");
             context.authenticate();
             return this.delegate.getRolesRequireRoleCert(context, principal);
         } catch (ResourceException e) {
@@ -976,7 +977,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getWorkloadsByService");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getWorkloadsByService");
             context.authenticate();
             return this.delegate.getWorkloadsByService(context, domainName, serviceName);
         } catch (ResourceException e) {
@@ -1010,7 +1011,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getWorkloadsByIP");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getWorkloadsByIP");
             context.authenticate();
             return this.delegate.getWorkloadsByIP(context, ip);
         } catch (ResourceException e) {
@@ -1045,7 +1046,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getTransportRules");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getTransportRules");
             context.authenticate();
             return this.delegate.getTransportRules(context, domainName, serviceName);
         } catch (ResourceException e) {
@@ -1079,7 +1080,7 @@ public class ZTSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRdlSchema");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRdlSchema");
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
@@ -1106,7 +1107,7 @@ public class ZTSResources {
     }
 
     @Inject private ZTSHandler delegate;
+    @Context private ServletContext servletContext;
     @Context private HttpServletRequest request;
     @Context private HttpServletResponse response;
-    
 }

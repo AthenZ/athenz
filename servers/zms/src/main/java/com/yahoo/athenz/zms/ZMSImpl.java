@@ -65,6 +65,7 @@ import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.ServletContext;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8497,17 +8498,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    public ResourceContext newResourceContext(HttpServletRequest request,
-                                              HttpServletResponse response,
-                                              String apiName) {
+    public ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request,
+            HttpServletResponse response, String apiName) {
+
         Object timerMetric = metric.startTiming("zms_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
+
         // check to see if we want to allow this URI to be available
         // with optional authentication support
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
         boolean eventPublishersEnabled = !domainChangePublishers.isEmpty();
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, this,
+        return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, this,
                 timerMetric, apiName, eventPublishersEnabled);
     }
 
