@@ -613,7 +613,7 @@ public class X509CertRequest {
         return true;
     }
 
-    boolean validateSpiffeURI(final String domain, final String name, final String value) {
+    public boolean validateSpiffeURI(final String domain, final String name, final String value) {
 
         // the expected format is spiffe://<domain>/<name>/<value>
 

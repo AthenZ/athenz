@@ -3420,6 +3420,39 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRefreshRequestSpiffeMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_service_mismatch.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
+        principal.setKeyId("0");
+        String publicKeyName = "athenz.production_0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALHeQCsRDaTm97fVnH3gPKXH4gPirY0r\n"
+                + "Tc/2dsgy9zdTlRntLotEhzO3NYYQRQZ/HdQ34AbVI35vwYDzlRogxq0CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "athenz", "production", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("spiffe uri mismatch"));
+        }
+    }
+
+    @Test
     public void testPostInstanceRefreshRequestMismatchIP() throws IOException {
 
         Path path = Paths.get("src/test/resources/athenz.single_ip.csr");

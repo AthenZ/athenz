@@ -4298,6 +4298,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Invalid CSR - IP address mismatch", caller, domain, principalDomain);
         }
 
+        // verify the spiffe uri specified in the request is valid
+
+        if (!x509CertReq.validateSpiffeURI(domain, X509ServiceCertRequest.SPIFFE_SERVICE_AGENT, service)) {
+            throw requestError("Invalid CSR - spiffe uri mismatch", caller, domain, principalDomain);
+        }
+
         // if this is not a user request and the principal authority is the
         // certificate authority then we're refreshing our certificate as
         // opposed to requesting a new one for the service so we're going
