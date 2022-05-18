@@ -130,6 +130,7 @@ public interface ZMSHandler {
     ServiceIdentityList getDependentServiceList(ResourceContext context, String domainName);
     DependentServiceResourceGroupList getDependentServiceResourceGroupList(ResourceContext context, String domainName);
     DomainList getDependentDomainList(ResourceContext context, String service);
+    Info getInfo(ResourceContext context);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);

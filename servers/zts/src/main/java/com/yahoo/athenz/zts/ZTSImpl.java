@@ -163,6 +163,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected OpenIDConfig openIDConfig;
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
+    protected Info serverInfo = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -4646,6 +4647,40 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), principalDomain, caller);
         return oauthConfig;
+    }
+
+    @Override
+    public Info getInfo(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+
+        if (serverInfo == null) {
+            fetchInfoFromManifest(ctx.servletContext());
+        }
+
+        return serverInfo;
+    }
+
+    synchronized void fetchInfoFromManifest(ServletContext servletContext) {
+
+        if (serverInfo != null) {
+            return;
+        }
+        Info info = new Info();
+        Properties prop = new Properties();
+        try {
+            prop.load(servletContext.getResourceAsStream("/META-INF/MANIFEST.MF"));
+            info.setBuildJdkSpec(prop.getProperty("Build-Jdk-Spec"));
+            info.setImplementationTitle(prop.getProperty("Implementation-Title"));
+            info.setImplementationVendor(prop.getProperty("Implementation-Vendor"));
+            info.setImplementationVersion(prop.getProperty("Implementation-Version"));
+        } catch (IOException ex) {
+            LOGGER.error("Unable to read war manifest.mf", ex);
+        }
+        serverInfo = info;
     }
 
     @Override
