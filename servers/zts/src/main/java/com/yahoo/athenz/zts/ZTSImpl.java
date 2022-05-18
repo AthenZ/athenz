@@ -73,6 +73,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.ServletContext;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
@@ -4791,16 +4792,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller, requestDomain, principalDomain);
     }
 
-    public ResourceContext newResourceContext(HttpServletRequest request,
-                                              HttpServletResponse response,
-                                              String apiName) {
+    public ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request,
+            HttpServletResponse response, String apiName) {
+
         Object timerMetric = metric.startTiming("zts_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
+
         // check to see if we want to allow this URI to be available
         // with optional authentication support
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric, timerMetric, apiName);
+        return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, authorizer,
+                metric, timerMetric, apiName);
     }
 
     String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {

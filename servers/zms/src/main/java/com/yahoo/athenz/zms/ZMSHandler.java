@@ -5,6 +5,7 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.*;
 import jakarta.ws.rs.core.Response;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -130,7 +131,7 @@ public interface ZMSHandler {
     DependentServiceResourceGroupList getDependentServiceResourceGroupList(ResourceContext context, String domainName);
     DomainList getDependentDomainList(ResourceContext context, String service);
     Schema getRdlSchema(ResourceContext context);
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
     void publishChangeMessage(ResourceContext ctx, int httpStatus);
 }

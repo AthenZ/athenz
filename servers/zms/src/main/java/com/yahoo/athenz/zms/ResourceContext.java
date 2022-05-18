@@ -5,6 +5,7 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 // ResourceContext
 //
 public interface ResourceContext {
+    ServletContext servletContext();
     HttpServletRequest request();
     HttpServletResponse response();
     String getApiName();

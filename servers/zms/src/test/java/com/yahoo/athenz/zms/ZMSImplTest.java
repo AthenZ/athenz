@@ -14594,7 +14594,7 @@ public class ZMSImplTest {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", false);
 
         zmsTestInitializer.getZms().optionsUserToken(ctx, "user", "coretech.storage");
@@ -14612,7 +14612,7 @@ public class ZMSImplTest {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", false);
 
         String origin = "https://zms.origin.athenzcompany.com";
@@ -14647,7 +14647,7 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", false);
 
         zmsTestInitializer.getZms().setStandardCORSHeaders(ctx);
@@ -14663,7 +14663,7 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", true);
 
         String origin = "https://zms.origin.athenzcompany.com";
@@ -16274,10 +16274,13 @@ public class ZMSImplTest {
 
     @Test
     public void testResourceContext() {
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsTestInitializer.getZms().newResourceContext(zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
+        final ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsImpl.newResourceContext(zmsTestInitializer.getMockServletContext(),
+                zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
+        assertEquals(ctx.servletContext(), zmsTestInitializer.getMockServletContext());
         assertEquals(ctx.request(), zmsTestInitializer.getMockServletRequest());
         assertEquals(ctx.response(), zmsTestInitializer.getMockServletResponse());
 
@@ -18583,7 +18586,7 @@ public class ZMSImplTest {
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-        ResourceContext ctx = zmsTestInitializer.getZms().newResourceContext(request, response, "apiName");
+        ResourceContext ctx = zmsTestInitializer.getZms().newResourceContext(null, request, response, "apiName");
         zmsTestInitializer.getZms().logPrincipal(ctx);
         assertTrue(request.getAttributes().isEmpty());
     }
@@ -24149,7 +24152,7 @@ public class ZMSImplTest {
     @Test
     public void testRecordMetricsUnauthenticated() {
         ZMSImpl.metric = Mockito.mock(Metric.class);
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsTestInitializer.getZms().newResourceContext(zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "someApiMethod");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsTestInitializer.getZms().newResourceContext(null, zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
         ctx.setRequestDomain(testDomain);
