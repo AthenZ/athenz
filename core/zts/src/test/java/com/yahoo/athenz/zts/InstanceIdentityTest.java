@@ -21,16 +21,18 @@ import static org.testng.Assert.*;
 import java.util.Collections;
 import java.util.HashMap;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
 public class InstanceIdentityTest {
 
     @Test
     public void testInstanceIdentity() {
+
         InstanceIdentity i1 = new InstanceIdentity();
         InstanceIdentity i2 = new InstanceIdentity();
 
-        HashMap<String, String> attrs = new HashMap<String, String>() {
+        HashMap<String, String> attrs = new HashMap<>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -39,6 +41,8 @@ public class InstanceIdentityTest {
                 put("user", "user.test");
             }
         };
+
+        Timestamp start = Timestamp.fromCurrentTime();
 
         // set
         i1.setName("sample");
@@ -50,6 +54,7 @@ public class InstanceIdentityTest {
         i1.setAttributes(attrs);
         i1.setProvider("provider");
         i1.setInstanceId("instanceid");
+        i1.setAthenzJWKConfig(new AthenzJWKConfig().setModified(start));
 
         i2.setName("sample");
         i2.setX509Certificate("sample_cert");
@@ -60,6 +65,7 @@ public class InstanceIdentityTest {
         i2.setAttributes(attrs);
         i2.setProvider("provider");
         i2.setInstanceId("instanceid");
+        i2.setAthenzJWKConfig(new AthenzJWKConfig().setModified(start));
 
         // getter assertion
         assertEquals(i1.getName(), "sample");
@@ -71,6 +77,7 @@ public class InstanceIdentityTest {
         assertEquals(i1.getSshCertificateSigner(), "sample_ssh_signer");
         assertEquals(i1.getProvider(), "provider");
         assertEquals(i1.getInstanceId(), "instanceid");
+        assertEquals(i1.getAthenzJWKConfig(), new AthenzJWKConfig().setModified(start));
 
         assertEquals(i1, i1);
         assertEquals(i2, i1);
@@ -128,6 +135,13 @@ public class InstanceIdentityTest {
         i2.setAttributes(null);
         assertNotEquals(i1, i2);
         i2.setAttributes(attrs);
+
+        i2.setAthenzJWKConfig(new AthenzJWKConfig());
+        assertNotEquals(i1, i2);
+        i2.setAthenzJWKConfig(null);
+        assertNotEquals(i1, i2);
+        i2.setAthenzJWKConfig(new AthenzJWKConfig().setModified(start));
+
 
         assertNotEquals("", i1);
     }

@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zts;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
@@ -26,9 +27,11 @@ public class InstanceRegisterInformationTest {
 
     @Test
     public void testInstanceRegisterInformation() {
-        
+
         InstanceRegisterInformation i1 = new InstanceRegisterInformation();
         InstanceRegisterInformation i2 = new InstanceRegisterInformation();
+
+        Timestamp start = Timestamp.fromCurrentTime();
 
         // set
         i1.setAttestationData("doc");
@@ -42,6 +45,8 @@ public class InstanceRegisterInformationTest {
         i1.setHostname("host1.athenz.cloud");
         i1.setHostCnames(Collections.singletonList("host1"));
         i1.setSshCertRequest(new SSHCertRequest());
+        i1.setAthenzConf(true);
+        i1.setAthenzConfModified(start);
 
         i2.setProvider("provider");
         i2.setAttestationData("doc");
@@ -54,6 +59,8 @@ public class InstanceRegisterInformationTest {
         i2.setHostname("host1.athenz.cloud");
         i2.setHostCnames(Collections.singletonList("host1"));
         i2.setSshCertRequest(new SSHCertRequest());
+        i2.setAthenzConf(true);
+        i2.setAthenzConfModified(start);
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -67,6 +74,8 @@ public class InstanceRegisterInformationTest {
         assertEquals(i1.getHostname(), "host1.athenz.cloud");
         assertEquals(i1.getHostCnames(), Collections.singletonList("host1"));
         assertEquals(i1.getSshCertRequest(), new SSHCertRequest());
+        assertEquals(i1.getAthenzConf(), Boolean.TRUE);
+        assertEquals(i1.getAthenzConfModified(), start);
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -149,6 +158,20 @@ public class InstanceRegisterInformationTest {
         i2.setSshCertRequest(new SSHCertRequest().setCsr("csr"));
         assertNotEquals(i1, i2);
         i2.setSshCertRequest(new SSHCertRequest());
+        assertEquals(i1, i2);
+
+        i2.setAthenzConf(null);
+        assertNotEquals(i1, i2);
+        i2.setAthenzConf(false);
+        assertNotEquals(i1, i2);
+        i2.setAthenzConf(true);
+        assertEquals(i1, i2);
+
+        i2.setAthenzConfModified(Timestamp.fromMillis(101));
+        assertNotEquals(i1, i2);
+        i2.setAthenzConfModified(null);
+        assertNotEquals(i1, i2);
+        i2.setAthenzConfModified(start);
         assertEquals(i1, i2);
     }
 }

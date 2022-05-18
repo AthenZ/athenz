@@ -163,8 +163,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
     protected AthenzJWKConfig athenzJWKConfig;
-    private long lastPubKeysUpdateTime = 0;
-    private int millisBetweenPubKeysUpdates = 0;
+    private long lastAthenzJWKConfUpdateTime = 0;
+    protected int millisBetweenAthenzJWKConfUpdates = 0;
     private final Object pubKeysUpdateMutex = new Object();
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -609,7 +609,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // convert public keys update time from hours to millis
 
-        millisBetweenPubKeysUpdates = 60 * 60 * 1000 * Integer.parseInt(
+        millisBetweenAthenzJWKConfUpdates = 60 * 60 * 1000 * Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_PUB_KEYS_UPDATE_INTERVAL_HOURS, "24"));
     }
 
@@ -868,18 +868,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return null;
     }
 
-    // ----------------- the ServiceIdentity interface
-
-    public AthenzJWKConfig getAthenzJWKConfig(ResourceContext ctx) {
-        updateAthenzJWKConfig(ctx);
+    protected AthenzJWKConfig getAthenzJWKConfig(ResourceContext ctx) {
+        validateAthenzJWKConfigIsUpdated(ctx);
         return athenzJWKConfig;
     }
 
-    private void updateAthenzJWKConfig(ResourceContext ctx) {
+    protected void validateAthenzJWKConfigIsUpdated(ResourceContext ctx) {
         boolean rfc = false; // todo: configuration? something else?
-        if ((lastPubKeysUpdateTime == 0) || (lastPubKeysUpdateTime + millisBetweenPubKeysUpdates > System.currentTimeMillis())) {
+        if ((lastAthenzJWKConfUpdateTime == 0) || (lastAthenzJWKConfUpdateTime + millisBetweenAthenzJWKConfUpdates < System.currentTimeMillis())) {
             synchronized (pubKeysUpdateMutex) {
-                if (lastPubKeysUpdateTime == 0 || (lastPubKeysUpdateTime + millisBetweenPubKeysUpdates > System.currentTimeMillis())) {
+                if (lastAthenzJWKConfUpdateTime == 0 || (lastAthenzJWKConfUpdateTime + millisBetweenAthenzJWKConfUpdates < System.currentTimeMillis())) {
                     List<PublicKeyEntry> ztsPublicKeys = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZTS_SERVICE).getPublicKeys();
                     List<PublicKeyEntry> zmsPublicKeys = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZMS_SERVICE).getPublicKeys();
 
@@ -887,20 +885,50 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     final List<JWK> zmsJWKList = getJWKList(zmsPublicKeys, rfc);
 
                     if (ztsJWKList == null || zmsJWKList == null) {
-                        //todo: metric?
+                        LOGGER.error("ZMS or ZTS JWK List is null, cannot build Athenz JWK config file. ZMS: {}, ZTS: {}", zmsJWKList, ztsJWKList);
+                        return;
                     }
                     if (athenzJWKConfig == null) {
                         athenzJWKConfig = new AthenzJWKConfig();
                     }
 
-                    long now = System.currentTimeMillis();
-                    athenzJWKConfig.setZtsJWK(new JWKList().setKeys(ztsJWKList))
-                            .setZmsJWK(new JWKList().setKeys(zmsJWKList))
-                            .setModified(Timestamp.fromMillis(now));
-                    lastPubKeysUpdateTime = now;
+                    AthenzJWKConfig newJWKConf = new AthenzJWKConfig()
+                            .setZtsJWK(new JWKList().setKeys(ztsJWKList))
+                            .setZmsJWK(new JWKList().setKeys(zmsJWKList));
+
+                    if (athenzJWKConfChanged(newJWKConf)) {
+                        long now = System.currentTimeMillis();
+                        newJWKConf.setModified(Timestamp.fromMillis(now));
+                        athenzJWKConfig = newJWKConf;
+                        lastAthenzJWKConfUpdateTime = now;
+                    }
                 }
             }
         }
+    }
+
+    protected boolean athenzJWKConfChanged(AthenzJWKConfig newJWKConf) {
+        //TODO: do we have a better way to know these kind of changes?
+        boolean zmsChanged = hasJWKChange(newJWKConf.getZmsJWK(), athenzJWKConfig.getZmsJWK());
+        boolean ztsChanged = hasJWKChange(newJWKConf.getZtsJWK(), athenzJWKConfig.getZtsJWK());
+        return zmsChanged || ztsChanged;
+    }
+
+    private boolean hasJWKChange(JWKList newJWKeys, JWKList currentJWKeys) {
+
+        if (newJWKeys == null && currentJWKeys == null) {
+            LOGGER.error("Both new and current JWK keys are null");
+            return false;
+        }
+        if (currentJWKeys == null) {
+            LOGGER.warn("Current JWK keys are null");
+            return true;
+        }
+        if (newJWKeys == null) {
+            LOGGER.warn("New JWK keys are null");
+            return false;
+        }
+        return !currentJWKeys.getKeys().containsAll(newJWKeys.getKeys());
     }
 
     private List<JWK> getJWKList(List<PublicKeyEntry> pubKeys, boolean rfc) {
@@ -923,6 +951,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         return jwkList;
     }
+
+    // ----------------- the ServiceIdentity interface
 
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
 
@@ -3842,12 +3872,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
 
-    private void fillAthenzJWKConfig(ResourceContext ctx, Boolean athenzConf, Timestamp athenzConfModified, InstanceIdentity identity) {
+    protected void fillAthenzJWKConfig(ResourceContext ctx, Boolean athenzConf, Timestamp clientModified, InstanceIdentity identity) {
         if (Boolean.TRUE == athenzConf) {
-            AthenzJWKConfig cachedAthenzConf = getAthenzJWKConfig(ctx);
-            if (athenzConfModified == null ||
-                    (athenzConfModified.millis() < cachedAthenzConf.getModified().millis())) {
-                identity.setAthenzJWKConfig(cachedAthenzConf);
+            AthenzJWKConfig athenzJWKConf = getAthenzJWKConfig(ctx);
+
+            // fill the athenz jwk config only if client timestamp is not specified or older than current configuration
+            if (clientModified == null ||
+                    (clientModified.millis() < athenzJWKConf.getModified().millis())) {
+                identity.setAthenzJWKConfig(athenzJWKConf);
             }
         }
     }

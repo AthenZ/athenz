@@ -49,6 +49,7 @@ import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.ZTSImpl.AthenzObject;
 import com.yahoo.athenz.zts.ZTSImpl.ServiceX509RefreshRequestStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
+import com.yahoo.athenz.zts.cache.DataCacheTest;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.cert.X509RoleCertRequest;
@@ -2174,7 +2175,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetZmsPubKeys() {
+    public void testGetAthenzJWKConfig() throws InterruptedException {
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
         store.processSignedDomain(providerDomain, false);
@@ -2188,8 +2189,90 @@ public class ZTSImplTest {
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
         ResourceContext context = createResourceContext(principal);
 
-//        List<PublicKeyEntry> ztsPub = zts.getZtsPublicKeys(context);
-//        List<PublicKeyEntry> zmsPub = zts.getZmsPublicKeys(context);
+        AthenzJWKConfig initialConf = zts.getAthenzJWKConfig(context);
+
+        // add public key to sys.auth domain
+        DomainData sysAuthDomain = zts.dataStore.getDomainData("sys.auth");
+        ServiceIdentity ztsSrv = sysAuthDomain.getServices().stream()
+                .filter(s -> s.getName().equals("sys.auth.zts"))
+                .findFirst().get();
+        ztsSrv.getPublicKeys().add(new com.yahoo.athenz.zms.PublicKeyEntry().setId("1").setKey(DataCacheTest.ZTS_Y64_CERT2));
+        zts.dataStore.processDomainData(sysAuthDomain);
+
+        // since not enough time left (default is 24h) - AthenzJWKConfig should remain the same
+        assertEquals(initialConf, zts.getAthenzJWKConfig(context));
+
+        // now, change the time between config updates
+        zts.millisBetweenAthenzJWKConfUpdates = 0;
+
+        Thread.sleep(10);
+        AthenzJWKConfig newConfig = zts.getAthenzJWKConfig(context);
+
+        // zts keys should be updated
+        assertNotEquals(initialConf, newConfig);
+        assertEquals(newConfig.getZtsJWK().getKeys().size(), 2);
+    }
+
+
+    @Test
+    public void testAthenzJWKConfChanged() {
+
+        zts.athenzJWKConfig = new AthenzJWKConfig();
+        AthenzJWKConfig newConf = new AthenzJWKConfig();
+
+        JWK key1 = new JWK().setUse("use");
+        JWK key2 = new JWK().setUse("use");
+
+        JWKList zmsListCur = new JWKList().setKeys(Collections.singletonList(key1));
+        JWKList zmsListNew = new JWKList().setKeys(Collections.singletonList(key2));
+        zts.athenzJWKConfig.setZmsJWK(zmsListCur);
+        newConf.setZmsJWK(zmsListNew);
+        assertFalse(zts.athenzJWKConfChanged(newConf));
+
+        JWK key3 = new JWK().setAlg("dummy");
+        JWK key4 = new JWK().setAlg("dummy");
+
+        zts.athenzJWKConfig.setZmsJWK(new JWKList().setKeys(Arrays.asList(key2, key3, key1)));
+        newConf.setZmsJWK(new JWKList().setKeys(Arrays.asList(key1, key2, key4)));
+        assertFalse(zts.athenzJWKConfChanged(newConf));
+
+        newConf.setZmsJWK(new JWKList().setKeys(Arrays.asList(key1, key2, key4, new JWK().setAlg("dummy1"))));
+        assertTrue(zts.athenzJWKConfChanged(newConf));
+    }
+
+    @Test
+    public void testFillAthenzJWKConfig() {
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(
+                Stream.of(createServices("sys.auth", "zts"),
+                                createServices("sys.auth", "zms"))
+                        .flatMap(List::stream).collect(Collectors.toList())
+        );
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceIdentity id = new InstanceIdentity();
+
+        // without athenz config - should not fill the config
+        zts.fillAthenzJWKConfig(context, false, null, id);
+        assertNull(id.getAthenzJWKConfig());
+
+        // with athenz config and newer timestamp - should not fill the config
+        zts.fillAthenzJWKConfig(context, true, Timestamp.fromDate(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 24))), id);
+        assertNull(id.getAthenzJWKConfig());
+
+        // with athenz config and without timestamp - should fill the config
+        zts.fillAthenzJWKConfig(context, true, null, id);
+        assertEquals(id.getAthenzJWKConfig(), zts.athenzJWKConfig);
+
+        InstanceIdentity id1 = new InstanceIdentity();
+
+        // with athenz config and older timestamp - should fill the config
+        zts.fillAthenzJWKConfig(context, true, Timestamp.fromMillis(99), id1);
+        assertEquals(id1.getAthenzJWKConfig(), zts.athenzJWKConfig);
     }
 
     @Test
