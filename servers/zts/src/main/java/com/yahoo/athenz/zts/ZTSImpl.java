@@ -4677,8 +4677,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             info.setImplementationTitle(prop.getProperty("Implementation-Title"));
             info.setImplementationVendor(prop.getProperty("Implementation-Vendor"));
             info.setImplementationVersion(prop.getProperty("Implementation-Version"));
-        } catch (IOException ex) {
-            LOGGER.error("Unable to read war manifest.mf", ex);
+        } catch (Exception ex) {
+            LOGGER.error("Unable to read war /META-INF/MANIFEST.MF", ex);
         }
         serverInfo = info;
     }

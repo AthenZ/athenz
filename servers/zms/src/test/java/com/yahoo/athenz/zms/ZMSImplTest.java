@@ -61,6 +61,7 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import jakarta.servlet.ServletContext;
 import org.hamcrest.CoreMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -71,10 +72,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -29894,5 +29895,65 @@ public class ZMSImplTest {
         zmsImpl.dbService = dbService;
 
         assertFalse(zmsImpl.isSysAdminRoleMember("user.testadminuser"));
+    }
+
+    @Test
+    public void testGetInfo() throws URISyntaxException, FileNotFoundException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        zmsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+
+        FileInputStream inputStream = new FileInputStream(
+                new File(getClass().getClassLoader().getResource("manifest.mf").toURI()));
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenReturn(inputStream);
+
+        Info info = zmsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zms");
+        assertEquals(info.getImplementationVendor(), "athenz");
+
+        // this should be no-op since we already have an info object
+
+        zmsImpl.fetchInfoFromManifest(mockServletContext);
+
+        // this should just return our previously generated info object
+
+        info = zmsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zms");
+        assertEquals(info.getImplementationVendor(), "athenz");
+    }
+
+    @Test
+    public void testGetInfoException() throws URISyntaxException, FileNotFoundException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        zmsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenThrow(new IllegalArgumentException());
+
+        Info info = zmsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertNull(info.getImplementationVersion());
+        assertNull(info.getBuildJdkSpec());
+        assertNull(info.getImplementationTitle());
+        assertNull(info.getImplementationVendor());
     }
 }
