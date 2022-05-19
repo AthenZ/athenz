@@ -8491,8 +8491,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             info.setImplementationTitle(prop.getProperty("Implementation-Title"));
             info.setImplementationVendor(prop.getProperty("Implementation-Vendor"));
             info.setImplementationVersion(prop.getProperty("Implementation-Version"));
-        } catch (IOException ex) {
-            LOG.error("Unable to read war manifest.mf", ex);
+        } catch (Exception ex) {
+            LOG.error("Unable to read war /META-INF/MANIFEST.MF", ex);
         }
         serverInfo = info;
     }

@@ -82,10 +82,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+
+import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13495,5 +13493,69 @@ public class ZTSImplTest {
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH));
+    }
+
+    @Test
+    public void testGetInfo() throws URISyntaxException, FileNotFoundException {
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+
+        FileInputStream inputStream = new FileInputStream(
+                new File(getClass().getClassLoader().getResource("manifest.mf").toURI()));
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenReturn(inputStream);
+
+        Info info = ztsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zts");
+        assertEquals(info.getImplementationVendor(), "athenz");
+
+        // this should be no-op since we already have an info object
+
+        ztsImpl.fetchInfoFromManifest(mockServletContext);
+
+        // this should just return our previously generated info object
+
+        info = ztsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zts");
+        assertEquals(info.getImplementationVendor(), "athenz");
+    }
+
+    @Test
+    public void testGetInfoException() throws URISyntaxException, FileNotFoundException {
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenThrow(new IllegalArgumentException());
+
+        Info info = ztsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertNull(info.getImplementationVersion());
+        assertNull(info.getBuildJdkSpec());
+        assertNull(info.getImplementationTitle());
+        assertNull(info.getImplementationVendor());
     }
 }
