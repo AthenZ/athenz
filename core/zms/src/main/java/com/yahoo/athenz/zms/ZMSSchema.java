@@ -389,6 +389,16 @@ public class ZMSSchema {
             .comment("List of valid domain meta attribute values")
             .arrayField("validValues", "String", false, "list of valid values for attribute");
 
+        sb.structType("AuthHistory")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("principal", "ResourceName", false, "Name of the principal")
+            .field("timestamp", "Timestamp", false, "Last authorization event timestamp")
+            .field("endpoint", "String", false, "Last authorization endpoint used")
+            .field("ttl", "Int64", false, "Time until the record will expire");
+
+        sb.structType("AuthHistoryList")
+            .arrayField("authHistoryList", "AuthHistory", false, "list of auth history records for domain");
+
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
             .field("policyName", "EntityName", false, "")
@@ -919,6 +929,20 @@ public class ZMSSchema {
             .comment("List all valid values for the given attribute and user")
             .queryParam("attribute", "attributeName", "String", null, "name of attribute")
             .queryParam("user", "userName", "String", null, "restrict to values associated with the given user")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("AuthHistoryList", "GET", "/domain/{domainName}/history/auth")
+            .comment("Get the authorization and token requests history for the domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

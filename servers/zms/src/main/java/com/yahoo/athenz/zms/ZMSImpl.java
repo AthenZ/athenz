@@ -57,23 +57,21 @@ import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
-import com.yahoo.athenz.zms.store.AthenzDomain;
-import com.yahoo.athenz.zms.store.ObjectStore;
-import com.yahoo.athenz.zms.store.ObjectStoreFactory;
+import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.ServletContext;
-import org.eclipse.jetty.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -219,6 +217,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ObjectMapper jsonMapper;
     protected StatusChecker statusChecker = null;
     protected ObjectStore objectStore = null;
+    protected AuthHistoryStore authHistoryStore = null;
     protected ZMSGroupMembersFetcher groupMemberFetcher = null;
     protected DomainMetaStore domainMetaStore = null;
     protected NotificationToEmailConverterCommon notificationToEmailConverterCommon;
@@ -637,6 +636,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         loadSolutionTemplates();
 
+        // loud authentication history store
+
+        loadAuthHistoryStore();
+
         // our object store - either mysql or file based
 
         loadObjectStore();
@@ -957,11 +960,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setUserAuthority(userAuthority);
 
         objectStore = objFactory.create(keyStore);
-        dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator);
+        dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator, authHistoryStore);
 
         // create our group fetcher based on the db service
 
         groupMemberFetcher = new ZMSGroupMembersFetcher(dbService);
+    }
+
+    void loadAuthHistoryStore() {
+        String authHistoryFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS);
+        if (StringUtil.isEmpty(authHistoryFactoryClass)) {
+            LOG.info("Authentication History Store Disabled.");
+            return;
+        }
+
+        AuthHistoryStoreFactory authHistoryStoreFactory;
+        try {
+            authHistoryStoreFactory = (AuthHistoryStoreFactory) Class.forName(authHistoryFactoryClass).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            LOG.error("Invalid AuthHistoryStoreFactory class: {}", authHistoryFactoryClass, e);
+            throw new IllegalArgumentException("Invalid auth history store");
+        }
+
+        authHistoryStore = authHistoryStoreFactory.create(keyStore);
     }
 
     void loadMetricObject() {
@@ -2637,6 +2658,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         DomainMetaStoreValidValuesList domainMetaStoreValidValuesList = new DomainMetaStoreValidValuesList();
         domainMetaStoreValidValuesList.setValidValues(values);
         return domainMetaStoreValidValuesList;
+    }
+
+    @Override
+    public AuthHistoryList getAuthHistoryList(ResourceContext ctx, String domainName) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        List<AuthHistory> authHistoryList = dbService.getAuthHistory(domainName);
+        return new AuthHistoryList().setAuthHistoryList(authHistoryList);
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,

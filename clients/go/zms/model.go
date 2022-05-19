@@ -4436,6 +4436,160 @@ func (self *DomainMetaStoreValidValuesList) Validate() error {
 }
 
 //
+// AuthHistory -
+//
+type AuthHistory struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// Name of the principal
+	//
+	Principal ResourceName `json:"principal"`
+
+	//
+	// Last authorization event timestamp
+	//
+	Timestamp rdl.Timestamp `json:"timestamp"`
+
+	//
+	// Last authorization endpoint used
+	//
+	Endpoint string `json:"endpoint"`
+
+	//
+	// Time until the record will expire
+	//
+	Ttl int64 `json:"ttl"`
+}
+
+//
+// NewAuthHistory - creates an initialized AuthHistory instance, returns a pointer to it
+//
+func NewAuthHistory(init ...*AuthHistory) *AuthHistory {
+	var o *AuthHistory
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AuthHistory)
+	}
+	return o
+}
+
+type rawAuthHistory AuthHistory
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AuthHistory
+//
+func (self *AuthHistory) UnmarshalJSON(b []byte) error {
+	var m rawAuthHistory
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AuthHistory(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AuthHistory) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("AuthHistory.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Principal == "" {
+		return fmt.Errorf("AuthHistory.principal is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Principal)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.principal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.Timestamp.IsZero() {
+		return fmt.Errorf("AuthHistory: Missing required field: timestamp")
+	}
+	if self.Endpoint == "" {
+		return fmt.Errorf("AuthHistory.endpoint is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Endpoint)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.endpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// AuthHistoryList -
+//
+type AuthHistoryList struct {
+
+	//
+	// list of auth history records for domain
+	//
+	AuthHistoryList []*AuthHistory `json:"authHistoryList"`
+}
+
+//
+// NewAuthHistoryList - creates an initialized AuthHistoryList instance, returns a pointer to it
+//
+func NewAuthHistoryList(init ...*AuthHistoryList) *AuthHistoryList {
+	var o *AuthHistoryList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AuthHistoryList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *AuthHistoryList) Init() *AuthHistoryList {
+	if self.AuthHistoryList == nil {
+		self.AuthHistoryList = make([]*AuthHistory, 0)
+	}
+	return self
+}
+
+type rawAuthHistoryList AuthHistoryList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AuthHistoryList
+//
+func (self *AuthHistoryList) UnmarshalJSON(b []byte) error {
+	var m rawAuthHistoryList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AuthHistoryList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AuthHistoryList) Validate() error {
+	if self.AuthHistoryList == nil {
+		return fmt.Errorf("AuthHistoryList: Missing required field: authHistoryList")
+	}
+	return nil
+}
+
+//
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 //

@@ -456,6 +456,18 @@ func init() {
 	tDomainMetaStoreValidValuesList.ArrayField("validValues", "String", false, "list of valid values for attribute")
 	sb.AddType(tDomainMetaStoreValidValuesList.Build())
 
+	tAuthHistory := rdl.NewStructTypeBuilder("Struct", "AuthHistory")
+	tAuthHistory.Field("domainName", "DomainName", false, nil, "name of the domain")
+	tAuthHistory.Field("principal", "ResourceName", false, nil, "Name of the principal")
+	tAuthHistory.Field("timestamp", "Timestamp", false, nil, "Last authorization event timestamp")
+	tAuthHistory.Field("endpoint", "String", false, nil, "Last authorization endpoint used")
+	tAuthHistory.Field("ttl", "Int64", false, nil, "Time until the record will expire")
+	sb.AddType(tAuthHistory.Build())
+
+	tAuthHistoryList := rdl.NewStructTypeBuilder("Struct", "AuthHistoryList")
+	tAuthHistoryList.ArrayField("authHistoryList", "AuthHistory", false, "list of auth history records for domain")
+	sb.AddType(tAuthHistoryList.Build())
+
 	tDanglingPolicy := rdl.NewStructTypeBuilder("Struct", "DanglingPolicy")
 	tDanglingPolicy.Comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
 	tDanglingPolicy.Field("policyName", "EntityName", false, nil, "")
@@ -971,6 +983,16 @@ func init() {
 	mGetDomainMetaStoreValidValuesList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetDomainMetaStoreValidValuesList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDomainMetaStoreValidValuesList.Build())
+
+	mGetAuthHistoryList := rdl.NewResourceBuilder("AuthHistoryList", "GET", "/domain/{domainName}/history/auth")
+	mGetAuthHistoryList.Comment("Get the authorization and token requests history for the domain")
+	mGetAuthHistoryList.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
+	mGetAuthHistoryList.Auth("", "", true, "")
+	mGetAuthHistoryList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetAuthHistoryList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetAuthHistoryList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetAuthHistoryList.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetAuthHistoryList.Build())
 
 	mGetDomainDataCheck := rdl.NewResourceBuilder("DomainDataCheck", "GET", "/domain/{domainName}/check")
 	mGetDomainDataCheck.Comment("Carry out data check operation for the specified domain.")
