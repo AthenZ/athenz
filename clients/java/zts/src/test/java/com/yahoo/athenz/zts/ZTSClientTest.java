@@ -33,6 +33,7 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -3624,5 +3625,44 @@ public class ZTSClientTest {
         }
 
         client.close();
+    }
+
+    @Test
+    public void testGetInfo() throws IOException, URISyntaxException {
+        ZTSRDLGeneratedClient c = Mockito.mock(ZTSRDLGeneratedClient.class);
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(c);
+        Info info = new Info().setBuildJdkSpec("17")
+                .setImplementationTitle("title")
+                .setImplementationVendor("vendor")
+                .setImplementationVersion("version");
+        Mockito.when(c.getInfo()).thenReturn(info)
+                .thenThrow(new ZTSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        Info infoRes = client.getInfo();
+        assertNotNull(infoRes);
+        assertEquals(infoRes.getBuildJdkSpec(), "17");
+        assertEquals(infoRes.getImplementationVersion(), "version");
+
+        // second time it fails
+
+        try {
+            client.getInfo();
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
+        try {
+            client.getInfo();
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
     }
 }

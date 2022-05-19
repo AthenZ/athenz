@@ -648,6 +648,13 @@ public class ZMSSchema {
         sb.structType("DependentServiceResourceGroupList")
             .arrayField("serviceAndResourceGroups", "DependentServiceResourceGroup", false, "collection of dependent services and resource groups for tenant domain");
 
+        sb.structType("Info")
+            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+            .field("buildJdkSpec", "String", true, "jdk build version")
+            .field("implementationTitle", "String", true, "implementation title - e.g. athenz-zms-server")
+            .field("implementationVersion", "String", true, "implementation version - e.g. 1.11.1")
+            .field("implementationVendor", "String", true, "implementation vendor - Athenz");
+
 
         sb.resource("Domain", "GET", "/domain/{domain}")
             .comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
@@ -2819,6 +2826,17 @@ public class ZMSSchema {
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Info", "GET", "/sys/info")
+            .comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+            .auth("get", "sys.auth:info")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

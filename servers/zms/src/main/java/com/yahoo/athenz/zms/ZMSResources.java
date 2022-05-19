@@ -4372,6 +4372,36 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/sys/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+    public Info getInfo(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getInfo");
+            context.authorize("get", "sys.auth:info", null);
+            return this.delegate.getInfo(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getInfo");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Get RDL Schema")

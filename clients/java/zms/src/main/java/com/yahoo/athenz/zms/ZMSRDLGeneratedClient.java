@@ -3958,4 +3958,31 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public Info getInfo() throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/sys/info");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Info.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
 }

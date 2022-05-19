@@ -225,7 +225,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
     protected ServiceProviderManager serviceProviderManager;
     protected ServiceProviderClient serviceProviderClient;
-
+    protected Info serverInfo = null;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -8422,6 +8422,39 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return dbService.getResourceAccessList(principal, action);
+    }
+
+    @Override
+    public Info getInfo(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+        validateRequest(ctx.request(), caller);
+
+        if (serverInfo == null) {
+            fetchInfoFromManifest(ctx.servletContext());
+        }
+
+        return serverInfo;
+    }
+
+    synchronized void fetchInfoFromManifest(ServletContext servletContext) {
+
+        if (serverInfo != null) {
+            return;
+        }
+        Info info = new Info();
+        Properties prop = new Properties();
+        try {
+            prop.load(servletContext.getResourceAsStream("/META-INF/MANIFEST.MF"));
+            info.setBuildJdkSpec(prop.getProperty("Build-Jdk-Spec"));
+            info.setImplementationTitle(prop.getProperty("Implementation-Title"));
+            info.setImplementationVendor(prop.getProperty("Implementation-Vendor"));
+            info.setImplementationVersion(prop.getProperty("Implementation-Version"));
+        } catch (IOException ex) {
+            LOG.error("Unable to read war manifest.mf", ex);
+        }
+        serverInfo = info;
     }
 
     @Override

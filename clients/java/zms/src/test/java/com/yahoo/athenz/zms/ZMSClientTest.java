@@ -2954,6 +2954,43 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetInfo() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        Info info = new Info().setBuildJdkSpec("17")
+                .setImplementationTitle("title")
+                .setImplementationVendor("vendor")
+                .setImplementationVersion("version");
+        Mockito.when(c.getInfo()).thenReturn(info)
+                .thenThrow(new ZMSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        Info infoRes = client.getInfo();
+        assertNotNull(infoRes);
+        assertEquals(infoRes.getBuildJdkSpec(), "17");
+        assertEquals(infoRes.getImplementationVersion(), "version");
+
+        // second time it fails
+
+        try {
+            client.getInfo();
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
+        try {
+            client.getInfo();
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
+    }
+
+    @Test
     public void testGetQuota() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

@@ -756,6 +756,14 @@ func init() {
 	tDependentServiceResourceGroupList.ArrayField("serviceAndResourceGroups", "DependentServiceResourceGroup", false, "collection of dependent services and resource groups for tenant domain")
 	sb.AddType(tDependentServiceResourceGroupList.Build())
 
+	tInfo := rdl.NewStructTypeBuilder("Struct", "Info")
+	tInfo.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+	tInfo.Field("buildJdkSpec", "String", true, nil, "jdk build version")
+	tInfo.Field("implementationTitle", "String", true, nil, "implementation title - e.g. athenz-zms-server")
+	tInfo.Field("implementationVersion", "String", true, nil, "implementation version - e.g. 1.11.1")
+	tInfo.Field("implementationVendor", "String", true, nil, "implementation vendor - Athenz")
+	sb.AddType(tInfo.Build())
+
 	mGetDomain := rdl.NewResourceBuilder("Domain", "GET", "/domain/{domain}")
 	mGetDomain.Comment("Get info for the specified domain, by name. This request only returns the configured domain attributes and not any domain objects like roles, policies or service identities.")
 	mGetDomain.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
@@ -2392,6 +2400,14 @@ func init() {
 	mGetDependentDomainList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetDependentDomainList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDependentDomainList.Build())
+
+	mGetInfo := rdl.NewResourceBuilder("Info", "GET", "/sys/info")
+	mGetInfo.Comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+	mGetInfo.Auth("get", "sys.auth:info", false, "")
+	mGetInfo.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetInfo.Exception("NOT_FOUND", "ResourceError", "")
+	mGetInfo.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetInfo.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()
