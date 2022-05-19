@@ -364,4 +364,17 @@ public final class ZMSConsts {
     public static final String PROVIDER_RESPONSE_DENY = "deny";
     public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE = "athenz.zms.auth_history.dynamodb.table";
     public static final String ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE = "Athenz-Auth-History";
+
+    public static final String ZMS_PROP_DYNAMODB_KEY_PATH            = "athenz.zms.dynamodb_key_path";
+    public static final String ZMS_PROP_DYNAMODB_CERT_PATH           = "athenz.zms.dynamodb_cert_path";
+    public static final String ZMS_PROP_DYNAMODB_DOMAIN              = "athenz.zms.dynamodb_aws_domain";
+    public static final String ZMS_PROP_DYNAMODB_ROLE                = "athenz.zms.dynamodb_aws_role";
+    public static final String ZMS_PROP_DYNAMODB_TRUSTSTORE          = "athenz.zms.dynamodb_trust_store_path";
+    public static final String ZMS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD = "athenz.zms.dynamodb_trust_store_password";
+    public static final String ZMS_PROP_DYNAMODB_TRUSTSTORE_APPNAME  = "athenz.zms.dynamodb_trust_store_app_name";
+    public static final String ZMS_PROP_DYNAMODB_REGION              = "athenz.zms.dynamodb_region";
+    public static final String ZMS_PROP_DYNAMODB_ZTS_URL             = "athenz.zms.dynamodb_zts_url";
+    public static final String ZMS_PROP_DYNAMODB_EXTERNAL_ID         = "athenz.zms.dynamodb_external_id";
+    public static final String ZMS_PROP_DYNAMODB_MIN_EXPIRY_TIME     = "athenz.zms.dynamodb_min_expiry_time";
+    public static final String ZMS_PROP_DYNAMODB_MAX_EXPIRY_TIME     = "athenz.zms.dynamodb_max_expiry_time";
 }

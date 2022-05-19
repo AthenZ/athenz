@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.db.DynamoDBClientAndCredentials;
+import com.yahoo.athenz.common.server.db.DynamoDBClientFetcher;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import org.apache.http.HttpStatus;

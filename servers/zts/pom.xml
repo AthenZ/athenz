@@ -68,11 +68,6 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>athenz-zts-core</artifactId>
-      <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>athenz-zms-core</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
@@ -89,11 +84,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-instance-provider</artifactId>
-      <version>${project.parent.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>athenz-zts-java-client</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>
@@ -158,10 +148,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-rds</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-dynamodb</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>

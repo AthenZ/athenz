@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.cert.impl;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.db.DynamoDBClientFetcher;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStore;
 import com.yahoo.athenz.common.server.ssh.SSHRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;

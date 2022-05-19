@@ -21,7 +21,7 @@ import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.impl.DynamoDBClientFetcher;
+import com.yahoo.athenz.common.server.db.DynamoDBClientFetcher;
 import com.yahoo.athenz.zts.cert.impl.DynamoDBClientFetcherFactory;
 import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.eclipse.jetty.util.StringUtil;

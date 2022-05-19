@@ -259,7 +259,21 @@
       <artifactId>aws-secretsmanager-jdbc</artifactId>
       <version>1.0.7</version>
     </dependency>
-
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-zts-java-client</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-dynamodb</artifactId>
+      <version>${aws.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>dynamodb-enhanced</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
   </dependencies>
 
 </project>

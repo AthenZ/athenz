@@ -16,8 +16,13 @@
 
 package com.yahoo.athenz.zts.cert.impl;
 
+import com.yahoo.athenz.common.server.db.DynamoDBClientFetcher;
+import com.yahoo.athenz.common.server.db.DynamoDBClientFetcherImpl;
+import com.yahoo.athenz.common.server.db.DynamoDBClientSettingsFactory;
+
 public class DynamoDBClientFetcherFactory {
     public static DynamoDBClientFetcher getDynamoDBClientFetcher() {
-        return new DynamoDBClientFetcherImpl();
+        DynamoDBClientSettingsFactory dynamoDBClientSettingsFactory = new ZtsDynamoDBClientSettingsFactory();
+        return new DynamoDBClientFetcherImpl(dynamoDBClientSettingsFactory);
     }
 }

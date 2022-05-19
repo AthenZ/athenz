@@ -19,6 +19,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
+import com.yahoo.athenz.common.server.db.DynamoDBClientFetcher;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
@@ -48,7 +49,6 @@ public class DynamoDBCertRecordStoreFactory implements CertRecordStoreFactory {
             LOGGER.error("Cert Store DynamoDB index host-name not specified");
             throw new ResourceException(ResourceException.SERVICE_UNAVAILABLE, "DynamoDB index host-name not specified");
         }
-
 
         ZTSClientNotificationSenderImpl ztsClientNotificationSender = new ZTSClientNotificationSenderImpl();
         AmazonDynamoDB client = getDynamoDBClient(ztsClientNotificationSender, keyStore);

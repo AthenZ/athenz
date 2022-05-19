@@ -19,8 +19,10 @@
 package com.yahoo.athenz.zms.store.impl.dynamodb;
 
 import com.yahoo.athenz.zms.store.AuthHistoryStoreConnection;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static org.testng.AssertJUnit.assertNotNull;
@@ -28,8 +30,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class DynamoDBAuthHistoryStoreTest {
     @Test
     public void testGetConnection() {
-        DynamoDbClient dynamoDb = Mockito.mock(DynamoDbClient.class);
-        DynamoDBAuthHistoryStore dynamoDBAuthHistoryStore = new DynamoDBAuthHistoryStore("TEST_TABLE", dynamoDb);
+        DynamoDbTable<AuthHistoryDynamoDBRecord> mappedTable = Mockito.mock(DynamoDbTable.class);
+        DynamoDBAuthHistoryStore dynamoDBAuthHistoryStore = new DynamoDBAuthHistoryStore(mappedTable);
         AuthHistoryStoreConnection connection = dynamoDBAuthHistoryStore.getConnection();
         assertNotNull(connection);
         dynamoDBAuthHistoryStore.setOperationTimeout(0);

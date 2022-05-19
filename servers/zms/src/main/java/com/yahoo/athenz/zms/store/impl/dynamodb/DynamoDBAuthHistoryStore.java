@@ -23,33 +23,15 @@ import com.yahoo.athenz.zms.store.AuthHistoryStore;
 import com.yahoo.athenz.zms.store.AuthHistoryStoreConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.enhanced.dynamodb.*;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 public class DynamoDBAuthHistoryStore implements AuthHistoryStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBAuthHistoryStore.class);
-    private final DynamoDbEnhancedClient client;
     private final DynamoDbTable<AuthHistoryDynamoDBRecord> mappedTable;
 
-    public DynamoDBAuthHistoryStore(String tableName, Region region) {
-        DynamoDbClient dynamoDB = DynamoDbClient.builder()
-                .region(region)
-                .build();
-        this.client = DynamoDbEnhancedClient.builder()
-                .dynamoDbClient(dynamoDB)
-                .build();
-
-        this.mappedTable = client.table(tableName, TableSchema.fromBean(AuthHistoryDynamoDBRecord.class));
-    }
-
-    public DynamoDBAuthHistoryStore(String tableName, DynamoDbClient dynamoDB) {
-        this.client = DynamoDbEnhancedClient.builder()
-                .dynamoDbClient(dynamoDB)
-                .build();
-
-        this.mappedTable = client.table(tableName, TableSchema.fromBean(AuthHistoryDynamoDBRecord.class));
+    public DynamoDBAuthHistoryStore(DynamoDbTable<AuthHistoryDynamoDBRecord> mappedTable) {
+        this.mappedTable = mappedTable;
     }
 
     @Override
