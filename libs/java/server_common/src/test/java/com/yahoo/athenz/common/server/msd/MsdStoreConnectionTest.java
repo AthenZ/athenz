@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.msd;
 
+import com.yahoo.athenz.common.server.msd.net.InetWorkload;
 import com.yahoo.athenz.msd.DynamicWorkload;
 import com.yahoo.athenz.msd.TransportPolicyValidationResponseList;
 import com.yahoo.athenz.msd.WorkloadOptions;
@@ -66,5 +67,10 @@ public class MsdStoreConnectionTest {
 
         TransportPolicyValidationResponseList responseList = msdStoreConnection.getTransportPolicyValidationStatus(null);
         assertEquals(responseList.getResponseList().size(), 0);
+
+        InetWorkload inetWorkload = msdStoreConnection.buildIpToWorkload();
+        assertNotNull(inetWorkload);
+        assertNotNull(inetWorkload.getDynamicIps());
+        assertNotNull(inetWorkload.getStaticIps());
     }
 }

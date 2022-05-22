@@ -489,6 +489,14 @@ func init() {
 	tTransportRules.ArrayField("egressRules", "TransportRule", false, "")
 	sb.AddType(tTransportRules.Build())
 
+	tInfo := rdl.NewStructTypeBuilder("Struct", "Info")
+	tInfo.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+	tInfo.Field("buildJdkSpec", "String", true, nil, "jdk build version")
+	tInfo.Field("implementationTitle", "String", true, nil, "implementation title - e.g. athenz-zms-server")
+	tInfo.Field("implementationVersion", "String", true, nil, "implementation version - e.g. 1.11.1")
+	tInfo.Field("implementationVendor", "String", true, nil, "implementation vendor - Athenz")
+	sb.AddType(tInfo.Build())
+
 	mGetResourceAccess := rdl.NewResourceBuilder("ResourceAccess", "GET", "/access/{action}/{resource}")
 	mGetResourceAccess.Comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
 	mGetResourceAccess.Input("action", "ActionName", true, "", "", false, nil, "action as specified in the policy assertion, i.e. update or read")
@@ -838,6 +846,14 @@ func init() {
 	mGetTransportRules.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetTransportRules.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetTransportRules.Build())
+
+	mGetInfo := rdl.NewResourceBuilder("Info", "GET", "/sys/info")
+	mGetInfo.Comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+	mGetInfo.Auth("get", "sys.auth:info", false, "")
+	mGetInfo.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetInfo.Exception("NOT_FOUND", "ResourceError", "")
+	mGetInfo.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetInfo.Build())
 
 	var err error
 	schema, err = sb.BuildParanoid()

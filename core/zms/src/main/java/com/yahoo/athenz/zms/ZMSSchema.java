@@ -389,6 +389,16 @@ public class ZMSSchema {
             .comment("List of valid domain meta attribute values")
             .arrayField("validValues", "String", false, "list of valid values for attribute");
 
+        sb.structType("AuthHistory")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("principal", "ResourceName", false, "Name of the principal")
+            .field("timestamp", "Timestamp", false, "Last authorization event timestamp")
+            .field("endpoint", "String", false, "Last authorization endpoint used")
+            .field("ttl", "Int64", false, "Time until the record will expire");
+
+        sb.structType("AuthHistoryList")
+            .arrayField("authHistoryList", "AuthHistory", false, "list of auth history records for domain");
+
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
             .field("policyName", "EntityName", false, "")
@@ -647,6 +657,13 @@ public class ZMSSchema {
 
         sb.structType("DependentServiceResourceGroupList")
             .arrayField("serviceAndResourceGroups", "DependentServiceResourceGroup", false, "collection of dependent services and resource groups for tenant domain");
+
+        sb.structType("Info")
+            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+            .field("buildJdkSpec", "String", true, "jdk build version")
+            .field("implementationTitle", "String", true, "implementation title - e.g. athenz-zms-server")
+            .field("implementationVersion", "String", true, "implementation version - e.g. 1.11.1")
+            .field("implementationVendor", "String", true, "implementation vendor - Athenz");
 
 
         sb.resource("Domain", "GET", "/domain/{domain}")
@@ -912,6 +929,20 @@ public class ZMSSchema {
             .comment("List all valid values for the given attribute and user")
             .queryParam("attribute", "attributeName", "String", null, "name of attribute")
             .queryParam("user", "userName", "String", null, "restrict to values associated with the given user")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("AuthHistoryList", "GET", "/domain/{domainName}/history/auth")
+            .comment("Get the authorization and token requests history for the domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -2819,6 +2850,17 @@ public class ZMSSchema {
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Info", "GET", "/sys/info")
+            .comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+            .auth("get", "sys.auth:info")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

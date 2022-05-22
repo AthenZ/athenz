@@ -73,6 +73,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.ServletContext;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
@@ -162,6 +163,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected OpenIDConfig openIDConfig;
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
+    protected Info serverInfo = null;
     protected AthenzJWKConfig athenzJWKConfig;
     private long lastAthenzJWKConfUpdateTime = 0;
     protected int millisBetweenAthenzJWKConfUpdates = 0;
@@ -4758,6 +4760,40 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
+    public Info getInfo(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+
+        if (serverInfo == null) {
+            fetchInfoFromManifest(ctx.servletContext());
+        }
+
+        return serverInfo;
+    }
+
+    synchronized void fetchInfoFromManifest(ServletContext servletContext) {
+
+        if (serverInfo != null) {
+            return;
+        }
+        Info info = new Info();
+        Properties prop = new Properties();
+        try {
+            prop.load(servletContext.getResourceAsStream("/META-INF/MANIFEST.MF"));
+            info.setBuildJdkSpec(prop.getProperty("Build-Jdk-Spec"));
+            info.setImplementationTitle(prop.getProperty("Implementation-Title"));
+            info.setImplementationVendor(prop.getProperty("Implementation-Vendor"));
+            info.setImplementationVersion(prop.getProperty("Implementation-Version"));
+        } catch (Exception ex) {
+            LOGGER.error("Unable to read war /META-INF/MANIFEST.MF", ex);
+        }
+        serverInfo = info;
+    }
+
+    @Override
     public Schema getRdlSchema(ResourceContext context) {
         return schema;
     }
@@ -4901,16 +4937,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller, requestDomain, principalDomain);
     }
 
-    public ResourceContext newResourceContext(HttpServletRequest request,
-                                              HttpServletResponse response,
-                                              String apiName) {
+    public ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request,
+            HttpServletResponse response, String apiName) {
+
         Object timerMetric = metric.startTiming("zts_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
+
         // check to see if we want to allow this URI to be available
         // with optional authentication support
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric, timerMetric, apiName);
+        return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, authorizer,
+                metric, timerMetric, apiName);
     }
 
     String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {

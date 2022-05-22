@@ -2963,6 +2963,23 @@ public class ZTSClient implements Closeable {
         }
     }
 
+    /**
+     * Retrieve the server info details
+     *
+     * @return info object
+     * @throws ZTSClientException in case of failure
+     */
+    public Info getInfo() {
+        updateServicePrincipal();
+        try {
+            return ztsClient.getInfo();
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     static class ClientKeyRefresherListener implements KeyRefresherListener {
 
         long lastCertRefreshTime = 0;

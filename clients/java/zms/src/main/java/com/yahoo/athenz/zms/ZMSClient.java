@@ -2716,6 +2716,23 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Retrieve the server info details
+     *
+     * @return info object
+     * @throws ZMSClientException in case of failure
+     */
+    public Info getInfo() {
+        updatePrincipal();
+        try {
+            return client.getInfo();
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Create/Update the quota details for the specified domain
      *
      * @param domainName name of the domain

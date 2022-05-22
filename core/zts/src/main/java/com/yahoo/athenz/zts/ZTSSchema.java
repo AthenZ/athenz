@@ -422,6 +422,13 @@ public class ZTSSchema {
             .arrayField("ingressRules", "TransportRule", false, "")
             .arrayField("egressRules", "TransportRule", false, "");
 
+        sb.structType("Info")
+            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+            .field("buildJdkSpec", "String", true, "jdk build version")
+            .field("implementationTitle", "String", true, "implementation title - e.g. athenz-zms-server")
+            .field("implementationVersion", "String", true, "implementation version - e.g. 1.11.1")
+            .field("implementationVendor", "String", true, "implementation vendor - Athenz");
+
 
         sb.resource("ResourceAccess", "GET", "/access/{action}/{resource}")
             .comment("Check access for the specified operation on the specified resource for the currently authenticated user. This is the slow centralized access for control-plane purposes. Use distributed mechanisms for decentralized (data-plane) access by fetching signed policies and role tokens for users. With this endpoint the resource is part of the uri and restricted to its strict definition of resource name. If needed, you can use the GetAccessExt api that allows resource name to be less restrictive.")
@@ -878,6 +885,17 @@ public class ZTSSchema {
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Info", "GET", "/sys/info")
+            .comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+            .auth("get", "sys.auth:info")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

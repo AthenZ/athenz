@@ -1,0 +1,22 @@
+// Copyright Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//The representation for an info object
+type Info Struct {
+    String buildJdkSpec (optional); //jdk build version
+    String implementationTitle (optional); //implementation title - e.g. athenz-zms-server
+    String implementationVersion (optional); //implementation version - e.g. 1.11.1
+    String implementationVendor (optional); //implementation vendor - Athenz
+}
+
+//Retrieve the server info. Since we're exposing server version details,
+//the request will require authorization
+resource Info GET "/sys/info" {
+    authorize ("get", "sys.auth:info");
+    expected OK;
+    exceptions {
+        ResourceError UNAUTHORIZED;
+        ResourceError NOT_FOUND;
+        ResourceError BAD_REQUEST;
+    }
+}

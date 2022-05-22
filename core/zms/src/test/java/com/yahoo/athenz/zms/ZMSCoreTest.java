@@ -4166,4 +4166,59 @@ public class ZMSCoreTest {
 
         assertFalse(a.equals(new DependentServiceResourceGroupList()));
     }
+
+    @Test
+    public void testAuthHistoryList() {
+        AuthHistoryList a = new AuthHistoryList();
+        AuthHistoryList a2 = new AuthHistoryList();
+        assertEquals(a, a2);
+        assertFalse(a.equals(null));
+        assertFalse(a.equals(new Object()));
+
+        a.setAuthHistoryList(new ArrayList<>());
+        assertNotEquals(a, a2);
+        a2.setAuthHistoryList(new ArrayList<>());
+        assertEquals(a, a2);
+
+        AuthHistory authHistory = new AuthHistory();
+        a.setAuthHistoryList(Arrays.asList(authHistory));
+        assertNotEquals(a, a2);
+        AuthHistory authHistory2 = new AuthHistory();
+        a2.setAuthHistoryList(Arrays.asList(authHistory2));
+        assertEquals(a, a2);
+        a.getAuthHistoryList().equals(a2.getAuthHistoryList());
+        assertFalse(authHistory.equals(null));
+        assertFalse(authHistory.equals(new Object()));
+
+        authHistory.setDomainName("test");
+        assertNotEquals(a, a2);
+        authHistory2.setDomainName("test");
+        assertEquals(a, a2);
+        authHistory.getDomainName().equals(authHistory2.getDomainName());
+
+        authHistory.setPrincipal("principal");
+        assertNotEquals(a, a2);
+        authHistory2.setPrincipal("principal");
+        assertEquals(a, a2);
+        authHistory.getPrincipal().equals(authHistory2.getPrincipal());
+
+        authHistory.setEndpoint("https://some.endpoint");
+        assertNotEquals(a, a2);
+        authHistory2.setEndpoint("https://some.endpoint");
+        assertEquals(a, a2);
+        authHistory.getEndpoint().equals(authHistory2.getEndpoint());
+
+        Timestamp timestamp = Timestamp.fromCurrentTime();
+        authHistory.setTimestamp(timestamp);
+        assertNotEquals(a, a2);
+        authHistory2.setTimestamp(timestamp);
+        assertEquals(a, a2);
+        authHistory.getTimestamp().equals(authHistory2.getTimestamp());
+
+        authHistory.setTtl(1655282257L);
+        assertNotEquals(a, a2);
+        authHistory2.setTtl(1655282257L);
+        assertEquals(a, a2);
+        assertEquals(authHistory.getTtl(), authHistory2.getTtl());
+    }
 }

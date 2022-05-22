@@ -4436,6 +4436,160 @@ func (self *DomainMetaStoreValidValuesList) Validate() error {
 }
 
 //
+// AuthHistory -
+//
+type AuthHistory struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// Name of the principal
+	//
+	Principal ResourceName `json:"principal"`
+
+	//
+	// Last authorization event timestamp
+	//
+	Timestamp rdl.Timestamp `json:"timestamp"`
+
+	//
+	// Last authorization endpoint used
+	//
+	Endpoint string `json:"endpoint"`
+
+	//
+	// Time until the record will expire
+	//
+	Ttl int64 `json:"ttl"`
+}
+
+//
+// NewAuthHistory - creates an initialized AuthHistory instance, returns a pointer to it
+//
+func NewAuthHistory(init ...*AuthHistory) *AuthHistory {
+	var o *AuthHistory
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AuthHistory)
+	}
+	return o
+}
+
+type rawAuthHistory AuthHistory
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AuthHistory
+//
+func (self *AuthHistory) UnmarshalJSON(b []byte) error {
+	var m rawAuthHistory
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AuthHistory(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AuthHistory) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("AuthHistory.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Principal == "" {
+		return fmt.Errorf("AuthHistory.principal is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Principal)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.principal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.Timestamp.IsZero() {
+		return fmt.Errorf("AuthHistory: Missing required field: timestamp")
+	}
+	if self.Endpoint == "" {
+		return fmt.Errorf("AuthHistory.endpoint is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Endpoint)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.endpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+//
+// AuthHistoryList -
+//
+type AuthHistoryList struct {
+
+	//
+	// list of auth history records for domain
+	//
+	AuthHistoryList []*AuthHistory `json:"authHistoryList"`
+}
+
+//
+// NewAuthHistoryList - creates an initialized AuthHistoryList instance, returns a pointer to it
+//
+func NewAuthHistoryList(init ...*AuthHistoryList) *AuthHistoryList {
+	var o *AuthHistoryList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(AuthHistoryList)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *AuthHistoryList) Init() *AuthHistoryList {
+	if self.AuthHistoryList == nil {
+		self.AuthHistoryList = make([]*AuthHistory, 0)
+	}
+	return self
+}
+
+type rawAuthHistoryList AuthHistoryList
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a AuthHistoryList
+//
+func (self *AuthHistoryList) UnmarshalJSON(b []byte) error {
+	var m rawAuthHistoryList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := AuthHistoryList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *AuthHistoryList) Validate() error {
+	if self.AuthHistoryList == nil {
+		return fmt.Errorf("AuthHistoryList: Missing required field: authHistoryList")
+	}
+	return nil
+}
+
+//
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 //
@@ -7883,6 +8037,94 @@ func (self *DependentServiceResourceGroupList) UnmarshalJSON(b []byte) error {
 func (self *DependentServiceResourceGroupList) Validate() error {
 	if self.ServiceAndResourceGroups == nil {
 		return fmt.Errorf("DependentServiceResourceGroupList: Missing required field: serviceAndResourceGroups")
+	}
+	return nil
+}
+
+//
+// Info - Copyright Athenz Authors Licensed under the terms of the Apache
+// version 2.0 license. See LICENSE file for terms. The representation for an
+// info object
+//
+type Info struct {
+
+	//
+	// jdk build version
+	//
+	BuildJdkSpec string `json:"buildJdkSpec" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// implementation title - e.g. athenz-zms-server
+	//
+	ImplementationTitle string `json:"implementationTitle" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// implementation version - e.g. 1.11.1
+	//
+	ImplementationVersion string `json:"implementationVersion" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// implementation vendor - Athenz
+	//
+	ImplementationVendor string `json:"implementationVendor" rdl:"optional" yaml:",omitempty"`
+}
+
+//
+// NewInfo - creates an initialized Info instance, returns a pointer to it
+//
+func NewInfo(init ...*Info) *Info {
+	var o *Info
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Info)
+	}
+	return o
+}
+
+type rawInfo Info
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Info
+//
+func (self *Info) UnmarshalJSON(b []byte) error {
+	var m rawInfo
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Info(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Info) Validate() error {
+	if self.BuildJdkSpec != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.BuildJdkSpec)
+		if !val.Valid {
+			return fmt.Errorf("Info.buildJdkSpec does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ImplementationTitle != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ImplementationTitle)
+		if !val.Valid {
+			return fmt.Errorf("Info.implementationTitle does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ImplementationVersion != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ImplementationVersion)
+		if !val.Valid {
+			return fmt.Errorf("Info.implementationVersion does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ImplementationVendor != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ImplementationVendor)
+		if !val.Valid {
+			return fmt.Errorf("Info.implementationVendor does not contain a valid String (%v)", val.Error)
+		}
 	}
 	return nil
 }

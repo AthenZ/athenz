@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.rest;
 
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -28,6 +29,7 @@ public class ResourceContext  {
     private static boolean SEND_MULTIPLE_WWW_AUTHENTICATE_HEADERS = Boolean.parseBoolean(
             System.getProperty("athenz.http.www-authenticate.multiple-headers", "true"));
 
+    private final ServletContext servletContext;
     private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final Http.AuthorityList authorities;
@@ -37,8 +39,9 @@ public class ResourceContext  {
     protected boolean checked;
     private String requestDomain;
 
-    public ResourceContext(HttpServletRequest request, HttpServletResponse response,
+    public ResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
             Http.AuthorityList authorities, Authorizer authorizer) {
+        this.servletContext = servletContext;
         this.request = request;
         this.response = response;
         this.authorities = authorities;
@@ -47,18 +50,43 @@ public class ResourceContext  {
         this.checked = false;
     }
 
+    /**
+     * Configure server to return multiple WWW-Authenticate headers in the response
+     * corresponding to each authority configured.
+     * @param bSendMultipleHeaders boolean flag indicating support for multiple headers
+     */
     public static void setSendMultipleWwwAuthenticateHeaders(boolean bSendMultipleHeaders) {
         SEND_MULTIPLE_WWW_AUTHENTICATE_HEADERS = bSendMultipleHeaders;
     }
 
+    /**
+     * Return the servlet context object
+     * @return ServletContext object
+     */
+    public ServletContext servletContext() {
+        return servletContext;
+    }
+
+    /**
+     * Return the http servlet request object
+     * @return HttpServletRequest object
+     */
     public HttpServletRequest request() {
         return request;
     }
 
+    /**
+     * Return the http servlet response object
+     * @return HttpServletResponse object
+     */
     public HttpServletResponse response() {
         return response;
     }
 
+    /**
+     * Return the principal object. can be null if the request is not authenticated
+     * @return Principal object
+     */
     public Principal principal() {
         return principal;
     }
@@ -104,7 +132,6 @@ public class ResourceContext  {
         Http.authorize(authorizer, principal, action, resource, trustedDomain);
     }
 
-
     /**
      * If requested include the WWW-Authenticate challenge response
      * header for this request. This is only done if the exception
@@ -139,10 +166,18 @@ public class ResourceContext  {
         }
     }
 
+    /**
+     * Return the request domain name if one was set, null otherwise.
+     * @return request domain name
+     */
     public String getRequestDomain() {
         return requestDomain;
     }
 
+    /**
+     * Set the request domain name for the resource
+     * @param requestDomain request domain name
+     */
     public void setRequestDomain(String requestDomain) {
         this.requestDomain = requestDomain;
     }
