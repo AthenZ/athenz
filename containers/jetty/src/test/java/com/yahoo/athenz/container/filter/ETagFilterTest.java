@@ -17,17 +17,15 @@ package com.yahoo.athenz.container.filter;
 
 import static org.testng.Assert.*;
 
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.container.ContainerResponseContext;
 
 import org.mockito.Mockito;
 
 import org.testng.annotations.Test;
-
-import com.yahoo.athenz.container.filter.ETagFilter;
 
 public class ETagFilterTest {
 

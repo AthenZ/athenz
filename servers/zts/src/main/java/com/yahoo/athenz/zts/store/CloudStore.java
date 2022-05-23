@@ -110,7 +110,6 @@ public class CloudStore {
     void setupHttpClient(HttpClient client) {
 
         client.setFollowRedirects(false);
-        client.setStopTimeout(1000);
         try {
             client.start();
         } catch (Exception ex) {

@@ -4,11 +4,12 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
@@ -24,7 +25,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomain");
             context.authenticate();
             return this.delegate.getDomain(context, domain);
         } catch (ResourceException e) {
@@ -70,7 +71,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainList");
             context.authenticate();
             return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, tagKey, tagValue, businessService, modifiedSince);
         } catch (ResourceException e) {
@@ -100,7 +101,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postTopLevelDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postTopLevelDomain");
             context.authorize("create", "sys.auth:domain", null);
             return this.delegate.postTopLevelDomain(context, auditRef, detail);
         } catch (ResourceException e) {
@@ -136,7 +137,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postSubDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postSubDomain");
             context.authorize("create", "" + parent + ":domain", null);
             return this.delegate.postSubDomain(context, parent, auditRef, detail);
         } catch (ResourceException e) {
@@ -174,7 +175,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "postUserDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postUserDomain");
             context.authorize("create", "user." + name + ":domain", null);
             return this.delegate.postUserDomain(context, name, auditRef, detail);
         } catch (ResourceException e) {
@@ -210,7 +211,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteTopLevelDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteTopLevelDomain");
             context.authorize("delete", "sys.auth:domain", null);
             this.delegate.deleteTopLevelDomain(context, name, auditRef);
         } catch (ResourceException e) {
@@ -247,7 +248,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteSubDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteSubDomain");
             context.authorize("delete", "" + parent + ":domain", null);
             this.delegate.deleteSubDomain(context, parent, name, auditRef);
         } catch (ResourceException e) {
@@ -283,7 +284,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteUserDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteUserDomain");
             context.authorize("delete", "user." + name + ":domain", null);
             this.delegate.deleteUserDomain(context, name, auditRef);
         } catch (ResourceException e) {
@@ -321,7 +322,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putDomainMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainMeta");
             context.authorize("update", "" + name + ":", null);
             this.delegate.putDomainMeta(context, name, auditRef, detail);
         } catch (ResourceException e) {
@@ -362,7 +363,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putDomainSystemMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainSystemMeta");
             context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -402,7 +403,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putDomainTemplate");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainTemplate");
             context.authorize("update", "" + name + ":template", null);
             this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
         } catch (ResourceException e) {
@@ -443,7 +444,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putDomainTemplateExt");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainTemplateExt");
             context.authorize("update", "" + name + ":template." + template + "", null);
             this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
         } catch (ResourceException e) {
@@ -480,7 +481,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainTemplateList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainTemplateList");
             context.authenticate();
             return this.delegate.getDomainTemplateList(context, name);
         } catch (ResourceException e) {
@@ -514,7 +515,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainTemplate");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteDomainTemplate");
             context.authorize("delete", "" + name + ":template." + template + "", null);
             this.delegate.deleteDomainTemplate(context, name, template, auditRef);
         } catch (ResourceException e) {
@@ -552,7 +553,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainMetaStoreValidValuesList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainMetaStoreValidValuesList");
             context.authenticate();
             return this.delegate.getDomainMetaStoreValidValuesList(context, attributeName, userName);
         } catch (ResourceException e) {
@@ -576,6 +577,38 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/domain/{domainName}/history/auth")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the authorization and token requests history for the domain")
+    public AuthHistoryList getAuthHistoryList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAuthHistoryList");
+            context.authenticate();
+            return this.delegate.getAuthHistoryList(context, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAuthHistoryList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Carry out data check operation for the specified domain.")
@@ -584,7 +617,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainDataCheck");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainDataCheck");
             context.authenticate();
             return this.delegate.getDomainDataCheck(context, domainName);
         } catch (ResourceException e) {
@@ -620,7 +653,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putEntity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putEntity");
             context.authorize("update", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
         } catch (ResourceException e) {
@@ -658,7 +691,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getEntity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getEntity");
             context.authenticate();
             return this.delegate.getEntity(context, domainName, entityName);
         } catch (ResourceException e) {
@@ -694,7 +727,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteEntity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteEntity");
             context.authorize("delete", "" + domainName + ":entity." + entityName + "", null);
             this.delegate.deleteEntity(context, domainName, entityName, auditRef);
         } catch (ResourceException e) {
@@ -731,7 +764,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getEntityList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getEntityList");
             context.authenticate();
             return this.delegate.getEntityList(context, domainName);
         } catch (ResourceException e) {
@@ -765,7 +798,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRoleList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRoleList");
             context.authenticate();
             return this.delegate.getRoleList(context, domainName, limit, skip);
         } catch (ResourceException e) {
@@ -802,7 +835,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRoles");
             context.authenticate();
             return this.delegate.getRoles(context, domainName, members, tagKey, tagValue);
         } catch (ResourceException e) {
@@ -838,7 +871,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRole");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRole");
             context.authenticate();
             return this.delegate.getRole(context, domainName, roleName, auditLog, expand, pending);
         } catch (ResourceException e) {
@@ -876,7 +909,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putRole");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRole");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRole(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
@@ -915,7 +948,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteRole");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteRole");
             context.authorize("delete", "" + domainName + ":role." + roleName + "", null);
             this.delegate.deleteRole(context, domainName, roleName, auditRef);
         } catch (ResourceException e) {
@@ -955,7 +988,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getMembership");
             context.authenticate();
             return this.delegate.getMembership(context, domainName, roleName, memberName, expiration);
         } catch (ResourceException e) {
@@ -989,7 +1022,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getOverdueReview");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getOverdueReview");
             context.authenticate();
             return this.delegate.getOverdueReview(context, domainName);
         } catch (ResourceException e) {
@@ -1023,7 +1056,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainRoleMembers");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainRoleMembers");
             context.authenticate();
             return this.delegate.getDomainRoleMembers(context, domainName);
         } catch (ResourceException e) {
@@ -1058,7 +1091,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPrincipalRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPrincipalRoles");
             context.authenticate();
             return this.delegate.getPrincipalRoles(context, principal, domainName);
         } catch (ResourceException e) {
@@ -1097,7 +1130,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putMembership");
             context.authenticate();
             this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
@@ -1137,7 +1170,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteMembership");
             context.authenticate();
             this.delegate.deleteMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -1177,7 +1210,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deletePendingMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePendingMembership");
             context.authenticate();
             this.delegate.deletePendingMembership(context, domainName, roleName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -1217,7 +1250,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putDefaultAdmins");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDefaultAdmins");
             context.authorize("update", "sys.auth:domain", null);
             this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
         } catch (ResourceException e) {
@@ -1257,7 +1290,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putRoleSystemMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleSystemMeta");
             context.authorize("update", "sys.auth:meta.role." + attribute + "." + domainName + "", null);
             this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -1298,7 +1331,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putRoleMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleMeta");
             context.authenticate();
             this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
         } catch (ResourceException e) {
@@ -1340,7 +1373,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putMembershipDecision");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putMembershipDecision");
             context.authenticate();
             this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership);
         } catch (ResourceException e) {
@@ -1381,7 +1414,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putRoleReview");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleReview");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
             this.delegate.putRoleReview(context, domainName, roleName, auditRef, role);
         } catch (ResourceException e) {
@@ -1421,7 +1454,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getGroups");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getGroups");
             context.authenticate();
             return this.delegate.getGroups(context, domainName, members, tagKey, tagValue);
         } catch (ResourceException e) {
@@ -1456,7 +1489,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getGroup");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getGroup");
             context.authenticate();
             return this.delegate.getGroup(context, domainName, groupName, auditLog, pending);
         } catch (ResourceException e) {
@@ -1494,7 +1527,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putGroup");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroup");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
             this.delegate.putGroup(context, domainName, groupName, auditRef, group);
         } catch (ResourceException e) {
@@ -1533,7 +1566,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteGroup");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteGroup");
             context.authorize("delete", "" + domainName + ":group." + groupName + "", null);
             this.delegate.deleteGroup(context, domainName, groupName, auditRef);
         } catch (ResourceException e) {
@@ -1573,7 +1606,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getGroupMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getGroupMembership");
             context.authenticate();
             return this.delegate.getGroupMembership(context, domainName, groupName, memberName, expiration);
         } catch (ResourceException e) {
@@ -1608,7 +1641,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPrincipalGroups");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPrincipalGroups");
             context.authenticate();
             return this.delegate.getPrincipalGroups(context, principal, domainName);
         } catch (ResourceException e) {
@@ -1647,7 +1680,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupMembership");
             context.authenticate();
             this.delegate.putGroupMembership(context, domainName, groupName, memberName, auditRef, membership);
         } catch (ResourceException e) {
@@ -1687,7 +1720,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteGroupMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteGroupMembership");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
             this.delegate.deleteGroupMembership(context, domainName, groupName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -1727,7 +1760,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deletePendingGroupMembership");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePendingGroupMembership");
             context.authenticate();
             this.delegate.deletePendingGroupMembership(context, domainName, groupName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -1769,7 +1802,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putGroupSystemMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupSystemMeta");
             context.authorize("update", "sys.auth:meta.group." + attribute + "." + domainName + "", null);
             this.delegate.putGroupSystemMeta(context, domainName, groupName, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -1810,7 +1843,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupMeta");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
             this.delegate.putGroupMeta(context, domainName, groupName, auditRef, detail);
         } catch (ResourceException e) {
@@ -1852,7 +1885,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putGroupMembershipDecision");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupMembershipDecision");
             context.authenticate();
             this.delegate.putGroupMembershipDecision(context, domainName, groupName, memberName, auditRef, membership);
         } catch (ResourceException e) {
@@ -1893,7 +1926,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putGroupReview");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupReview");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
             this.delegate.putGroupReview(context, domainName, groupName, auditRef, group);
         } catch (ResourceException e) {
@@ -1931,7 +1964,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainGroupMembersList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPendingDomainGroupMembersList");
             context.authenticate();
             return this.delegate.getPendingDomainGroupMembersList(context, principal, domainName);
         } catch (ResourceException e) {
@@ -1967,7 +2000,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPolicyList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyList");
             context.authenticate();
             return this.delegate.getPolicyList(context, domainName, limit, skip);
         } catch (ResourceException e) {
@@ -2003,7 +2036,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPolicies");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicies");
             context.authenticate();
             return this.delegate.getPolicies(context, domainName, assertions, includeNonActive);
         } catch (ResourceException e) {
@@ -2036,7 +2069,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPolicy");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicy");
             context.authenticate();
             return this.delegate.getPolicy(context, domainName, policyName);
         } catch (ResourceException e) {
@@ -2074,7 +2107,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putPolicy");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicy");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
         } catch (ResourceException e) {
@@ -2113,7 +2146,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deletePolicy");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicy");
             context.authorize("delete", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deletePolicy(context, domainName, policyName, auditRef);
         } catch (ResourceException e) {
@@ -2152,7 +2185,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getAssertion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAssertion");
             context.authenticate();
             return this.delegate.getAssertion(context, domainName, policyName, assertionId);
         } catch (ResourceException e) {
@@ -2190,7 +2223,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putAssertion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
         } catch (ResourceException e) {
@@ -2232,7 +2265,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putAssertionPolicyVersion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertionPolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertionPolicyVersion(context, domainName, policyName, version, auditRef, assertion);
         } catch (ResourceException e) {
@@ -2272,7 +2305,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertion(context, domainName, policyName, assertionId, auditRef);
         } catch (ResourceException e) {
@@ -2313,7 +2346,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertionPolicyVersion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteAssertionPolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertionPolicyVersion(context, domainName, policyName, version, assertionId, auditRef);
         } catch (ResourceException e) {
@@ -2355,7 +2388,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putAssertionConditions");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertionConditions");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertionConditions(context, domainName, policyName, assertionId, auditRef, assertionConditions);
         } catch (ResourceException e) {
@@ -2397,7 +2430,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putAssertionCondition");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertionCondition");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             return this.delegate.putAssertionCondition(context, domainName, policyName, assertionId, auditRef, assertionCondition);
         } catch (ResourceException e) {
@@ -2437,7 +2470,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertionConditions");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteAssertionConditions");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertionConditions(context, domainName, policyName, assertionId, auditRef);
         } catch (ResourceException e) {
@@ -2478,7 +2511,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteAssertionCondition");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteAssertionCondition");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deleteAssertionCondition(context, domainName, policyName, assertionId, conditionId, auditRef);
         } catch (ResourceException e) {
@@ -2516,7 +2549,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPolicyVersionList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyVersionList");
             context.authenticate();
             return this.delegate.getPolicyVersionList(context, domainName, policyName);
         } catch (ResourceException e) {
@@ -2552,7 +2585,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPolicyVersion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyVersion");
             context.authenticate();
             return this.delegate.getPolicyVersion(context, domainName, policyName, version);
         } catch (ResourceException e) {
@@ -2590,7 +2623,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putPolicyVersion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.putPolicyVersion(context, domainName, policyName, policyOptions, auditRef);
         } catch (ResourceException e) {
@@ -2631,7 +2664,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "setActivePolicyVersion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "setActivePolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.setActivePolicyVersion(context, domainName, policyName, policyOptions, auditRef);
         } catch (ResourceException e) {
@@ -2671,7 +2704,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deletePolicyVersion");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyVersion");
             context.authorize("delete", "" + domainName + ":policy." + policyName + "", null);
             this.delegate.deletePolicyVersion(context, domainName, policyName, version, auditRef);
         } catch (ResourceException e) {
@@ -2712,7 +2745,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putServiceIdentity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putServiceIdentity");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
@@ -2750,7 +2783,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentity");
             context.authenticate();
             return this.delegate.getServiceIdentity(context, domain, service);
         } catch (ResourceException e) {
@@ -2786,7 +2819,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteServiceIdentity");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteServiceIdentity");
             context.authorize("delete", "" + domain + ":service." + service + "", null);
             this.delegate.deleteServiceIdentity(context, domain, service, auditRef);
         } catch (ResourceException e) {
@@ -2825,7 +2858,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentities");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentities");
             context.authenticate();
             return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
         } catch (ResourceException e) {
@@ -2859,7 +2892,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServiceIdentityList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentityList");
             context.authenticate();
             return this.delegate.getServiceIdentityList(context, domainName, limit, skip);
         } catch (ResourceException e) {
@@ -2895,7 +2928,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPublicKeyEntry");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPublicKeyEntry");
             context.authenticate();
             return this.delegate.getPublicKeyEntry(context, domain, service, id);
         } catch (ResourceException e) {
@@ -2934,7 +2967,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putPublicKeyEntry");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
         } catch (ResourceException e) {
@@ -2974,7 +3007,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deletePublicKeyEntry");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
             this.delegate.deletePublicKeyEntry(context, domain, service, id, auditRef);
         } catch (ResourceException e) {
@@ -3016,7 +3049,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putServiceIdentitySystemMeta");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putServiceIdentitySystemMeta");
             context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
             this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
         } catch (ResourceException e) {
@@ -3057,7 +3090,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putTenancy");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putTenancy");
             context.authorize("update", "" + domain + ":tenancy", null);
             this.delegate.putTenancy(context, domain, service, auditRef, detail);
         } catch (ResourceException e) {
@@ -3096,7 +3129,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenancy");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteTenancy");
             context.authorize("delete", "" + domain + ":tenancy", null);
             this.delegate.deleteTenancy(context, domain, service, auditRef);
         } catch (ResourceException e) {
@@ -3138,7 +3171,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putTenant");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putTenant");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.putTenant(context, domain, service, tenantDomain, auditRef, detail);
         } catch (ResourceException e) {
@@ -3178,7 +3211,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenant");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteTenant");
             context.authorize("delete", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenant(context, domain, service, tenantDomain, auditRef);
         } catch (ResourceException e) {
@@ -3221,7 +3254,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putTenantResourceGroupRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             return this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
@@ -3261,7 +3294,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getTenantResourceGroupRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getTenantResourceGroupRoles");
             context.authenticate();
             return this.delegate.getTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup);
         } catch (ResourceException e) {
@@ -3299,7 +3332,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteTenantResourceGroupRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
             this.delegate.deleteTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef);
         } catch (ResourceException e) {
@@ -3342,7 +3375,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putProviderResourceGroupRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             return this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
         } catch (ResourceException e) {
@@ -3382,7 +3415,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getProviderResourceGroupRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getProviderResourceGroupRoles");
             context.authenticate();
             return this.delegate.getProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup);
         } catch (ResourceException e) {
@@ -3420,7 +3453,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteProviderResourceGroupRoles");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
             this.delegate.deleteProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef);
         } catch (ResourceException e) {
@@ -3460,7 +3493,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getAccess");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAccess");
             context.authenticate();
             return this.delegate.getAccess(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -3497,7 +3530,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getAccessExt");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAccessExt");
             context.authenticate();
             return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
         } catch (ResourceException e) {
@@ -3532,7 +3565,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getResourceAccessList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getResourceAccessList");
             context.authenticate();
             return this.delegate.getResourceAccessList(context, principal, action);
         } catch (ResourceException e) {
@@ -3571,7 +3604,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getSignedDomains");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getSignedDomains");
             context.authenticate();
             return this.delegate.getSignedDomains(context, domain, metaOnly, metaAttr, master, conditions, matchingTag);
         } catch (ResourceException e) {
@@ -3605,7 +3638,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getJWSDomain");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getJWSDomain");
             context.authenticate();
             return this.delegate.getJWSDomain(context, name, signatureP1363Format, matchingTag);
         } catch (ResourceException e) {
@@ -3637,7 +3670,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getUserToken");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getUserToken");
             context.authenticate();
             return this.delegate.getUserToken(context, userName, serviceNames, header);
         } catch (ResourceException e) {
@@ -3667,7 +3700,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "optionsUserToken");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "optionsUserToken");
             return this.delegate.optionsUserToken(context, userName, serviceNames);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3694,7 +3727,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServicePrincipal");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServicePrincipal");
             context.authenticate();
             return this.delegate.getServicePrincipal(context);
         } catch (ResourceException e) {
@@ -3726,7 +3759,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServerTemplateList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServerTemplateList");
             context.authenticate();
             return this.delegate.getServerTemplateList(context);
         } catch (ResourceException e) {
@@ -3754,7 +3787,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getTemplate");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getTemplate");
             context.authenticate();
             return this.delegate.getTemplate(context, template);
         } catch (ResourceException e) {
@@ -3786,7 +3819,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDomainTemplateDetailsList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainTemplateDetailsList");
             context.authenticate();
             return this.delegate.getDomainTemplateDetailsList(context, name);
         } catch (ResourceException e) {
@@ -3818,7 +3851,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getServerTemplateDetailsList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServerTemplateDetailsList");
             context.authenticate();
             return this.delegate.getServerTemplateDetailsList(context);
         } catch (ResourceException e) {
@@ -3846,7 +3879,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getUserList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getUserList");
             context.authenticate();
             return this.delegate.getUserList(context, domainName);
         } catch (ResourceException e) {
@@ -3875,7 +3908,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteUser");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteUser");
             context.authorize("delete", "sys.auth:user", null);
             this.delegate.deleteUser(context, name, auditRef);
         } catch (ResourceException e) {
@@ -3914,7 +3947,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainRoleMember");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteDomainRoleMember");
             context.authorize("update", "" + domainName + ":", null);
             this.delegate.deleteDomainRoleMember(context, domainName, memberName, auditRef);
         } catch (ResourceException e) {
@@ -3951,7 +3984,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getQuota");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getQuota");
             context.authenticate();
             return this.delegate.getQuota(context, name);
         } catch (ResourceException e) {
@@ -3982,7 +4015,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putQuota");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putQuota");
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.putQuota(context, name, auditRef, quota);
         } catch (ResourceException e) {
@@ -4018,7 +4051,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteQuota");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteQuota");
             context.authorize("update", "sys.auth:quota", null);
             this.delegate.deleteQuota(context, name, auditRef);
         } catch (ResourceException e) {
@@ -4053,7 +4086,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getStatus");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getStatus");
             context.authenticate();
             return this.delegate.getStatus(context);
         } catch (ResourceException e) {
@@ -4084,7 +4117,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getPendingDomainRoleMembersList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPendingDomainRoleMembersList");
             context.authenticate();
             return this.delegate.getPendingDomainRoleMembersList(context, principal, domainName);
         } catch (ResourceException e) {
@@ -4118,7 +4151,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getUserAuthorityAttributeMap");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getUserAuthorityAttributeMap");
             context.authenticate();
             return this.delegate.getUserAuthorityAttributeMap(context);
         } catch (ResourceException e) {
@@ -4150,7 +4183,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getStats");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getStats");
             context.authenticate();
             return this.delegate.getStats(context, name);
         } catch (ResourceException e) {
@@ -4178,7 +4211,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getSystemStats");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getSystemStats");
             context.authorize("get", "sys.auth:stats", null);
             return this.delegate.getSystemStats(context);
         } catch (ResourceException e) {
@@ -4207,7 +4240,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "putDomainDependency");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainDependency");
             context.authenticate();
             this.delegate.putDomainDependency(context, domainName, auditRef, service);
         } catch (ResourceException e) {
@@ -4246,7 +4279,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "deleteDomainDependency");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteDomainDependency");
             context.authenticate();
             this.delegate.deleteDomainDependency(context, domainName, service, auditRef);
         } catch (ResourceException e) {
@@ -4283,7 +4316,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDependentServiceList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDependentServiceList");
             context.authenticate();
             return this.delegate.getDependentServiceList(context, domainName);
         } catch (ResourceException e) {
@@ -4315,7 +4348,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDependentServiceResourceGroupList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDependentServiceResourceGroupList");
             context.authenticate();
             return this.delegate.getDependentServiceResourceGroupList(context, domainName);
         } catch (ResourceException e) {
@@ -4347,7 +4380,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getDependentDomainList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDependentDomainList");
             context.authenticate();
             return this.delegate.getDependentDomainList(context, service);
         } catch (ResourceException e) {
@@ -4371,6 +4404,36 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/sys/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Retrieve the server info. Since we're exposing server version details, the request will require authorization")
+    public Info getInfo(
+        ) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getInfo");
+            context.authorize("get", "sys.auth:info", null);
+            return this.delegate.getInfo(context);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getInfo");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Get RDL Schema")
@@ -4379,7 +4442,7 @@ public class ZMSResources {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.request, this.response, "getRdlSchema");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getRdlSchema");
             context.authenticate();
             return this.delegate.getRdlSchema(context);
         } catch (ResourceException e) {
@@ -4406,7 +4469,7 @@ public class ZMSResources {
     }
 
     @Inject private ZMSHandler delegate;
+    @Context private ServletContext servletContext;
     @Context private HttpServletRequest request;
     @Context private HttpServletResponse response;
-    
 }

@@ -81,7 +81,6 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         return new JDBCCertRecordStore(dataSource);
     }
 
-    ///CLOVER:OFF
     String getInstanceRegion() {
         return EC2MetadataUtils.getEC2InstanceRegion();
     }
@@ -92,7 +91,6 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
                 .region(getInstanceRegion())
                 .build();
     }
-    ///CLOVER:ON
 
     String getAuthToken(String hostname, int port, String rdsUser, String rdsIamRole) {
 

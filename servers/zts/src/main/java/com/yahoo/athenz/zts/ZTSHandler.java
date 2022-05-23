@@ -4,9 +4,10 @@
 package com.yahoo.athenz.zts;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.core.Response;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 //
 // ZTSHandler is the interface that the service implementation must implement
@@ -44,8 +45,9 @@ public interface ZTSHandler {
     Workloads getWorkloadsByService(ResourceContext context, String domainName, String serviceName);
     Workloads getWorkloadsByIP(ResourceContext context, String ip);
     TransportRules getTransportRules(ResourceContext context, String domainName, String serviceName);
+    Info getInfo(ResourceContext context);
     Schema getRdlSchema(ResourceContext context);
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
     void publishChangeMessage(ResourceContext ctx, int httpStatus);
 }

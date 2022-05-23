@@ -19,10 +19,10 @@ import (
 )
 
 type GeneratorParams struct {
-	Outdir         string
-	Banner         string
-	Namespace      string
-	ClassName      string
+	Outdir    string
+	Banner    string
+	Namespace string
+	ClassName string
 }
 
 type javaClientGenerator struct {
@@ -118,49 +118,119 @@ func (gen *javaClientGenerator) resourcePath(r *rdl.Resource) string {
 
 const javaClientTemplate = `{{header}}
 {{package}}
-import com.yahoo.rdl.*;
-import javax.ws.rs.client.*;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
+
 import javax.net.ssl.HostnameVerifier;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
 
 public class {{cName}}Client {
-    Client client;
-    WebTarget base;
-    String credsHeader;
-    String credsToken;
 
-    public {{cName}}Client(String url) {
-        client = ClientBuilder.newClient();
-        base = client.target(url);
+    private static final int DEFAULT_CLIENT_CONNECT_TIMEOUT_MS = 5000;
+    private static final int DEFAULT_CLIENT_READ_TIMEOUT_MS = 30000;
+
+    private String baseUrl;
+    private String credsHeader;
+    private String credsToken;
+
+    private CloseableHttpClient client;
+    private HttpContext httpContext;
+    private ObjectMapper jsonMapper;
+
+    protected CloseableHttpClient createHttpClient(HostnameVerifier hostnameVerifier) {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(DEFAULT_CLIENT_CONNECT_TIMEOUT_MS)
+                .setSocketTimeout(DEFAULT_CLIENT_READ_TIMEOUT_MS)
+                .setRedirectsEnabled(false)
+                .build();
+        return HttpClients.custom()
+                .setDefaultRequestConfig(config)
+                .setSSLHostnameVerifier(hostnameVerifier)
+                .build();
     }
 
-    public {{cName}}Client(String url, HostnameVerifier hostnameVerifier) {
-        client = ClientBuilder.newBuilder()
-            .hostnameVerifier(hostnameVerifier)
-            .build();
-        base = client.target(url);
+    private static class UriTemplateBuilder {
+        private final String baseUrl;
+        private String basePath;
+        public UriTemplateBuilder(final String url, final String path) {
+            baseUrl = url;
+            basePath = path;
+        }
+        public UriTemplateBuilder resolveTemplate(final String key, final Object value) {
+            basePath = basePath.replace("{" + key + "}", String.valueOf(value));
+            return this;
+        }
+        public String getUri() {
+            return baseUrl + basePath;
+        }
     }
 
-    public {{cName}}Client(String url, Client rsClient) {
-        client = rsClient;
-        base = client.target(url);
+    public {{cName}}Client(final String url) {
+        initClient(url, createHttpClient(null));
     }
-    
+
+    public {{cName}}Client(final String url, HostnameVerifier hostnameVerifier) {
+        initClient(url, createHttpClient(hostnameVerifier));
+    }
+
+    public {{cName}}Client(final String url, CloseableHttpClient httpClient) {
+        initClient(url, httpClient);
+    }
+
+    private void initClient(final String url, CloseableHttpClient httpClient) {
+        baseUrl = url;
+        client = httpClient;
+        jsonMapper = new ObjectMapper();
+        jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
     public void close() {
-        client.close();
+        try {
+            client.close();
+        } catch (IOException ignored) {
+        }
     }
 
-    public {{cName}}Client setProperty(String name, Object value) {
-        client = client.property(name, value);
-        base = client.target(base.getUri().toString());
-        return this;
-    }
+    public void addCredentials(final String header, final String token) {
 
-    public {{cName}}Client addCredentials(String header, String token) {
         credsHeader = header;
         credsToken = token;
-        return this;
+
+        if (header == null) {
+            httpContext = null;
+        } else if (header.startsWith("Cookie.")) {
+            httpContext = new BasicHttpContext();
+            CookieStore cookieStore = new BasicCookieStore();
+            BasicClientCookie cookie = new BasicClientCookie(header.substring(7), token);
+            cookie.setPath(baseUrl);
+            cookieStore.addCookie(cookie);
+            httpContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
+            credsHeader = null;
+        }
+    }
+
+    public void setHttpClient(CloseableHttpClient httpClient) {
+        client = httpClient;
     }
 {{range .Resources}}
     {{methodSig .}} {
@@ -185,14 +255,14 @@ func (gen *javaClientGenerator) clientMethodSignature(r *rdl.Resource) string {
 			sparams = sparams + ", java.util.Map<String, java.util.List<String>> headers"
 		}
 	}
-	return "public " + returnType + " " + methName + "(" + sparams + ")"
+	return "public " + returnType + " " + methName + "(" + sparams + ") throws URISyntaxException, IOException"
 }
 
 func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	reg := gen.registry
 	returnType := javaType(reg, r.Type, false, "", "")
 	path := r.Path
-	s := "WebTarget target = base.path(\"" + path + "\")"
+	s := "UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, \"" + path + "\")"
 	entityName := ""
 	q := ""
 	h := ""
@@ -201,27 +271,47 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 		if in.PathParam {
 			s += "\n            .resolveTemplate(\"" + iname + "\", " + iname + ")"
 		} else if in.QueryParam != "" {
+			qParamName := iname
+			if javaType(reg, in.Type, false, "", "") != "String" {
+				qParamName = "String.valueOf(" + iname + ")"
+			}
 			q += "\n        if (" + iname + " != null) {"
-			q += "\n            target = target.queryParam(\"" + in.QueryParam + "\", " + iname + ");"
+			q += "\n            uriBuilder.setParameter(\"" + in.QueryParam + "\", " + qParamName + ");"
 			q += "\n        }"
 		} else if in.Header != "" {
 			h += "\n        if (" + iname + " != null) {"
-			h += "\n            invocationBuilder = invocationBuilder.header(\"" + in.Header + "\", " + iname + ");"
+			h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", " + iname + ");"
 			h += "\n        }"
 		} else { //the entity
 			entityName = iname
 		}
 	}
 	s += ";"
+	s += "\n        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());"
 	if q != "" {
 		s += q
 	}
-	s += "\n        Invocation.Builder invocationBuilder = target.request(\"application/json\");"
+
+	obj := ""
+	switch r.Method {
+	case "PUT", "POST", "PATCH":
+		if len(r.Consumes) > 0 {
+			s += "\n        HttpEntity httpEntity = new StringEntity(" + entityName + ", ContentType.create(\"" + r.Consumes[0] + "\"));"
+		} else {
+			s += "\n        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(" + entityName + "), ContentType.APPLICATION_JSON);"
+		}
+		obj += "\n            .setEntity(httpEntity)"
+	}
+
+	s += "\n        HttpUriRequest httpUriRequest = RequestBuilder." + strings.ToLower(r.Method) + "()"
+	s += "\n            .setUri(uriBuilder.build())"
+	s += obj
+	s += "\n            .build();"
+
 	if r.Auth != nil {
 		if r.Auth.Authenticate || (r.Auth.Action != "" && r.Auth.Resource != "") {
 			s += "\n        if (credsHeader != null) {"
-			s += "\n            invocationBuilder = credsHeader.startsWith(\"Cookie.\") ? invocationBuilder.cookie(credsHeader.substring(7),"
-			s += "\n                credsToken) : invocationBuilder.header(credsHeader, credsToken);"
+			s += "\n            httpUriRequest.addHeader(credsHeader, credsToken);"
 			s += "\n        }"
 		} else {
 			log.Println("*** Badly formed auth spec in resource input:", r)
@@ -231,22 +321,11 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 		s += h
 	}
 	s += "\n"
-	switch r.Method {
-	case "PUT", "POST", "PATCH":
-		contentType := "application/json"
-		if len(r.Consumes) > 0 {
-			contentType = r.Consumes[0]
-		}
-		if entityName == "" {
-			s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "(javax.ws.rs.client.Entity.entity(null, \"" + contentType + "\"));\n"
-		} else {
-			s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "(javax.ws.rs.client.Entity.entity(" + entityName + ", \"" + contentType + "\"));\n"
-		}
-	default:
-		s += "        Response response = invocationBuilder." + strings.ToLower(r.Method) + "();\n"
-	}
-	s += "        int code = response.getStatus();\n"
-	s += "        switch (code) {\n"
+	s += "        HttpEntity httpResponseEntity = null;\n"
+	s += "        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {\n"
+	s += "            int code = httpResponse.getStatusLine().getStatusCode();\n"
+	s += "            httpResponseEntity = httpResponse.getEntity();\n"
+	s += "            switch (code) {\n"
 
 	//loop for all expected results
 	var expected []string
@@ -264,32 +343,40 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 		expected = append(expected, rdl.StatusCode(e))
 	}
 	for _, expCode := range expected {
-		s += "        case " + expCode + ":\n"
+		s += "            case " + expCode + ":\n"
 	}
 	if len(r.Outputs) > 0 {
-		s += "            if (headers != null) {\n"
+		s += "                if (headers != null) {\n"
 		for _, out := range r.Outputs {
-			s += "                headers.put(\"" + string(out.Name) + "\", java.util.Arrays.asList((String) response.getHeaders().getFirst(\"" + out.Header + "\")));\n"
+			s += "                    headers.put(\"" + string(out.Name) + "\", List.of(httpResponse.getFirstHeader(\"" + out.Header + "\").getValue()));\n"
 		}
-		s += "            }\n"
+		s += "                }\n"
 	}
 	if noContent {
-		s += "            return null;\n"
+		s += "                return null;\n"
 	} else {
 		if couldBeNoContent || couldBeNotModified {
-			s += "            if (" + gen.responseCondition(couldBeNoContent, couldBeNotModified) + ") {\n"
-			s += "                return null;\n"
-			s += "            }\n"
+			s += "                if (" + gen.responseCondition(couldBeNoContent, couldBeNotModified) + ") {\n"
+			s += "                    return null;\n"
+			s += "                }\n"
 		}
-		s += "            return response.readEntity(" + returnType + ".class);\n"
+		s += "                return jsonMapper.readValue(httpResponseEntity.getContent(), " + returnType + ".class);\n"
 	}
-	s += "        default:\n"
+	s += "            default:\n"
+	s += "                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);\n"
 	if r.Exceptions != nil {
-		s += "            throw new ResourceException(code, response.readEntity(ResourceError.class));\n"
+		s += "                throw (errorData != null && !errorData.isEmpty())\n"
+		s += "                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))\n"
+		s += "                    : new ResourceException(code);\n"
 	} else {
-		s += "            throw new ResourceException(code, response.readEntity(Object.class));\n"
+		s += "                throw (errorData != null && !errorData.isEmpty())\n"
+		s += "                    ? new ResourceException(code, jsonMapper.readValue(errorData, Object.class))\n"
+		s += "                    : new ResourceException(code);\n"
 	}
-	s += "        }\n"
+	s += "            }\n"
+	s += "        } finally {\n"
+	s += "            EntityUtils.consumeQuietly(httpResponseEntity);\n"
+	s += "        }"
 	return s
 }
 

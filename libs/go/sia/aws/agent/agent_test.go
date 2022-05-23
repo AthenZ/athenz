@@ -33,8 +33,8 @@ import (
 )
 
 func setup() {
-
-	go ztsmock.StartZtsServer("127.0.0.1:5081")
+	go ztsmock.StartZtsServer("127.0.0.1:5084")
+	time.Sleep(3 * time.Second)
 }
 
 func teardown() {}
@@ -133,7 +133,7 @@ func TestRegisterInstance(test *testing.T) {
 		Role: "athenz.hockey",
 	}
 
-	err := RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts, false)
+	err := RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5084/zts/v1", opts, false)
 	assert.Nil(test, err, "unable to register instance")
 
 	if err != nil {
@@ -208,7 +208,7 @@ func TestRefreshInstance(test *testing.T) {
 		Role: "athenz.hockey",
 	}
 
-	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5081/zts/v1", opts)
+	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5084/zts/v1", opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
@@ -265,7 +265,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		Provider:         "athenz.aws.us-west-2",
 	}
 
-	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts)
+	result := GetRoleCertificate("http://127.0.0.1:5084/zts/v1", keyFile, certFile, opts)
 	if !result {
 		test.Errorf("Unable to get role certificate: %v", err)
 		return

@@ -19,6 +19,7 @@ package sia
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/AthenZ/athenz/provider/aws/sia-ec2/devel/metamock"
 	"github.com/stretchr/testify/assert"
@@ -26,6 +27,7 @@ import (
 
 func setup() {
 	go metamock.StartMetaServer("127.0.0.1:5080")
+	time.Sleep(3 * time.Second)
 }
 
 func teardown() {}

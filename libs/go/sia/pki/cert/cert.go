@@ -25,7 +25,7 @@ func FromPEMBytes(pemBytes []byte) (*x509.Certificate, error) {
 	var derBytes []byte
 	block, _ := pem.Decode(pemBytes)
 	if block == nil {
-		return nil, fmt.Errorf("Cannot parse cert (empty pem)")
+		return nil, fmt.Errorf("cannot parse cert (empty pem)")
 	}
 	derBytes = block.Bytes
 	cert, err := x509.ParseCertificate(derBytes)
@@ -42,7 +42,7 @@ func IsExpiryAfterThreshold(certFile string, thresholdDays float64) (bool, error
 		return false, err
 	}
 
-	thresholdTime := time.Now().Add(time.Duration(thresholdDays * 24) * time.Hour)
+	thresholdTime := time.Now().Add(time.Duration(thresholdDays*24) * time.Hour)
 	certExpiry := x509Cert.NotAfter
 	if certExpiry.After(thresholdTime) {
 		return true, nil

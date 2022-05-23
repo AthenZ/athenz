@@ -16,11 +16,12 @@
 
 package com.yahoo.athenz.common.server.msd;
 
+import com.yahoo.athenz.common.server.msd.net.InetAddressMap;
+import com.yahoo.athenz.common.server.msd.net.InetWorkload;
 import com.yahoo.athenz.msd.*;
 
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Storage interface for storing MicroSegmentation Daemon data
@@ -110,5 +111,13 @@ public interface MsdStoreConnection extends Closeable {
      * @param opTimout
      */
     default void setOperationTimeout(int opTimout) {
+    };
+
+    /**
+     * construct IP to Workload mapping for building cache
+     * @return InetWorkload containing dynamic ips and static ips
+     */
+    default InetWorkload buildIpToWorkload() {
+        return new InetWorkload(new InetAddressMap<>(new TreeMap<>(), new TreeMap<>()), new InetAddressMap<>(new TreeMap<>(), new TreeMap<>()));
     };
 }

@@ -4,9 +4,10 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.rdl.*;
-import javax.ws.rs.core.Response;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 //
 // ZMSHandler is the interface that the service implementation must implement
@@ -27,6 +28,7 @@ public interface ZMSHandler {
     DomainTemplateList getDomainTemplateList(ResourceContext context, String name);
     void deleteDomainTemplate(ResourceContext context, String name, String template, String auditRef);
     DomainMetaStoreValidValuesList getDomainMetaStoreValidValuesList(ResourceContext context, String attributeName, String userName);
+    AuthHistoryList getAuthHistoryList(ResourceContext context, String domainName);
     DomainDataCheck getDomainDataCheck(ResourceContext context, String domainName);
     void putEntity(ResourceContext context, String domainName, String entityName, String auditRef, Entity entity);
     Entity getEntity(ResourceContext context, String domainName, String entityName);
@@ -129,8 +131,9 @@ public interface ZMSHandler {
     ServiceIdentityList getDependentServiceList(ResourceContext context, String domainName);
     DependentServiceResourceGroupList getDependentServiceResourceGroupList(ResourceContext context, String domainName);
     DomainList getDependentDomainList(ResourceContext context, String service);
+    Info getInfo(ResourceContext context);
     Schema getRdlSchema(ResourceContext context);
-    ResourceContext newResourceContext(HttpServletRequest request, HttpServletResponse response, String apiName);
+    ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);
     void publishChangeMessage(ResourceContext ctx, int httpStatus);
 }

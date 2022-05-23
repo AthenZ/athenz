@@ -17,8 +17,8 @@ package com.yahoo.athenz.common.server.util.config;
 
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProvider;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 /**
  * A single configuration entry (immutable).

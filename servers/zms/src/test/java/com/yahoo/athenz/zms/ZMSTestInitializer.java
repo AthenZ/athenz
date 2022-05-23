@@ -31,11 +31,12 @@ import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import jakarta.servlet.ServletContext;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -75,6 +76,7 @@ public class ZMSTestInitializer {
     private static final String DB_USER = "admin";
     private static final String DB_PASS = "unit-test";
 
+    private final ServletContext mockServletContext = Mockito.mock(ServletContext.class);
     private final HttpServletRequest mockServletRequest = Mockito.mock(HttpServletRequest.class);
     private final HttpServletResponse mockServletResponse = Mockito.mock(HttpServletResponse.class);
     private final NotificationManager mockNotificationManager = Mockito.mock(NotificationManager.class);
@@ -697,6 +699,10 @@ public class ZMSTestInitializer {
         return mockServletResponse;
     }
 
+    public ServletContext getMockServletContext() {
+        return mockServletContext;
+    }
+
     public NotificationManager getMockNotificationManager() {
         return mockNotificationManager;
     }
@@ -712,7 +718,7 @@ public class ZMSTestInitializer {
     public RsrcCtxWrapper contextWithMockPrincipal(String apiName, String princDomainName, String princName) {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), apiName, true);
         com.yahoo.athenz.common.server.rest.ResourceContext ctx = wrapperCtx.context();
 

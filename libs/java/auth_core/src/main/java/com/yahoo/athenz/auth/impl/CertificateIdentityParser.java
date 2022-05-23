@@ -19,7 +19,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -32,10 +32,10 @@ public class CertificateIdentityParser {
     /**
      * X509Certificate attribute name
      */
-    public static final String JAVAX_CERT_ATTR = "javax.servlet.request.X509Certificate";
+    public static final String JAVAX_CERT_ATTR = "jakarta.servlet.request.X509Certificate";
 
     public static final String EMPTY_CERT_ERR_MSG = "No certificate available in request";
-    public static final String ISSUER_DN_MISMATCH = "No Isser DNs match with trust store";
+    public static final String ISSUER_DN_MISMATCH = "No Issuer DNs match with trust store";
 
     private final Set<String> excludedPrincipalSet;
     private final boolean excludeRoleCertificates;

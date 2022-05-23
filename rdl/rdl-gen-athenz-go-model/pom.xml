@@ -20,7 +20,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.10.55-SNAPSHOT</version>
+    <version>1.11.2-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -39,7 +39,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>${exec-maven-plugin.version}</version>
+        <version>${maven-exec-plugin.version}</version>
         <executions>
           <execution>
             <goals>

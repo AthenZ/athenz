@@ -33,7 +33,7 @@ import com.yahoo.athenz.zms.*;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 
 public class ZMSUtilsTest {
 

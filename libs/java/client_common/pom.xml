@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.10.55-SNAPSHOT</version>
+    <version>1.11.2-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -31,6 +31,17 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.client.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-zms-core</artifactId>
@@ -63,55 +74,5 @@
       <version>1.15</version>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>jdk11</id>
-      <activation>
-        <jdk>[11,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>${maven-compiler-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>jdk11</id>
-                <goals>
-                  <goal>compile</goal>
-                </goals>
-                <configuration>
-                  <release>11</release>
-                  <compileSourceRoots>
-                    <compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>
-                  </compileSourceRoots>
-                  <outputDirectory>${project.build.outputDirectory}/META-INF/versions/11</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>${maven-jar-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>default-jar</id>
-                <configuration>
-                  <archive>
-                    <manifestEntries>
-                      <Multi-Release>true</Multi-Release>
-                    </manifestEntries>
-                  </archive>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
 </project>

@@ -1,3 +1,41 @@
+Athenz v1.11.0 Release / May 11, 2022
+-------------------------------------
+
+Due to the upcoming End of Community Support for Eclipse Jetty 9.4.x on June 1st, 2022,
+starting with the 1.11.0 release, Athenz services and libraries are being upgraded to
+use the latest Jetty 11.x release. This release also requires the use of JDK 11.x with
+the jakarta namespace and jersey 3.x instead of JDK 8.x with javax namespace and jersey 2.x.
+
+To avoid compatibility issues with jersey 3.x and applications already running with
+jersey 2.x, Athenz team has decided to rewrite our java client code generators to
+remove dependency on jax-rs and jersey. Instead, the ZMS and ZTS java clients now
+have a direct dependency on Apache Http Client (in the 1.10.x the clients were still
+using the Jersey Apache Connectors). Unfortunately, these changes introduce a couple
+of backward incompatible changes in the 1.11.x release so when upgrading your clients
+to the latest release, make sure to review your code and make the necessary changes.
+
+The following is the list of all changes that are introduced in the 1.11.x release:
+
+- The ZMS, ZTS and ZPE java clients are built and require JDK 11. JDK 8.x is only
+  supported in the 1.10.x release which will continue to be supported. However,
+  new versions of the 1.10.x will only be released to address bug fixes or security issues.
+- ZTS java client (artifact id: athenz-zts-java-client) is NO longer a shaded library.
+  If you’re deploying the ZTS java client as part of your application, make sure you
+  deploy all of its required dependencies.
+- ZTS java core/non-shaded client (artifact id: athenz-zts-java-client-core) has been
+  removed. You can just replace your dependency with the standard ZTS client library
+  (artifact id: athenz-zts-java-client) since it’s no longer a shaded package and
+  provides the same functionality as the core package.
+- The setProperty() and getClientBuilder() methods in both ZMS and ZTS client libraries
+  have been removed since they were used to set the javax.ws.rs.client.Client properties
+  and the clients no longer use the jax-rs clients.
+
+#1857 UI: validate source/destination service in microsegmentation
+#1858 Provide support to write host document in sia libs
+#1859 test: use T.TempDir to create temporary test directory
+#1861 fix logic in go IsExpiryAfterThreshold method
+#1865 update to jetty 11, remove jersey from client impl
+
 Athenz v1.10.54 Release / Apr 19, 2022
 --------------------------------------
 

@@ -3,7 +3,7 @@
 * [Development Tools](#development-tools)
   * [Build Within Docker Container](#build-within-docker-container)
   * [Manual Installation of Development Tools](#manual-installation-of-development-tools)
-      * [Java Platform JDK 8](#java-platform-jdk-8)
+      * [Java Platform JDK 11](#java-platform-jdk-11)
       * [Maven](#maven)
       * [Git Client](#git-client)
       * [Go](#go)
@@ -32,16 +32,11 @@ $ sh screwdriver/scripts/install_deps.sh
 
 ### Manual Installation of Development Tools
 
-#### Java Platform JDK 8
+#### Java Platform JDK 11
 
-To build Athenz components, you must have Java Platform JDK 8 installed
+To build Athenz components, you must have Java Platform JDK 11 installed
 on your machine. The main authorization services - ZMS and ZTS, are
 written in Java and using embedded Jetty.
-
-[Oracle Java Platform JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-
-Athenz has been developed and tested with Oracle Java Platform JDK 8.
-However, it should compile and run without any issues with [OpenJDK 8](https://openjdk.java.net/install/) as well.
 
 Make sure you have set the $JAVA_HOME environment variable.
 

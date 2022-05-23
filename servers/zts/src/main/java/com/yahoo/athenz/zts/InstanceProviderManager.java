@@ -184,7 +184,7 @@ public class InstanceProviderManager {
 
     SSLContext getSSLContext(boolean useClientSSLContext) {
         // if the requested ssl context is null we'll default to returning the other
-        // type in order to avoid any cloverfailures if the provider accepts both types
+        // type in order to avoid any failures if the provider accepts both types
         if (useClientSSLContext) {
             return athenzClientSSLContext != null ? athenzClientSSLContext : athenzServerSSLContext;
         } else {

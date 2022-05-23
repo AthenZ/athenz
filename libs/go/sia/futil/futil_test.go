@@ -36,7 +36,7 @@ func TestWriteFile(t *testing.T) {
 		{
 			name: "write file failure",
 			args: args{
-				name: filepath.Join("/nonexisting", "fail"),
+				name: filepath.Join("/proc", "fail"),
 				data: []byte("failure content"),
 				perm: 0400,
 			},
@@ -79,7 +79,7 @@ func TestMakeSiaDirs(t *testing.T) {
 		{
 			name: "dir fail",
 			args: args{
-				dirs: []string{filepath.Join("/nonexisting1", "invalid")},
+				dirs: []string{filepath.Join("/proc", "invalid")},
 				perm: 0755,
 			},
 			wantErr: true,

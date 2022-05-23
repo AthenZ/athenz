@@ -33,13 +33,10 @@ deployProject "com.yahoo.athenz:athenz-auth-core"
 deployProject "com.yahoo.athenz:athenz-client-common"
 deployProject "com.yahoo.athenz:athenz-cert-refresher"
 deployProject "com.yahoo.athenz:athenz-zms-java-client"
-deployProject "com.yahoo.athenz:athenz-zts-java-client-core"
 deployProject "com.yahoo.athenz:athenz-zts-java-client"
 deployProject "com.yahoo.athenz:athenz-zpe-java-client"
 deployProject "com.yahoo.athenz:athenz-msd-java-client"
 deployProject "com.yahoo.athenz:athenz-server-common"
 deployProject "com.yahoo.athenz:athenz-instance-provider"
-deployProject "com.yahoo.athenz:athenz-jetty-container"
-deployProject "com.yahoo.athenz:athenz-utils"
 
 rm -rf screwdriver/deploy

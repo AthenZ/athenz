@@ -20,12 +20,12 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.10.55-SNAPSHOT</version>
+  <version>1.11.2-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
     Open source platform for X.509 certificate based service authentication
-    and fine grained access control in dynamic infrastructures. Athenz
+    and fine-grained access control in dynamic infrastructures. Athenz
     supports provisioning and configuration (centralized authorization) use
     cases as well as serving/runtime (decentralized authorization) use cases.
   </description>
@@ -71,44 +71,53 @@
   </ciManagement>
 
   <properties>
-    <jetty.version>9.4.46.v20220331</jetty.version>
-    <jersey.version>2.35</jersey.version>
-    <jackson.version>2.13.2</jackson.version>
-    <jackson-databind.version>2.13.2.2</jackson-databind.version>
-    <rdl.version>1.5.4</rdl.version>
-    <bouncycastle.version>1.70</bouncycastle.version>
-    <aws.version>1.12.193</aws.version>
-    <aws2.version>2.17.164</aws2.version>
-    <guava.version>31.1-jre</guava.version>
-    <slf4j.version>1.7.36</slf4j.version>
-    <logback.version>1.2.11</logback.version>
-    <javax.version>3.1.0</javax.version>
-    <javax.ws.version>2.1.1</javax.ws.version>
-    <mockito.version>4.4.0</mockito.version>
-    <jmockit.version>1.49</jmockit.version>
-    <jjwt.version>0.11.2</jjwt.version>
-    <jaxb.version>2.3.3</jaxb.version>
-    <nimbus.jose.version>9.21</nimbus.jose.version>
-    <mysql.connector.version>8.0.28</mysql.connector.version>
-    <commons.daemon.version>1.3.0</commons.daemon.version>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <jboss.resteasy.version>4.7.5.Final</jboss.resteasy.version>
-    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
-    <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
-    <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
-    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-    <exec-maven-plugin.version>1.1.1</exec-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
-    <swagger.version>2.2.0</swagger.version>
+    <aws.version>1.12.215</aws.version>
+    <aws2.version>2.17.186</aws2.version>
+    <bouncycastle.version>1.70</bouncycastle.version>
+    <commons.daemon.version>1.3.0</commons.daemon.version>
+    <guava.version>31.1-jre</guava.version>
     <hamcrest.version>2.2</hamcrest.version>
+    <jackson-core.version>2.13.2</jackson-core.version>
+    <jackson-databind.version>2.13.2.2</jackson-databind.version>
+    <jakarta.activation.version>2.0.1</jakarta.activation.version>
+    <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
+    <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
+    <jakarta.ws.version>3.1.0</jakarta.ws.version>
+    <jaxb.api.version>3.0.1</jaxb.api.version>
+    <jaxb.impl.version>3.0.2</jaxb.impl.version>
+    <jersey.version>3.0.4</jersey.version>
+    <jetty.version>11.0.9</jetty.version>
+    <jjwt.version>0.11.5</jjwt.version>
+    <jmockit.version>1.49</jmockit.version>
+    <logback.client.version>1.2.11</logback.client.version>
+    <logback.server.version>1.3.0-alpha14</logback.server.version>
+    <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+    <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+    <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
+    <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
+    <maven-jacoco-plugin.version>0.8.8</maven-jacoco-plugin.version>
+    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
+    <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
+    <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
+    <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
+    <mockito.version>4.5.1</mockito.version>
+    <mysql.connector.version>8.0.29</mysql.connector.version>
+    <nimbus.jose.version>9.22</nimbus.jose.version>
+    <rdl.version>1.5.4</rdl.version>
+    <slf4j.client.version>1.7.36</slf4j.client.version>
+    <slf4j.server.version>2.0.0-alpha7</slf4j.server.version>
+    <swagger.version>2.2.0</swagger.version>
+
+    <code.coverage.min>0.95</code.coverage.min>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <code.coverage.min>0.95</code.coverage.min>
-    <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
     <sonar.projectKey>AthenzSonar-${project.groupId}:${project.artifactId}</sonar.projectKey>
     <sonar.organization>athenz</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+    <argLine>-Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
   </properties>
 
   <modules>
@@ -122,12 +131,11 @@
     <module>core/msd</module>
     <module>libs/java/auth_core</module>
     <module>libs/java/client_common</module>
+    <module>libs/java/cert_refresher</module>
     <module>libs/java/server_common</module>
     <module>libs/java/instance_provider</module>
-    <module>libs/java/cert_refresher</module>
     <module>clients/java/zms</module>
-    <module>clients/java/zts/core</module>
-    <module>clients/java/zts/shade</module>
+    <module>clients/java/zts</module>
     <module>clients/java/zpe</module>
     <module>clients/java/msd</module>
     <module>servers/zms</module>
@@ -136,10 +144,15 @@
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
     <module>clients/go/msd</module>
+    <module>libs/go/sia</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
     <module>libs/go/athenzutils</module>
     <module>libs/go/athenzconf</module>
+    <module>provider/aws/sia-ec2</module>
+    <module>provider/aws/sia-eks</module>
+    <module>provider/aws/sia-fargate</module>
+    <module>provider/azure/sia-vm</module>
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
     <module>utils/zms-svctoken</module>
@@ -168,14 +181,19 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
+            <source>11</source>
+            <target>11</target>
           </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
           <version>2.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -253,7 +271,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${jacoco-maven-plugin.version}</version>
+        <version>${maven-jacoco-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -275,8 +293,8 @@
             <configuration>
               <excludes>
                 <exclude>*Test</exclude>
-                <exclude>**/*ZMSRDLGeneratedClient.class</exclude>
-                <exclude>**/*ZTSRDLGeneratedClient.class</exclude>
+                <exclude>**/*ZMSRDLGeneratedClient*.class</exclude>
+                <exclude>**/*ZTSRDLGeneratedClient*.class</exclude>
                 <exclude>**/ZMSResources.class</exclude>
                 <exclude>**/ZTSResources.class</exclude>
                 <exclude>**/ZMSHandler.class</exclude>
@@ -285,7 +303,7 @@
                 <exclude>**/FileConnection.class</exclude>
                 <exclude>**/FileObjectStore.class</exclude>
                 <exclude>**/FileWorkloadStore.class</exclude>
-                <exclude>**/*MSDRDLGeneratedClient.class</exclude>
+                <exclude>**/*MSDRDLGeneratedClient*.class</exclude>
               </excludes>
               <rules>
                 <rules>
@@ -317,17 +335,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>${logback.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
       <version>7.5</version>
@@ -349,47 +356,15 @@
   
   <profiles>
     <profile>
-      <id>coverage</id>
-      <properties>
-        <checkstyle.skip>true</checkstyle.skip>
-      </properties>
-      <activation>
-        <property>
-          <name>coverage</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.openclover</groupId>
-            <artifactId>clover-maven-plugin</artifactId>
-            <version>4.3.1</version>
-            <configuration>
-              <jdk>1.8</jdk>
-              <excludes>
-                <exclude>**/*Resources.java</exclude>
-              </excludes>
-              <contextFilters>main,log,iflog</contextFilters>
-              <methodContexts>
-                <main>(.* )?public static void main\(String\[\] args\).*</main>
-              </methodContexts>
-              <statementContexts>
-                <log>System.out.println\(.*\);</log>
-                <log>LOGGER.info\(.*\);</log>
-                <iflog>^if \(LOG.*.is.*Enabled\(\)\).*</iflog>
-              </statementContexts>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>ossrh</id>
       <properties>
         <gpg.executable>gpg</gpg.executable>
+        <!--suppress UnresolvedMavenProperty -->
         <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+        <!--suppress UnresolvedMavenProperty -->
         <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
         <gpg.defaultKeyring>false</gpg.defaultKeyring>
+        <!--suppress UnresolvedMavenProperty -->
         <gpg.homedir>${env.SD_SOURCE_DIR}/screwdriver/deploy</gpg.homedir>
         <gpg.publickeyring>pubring.gpg</gpg.publickeyring>
         <gpg.secretkeyring>secring.gpg</gpg.secretkeyring>

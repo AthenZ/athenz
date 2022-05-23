@@ -13,18 +13,19 @@ SRC=zms-svctoken.go
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
-export GOPATH=$(PWD)
+GOPATH := $(shell pwd)
+export $(GOPATH)
 
 ifdef GO
 
-# we need to make sure we have go 1.11+
+# we need to make sure we have go 1.17+
 # the output for the go version command is:
-# go version go1.11.1 darwin/amd64
+# go version go1.17.1 darwin/amd64
 
-GO_VER_GTEQ11 := $(shell expr `go version | cut -f 3 -d' ' | cut -f2 -d.` \>= 11)
-ifneq "$(GO_VER_GTEQ11)" "1"
+GO_VER_GTEQ := $(shell expr `go version | cut -f 3 -d' ' | cut -f2 -d.` \>= 17)
+ifneq "$(GO_VER_GTEQ)" "1"
 all:
-	@echo "Please install 1.11.x or newer version of golang"
+	@echo "Please install 1.17.x or newer version of golang"
 else
 
 .PHONY: vet fmt linux darwin

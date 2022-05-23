@@ -16,7 +16,6 @@
 
 package com.yahoo.athenz.zts.notification;
 
-import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.store.DataStore;

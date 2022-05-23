@@ -1,0 +1,4 @@
+Build-Jdk-Spec=17
+Implementation-Title=zts
+Implementation-Vendor=athenz
+Implementation-Version=1.11.0

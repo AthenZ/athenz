@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
@@ -31,7 +32,8 @@ import (
 )
 
 func setup() {
-	go ztsmock.StartZtsServer("127.0.0.1:5081")
+	go ztsmock.StartZtsServer("127.0.0.1:5085")
+	time.Sleep(3 * time.Second)
 }
 
 func teardown() {}
@@ -100,7 +102,7 @@ func TestRegisterInstance(test *testing.T) {
 		Document:          nil,
 	}
 
-	err := RegisterInstance([]*attestation.Data{a}, "http://127.0.0.1:5081/zts/v1", &identityDocument, opts)
+	err := RegisterInstance([]*attestation.Data{a}, "http://127.0.0.1:5085/zts/v1", &identityDocument, opts)
 	assert.Nil(test, err, "unable to regster instance")
 
 	_, err = os.Stat(keyFile)
@@ -155,7 +157,7 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 		Document:          nil,
 	}
 
-	err := RegisterInstance(data, "http://127.0.0.1:5081/zts/v1", &identityDocument, opts)
+	err := RegisterInstance(data, "http://127.0.0.1:5085/zts/v1", &identityDocument, opts)
 	assert.Nil(test, err, "unable to regster instance")
 
 	// Verify the first service
@@ -238,7 +240,7 @@ func TestRefreshInstance(test *testing.T) {
 		Document:          nil,
 	}
 
-	err = RefreshInstance([]*attestation.Data{a}, "http://127.0.0.1:5081/zts/v1", &identityDocument, &opts)
+	err = RefreshInstance([]*attestation.Data{a}, "http://127.0.0.1:5085/zts/v1", &identityDocument, &opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
@@ -286,7 +288,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		ZTSAzureDomains:  []string{"zts-azure-domain"},
 	}
 
-	result := GetRoleCertificate("http://127.0.0.1:5081/zts/v1", keyFile, certFile, opts)
+	result := GetRoleCertificate("http://127.0.0.1:5085/zts/v1", keyFile, certFile, opts)
 	if !result {
 		test.Errorf("Unable to get role certificate")
 		return

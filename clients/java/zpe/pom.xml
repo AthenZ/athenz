@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.10.55-SNAPSHOT</version>
+    <version>1.11.2-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -27,12 +27,23 @@
   <description>ZPE Client Library (Java)</description>
 
   <properties>
-    <jmh.version>1.21</jmh.version>
+    <jmh.version>1.35</jmh.version>
     <uberjar.name>benchmarks</uberjar.name>
     <code.coverage.min>0.8590</code.coverage.min>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.client.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>athenz-zts-core</artifactId>
@@ -51,7 +62,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${jackson.version}</version>
+      <version>${jackson-core.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -98,113 +109,5 @@
       </plugin>
     </plugins>
   </build>
-  <!-- For the performance test: mvn test -Pperformance-test -->
-  <!-- For the remote zts test: mvn test -Premote-zts-test -->
-  <!-- For the jmh performance test: automatically activated if Performance.java exists -->
-  <profiles>
-    <profile>
-      <id>jmh-performance-test</id>
-      <activation>
-        <file>
-          <exists>src/main/java/com/yahoo/athenz/zpe/Performance.java</exists>
-        </file>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.openjdk.jmh</groupId>
-          <artifactId>jmh-core</artifactId>
-          <version>${jmh.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.openjdk.jmh</groupId>
-          <artifactId>jmh-generator-annprocess</artifactId>
-          <version>${jmh.version}</version>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <!-- setup shade plugin for jmh -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>${maven-shade-plugin.version}</version>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <configuration>
-                  <finalName>${uberjar.name}</finalName>
-                  <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>org.openjdk.jmh.Main</mainClass>
-                    </transformer>
-                  </transformers>
-                  <filters>
-                    <filter>
-                      <artifact>*:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/*.SF</exclude>
-                        <exclude>META-INF/*.DSA</exclude>
-                        <exclude>META-INF/*.RSA</exclude>
-                      </excludes>
-                    </filter>
-                  </filters>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>jdk11</id>
-      <activation>
-        <jdk>[11,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>${maven-compiler-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>jdk11</id>
-                <goals>
-                  <goal>compile</goal>
-                </goals>
-                <configuration>
-                  <release>11</release>
-                  <compileSourceRoots>
-                    <compileSourceRoot>${project.basedir}/src/main/java11</compileSourceRoot>
-                  </compileSourceRoots>
-                  <outputDirectory>${project.build.outputDirectory}/META-INF/versions/11</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>${maven-jar-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>default-jar</id>
-                <configuration>
-                  <archive>
-                    <manifestEntries>
-                      <Multi-Release>true</Multi-Release>
-                    </manifestEntries>
-                  </archive>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
 </project>

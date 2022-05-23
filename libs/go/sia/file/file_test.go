@@ -35,7 +35,7 @@ func TestCreateFile(t *testing.T) {
 
 	// Generate a source file for testing
 	dir := os.TempDir()
-	filePath := dir + "test123"
+	filePath := dir + "/test123"
 
 	ips := ipsContent()
 

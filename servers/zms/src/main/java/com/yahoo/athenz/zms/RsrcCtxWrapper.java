@@ -15,8 +15,9 @@
  */
 package com.yahoo.athenz.zms;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Authorizer;
@@ -37,14 +38,14 @@ public class RsrcCtxWrapper implements ResourceContext {
     private final boolean eventPublishersEnabled;
     private List<DomainChangeMessage> domainChangeMessages;
     
-    RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response, Http.AuthorityList authList,
-                   boolean optionalAuth, Authorizer authorizer, Object timerMetric, final String apiName,
-                   boolean eventPublishersEnabled) {
+    RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
+                   Http.AuthorityList authList, boolean optionalAuth, Authorizer authorizer, Object timerMetric,
+                   final String apiName, boolean eventPublishersEnabled) {
         this.optionalAuth = optionalAuth;
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
         this.eventPublishersEnabled = eventPublishersEnabled;
-        ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request,
+        ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(servletContext, request,
                 response, authList, authorizer);
     }
 
@@ -86,6 +87,11 @@ public class RsrcCtxWrapper implements ResourceContext {
     @Override
     public HttpServletResponse response() {
         return ctx.response();
+    }
+
+    @Override
+    public ServletContext servletContext() {
+        return ctx.servletContext();
     }
 
     @Override

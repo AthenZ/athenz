@@ -16,8 +16,8 @@
 
 package com.yahoo.athenz.common.filter;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 
 public interface RateLimit {
 

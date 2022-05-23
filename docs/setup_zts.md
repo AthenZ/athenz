@@ -1,7 +1,7 @@
 # Setup ZTS (authoriZation Token System)
 
 * [Requirements](#requirements)
-    * [JDK 8](#jdk-8)
+    * [JDK 11](#jdk-11)
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
   * [Development Environment](#development-environment)
@@ -13,14 +13,9 @@
 The following tools are required to be installed on hosts
 configured to run ZTS server.
 
-### JDK 8
+### JDK 11
 
-ZTS Server is written in Java and using embedded Jetty.
-
-[Oracle Java Platform JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-
-While ZTS has been developed and tested with Oracle Java Platform JDK 8
-it runs successfully with OpenJDK 8 and 11 as well.
+ZTS Server is written in Java and using embedded Jetty. It requires JDK 11.
 
 ## Getting Software
 

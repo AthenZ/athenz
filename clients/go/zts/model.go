@@ -4281,3 +4281,91 @@ func (self *TransportRules) Validate() error {
 	}
 	return nil
 }
+
+//
+// Info - Copyright Athenz Authors Licensed under the terms of the Apache
+// version 2.0 license. See LICENSE file for terms. The representation for an
+// info object
+//
+type Info struct {
+
+	//
+	// jdk build version
+	//
+	BuildJdkSpec string `json:"buildJdkSpec,omitempty" rdl:"optional"`
+
+	//
+	// implementation title - e.g. athenz-zms-server
+	//
+	ImplementationTitle string `json:"implementationTitle,omitempty" rdl:"optional"`
+
+	//
+	// implementation version - e.g. 1.11.1
+	//
+	ImplementationVersion string `json:"implementationVersion,omitempty" rdl:"optional"`
+
+	//
+	// implementation vendor - Athenz
+	//
+	ImplementationVendor string `json:"implementationVendor,omitempty" rdl:"optional"`
+}
+
+//
+// NewInfo - creates an initialized Info instance, returns a pointer to it
+//
+func NewInfo(init ...*Info) *Info {
+	var o *Info
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(Info)
+	}
+	return o
+}
+
+type rawInfo Info
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a Info
+//
+func (self *Info) UnmarshalJSON(b []byte) error {
+	var m rawInfo
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := Info(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *Info) Validate() error {
+	if self.BuildJdkSpec != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.BuildJdkSpec)
+		if !val.Valid {
+			return fmt.Errorf("Info.buildJdkSpec does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ImplementationTitle != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.ImplementationTitle)
+		if !val.Valid {
+			return fmt.Errorf("Info.implementationTitle does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ImplementationVersion != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.ImplementationVersion)
+		if !val.Valid {
+			return fmt.Errorf("Info.implementationVersion does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ImplementationVendor != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.ImplementationVendor)
+		if !val.Valid {
+			return fmt.Errorf("Info.implementationVendor does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}

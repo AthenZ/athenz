@@ -22,11 +22,12 @@ import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.metrics.Metric;
+import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 public class RsrcCtxWrapper implements ResourceContext {
@@ -39,14 +40,14 @@ public class RsrcCtxWrapper implements ResourceContext {
     private Object timerMetric;
     private String apiName;
 
-    public RsrcCtxWrapper(HttpServletRequest request, HttpServletResponse response,
-            Http.AuthorityList authList,  boolean optionalAuth, Authorizer authorizer,
-            Metric metric, Object timerMetric, String apiName) {
+    public RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
+                          Http.AuthorityList authList, boolean optionalAuth, Authorizer authorizer,
+                          Metric metric, Object timerMetric, String apiName) {
         this.optionalAuth = optionalAuth;
         this.metric = metric;
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
-        ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(request, response,
+        ctx = new com.yahoo.athenz.common.server.rest.ResourceContext(servletContext, request, response,
                 authList, authorizer);
     }
 
@@ -78,6 +79,11 @@ public class RsrcCtxWrapper implements ResourceContext {
     @Override
     public HttpServletResponse response() {
         return ctx.response();
+    }
+
+    @Override
+    public ServletContext servletContext() {
+        return ctx.servletContext();
     }
 
     @Override

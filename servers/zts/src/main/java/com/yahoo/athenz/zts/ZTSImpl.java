@@ -73,16 +73,17 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.ServletContext;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
@@ -162,6 +163,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected OpenIDConfig openIDConfig;
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
+    protected Info serverInfo = null;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -4298,6 +4300,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Invalid CSR - IP address mismatch", caller, domain, principalDomain);
         }
 
+        // verify the spiffe uri specified in the request is valid
+
+        if (!x509CertReq.validateSpiffeURI(domain, X509ServiceCertRequest.SPIFFE_SERVICE_AGENT, service)) {
+            throw requestError("Invalid CSR - spiffe uri mismatch", caller, domain, principalDomain);
+        }
+
         // if this is not a user request and the principal authority is the
         // certificate authority then we're refreshing our certificate as
         // opposed to requesting a new one for the service so we're going
@@ -4642,6 +4650,40 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
+    public Info getInfo(ResourceContext ctx) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+
+        if (serverInfo == null) {
+            fetchInfoFromManifest(ctx.servletContext());
+        }
+
+        return serverInfo;
+    }
+
+    synchronized void fetchInfoFromManifest(ServletContext servletContext) {
+
+        if (serverInfo != null) {
+            return;
+        }
+        Info info = new Info();
+        Properties prop = new Properties();
+        try {
+            prop.load(servletContext.getResourceAsStream("/META-INF/MANIFEST.MF"));
+            info.setBuildJdkSpec(prop.getProperty("Build-Jdk-Spec"));
+            info.setImplementationTitle(prop.getProperty("Implementation-Title"));
+            info.setImplementationVendor(prop.getProperty("Implementation-Vendor"));
+            info.setImplementationVersion(prop.getProperty("Implementation-Version"));
+        } catch (Exception ex) {
+            LOGGER.error("Unable to read war /META-INF/MANIFEST.MF", ex);
+        }
+        serverInfo = info;
+    }
+
+    @Override
     public Schema getRdlSchema(ResourceContext context) {
         return schema;
     }
@@ -4785,16 +4827,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return error(ResourceException.INTERNAL_SERVER_ERROR, msg, caller, requestDomain, principalDomain);
     }
 
-    public ResourceContext newResourceContext(HttpServletRequest request,
-                                              HttpServletResponse response,
-                                              String apiName) {
+    public ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request,
+            HttpServletResponse response, String apiName) {
+
         Object timerMetric = metric.startTiming("zts_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
+
         // check to see if we want to allow this URI to be available
         // with optional authentication support
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
-        return new RsrcCtxWrapper(request, response, authorities, optionalAuth, authorizer, metric, timerMetric, apiName);
+        return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, authorizer,
+                metric, timerMetric, apiName);
     }
 
     String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {

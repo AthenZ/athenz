@@ -7,7 +7,7 @@ apt-get clean
 apt-get autoremove
 
 echo "-----------------Install libs: -----------------"
-apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude
+apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude net-tools
 
 echo "-----------------Install maven: -----------------"
 apt-get install -y maven

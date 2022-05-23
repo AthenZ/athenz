@@ -795,6 +795,38 @@ func (client ZMSClient) GetDomainMetaStoreValidValuesList(attributeName string, 
 	}
 }
 
+func (client ZMSClient) GetAuthHistoryList(domainName DomainName) (*AuthHistoryList, error) {
+	var data *AuthHistoryList
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/history/auth"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) GetDomainDataCheck(domainName DomainName) (*DomainDataCheck, error) {
 	var data *DomainDataCheck
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/check"
@@ -4086,6 +4118,38 @@ func (client ZMSClient) GetDependentServiceResourceGroupList(domainName DomainNa
 func (client ZMSClient) GetDependentDomainList(service ServiceName) (*DomainList, error) {
 	var data *DomainList
 	url := client.URL + "/dependency/service/" + fmt.Sprint(service)
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetInfo() (*Info, error) {
+	var data *Info
+	url := client.URL + "/sys/info"
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

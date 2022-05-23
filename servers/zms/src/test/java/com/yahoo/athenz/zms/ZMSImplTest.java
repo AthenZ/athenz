@@ -61,20 +61,21 @@ import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import jakarta.servlet.ServletContext;
 import org.hamcrest.CoreMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Response;
+
+import java.io.*;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -14594,7 +14595,7 @@ public class ZMSImplTest {
     public void testOptionsUserToken() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", false);
 
         zmsTestInitializer.getZms().optionsUserToken(ctx, "user", "coretech.storage");
@@ -14612,7 +14613,7 @@ public class ZMSImplTest {
     public void testOptionsUserTokenRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", false);
 
         String origin = "https://zms.origin.athenzcompany.com";
@@ -14647,7 +14648,7 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeaders() {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", false);
 
         zmsTestInitializer.getZms().setStandardCORSHeaders(ctx);
@@ -14663,7 +14664,7 @@ public class ZMSImplTest {
     public void testSetStandardCORSHeadersRequestHeaders() {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
-        ResourceContext ctx = new RsrcCtxWrapper(servletRequest, servletResponse, null, false,
+        ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
                 null, new Object(), "apiName", true);
 
         String origin = "https://zms.origin.athenzcompany.com";
@@ -16274,10 +16275,13 @@ public class ZMSImplTest {
 
     @Test
     public void testResourceContext() {
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsTestInitializer.getZms().newResourceContext(zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
+        final ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsImpl.newResourceContext(zmsTestInitializer.getMockServletContext(),
+                zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
+        assertEquals(ctx.servletContext(), zmsTestInitializer.getMockServletContext());
         assertEquals(ctx.request(), zmsTestInitializer.getMockServletRequest());
         assertEquals(ctx.response(), zmsTestInitializer.getMockServletResponse());
 
@@ -18583,7 +18587,7 @@ public class ZMSImplTest {
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
-        ResourceContext ctx = zmsTestInitializer.getZms().newResourceContext(request, response, "apiName");
+        ResourceContext ctx = zmsTestInitializer.getZms().newResourceContext(null, request, response, "apiName");
         zmsTestInitializer.getZms().logPrincipal(ctx);
         assertTrue(request.getAttributes().isEmpty());
     }
@@ -23123,6 +23127,15 @@ public class ZMSImplTest {
         }
         System.clearProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS);
 
+        System.setProperty(ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zmsImpl.loadAuthHistoryStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid auth history store"));
+        }
+        System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS);
+
         System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "invalid.class");
         try {
             zmsImpl.loadObjectStore();
@@ -24149,7 +24162,7 @@ public class ZMSImplTest {
     @Test
     public void testRecordMetricsUnauthenticated() {
         ZMSImpl.metric = Mockito.mock(Metric.class);
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsTestInitializer.getZms().newResourceContext(zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "someApiMethod");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsTestInitializer.getZms().newResourceContext(null, zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
         ctx.setRequestDomain(testDomain);
@@ -29882,5 +29895,65 @@ public class ZMSImplTest {
         zmsImpl.dbService = dbService;
 
         assertFalse(zmsImpl.isSysAdminRoleMember("user.testadminuser"));
+    }
+
+    @Test
+    public void testGetInfo() throws URISyntaxException, FileNotFoundException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        zmsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+
+        FileInputStream inputStream = new FileInputStream(
+                new File(getClass().getClassLoader().getResource("manifest.mf").toURI()));
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenReturn(inputStream);
+
+        Info info = zmsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zms");
+        assertEquals(info.getImplementationVendor(), "athenz");
+
+        // this should be no-op since we already have an info object
+
+        zmsImpl.fetchInfoFromManifest(mockServletContext);
+
+        // this should just return our previously generated info object
+
+        info = zmsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zms");
+        assertEquals(info.getImplementationVendor(), "athenz");
+    }
+
+    @Test
+    public void testGetInfoException() throws URISyntaxException, FileNotFoundException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        zmsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenThrow(new IllegalArgumentException());
+
+        Info info = zmsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertNull(info.getImplementationVersion());
+        assertNull(info.getBuildJdkSpec());
+        assertNull(info.getImplementationTitle());
+        assertNull(info.getImplementationVendor());
     }
 }

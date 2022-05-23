@@ -24,19 +24,21 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.glassfish.jersey.client.ClientConfig;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.DnsResolver;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityConsts;
@@ -57,6 +59,7 @@ public class ZMSClient implements Closeable {
     private Principal principal = null;
     private boolean principalCheckDone = false;
     protected ZMSRDLGeneratedClient client = null;
+    static private DnsResolver dnsResolver = null;
 
     private static final String STR_ENV_ROOT = "ROOT";
     private static final String STR_DEF_ROOT = "/home/athenz";
@@ -65,6 +68,9 @@ public class ZMSClient implements Closeable {
     public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
     public static final String ZMS_CLIENT_PROP_CONNECT_TIMEOUT = "athenz.zms.client.connect_timeout";
+
+    public static final String ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE = "athenz.zms.client.http_pool_max_per_route";
+    public static final String ZMS_CLIENT_PROP_POOL_MAX_TOTAL     = "athenz.zms.client.http_pool_max_total";
 
     public static final String ZMS_CLIENT_PROP_CERT_ALIAS = "athenz.zms.client.cert_alias";
 
@@ -190,19 +196,11 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Set new ZMS Client configuration property. This method calls
-     * internal javax.ws.rs.client.Client client's property method.
-     * If already set, the existing value of the property will be updated.
-     * Setting a null value into a property effectively removes the property
-     * from the property bag.
-     *
-     * @param name  property name.
-     * @param value property value. null value removes the property with the given name.
+     * Set the DNSResolver to be used by the ZMS Client
+     * @param resolver user supplied dns resolver
      */
-    public void setProperty(String name, Object value) {
-        if (client != null) {
-            client.setProperty(name, value);
-        }
+    public void setDnsResolver(DnsResolver resolver) {
+        dnsResolver = resolver;
     }
 
     public void setZMSRDLGeneratedClient(ZMSRDLGeneratedClient client) {
@@ -322,15 +320,47 @@ public class ZMSClient implements Closeable {
             AthenzConfig conf = JSON.fromBytes(Files.readAllBytes(path), AthenzConfig.class);
             url = conf.getZmsUrl();
         } catch (Exception ex) {
-            LOGGER.error("Unable to extract ZMS Url from {} exc: {}",
-                    confFileName, ex.getMessage());
+            LOGGER.error("Unable to extract ZMS Url from {} exc: {}", confFileName, ex.getMessage());
         }
 
         return url;
     }
 
-    ClientBuilder getClientBuilder() {
-        return ClientBuilder.newBuilder();
+    protected PoolingHttpClientConnectionManager createConnectionPooling(SSLContext sslContext) {
+        if (sslContext == null) {
+            return null;
+        }
+        Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("https", new SSLConnectionSocketFactory(sslContext))
+                .register("http", new PlainConnectionSocketFactory())
+                .build();
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager
+                = new PoolingHttpClientConnectionManager(registry, dnsResolver);
+
+        // we'll use the default values from apache http connector - max 20 and per route 2
+
+        int maxPerRoute = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_PER_ROUTE, "2"));
+        int maxTotal = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_POOL_MAX_TOTAL, "20"));
+
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(maxPerRoute);
+        poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
+
+        return poolingHttpClientConnectionManager;
+    }
+
+    protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs,
+            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+
+        //apache http client expects in milliseconds
+        RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(connTimeoutMs)
+                .setSocketTimeout(readTimeoutMs)
+                .setRedirectsEnabled(false)
+                .build();
+        return HttpClients.custom()
+                .setConnectionManager(poolingHttpClientConnectionManager)
+                .setDefaultRequestConfig(config)
+                .build();
     }
 
     /**
@@ -341,59 +371,39 @@ public class ZMSClient implements Closeable {
      */
     private void initClient(String url, SSLContext sslContext) {
 
-        /* if we have no url specified then we're going to retrieve
-         * the value from our configuration package */
+        // if we have no url specified then we're going to retrieve
+        // the value from our configuration package */
 
-        if (url == null) {
-            zmsUrl = lookupZMSUrl();
-        } else {
-            zmsUrl = url;
+        zmsUrl = (url == null) ? lookupZMSUrl() : url;
+        if (zmsUrl == null || zmsUrl.isEmpty()) {
+            throw new IllegalArgumentException("ZMS url must be specified");
         }
 
-        /* verify if the url is ending with /zms/v1 and if it's
-         * not we'll automatically append it */
+        // verify if the url is ending with /zms/v1 and if it's
+        // not we'll automatically append it */
 
-        if (zmsUrl != null && !zmsUrl.isEmpty()) {
-            if (!zmsUrl.endsWith("/zms/v1")) {
-                if (zmsUrl.charAt(zmsUrl.length() - 1) != '/') {
-                    zmsUrl += '/';
-                }
-                zmsUrl += "zms/v1";
+        if (!zmsUrl.endsWith("/zms/v1")) {
+            if (zmsUrl.charAt(zmsUrl.length() - 1) != '/') {
+                zmsUrl += '/';
             }
+            zmsUrl += "zms/v1";
         }
 
-        /* determine our read and connect timeouts */
+        // determine our read and connect timeouts
 
         int readTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_READ_TIMEOUT, "30000"));
         int connectTimeout = Integer.parseInt(System.getProperty(ZMS_CLIENT_PROP_CONNECT_TIMEOUT, "30000"));
 
-        /* if we are not given a url then use the default value */
+        // if we are not given an url then use the default value
 
         if (sslContext == null) {
             sslContext = createSSLContext();
         }
 
-        ClientBuilder builder = getClientBuilder();
-        if (sslContext != null) {
-            builder = builder.sslContext(sslContext);
-        }
+        PoolingHttpClientConnectionManager connManager = createConnectionPooling(sslContext);
+        CloseableHttpClient httpClient = createHttpClient(connectTimeout, readTimeout, connManager);
 
-        final JacksonJsonProvider jacksonJsonProvider = new JacksonJaxbJsonProvider()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        ClientConfig clientConfig = new ClientConfig(jacksonJsonProvider);
-        clientConfig.connectorProvider(new ApacheConnectorProvider());
-
-        // JerseyClientBuilder::withConfig() replaces the existing config with the new client
-        // config. Hence the client config should be added to the builder before the timeouts.
-        // Otherwise the timeout settings would be overridden.
-        Client rsClient =
-            builder
-                .withConfig(clientConfig)
-                .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-                .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
-                .build();
-
-        client = new ZMSRDLGeneratedClient(zmsUrl, rsClient);
+        client = new ZMSRDLGeneratedClient(zmsUrl, httpClient);
     }
 
     SSLContext createSSLContext() {
@@ -2698,6 +2708,23 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             return client.getStats(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the server info details
+     *
+     * @return info object
+     * @throws ZMSClientException in case of failure
+     */
+    public Info getInfo() {
+        updatePrincipal();
+        try {
+            return client.getInfo();
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

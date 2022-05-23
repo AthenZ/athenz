@@ -44,7 +44,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,6 +89,7 @@ public class DBServiceTest {
 
     private static final int BASE_PRODUCT_ID = 500000000; // these product ids will lie in 500 million range
     private static final java.util.Random domainProductId = new java.security.SecureRandom();
+
     private static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
@@ -3706,7 +3707,7 @@ public class DBServiceTest {
 
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain("user");
-        DBService dbService = new DBService(null, null, zmsConfig, null);
+        DBService dbService = new DBService(null, null, zmsConfig, null, null);
         assertEquals(120, dbService.defaultRetryCount);
         assertEquals(250, dbService.retrySleepTime);
         assertEquals(60, dbService.defaultOpTimeout);
@@ -3721,7 +3722,7 @@ public class DBServiceTest {
 
         ZMSConfig zmsConfig = new ZMSConfig();
         zmsConfig.setUserDomain("user");
-        DBService dbService = new DBService(mockObjStore, null, zmsConfig, null);
+        DBService dbService = new DBService(mockObjStore, null, zmsConfig, null, null);
 
         // regardless of exception, count of 0 or 1 returns false
 

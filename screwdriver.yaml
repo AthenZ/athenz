@@ -2,7 +2,7 @@
 ---
 
 shared:
-  image: openjdk:8
+  image: openjdk:11
   annotations:
     screwdriver.cd/cpu: 8
     screwdriver.cd/ram: 16

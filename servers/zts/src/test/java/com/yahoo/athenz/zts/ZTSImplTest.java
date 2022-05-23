@@ -68,6 +68,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.ServletContext;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -77,14 +78,12 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Response;
+
+import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -159,6 +158,7 @@ public class ZTSImplTest {
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     @Mock private HttpServletRequest  mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
+    @Mock private ServletContext mockServletContext;
 
     @BeforeClass
     public void setupClass() {
@@ -2836,10 +2836,12 @@ public class ZTSImplTest {
 
     @Test
     public void testResourceContext() {
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "apiName");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext, mockServletRequest,
+                mockServletResponse, "apiName");
         assertNotNull(ctx);
         assertNotNull(ctx.context());
         assertNull(ctx.principal());
+        assertEquals(ctx.servletContext(), mockServletContext);
         assertEquals(ctx.request(), mockServletRequest);
         assertEquals(ctx.response(), mockServletResponse);
 
@@ -3417,6 +3419,39 @@ public class ZTSImplTest {
         // reset our original org values
 
         zts.validCertSubjectOrgValues = origOrgValues;
+    }
+
+    @Test
+    public void testPostInstanceRefreshRequestSpiffeMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_service_mismatch.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceRefreshRequest req = new InstanceRefreshRequest().setCsr(certCsr);
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("athenz",
+                "production", "v=S1,d=athenz;n=production;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
+        principal.setKeyId("0");
+        String publicKeyName = "athenz.production_0";
+        final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
+                + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALHeQCsRDaTm97fVnH3gPKXH4gPirY0r\n"
+                + "Tc/2dsgy9zdTlRntLotEhzO3NYYQRQZ/HdQ34AbVI35vwYDzlRogxq0CAwEAAQ==\n"
+                + "-----END PUBLIC KEY-----";
+        zts.dataStore.getPublicKeyCache().put(publicKeyName, ztsPublicKey);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+
+        ResourceContext context = createResourceContext(principal, servletRequest);
+
+        try {
+            zts.postInstanceRefreshRequest(context, "athenz", "production", req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("spiffe uri mismatch"));
+        }
     }
 
     @Test
@@ -4544,7 +4579,7 @@ public class ZTSImplTest {
     @Test
     public void testLogPrincipalEmpty() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        ResourceContext ctx = zts.newResourceContext(request, null, "apiName");
+        ResourceContext ctx = zts.newResourceContext(null, request, null, "apiName");
         zts.logPrincipalAndGetDomain(ctx);
         assertTrue(request.attributes.isEmpty());
     }
@@ -11108,7 +11143,8 @@ public class ZTSImplTest {
     public void testRecordMetricsUnauthenticated() {
         zts.metric = Mockito.mock(Metric.class);
         Mockito.when(mockServletRequest.getMethod()).thenReturn("GET");
-        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletRequest, mockServletResponse, "someApiMethod");
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext, mockServletRequest,
+                mockServletResponse, "someApiMethod");
         String testDomain = "testDomain";
         int httpStatus = 200;
         ctx.setRequestDomain(testDomain);
@@ -13457,5 +13493,69 @@ public class ZTSImplTest {
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH));
+    }
+
+    @Test
+    public void testGetInfo() throws URISyntaxException, FileNotFoundException {
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+
+        FileInputStream inputStream = new FileInputStream(
+                new File(getClass().getClassLoader().getResource("manifest.mf").toURI()));
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenReturn(inputStream);
+
+        Info info = ztsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zts");
+        assertEquals(info.getImplementationVendor(), "athenz");
+
+        // this should be no-op since we already have an info object
+
+        ztsImpl.fetchInfoFromManifest(mockServletContext);
+
+        // this should just return our previously generated info object
+
+        info = ztsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertEquals(info.getImplementationVersion(), "1.11.0");
+        assertEquals(info.getBuildJdkSpec(), "17");
+        assertEquals(info.getImplementationTitle(), "zts");
+        assertEquals(info.getImplementationVendor(), "athenz");
+    }
+
+    @Test
+    public void testGetInfoException() throws URISyntaxException, FileNotFoundException {
+
+        CloudStore cloudStore = new CloudStore();
+        cloudStore.setHttpClient(null);
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.serverInfo = null;
+
+        RsrcCtxWrapper mockContext = Mockito.mock(RsrcCtxWrapper.class);
+        HttpServletRequest mockRequest = Mockito.mock(HttpServletRequest.class);
+        when(mockRequest.isSecure()).thenReturn(true);
+        when(mockContext.request()).thenReturn(mockRequest);
+        ServletContext mockServletContext = Mockito.mock(ServletContext.class);
+        when(mockContext.servletContext()).thenReturn(mockServletContext);
+        when(mockServletContext.getResourceAsStream("/META-INF/MANIFEST.MF")).thenThrow(new IllegalArgumentException());
+
+        Info info = ztsImpl.getInfo(mockContext);
+        assertNotNull(info);
+        assertNull(info.getImplementationVersion());
+        assertNull(info.getBuildJdkSpec());
+        assertNull(info.getImplementationTitle());
+        assertNull(info.getImplementationVendor());
     }
 }

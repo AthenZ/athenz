@@ -15,7 +15,7 @@
  */
 package com.yahoo.athenz.auth;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Date;
