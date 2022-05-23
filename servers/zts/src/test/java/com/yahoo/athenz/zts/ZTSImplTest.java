@@ -2251,6 +2251,10 @@ public class ZTSImplTest {
 
         InstanceIdentity id = new InstanceIdentity();
 
+        // with older timestamp only - should not fill the config
+        zts.fillAthenzJWKConfig(context, false, Timestamp.fromMillis(99), id);
+        assertNull(id.getAthenzJWK());
+
         // without athenz config - should not fill the config
         zts.fillAthenzJWKConfig(context, false, null, id);
         assertNull(id.getAthenzJWK());
