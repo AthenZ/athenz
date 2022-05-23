@@ -508,11 +508,13 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		// over and try to rotate the certs
 
 		initialSetup := true
+
 		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
 			err := RegisterInstance(data, ztsUrl, opts, true)
 			if err != nil {
 				log.Fatalf("Register identity failed, error: %v\n", err)
 			}
+
 		} else {
 			initialSetup = false
 			log.Println("Identity certificate file already exists. Retrieving identity details...")
@@ -522,7 +524,15 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		stop := make(chan bool, 1)
 		errors := make(chan error, 1)
 		certUpdates := make(chan bool, 1)
-		identityRefreshed := make(chan bool, 1)
+
+		// token setup can be started only after we have an identity
+		identityCreated := make(chan bool, 1)
+
+		if tokenOpts != nil && tokenOpts.TokenRefresh > 0 {
+			identityCreated <- true
+		} else {
+			log.Printf("token options are not provided - do not process access tokens")
+		}
 
 		go func() {
 			for {
@@ -543,7 +553,6 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 						errors <- fmt.Errorf("refresh identity failed: %v\n", err)
 						return
 					}
-					identityRefreshed <- true
 					log.Printf("identity successfully refreshed for services: %s\n", svcs)
 				} else {
 					initialSetup = false
@@ -596,11 +605,11 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 					log.Printf("fetch access token errors: %s", err.Error())
 				}
 			}
-			// wait until service identity has refreshed
+			// wait until service identity has created
 			for {
 				select {
-				case <-identityRefreshed:
-					log.Printf("service identity has refreshed, about to fetch access token..")
+				case <-identityCreated:
+					log.Printf("service identity has created, about to fetch access token..")
 					fetchToken()
 					go refreshToken(fetchToken, tokenOpts, stop, errors)
 					break
