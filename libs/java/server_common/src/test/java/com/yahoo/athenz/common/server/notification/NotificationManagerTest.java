@@ -17,6 +17,7 @@
 package com.yahoo.athenz.common.server.notification;
 
 import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.zms.ResourceException;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
@@ -179,6 +180,48 @@ public class NotificationManagerTest {
         assertEquals(notification.getDetails().size(), 2);
         assertEquals(notification.getDetails().get("key1"), "value1");
         assertEquals(notification.getDetails().get("key2"), "value2");
+    }
+
+    @Test
+    public void testCreateNotificationGroup() {
+        System.clearProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRolesByDomain(Mockito.any())).thenThrow(new ResourceException(404));
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+
+        String recipient = "test.domain:group.testgroup";
+
+        Map<String, String> details = new HashMap<>();
+        details.put("key1", "value1");
+        details.put("key2", "value2");
+
+        NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
+        NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        Notification notification = notificationCommon.createNotification(recipient, details, converter, metricConverter);
+        Mockito.verify(rolesProvider, Mockito.times(0)).getRolesByDomain(Mockito.any());
+        assertNull(notification);
+    }
+
+    @Test
+    public void testCreateNotificationException() {
+        System.clearProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRolesByDomain(Mockito.any())).thenThrow(new ResourceException(404));
+        DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(rolesProvider, USER_DOMAIN_PREFIX);
+        NotificationCommon notificationCommon = new NotificationCommon(domainRoleMembersFetcher, USER_DOMAIN_PREFIX);
+
+        String recipient = "test.domain:role.admin";
+
+        Map<String, String> details = new HashMap<>();
+        details.put("key1", "value1");
+        details.put("key2", "value2");
+
+        NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
+        NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
+        Notification notification = notificationCommon.createNotification(recipient, details, converter, metricConverter);
+        Mockito.verify(rolesProvider, Mockito.times(1)).getRolesByDomain(Mockito.any());
+        assertNull(notification);
     }
 
     @Test
