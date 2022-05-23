@@ -316,8 +316,8 @@ public class ZTSSchema {
             .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
             .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
-            .field("athenzConf", "Bool", true, "if true, return an Athenz JWK public keys file")
-            .field("athenzConfModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
+            .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
+            .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
 
         sb.structType("InstanceRefreshInformation")
             .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
@@ -328,8 +328,8 @@ public class ZTSSchema {
             .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
             .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
-            .field("athenzConf", "Bool", true, "if true, return an Athenz JWK public keys file")
-            .field("athenzConfModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
+            .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
+            .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
 
         sb.structType("InstanceRegisterToken")
             .field("provider", "ServiceName", false, "provider service name")
@@ -339,8 +339,8 @@ public class ZTSSchema {
             .mapField("attributes", "String", "String", true, "additional non-signed attributes that assist in attestation. I.e. \"keyId\", \"accessKey\", etc");
 
         sb.structType("AthenzJWKConfig")
-            .field("zmsJWK", "JWKList", false, "ZMS JSON Web Key (JWK) List")
-            .field("ztsJWK", "JWKList", false, "ZTS JSON Web Key (JWK) List")
+            .field("zms", "JWKList", false, "ZMS JSON Web Key (JWK) List")
+            .field("zts", "JWKList", false, "ZTS JSON Web Key (JWK) List")
             .field("modified", "Timestamp", true, "the last modification timestamp of the Athenz JWK configuration");
 
         sb.structType("InstanceIdentity")
@@ -353,7 +353,7 @@ public class ZTSSchema {
             .field("sshCertificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)")
             .field("serviceToken", "SignedToken", true, "service token instead of TLS certificate")
             .mapField("attributes", "String", "String", true, "other config-like attributes determined at boot time")
-            .field("athenzJWKConfig", "AthenzJWKConfig", true, "the Athenz JSON Web Key (JWK) configuration object");
+            .field("athenzJWK", "AthenzJWKConfig", true, "the Athenz JSON Web Key (JWK) configuration object");
 
         sb.structType("CertificateAuthorityBundle")
             .field("name", "SimpleName", false, "name of the bundle")

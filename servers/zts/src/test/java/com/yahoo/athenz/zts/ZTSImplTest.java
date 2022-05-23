@@ -484,6 +484,7 @@ public class ZTSImplTest {
         ServiceIdentity service = new ServiceIdentity();
         service.setName(generateServiceIdentityName(domainName, serviceName));
         service.setProviderEndpoint("https://localhost:4443/zts");
+        service.setModified(Timestamp.fromCurrentTime());
         setServicePublicKey(service, "0", ZTS_Y64_CERT0);
 
         List<String> hosts = new ArrayList<>();
@@ -500,6 +501,7 @@ public class ZTSImplTest {
         hosts.add("host2");
         hosts.add("host3");
         service.setHosts(hosts);
+        service.setModified(Timestamp.fromCurrentTime());
         services.add(service);
         return services;
     }
@@ -2175,7 +2177,7 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetAthenzJWKConfig() throws InterruptedException {
+    public void testGetAthenzJWK() throws InterruptedException {
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
         store.processSignedDomain(providerDomain, false);
@@ -2197,47 +2199,40 @@ public class ZTSImplTest {
                 .filter(s -> s.getName().equals("sys.auth.zts"))
                 .findFirst().get();
         ztsSrv.getPublicKeys().add(new com.yahoo.athenz.zms.PublicKeyEntry().setId("1").setKey(DataCacheTest.ZTS_Y64_CERT2));
+        ztsSrv.setModified(Timestamp.fromMillis(System.currentTimeMillis() + 24 * 60 * 60 * 1000));
         zts.dataStore.processDomainData(sysAuthDomain);
 
         // since not enough time left (default is 24h) - AthenzJWKConfig should remain the same
         assertEquals(initialConf, zts.getAthenzJWKConfig(context));
 
         // now, change the time between config updates
-        zts.millisBetweenAthenzJWKConfUpdates = 0;
+        int backup = zts.millisBetweenAthenzJWKUpdates;
+        zts.millisBetweenAthenzJWKUpdates = 0;
 
         Thread.sleep(10);
         AthenzJWKConfig newConfig = zts.getAthenzJWKConfig(context);
 
         // zts keys should be updated
         assertNotEquals(initialConf, newConfig);
-        assertEquals(newConfig.getZtsJWK().getKeys().size(), 2);
+        assertEquals(newConfig.getZts().getKeys().size(), 2);
+
+        zts.millisBetweenAthenzJWKUpdates = backup;
     }
 
 
     @Test
     public void testAthenzJWKConfChanged() {
 
-        zts.athenzJWKConfig = new AthenzJWKConfig();
-        AthenzJWKConfig newConf = new AthenzJWKConfig();
+        zts.jwkConfig = new AthenzJWKConfig().setModified(Timestamp.fromMillis(100));
 
-        JWK key1 = new JWK().setUse("use");
-        JWK key2 = new JWK().setUse("use");
+        Timestamp zmsModified = Timestamp.fromMillis(99);
+        Timestamp ztsModified = Timestamp.fromMillis(99);
 
-        JWKList zmsListCur = new JWKList().setKeys(Collections.singletonList(key1));
-        JWKList zmsListNew = new JWKList().setKeys(Collections.singletonList(key2));
-        zts.athenzJWKConfig.setZmsJWK(zmsListCur);
-        newConf.setZmsJWK(zmsListNew);
-        assertFalse(zts.athenzJWKConfChanged(newConf));
+        assertFalse(zts.hasNewJWKConfig(zmsModified, ztsModified));
 
-        JWK key3 = new JWK().setAlg("dummy");
-        JWK key4 = new JWK().setAlg("dummy");
+        zmsModified = Timestamp.fromMillis(101);
+        assertTrue(zts.hasNewJWKConfig(zmsModified, ztsModified));
 
-        zts.athenzJWKConfig.setZmsJWK(new JWKList().setKeys(Arrays.asList(key2, key3, key1)));
-        newConf.setZmsJWK(new JWKList().setKeys(Arrays.asList(key1, key2, key4)));
-        assertFalse(zts.athenzJWKConfChanged(newConf));
-
-        newConf.setZmsJWK(new JWKList().setKeys(Arrays.asList(key1, key2, key4, new JWK().setAlg("dummy1"))));
-        assertTrue(zts.athenzJWKConfChanged(newConf));
     }
 
     @Test
@@ -2258,21 +2253,44 @@ public class ZTSImplTest {
 
         // without athenz config - should not fill the config
         zts.fillAthenzJWKConfig(context, false, null, id);
-        assertNull(id.getAthenzJWKConfig());
+        assertNull(id.getAthenzJWK());
 
         // with athenz config and newer timestamp - should not fill the config
         zts.fillAthenzJWKConfig(context, true, Timestamp.fromDate(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 24))), id);
-        assertNull(id.getAthenzJWKConfig());
+        assertNull(id.getAthenzJWK());
 
         // with athenz config and without timestamp - should fill the config
         zts.fillAthenzJWKConfig(context, true, null, id);
-        assertEquals(id.getAthenzJWKConfig(), zts.athenzJWKConfig);
+        assertEquals(id.getAthenzJWK(), zts.jwkConfig);
 
         InstanceIdentity id1 = new InstanceIdentity();
 
         // with athenz config and older timestamp - should fill the config
         zts.fillAthenzJWKConfig(context, true, Timestamp.fromMillis(99), id1);
-        assertEquals(id1.getAthenzJWKConfig(), zts.athenzJWKConfig);
+        assertEquals(id1.getAthenzJWK(), zts.jwkConfig);
+    }
+
+    @Test
+    public void testLoadAthenzJWK() {
+
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(
+                Stream.of(createServices("sys.auth", "zts"),
+                                createServices("sys.auth", "zms"))
+                        .flatMap(List::stream).collect(Collectors.toList())
+        );
+
+        ZTSImpl newZts = new ZTSImpl(cloudStore, store);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        assertNotNull(newZts.jwkConfig);
+        assertNotNull(newZts.jwkConfig.zts);
+        assertNotNull(newZts.jwkConfig.zms);
+        assertNotNull(newZts.jwkConfig.modified);
     }
 
     @Test

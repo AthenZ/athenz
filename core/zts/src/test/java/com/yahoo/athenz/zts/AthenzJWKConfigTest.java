@@ -25,19 +25,19 @@ public class AthenzJWKConfigTest {
         assertNotEquals(null, conf);
         assertNotEquals("AthenzJWKConfig", conf);
 
-        conf.setZmsJWK(new JWKList());
-        assertNotNull(conf.getZmsJWK());
+        conf.setZms(new JWKList());
+        assertNotNull(conf.getZms());
         assertNotEquals(conf, confOther);
         assertNotEquals(confOther, conf);
 
-        confOther.setZmsJWK(new JWKList().setKeys(new ArrayList<>()));
+        confOther.setZms(new JWKList().setKeys(new ArrayList<>()));
         assertNotEquals(conf, confOther);
         assertNotEquals(confOther, conf);
 
-        conf.setZtsJWK(new JWKList());
-        confOther.setZmsJWK(new JWKList());
-        confOther.setZtsJWK(null);
-        assertNull(confOther.getZtsJWK());
+        conf.setZts(new JWKList());
+        confOther.setZms(new JWKList());
+        confOther.setZts(null);
+        assertNull(confOther.getZts());
         assertNotEquals(conf, confOther);
         assertNotEquals(confOther, conf);
     }

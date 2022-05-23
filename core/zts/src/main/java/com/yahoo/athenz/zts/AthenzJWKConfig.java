@@ -12,25 +12,25 @@ import com.yahoo.rdl.*;
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AthenzJWKConfig {
-    public JWKList zmsJWK;
-    public JWKList ztsJWK;
+    public JWKList zms;
+    public JWKList zts;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp modified;
 
-    public AthenzJWKConfig setZmsJWK(JWKList zmsJWK) {
-        this.zmsJWK = zmsJWK;
+    public AthenzJWKConfig setZms(JWKList zms) {
+        this.zms = zms;
         return this;
     }
-    public JWKList getZmsJWK() {
-        return zmsJWK;
+    public JWKList getZms() {
+        return zms;
     }
-    public AthenzJWKConfig setZtsJWK(JWKList ztsJWK) {
-        this.ztsJWK = ztsJWK;
+    public AthenzJWKConfig setZts(JWKList zts) {
+        this.zts = zts;
         return this;
     }
-    public JWKList getZtsJWK() {
-        return ztsJWK;
+    public JWKList getZts() {
+        return zts;
     }
     public AthenzJWKConfig setModified(Timestamp modified) {
         this.modified = modified;
@@ -47,10 +47,10 @@ public class AthenzJWKConfig {
                 return false;
             }
             AthenzJWKConfig a = (AthenzJWKConfig) another;
-            if (zmsJWK == null ? a.zmsJWK != null : !zmsJWK.equals(a.zmsJWK)) {
+            if (zms == null ? a.zms != null : !zms.equals(a.zms)) {
                 return false;
             }
-            if (ztsJWK == null ? a.ztsJWK != null : !ztsJWK.equals(a.ztsJWK)) {
+            if (zts == null ? a.zts != null : !zts.equals(a.zts)) {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {

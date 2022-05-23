@@ -38,10 +38,10 @@ public class InstanceRegisterInformation {
     public List<String> hostCnames;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean athenzConf;
+    public Boolean athenzJWK;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Timestamp athenzConfModified;
+    public Timestamp athenzJWKModified;
 
     public InstanceRegisterInformation setProvider(String provider) {
         this.provider = provider;
@@ -120,19 +120,19 @@ public class InstanceRegisterInformation {
     public List<String> getHostCnames() {
         return hostCnames;
     }
-    public InstanceRegisterInformation setAthenzConf(Boolean athenzConf) {
-        this.athenzConf = athenzConf;
+    public InstanceRegisterInformation setAthenzJWK(Boolean athenzJWK) {
+        this.athenzJWK = athenzJWK;
         return this;
     }
-    public Boolean getAthenzConf() {
-        return athenzConf;
+    public Boolean getAthenzJWK() {
+        return athenzJWK;
     }
-    public InstanceRegisterInformation setAthenzConfModified(Timestamp athenzConfModified) {
-        this.athenzConfModified = athenzConfModified;
+    public InstanceRegisterInformation setAthenzJWKModified(Timestamp athenzJWKModified) {
+        this.athenzJWKModified = athenzJWKModified;
         return this;
     }
-    public Timestamp getAthenzConfModified() {
-        return athenzConfModified;
+    public Timestamp getAthenzJWKModified() {
+        return athenzJWKModified;
     }
 
     @Override
@@ -175,10 +175,10 @@ public class InstanceRegisterInformation {
             if (hostCnames == null ? a.hostCnames != null : !hostCnames.equals(a.hostCnames)) {
                 return false;
             }
-            if (athenzConf == null ? a.athenzConf != null : !athenzConf.equals(a.athenzConf)) {
+            if (athenzJWK == null ? a.athenzJWK != null : !athenzJWK.equals(a.athenzJWK)) {
                 return false;
             }
-            if (athenzConfModified == null ? a.athenzConfModified != null : !athenzConfModified.equals(a.athenzConfModified)) {
+            if (athenzJWKModified == null ? a.athenzJWKModified != null : !athenzJWKModified.equals(a.athenzJWKModified)) {
                 return false;
             }
         }

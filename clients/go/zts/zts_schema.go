@@ -368,8 +368,8 @@ func init() {
 	tInstanceRegisterInformation.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")
 	tInstanceRegisterInformation.Field("hostname", "DomainName", true, nil, "optional hostname in case included in the csr SAN dnsName attribute")
 	tInstanceRegisterInformation.ArrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
-	tInstanceRegisterInformation.Field("publicKeys", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
-	tInstanceRegisterInformation.Field("modified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
+	tInstanceRegisterInformation.Field("athenzJWK", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
+	tInstanceRegisterInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
 	sb.AddType(tInstanceRegisterInformation.Build())
 
 	tInstanceRefreshInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshInformation")
@@ -381,8 +381,8 @@ func init() {
 	tInstanceRefreshInformation.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")
 	tInstanceRefreshInformation.Field("hostname", "DomainName", true, nil, "optional hostname in case included in the csr SAN dnsName attribute")
 	tInstanceRefreshInformation.ArrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
-	tInstanceRefreshInformation.Field("publicKeys", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
-	tInstanceRefreshInformation.Field("modified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
+	tInstanceRefreshInformation.Field("athenzJWK", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
+	tInstanceRefreshInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
 	sb.AddType(tInstanceRefreshInformation.Build())
 
 	tInstanceRegisterToken := rdl.NewStructTypeBuilder("Struct", "InstanceRegisterToken")
@@ -394,8 +394,8 @@ func init() {
 	sb.AddType(tInstanceRegisterToken.Build())
 
 	tAthenzJWKConfig := rdl.NewStructTypeBuilder("Struct", "AthenzJWKConfig")
-	tAthenzJWKConfig.Field("zmsJWK", "JWKList", false, nil, "ZMS JSON Web Key (JWK) List")
-	tAthenzJWKConfig.Field("ztsJWK", "JWKList", false, nil, "ZTS JSON Web Key (JWK) List")
+	tAthenzJWKConfig.Field("zms", "JWKList", false, nil, "ZMS JSON Web Key (JWK) List")
+	tAthenzJWKConfig.Field("zts", "JWKList", false, nil, "ZTS JSON Web Key (JWK) List")
 	tAthenzJWKConfig.Field("modified", "Timestamp", true, nil, "the last modification timestamp of the Athenz JWK configuration")
 	sb.AddType(tAthenzJWKConfig.Build())
 
@@ -409,7 +409,7 @@ func init() {
 	tInstanceIdentity.Field("sshCertificateSigner", "String", true, nil, "the SSH CA's public key for the sshCertificate (user or host)")
 	tInstanceIdentity.Field("serviceToken", "SignedToken", true, nil, "service token instead of TLS certificate")
 	tInstanceIdentity.MapField("attributes", "String", "String", true, "other config-like attributes determined at boot time")
-	tInstanceIdentity.Field("athenzJWKConfig", "AthenzJWKConfig", true, nil, "the Athenz JSON Web Key (JWK) configuration object")
+	tInstanceIdentity.Field("athenzJWK", "AthenzJWKConfig", true, nil, "the Athenz JSON Web Key (JWK) configuration object")
 	sb.AddType(tInstanceIdentity.Build())
 
 	tCertificateAuthorityBundle := rdl.NewStructTypeBuilder("Struct", "CertificateAuthorityBundle")

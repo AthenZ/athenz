@@ -45,8 +45,8 @@ public class InstanceRegisterInformationTest {
         i1.setHostname("host1.athenz.cloud");
         i1.setHostCnames(Collections.singletonList("host1"));
         i1.setSshCertRequest(new SSHCertRequest());
-        i1.setAthenzConf(true);
-        i1.setAthenzConfModified(start);
+        i1.setAthenzJWK(true);
+        i1.setAthenzJWKModified(start);
 
         i2.setProvider("provider");
         i2.setAttestationData("doc");
@@ -59,8 +59,8 @@ public class InstanceRegisterInformationTest {
         i2.setHostname("host1.athenz.cloud");
         i2.setHostCnames(Collections.singletonList("host1"));
         i2.setSshCertRequest(new SSHCertRequest());
-        i2.setAthenzConf(true);
-        i2.setAthenzConfModified(start);
+        i2.setAthenzJWK(true);
+        i2.setAthenzJWKModified(start);
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -74,8 +74,8 @@ public class InstanceRegisterInformationTest {
         assertEquals(i1.getHostname(), "host1.athenz.cloud");
         assertEquals(i1.getHostCnames(), Collections.singletonList("host1"));
         assertEquals(i1.getSshCertRequest(), new SSHCertRequest());
-        assertEquals(i1.getAthenzConf(), Boolean.TRUE);
-        assertEquals(i1.getAthenzConfModified(), start);
+        assertEquals(i1.getAthenzJWK(), Boolean.TRUE);
+        assertEquals(i1.getAthenzJWKModified(), start);
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -160,18 +160,18 @@ public class InstanceRegisterInformationTest {
         i2.setSshCertRequest(new SSHCertRequest());
         assertEquals(i1, i2);
 
-        i2.setAthenzConf(null);
+        i2.setAthenzJWK(null);
         assertNotEquals(i1, i2);
-        i2.setAthenzConf(false);
+        i2.setAthenzJWK(false);
         assertNotEquals(i1, i2);
-        i2.setAthenzConf(true);
+        i2.setAthenzJWK(true);
         assertEquals(i1, i2);
 
-        i2.setAthenzConfModified(Timestamp.fromMillis(101));
+        i2.setAthenzJWKModified(Timestamp.fromMillis(101));
         assertNotEquals(i1, i2);
-        i2.setAthenzConfModified(null);
+        i2.setAthenzJWKModified(null);
         assertNotEquals(i1, i2);
-        i2.setAthenzConfModified(start);
+        i2.setAthenzJWKModified(start);
         assertEquals(i1, i2);
     }
 }

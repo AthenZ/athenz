@@ -3043,12 +3043,12 @@ type InstanceRegisterInformation struct {
 	//
 	// if true, return an Athenz JWK public keys file
 	//
-	PublicKeys *bool `json:"publicKeys,omitempty" rdl:"optional"`
+	AthenzJWK *bool `json:"athenzJWK,omitempty" rdl:"optional"`
 
 	//
 	// return the public keys file only if modified after the given timestamp
 	//
-	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+	AthenzJWKModified *rdl.Timestamp `json:"athenzJWKModified,omitempty" rdl:"optional"`
 }
 
 //
@@ -3190,12 +3190,12 @@ type InstanceRefreshInformation struct {
 	//
 	// if true, return an Athenz JWK public keys file
 	//
-	PublicKeys *bool `json:"publicKeys,omitempty" rdl:"optional"`
+	AthenzJWK *bool `json:"athenzJWK,omitempty" rdl:"optional"`
 
 	//
 	// return the public keys file only if modified after the given timestamp
 	//
-	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional"`
+	AthenzJWKModified *rdl.Timestamp `json:"athenzJWKModified,omitempty" rdl:"optional"`
 }
 
 //
@@ -3367,12 +3367,12 @@ type AthenzJWKConfig struct {
 	//
 	// ZMS JSON Web Key (JWK) List
 	//
-	ZmsJWK *JWKList `json:"zmsJWK"`
+	Zms *JWKList `json:"zms"`
 
 	//
 	// ZTS JSON Web Key (JWK) List
 	//
-	ZtsJWK *JWKList `json:"ztsJWK"`
+	Zts *JWKList `json:"zts"`
 
 	//
 	// the last modification timestamp of the Athenz JWK configuration
@@ -3397,11 +3397,11 @@ func NewAthenzJWKConfig(init ...*AthenzJWKConfig) *AthenzJWKConfig {
 // Init - sets up the instance according to its default field values, if any
 //
 func (self *AthenzJWKConfig) Init() *AthenzJWKConfig {
-	if self.ZmsJWK == nil {
-		self.ZmsJWK = NewJWKList()
+	if self.Zms == nil {
+		self.Zms = NewJWKList()
 	}
-	if self.ZtsJWK == nil {
-		self.ZtsJWK = NewJWKList()
+	if self.Zts == nil {
+		self.Zts = NewJWKList()
 	}
 	return self
 }
@@ -3426,11 +3426,11 @@ func (self *AthenzJWKConfig) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *AthenzJWKConfig) Validate() error {
-	if self.ZmsJWK == nil {
-		return fmt.Errorf("AthenzJWKConfig: Missing required field: zmsJWK")
+	if self.Zms == nil {
+		return fmt.Errorf("AthenzJWKConfig: Missing required field: zms")
 	}
-	if self.ZtsJWK == nil {
-		return fmt.Errorf("AthenzJWKConfig: Missing required field: ztsJWK")
+	if self.Zts == nil {
+		return fmt.Errorf("AthenzJWKConfig: Missing required field: zts")
 	}
 	return nil
 }
@@ -3488,7 +3488,7 @@ type InstanceIdentity struct {
 	//
 	// the Athenz JSON Web Key (JWK) configuration object
 	//
-	AthenzJWKConfig *AthenzJWKConfig `json:"athenzJWKConfig,omitempty" rdl:"optional"`
+	AthenzJWK *AthenzJWKConfig `json:"athenzJWK,omitempty" rdl:"optional"`
 }
 
 //

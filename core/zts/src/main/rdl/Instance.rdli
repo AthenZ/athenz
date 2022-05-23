@@ -17,8 +17,8 @@ type InstanceRegisterInformation Struct {
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
     Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
-    Bool athenzConf (optional); // if true, return an Athenz JWK public keys file
-    Timestamp athenzConfModified (optional); // return the public keys file only if modified after the given timestamp
+    Bool athenzJWK (optional); // if true, return an Athenz JWK public keys file
+    Timestamp athenzJWKModified (optional); // return the public keys file only if modified after the given timestamp
 }
 
 type InstanceRefreshInformation Struct {
@@ -30,8 +30,8 @@ type InstanceRefreshInformation Struct {
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
     Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
-    Bool athenzConf (optional); // if true, return an Athenz JWK public keys file
-    Timestamp athenzConfModified (optional); // return the public keys file only if modified after the given timestamp
+    Bool athenzJWK (optional); // if true, return an Athenz JWK public keys file
+    Timestamp athenzJWKModified (optional); // return the public keys file only if modified after the given timestamp
 }
 
 type InstanceRegisterToken Struct {
@@ -43,8 +43,8 @@ type InstanceRegisterToken Struct {
 }
 
 type AthenzJWKConfig Struct {
-    JWKList zmsJWK; // ZMS JSON Web Key (JWK) List
-    JWKList ztsJWK; // ZTS JSON Web Key (JWK) List
+    JWKList zms; // ZMS JSON Web Key (JWK) List
+    JWKList zts; // ZTS JSON Web Key (JWK) List
     Timestamp modified (optional); // the last modification timestamp of the Athenz JWK configuration
 }
 
@@ -58,7 +58,7 @@ type InstanceIdentity Struct {
     String sshCertificateSigner (optional); //the SSH CA's public key for the sshCertificate (user or host)
     SignedToken serviceToken (optional); //service token instead of TLS certificate
     Map<String,String> attributes (optional); //other config-like attributes determined at boot time
-    AthenzJWKConfig athenzJWKConfig (optional); //the Athenz JSON Web Key (JWK) configuration object
+    AthenzJWKConfig athenzJWK (optional); //the Athenz JSON Web Key (JWK) configuration object
 }
 
 // Register a new service instance and issue an x.509 service identity
