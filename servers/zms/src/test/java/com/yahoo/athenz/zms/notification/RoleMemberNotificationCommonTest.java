@@ -27,6 +27,7 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
+import static com.yahoo.athenz.zms.ResourceException.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -36,6 +37,13 @@ public class RoleMemberNotificationCommonTest {
     @Test
     public void testExpiryPrincipalGetNotificationDetails() {
         DBService dbsvc = Mockito.mock(DBService.class);
+        Mockito.when(dbsvc.getRolesByDomain(eq("test.domain:group"))).thenThrow(new ResourceException(NOT_FOUND));
+        List<Role> adminMembers = new ArrayList<>();
+        Role admin = new Role();
+        admin.setRoleMembers(Collections.singletonList(new RoleMember().setMemberName("user.testadmin")));
+        admin.setName("groupdomain1:role.admin");
+        adminMembers.add(admin);
+        Mockito.when(dbsvc.getRolesByDomain(eq("groupdomain1"))).thenReturn(adminMembers);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc, USER_DOMAIN_PREFIX);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
         // Verify no notification for member without member roles
@@ -43,6 +51,9 @@ public class RoleMemberNotificationCommonTest {
         roleMember.setMemberName("user.joe");
         Map<String, DomainRoleMember> members = new HashMap<>();
         members.put("user.joe", roleMember);
+        DomainRoleMember groupMember = new DomainRoleMember();
+        groupMember.setMemberName("test.domain:group.testgroup");
+        members.put("test.domain:group.testgroup", groupMember);
         List<Notification> notification = roleMemberNotificationCommon.getNotificationDetails(
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
@@ -56,6 +67,7 @@ public class RoleMemberNotificationCommonTest {
 
         // Verify the same result when setting the memberRoles to an empty collection
         roleMember.setMemberRoles(Collections.emptyList());
+        groupMember.setMemberRoles(Collections.emptyList());
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
@@ -74,7 +86,10 @@ public class RoleMemberNotificationCommonTest {
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz1").setMemberName("user.joe")
                 .setExpiration(expirationTs).setReviewReminder(reviewTs));
         roleMember.setMemberRoles(memberRoles);
-
+        List<MemberRole> groupMemberRoles = new ArrayList<>();
+        groupMemberRoles.add(new MemberRole().setRoleName("grouprole1").setDomainName("groupdomain1").setMemberName("test.domain:group.testgroup")
+                .setExpiration(expirationTs).setReviewReminder(reviewTs));
+        groupMember.setMemberRoles(groupMemberRoles);
         notification = roleMemberNotificationCommon.getNotificationDetails(
                 members,
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(notificationToEmailConverterCommon),
@@ -84,12 +99,16 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(1, notification.size());
+        assertEquals(2, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
+        assertEquals(2, notification.get(1).getDetails().size());
 
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;" + expirationTs);
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
+        assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_DOMAIN),
+                "groupdomain1");
+        assertEquals(notification.get(1).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST), "test.domain:group.testgroup;grouprole1;" + expirationTs);
 
         memberRoles.add(new MemberRole().setRoleName("role1").setDomainName("athenz2").setMemberName("user.joe")
                 .setExpiration(expirationTs).setReviewReminder(reviewTs));
@@ -105,8 +124,9 @@ public class RoleMemberNotificationCommonTest {
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter(),
                 memberRole -> DisableNotificationEnum.getEnumSet(0));
 
-        assertEquals(1, notification.size());
+        assertEquals(2, notification.size());
         assertEquals(2, notification.get(0).getDetails().size());
+        assertEquals(2, notification.get(1).getDetails().size());
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_ROLES_LIST),
                 "athenz1;role1;" + expirationTs + "|athenz2;role1;" + expirationTs + "|athenz2;role2;" + expirationTs);
         assertEquals(notification.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBER), "user.joe");
