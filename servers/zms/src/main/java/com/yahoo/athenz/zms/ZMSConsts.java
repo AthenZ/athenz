@@ -364,4 +364,5 @@ public final class ZMSConsts {
     public static final String PROVIDER_RESPONSE_DENY = "deny";
     public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE = "athenz.zms.auth_history.dynamodb.table";
     public static final String ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE = "Athenz-Auth-History";
+    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION = "athenz.zms.auth_history.dynamodb.region";
 }

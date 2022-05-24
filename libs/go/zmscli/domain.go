@@ -1208,3 +1208,16 @@ func (cli Zms) GetDependentDomainList(service string) (*string, error) {
 
 	return cli.dumpByFormat(dependentDomains, oldYamlConverter)
 }
+
+func (cli Zms) GetAuthHistoryList(dn string) (*string, error) {
+	authHistoryList, err := cli.Zms.GetAuthHistoryList(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+
+	if cli.OutputFormat == DefaultOutputFormat {
+		cli.OutputFormat = YAMLOutputFormat
+	}
+
+	return cli.dumpByFormat(authHistoryList, nil)
+}

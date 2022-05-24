@@ -22,14 +22,19 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AuthHistoryStore;
 import com.yahoo.athenz.zms.store.AuthHistoryStoreFactory;
+import org.eclipse.jetty.util.StringUtil;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 
 public class DynamoDBAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
+
     @Override
     public AuthHistoryStore create(PrivateKeyStore pkeyStore) {
         final String tableName = System.getProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE, ZMSConsts.ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE);
-        String ec2InstanceRegion = EC2MetadataUtils.getEC2InstanceRegion();
-        return new DynamoDBAuthHistoryStore(tableName, Region.of(ec2InstanceRegion));
+        String region = System.getProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION);
+        if (StringUtil.isEmpty(region)) {
+            region = EC2MetadataUtils.getEC2InstanceRegion();
+        }
+        return new DynamoDBAuthHistoryStore(tableName, Region.of(region));
     }
 }
