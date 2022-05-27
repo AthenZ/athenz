@@ -164,6 +164,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
     protected Info serverInfo = null;
+    protected AthenzJWKConfig jwkConfig;
+    private long lastAthenzJWKUpdateTime = 0;
+    protected int millisBetweenAthenzJWKUpdates = 0;
+    private final Object updateJWKMutex = new Object();
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -203,10 +207,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     private static final String ACCESS_LOG_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
 
+    private static final String SYS_AUTH = "sys.auth";
+
     private static final byte[] PERIOD = { 46 };
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSImpl.class);
-    
+
     protected Http.AuthorityList authorities = null;
     protected ZTSAuthorizer authorizer;
     protected static Validator validator;
@@ -244,22 +250,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         abstract void convertToLowerCase(Object obj);
     }
-    
+
     enum ServiceX509RefreshRequestStatus {
         SUCCESS, DNS_NAME_MISMATCH, PUBLIC_KEY_MISMATCH, IP_NOT_ALLOWED
      }
-    
+
     public ZTSImpl() {
         this(null, null);
     }
-    
+
     public ZTSImpl(CloudStore implCloudStore, DataStore implDataStore) {
-        
+
         // before doing anything else we need to load our
         // system properties from our config file
-        
+
         loadSystemProperties();
-        
+
         // let's first get our server hostname
 
         ZTSImpl.serverHostName = getServerHostName();
@@ -270,7 +276,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // before we do anything we need to load our configuration
         // settings
-        
+
         loadConfigurationSettings();
 
         // load system authorization details
@@ -279,23 +285,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // load our schema validator - we need this before we initialize
         // our store, if necessary
-        
+
         loadSchemaValidator();
-        
+
         // let's load our audit logger
-        
+
         loadAuditLogger();
-        
+
         // load any configured authorities to authenticate principals
-        
+
         loadAuthorities();
-        
+
         // we need a private key to sign any tokens and documents
-        
+
         loadServicePrivateKey();
-        
+
         // check if we need to load any metric support for stats
-        
+
         loadMetricObject();
 
         // check if we need to load our hostname resolver for cert requests
@@ -307,23 +313,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         cloudStore = (implCloudStore == null) ? new CloudStore() : implCloudStore;
 
         // create our change log store
-        
+
         if (implDataStore == null) {
             String homeDir = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_DIR,
                     getRootDir() + "/var/zts_server");
             ChangeLogStore clogStore = getChangeLogStore(homeDir);
-    
+
             // create our data store. we must have our cloud store and private
             // key details already retrieved at this point
-            
+
             dataStore = new DataStore(clogStore, cloudStore, metric);
-            
+
             // Initialize our storage subsystem which would load all data into
             // memory and if necessary retrieve the data from ZMS. It will also
             // create the thread to monitor for changes from ZMS
-            
+
             dataStore.init();
-            
+
         } else {
             dataStore = implDataStore;
         }
@@ -333,15 +339,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         authorizer = new ZTSAuthorizer(dataStore);
 
         // create our instance manager and provider
-        
+
         instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver,
                 readOnlyMode.get(), userAuthority);
 
         instanceProviderManager = new InstanceProviderManager(dataStore, ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
                 ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore), privateKey, this);
-        
+
         // make sure to set the keystore for any instance that requires it
-        
+
         setAuthorityKeyStore();
 
         setNotificationManager();
@@ -353,6 +359,45 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // setup open id and oauth config objects
 
         setupMetaConfigObjects();
+
+        // load Athenz JWK configuration
+
+        loadAthenzJWK();
+    }
+
+    protected void loadAthenzJWK() {
+
+        // convert jwk update time from hours to millis
+
+        millisBetweenAthenzJWKUpdates = 60 * 60 * 1000 * Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_JWK_UPDATE_INTERVAL_HOURS, "24"));
+
+        jwkConfig = new AthenzJWKConfig();
+
+        ServiceIdentity ztsService = sysAuthService(ZTS_SERVICE);
+        ServiceIdentity zmsService = sysAuthService(ZMS_SERVICE);
+
+        if (ztsService != null && zmsService != null) {
+            updateAthenzJWK(ztsService, zmsService);
+        }
+    }
+
+    private ServiceIdentity sysAuthService(String serviceName) {
+        DomainData domainData = dataStore.getDomainData(ZTSImpl.SYS_AUTH);
+        if (domainData == null) {
+            LOGGER.warn("sys.auth domain not found, cannot find service : {}", serviceName);
+            return null;
+        }
+
+        String cnService = generateServiceIdentityName(ZTSImpl.SYS_AUTH, serviceName);
+        ServiceIdentity serviceIdentity = lookupServiceIdentity(domainData, cnService);
+
+        if (serviceIdentity == null) {
+            LOGGER.warn("sys.auth.{} service not found", serviceName);
+            return null;
+        }
+
+        return serviceIdentity;
     }
 
     private void setupMetaConfigObjects() {
@@ -438,28 +483,28 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void loadConfigurationSettings() {
-        
+
         // make sure all requests run in secure mode
 
         secureRequestsOnly = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_SECURE_REQUESTS_ONLY, "true"));
- 
+
         // retrieve the regular and status ports
-        
+
         httpPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_HTTP_PORT,
                 ZTSConsts.ZTS_HTTP_PORT_DEFAULT);
         httpsPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_HTTPS_PORT,
                 ZTSConsts.ZTS_HTTPS_PORT_DEFAULT);
         statusPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_STATUS_PORT, 0);
-        
+
         successServerStatus = new Status().setCode(ResourceException.OK).setMessage("OK");
-        
+
         statusCertSigner = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_STATUS_CERT_SIGNER, "false"));
 
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
-        
+
         leastPrivilegePrincipal = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE, "false"));
 
@@ -468,13 +513,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // to at least cache the tokens for 1 hour. We're going to set the ZTS client's
         // min default value to 15 mins so that we can by default cache tokens for
         // an hour and 45 minutes.
-        
+
         long timeout = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
         roleTokenDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
-        
+
         // Max Timeout - 30 days
-        
+
         timeout = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
         roleTokenMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
@@ -491,34 +536,34 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
-        
+
         timeout = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
         signedPolicyTimeout = 1000 * Long.parseLong(
                 System.getProperty(ZTSConsts.ZTS_PROP_SIGNED_POLICY_TIMEOUT, Long.toString(timeout)));
-        
+
         // default token timeout for issued tokens
-        
+
         timeout = TimeUnit.SECONDS.convert(1, TimeUnit.DAYS);
         svcTokenTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_INSTANCE_NTOKEN_TIMEOUT, Long.toString(timeout)));
-        
+
         // retrieve the list of our authorized proxy users
-        
+
         final String authorizedProxyUserList = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
         if (authorizedProxyUserList != null) {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
-        
+
         userDomain = System.getProperty(PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
-        
+
         userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
         if (userDomainAlias != null) {
             userDomainAliasPrefix = userDomainAlias + ".";
         }
-        
+
         // get the list of uris that we want to allow an-authenticated access
-        
+
         final String uriList = System.getProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST);
         if (uriList != null) {
             authFreeUriSet = new HashSet<>();
@@ -532,9 +577,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 }
             }
         }
-        
+
         // check to see if we need to include the complete role token flag
-        
+
         includeRoleCompleteFlag = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_ROLE_COMPLETE_FLAG, "true"));
 
@@ -601,12 +646,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 System.getProperty(ZTSConsts.ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH, "1024"));
 
         // if workloads store should be populated based on IPs from CSR
+
         enableWorkloadStore = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_ENABLE_STORE_FEATURE, "false"));
     }
-    
+
     static String getServerHostName() {
-        
+
         String serverHostName = System.getProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
         if (serverHostName == null || serverHostName.isEmpty()) {
             serverHostName = "localhost";
@@ -617,10 +663,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 LOGGER.info("Unable to determine local hostname: {}" , e.getMessage());
             }
         }
-        
+
         return serverHostName;
     }
-    
+
     void setAuthorityKeyStore() {
         for (Authority authority : authorities.getAuthorities()) {
             if (authority instanceof AuthorityKeyStore) {
@@ -628,12 +674,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
     }
-    
+
     void loadSchemaValidator() {
         schema = ZTSSchema.instance();
         validator = new Validator(schema);
     }
-    
+
     ChangeLogStore getChangeLogStore(String homeDir) {
 
         final String clogFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CHANGE_LOG_STORE_FACTORY_CLASS,
@@ -645,15 +691,15 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             LOGGER.error("Invalid ChangeLogStoreFactory class: {} error: {}", clogFactoryClass, e.getMessage());
             return null;
         }
-        
+
         // create our struct store
 
         clogFactory.setPrivateKeyStore(privateKeyStore);
         return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
-    
+
     void loadMetricObject() {
-        
+
         final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
                 METRIC_DEFAULT_FACTORY_CLASS);
 
@@ -664,9 +710,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             LOGGER.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid metric class");
         }
-        
+
         // create our metric and increment our startup count
-        
+
         metric = metricFactory.create();
         metric.increment("zts_startup");
     }
@@ -692,7 +738,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void loadServicePrivateKey() {
-        
+
         final String pkeyFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory;
@@ -702,10 +748,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid private key store");
         }
-        
+
         // extract the private key for our service - we're going to ask for our algorithm
         // specific keys and then if neither one is provided our generic one.
-        
+
         privateKeyStore = pkeyFactory.create();
 
         privateECKey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName,
@@ -753,22 +799,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorities.add(authority);
         }
     }
-    
+
     void loadAuditLogger() {
-        
+
         final String auditFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_AUDIT_LOGGER_FACTORY_CLASS,
                 ZTSConsts.ZTS_AUDIT_LOGGER_FACTORY_CLASS);
         AuditLoggerFactory auditLogFactory;
-        
+
         try {
             auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             LOGGER.error("Invalid AuditLoggerFactory class: {} error: {}", auditFactoryClass, e.getMessage());
             throw new IllegalArgumentException("Invalid audit logger class");
         }
-        
+
         // create our audit logger
-        
+
         auditLogger = auditLogFactory.create();
     }
 
@@ -793,11 +839,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public String getPublicKey(String domain, String service, String keyId) {
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         if (domain != null) {
             domain = domain.toLowerCase();
         }
@@ -807,16 +853,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (keyId != null) {
             keyId = keyId.toLowerCase();
         }
-        
+
         return dataStore.getPublicKey(domain, service, keyId);
     }
-    
+
     ServiceIdentity generateZTSServiceIdentity(com.yahoo.athenz.zms.ServiceIdentity zmsService) {
-        
+
         // zms and zts are using the same definition for service identities but
         // due to RDL generated code they have different classes. So we're going
         // convert our ZMS Service object into a struct and then back to ZTS object
-        
+
         ServiceIdentity ztsService = new ServiceIdentity()
                 .setName(zmsService.getName())
                 .setExecutable(zmsService.getExecutable())
@@ -836,30 +882,115 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
             ztsService.setPublicKeys(ztsPublicKeys);
         }
-        
+
         return ztsService;
     }
-    
+
     String generateServiceIdentityName(String domain, String service) {
         return domain + "." + service;
     }
-    
+
     ServiceIdentity lookupServiceIdentity(DomainData domainData, String serviceName) {
-        
+
         List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
         if (services == null) {
             return null;
         }
-        
+
         for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
             if (service.getName().equalsIgnoreCase(serviceName)) {
                 return generateZTSServiceIdentity(service);
             }
         }
-        
+
         return null;
     }
-    
+
+    protected AthenzJWKConfig getAthenzJWKConfig(ResourceContext ctx) {
+        validateAthenzJwkIsUpdated(ctx);
+        return jwkConfig;
+    }
+
+    protected void validateAthenzJwkIsUpdated(ResourceContext ctx) {
+
+        if ((lastAthenzJWKUpdateTime == 0) || (lastAthenzJWKUpdateTime + millisBetweenAthenzJWKUpdates < System.currentTimeMillis())) {
+            synchronized (updateJWKMutex) {
+                if (lastAthenzJWKUpdateTime == 0 || (lastAthenzJWKUpdateTime + millisBetweenAthenzJWKUpdates < System.currentTimeMillis())) {
+                    final ServiceIdentity ztsService = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZTS_SERVICE);
+                    final ServiceIdentity zmsService = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZMS_SERVICE);
+
+                    if (ztsService == null || zmsService == null) {
+                        LOGGER.error("ZMS or ZTS Services are null! cannot build Athenz JWK config file. ZMS: {}, ZTS: {}", zmsService, ztsService);
+                        return;
+                    }
+
+                    if (hasNewJWKConfig(zmsService.getModified(), ztsService.getModified())) {
+                        updateAthenzJWK(ztsService, zmsService);
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateAthenzJWK(ServiceIdentity ztsService, ServiceIdentity zmsService) {
+        List<PublicKeyEntry> ztsPublicKeys = ztsService.getPublicKeys();
+        List<PublicKeyEntry> zmsPublicKeys = zmsService.getPublicKeys();
+
+        final List<JWK> ztsJWKList = getJWKList(ztsPublicKeys);
+        final List<JWK> zmsJWKList = getJWKList(zmsPublicKeys);
+
+        if (ztsJWKList == null || zmsJWKList == null) {
+            LOGGER.error("ZMS or ZTS JWK List is null, cannot build Athenz JWK config file. ZMS: {}, ZTS: {}", zmsJWKList, ztsJWKList);
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        Timestamp nowTs = Timestamp.fromMillis(now);
+        jwkConfig = new AthenzJWKConfig()
+                .setZts(new JWKList().setKeys(ztsJWKList))
+                .setZms(new JWKList().setKeys(zmsJWKList))
+                .setModified(nowTs);
+        lastAthenzJWKUpdateTime = now;
+
+        LOGGER.info("Athenz JWK updated. modify time: {}", nowTs);
+    }
+
+    protected boolean hasNewJWKConfig(Timestamp zmsModified, Timestamp ztsModified) {
+        if (zmsModified == null || ztsModified == null) {
+            LOGGER.warn("zms or zts service identities has no modification time, cannot build Athenz jwk config. zms: {}, zts: {}", zmsModified, ztsModified);
+            return false;
+        }
+
+        Timestamp lastConfigModification = jwkConfig.getModified();
+
+        if (lastConfigModification == null) {
+            return true;
+        }
+
+        return (zmsModified.millis() > lastConfigModification.millis() || ztsModified.millis() > lastConfigModification.millis());
+    }
+
+    private List<JWK> getJWKList(List<PublicKeyEntry> pubKeys) {
+        final List<JWK> jwkList = new ArrayList<>();
+        for (PublicKeyEntry publicKey : pubKeys) {
+            final String id = publicKey.getId();
+            final String key = publicKey.getKey();
+            if (key == null || id == null) {
+                LOGGER.error("Missing required zts public key attributes: {}/{}", id, key);
+                continue;
+            }
+            final JWK jwk = dataStore.getJWK(key, id, true);
+            if (jwk != null) {
+                jwkList.add(jwk);
+            }
+        }
+        if (jwkList.isEmpty()) {
+            LOGGER.error("No valid public keys");
+            return null;
+        }
+        return jwkList;
+    }
+
     // ----------------- the ServiceIdentity interface
 
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
@@ -870,11 +1001,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(serviceName, TYPE_SIMPLE_NAME, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         serviceName = serviceName.toLowerCase();
@@ -885,19 +1016,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("Domain not found: '" + domainName + "'", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         // update our metric with dimension. we're moving the metric here
         // after the domain name has been confirmed as valid since with
         // dimensions we get stuck with persistent indexes so we only want
         // to create them for valid domain names
-        
+
         String cnService = generateServiceIdentityName(domainName, serviceName);
         ServiceIdentity ztsService = lookupServiceIdentity(domainData, cnService);
 
         if (ztsService == null) {
             throw notFoundError("Service not found: '" + cnService + "'", caller, domainName, principalDomain);
         }
-        
+
         return ztsService;
     }
 
@@ -914,11 +1045,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (keyId == null) {
             throw requestError("Invalid Public Key Id specified", caller, domainName, principalDomain);
         }
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         serviceName = serviceName.toLowerCase();
@@ -932,7 +1063,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return new PublicKeyEntry().setId(keyId)
                 .setKey(Crypto.ybase64(publicKey.getBytes(StandardCharsets.UTF_8)));
     }
-    
+
     public ServiceIdentityList getServiceIdentityList(ResourceContext ctx, String domainName) {
 
         final String caller = ctx.getApiName();
@@ -940,11 +1071,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
@@ -954,7 +1085,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("Domain not found: '" + domainName + "'", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         return generateServiceIdentityList(domainName, domainData.getServices());
     }
 
@@ -988,25 +1119,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         host = host.toLowerCase();
         return dataStore.getHostServices(host);
     }
 
     List<Policy> getPolicyList(DomainData domainData, Map<String, String> policyVersions) {
-        
+
         ArrayList<Policy> ztsPolicies = new ArrayList<>();
 
         com.yahoo.athenz.zms.SignedPolicies signedPolicies = domainData.getPolicies();
         if (signedPolicies == null) {
             return ztsPolicies;
         }
-        
+
         com.yahoo.athenz.zms.DomainPolicies domainPolicies = signedPolicies.getContents();
         if (domainPolicies == null) {
             return ztsPolicies;
         }
-        
+
         List<com.yahoo.athenz.zms.Policy> zmsPolicies = domainPolicies.getPolicies();
         if (zmsPolicies == null) {
             return ztsPolicies;
@@ -1029,7 +1160,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             ztsPolicies.add(copyZMSPolicyObject(zmsPolicy, policyVersions != null));
         }
-        
+
         return ztsPolicies;
     }
 
@@ -1233,11 +1364,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
@@ -1247,27 +1378,27 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("Domain not found: '" + domainName + "'", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         Timestamp modified = domainData.getModified();
         EntityTag eTag = new EntityTag(modified.toString());
         String tag = eTag.toString();
-        
+
         // Set timestamp for domain rather than youngest policy.
         // Since a policy could have been deleted, and can only be detected
         // via the domain modified timestamp.
-        
+
         if (matchingTag != null && matchingTag.equals(tag)) {
             return Response.status(ResourceException.NOT_MODIFIED).header("ETag", tag).build();
         }
-        
+
         // first get our PolicyData object
-        
+
         PolicyData policyData = new PolicyData()
                 .setDomain(domainName)
                 .setPolicies(getPolicyList(domainData, null));
 
         // then get the signed policy data
-        
+
         Timestamp expires = Timestamp.fromMillis(System.currentTimeMillis() + signedPolicyTimeout);
 
         SignedPolicyData signedPolicyData = new SignedPolicyData()
@@ -1282,12 +1413,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             .setSignedPolicyData(signedPolicyData)
             .setSignature(signature)
             .setKeyId(privateKey.getId());
-        
+
         return Response.status(ResourceException.OK).entity(result).header("ETag", tag).build();
     }
 
     String convertEmptyStringToNull(String value) {
-        
+
         if (value != null && value.isEmpty()) {
             return null;
         } else {
@@ -1301,35 +1432,35 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     long determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
             Integer maxExpiryTime) {
-        
+
         // we're going to default our return value to the default token
         // timeout configured in the server
-        
+
         long tokenTimeout = roleTokenDefaultTimeout;
-        
+
         if (maxExpiryTime != null && maxExpiryTime > 0) {
-            
+
             // if our max expiry time is given and it's a positive number then
             // we return that value as our result. We're checking and using the
             // max value first since that allows the biggest opportunity on the
             // client side to cache the token and return on subsequent requests
-            
+
             tokenTimeout = maxExpiryTime;
-            
+
         } else if (minExpiryTime != null && minExpiryTime > roleTokenDefaultTimeout) {
-            
+
             // now we return the min value but only if it's bigger than our
             // default value (if the client is looking for a token that's smaller
-            // than the default timeout, then they would have specified their 
+            // than the default timeout, then they would have specified their
             // desired smaller value as the max timeout and the first if block
             // would have set accordingly.
-            
+
             tokenTimeout = minExpiryTime;
         }
-        
+
         // however, we're not going to allow the client to ask for unlimited
         // tokens so we'll max it out to the server's configured max timeout
-        
+
         if (tokenTimeout > roleTokenMaxTimeout) {
             tokenTimeout = roleTokenMaxTimeout;
         }
@@ -1394,11 +1525,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (serviceName != null) {
             validate(serviceName, TYPE_SERVICE_NAME, principalDomain, caller);
         }
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         providerDomainName = providerDomainName.toLowerCase();
         setRequestDomain(ctx, providerDomainName);
         if (roleName != null) {
@@ -1408,7 +1539,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             serviceName = serviceName.toLowerCase();
         }
         userName = normalizeDomainAliasUser(userName.toLowerCase());
-        
+
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(providerDomainName);
@@ -1420,37 +1551,37 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // if the username does not contain a domain then we'll assume
         // user domain and handle accordingly
-        
+
         if (userName.indexOf('.') == -1) {
             userName = this.userDomain + "." + userName;
         }
-        
+
         roleName = convertEmptyStringToNull(roleName);
         String[] requestedRoleList = null;
         if (roleName != null) {
             requestedRoleList = roleName.split(",");
         }
-        
+
         // process our request and retrieve the roles for the principal
-        
+
         Set<String> roles = new HashSet<>();
-        
+
         dataStore.getAccessibleRoles(data, providerDomainName, userName,
                 requestedRoleList, roles, false);
-        
+
         // we are going to process the list and only keep the tenant
         // domains - this is based on the role names since our tenant
         // roles are named: <service>.tenant.<domain>.[<resource_group>.]<action>
-        
+
         Set<String> domainNames = new HashSet<>();
         for (String role : roles) {
-            
+
             String domainName = retrieveTenantDomainName(role, serviceName);
             if (domainName != null) {
                 domainNames.add(domainName);
             }
         }
-        
+
         TenantDomains tenantDomains = new TenantDomains();
         tenantDomains.setTenantDomainNames(new ArrayList<>(domainNames));
 
@@ -1458,108 +1589,108 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     String retrieveTenantDomainName(String roleName, String serviceName) {
-        
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("retrieveTenantDomainName: Processing role name: {}", roleName);
         }
-        
+
         // roles are named: <service>.tenant.<domain>.[<resource_group>.]<action>
         // so we're going to do the easy checks first
         // check 1: we must have at least 4 components
-        
+
         String[] comps = roleName.split("\\.");
         if (comps.length < 4) {
             return null;
         }
-        
+
         // check 2: our second component must be the word tenant
-        
+
         if (!comps[1].equals("tenant")) {
             return null;
         }
-        
+
         // check 3: if service name is given, it must be the first component
-        
+
         if (serviceName != null && !comps[0].equals(serviceName)) {
             return null;
         }
-        
+
         // if we have 4 components then component 3 is the domain name
-        
+
         if (comps.length == 4) {
-            
+
             // verify it's a valid domain name before returning
-            
+
             if (dataStore.getDataCache(comps[2]) == null) {
                 return null;
             }
 
             return comps[2];
         }
-        
+
         // so if we have more components than 4 then we have two
         // choices to deal with: with and without resource groups
         // first let's generate into two strings - one assuming
         // to be the resource group
-        
+
         String resourceGroup = comps[comps.length - 2];
         StringBuilder domainNameBuf = new StringBuilder(512).append(comps[2]);
         for (int i = 3; i < comps.length - 2; i++) {
             domainNameBuf.append('.').append(comps[i]);
         }
-        
+
         // first we're going to assume the resource group as part
         // of the domain name and see if that domain exists
-        
+
         String fullDomainName = domainNameBuf + "." + resourceGroup;
         if (dataStore.getDataCache(fullDomainName) != null) {
             return fullDomainName;
         }
-        
+
         // now let's try without the resource group part
-        
+
         fullDomainName = domainNameBuf.toString();
         if (dataStore.getDataCache(fullDomainName) != null) {
             return fullDomainName;
         }
-        
+
         // we didn't have valid domain
-        
+
         return null;
     }
-    
+
     boolean isAuthorizedProxyUser(Set<String> proxyUsers, String principal) {
         if (proxyUsers == null) {
             return false;
         }
         return proxyUsers.contains(principal);
     }
-    
+
     void checkRoleTokenAuthorizedServiceRequest(final Principal principal,
             final String domainName, final String caller) {
-        
+
         final String authorizedService = principal.getAuthorizedService();
-        
+
         // if principal is not an authorized service token then
         // we have nothing to check for
-        
+
         if (authorizedService == null || authorizedService.isEmpty()) {
             return;
         }
-        
+
         // extract the domain from the authorized service and make
         // sure it matches to the requested domain value
-        
+
         int idx = authorizedService.lastIndexOf('.');
         final String checkDomain = authorizedService.substring(0, idx);
-        
+
         if (!domainName.equals(checkDomain)) {
             throw forbiddenError("Authorized service domain " + checkDomain +
                     " does not match request domain " + domainName, caller,
                     domainName, principal.getDomain());
         }
     }
-    
+
     // Token interface
     @Override
     public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleNames,
@@ -1576,11 +1707,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (proxyForPrincipal != null && !proxyForPrincipal.isEmpty()) {
             validate(proxyForPrincipal, TYPE_ENTITY_NAME, principalDomain, caller);
         }
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         if (roleNames != null) {
@@ -1599,20 +1730,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             LOGGER.debug("getRoleToken(domain: {}, principal: {}, role-name: {}, proxy-for: {})",
                     domainName, principalName, roleNames, proxyForPrincipal);
         }
-        
+
         // do not allow empty (not null) values for role
-        
+
         roleNames = convertEmptyStringToNull(roleNames);
         proxyForPrincipal = convertEmptyStringToNull(proxyForPrincipal);
-        
+
         if (leastPrivilegePrincipal && roleNames == null) {
             throw requestError("getRoleToken: Client must specify a roleName to request a token for",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         // we can only have a proxy for principal request if the original
         // caller is authorized for such operations
-        
+
         if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
             LOGGER.error("getRoleToken: Principal {} not authorized for proxy role token request", principalName);
             throw forbiddenError("getRoleToken: Principal: " + principalName
@@ -1628,52 +1759,52 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("getRoleToken: No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         // check if the authorized service domain matches to the
         // requested domain name
-        
+
         checkRoleTokenAuthorizedServiceRequest(principal, domainName, caller);
-        
+
         // we need to convert our request role name into array since
         // it could contain multiple values separated by commas
-        
+
         String[] requestedRoleList = null;
         if (roleNames != null) {
             requestedRoleList = roleNames.split(",");
         }
-        
+
         // process our request and retrieve the roles for the principal
-        
+
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList,
                 roles, false);
-        
+
         if (roles.isEmpty()) {
             throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
                     caller, domainName, principalDomain);
         }
-        
+
         // if this is proxy for operation then we want to make sure that
         // both principals have access to the same set of roles so we'll
         // remove any roles that are authorized by only one of the principals
-        
+
         String proxyUser = null;
         if (proxyForPrincipal != null) {
             Set<String> rolesForProxy = new HashSet<>();
             dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal,
                     requestedRoleList, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
-            
+
             // check again in case we removed all the roles and ended up
             // with an empty set
-            
+
             if (roles.isEmpty()) {
                 throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoleList),
                         caller, domainName, principalDomain);
             }
-            
+
             // we need to switch our principal and proxy for user
-            
+
             proxyUser = principalName;
             principalName = proxyForPrincipal;
         }
@@ -1697,7 +1828,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     .principal(principalName).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
                     .proxyUser(proxyUser).domainCompleteRoleSet(domainCompleteRoleSet).build();
         token.sign(privateKey.getKey());
-        
+
         RoleToken roleToken = new RoleToken();
         roleToken.setToken(token.getSignedToken());
         roleToken.setExpiryTime(token.getExpiryTime());
@@ -2391,7 +2522,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
@@ -2403,7 +2534,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getRoleAccess(domain: {}, principal: {})", domainName, principal);
         }
-        
+
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -2412,16 +2543,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("getRoleAccess: No such domain: " + domainName,
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         // process our request and retrieve the roles for the principal
-        
+
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, null,
                 roles, false);
-        
+
         return new RoleAccess().setRoles(new ArrayList<>(roles));
     }
-    
+
     @Override
     public RoleToken postRoleCertificateRequest(ResourceContext ctx, String domainName,
             String roleName, RoleCertificateRequest req) {
@@ -2433,7 +2564,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(roleName, TYPE_ENTITY_NAME, principalDomain, caller);
@@ -3014,20 +3145,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // since the role name might contain a path and thus it has
         // been encoded, we're going to decode it first before using it
-        
+
         try {
             roleName = URLDecoder.decode(roleName, "UTF-8");
         } catch (Exception ex) {
             LOGGER.error("Unable to decode {} - error {}", roleName, ex.getMessage());
         }
         validate(roleName, TYPE_AWS_ARN_ROLE_NAME, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case. However, since
         // for roleName we need to pass that to AWS, we're not going to
         // convert here instead only for the authz check
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
@@ -3035,32 +3166,32 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             LOGGER.debug("getAWSTemporaryCredentials(domain: {}, role: {}, duration {}",
                     domainName, roleName, durationSeconds);
         }
-        
+
         if (!cloudStore.isAwsEnabled()) {
             throw requestError("AWS support is not available", caller, domainName, principalDomain);
         }
-        
+
         // get our principal's name
-        
+
         final String principalName = principal.getFullName();
         final String roleResource = domainName + ":" + roleName.toLowerCase();
 
         // we need to first verify that our principal is indeed configured
         // with aws assume role assertion for the specified role and domain
-        
+
         if (!verifyAWSAssumeRole(domainName, roleResource, principalName)) {
             throw forbiddenError("Athenz Configuration Error: Forbidden (assume_aws_role on "
                     + roleResource + " for " + principalName + ")", caller, domainName, principalDomain);
         }
-        
+
         // now need to get the associated cloud account for the domain name
-        
+
         String account = cloudStore.getAwsAccount(domainName);
         if (account == null) {
             throw requestError("Athenz Configuration Error: unable to retrieve AWS account for: "
                     + domainName, caller, domainName, principalDomain);
         }
-        
+
         // obtain the credentials from the cloud store
 
         StringBuilder errorMessage = new StringBuilder();
@@ -3071,25 +3202,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                             domainName + " for principal " + principalName + "error: " + errorMessage,
                             caller, domainName, principalDomain);
         }
-        
+
         return creds;
     }
 
     boolean verifyAWSAssumeRole(String domainName, String roleResource, String principal) {
-        
+
         // first retrieve our domain data object from the cache
-        
+
         DataCache data = dataStore.getDataCache(domainName);
         if (data == null) {
             LOGGER.error("verifyAWSAssumeRole: unknown domain: {}", domainName);
             return false;
         }
-        
+
         // retrieve the roles for the principal
-        
+
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, null, roles, true);
-        
+
         if (roles.isEmpty()) {
             LOGGER.error("verifyAWSAssumeRole: Principal: {} has no access to any roles in domain: {}",
                     principal, domainName);
@@ -3097,7 +3228,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // check to see if any of the roles give access to the specified resource
-        
+
         Set<String> awsResourceSet;
         for (String role : roles) {
             awsResourceSet = data.getAWSResourceRoleSet(role);
@@ -3105,10 +3236,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 return true;
             }
         }
-        
+
         LOGGER.error("verifyAWSAssumeRole: Principal: {} has no access to resource: {}" +
                 " in domain: {}", principal, roleResource, domainName);
-        
+
         return false;
     }
 
@@ -3265,14 +3396,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         validateRequest(ctx.request(), principalDomain, caller);
         validate(info, TYPE_INSTANCE_REGISTER_INFO, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
+
         AthenzObject.INSTANCE_REGISTER_INFO.convertToLowerCase(info);
 
         final String domain = info.getDomain().toLowerCase();
@@ -3304,7 +3435,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // run the authorization checks to make sure the provider has been
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
-        
+
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
@@ -3313,7 +3444,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         // validate request/csr details
-        
+
         X509ServiceCertRequest certReq;
         try {
             certReq = new X509ServiceCertRequest(info.getCsr());
@@ -3384,14 +3515,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // request and override it with its own value. Other optional
         // attributes we get back from the provider include whether or
         // not the certs can be refreshed or ssh certs can be requested
-        
+
         String certUsage = null;
         String certSubjectOU = null;
         String instancePrivateIp = null;
         int certExpiryTime = 0;
         boolean certRefresh = true;
         boolean sshCertAllowed = false;
-        
+
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
             certUsage = instanceAttrs.remove(InstanceProvider.ZTS_CERT_USAGE);
@@ -3449,7 +3580,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
         final String certSerial = newCert.getSerialNumber().toString();
-        
+
         // need to update our cert record with new certificate details
         // unless we're told by the provider that refresh is not allowed
         // thus no need to register the instance details
@@ -3469,10 +3600,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // insert into workloads store is on best-effort basis. No errors are thrown if the op is not successful.
             insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore, info.getHostname(), newCert.getNotAfter());
         }
-        
+
         // if we're asked to return an NToken in addition to ZTS Certificate
         // then we'll generate one and include in the identity object
-        
+
         if (info.getToken() == Boolean.TRUE) {
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
                 .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
@@ -3481,14 +3612,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             identity.setServiceToken(svcToken.getSignedToken());
         }
 
-        // log our certificate
+        fillAthenzJWKConfig(ctx, info.getAthenzJWK(), info.getAthenzJWKModified(), identity);
 
-        instanceCertManager.logX509Cert(null, ipAddress, provider, certReqInstanceId, newCert);
 
-        final String location = "/zts/v1/instance/" + provider + "/" + domain
-                + "/" + service + "/" + certReqInstanceId;
-        return Response.status(ResourceException.CREATED).entity(identity)
-                .header("Location", location).build();
+            // log our certificate
+
+            instanceCertManager.logX509Cert(null, ipAddress, provider, certReqInstanceId, newCert);
+
+            final String location = "/zts/v1/instance/" + provider + "/" + domain
+                    + "/" + service + "/" + certReqInstanceId;
+            return Response.status(ResourceException.CREATED).entity(identity)
+                    .header("Location", location).build();
     }
 
     void insertWorkloadRecord(String cn, String provider, String certReqInstanceId, String sanIpStr, String hostName, Date certExpiryTime) {
@@ -3589,10 +3723,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
                 .setDomain(domain).setService(service).setProvider(provider);
-    
+
         // we're going to include the hostnames and optional IP addresses
         // from the CSR for provider validation
-        
+
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceProvider.ZTS_INSTANCE_ID, instanceId);
         attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getProviderDnsNames()));
@@ -3614,10 +3748,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (certUris != null && !certUris.isEmpty()) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, String.join(",", certUris));
         }
-        
+
         // if we have a cloud account setup for this domain, we're going
         // to include it in the optional attributes
-        
+
         final String awsAccount = cloudStore.getAwsAccount(domain);
         if (awsAccount != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT, awsAccount);
@@ -3683,26 +3817,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         validateRequest(ctx.request(), principalDomain, caller);
         validate(provider, TYPE_SERVICE_NAME, principalDomain, caller);
         validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(service, TYPE_SIMPLE_NAME, principalDomain, caller);
         validate(instanceId, TYPE_PATH_ELEMENT, principalDomain, caller);
         validate(info, TYPE_INSTANCE_REFRESH_INFO, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
+
         provider = provider.toLowerCase();
         domain = domain.toLowerCase();
         setRequestDomain(ctx, domain);
         service = service.toLowerCase();
-        
+
         // before running any checks make sure it's coming from
         // an authorized ip address
-        
+
         final String ipAddress = ServletRequestUtil.getRemoteAddress(ctx.request());
         if (!instanceCertManager.verifyInstanceCertIPAddress(provider, ipAddress)) {
             throw forbiddenError("Unknown IP: " + ipAddress + " for Provider: " + provider,
@@ -3724,14 +3858,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // * only ssh certificate
         // both CSRs are marked as optional so we need to make sure
         // at least one of the CSRs is provided
-        
+
         final String x509Csr = convertEmptyStringToNull(info.getCsr());
         final String sshCsr = convertEmptyStringToNull(info.getSsh());
 
         if (x509Csr == null && sshCsr == null && info.getSshCertRequest() == null) {
             throw requestError("no csr provided", caller, domain, principalDomain);
         }
-        
+
         // make sure the credentials match to whatever the request is
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
@@ -3742,17 +3876,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         Authority authority = principal.getAuthority();
-        
+
         // we only support services that already have certificates
-        
+
         if (!(authority instanceof CertificateAuthority)) {
             throw requestError("Unsupported authority for TLS Certs: " +
                     authority.toString(), caller, domain, principalDomain);
         }
-        
+
         // first we need to make sure that the provider has been
         // authorized in Athenz to bootstrap/launch instances
-        
+
         Principal providerService = createPrincipalForName(provider);
         StringBuilder errorMsg = new StringBuilder(256);
 
@@ -3763,7 +3897,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // retrieve the certificate that was used for authentication
 
         X509Certificate cert = principal.getX509Certificate();
-        
+
         InstanceIdentity identity;
         if (x509Csr != null) {
             identity = processProviderX509RefreshRequest(ctx, domainData, principal, domain, service,
@@ -3772,10 +3906,24 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             identity = processProviderSSHRefreshRequest(principal, domain, provider, instanceId,
                     sshCsr, info.getSshCertRequest(), caller);
         }
-        
+
+        fillAthenzJWKConfig(ctx, info.getAthenzJWK(), info.getAthenzJWKModified(), identity);
+
         return identity;
     }
-    
+
+    protected void fillAthenzJWKConfig(ResourceContext ctx, Boolean athenzConf, Timestamp clientModified, InstanceIdentity identity) {
+        if (Boolean.TRUE == athenzConf) {
+            AthenzJWKConfig athenzJWK = getAthenzJWKConfig(ctx);
+
+            // fill the athenz jwk config only if client timestamp is not specified or older than current configuration
+            if (clientModified == null ||
+                    (clientModified.millis() < athenzJWK.getModified().millis())) {
+                identity.setAthenzJWK(athenzJWK);
+            }
+        }
+    }
+
     InstanceIdentity processProviderX509RefreshRequest(ResourceContext ctx, DomainData domainData,
             final Principal principal, final String domain, final String service, final String provider,
             final String instanceId, InstanceRefreshInformation info, X509Certificate cert, final String caller) {
@@ -3812,13 +3960,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         String certHostname = X509CertUtils.extractItemFromURI(Crypto.extractX509CertURIs(cert), ZTSConsts.ZTS_CERT_HOSTNAME_URI);
 
         // validate attestation data is included in the request
-        
+
         InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
         }
-        
+
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
                 domain, service, info.getAttestationData(), instanceId, info.getHostname(), certHostname,
                 certReq, instanceProvider.getProviderScheme());
@@ -3856,7 +4004,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // request and override it with its own value. Other optional
         // attributes we get back from the provider include whether or
         // not the certs can be refreshed or ssh certs can be requested
-        
+
         String certUsage = null;
         String certSubjectOU = null;
         String instancePrivateIp = null;
@@ -3937,9 +4085,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         identity.setAttributes(instanceAttrs);
         identity.setProvider(provider);
         identity.setInstanceId(instanceId);
-        
+
         // need to update our cert record with new certificate details
-        
+
         X509Certificate newCert = Crypto.loadX509Certificate(identity.getX509Certificate());
         final String certSerialNumber = newCert.getSerialNumber().toString();
         final String reqIp = ServletRequestUtil.getRemoteAddress(ctx.request());
@@ -3979,7 +4127,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // if we're asked to return an NToken in addition to ZTS Certificate
         // then we'll generate one and include in the identity object
-        
+
         if (info.getToken() == Boolean.TRUE) {
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
                 .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
@@ -3988,7 +4136,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             svcToken.sign(privateKey.getKey());
             identity.setServiceToken(svcToken.getSignedToken());
         }
-        
+
         return identity;
     }
 
@@ -4010,7 +4158,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalDomain = principal.getDomain();
 
         // generate identity with the ssh certificate
-        
+
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
         if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, sshCertRequest,
@@ -4136,7 +4284,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         validateRequest(ctx.request(), principalDomain, caller);
         validate(provider, TYPE_SERVICE_NAME, principalDomain, caller);
         validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
@@ -4149,11 +4297,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
         validatePrincipalNotRoleIdentity(principal, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
+
         provider = provider.toLowerCase();
         domain = domain.toLowerCase();
         setRequestDomain(ctx, domain);
@@ -4188,7 +4336,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domain, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(service, TYPE_SIMPLE_NAME, principalDomain, caller);
@@ -4204,7 +4352,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
-        
+
         domain = domain.toLowerCase();
         setRequestDomain(ctx, domain);
         service = service.toLowerCase();
@@ -4216,49 +4364,49 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         boolean userRequest = false;
 
         if (!fullServiceName.equals(principalName)) {
-            
+
             // if this not a match then we're going to allow the operation
             // only if the principal has been authorized to manage
             // services within the given domain
-            
+
             try {
                 userRequest = authorizer.access("update", domain + ":service", principal, null);
             } catch (ResourceException ex) {
                 LOGGER.error("postInstanceRefreshRequest: access check failure for {}: {}",
                         principalName, ex.getMessage());
             }
-           
+
             if (!userRequest) {
                 throw requestError("Principal mismatch: " + fullServiceName + " vs. " +
                         principalName, caller, domain, principalDomain);
             }
         }
-         
+
         // need to verify (a) it's not a user and (b) the public key for the request
         // must match what's in the CSR. Personal domain users cannot get personal
         // TLS certificates from ZTS
-        
+
         if (userDomain.equalsIgnoreCase(domain)) {
             throw requestError("TLS Certificates require ServiceTokens: " +
                     fullServiceName, caller, domain, principalDomain);
         }
-        
+
         // determine if this is a refresh or initial request
-        
+
         final Authority authority = principal.getAuthority();
         boolean refreshOperation = (!userRequest && (authority instanceof CertificateAuthority));
-        
+
         // retrieve the public key for the request for verification
-        
+
         final String keyId = userRequest || refreshOperation ? req.getKeyId() : principal.getKeyId();
         String publicKey = getPublicKey(domain, service, keyId);
         if (publicKey == null) {
             throw requestError("Unable to retrieve public key for " + fullServiceName +
                     " with key id: " + keyId, caller, domain, principalDomain);
         }
-        
+
         // validate that the cn and public key match to the provided details
-        
+
         X509CertRequest x509CertReq;
         try {
             x509CertReq = new X509CertRequest(req.getCsr());
@@ -4266,7 +4414,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw requestError("Unable to parse PKCS10 certificate request",
                     caller, domain, principalDomain);
         }
-        
+
         final PKCS10CertificationRequest certReq = x509CertReq.getCertReq();
         if (!ZTSUtils.verifyCertificateRequest(certReq, domain, service)) {
             throw requestError("Invalid CSR - data mismatch", caller, domain, principalDomain);
@@ -4287,7 +4435,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // verify that the public key in the csr matches to the service
         // public key registered in Athenz
-        
+
         if (!x509CertReq.validatePublicKeys(publicKey)) {
             throw requestError("Invalid CSR - public key mismatch", caller, domain, principalDomain);
         }
@@ -4310,7 +4458,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // certificate authority then we're refreshing our certificate as
         // opposed to requesting a new one for the service so we're going
         // to do further validation based on the certificate we authenticated
-        
+
         if (refreshOperation) {
             ServiceX509RefreshRequestStatus status =  validateServiceX509RefreshRequest(principal,
                     x509CertReq, ipAddress);
@@ -4323,9 +4471,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                         caller, domain, principalDomain);
             }
         }
-        
+
         // generate identity with the certificate
-        
+
         int expiryTime = req.getExpiryTime() != null ? req.getExpiryTime() : 0;
         Identity identity = ZTSUtils.generateIdentity(instanceCertManager, null, null, req.getCsr(),
                 fullServiceName, null, expiryTime);
@@ -4342,32 +4490,32 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         return identity;
     }
-    
+
     ServiceX509RefreshRequestStatus validateServiceX509RefreshRequest(final Principal principal,
             final X509CertRequest certReq, final String ipAddress) {
-        
+
         // retrieve the certificate that was used for authentication
         // and verify that the dns names in the certificate match to
         // the values specified in the CSR
-        
+
         X509Certificate cert = principal.getX509Certificate();
         if (!certReq.validateDnsNames(cert)) {
             return ServiceX509RefreshRequestStatus.DNS_NAME_MISMATCH;
         }
-        
+
         // validate that the certificate and csr both are based
         // on the same public key
-        
+
         if (!certReq.validatePublicKeys(cert)) {
             return ServiceX509RefreshRequestStatus.PUBLIC_KEY_MISMATCH;
         }
-        
+
         // finally verify that the ip address is in the allowed range
-        
+
         if (!instanceCertManager.verifyCertRefreshIPAddress(ipAddress)) {
             return ServiceX509RefreshRequestStatus.IP_NOT_ALLOWED;
         }
-        
+
         return ServiceX509RefreshRequestStatus.SUCCESS;
     }
 
@@ -4422,25 +4570,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     long getSvcTokenExpiryTime(Integer expiryTime) {
-        
+
         long requestedValue = (expiryTime != null) ? expiryTime : ZTS_NTOKEN_DEFAULT_EXPIRY;
         if (requestedValue <= 0) {
             requestedValue = ZTS_NTOKEN_DEFAULT_EXPIRY;
         } else if (requestedValue > ZTS_NTOKEN_MAX_EXPIRY) {
             requestedValue = ZTS_NTOKEN_MAX_EXPIRY;
         }
-        
+
         return requestedValue;
     }
-    
+
     Principal createPrincipalForName(String principalName) {
-        
+
         String domain;
         String name;
-        
+
         // if we have no . in the principal name we're going to default
         // to our configured user domain
-        
+
         int idx = principalName.lastIndexOf('.');
         if (idx == -1) {
             domain = userDomain;
@@ -4452,10 +4600,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
             name = principalName.substring(idx + 1);
         }
-        
+
         return SimplePrincipal.create(domain, name, (String) null);
     }
-    
+
     @Override
     public ResourceAccess getResourceAccessExt(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
@@ -4465,11 +4613,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         validateRequest(ctx.request(), principalDomain, caller);
         validate(action, TYPE_COMPOUND_NAME, principalDomain, caller);
-        
+
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
                 trustDomain, checkPrincipal);
     }
-    
+
     @Override
     public ResourceAccess getResourceAccess(ResourceContext ctx, String action, String resource,
             String trustDomain, String checkPrincipal) {
@@ -4484,7 +4632,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
                 trustDomain, checkPrincipal);
     }
-    
+
     ResourceAccess getResourceAccessCheck(ResourceContext ctx, Principal principal, String action, String resource,
             String trustDomain, String checkPrincipal) {
 
@@ -4493,36 +4641,36 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // if the check principal is given then we need to carry out the access
         // check against that principal
-        
+
         if (checkPrincipal != null) {
             principal = createPrincipalForName(checkPrincipal.toLowerCase());
         }
-        
+
         // create our response object and set the flag whether
         // or not the principal has access to the resource
-        
+
         ResourceAccess access = new ResourceAccess();
         access.setGranted(authorizer.access(action, resource, principal, trustDomain));
-        
+
         return access;
     }
-    
+
     @Override
     public Access getAccess(ResourceContext ctx, String domainName, String roleName,
             String principal) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-        
+
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(roleName, TYPE_ENTITY_NAME, principalDomain, caller);
         validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
-        
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
         // saves all of its object names in lower case
-        
+
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
         roleName = roleName.toLowerCase();
@@ -4531,7 +4679,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getAccess(domain: {}, principal: {}, role: {})", domainName, principal, roleName);
         }
-        
+
         // first retrieve our domain data object from the cache
 
         DataCache data = dataStore.getDataCache(domainName);
@@ -4540,19 +4688,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("getAccess: No such domain: " + domainName, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         // process our request and retrieve the roles for the principal
-        
+
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principal, null,
                 roles, false);
-        
+
         // create our response object and set the flag whether
         // or not the principal has access to the role
-        
+
         Access access = new Access();
         access.setGranted(roles.contains(roleName));
-        
+
         return access;
     }
 
@@ -4593,7 +4741,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         // validate our request as status request
-        
+
         validateRequest(ctx.request(), principalDomain, caller, true);
 
         // for now we're going to verify our certsigner connectivity
@@ -4687,42 +4835,42 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     public Schema getRdlSchema(ResourceContext context) {
         return schema;
     }
-    
+
     void validateRequest(HttpServletRequest request, final String principalDomain, final String caller) {
         validateRequest(request, principalDomain, caller, false);
     }
-    
+
     void validateRequest(HttpServletRequest request, final String principalDomain, final String caller,
                          boolean statusRequest) {
-        
+
         // first validate if we're required process this over TLS only
-        
+
         if (secureRequestsOnly && !request.isSecure()) {
             throw requestError(caller + "request must be over TLS", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
-        
+
         // second check if this is a status port so we can only
         // process on status requests
-        
+
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
-            
+
             // non status requests must not take place on the status port
-            
+
             if (!statusRequest && request.getLocalPort() == statusPort) {
                 throw requestError("incorrect port number for a non-status request",
                         caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }
-            
+
             // status requests must not take place on a non-status port
-            
+
             if (statusRequest && request.getLocalPort() != statusPort) {
                 throw requestError("incorrect port number for a status request",
                         caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }
         }
     }
-    
+
     void validate(Object val, final String type, final String principalDomain, final String caller) {
         if (val == null) {
             throw requestError("Missing or malformed " + type, caller,
@@ -4756,10 +4904,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     String logPrincipalAndGetDomain(ResourceContext ctx) {
-        
+
         // we are going to log our principal and validate that it
         // contains expected data
-        
+
         final String principalName = ((RsrcCtxWrapper) ctx).logPrincipal();
         final String principalDomain = ((RsrcCtxWrapper) ctx).getPrincipalDomain();
         if (principalName != null) {
@@ -4849,9 +4997,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     Authority getAuthority(String className) {
-        
+
         LOGGER.debug("Loading authority {}...", className);
-        
+
         Authority authority;
         try {
             authority = (Authority) Class.forName(className).newInstance();
@@ -4861,16 +5009,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
         return authority;
     }
-    
+
     public static String getRootDir() {
-        
+
         if (ROOT_DIR == null) {
             ROOT_DIR = System.getProperty(ZTSConsts.ZTS_PROP_ROOT_DIR, ZTSConsts.ATHENZ_ROOT_DIR);
         }
 
         return ROOT_DIR;
     }
-    
+
     String normalizeDomainAliasUser(String user) {
         if (user != null && userDomainAliasPrefix != null && user.startsWith(userDomainAliasPrefix)) {
             if (user.indexOf('.', userDomainAliasPrefix.length()) == -1) {
@@ -4918,7 +5066,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public void publishChangeMessage(ResourceContext ctx, int httpStatus) {
-        // do nothing..   
+        // do nothing..
     }
 
 }

@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zts;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
@@ -30,6 +31,8 @@ public class InstanceRefreshInformationTest {
         InstanceRefreshInformation i1 = new InstanceRefreshInformation();
         InstanceRefreshInformation i2 = new InstanceRefreshInformation();
 
+        Timestamp start = Timestamp.fromCurrentTime();
+
         // set
         i1.setAttestationData("doc");
         i1.setCsr("sample_csr");
@@ -39,6 +42,8 @@ public class InstanceRefreshInformationTest {
         i1.setHostname("host1.athenz.cloud");
         i1.setHostCnames(Collections.singletonList("host1"));
         i1.setSshCertRequest(new SSHCertRequest());
+        i1.setAthenzJWK(true);
+        i1.setAthenzJWKModified(start);
 
         i2.setAttestationData("doc");
         i2.setCsr("sample_csr");
@@ -48,6 +53,8 @@ public class InstanceRefreshInformationTest {
         i2.setHostname("host1.athenz.cloud");
         i2.setHostCnames(Collections.singletonList("host1"));
         i2.setSshCertRequest(new SSHCertRequest());
+        i2.setAthenzJWK(true);
+        i2.setAthenzJWKModified(start);
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -58,6 +65,8 @@ public class InstanceRefreshInformationTest {
         assertEquals(i1.getHostname(), "host1.athenz.cloud");
         assertEquals(i1.getHostCnames(), Collections.singletonList("host1"));
         assertEquals(i1.getSshCertRequest(), new SSHCertRequest());
+        assertEquals(i1.getAthenzJWK(), Boolean.TRUE);
+        assertEquals(i1.getAthenzJWKModified(), start);
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -119,6 +128,20 @@ public class InstanceRefreshInformationTest {
         i2.setSshCertRequest(new SSHCertRequest().setCsr("csr"));
         assertNotEquals(i1, i2);
         i2.setSshCertRequest(new SSHCertRequest());
+        assertEquals(i1, i2);
+
+        i2.setAthenzJWK(null);
+        assertNotEquals(i1, i2);
+        i2.setAthenzJWK(false);
+        assertNotEquals(i1, i2);
+        i2.setAthenzJWK(true);
+        assertEquals(i1, i2);
+
+        i2.setAthenzJWKModified(Timestamp.fromMillis(101));
+        assertNotEquals(i1, i2);
+        i2.setAthenzJWKModified(null);
+        assertNotEquals(i1, i2);
+        i2.setAthenzJWKModified(start);
         assertEquals(i1, i2);
     }
 }

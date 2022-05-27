@@ -49,6 +49,7 @@ import com.yahoo.athenz.zts.ZTSAuthorizer.AccessStatus;
 import com.yahoo.athenz.zts.ZTSImpl.AthenzObject;
 import com.yahoo.athenz.zts.ZTSImpl.ServiceX509RefreshRequestStatus;
 import com.yahoo.athenz.zts.cache.DataCache;
+import com.yahoo.athenz.zts.cache.DataCacheTest;
 import com.yahoo.athenz.zts.cert.InstanceCertManager;
 import com.yahoo.athenz.zts.cert.X509CertRequest;
 import com.yahoo.athenz.zts.cert.X509RoleCertRequest;
@@ -96,6 +97,8 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -417,27 +420,7 @@ public class ZTSImplTest {
         List<ServiceIdentity> services = new ArrayList<>();
 
         if (includeServices) {
-
-            ServiceIdentity service = new ServiceIdentity();
-            service.setName(generateServiceIdentityName(domainName, serviceName));
-            service.setProviderEndpoint("https://localhost:4443/zts");
-            setServicePublicKey(service, "0", ZTS_Y64_CERT0);
-
-            List<String> hosts = new ArrayList<>();
-            hosts.add("host1");
-            hosts.add("host2");
-            service.setHosts(hosts);
-            services.add(service);
-
-            service = new ServiceIdentity();
-            service.setName(generateServiceIdentityName(domainName, "backup"));
-            setServicePublicKey(service, "0", ZTS_Y64_CERT0);
-
-            hosts = new ArrayList<>();
-            hosts.add("host2");
-            hosts.add("host3");
-            service.setHosts(hosts);
-            services.add(service);
+            services = createServices(domainName, serviceName);
         }
 
         List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
@@ -494,6 +477,33 @@ public class ZTSImplTest {
         signedDomain.setKeyId("0");
 
         return signedDomain;
+    }
+
+    private List<ServiceIdentity> createServices(String domainName, String serviceName) {
+        List<ServiceIdentity> services = new ArrayList<>();
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(generateServiceIdentityName(domainName, serviceName));
+        service.setProviderEndpoint("https://localhost:4443/zts");
+        service.setModified(Timestamp.fromCurrentTime());
+        setServicePublicKey(service, "0", ZTS_Y64_CERT0);
+
+        List<String> hosts = new ArrayList<>();
+        hosts.add("host1");
+        hosts.add("host2");
+        service.setHosts(hosts);
+        services.add(service);
+
+        service = new ServiceIdentity();
+        service.setName(generateServiceIdentityName(domainName, "backup"));
+        setServicePublicKey(service, "0", ZTS_Y64_CERT0);
+
+        hosts = new ArrayList<>();
+        hosts.add("host2");
+        hosts.add("host3");
+        service.setHosts(hosts);
+        service.setModified(Timestamp.fromCurrentTime());
+        services.add(service);
+        return services;
     }
 
     private SignedDomain createSignedDomainExpiration(String domainName, String serviceName) {
@@ -2164,6 +2174,127 @@ public class ZTSImplTest {
         svc = zts.getServiceIdentity(context, "coretech", "backup");
         assertNotNull(svc);
         assertEquals(svc.getName(), "coretech.backup");
+    }
+
+    @Test
+    public void testGetAthenzJWK() throws InterruptedException {
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(
+                Stream.of(createServices("sys.auth", "zts"),
+                                createServices("sys.auth", "zms"))
+                        .flatMap(List::stream).collect(Collectors.toList())
+        );
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        AthenzJWKConfig initialConf = zts.getAthenzJWKConfig(context);
+
+        // add public key to sys.auth domain
+        DomainData sysAuthDomain = zts.dataStore.getDomainData("sys.auth");
+        ServiceIdentity ztsSrv = sysAuthDomain.getServices().stream()
+                .filter(s -> s.getName().equals("sys.auth.zts"))
+                .findFirst().get();
+        ztsSrv.getPublicKeys().add(new com.yahoo.athenz.zms.PublicKeyEntry().setId("1").setKey(DataCacheTest.ZTS_Y64_CERT2));
+        ztsSrv.setModified(Timestamp.fromMillis(System.currentTimeMillis() + 24 * 60 * 60 * 1000));
+        zts.dataStore.processDomainData(sysAuthDomain);
+
+        // since not enough time left (default is 24h) - AthenzJWKConfig should remain the same
+        assertEquals(initialConf, zts.getAthenzJWKConfig(context));
+
+        // now, change the time between config updates
+        int backup = zts.millisBetweenAthenzJWKUpdates;
+        zts.millisBetweenAthenzJWKUpdates = 0;
+
+        Thread.sleep(10);
+        AthenzJWKConfig newConfig = zts.getAthenzJWKConfig(context);
+
+        // zts keys should be updated
+        assertNotEquals(initialConf, newConfig);
+        assertEquals(newConfig.getZts().getKeys().size(), 2);
+
+        zts.millisBetweenAthenzJWKUpdates = backup;
+    }
+
+
+    @Test
+    public void testAthenzJWKConfChanged() {
+
+        zts.jwkConfig = new AthenzJWKConfig().setModified(Timestamp.fromMillis(100));
+
+        Timestamp zmsModified = Timestamp.fromMillis(99);
+        Timestamp ztsModified = Timestamp.fromMillis(99);
+
+        assertFalse(zts.hasNewJWKConfig(zmsModified, ztsModified));
+
+        zmsModified = Timestamp.fromMillis(101);
+        assertTrue(zts.hasNewJWKConfig(zmsModified, ztsModified));
+
+    }
+
+    @Test
+    public void testFillAthenzJWKConfig() {
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(
+                Stream.of(createServices("sys.auth", "zts"),
+                                createServices("sys.auth", "zms"))
+                        .flatMap(List::stream).collect(Collectors.toList())
+        );
+
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        InstanceIdentity id = new InstanceIdentity();
+
+        // with older timestamp only - should not fill the config
+        zts.fillAthenzJWKConfig(context, false, Timestamp.fromMillis(99), id);
+        assertNull(id.getAthenzJWK());
+
+        // without athenz config - should not fill the config
+        zts.fillAthenzJWKConfig(context, false, null, id);
+        assertNull(id.getAthenzJWK());
+
+        // with athenz config and newer timestamp - should not fill the config
+        zts.fillAthenzJWKConfig(context, true, Timestamp.fromDate(new Date(System.currentTimeMillis() + (1000 * 60 * 60 * 24))), id);
+        assertNull(id.getAthenzJWK());
+
+        // with athenz config and without timestamp - should fill the config
+        zts.fillAthenzJWKConfig(context, true, null, id);
+        assertEquals(id.getAthenzJWK(), zts.jwkConfig);
+
+        InstanceIdentity id1 = new InstanceIdentity();
+
+        // with athenz config and older timestamp - should fill the config
+        zts.fillAthenzJWKConfig(context, true, Timestamp.fromMillis(99), id1);
+        assertEquals(id1.getAthenzJWK(), zts.jwkConfig);
+    }
+
+    @Test
+    public void testLoadAthenzJWK() {
+
+
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(
+                Stream.of(createServices("sys.auth", "zts"),
+                                createServices("sys.auth", "zms"))
+                        .flatMap(List::stream).collect(Collectors.toList())
+        );
+
+        ZTSImpl newZts = new ZTSImpl(cloudStore, store);
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+
+        assertNotNull(newZts.jwkConfig);
+        assertNotNull(newZts.jwkConfig.zts);
+        assertNotNull(newZts.jwkConfig.zms);
+        assertNotNull(newZts.jwkConfig.modified);
     }
 
     @Test
@@ -13012,7 +13143,7 @@ public class ZTSImplTest {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
     }
-  
+
     @Test
     public void testChangeMessage() {
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);

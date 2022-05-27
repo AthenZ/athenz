@@ -37,6 +37,12 @@ public class InstanceRefreshInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> hostCnames;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean athenzJWK;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp athenzJWKModified;
 
     public InstanceRefreshInformation setAttestationData(String attestationData) {
         this.attestationData = attestationData;
@@ -94,6 +100,20 @@ public class InstanceRefreshInformation {
     public List<String> getHostCnames() {
         return hostCnames;
     }
+    public InstanceRefreshInformation setAthenzJWK(Boolean athenzJWK) {
+        this.athenzJWK = athenzJWK;
+        return this;
+    }
+    public Boolean getAthenzJWK() {
+        return athenzJWK;
+    }
+    public InstanceRefreshInformation setAthenzJWKModified(Timestamp athenzJWKModified) {
+        this.athenzJWKModified = athenzJWKModified;
+        return this;
+    }
+    public Timestamp getAthenzJWKModified() {
+        return athenzJWKModified;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -124,6 +144,12 @@ public class InstanceRefreshInformation {
                 return false;
             }
             if (hostCnames == null ? a.hostCnames != null : !hostCnames.equals(a.hostCnames)) {
+                return false;
+            }
+            if (athenzJWK == null ? a.athenzJWK != null : !athenzJWK.equals(a.athenzJWK)) {
+                return false;
+            }
+            if (athenzJWKModified == null ? a.athenzJWKModified != null : !athenzJWKModified.equals(a.athenzJWKModified)) {
                 return false;
             }
         }
