@@ -2177,6 +2177,47 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetAthenzJwkNoServices() throws InterruptedException {
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
+                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        ResourceContext context = createResourceContext(principal);
+        try {
+            zts.getAthenzJWKConfig(context);
+            fail();
+        } catch (ResourceException e) { // sys.auth domain does not exist
+            assertEquals(e.getCode(), 404);
+        }
+
+        // process sys.auth domain without zms service
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        providerDomain.getDomain().setServices(createServices("sys.auth", "zts"));
+        try {
+            zts.getAthenzJWKConfig(context);
+            fail();
+        } catch (ResourceException e) { // sys.auth.zms does not exist
+            assertEquals(e.getCode(), 404);
+        }
+
+        // add zms service without public key
+        ServiceIdentity sysAuthZms = createServices("sys.auth", "zms").get(0);
+        sysAuthZms.setPublicKeys(null);
+        providerDomain.getDomain().getServices().add(sysAuthZms);
+
+        AthenzJWKConfig conf = zts.getAthenzJWKConfig(context);
+        assertNull(conf.zms);
+        assertNull(conf.zts);
+
+        // invalid public key
+        com.yahoo.athenz.zms.PublicKeyEntry pk = new com.yahoo.athenz.zms.PublicKeyEntry()
+                .setKey("key");
+        sysAuthZms.setPublicKeys(Collections.singletonList(pk));
+        conf = zts.getAthenzJWKConfig(context);
+        assertNull(conf.zms);
+        assertNull(conf.zts);
+    }
+
+    @Test
     public void testGetAthenzJWK() throws InterruptedException {
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -2217,6 +2258,28 @@ public class ZTSImplTest {
         assertEquals(newConfig.getZts().getKeys().size(), 2);
 
         zts.millisBetweenAthenzJWKUpdates = backup;
+    }
+
+    @Test
+    public void testAthenzJWKConfChangedNoModifyTime() {
+
+        zts.jwkConfig = new AthenzJWKConfig().setModified(Timestamp.fromMillis(100));
+
+        Timestamp zmsModified = Timestamp.fromMillis(99);
+        Timestamp ztsModified = null;
+
+        assertFalse(zts.hasNewJWKConfig(zmsModified, ztsModified));
+
+    }
+
+    @Test
+    public void testInvalidSysAuthService() {
+        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        store.processSignedDomain(providerDomain, false);
+        com.yahoo.athenz.zts.ServiceIdentity ztsService = zts.sysAuthService(ZTS_SERVICE);
+        com.yahoo.athenz.zts.ServiceIdentity zmsService = zts.sysAuthService(ZMS_SERVICE);
+        assertNull(ztsService);
+        assertNull(zmsService);
     }
 
 

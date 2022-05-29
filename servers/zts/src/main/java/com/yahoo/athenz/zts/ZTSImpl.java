@@ -382,7 +382,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
-    private ServiceIdentity sysAuthService(String serviceName) {
+    protected ServiceIdentity sysAuthService(String serviceName) {
         DomainData domainData = dataStore.getDomainData(ZTSImpl.SYS_AUTH);
         if (domainData == null) {
             LOGGER.warn("sys.auth domain not found, cannot find service : {}", serviceName);
@@ -919,11 +919,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     final ServiceIdentity ztsService = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZTS_SERVICE);
                     final ServiceIdentity zmsService = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZMS_SERVICE);
 
-                    if (ztsService == null || zmsService == null) {
-                        LOGGER.error("ZMS or ZTS Services are null! cannot build Athenz JWK config file. ZMS: {}, ZTS: {}", zmsService, ztsService);
-                        return;
-                    }
-
                     if (hasNewJWKConfig(zmsService.getModified(), ztsService.getModified())) {
                         updateAthenzJWK(ztsService, zmsService);
                     }
@@ -935,6 +930,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private void updateAthenzJWK(ServiceIdentity ztsService, ServiceIdentity zmsService) {
         List<PublicKeyEntry> ztsPublicKeys = ztsService.getPublicKeys();
         List<PublicKeyEntry> zmsPublicKeys = zmsService.getPublicKeys();
+
+        if (ztsPublicKeys == null || zmsPublicKeys == null) {
+            LOGGER.error("ZMS or ZTS public keys are null! cannot build Athenz JWK config file. ZMS: {}, ZTS: {}", zmsPublicKeys, ztsPublicKeys);
+            return;
+        }
 
         final List<JWK> ztsJWKList = getJWKList(ztsPublicKeys);
         final List<JWK> zmsJWKList = getJWKList(zmsPublicKeys);
