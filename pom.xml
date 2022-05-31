@@ -72,14 +72,14 @@
 
   <properties>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <aws.version>1.12.215</aws.version>
-    <aws2.version>2.17.186</aws2.version>
+    <aws.version>1.12.230</aws.version>
+    <aws2.version>2.17.201</aws2.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <commons.daemon.version>1.3.0</commons.daemon.version>
+    <commons.daemon.version>1.3.1</commons.daemon.version>
     <guava.version>31.1-jre</guava.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <jackson-core.version>2.13.2</jackson-core.version>
-    <jackson-databind.version>2.13.2.2</jackson-databind.version>
+    <jackson-core.version>2.13.3</jackson-core.version>
+    <jackson-databind.version>2.13.3</jackson-databind.version>
     <jakarta.activation.version>2.0.1</jakarta.activation.version>
     <jakarta.annotation.version>2.1.0</jakarta.annotation.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
@@ -91,23 +91,29 @@
     <jjwt.version>0.11.5</jjwt.version>
     <jmockit.version>1.49</jmockit.version>
     <logback.client.version>1.2.11</logback.client.version>
-    <logback.server.version>1.3.0-alpha14</logback.server.version>
+    <logback.server.version>1.3.0-alpha16</logback.server.version>
     <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+    <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <maven-exec-plugin.version>3.0.0</maven-exec-plugin.version>
+    <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+    <maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
     <maven-jacoco-plugin.version>0.8.8</maven-jacoco-plugin.version>
-    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+    <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.4.0</maven-javadoc-plugin.version>
+    <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
     <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
+    <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M6</maven-surefire-plugin.version>
     <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
-    <mockito.version>4.5.1</mockito.version>
+    <mockito.version>4.6.0</mockito.version>
     <mysql.connector.version>8.0.29</mysql.connector.version>
-    <nimbus.jose.version>9.22</nimbus.jose.version>
+    <nimbus.jose.version>9.23</nimbus.jose.version>
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.0-alpha7</slf4j.server.version>
+    <testng.version>7.6.0</testng.version>
     <swagger.version>2.2.0</swagger.version>
 
     <code.coverage.min>0.95</code.coverage.min>
@@ -188,17 +194,17 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
-          <version>2.4</version>
+          <version>${maven-install-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>${maven-war-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.3</version>
+          <version>${maven-release-plugin.version}</version>
           <configuration>
             <autoVersionSubmodules>true</autoVersionSubmodules>
             <tagNameFormat>v@{project.version}</tagNameFormat>
@@ -207,7 +213,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>${maven-assembly-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -215,7 +221,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
+        <version>${maven-checkstyle-plugin.version}</version>
         <executions>
           <execution>
             <id>validate</id>
@@ -236,7 +242,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.0.1</version>
+        <version>${maven-source-plugin.version}</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -337,7 +343,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>7.5</version>
+      <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -380,7 +386,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
+            <version>${maven-gpg-plugin.version}</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
