@@ -507,6 +507,7 @@ func init() {
 	mGetResourceAccess.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetResourceAccess.Exception("FORBIDDEN", "ResourceError", "")
 	mGetResourceAccess.Exception("NOT_FOUND", "ResourceError", "")
+	mGetResourceAccess.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetResourceAccess.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetResourceAccess.Build())
 
@@ -521,6 +522,7 @@ func init() {
 	mGetResourceAccessExt.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetResourceAccessExt.Exception("FORBIDDEN", "ResourceError", "")
 	mGetResourceAccessExt.Exception("NOT_FOUND", "ResourceError", "")
+	mGetResourceAccessExt.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetResourceAccessExt.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetResourceAccessExt.Build())
 
@@ -531,6 +533,7 @@ func init() {
 	mGetServiceIdentity.Auth("", "", true, "")
 	mGetServiceIdentity.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetServiceIdentity.Exception("NOT_FOUND", "ResourceError", "")
+	mGetServiceIdentity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetServiceIdentity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetServiceIdentity.Build())
 
@@ -540,6 +543,7 @@ func init() {
 	mGetServiceIdentityList.Auth("", "", true, "")
 	mGetServiceIdentityList.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetServiceIdentityList.Exception("NOT_FOUND", "ResourceError", "")
+	mGetServiceIdentityList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetServiceIdentityList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetServiceIdentityList.Build())
 
@@ -551,6 +555,8 @@ func init() {
 	mGetPublicKeyEntry.Auth("", "", true, "")
 	mGetPublicKeyEntry.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetPublicKeyEntry.Exception("NOT_FOUND", "ResourceError", "")
+	mGetPublicKeyEntry.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetPublicKeyEntry.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetPublicKeyEntry.Build())
 
 	mGetHostServices := rdl.NewResourceBuilder("HostServices", "GET", "/host/{host}/services")
@@ -558,6 +564,8 @@ func init() {
 	mGetHostServices.Input("host", "String", true, "", "", false, nil, "name of the host")
 	mGetHostServices.Auth("", "", true, "")
 	mGetHostServices.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetHostServices.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetHostServices.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetHostServices.Build())
 
 	mGetDomainSignedPolicyData := rdl.NewResourceBuilder("DomainSignedPolicyData", "GET", "/domain/{domainName}/signed_policy_data")
@@ -568,6 +576,8 @@ func init() {
 	mGetDomainSignedPolicyData.Auth("", "", true, "")
 	mGetDomainSignedPolicyData.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetDomainSignedPolicyData.Exception("NOT_FOUND", "ResourceError", "")
+	mGetDomainSignedPolicyData.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetDomainSignedPolicyData.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetDomainSignedPolicyData.Build())
 
 	mPostSignedPolicyRequest := rdl.NewResourceBuilder("JWSPolicyData", "POST", "/domain/{domainName}/policy/signed")
@@ -579,6 +589,8 @@ func init() {
 	mPostSignedPolicyRequest.Auth("", "", true, "")
 	mPostSignedPolicyRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostSignedPolicyRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostSignedPolicyRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mPostSignedPolicyRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostSignedPolicyRequest.Build())
 
 	mGetRoleToken := rdl.NewResourceBuilder("RoleToken", "GET", "/domain/{domainName}/token")
@@ -592,6 +604,7 @@ func init() {
 	mGetRoleToken.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetRoleToken.Exception("FORBIDDEN", "ResourceError", "")
 	mGetRoleToken.Exception("NOT_FOUND", "ResourceError", "")
+	mGetRoleToken.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetRoleToken.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetRoleToken.Build())
 
@@ -604,6 +617,7 @@ func init() {
 	mPostRoleCertificateRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostRoleCertificateRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostRoleCertificateRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostRoleCertificateRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostRoleCertificateRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostRoleCertificateRequest.Build())
 
@@ -615,6 +629,7 @@ func init() {
 	mGetAccess.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetAccess.Exception("FORBIDDEN", "ResourceError", "")
 	mGetAccess.Exception("NOT_FOUND", "ResourceError", "")
+	mGetAccess.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetAccess.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetAccess.Build())
 
@@ -624,6 +639,7 @@ func init() {
 	mGetRoleAccess.Auth("", "", true, "")
 	mGetRoleAccess.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetRoleAccess.Exception("NOT_FOUND", "ResourceError", "")
+	mGetRoleAccess.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetRoleAccess.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetRoleAccess.Build())
 
@@ -636,6 +652,7 @@ func init() {
 	mGetTenantDomains.Auth("", "", true, "")
 	mGetTenantDomains.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetTenantDomains.Exception("NOT_FOUND", "ResourceError", "")
+	mGetTenantDomains.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetTenantDomains.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetTenantDomains.Build())
 
@@ -649,6 +666,7 @@ func init() {
 	mPostInstanceRefreshRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostInstanceRefreshRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mPostInstanceRefreshRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostInstanceRefreshRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostInstanceRefreshRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostInstanceRefreshRequest.Build())
 
@@ -662,6 +680,7 @@ func init() {
 	mGetAWSTemporaryCredentials.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("FORBIDDEN", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("NOT_FOUND", "ResourceError", "")
+	mGetAWSTemporaryCredentials.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetAWSTemporaryCredentials.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetAWSTemporaryCredentials.Build())
 
@@ -675,6 +694,7 @@ func init() {
 	mPostInstanceRegisterInformation.Exception("FORBIDDEN", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("NOT_FOUND", "ResourceError", "")
+	mPostInstanceRegisterInformation.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostInstanceRegisterInformation.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostInstanceRegisterInformation.Build())
 
@@ -690,6 +710,7 @@ func init() {
 	mPostInstanceRefreshInformation.Exception("FORBIDDEN", "ResourceError", "")
 	mPostInstanceRefreshInformation.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mPostInstanceRefreshInformation.Exception("NOT_FOUND", "ResourceError", "")
+	mPostInstanceRefreshInformation.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostInstanceRefreshInformation.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostInstanceRefreshInformation.Build())
 
@@ -704,6 +725,7 @@ func init() {
 	mGetInstanceRegisterToken.Exception("FORBIDDEN", "ResourceError", "")
 	mGetInstanceRegisterToken.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mGetInstanceRegisterToken.Exception("NOT_FOUND", "ResourceError", "")
+	mGetInstanceRegisterToken.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetInstanceRegisterToken.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetInstanceRegisterToken.Build())
 
@@ -719,6 +741,7 @@ func init() {
 	mDeleteInstanceIdentity.Exception("FORBIDDEN", "ResourceError", "")
 	mDeleteInstanceIdentity.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 	mDeleteInstanceIdentity.Exception("NOT_FOUND", "ResourceError", "")
+	mDeleteInstanceIdentity.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mDeleteInstanceIdentity.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mDeleteInstanceIdentity.Build())
 
@@ -728,6 +751,7 @@ func init() {
 	mGetCertificateAuthorityBundle.Auth("", "", true, "")
 	mGetCertificateAuthorityBundle.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetCertificateAuthorityBundle.Exception("NOT_FOUND", "ResourceError", "")
+	mGetCertificateAuthorityBundle.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetCertificateAuthorityBundle.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetCertificateAuthorityBundle.Build())
 
@@ -736,6 +760,7 @@ func init() {
 	mGetStatus.Auth("", "", true, "")
 	mGetStatus.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetStatus.Exception("NOT_FOUND", "ResourceError", "")
+	mGetStatus.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetStatus.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetStatus.Build())
 
@@ -746,20 +771,24 @@ func init() {
 	mPostSSHCertRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostSSHCertRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostSSHCertRequest.Exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
+	mPostSSHCertRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostSSHCertRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostSSHCertRequest.Build())
 
 	mGetOpenIDConfig := rdl.NewResourceBuilder("OpenIDConfig", "GET", "/.well-known/openid-configuration")
 	mGetOpenIDConfig.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetOpenIDConfig.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	sb.AddResource(mGetOpenIDConfig.Build())
 
 	mGetOAuthConfig := rdl.NewResourceBuilder("OAuthConfig", "GET", "/.well-known/oauth-authorization-server")
 	mGetOAuthConfig.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetOAuthConfig.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	sb.AddResource(mGetOAuthConfig.Build())
 
 	mGetJWKList := rdl.NewResourceBuilder("JWKList", "GET", "/oauth2/keys")
 	mGetJWKList.Input("rfc", "Bool", false, "rfc", "", true, false, "flag to indicate ec curve names are restricted to RFC values")
 	mGetJWKList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetJWKList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	sb.AddResource(mGetJWKList.Build())
 
 	mPostAccessTokenRequest := rdl.NewResourceBuilder("AccessTokenResponse", "POST", "/oauth2/token")
@@ -769,6 +798,7 @@ func init() {
 	mPostAccessTokenRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostAccessTokenRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostAccessTokenRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostAccessTokenRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostAccessTokenRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostAccessTokenRequest.Build())
 
@@ -788,6 +818,7 @@ func init() {
 	mGetOIDCResponse.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetOIDCResponse.Exception("FORBIDDEN", "ResourceError", "")
 	mGetOIDCResponse.Exception("NOT_FOUND", "ResourceError", "")
+	mGetOIDCResponse.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetOIDCResponse.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetOIDCResponse.Build())
 
@@ -799,6 +830,7 @@ func init() {
 	mPostRoleCertificateRequestExt.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostRoleCertificateRequestExt.Exception("FORBIDDEN", "ResourceError", "")
 	mPostRoleCertificateRequestExt.Exception("NOT_FOUND", "ResourceError", "")
+	mPostRoleCertificateRequestExt.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostRoleCertificateRequestExt.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostRoleCertificateRequestExt.Build())
 
@@ -852,7 +884,9 @@ func init() {
 	mGetInfo.Comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
 	mGetInfo.Auth("get", "sys.auth:info", false, "")
 	mGetInfo.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetInfo.Exception("FORBIDDEN", "ResourceError", "")
 	mGetInfo.Exception("NOT_FOUND", "ResourceError", "")
+	mGetInfo.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetInfo.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetInfo.Build())
 

@@ -26,8 +26,10 @@ resource Quota GET "/domain/{name}/quota" {
     DomainName name; //name of the domain
     authenticate;
     exceptions {
+        ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -44,6 +46,7 @@ resource Quota PUT "/domain/{name}/quota" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -59,5 +62,6 @@ resource Quota DELETE "/domain/{name}/quota" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

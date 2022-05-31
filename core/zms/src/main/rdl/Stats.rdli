@@ -27,6 +27,8 @@ resource Stats GET "/domain/{name}/stats" {
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -35,5 +37,8 @@ resource Stats GET "/sys/stats" (name=getSystemStats) {
     authorize ("get", "sys.auth:stats");
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError UNAUTHORIZED;
+        ResourceError FORBIDDEN;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

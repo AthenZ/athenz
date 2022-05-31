@@ -8,6 +8,7 @@ resource OpenIDConfig GET "/.well-known/openid-configuration" {
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -15,6 +16,7 @@ resource OAuthConfig GET "/.well-known/oauth-authorization-server" {
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -23,6 +25,7 @@ resource JWKList GET "/oauth2/keys?rfc={rfc}" {
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -36,6 +39,7 @@ resource AccessTokenResponse POST "/oauth2/token" {
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -57,5 +61,6 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

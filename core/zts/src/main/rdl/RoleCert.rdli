@@ -14,6 +14,7 @@ resource RoleCertificate POST "/rolecert" (name=PostRoleCertificateRequestExt) {
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 

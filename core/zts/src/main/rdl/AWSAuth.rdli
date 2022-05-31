@@ -36,5 +36,6 @@ resource AWSTemporaryCredentials GET "/domain/{domainName}/role/{role}/creds?dur
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

@@ -2506,6 +2506,8 @@ public class ZMSSchema {
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
@@ -2522,6 +2524,8 @@ public class ZMSSchema {
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
@@ -2551,6 +2555,8 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("ServicePrincipal", "GET", "/principal")
@@ -2618,6 +2624,10 @@ public class ZMSSchema {
             .queryParam("domain", "domainName", "DomainName", null, "name of the allowed user-domains and/or aliases")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
@@ -2670,6 +2680,10 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("Quota", "PUT", "/domain/{name}/quota")
@@ -2686,6 +2700,8 @@ public class ZMSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -2704,6 +2720,8 @@ public class ZMSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -2714,6 +2732,8 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -2757,6 +2777,10 @@ public class ZMSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("Stats", "GET", "/sys/stats")
@@ -2765,6 +2789,12 @@ public class ZMSSchema {
             .auth("get", "sys.auth:stats")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("DependentService", "PUT", "/dependency/domain/{domainName}")
@@ -2860,7 +2890,11 @@ public class ZMSSchema {
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
+            .exception("FORBIDDEN", "ResourceError", "")
+
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
