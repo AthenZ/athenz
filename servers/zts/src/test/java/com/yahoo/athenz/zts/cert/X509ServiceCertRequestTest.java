@@ -119,7 +119,7 @@ public class X509ServiceCertRequestTest {
 
         assertFalse(certReq.validate("athenz", "production", "provider",
                 null, athenzSysDomainCache, null, null, null, null, errorMsg));
-        assertTrue(errorMsg.toString().contains("invalid dns suffix"));
+        assertEquals(errorMsg.toString(), "production.athenz.ostk.athenz.cloud does not end with provider/service configured suffix or hostname");
     }
 
     @Test
