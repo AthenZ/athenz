@@ -24,5 +24,6 @@ resource Identity POST "/instance/{domain}/{service}/refresh" {
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

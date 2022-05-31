@@ -40,6 +40,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -75,6 +77,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -106,6 +110,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -135,6 +141,8 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -168,6 +176,10 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPublicKeyEntry");
                 throw typedException(code, e, ResourceError.class);
@@ -193,6 +205,10 @@ public class ZTSResources {
             code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getHostServices");
@@ -222,6 +238,10 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainSignedPolicyData");
@@ -253,6 +273,10 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource postSignedPolicyRequest");
@@ -289,6 +313,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -323,6 +349,8 @@ public class ZTSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -359,6 +387,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -389,6 +419,8 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -422,6 +454,8 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -460,6 +494,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -496,6 +532,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -530,6 +568,8 @@ public class ZTSResources {
             case ResourceException.INTERNAL_SERVER_ERROR:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -571,6 +611,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -609,6 +651,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -646,6 +690,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -677,6 +723,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -706,6 +754,8 @@ public class ZTSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -740,6 +790,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.INTERNAL_SERVER_ERROR:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -768,6 +820,8 @@ public class ZTSResources {
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOpenIDConfig");
                 throw typedException(code, e, ResourceError.class);
@@ -793,6 +847,8 @@ public class ZTSResources {
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getOAuthConfig");
                 throw typedException(code, e, ResourceError.class);
@@ -817,6 +873,8 @@ public class ZTSResources {
             code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getJWKList");
@@ -848,6 +906,8 @@ public class ZTSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -888,6 +948,8 @@ public class ZTSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -920,6 +982,8 @@ public class ZTSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -1088,7 +1152,11 @@ public class ZTSResources {
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);

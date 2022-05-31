@@ -18,5 +18,6 @@ resource Status GET "/status" {
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

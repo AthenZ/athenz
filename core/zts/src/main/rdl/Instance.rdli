@@ -81,6 +81,7 @@ resource InstanceIdentity POST "/instance" {
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -101,6 +102,7 @@ resource InstanceIdentity POST "/instance/{provider}/{domain}/{service}/{instanc
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -123,6 +125,7 @@ resource InstanceRegisterToken GET "/instance/{provider}/{domain}/{service}/{ins
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -146,6 +149,7 @@ resource InstanceIdentity DELETE "/instance/{provider}/{domain}/{service}/{insta
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -163,5 +167,6 @@ resource CertificateAuthorityBundle GET "/cacerts/{name}" {
         ResourceError BAD_REQUEST;
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

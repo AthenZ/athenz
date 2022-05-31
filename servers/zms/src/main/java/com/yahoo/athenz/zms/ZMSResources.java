@@ -3610,6 +3610,8 @@ public class ZMSResources {
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
@@ -3644,6 +3646,8 @@ public class ZMSResources {
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.TOO_MANY_REQUESTS:
@@ -3708,6 +3712,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource optionsUserToken");
@@ -3885,6 +3891,10 @@ public class ZMSResources {
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
@@ -3994,6 +4004,10 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getQuota");
                 throw typedException(code, e, ResourceError.class);
@@ -4028,6 +4042,8 @@ public class ZMSResources {
             case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -4065,6 +4081,8 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
@@ -4095,6 +4113,8 @@ public class ZMSResources {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
@@ -4193,6 +4213,10 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getStats");
                 throw typedException(code, e, ResourceError.class);
@@ -4218,6 +4242,12 @@ public class ZMSResources {
             code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource getSystemStats");
@@ -4420,7 +4450,11 @@ public class ZMSResources {
             switch (code) {
             case ResourceException.BAD_REQUEST:
                 throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);

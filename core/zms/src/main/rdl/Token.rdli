@@ -32,6 +32,7 @@ resource UserToken OPTIONS "/user/{userName}/token?services={serviceNames}" {
     String serviceNames (optional); //comma separated list of on-behalf-of service names
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;
     }
 }

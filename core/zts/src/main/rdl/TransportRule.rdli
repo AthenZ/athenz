@@ -8,7 +8,6 @@ include "Names.tdl";
 resource TransportRules GET "/domain/{domainName}/service/{serviceName}/transportRules" {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
-
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
