@@ -781,6 +781,7 @@ func init() {
 	mGetOIDCResponse.Input("state", "EntityName", false, "state", "", true, nil, "optional state claim included in the response location header")
 	mGetOIDCResponse.Input("nonce", "EntityName", false, "nonce", "", false, nil, "nonce claim included in the id token")
 	mGetOIDCResponse.Input("keyType", "SimpleName", false, "keyType", "", true, nil, "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured")
+	mGetOIDCResponse.Input("fullArn", "Bool", false, "fullArn", "", true, false, "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)")
 	mGetOIDCResponse.Output("location", "String", "Location", false, "return location header with id token")
 	mGetOIDCResponse.Auth("", "", true, "")
 	mGetOIDCResponse.Expected("FOUND")

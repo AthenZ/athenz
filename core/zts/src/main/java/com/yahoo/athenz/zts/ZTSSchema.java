@@ -796,6 +796,7 @@ public class ZTSSchema {
             .queryParam("state", "state", "EntityName", null, "optional state claim included in the response location header")
             .queryParam("nonce", "nonce", "EntityName", null, "nonce claim included in the id token")
             .queryParam("keyType", "keyType", "SimpleName", null, "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured")
+            .queryParam("fullArn", "fullArn", "Bool", false, "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)")
             .output("Location", "location", "String", "return location header with id token")
             .auth("", "", true)
             .expected("FOUND")

@@ -39,7 +39,7 @@ func printVersion() {
 
 func main() {
 	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken, keyType, format string
-	var proxy, validate, claims, showVersion bool
+	var proxy, validate, claims, showVersion, fullArn bool
 	flag.StringVar(&clientId, "client-id", "", "client-id for the token")
 	flag.StringVar(&redirectUri, "redirect-uri", "", "redirect uri registered for the client-id")
 	flag.StringVar(&scope, "scope", "", "request scope")
@@ -50,6 +50,7 @@ func main() {
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
+	flag.BoolVar(&fullArn, "full-arn", false, "return full ARNs in group claim")
 	flag.StringVar(&conf, "conf", "/home/athenz/conf/athenz.conf", "path to configuration file with public keys")
 	flag.BoolVar(&validate, "validate", false, "validate id token")
 	flag.BoolVar(&claims, "claims", false, "display all claims from id token")
@@ -67,7 +68,7 @@ func main() {
 	if validate {
 		validateIdToken(idToken, conf, claims)
 	} else {
-		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format, proxy)
+		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format, &fullArn, proxy)
 	}
 }
 
@@ -112,13 +113,13 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	fmt.Println("Id Token successfully validated")
 }
 
-func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, proxy bool) {
+func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool) {
 
 	if ztsURL == "" {
 		usage()
 	}
 
-	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, proxy)
+	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, fullArn, proxy)
 	if err != nil {
 		log.Fatalf("unable to fetch id token: %v\n", err)
 	}

@@ -40,7 +40,7 @@ resource AccessTokenResponse POST "/oauth2/token" {
 }
 
 // Fetch OAuth OpenID Connect ID Token
-resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}" {
+resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}&fullArn={fullArn}" {
     String responseType; //response type - currently only supporting id tokens - id_token
     ServiceName clientId; //client id - must be valid athenz service identity name
     String redirectUri; //redirect uri for the response
@@ -48,6 +48,7 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
     EntityName state (optional); //optional state claim included in the response location header
     EntityName nonce; //nonce claim included in the id token
     SimpleName keyType (optional); //optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured
+    Bool fullArn (optional, default=false); //flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)
     String location (header="Location", out); //return location header with id token
     authenticate;
     expected FOUND;
