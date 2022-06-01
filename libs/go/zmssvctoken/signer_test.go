@@ -6,7 +6,7 @@ package zmssvctoken
 import (
 	"encoding/json"
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -102,7 +102,7 @@ func TestJwkRSASigner(t *testing.T) {
 	require.Nil(t, err, "should be able to convert pem to public key object")
 
 	// create new jwk key
-	jwkKey, err := jwk.New(pub)
+	jwkKey, err := jwk.FromRaw(pub)
 	require.Nil(t, err, "should be able to convert pub key to jwk")
 
 	// convert it to zts.JWK
@@ -123,7 +123,7 @@ func TestJwkECDSASigner(t *testing.T) {
 	require.Nil(t, err, "should be able to convert pem to public key object")
 
 	// create new jwk key
-	jwkKey, err := jwk.New(pub)
+	jwkKey, err := jwk.FromRaw(pub)
 	require.Nil(t, err, "should be able to convert pub key to jwk")
 
 	// convert it to zts.JWK

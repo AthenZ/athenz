@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"io/ioutil"
 	"log"
 	"os"

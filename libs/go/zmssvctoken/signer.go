@@ -14,7 +14,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"math/big"
 	"strings"
 )
