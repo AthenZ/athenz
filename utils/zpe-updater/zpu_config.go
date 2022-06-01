@@ -6,11 +6,13 @@ package zpu
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/AthenZ/athenz/clients/go/zts"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 
+	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 )
@@ -46,6 +48,7 @@ type ZpuConfiguration struct {
 	JWSPolicySupport  bool
 	PolicyVersions    map[string]string
 	ForceRefresh      bool
+	AthenzJWKConfig   *zts.AthenzJWKConfig
 }
 
 type AthenzConf struct {
@@ -81,7 +84,7 @@ type ZpuConf struct {
 	PolicyVersions    map[string]string `json:"policyVersions"`
 }
 
-func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfiguration, error) {
+func NewZpuConfiguration(root, athensConfFile, zpuConfFile, siaDir string) (*ZpuConfiguration, error) {
 	zmsKeysmap := make(map[string]string)
 	ztsKeysmap := make(map[string]string)
 	athenzConf, err := ReadAthenzConf(athensConfFile)
@@ -159,6 +162,15 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 	if user == "" {
 		user = "root"
 	}
+
+	jwkConfFile := fmt.Sprintf("%s/"+siautil.JwkConfFile, siaDir)
+	jwkConf := &zts.AthenzJWKConfig{}
+	err = siautil.ReadAthenzJwkConf(jwkConfFile, jwkConf)
+	if err != nil {
+		log.Printf(err.Error())
+		jwkConf = nil
+	}
+
 	return &ZpuConfiguration{
 		Zts:               athenzConf.ZtsUrl,
 		Zms:               athenzConf.ZmsUrl,
@@ -182,6 +194,7 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		CheckZMSSignature: zpuConf.CheckZMSSignature,
 		JWSPolicySupport:  zpuConf.JWSPolicySupport,
 		PolicyVersions:    zpuConf.PolicyVersions,
+		AthenzJWKConfig:   jwkConf,
 	}, nil
 }
 

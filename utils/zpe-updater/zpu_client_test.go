@@ -61,7 +61,7 @@ func getTestConfiguration() (*ZpuConfiguration, error) {
 	_ = devel.CreateFile(ConfPath+"/athenz.conf", athenzConf)
 	zpuConf := `{"domains":"test"}`
 	_ = devel.CreateFile(ConfPath+"/zpu.conf", zpuConf)
-	config, err := NewZpuConfiguration("", ConfPath+"/athenz.conf", ConfPath+"/zpu.conf")
+	config, err := NewZpuConfiguration("", ConfPath+"/athenz.conf", ConfPath+"/zpu.conf", ConfPath)
 	config.PolicyFileDir = PoliciesDir
 	config.TempPolicyFileDir = TempPoliciesDir
 	config.MetricsDir = MetricDir

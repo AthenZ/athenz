@@ -23,7 +23,7 @@ func main() {
 	if root == "" {
 		root = "/home/athenz"
 	}
-	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile, viewDomain string
+	var athenzConf, zpuConf, logFile, ztsURL, privateKeyFile, certFile, caCertFile, viewDomain, siaDir string
 	var forceRefresh, checkStatus, checkDetails bool
 	flag.StringVar(&athenzConf, "athenzConf", fmt.Sprintf("%s/conf/athenz/athenz.conf", root), "Athenz configuration file path for ZMS/ZTS urls and public keys")
 	flag.StringVar(&zpuConf, "zpuConf", fmt.Sprintf("%s/conf/zpu/zpu.conf", root), "ZPU utility configuration path")
@@ -36,6 +36,7 @@ func main() {
 	flag.BoolVar(&checkStatus, "check-status", false, "Check zpu state and display status only")
 	flag.BoolVar(&checkDetails, "check-details", false, "Check zpu state and display details")
 	flag.StringVar(&viewDomain, "view-domain", "", "view policy domain")
+	flag.StringVar(&siaDir, "sia-dir", "/var/lib/sia", "sia directory")
 
 	flag.Parse()
 
@@ -58,7 +59,7 @@ func main() {
 		log.SetOutput(&logger)
 	}
 
-	zpuConfig, err := zpu.NewZpuConfiguration(root, athenzConf, zpuConf)
+	zpuConfig, err := zpu.NewZpuConfiguration(root, athenzConf, zpuConf, siaDir)
 	if err != nil {
 		log.Fatalf("Unable to get zpu configuration, Error: %v", err)
 	}

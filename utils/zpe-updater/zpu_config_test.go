@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	athenzConf = "/tmp/athenz.conf"
-	zpuConf    = "/tmp/zpu.conf"
+	tempFolder = "/tmp"
+	athenzConf = tempFolder + "/athenz.conf"
+	zpuConf    = tempFolder + "/zpu.conf"
 )
 
 func TestReadAthenzConf(t *testing.T) {
@@ -138,7 +139,7 @@ func TestNewZpuConfiguration(t *testing.T) {
 	a.Nil(err)
 	err = devel.CreateFile(athenzConf, `{"zmsUrl":"zms_url","ztsUrl":"zts_url","ztsPublicKeys":[{"id":"0","key":"key0"}],"zmsPublicKeys":[{"id":"1","key":"key1"}]}`)
 	a.Nil(err)
-	config, err := NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err := NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 3600)
 	a.Equal(config.Zts, "zts_url")
@@ -164,7 +165,7 @@ func TestNewZpuConfiguration(t *testing.T) {
 	_ = os.Unsetenv("STARTUP_DELAY")
 	err = devel.CreateFile(zpuConf, `{"domains":"domain"}`)
 	a.Nil(err)
-	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err = NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 0)
 	a.Equal(config.Zts, "zts_url")
@@ -188,32 +189,32 @@ func TestNewZpuConfiguration(t *testing.T) {
 
 	//Start up delay more than max startup delay
 	_ = os.Setenv("STARTUP_DELAY", "2000")
-	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err = NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 86400)
 
 	//Start up delay less than min startup delay
 	_ = os.Setenv("STARTUP_DELAY", "-10")
-	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err = NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.Nil(err)
 	a.Equal(config.StartUpDelay, 0)
 
 	//invalid environment variable
 	_ = os.Setenv("STARTUP_DELAY", "invalid")
-	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err = NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.NotNil(err)
 	a.Nil(config)
 
 	//invalid keys
 	err = devel.CreateFile(athenzConf, `{"ztsPublicKeys":[{"id":"0","key":"key_0"}],"zmsPublicKeys":[{"id":"1","key":"key_1"}]}`)
 	a.Nil(err)
-	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err = NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.NotNil(err)
 	a.Nil(config)
 
 	//incorrect json
 	err = devel.CreateFile(zpuConf, `{"domains":"domain""user":"user"`)
-	config, err = NewZpuConfiguration("", athenzConf, zpuConf)
+	config, err = NewZpuConfiguration("", athenzConf, zpuConf, tempFolder)
 	a.NotNil(err)
 	a.Nil(config)
 

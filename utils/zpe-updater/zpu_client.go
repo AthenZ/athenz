@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
+	"github.com/lestrrat-go/jwx/jwk"
 	"io/ioutil"
 	"log"
 	"os"
@@ -228,20 +229,61 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 	return etag
 }
 
-func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID string) (string, error) {
+func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID string) (string, *zts.JWK, error) {
 	ztsPublicKey := config.GetZtsPublicKey(ztsKeyID)
 	if ztsPublicKey == "" {
-		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyID)
+		// first, try to retrieve it from jwk conf
+		jwkKey, err := findJwkKey(config.AthenzJWKConfig.Zts.Keys, ztsKeyID)
+		if err == nil {
+			return "", jwkKey, nil
+		}
+
+		// if it does not exist, fetch all zts jwk keys
+		rfc := true
+		ztsJwkList, err := ztsClient.GetJWKList(&rfc)
 		if err != nil {
-			return "", fmt.Errorf("unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+			return "", nil, fmt.Errorf("unable to get the zts jwk keys, err: %s", err.Error())
+		}
+
+		// update athenz jwk config and try again
+		config.AthenzJWKConfig.Zts = ztsJwkList
+		jwkKey, err = findJwkKey(config.AthenzJWKConfig.Zts.Keys, ztsKeyID)
+		if err == nil {
+			return "", jwkKey, nil
+		}
+		return "", nil, fmt.Errorf("unable to get the zts public key with id:\"%v\" to verify data", ztsKeyID)
+	}
+	return ztsPublicKey, nil, nil
+}
+
+func getZmsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsKeyID string) (string, *zts.JWK, error) {
+	zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
+	if zmsPublicKey == "" {
+		// first, try to retrieve it from jwk conf
+		jwkKey, err := findJwkKey(config.AthenzJWKConfig.Zms.Keys, zmsKeyID)
+		if err == nil {
+			return "", jwkKey, nil
+		}
+		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
+		if err != nil {
+			return "", nil, fmt.Errorf("unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
 		}
 		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
 		if err != nil {
-			return "", fmt.Errorf("unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+			return "", nil, fmt.Errorf("unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
 		}
-		ztsPublicKey = string(decodedKey)
+		zmsPublicKey = string(decodedKey)
 	}
-	return ztsPublicKey, nil
+	return zmsPublicKey, nil, nil
+}
+
+func findJwkKey(keys []*zts.JWK, id string) (*zts.JWK, error) {
+	for _, key := range keys {
+		if key.Kid == id {
+			return key, nil
+		}
+	}
+	return nil, fmt.Errorf("cannot find jwk with id: %s", id)
 }
 
 func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) ([]byte, error) {
@@ -253,7 +295,7 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	ztsSignature := data.Signature
 	ztsKeyID := data.KeyId
 
-	ztsPublicKey, err := getZtsPublicKey(config, ztsClient, ztsKeyID)
+	ztsPublicKey, ztsJwk, err := getZtsPublicKey(config, ztsClient, ztsKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +304,13 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	if err != nil {
 		return nil, err
 	}
-	err = verify(input, ztsSignature, ztsPublicKey)
+
+	if ztsJwk != nil {
+		err = verifyJwk(input, ztsSignature, ztsJwk)
+	} else {
+		err = verify(input, ztsSignature, ztsPublicKey)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("verification of data with zts key having id:\"%v\" failed, Error :%v", ztsKeyID, err)
 	}
@@ -273,24 +321,20 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	if config.CheckZMSSignature {
 		zmsSignature := data.SignedPolicyData.ZmsSignature
 		zmsKeyID := data.SignedPolicyData.ZmsKeyId
-		zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
-		if zmsPublicKey == "" {
-			key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
-			if err != nil {
-				return nil, fmt.Errorf("unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
-			}
-			decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
-			if err != nil {
-				return nil, fmt.Errorf("unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
-			}
-			zmsPublicKey = string(decodedKey)
+		zmsPublicKey, zmsJwk, err := getZmsPublicKey(config, ztsClient, zmsKeyID)
+		if err != nil {
+			return nil, err
 		}
 		policyData := data.SignedPolicyData.PolicyData
 		input, err = util.ToCanonicalString(policyData)
 		if err != nil {
 			return nil, err
 		}
-		err = verify(input, zmsSignature, zmsPublicKey)
+		if zmsJwk != nil {
+			err = verifyJwk(input, zmsSignature, zmsJwk)
+		} else {
+			err = verify(input, zmsSignature, zmsPublicKey)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("verification of data with zms key with id:\"%v\" failed, Error :%v", zmsKeyID, err)
 		}
@@ -309,14 +353,21 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 	if err != nil {
 		return nil, err
 	}
-	ztsPublicKey, err := getZtsPublicKey(config, ztsClient, object.Signatures[0].Protected.KeyID)
+	ztsPublicKey, ztsJwk, err := getZtsPublicKey(config, ztsClient, object.Signatures[0].Protected.KeyID)
 	if err != nil {
 		return nil, err
 	}
-	publicKey, err := athenzutils.LoadPublicKey([]byte(ztsPublicKey))
+
+	pemPubKey, err := pemPublicKey(ztsPublicKey, ztsJwk)
 	if err != nil {
 		return nil, err
 	}
+
+	publicKey, err := athenzutils.LoadPublicKey(pemPubKey)
+	if err != nil {
+		return nil, err
+	}
+
 	// Now we can verify the signature on the payload. An error here would
 	// indicate that the message failed to verify, e.g. because the signature was
 	// broken or the message was tampered with.
@@ -327,8 +378,29 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 	return jwsPolicyBytes, nil
 }
 
+func pemPublicKey(pubKey string, ztsJwk *zts.JWK) ([]byte, error) {
+	if ztsJwk != nil {
+		pemPubKey, err := jwk.Pem(ztsJwk)
+		if err != nil {
+			return nil, err
+		}
+		return pemPubKey, nil
+	} else {
+		return []byte(pubKey), nil
+	}
+}
+
+func verifyJwk(input, signature string, jwkKey *zts.JWK) error {
+	verifier, err := zmssvctoken.NewJwkVerifier(jwkKey)
+	return doVerify(input, signature, err, verifier)
+}
+
 func verify(input, signature, publicKey string) error {
 	verifier, err := zmssvctoken.NewVerifier([]byte(publicKey))
+	return doVerify(input, signature, err, verifier)
+}
+
+func doVerify(input string, signature string, err error, verifier zmssvctoken.Verifier) error {
 	if err != nil {
 		return err
 	}
