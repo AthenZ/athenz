@@ -394,7 +394,7 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				dn = args[0]
 			}
 			if dn != "" {
-				return cli.GetAuthHistoryList(dn)
+				return cli.GetAuthHistoryDependencies(dn)
 			}
 			return nil, fmt.Errorf("no domain specified")
 		case "help":

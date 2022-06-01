@@ -20,6 +20,7 @@ package com.yahoo.athenz.zms.store;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zms.AuthHistory;
+import com.yahoo.athenz.zms.AuthHistoryDependencies;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 
@@ -35,15 +36,25 @@ public class MockAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
         AuthHistoryStoreConnection authHistoryStoreConnection = Mockito.mock(AuthHistoryStoreConnection.class);
 
         // Domain with no auth history records
-        when(authHistoryStoreConnection.getAuthHistory(eq("empty.domain"))).thenReturn(new ArrayList<>());
+        AuthHistoryDependencies empty = new AuthHistoryDependencies();
+        empty.setIncomingDependencies(new ArrayList<>());
+        empty.setOutgoingDependencies(new ArrayList<>());
+        when(authHistoryStoreConnection.getAuthHistory(eq("empty.domain"))).thenReturn(empty);
 
         // Domain with auth history records
-        List<AuthHistory> authHistoryRecords = new ArrayList<>();
-        int numberOfRecords = 1000;
+        List<AuthHistory> incoming = new ArrayList<>();
+        List<AuthHistory> outgoing = new ArrayList<>();
+        int numberOfRecords = 500;
         for (int i = 0; i < numberOfRecords ; ++i) {
-            authHistoryRecords.add(generateRecordForTest(i));
+            incoming.add(generateRecordForTest(i));
         }
-        when(authHistoryStoreConnection.getAuthHistory(eq("test.domain"))).thenReturn(authHistoryRecords);
+        for (int i = 500; i < numberOfRecords*2 ; ++i) {
+            outgoing.add(generateRecordForTest(i));
+        }
+        AuthHistoryDependencies authHistoryDependencies = new AuthHistoryDependencies();
+        authHistoryDependencies.setIncomingDependencies(incoming);
+        authHistoryDependencies.setOutgoingDependencies(outgoing);
+        when(authHistoryStoreConnection.getAuthHistory(eq("test.domain"))).thenReturn(authHistoryDependencies);
 
         // Domain with auth history records - one of the records has invalid timestamp
         List<AuthHistory> invalidTimestampRecords = new ArrayList<>();
@@ -52,7 +63,10 @@ public class MockAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
         badTimestamp.setTimestamp(null);
         invalidTimestampRecords.add(goodTimestamp);
         invalidTimestampRecords.add(badTimestamp);
-        when(authHistoryStoreConnection.getAuthHistory(eq("invalid.tiestamp.domain"))).thenReturn(invalidTimestampRecords);
+        AuthHistoryDependencies authHistoryDependenciesInvalid = new AuthHistoryDependencies();
+        authHistoryDependenciesInvalid.setIncomingDependencies(invalidTimestampRecords);
+        authHistoryDependenciesInvalid.setOutgoingDependencies(new ArrayList<>());
+        when(authHistoryStoreConnection.getAuthHistory(eq("invalid.timestamp.domain"))).thenReturn(authHistoryDependenciesInvalid);
 
         AuthHistoryStore authHistoryStore = Mockito.mock(AuthHistoryStore.class);
         when(authHistoryStore.getConnection()).thenReturn(authHistoryStoreConnection);
@@ -61,8 +75,9 @@ public class MockAuthHistoryStoreFactory implements AuthHistoryStoreFactory {
 
     public static AuthHistory generateRecordForTest(int index) {
         AuthHistory authHistory = new AuthHistory();
-        authHistory.setDomainName("test.domain" + index);
-        authHistory.setPrincipal("principal" + index);
+        authHistory.setUriDomain("test.domain" + index);
+        authHistory.setPrincipalDomain("principal.domain" + index);
+        authHistory.setPrincipalName("principal" + index);
         authHistory.setEndpoint("https://endpoint" + index + ".com");
         authHistory.setTimestamp(Timestamp.fromMillis(1655282257L + index));
         authHistory.setTtl(1655282257L + index);

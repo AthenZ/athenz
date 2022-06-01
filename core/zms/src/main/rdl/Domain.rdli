@@ -296,19 +296,21 @@ resource DomainMetaStoreValidValuesList GET "/domain/metastore?attribute={attrib
 }
 
 type AuthHistory Struct {
-    DomainName domainName; //name of the domain
-    ResourceName principal; // Name of the principal
+    DomainName uriDomain; // Name of the domain from URI
+    DomainName principalDomain; // Principal domain
+    SimpleName principalName; // Principal name
     Timestamp timestamp; // Last authorization event timestamp
     String endpoint; // Last authorization endpoint used
     Int64 ttl; // Time until the record will expire
 }
 
-type AuthHistoryList Struct {
-    Array<AuthHistory> authHistoryList; //list of auth history records for domain
+type AuthHistoryDependencies Struct {
+    Array<AuthHistory> incomingDependencies; //list of incoming auth dependencies for domain
+    Array<AuthHistory> outgoingDependencies; //list of incoming auth dependencies for domain
 }
 
 //Get the authorization and token requests history for the domain
-resource AuthHistoryList GET "/domain/{domainName}/history/auth" {
+resource AuthHistoryDependencies GET "/domain/{domainName}/history/auth" {
     DomainName domainName; //name of the domain
     authenticate;
     exceptions {

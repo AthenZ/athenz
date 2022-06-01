@@ -24,6 +24,7 @@ import org.testng.annotations.*;
 import java.util.ArrayList;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class ZMSAuthHistoryTest {
 
@@ -51,38 +52,46 @@ public class ZMSAuthHistoryTest {
     }
 
     @Test
-    public void testGetAuthHistoryList() {
-        AuthHistoryList authHistoryList = zmsTestInitializer.getZms().getAuthHistoryList(zmsTestInitializer.getMockDomRsrcCtx(), "empty.domain");
-        assertEquals(authHistoryList.getAuthHistoryList(), new ArrayList<>());
-        authHistoryList = zmsTestInitializer.getZms().getAuthHistoryList(zmsTestInitializer.getMockDomRsrcCtx(), "test.domain");
-        assertEquals(authHistoryList.getAuthHistoryList().size(), 1000);
-        for (int i = 0; i < 1000; ++i) {
+    public void testGetAuthHistoryDependencies() {
+        AuthHistoryDependencies authHistoryDependencies = zmsTestInitializer.getZms().getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "empty.domain");
+        assertEquals(authHistoryDependencies.getOutgoingDependencies(), new ArrayList<>());
+        assertEquals(authHistoryDependencies.getIncomingDependencies(), new ArrayList<>());
+        authHistoryDependencies = zmsTestInitializer.getZms().getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "test.domain");
+        assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 500);
+        for (int i = 0; i < 500; ++i) {
             AuthHistory authHistory = MockAuthHistoryStoreFactory.generateRecordForTest(i);
-            assertEquals(authHistoryList.getAuthHistoryList().get(i), authHistory);
+            assertEquals(authHistoryDependencies.getIncomingDependencies().get(i), authHistory);
+        }
+        assertEquals(authHistoryDependencies.getOutgoingDependencies().size(), 500);
+        for (int i = 500; i < 1000; ++i) {
+            AuthHistory authHistory = MockAuthHistoryStoreFactory.generateRecordForTest(i);
+            assertEquals(authHistoryDependencies.getOutgoingDependencies().get(i - 500), authHistory);
         }
     }
 
     @Test
-    public void testGetAuthHistoryListInvalidTimestamp() {
-        AuthHistoryList authHistoryList = zmsTestInitializer.getZms().getAuthHistoryList(zmsTestInitializer.getMockDomRsrcCtx(), "invalid.tiestamp.domain");
-        assertEquals(authHistoryList.getAuthHistoryList().size(), 2);
+    public void testGetAuthHistoryDependenciesInvalidTimestamp() {
+        AuthHistoryDependencies authHistoryDependencies = zmsTestInitializer.getZms().getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "invalid.timestamp.domain");
+        assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 2);
+        assertTrue(authHistoryDependencies.getOutgoingDependencies().isEmpty());
 
         // Record with good timestamp
         AuthHistory authHistory = MockAuthHistoryStoreFactory.generateRecordForTest(0);
-        assertEquals(authHistoryList.getAuthHistoryList().get(0), authHistory);
+        assertEquals(authHistoryDependencies.getIncomingDependencies().get(0), authHistory);
 
         // Record with invalid timestamp
         authHistory = MockAuthHistoryStoreFactory.generateRecordForTest(1);
         authHistory.setTimestamp(null);
-        assertEquals(authHistoryList.getAuthHistoryList().get(1), authHistory);
+        assertEquals(authHistoryDependencies.getIncomingDependencies().get(1), authHistory);
     }
 
     @Test
-    public void testGetAuthHistoryListDisabled() {
+    public void testGetAuthHistoryDependenciesDisabled() {
         System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS);
         ZMSImpl zms = zmsTestInitializer.zmsInit();
 
-        AuthHistoryList authHistoryList = zms.getAuthHistoryList(zmsTestInitializer.getMockDomRsrcCtx(), "some.domain");
-        assertEquals(authHistoryList.getAuthHistoryList().size(), 0);
+        AuthHistoryDependencies authHistoryDependencies = zms.getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "some.domain");
+        assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 0);
+        assertEquals(authHistoryDependencies.getOutgoingDependencies().size(), 0);
     }
 }

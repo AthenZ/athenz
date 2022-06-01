@@ -631,7 +631,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public AuthHistoryList getAuthHistoryList(String domainName) throws URISyntaxException, IOException {
+    public AuthHistoryDependencies getAuthHistoryDependencies(String domainName) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/history/auth")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -647,7 +647,7 @@ public class ZMSRDLGeneratedClient {
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
-                return jsonMapper.readValue(httpResponseEntity.getContent(), AuthHistoryList.class);
+                return jsonMapper.readValue(httpResponseEntity.getContent(), AuthHistoryDependencies.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
