@@ -128,7 +128,7 @@ public class X509CertRequest {
      */
     public boolean validateDnsNames(final String domainName, final String serviceName, final String provider,
             final DataCache athenzSysDomainCache, final String serviceDnsSuffix, final String instanceHostname,
-            final List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
+            final List<String> instanceHostCnames, HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
         // if the CSR has no dns names then we have nothing to check
 
@@ -141,12 +141,12 @@ public class X509CertRequest {
         // value will cause the request to be rejected
 
         if (!validateInstanceHostname(provider, athenzSysDomainCache, instanceHostname, hostnameResolver)) {
-            LOGGER.error("Unable to validate Instance hostname: {}", instanceHostname);
+            errorMsg.append("Unable to validate Instance hostname: ").append(instanceHostname);
             return false;
         }
 
         if (!validateInstanceCnames(provider, athenzSysDomainCache, domainName + "." + serviceName,
-                instanceHostname, instanceHostCnames, hostnameResolver)) {
+                instanceHostname, instanceHostCnames, hostnameResolver, errorMsg)) {
             return false;
         }
 
@@ -173,6 +173,7 @@ public class X509CertRequest {
         for (String dnsName : dnsNames) {
             if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, serviceDnsSuffixCheck, wildCardPrefix,
                     instanceHostname, instanceHostCnames)) {
+                errorMsg.append(dnsName).append(" does not end with provider/service configured suffix or hostname");
                 return false;
             }
         }
@@ -259,7 +260,8 @@ public class X509CertRequest {
     }
 
     boolean validateInstanceCnames(final String provider, final DataCache athenzSysDomainCache,
-            final String serviceFqn, final String instanceHostname, List<String> instanceHostCnames, HostnameResolver hostnameResolver) {
+            final String serviceFqn, final String instanceHostname, List<String> instanceHostCnames,
+            HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
         // if we have no cname list provided then nothing to check
 
@@ -270,7 +272,7 @@ public class X509CertRequest {
         // with a valid cname, we must have an instance hostname provided
 
         if (instanceHostname == null || instanceHostname.isEmpty()) {
-             LOGGER.error("Instance Host CNAME list provided without Hostname");
+             errorMsg.append("Instance Host CNAME list provided without Hostname");
              return false;
         }
 
@@ -279,6 +281,7 @@ public class X509CertRequest {
 
         for (String cname : instanceHostCnames) {
             if (!isHostnameAllowed(provider, athenzSysDomainCache, cname)) {
+                errorMsg.append("invalid cname provided for instance: ").append(cname);
                 return false;
             }
         }
@@ -287,15 +290,15 @@ public class X509CertRequest {
 
         if (hostnameResolver != null) {
             if (!hostnameResolver.isValidHostCnameList(serviceFqn, instanceHostname, instanceHostCnames, CertType.X509)) {
-                LOGGER.error("{} does not have all hosts in {} as configured CNAMEs", instanceHostname,
-                        String.join(",", instanceHostCnames));
+                errorMsg.append(instanceHostname).append(" does not have all hosts in ")
+                        .append(String.join(",", instanceHostCnames)).append(" as configured CNAMEs");
                 return false;
             }
 
             return true;
         }
 
-        LOGGER.error("Instance host name CNAME list provided without a valid hostname resolver");
+        errorMsg.append("Instance host name CNAME list provided without a valid hostname resolver");
         return false;
     }
 

@@ -444,6 +444,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -462,6 +464,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -475,6 +479,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -486,6 +492,8 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -500,6 +508,10 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("HostServices", "GET", "/host/{host}/services")
@@ -508,6 +520,10 @@ public class ZTSSchema {
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("DomainSignedPolicyData", "GET", "/domain/{domainName}/signed_policy_data")
@@ -520,6 +536,10 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("SignedPolicyRequest", "POST", "/domain/{domainName}/policy/signed")
@@ -533,6 +553,10 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("RoleToken", "GET", "/domain/{domainName}/token")
@@ -550,6 +574,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -566,6 +592,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -581,6 +609,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -592,6 +622,8 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -607,6 +639,8 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -626,6 +660,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -643,6 +679,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -659,6 +697,8 @@ public class ZTSSchema {
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -680,6 +720,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -698,6 +740,8 @@ public class ZTSSchema {
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -718,6 +762,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -730,6 +776,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -740,6 +788,8 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -754,23 +804,31 @@ public class ZTSSchema {
 
             .exception("INTERNAL_SERVER_ERROR", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
         sb.resource("OpenIDConfig", "GET", "/.well-known/openid-configuration")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 ;
 
         sb.resource("OAuthConfig", "GET", "/.well-known/oauth-authorization-server")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 ;
 
         sb.resource("JWKList", "GET", "/oauth2/keys")
             .queryParam("rfc", "rfc", "Bool", false, "flag to indicate ec curve names are restricted to RFC values")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 ;
 
         sb.resource("AccessTokenRequest", "POST", "/oauth2/token")
@@ -784,6 +842,8 @@ public class ZTSSchema {
 
             .exception("NOT_FOUND", "ResourceError", "")
 
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
@@ -796,6 +856,7 @@ public class ZTSSchema {
             .queryParam("state", "state", "EntityName", null, "optional state claim included in the response location header")
             .queryParam("nonce", "nonce", "EntityName", null, "nonce claim included in the id token")
             .queryParam("keyType", "keyType", "SimpleName", null, "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured")
+            .queryParam("fullArn", "fullArn", "Bool", false, "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)")
             .output("Location", "location", "String", "return location header with id token")
             .auth("", "", true)
             .expected("FOUND")
@@ -804,6 +865,8 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -819,6 +882,8 @@ public class ZTSSchema {
             .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
@@ -895,7 +960,11 @@ public class ZTSSchema {
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
+            .exception("FORBIDDEN", "ResourceError", "")
+
             .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

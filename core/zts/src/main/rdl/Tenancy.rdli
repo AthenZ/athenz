@@ -19,5 +19,6 @@ resource TenantDomains GET "/providerdomain/{providerDomainName}/user/{userName}
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

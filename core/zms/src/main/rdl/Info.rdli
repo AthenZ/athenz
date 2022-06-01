@@ -18,5 +18,7 @@ resource Info GET "/sys/info" {
         ResourceError UNAUTHORIZED;
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

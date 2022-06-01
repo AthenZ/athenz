@@ -20,6 +20,8 @@ resource UserList GET "/user?domain={domainName}" {
     authenticate;
     exceptions {
         ResourceError UNAUTHORIZED;
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
         ResourceError TOO_MANY_REQUESTS;
     }
 }

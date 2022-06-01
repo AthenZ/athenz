@@ -2161,6 +2161,7 @@ func init() {
 	mGetSignedDomains.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any domains modified since this time")
 	mGetSignedDomains.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	mGetSignedDomains.Auth("", "", true, "")
+	mGetSignedDomains.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetSignedDomains.Exception("FORBIDDEN", "ResourceError", "")
 	mGetSignedDomains.Exception("NOT_FOUND", "ResourceError", "")
 	mGetSignedDomains.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
@@ -2173,6 +2174,7 @@ func init() {
 	mGetJWSDomain.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return if the domain was modified since this time")
 	mGetJWSDomain.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
 	mGetJWSDomain.Auth("", "", true, "")
+	mGetJWSDomain.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetJWSDomain.Exception("NOT_FOUND", "ResourceError", "")
 	mGetJWSDomain.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetJWSDomain.Exception("UNAUTHORIZED", "ResourceError", "")
@@ -2195,6 +2197,7 @@ func init() {
 	mOptionsUserToken.Input("serviceNames", "String", false, "services", "", true, nil, "comma separated list of on-behalf-of service names")
 	mOptionsUserToken.Exception("BAD_REQUEST", "ResourceError", "")
 	mOptionsUserToken.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mOptionsUserToken.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mOptionsUserToken.Build())
 
 	mGetServicePrincipal := rdl.NewResourceBuilder("ServicePrincipal", "GET", "/principal")
@@ -2245,6 +2248,8 @@ func init() {
 	mGetUserList.Comment("Enumerate users that are registered as principals in the system This will return only the principals with \"<user-domain>.\" prefix")
 	mGetUserList.Input("domainName", "DomainName", false, "domain", "", true, nil, "name of the allowed user-domains and/or aliases")
 	mGetUserList.Auth("", "", true, "")
+	mGetUserList.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetUserList.Exception("NOT_FOUND", "ResourceError", "")
 	mGetUserList.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetUserList.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetUserList.Build())
@@ -2284,6 +2289,8 @@ func init() {
 	mGetQuota.Auth("", "", true, "")
 	mGetQuota.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetQuota.Exception("NOT_FOUND", "ResourceError", "")
+	mGetQuota.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetQuota.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetQuota.Build())
 
 	mPutQuota := rdl.NewResourceBuilder("Quota", "PUT", "/domain/{name}/quota")
@@ -2297,6 +2304,7 @@ func init() {
 	mPutQuota.Exception("CONFLICT", "ResourceError", "")
 	mPutQuota.Exception("FORBIDDEN", "ResourceError", "")
 	mPutQuota.Exception("NOT_FOUND", "ResourceError", "")
+	mPutQuota.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPutQuota.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPutQuota.Build())
 
@@ -2310,6 +2318,7 @@ func init() {
 	mDeleteQuota.Exception("CONFLICT", "ResourceError", "")
 	mDeleteQuota.Exception("FORBIDDEN", "ResourceError", "")
 	mDeleteQuota.Exception("NOT_FOUND", "ResourceError", "")
+	mDeleteQuota.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mDeleteQuota.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mDeleteQuota.Build())
 
@@ -2318,6 +2327,7 @@ func init() {
 	mGetStatus.Auth("", "", true, "")
 	mGetStatus.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetStatus.Exception("NOT_FOUND", "ResourceError", "")
+	mGetStatus.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetStatus.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetStatus.Build())
 
@@ -2349,6 +2359,8 @@ func init() {
 	mGetStats.Auth("", "", true, "")
 	mGetStats.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetStats.Exception("NOT_FOUND", "ResourceError", "")
+	mGetStats.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetStats.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetStats.Build())
 
 	mGetSystemStats := rdl.NewResourceBuilder("Stats", "GET", "/sys/stats")
@@ -2356,6 +2368,9 @@ func init() {
 	mGetSystemStats.Name("getSystemStats")
 	mGetSystemStats.Auth("get", "sys.auth:stats", false, "")
 	mGetSystemStats.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetSystemStats.Exception("FORBIDDEN", "ResourceError", "")
+	mGetSystemStats.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetSystemStats.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetSystemStats.Build())
 
 	mPutDomainDependency := rdl.NewResourceBuilder("DependentService", "PUT", "/dependency/domain/{domainName}")
@@ -2427,7 +2442,9 @@ func init() {
 	mGetInfo.Comment("Retrieve the server info. Since we're exposing server version details, the request will require authorization")
 	mGetInfo.Auth("get", "sys.auth:info", false, "")
 	mGetInfo.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetInfo.Exception("FORBIDDEN", "ResourceError", "")
 	mGetInfo.Exception("NOT_FOUND", "ResourceError", "")
+	mGetInfo.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetInfo.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetInfo.Build())
 

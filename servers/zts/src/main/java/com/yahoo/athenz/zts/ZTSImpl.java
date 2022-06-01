@@ -1914,7 +1914,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
-                                    String scope, String state, String nonce, String keyType) {
+                                    String scope, String state, String nonce, String keyType, Boolean fullArn) {
 
         final String caller = ctx.getApiName();
 
@@ -1981,9 +1981,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         IdTokenRequest tokenRequest = new IdTokenRequest(scope);
 
         // make sure the domain specified in group/roles names matches our client id
+        // if they don't match then we need to return the full arn even if not configured
 
-        if (tokenRequest.getDomainName() != null && !domainName.equalsIgnoreCase(tokenRequest.getDomainName())) {
-            return oidcError("domain name mismatch", redirectUri, state);
+        String tokenRequestDomainName = tokenRequest.getDomainName();
+        if (tokenRequestDomainName != null && !domainName.equalsIgnoreCase(tokenRequestDomainName)) {
+            fullArn = Boolean.TRUE;
+        } else {
+            tokenRequestDomainName = domainName;
         }
 
         // check if the authorized service domain matches to the
@@ -2000,7 +2004,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // now let's process our requests and see if we need to extract
         // either groups or roles for our response
 
-        List<String> groups = null;
+        List<String> idTokenGroups = null;
         if (tokenRequest.isGroupsScope()) {
 
             Set<String> groupNames = tokenRequest.getGroupNames();
@@ -2013,9 +2017,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 }
             }
 
+            // if the request was for a different domain than the client id then
+            // we need to fetch data object for the new domain just to make sure
+            // the new domain is valid
+
+            if (!domainName.equalsIgnoreCase(tokenRequestDomainName)) {
+                data = dataStore.getDataCache(tokenRequestDomainName);
+                if (data == null) {
+                    throw notFoundError("No such domain: " + tokenRequestDomainName, caller, domainName, principalDomain);
+                }
+            }
+
             // process our request and retrieve the groups for the principal
 
-            groups = dataStore.getPrincipalGroups(principalName, domainName, groupNames);
+            List<String> groups = dataStore.getPrincipalGroups(principalName, tokenRequestDomainName, groupNames);
 
             // we return failure if we don't have access to any groups but
             // the call specifically requested some
@@ -2023,6 +2038,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             if (groupNames != null && groups == null) {
                 return oidcError("principal not included in requested groups", redirectUri, state);
             }
+
+            idTokenGroups = getIdTokenGroupsFromGroups(groups, tokenRequestDomainName, fullArn);
 
         } else if (tokenRequest.isRolesScope()) {
 
@@ -2036,10 +2053,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 }
             }
 
+            // if the request was for a different domain than the client id then
+            // we need to fetch data object for the new domain
+
+            if (!domainName.equalsIgnoreCase(tokenRequestDomainName)) {
+                data = dataStore.getDataCache(tokenRequestDomainName);
+                if (data == null) {
+                    throw notFoundError("No such domain: " + tokenRequestDomainName, caller, domainName, principalDomain);
+                }
+            }
+
             // process our request and retrieve the roles for the principal
 
             Set<String> roles = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, roles, false);
+            dataStore.getAccessibleRoles(data, tokenRequestDomainName, principalName, requestedRoles, roles, false);
 
             // we return failure if we don't have access to any roles but
             // the call specifically requested some
@@ -2048,7 +2075,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 return oidcError("principal not included in requested roles", redirectUri, state);
             }
 
-            groups = new ArrayList<>(roles);
+            idTokenGroups = getIdTokenGroupsFromRoles(roles, tokenRequestDomainName, fullArn);
         }
 
         long iat = System.currentTimeMillis() / 1000;
@@ -2059,7 +2086,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setSubject(principalName);
         idToken.setIssuer(ztsOpenIDIssuer);
         idToken.setNonce(nonce);
-        idToken.setGroups(groups);
+        idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
         idToken.setExpiryTime(iat + idTokenDefaultTimeout);
@@ -2072,6 +2099,22 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         return Response.status(ResourceException.FOUND).header("Location", location).build();
+    }
+
+    List<String> getIdTokenGroupsFromGroups(List<String> groups, final String domainName, Boolean fullArn) {
+        if (fullArn != Boolean.TRUE || groups == null) {
+            return groups;
+        }
+        return groups.stream().map(group -> ResourceUtils.groupResourceName(domainName, group))
+                .collect(Collectors.toList());
+    }
+
+    List<String> getIdTokenGroupsFromRoles(Set<String> roles, final String domainName, Boolean fullArn) {
+        if (fullArn != Boolean.TRUE) {
+            return new ArrayList<>(roles);
+        }
+        return roles.stream().map(role -> ResourceUtils.roleResourceName(domainName, role))
+                .collect(Collectors.toList());
     }
 
     ServerPrivateKey getSignPrivateKey(final String keyType) {
@@ -3614,15 +3657,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         fillAthenzJWKConfig(ctx, info.getAthenzJWK(), info.getAthenzJWKModified(), identity);
 
+        // log our certificate
 
-            // log our certificate
+        instanceCertManager.logX509Cert(null, ipAddress, provider, certReqInstanceId, newCert);
 
-            instanceCertManager.logX509Cert(null, ipAddress, provider, certReqInstanceId, newCert);
-
-            final String location = "/zts/v1/instance/" + provider + "/" + domain
-                    + "/" + service + "/" + certReqInstanceId;
-            return Response.status(ResourceException.CREATED).entity(identity)
-                    .header("Location", location).build();
+        final String location = "/zts/v1/instance/" + provider + "/" + domain
+                + "/" + service + "/" + certReqInstanceId;
+        return Response.status(ResourceException.CREATED).entity(identity)
+                .header("Location", location).build();
     }
 
     void insertWorkloadRecord(String cn, String provider, String certReqInstanceId, String sanIpStr, String hostName, Date certExpiryTime) {
@@ -3912,13 +3954,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return identity;
     }
 
-    protected void fillAthenzJWKConfig(ResourceContext ctx, Boolean athenzConf, Timestamp clientModified, InstanceIdentity identity) {
+    protected void fillAthenzJWKConfig(ResourceContext ctx, Boolean athenzConf, Timestamp clientModified,
+                                       InstanceIdentity identity) {
+
         if (Boolean.TRUE == athenzConf) {
             AthenzJWKConfig athenzJWK = getAthenzJWKConfig(ctx);
 
-            // fill the athenz jwk config only if client timestamp is not specified or older than current configuration
-            if (clientModified == null ||
-                    (clientModified.millis() < athenzJWK.getModified().millis())) {
+            // fill the athenz jwk config only if client timestamp is not specified
+            // or older than current configuration
+
+            if (clientModified == null || (clientModified.millis() < athenzJWK.getModified().millis())) {
                 identity.setAthenzJWK(athenzJWK);
             }
         }

@@ -34,7 +34,7 @@ public class X509ServiceCertRequest extends X509CertRequest {
             final String serviceDnsSuffix, final String instanceHostname, final List<String> instanceHostCnames,
             HostnameResolver hostnameResolver, StringBuilder errorMsg) {
 
-        // instanceId must be non empty
+        // instanceId must be non-empty
 
         if (instanceId == null || instanceId.isEmpty()) {
             errorMsg.append("InstanceId cannot be empty");
@@ -62,8 +62,7 @@ public class X509ServiceCertRequest extends X509CertRequest {
         // been authorized to be used by the given provider
 
         if (!validateDnsNames(domainName, serviceName, provider, athenzSysDomainCache, serviceDnsSuffix,
-                instanceHostname, instanceHostCnames, hostnameResolver)) {
-            errorMsg.append("Unable to validate CSR SAN dnsNames - invalid dns suffix");
+                instanceHostname, instanceHostCnames, hostnameResolver, errorMsg)) {
             return false;
         }
 

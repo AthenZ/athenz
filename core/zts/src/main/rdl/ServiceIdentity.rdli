@@ -30,6 +30,7 @@ resource ServiceIdentity GET "/domain/{domainName}/service/{serviceName}" {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -46,6 +47,7 @@ resource ServiceIdentityList GET "/domain/{domainName}/service" {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -56,8 +58,10 @@ resource PublicKeyEntry GET "/domain/{domainName}/service/{serviceName}/publicke
     String keyId; //the identifier of the public key to be retrieved
     authenticate;
     exceptions {
+        ResourceError UNAUTHORIZED;
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -72,6 +76,8 @@ resource HostServices GET "/host/{host}/services" {
     String host; //name of the host
     authenticate;
     exceptions {
+        ResourceError UNAUTHORIZED;
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
