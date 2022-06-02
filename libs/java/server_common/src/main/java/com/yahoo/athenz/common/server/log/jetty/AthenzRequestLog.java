@@ -21,6 +21,7 @@ import java.util.Locale;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.http.HttpHeader;
@@ -44,8 +45,13 @@ public class AthenzRequestLog extends CustomRequestLog {
     private final transient DateCache logDateCache = new DateCache(logDateFormat, Locale.getDefault(), logTimeZone);
 
     private boolean logForwardedForAddr = false;
+
     public AthenzRequestLog(String filename) {
         super(filename);
+    }
+
+    public AthenzRequestLog(RequestLog.Writer writer) {
+        super(writer, "%{client}a - %u %t \"%r\" %s %O \"%{Referer}i\" \"%{User-Agent}i\"");
     }
 
     public void setLogForwardedForAddr(boolean logForwardedForAddr) {
@@ -170,7 +176,7 @@ public class AthenzRequestLog extends CustomRequestLog {
             logExtended(buf, request);
 
             buf.append(' ');
-            logLength(buf, request.getContentLengthLong());
+            logLength(buf, request.getHttpInput().getContentReceived());
 
             buf.append(' ');
             buf.append(System.currentTimeMillis() - request.getTimeStamp());
