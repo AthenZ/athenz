@@ -10,11 +10,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/asn1"
-	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"math/big"
 	"strings"
 )
@@ -117,7 +114,8 @@ func (e *ecdsaVerify) Verify(hashed []byte, sig []byte) error {
 	return nil
 }
 
-func pemToPublicKey(publicKeyPEM []byte) (pub interface{}, err error) {
+// NewVerifier creates an instance of Verifier using the given public key.
+func NewVerifier(publicKeyPEM []byte) (Verifier, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
 		return nil, fmt.Errorf("Unable to load public key")
@@ -126,12 +124,7 @@ func pemToPublicKey(publicKeyPEM []byte) (pub interface{}, err error) {
 		return nil, fmt.Errorf("Invalid public key type: %s", block.Type)
 	}
 
-	return x509.ParsePKIXPublicKey(block.Bytes)
-}
-
-// NewVerifier creates an instance of Verifier using the given public key.
-func NewVerifier(publicKeyPEM []byte) (Verifier, error) {
-	xkey, err := pemToPublicKey(publicKeyPEM)
+	xkey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -140,33 +133,6 @@ func NewVerifier(publicKeyPEM []byte) (Verifier, error) {
 		return &verify{iv: &rsaVerify{key: key}}, nil
 	case *ecdsa.PublicKey:
 		return &verify{iv: &ecdsaVerify{key: key}}, nil
-	default:
-		return nil, fmt.Errorf("Unsupported key type, not RSA or ECDSA")
-	}
-}
-
-// NewJwkVerifier creates an instance of Verifier using the given jwk public key.
-func NewJwkVerifier(jwkObj *zts.JWK) (Verifier, error) {
-	jwkJSON, err := json.Marshal(jwkObj)
-	if err != nil {
-		return nil, err
-	}
-
-	switch jwkObj.Kty {
-	case "RSA":
-		var rsaKey rsa.PublicKey
-		err = jwk.ParseRawKey(jwkJSON, &rsaKey)
-		if err != nil {
-			return nil, err
-		}
-		return &verify{iv: &rsaVerify{key: &rsaKey}}, nil
-	case "EC":
-		var ecdsaKey ecdsa.PublicKey
-		err = jwk.ParseRawKey(jwkJSON, &ecdsaKey)
-		if err != nil {
-			return nil, err
-		}
-		return &verify{iv: &ecdsaVerify{key: &ecdsaKey}}, nil
 	default:
 		return nil, fmt.Errorf("Unsupported key type, not RSA or ECDSA")
 	}

@@ -4,9 +4,6 @@
 package zmssvctoken
 
 import (
-	"encoding/json"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/lestrrat-go/jwx/v2/jwk"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,47 +90,5 @@ func TestECDSASigner(t *testing.T) {
 	signer, err := NewSigner(ecdsaPrivateKeyPEM)
 	require.Nil(t, err)
 	verifier, err := NewVerifier(ecdsaPublicKeyPEM)
-	testSV(t, signer, verifier)
-}
-
-func TestJwkRSASigner(t *testing.T) {
-	// convert pem to public key object
-	pub, err := pemToPublicKey(rsaPublicKeyPEM)
-	require.Nil(t, err, "should be able to convert pem to public key object")
-
-	// create new jwk key
-	jwkKey, err := jwk.FromRaw(pub)
-	require.Nil(t, err, "should be able to convert pub key to jwk")
-
-	// convert it to zts.JWK
-	rawJwk, err := json.MarshalIndent(jwkKey, "", "  ")
-	ztsJwk := zts.JWK{}
-	json.Unmarshal(rawJwk, &ztsJwk)
-
-	// do the actual test
-	signer, err := NewSigner(rsaPrivateKeyPEM)
-	require.Nil(t, err)
-	verifier, err := NewJwkVerifier(&ztsJwk)
-	testSV(t, signer, verifier)
-}
-
-func TestJwkECDSASigner(t *testing.T) {
-	// convert pem to public key object
-	pub, err := pemToPublicKey(ecdsaPublicKeyPEM)
-	require.Nil(t, err, "should be able to convert pem to public key object")
-
-	// create new jwk key
-	jwkKey, err := jwk.FromRaw(pub)
-	require.Nil(t, err, "should be able to convert pub key to jwk")
-
-	// convert it to zts.JWK
-	rawJwk, err := json.MarshalIndent(jwkKey, "", "  ")
-	ztsJwk := zts.JWK{}
-	json.Unmarshal(rawJwk, &ztsJwk)
-
-	// do the actual test
-	signer, err := NewSigner(ecdsaPrivateKeyPEM)
-	require.Nil(t, err)
-	verifier, err := NewJwkVerifier(&ztsJwk)
 	testSV(t, signer, verifier)
 }

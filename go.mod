@@ -13,9 +13,8 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jawher/mow.cli v1.1.0 // indirect
-	github.com/lestrrat-go/jwx/v2 v2.0.2
-	github.com/stretchr/testify v1.7.1
-	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
+	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce
 	golang.org/x/net v0.0.0-20220114011407-0dd24b26b47d
 	google.golang.org/grpc v1.43.0
 	google.golang.org/protobuf v1.27.1
