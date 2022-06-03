@@ -38,6 +38,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ardielle/ardielle-go/rdl"
+
 	"github.com/AthenZ/athenz/clients/go/zts"
 )
 
@@ -65,6 +67,8 @@ type SSHKeyReq struct {
 	Transid    string   `json:"transid"`
 	Command    string   `json:"command,omitempty" rdl:"optional"`
 }
+
+const JwkConfFile = "athenz.conf"
 
 func SplitRoleName(roleName string) (string, string, error) {
 	tmp := strings.Split(roleName, ":role.")
@@ -728,4 +732,40 @@ func ExecIdCommand(arg string) int {
 		log.Fatalf("Unexpected UID/GID format in user record: %s", string(out))
 	}
 	return id
+}
+
+func WriteAthenzJWKFile(athenzJwk *zts.AthenzJWKConfig, siaDir string, uid int, gid int) error {
+	confJson, err := json.MarshalIndent(athenzJwk, "", "  ")
+	if err != nil {
+		return err
+	}
+	jwkConfFile := fmt.Sprintf("%s/"+JwkConfFile, siaDir)
+	err = UpdateFile(jwkConfFile, confJson, uid, gid, 0444)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetAthenzJwkConfModTime(siaDir string) rdl.Timestamp {
+	jwkConfFile := fmt.Sprintf("%s/"+JwkConfFile, siaDir)
+	jwkConfObj := zts.AthenzJWKConfig{}
+	err := ReadAthenzJwkConf(jwkConfFile, &jwkConfObj)
+	if err != nil {
+		log.Print(err.Error())
+		return rdl.TimestampNow()
+	}
+	return *jwkConfObj.Modified
+}
+
+func ReadAthenzJwkConf(jwkConfFile string, jwkConfObj *zts.AthenzJWKConfig) error {
+	jwkConfStr, err := ioutil.ReadFile(jwkConfFile)
+	if err != nil {
+		return fmt.Errorf("athenz.conf does not exist in [%s], return current timestamp", jwkConfFile)
+	}
+	err = json.Unmarshal(jwkConfStr, jwkConfObj)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshel athenz.conf: [%s], return current timestamp, err: %v", jwkConfFile, err.Error())
+	}
+	return nil
 }
