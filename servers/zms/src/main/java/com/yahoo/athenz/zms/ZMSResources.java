@@ -580,14 +580,14 @@ public class ZMSResources {
     @Path("/domain/{domainName}/history/auth")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Get the authorization and token requests history for the domain")
-    public AuthHistoryList getAuthHistoryList(
+    public AuthHistoryDependencies getAuthHistoryDependencies(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
-            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAuthHistoryList");
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAuthHistoryDependencies");
             context.authenticate();
-            return this.delegate.getAuthHistoryList(context, domainName);
+            return this.delegate.getAuthHistoryDependencies(context, domainName);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -600,7 +600,7 @@ public class ZMSResources {
             case ResourceException.UNAUTHORIZED:
                 throw typedException(code, e, ResourceError.class);
             default:
-                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAuthHistoryList");
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getAuthHistoryDependencies");
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {

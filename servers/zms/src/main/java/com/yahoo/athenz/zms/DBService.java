@@ -7990,10 +7990,13 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public List<AuthHistory> getAuthHistory(String domain) {
+    public AuthHistoryDependencies getAuthHistory(String domain) {
         if (authHistoryStore == null) {
-            LOG.warn("Authentication History Store is disabled. getAuthHistory will return an empty list.");
-            return new ArrayList<>();
+            LOG.warn("Authentication History Store is disabled. getAuthHistory will return empty lists.");
+            AuthHistoryDependencies authHistoryDependencies = new AuthHistoryDependencies();
+            authHistoryDependencies.setIncomingDependencies(new ArrayList<>());
+            authHistoryDependencies.setOutgoingDependencies(new ArrayList<>());
+            return authHistoryDependencies;
         }
         try (AuthHistoryStoreConnection con = authHistoryStore.getConnection()) {
             return con.getAuthHistory(domain);
