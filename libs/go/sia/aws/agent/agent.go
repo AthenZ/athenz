@@ -589,6 +589,14 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 					opts,
 				)
+				if tokenOpts != nil {
+					err := accessTokenRequest(tokenOpts)
+					if err != nil {
+						errors <- fmt.Errorf("Unable to fetch access token, err: %v\n", err)
+					}
+				} else {
+					log.Print("token config does not exist - do not refresh token")
+				}
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true
 				}
