@@ -61,6 +61,21 @@ awIDAQAB
 
 var rsaPublicKeyJwk = []byte(`{"kty":"RSA","e":"AQAB","kid":"c6e34b18-fb1c-43bb-9de7-7edc8981b14d","n":"xq83nCd8AqH5n40dEBMElbaJd2gFWu6bjhNzyp9562dpf454BUSN0uF-g3i1yzcwdvADTiuExKN1u_IoGURxVCa0JTzAPJw6_JIoyOZnHZCoarcgQQqZ56_udkSQ2NssrwGSQjOwxMrgIdH6XeLgGqVN4BoEEI-gpaQZa7rSytU5RFSGOnZWO2Vwgs1OBxiOiYg1gzA1spJXQhxcBWw_v-YrUFtjxBKsG1UrWbnHbgciiN5U2v51Yztjo8A1T-o9eIG90jVo3EhS2qhbzd8mLAsEhjV1sP8GItjfdfwXpXT7q2QG99W3PM75-HdwGLvJIrkED7YRj4CpMkz6F1etaw"}`)
 
+var ecPublicKeyPEM = []byte(`-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAESVqB4JcUD6lsfvqMr+OKUNUphdNn
+64Eay60978ZlL76V/S7SkyPiUYDNmLHm7gKbkIxAiAw2mTDLXrfC0phUog==
+-----END PUBLIC KEY-----
+`)
+
+var ecPublicKeyJwk = []byte(`{
+  "kid" : "FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ",
+  "kty" : "EC",
+  "crv" : "P-256",
+  "x"   : "SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74",
+  "y"   : "lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI",
+  "d"   : "0g5vAEKzugrXaRbgKG0Tj2qJ5lMP4Bezds1_sTybkfk"
+}`)
+
 func TestMain(m *testing.M) {
 	setUp()
 	code := m.Run()
@@ -339,7 +354,7 @@ func TestFormatUrl(t *testing.T) {
 	a.Equal(url, "zmsURL/zms/v1")
 }
 
-func TestJwkToPem(t *testing.T) {
+func TestRSAJwkToPem(t *testing.T) {
 
 	var ztsJwk zts.JWK
 	err := json.Unmarshal(rsaPublicKeyJwk, &ztsJwk)
@@ -349,5 +364,18 @@ func TestJwkToPem(t *testing.T) {
 	require.Nil(t, err, "should be able to convert zts.JWK to pem")
 
 	require.Equal(t, jwkAsPem, rsaPublicKeyPEM)
+
+}
+
+func TestECJwkToPem(t *testing.T) {
+
+	var ztsJwk zts.JWK
+	err := json.Unmarshal(ecPublicKeyJwk, &ztsJwk)
+	require.Nil(t, err, "should be able to convert json to zts.JWK")
+
+	jwkAsPem, err := jwkToPem(&ztsJwk)
+	require.Nil(t, err, "should be able to convert zts.JWK to pem")
+
+	require.Equal(t, jwkAsPem, ecPublicKeyPEM)
 
 }

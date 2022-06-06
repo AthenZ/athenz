@@ -391,10 +391,6 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 
 func verify(input, signature, publicKey string) error {
 	verifier, err := zmssvctoken.NewVerifier([]byte(publicKey))
-	return doVerify(input, signature, err, verifier)
-}
-
-func doVerify(input string, signature string, err error, verifier zmssvctoken.Verifier) error {
 	if err != nil {
 		return err
 	}
