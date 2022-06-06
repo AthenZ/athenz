@@ -11,25 +11,33 @@ import com.yahoo.rdl.*;
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthHistory {
-    public String domainName;
-    public String principal;
+    public String uriDomain;
+    public String principalDomain;
+    public String principalName;
     public Timestamp timestamp;
     public String endpoint;
     public long ttl;
 
-    public AuthHistory setDomainName(String domainName) {
-        this.domainName = domainName;
+    public AuthHistory setUriDomain(String uriDomain) {
+        this.uriDomain = uriDomain;
         return this;
     }
-    public String getDomainName() {
-        return domainName;
+    public String getUriDomain() {
+        return uriDomain;
     }
-    public AuthHistory setPrincipal(String principal) {
-        this.principal = principal;
+    public AuthHistory setPrincipalDomain(String principalDomain) {
+        this.principalDomain = principalDomain;
         return this;
     }
-    public String getPrincipal() {
-        return principal;
+    public String getPrincipalDomain() {
+        return principalDomain;
+    }
+    public AuthHistory setPrincipalName(String principalName) {
+        this.principalName = principalName;
+        return this;
+    }
+    public String getPrincipalName() {
+        return principalName;
     }
     public AuthHistory setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
@@ -60,10 +68,13 @@ public class AuthHistory {
                 return false;
             }
             AuthHistory a = (AuthHistory) another;
-            if (domainName == null ? a.domainName != null : !domainName.equals(a.domainName)) {
+            if (uriDomain == null ? a.uriDomain != null : !uriDomain.equals(a.uriDomain)) {
                 return false;
             }
-            if (principal == null ? a.principal != null : !principal.equals(a.principal)) {
+            if (principalDomain == null ? a.principalDomain != null : !principalDomain.equals(a.principalDomain)) {
+                return false;
+            }
+            if (principalName == null ? a.principalName != null : !principalName.equals(a.principalName)) {
                 return false;
             }
             if (timestamp == null ? a.timestamp != null : !timestamp.equals(a.timestamp)) {

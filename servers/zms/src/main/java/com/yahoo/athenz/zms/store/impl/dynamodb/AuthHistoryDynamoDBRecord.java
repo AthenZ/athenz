@@ -18,16 +18,19 @@
 
 package com.yahoo.athenz.zms.store.impl.dynamodb;
 
+import com.yahoo.athenz.zms.ZMSConsts;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 import java.util.Objects;
 
 @DynamoDbBean
 public class AuthHistoryDynamoDBRecord {
-    private String domain;
-    private String principal;
+    private String primaryKey;
+    private String uriDomain;
+    private String principalDomain;
+    private String principalName;
     private String endpoint;
     private String timestamp;
     private long ttl;
@@ -36,38 +39,59 @@ public class AuthHistoryDynamoDBRecord {
 
     }
 
-    public AuthHistoryDynamoDBRecord(String domain, String principal, String endpoint, String timestamp, long ttl) {
-        this.domain = domain;
-        this.principal = principal;
+    public AuthHistoryDynamoDBRecord(String primaryKey, String uriDomain, String principalDomain, String principalName, String endpoint, String timestamp, long ttl) {
+        this.primaryKey = primaryKey;
+        this.uriDomain = uriDomain;
+        this.principalDomain = principalDomain;
+        this.principalName = principalName;
         this.endpoint = endpoint;
         this.timestamp = timestamp;
         this.ttl = ttl;
     }
 
     @DynamoDbPartitionKey
-    public String getDomain() {
-        return domain;
+    public String getPrimaryKey() {
+        return primaryKey;
     }
 
-    @DynamoDbSortKey
-    public String getPrincipal() {
-        return principal;
+    @DynamoDbSecondaryPartitionKey(indexNames = {ZMSConsts.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME})
+    public String getUriDomain() {
+        return uriDomain;
     }
-    public String getEndpoint() {
-        return endpoint;
-    }
-    public String getTimestamp() {
-        return timestamp;
-    }
+
     public long getTtl() {
         return ttl;
     }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
+    @DynamoDbSecondaryPartitionKey(indexNames = {ZMSConsts.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME})
+    public String getPrincipalDomain() {
+        return principalDomain;
     }
-    public void setPrincipal(String principal) {
-        this.principal = principal;
+
+    public String getPrincipalName() {
+        return principalName;
+    }
+
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    // Set methods must exist for @DynamoDbBean successful marshalling
+    public void setPrimaryKey(String primaryKey) {
+        this.primaryKey = primaryKey;
+    }
+    public void setUriDomain(String uriDomain) {
+        this.uriDomain = uriDomain;
+    }
+    public void setPrincipalDomain(String principalDomain) {
+        this.principalDomain = principalDomain;
+    }
+    public void setPrincipalName(String principalName) {
+        this.principalName = principalName;
     }
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
@@ -79,8 +103,6 @@ public class AuthHistoryDynamoDBRecord {
         this.ttl = ttl;
     }
 
-    // We only want to keep a single entry per domain and principal so
-    // two records will be considered equal even if timestamp or endpoint are different
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -89,29 +111,30 @@ public class AuthHistoryDynamoDBRecord {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         AuthHistoryDynamoDBRecord record = (AuthHistoryDynamoDBRecord) o;
-        if (getDomain() == null ? record.getDomain() != null : !getDomain().equals(record.getDomain())) {
+        if (getPrimaryKey() == null ? record.getPrimaryKey() != null : !getPrimaryKey().equals(record.getPrimaryKey())) {
             return false;
         }
-        if (getPrincipal() == null ? record.getPrincipal() != null : !getPrincipal().equals(record.getPrincipal())) {
-            return false;
-        }
+
         return true;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getDomain(), getPrincipal());
+        return Objects.hash(getPrimaryKey());
     }
 
     @Override
     public String toString() {
         return "AuthHistoryDynamoDBRecord{" +
-                "domain='" + domain + '\'' +
-                ", principal='" + principal + '\'' +
+                "primaryKey='" + primaryKey + '\'' +
+                ", uriDomain='" + uriDomain + '\'' +
+                ", principalDomain='" + principalDomain + '\'' +
+                ", principalName='" + principalName + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 ", timestamp='" + timestamp + '\'' +
-                ", ttl='" + ttl + '\'' +
+                ", ttl=" + ttl +
                 '}';
     }
 }

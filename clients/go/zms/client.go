@@ -795,8 +795,8 @@ func (client ZMSClient) GetDomainMetaStoreValidValuesList(attributeName string, 
 	}
 }
 
-func (client ZMSClient) GetAuthHistoryList(domainName DomainName) (*AuthHistoryList, error) {
-	var data *AuthHistoryList
+func (client ZMSClient) GetAuthHistoryDependencies(domainName DomainName) (*AuthHistoryDependencies, error) {
+	var data *AuthHistoryDependencies
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/history/auth"
 	resp, err := client.httpGet(url, nil)
 	if err != nil {

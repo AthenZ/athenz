@@ -2305,10 +2305,10 @@ public class ZMSClient implements Closeable {
      * @param domainName    name of the domain
      * @return list of auth history records for domain
      */
-    public AuthHistoryList getAuthHistoryList(String domainName) {
+    public AuthHistoryDependencies getAuthHistoryDependencies(String domainName) {
         updatePrincipal();
         try {
-            return client.getAuthHistoryList(domainName);
+            return client.getAuthHistoryDependencies(domainName);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

@@ -1,3 +1,18 @@
+Athenz v1.11.2 Release / Jun 3, 2022
+-------------------------------------
+
+#1876 Athens JWK config
+#1880 Fix for role member expiry notifications
+#1881 Exposed authentication history in zms-cli and ZMS Java / go clients
+#1882 support getting id tokens for tenant domains
+#1883 increase test coverage and fix copyrights
+#1884 athenz jwk config for sia agent
+#1885 return specific error message instead of generic dns suffix failure
+#1886 review all api possible resource exceptions in rdl
+#1887 updated dependencies to their latest releases
+#1888 AuthHistory - Return dependencies instead of list
+#1890 allow config of request log retain days
+
 Athenz v1.11.1 Release / May 19, 2022
 -------------------------------------
 

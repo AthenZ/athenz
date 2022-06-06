@@ -390,14 +390,16 @@ public class ZMSSchema {
             .arrayField("validValues", "String", false, "list of valid values for attribute");
 
         sb.structType("AuthHistory")
-            .field("domainName", "DomainName", false, "name of the domain")
-            .field("principal", "ResourceName", false, "Name of the principal")
+            .field("uriDomain", "DomainName", false, "Name of the domain from URI")
+            .field("principalDomain", "DomainName", false, "Principal domain")
+            .field("principalName", "SimpleName", false, "Principal name")
             .field("timestamp", "Timestamp", false, "Last authorization event timestamp")
             .field("endpoint", "String", false, "Last authorization endpoint used")
             .field("ttl", "Int64", false, "Time until the record will expire");
 
-        sb.structType("AuthHistoryList")
-            .arrayField("authHistoryList", "AuthHistory", false, "list of auth history records for domain");
+        sb.structType("AuthHistoryDependencies")
+            .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
+            .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
 
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
@@ -940,7 +942,7 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("AuthHistoryList", "GET", "/domain/{domainName}/history/auth")
+        sb.resource("AuthHistoryDependencies", "GET", "/domain/{domainName}/history/auth")
             .comment("Get the authorization and token requests history for the domain")
             .pathParam("domainName", "DomainName", "name of the domain")
             .auth("", "", true)

@@ -4441,14 +4441,19 @@ func (self *DomainMetaStoreValidValuesList) Validate() error {
 type AuthHistory struct {
 
 	//
-	// name of the domain
+	// Name of the domain from URI
 	//
-	DomainName DomainName `json:"domainName"`
+	UriDomain DomainName `json:"uriDomain"`
 
 	//
-	// Name of the principal
+	// Principal domain
 	//
-	Principal ResourceName `json:"principal"`
+	PrincipalDomain DomainName `json:"principalDomain"`
+
+	//
+	// Principal name
+	//
+	PrincipalName SimpleName `json:"principalName"`
 
 	//
 	// Last authorization event timestamp
@@ -4499,20 +4504,28 @@ func (self *AuthHistory) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 //
 func (self *AuthHistory) Validate() error {
-	if self.DomainName == "" {
-		return fmt.Errorf("AuthHistory.domainName is missing but is a required field")
+	if self.UriDomain == "" {
+		return fmt.Errorf("AuthHistory.uriDomain is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.UriDomain)
 		if !val.Valid {
-			return fmt.Errorf("AuthHistory.domainName does not contain a valid DomainName (%v)", val.Error)
+			return fmt.Errorf("AuthHistory.uriDomain does not contain a valid DomainName (%v)", val.Error)
 		}
 	}
-	if self.Principal == "" {
-		return fmt.Errorf("AuthHistory.principal is missing but is a required field")
+	if self.PrincipalDomain == "" {
+		return fmt.Errorf("AuthHistory.principalDomain is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Principal)
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.PrincipalDomain)
 		if !val.Valid {
-			return fmt.Errorf("AuthHistory.principal does not contain a valid ResourceName (%v)", val.Error)
+			return fmt.Errorf("AuthHistory.principalDomain does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.PrincipalName == "" {
+		return fmt.Errorf("AuthHistory.principalName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.PrincipalName)
+		if !val.Valid {
+			return fmt.Errorf("AuthHistory.principalName does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	if self.Timestamp.IsZero() {
@@ -4530,25 +4543,30 @@ func (self *AuthHistory) Validate() error {
 }
 
 //
-// AuthHistoryList -
+// AuthHistoryDependencies -
 //
-type AuthHistoryList struct {
+type AuthHistoryDependencies struct {
 
 	//
-	// list of auth history records for domain
+	// list of incoming auth dependencies for domain
 	//
-	AuthHistoryList []*AuthHistory `json:"authHistoryList"`
+	IncomingDependencies []*AuthHistory `json:"incomingDependencies"`
+
+	//
+	// list of incoming auth dependencies for domain
+	//
+	OutgoingDependencies []*AuthHistory `json:"outgoingDependencies"`
 }
 
 //
-// NewAuthHistoryList - creates an initialized AuthHistoryList instance, returns a pointer to it
+// NewAuthHistoryDependencies - creates an initialized AuthHistoryDependencies instance, returns a pointer to it
 //
-func NewAuthHistoryList(init ...*AuthHistoryList) *AuthHistoryList {
-	var o *AuthHistoryList
+func NewAuthHistoryDependencies(init ...*AuthHistoryDependencies) *AuthHistoryDependencies {
+	var o *AuthHistoryDependencies
 	if len(init) == 1 {
 		o = init[0]
 	} else {
-		o = new(AuthHistoryList)
+		o = new(AuthHistoryDependencies)
 	}
 	return o.Init()
 }
@@ -4556,23 +4574,26 @@ func NewAuthHistoryList(init ...*AuthHistoryList) *AuthHistoryList {
 //
 // Init - sets up the instance according to its default field values, if any
 //
-func (self *AuthHistoryList) Init() *AuthHistoryList {
-	if self.AuthHistoryList == nil {
-		self.AuthHistoryList = make([]*AuthHistory, 0)
+func (self *AuthHistoryDependencies) Init() *AuthHistoryDependencies {
+	if self.IncomingDependencies == nil {
+		self.IncomingDependencies = make([]*AuthHistory, 0)
+	}
+	if self.OutgoingDependencies == nil {
+		self.OutgoingDependencies = make([]*AuthHistory, 0)
 	}
 	return self
 }
 
-type rawAuthHistoryList AuthHistoryList
+type rawAuthHistoryDependencies AuthHistoryDependencies
 
 //
-// UnmarshalJSON is defined for proper JSON decoding of a AuthHistoryList
+// UnmarshalJSON is defined for proper JSON decoding of a AuthHistoryDependencies
 //
-func (self *AuthHistoryList) UnmarshalJSON(b []byte) error {
-	var m rawAuthHistoryList
+func (self *AuthHistoryDependencies) UnmarshalJSON(b []byte) error {
+	var m rawAuthHistoryDependencies
 	err := json.Unmarshal(b, &m)
 	if err == nil {
-		o := AuthHistoryList(m)
+		o := AuthHistoryDependencies(m)
 		*self = *((&o).Init())
 		err = self.Validate()
 	}
@@ -4582,9 +4603,12 @@ func (self *AuthHistoryList) UnmarshalJSON(b []byte) error {
 //
 // Validate - checks for missing required fields, etc
 //
-func (self *AuthHistoryList) Validate() error {
-	if self.AuthHistoryList == nil {
-		return fmt.Errorf("AuthHistoryList: Missing required field: authHistoryList")
+func (self *AuthHistoryDependencies) Validate() error {
+	if self.IncomingDependencies == nil {
+		return fmt.Errorf("AuthHistoryDependencies: Missing required field: incomingDependencies")
+	}
+	if self.OutgoingDependencies == nil {
+		return fmt.Errorf("AuthHistoryDependencies: Missing required field: outgoingDependencies")
 	}
 	return nil
 }
