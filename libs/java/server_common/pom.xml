@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.11.2-SNAPSHOT</version>
+    <version>1.11.3-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -28,6 +28,12 @@
 
   <properties>
     <code.coverage.min>0.9237</code.coverage.min>
+    <commons.dbcp2.version>2.9.0</commons.dbcp2.version>
+    <commons.pool2.version>2.11.1</commons.pool2.version>
+    <commons.logging.version>1.2</commons.logging.version>
+    <jakarta.mail.version>2.0.1</jakarta.mail.version>
+    <pulsar.client.version>2.10.0</pulsar.client.version>
+    <uuid.version>4.0.1</uuid.version>
   </properties>
 
   <dependencies>
@@ -45,7 +51,7 @@
     <dependency>
       <groupId>org.apache.pulsar</groupId>
       <artifactId>pulsar-client</artifactId>
-      <version>2.10.0</version>
+      <version>${pulsar.client.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.bouncycastle</groupId>
@@ -68,7 +74,7 @@
     <dependency>
       <groupId>com.fasterxml.uuid</groupId>
       <artifactId>java-uuid-generator</artifactId>
-      <version>4.0.1</version>
+      <version>${uuid.version}</version>
     </dependency>  
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -185,17 +191,17 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-dbcp2</artifactId>
-      <version>2.9.0</version>
+      <version>${commons.dbcp2.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-pool2</artifactId>
-      <version>2.11.1</version>
+      <version>${commons.pool2.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>1.2</version>
+      <version>${commons.logging.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -225,7 +231,7 @@
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>jakarta.mail</artifactId>
-      <version>2.0.1</version>
+      <version>${jakarta.mail.version}</version>
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
@@ -257,7 +263,7 @@
     <dependency>
       <groupId>com.amazonaws.secretsmanager</groupId>
       <artifactId>aws-secretsmanager-jdbc</artifactId>
-      <version>1.0.7</version>
+      <version>1.0.8</version>
     </dependency>
 
   </dependencies>

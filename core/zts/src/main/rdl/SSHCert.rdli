@@ -12,5 +12,6 @@ resource SSHCertificates POST "/sshcert" {
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError INTERNAL_SERVER_ERROR;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

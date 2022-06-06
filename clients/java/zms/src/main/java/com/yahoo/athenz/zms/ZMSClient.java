@@ -2301,6 +2301,21 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Get the authorization and token requests history for the domain
+     * @param domainName    name of the domain
+     * @return list of auth history records for domain
+     */
+    public AuthHistoryDependencies getAuthHistoryDependencies(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getAuthHistoryDependencies(domainName);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+    /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations. The client internally
      * automatically calls this method and uses the UserToken if the ZMSClient

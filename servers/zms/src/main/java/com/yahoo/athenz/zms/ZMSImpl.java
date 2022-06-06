@@ -2661,7 +2661,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public AuthHistoryList getAuthHistoryList(ResourceContext ctx, String domainName) {
+    public AuthHistoryDependencies getAuthHistoryDependencies(ResourceContext ctx, String domainName) {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -2675,8 +2675,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
-        List<AuthHistory> authHistoryList = dbService.getAuthHistory(domainName);
-        return new AuthHistoryList().setAuthHistoryList(authHistoryList);
+        return dbService.getAuthHistory(domainName);
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,

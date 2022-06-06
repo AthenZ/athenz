@@ -31,31 +31,33 @@ public class AuthHistoryDynamoDBRecordTest {
         AuthHistoryDynamoDBRecord authHistoryDynamoDBRecord = new AuthHistoryDynamoDBRecord();
         assertNotNull(authHistoryDynamoDBRecord);
 
-        AuthHistoryDynamoDBRecord authHistoryDynamoDBRecord2 = new AuthHistoryDynamoDBRecord();
-        assertEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-
-        authHistoryDynamoDBRecord.setDomain("domain");
-        assertNotEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-        authHistoryDynamoDBRecord2.setDomain("domain2");
-        assertNotEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-        authHistoryDynamoDBRecord2.setDomain("domain");
-        assertEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-
-        authHistoryDynamoDBRecord.setPrincipal("principal");
-        assertNotEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-        authHistoryDynamoDBRecord2.setPrincipal("principal2");
-        assertNotEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-        authHistoryDynamoDBRecord2.setPrincipal("principal");
-        assertEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
-
+        authHistoryDynamoDBRecord.setUriDomain("domain");
+        authHistoryDynamoDBRecord.setPrincipalDomain("principal.domain");
+        authHistoryDynamoDBRecord.setPrincipalName("principal");
         authHistoryDynamoDBRecord.setTimestamp("timestamp");
         authHistoryDynamoDBRecord.setEndpoint("endpoint");
         authHistoryDynamoDBRecord.setTtl(1L);
+        authHistoryDynamoDBRecord.setPrimaryKey("domain:principal.domain:principal");
+        assertEquals(authHistoryDynamoDBRecord.getUriDomain(), "domain");
+        assertEquals(authHistoryDynamoDBRecord.getPrincipalDomain(), "principal.domain");
+        assertEquals(authHistoryDynamoDBRecord.getPrincipalName(), "principal");
         assertEquals(authHistoryDynamoDBRecord.getTimestamp(), "timestamp");
         assertEquals(authHistoryDynamoDBRecord.getEndpoint(), "endpoint");
         assertEquals(authHistoryDynamoDBRecord.getTtl(), 1L);
+        assertEquals(authHistoryDynamoDBRecord.getPrimaryKey(), "domain:principal.domain:principal");
 
-        // Both records will still be equals as we only differentiate records by domain and principal
+        AuthHistoryDynamoDBRecord authHistoryDynamoDBRecord2 = new AuthHistoryDynamoDBRecord();
+        assertNotEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
+        authHistoryDynamoDBRecord2.setUriDomain("domain");
+        authHistoryDynamoDBRecord2.setUriDomain("principal.domain");
+        authHistoryDynamoDBRecord2.setPrincipalName("principal");
+        authHistoryDynamoDBRecord2.setTimestamp("timestamp");
+        authHistoryDynamoDBRecord2.setEndpoint("endpoint");
+        authHistoryDynamoDBRecord2.setTtl(1L);
+        assertNotEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
+        authHistoryDynamoDBRecord2.setPrimaryKey("domain:principal.domain:principal");
         assertEquals(authHistoryDynamoDBRecord, authHistoryDynamoDBRecord2);
+
+
     }
 }

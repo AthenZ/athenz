@@ -19,12 +19,15 @@
 package com.yahoo.athenz.zms.store.impl.dynamodb;
 
 import com.yahoo.athenz.zms.AuthHistory;
+import com.yahoo.athenz.zms.AuthHistoryDependencies;
 import com.yahoo.athenz.zms.ResourceException;
+import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.athenz.zms.store.AuthHistoryStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -38,12 +41,17 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
+/**
+ * DynamoDBAuthHistoryStoreConnection expects that a DynamoDB table exists according to the properties in {@link AuthHistoryDynamoDBRecord}
+ */
 public class DynamoDBAuthHistoryStoreConnection implements AuthHistoryStoreConnection {
-    private final DynamoDbTable<AuthHistoryDynamoDBRecord> table;
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBAuthHistoryStoreConnection.class);
+    private final DynamoDbIndex<AuthHistoryDynamoDBRecord> principalDomainIndex;
+    private final DynamoDbIndex<AuthHistoryDynamoDBRecord> uriDomainIndex;
 
     public DynamoDBAuthHistoryStoreConnection(final DynamoDbTable<AuthHistoryDynamoDBRecord> table) {
-        this.table = table;
+        this.principalDomainIndex = table.index(ZMSConsts.ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME);
+        this.uriDomainIndex = table.index(ZMSConsts.ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME);
     }
 
     @Override
@@ -57,28 +65,39 @@ public class DynamoDBAuthHistoryStoreConnection implements AuthHistoryStoreConne
     }
 
     @Override
-    public List<AuthHistory> getAuthHistory(String domain) {
+    public AuthHistoryDependencies getAuthHistory(String domain) {
         try {
-            // Create a QueryConditional object that is used in the query operation.
-            QueryConditional queryConditional = QueryConditional
-                    .keyEqualTo(Key.builder().partitionValue(domain)
-                            .build());
-            return table.query(r -> r.queryConditional(queryConditional))
-                    .items()
-                    .stream()
-                    .map(record -> {
-                        AuthHistory authHistory = new AuthHistory();
-                        authHistory.setDomainName(record.getDomain());
-                        authHistory.setPrincipal(record.getPrincipal());
-                        authHistory.setEndpoint(record.getEndpoint());
-                        authHistory.setTimestamp(getAuthHistoryTimeStamp(record));
-                        authHistory.setTtl(record.getTtl());
-                        return authHistory;
-                    })
-                    .collect(Collectors.toList());
+            List<AuthHistory> principalDomainList = getRecordsFromDomainIndex(principalDomainIndex, domain);
+            List<AuthHistory> uriDomainList = getRecordsFromDomainIndex(uriDomainIndex, domain);
+            AuthHistoryDependencies authHistoryDependencies = new AuthHistoryDependencies();
+            authHistoryDependencies.setOutgoingDependencies(principalDomainList);
+            authHistoryDependencies.setIncomingDependencies(uriDomainList);
+            return authHistoryDependencies;
         } catch (ResourceNotFoundException resourceNotFoundException) {
             throw ZMSUtils.error(ResourceException.NOT_FOUND, resourceNotFoundException.getMessage(), "getAuthHistory");
         }
+    }
+
+    private List<AuthHistory> getRecordsFromDomainIndex(DynamoDbIndex<AuthHistoryDynamoDBRecord> domainIndex, String domain) {
+        QueryConditional queryConditional = QueryConditional
+                .keyEqualTo(Key.builder().partitionValue(domain)
+                        .build());
+
+        return domainIndex.query(r -> r.queryConditional(queryConditional))
+                .stream()
+                .map(record -> record.items())
+                .flatMap(List::stream)
+                .map(record -> {
+                    AuthHistory authHistory = new AuthHistory();
+                    authHistory.setUriDomain(record.getUriDomain());
+                    authHistory.setPrincipalDomain(record.getPrincipalDomain());
+                    authHistory.setPrincipalName(record.getPrincipalName());
+                    authHistory.setEndpoint(record.getEndpoint());
+                    authHistory.setTimestamp(getAuthHistoryTimeStamp(record));
+                    authHistory.setTtl(record.getTtl());
+                    return authHistory;
+                })
+                .collect(Collectors.toList());
     }
 
     Timestamp getAuthHistoryTimeStamp(AuthHistoryDynamoDBRecord authHistoryDynamoDBRecord) {

@@ -388,6 +388,15 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.GetDependentDomainList(args[0])
 			}
+		case "get-auth-history":
+			if argc == 1 {
+				//override the default domain, this command can show any of them
+				dn = args[0]
+			}
+			if dn != "" {
+				return cli.GetAuthHistoryDependencies(dn)
+			}
+			return nil, fmt.Errorf("no domain specified")
 		case "help":
 			return cli.helpCommand(args)
 		default:
@@ -2905,6 +2914,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   service    : name of the dependent service\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-dependent-domain-list media.sports.storage\n")
+	case "get-auth-history":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   get-auth-history\n")
+		buf.WriteString("   " + domainParam + " get-auth-history\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain : retrieve authentication history for this domain\n")
+		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   get-auth-history coretech.hosted\n")
+		buf.WriteString("   " + domainExample + " get-auth-history\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -3099,6 +3118,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-pending-domain-role-members\n")
 	buf.WriteString("   list-pending-group-members\n")
 	buf.WriteString("   list-pending-domain-group-members\n")
+	buf.WriteString("   get-auth-history\n")
 	buf.WriteString("   version\n")
 	buf.WriteString("\n")
 	return buf.String()

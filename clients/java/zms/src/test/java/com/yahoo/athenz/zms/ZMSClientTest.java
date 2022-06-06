@@ -2296,6 +2296,36 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetAuthHistoryDependencies() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        try {
+            Mockito.when(
+                            c.getAuthHistoryDependencies(null))
+                    .thenThrow(new RuntimeException());
+            client.getAuthHistoryDependencies(null);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getClass().toString(), "class com.yahoo.athenz.zms.ZMSClientException");
+        }
+
+        try {
+            Mockito.when(
+                            c.getAuthHistoryDependencies("bad domain"))
+                    .thenThrow(new InvalidParameterException("Bad parameter"));
+            client.getAuthHistoryDependencies("bad domain");
+            fail();
+        } catch (Exception ex) {
+            assertEquals(ex.getMessage(), "ResourceException (400): Bad parameter");
+        }
+
+        AuthHistoryDependencies dependencies = new AuthHistoryDependencies();
+        Mockito.when(c.getAuthHistoryDependencies("good.domain")).thenReturn(dependencies);
+        assertEquals(client.getAuthHistoryDependencies("good.domain"), dependencies);
+    }
+
+    @Test
     public void testGetDomainListException() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

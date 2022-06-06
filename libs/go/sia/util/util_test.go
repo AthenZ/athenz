@@ -22,9 +22,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSplitRoleName(test *testing.T) {
@@ -803,4 +810,67 @@ func TestNonce(test *testing.T) {
 	if nonce1 == nonce2 {
 		test.Errorf("generated identical nonce values")
 	}
+}
+
+func mockAthenzJWK() *zts.AthenzJWKConfig {
+	simpleKey := func() *zts.JWKList {
+
+		keysArr := []*zts.JWK{
+			{
+				Kty: "kty",
+				Kid: "kid",
+				X:   "x",
+			},
+		}
+		keys := func() []*zts.JWK {
+			return keysArr
+		}
+
+		return &zts.JWKList{
+			Keys: keys(),
+		}
+	}
+
+	now := rdl.TimestampFromEpoch(100)
+	jwkConf := zts.AthenzJWKConfig{
+		Modified: &now,
+		Zms:      simpleKey(),
+		Zts:      simpleKey(),
+	}
+
+	return &jwkConf
+}
+
+func TestReadWriteAthenzJwkConf(t *testing.T) {
+	a := assert.New(t)
+	siaDir, err := ioutil.TempDir("", "sia.")
+	require.Nil(t, err, "should be able to create temp folder for sia")
+	defer os.RemoveAll(siaDir)
+
+	u, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	uid, err := strconv.Atoi(u.Uid)
+	gid, err := strconv.Atoi(u.Gid)
+	jwkObj := mockAthenzJWK()
+	err = WriteAthenzJWKFile(jwkObj, siaDir, uid, gid)
+
+	require.Nil(t, err, "should be able to write athenz.conf")
+
+	jwkConfFile := fmt.Sprintf("%s/"+JwkConfFile, siaDir)
+	jwkObjFromFile := zts.AthenzJWKConfig{}
+	err = ReadAthenzJwkConf(jwkConfFile, &jwkObjFromFile)
+	require.Nil(t, err, "should be able to read athenz.conf")
+	a.Equal("kty", jwkObjFromFile.Zms.Keys[0].Kty)
+	a.Equal("kty", jwkObjFromFile.Zts.Keys[0].Kty)
+	a.Equal("kid", jwkObjFromFile.Zms.Keys[0].Kid)
+	a.Equal("kid", jwkObjFromFile.Zts.Keys[0].Kid)
+	a.Equal("x", jwkObjFromFile.Zms.Keys[0].X)
+	a.Equal("x", jwkObjFromFile.Zts.Keys[0].X)
+	a.Equal(rdl.TimestampFromEpoch(100).Millis(), jwkObjFromFile.Modified.Millis())
+
+	modTime := GetAthenzJwkConfModTime(siaDir)
+	a.Equal(rdl.TimestampFromEpoch(100).Millis(), modTime.Millis())
+
 }

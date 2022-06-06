@@ -43,6 +43,8 @@ import (
 	"github.com/cenkalti/backoff"
 )
 
+const siaMainDir = "/var/lib/sia"
+
 func readCertificate(certFile string) (*x509.Certificate, error) {
 	data, err := ioutil.ReadFile(certFile)
 	if err != nil {
@@ -218,13 +220,19 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	if err != nil {
 		return err
 	}
+
+	athenzJwk := true
+	athenzJwkModified := util.GetAthenzJwkConfModTime(siaMainDir)
+
 	info := &zts.InstanceRegisterInformation{
-		Provider:        zts.ServiceName(opts.Provider),
-		Domain:          zts.DomainName(opts.Domain),
-		Service:         zts.SimpleName(svc.Name),
-		Csr:             csr,
-		Ssh:             sshCsr,
-		AttestationData: string(attestData),
+		Provider:          zts.ServiceName(opts.Provider),
+		Domain:            zts.DomainName(opts.Domain),
+		Service:           zts.SimpleName(svc.Name),
+		Csr:               csr,
+		Ssh:               sshCsr,
+		AttestationData:   string(attestData),
+		AthenzJWK:         &athenzJwk,
+		AthenzJWKModified: &athenzJwkModified,
 	}
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
@@ -267,6 +275,13 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
 	}
+
+	if ident.AthenzJWK != nil {
+		err = util.WriteAthenzJWKFile(ident.AthenzJWK, siaMainDir, svc.Uid, svc.Gid)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -306,10 +321,15 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		}
 	}
 
+	athenzJwk := true
+	athenzJwkModified := util.GetAthenzJwkConfModTime(siaMainDir)
+
 	info := &zts.InstanceRefreshInformation{
-		AttestationData: string(attestData),
-		Csr:             csr,
-		Ssh:             sshCsr,
+		AttestationData:   string(attestData),
+		Csr:               csr,
+		Ssh:               sshCsr,
+		AthenzJWK:         &athenzJwk,
+		AthenzJWKModified: &athenzJwkModified,
 	}
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
@@ -341,6 +361,13 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate)
 		if err != nil {
 			log.Printf("Unable to update ssh certificate, err: %v\n", err)
+		}
+	}
+
+	if ident.AthenzJWK != nil {
+		err = util.WriteAthenzJWKFile(ident.AthenzJWK, siaMainDir, svc.Uid, svc.Gid)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

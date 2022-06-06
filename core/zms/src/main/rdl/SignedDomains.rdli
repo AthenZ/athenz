@@ -67,7 +67,8 @@ resource SignedDomains GET "/sys/modified_domains?domain={domain}&metaonly={meta
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
-        ResourceError UNAUTHORIZED; 
+        ResourceError UNAUTHORIZED;
+        ResourceError BAD_REQUEST;
         ResourceError TOO_MANY_REQUESTS;
     }
 }
@@ -91,6 +92,7 @@ resource JWSDomain GET "/domain/{name}/signed?signaturep1363format={signatureP13
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError BAD_REQUEST;
         ResourceError TOO_MANY_REQUESTS;
     }
 }

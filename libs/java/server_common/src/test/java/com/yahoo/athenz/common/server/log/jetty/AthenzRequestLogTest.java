@@ -17,13 +17,11 @@ package com.yahoo.athenz.common.server.log.jetty;
 
 import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 import org.eclipse.jetty.http.MetaData;
-import org.eclipse.jetty.server.HttpChannel;
+import org.eclipse.jetty.server.*;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.http.HttpHeader;
 
 import javax.net.ssl.SSLSession;
@@ -70,7 +68,10 @@ public class AthenzRequestLogTest {
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getOriginalURI()).thenReturn("/original-uri");
         Mockito.when(request.getProtocol()).thenReturn("HTTP/1.1");
-        Mockito.when(request.getContentLengthLong()).thenReturn(-1L);
+
+        HttpInput httpInput = Mockito.mock(HttpInput.class);
+        Mockito.when(httpInput.getContentReceived()).thenReturn(-1L);
+        Mockito.when(request.getHttpInput()).thenReturn(httpInput);
 
         MetaData.Response metaResponse = Mockito.mock(MetaData.Response.class);
         Mockito.when(metaResponse.getStatus()).thenReturn(-1);
@@ -111,7 +112,10 @@ public class AthenzRequestLogTest {
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getOriginalURI()).thenReturn("/original-uri");
         Mockito.when(request.getProtocol()).thenReturn("HTTP/1.1");
-        Mockito.when(request.getContentLengthLong()).thenReturn(10L);
+
+        HttpInput httpInput = Mockito.mock(HttpInput.class);
+        Mockito.when(httpInput.getContentReceived()).thenReturn(10L);
+        Mockito.when(request.getHttpInput()).thenReturn(httpInput);
 
         MetaData.Response metaResponse = Mockito.mock(MetaData.Response.class);
         Mockito.when(metaResponse.getStatus()).thenReturn(401);
@@ -152,7 +156,10 @@ public class AthenzRequestLogTest {
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getOriginalURI()).thenReturn("/original-uri");
         Mockito.when(request.getProtocol()).thenReturn("HTTP/1.1");
-        Mockito.when(request.getContentLengthLong()).thenReturn(3L);
+
+        HttpInput httpInput = Mockito.mock(HttpInput.class);
+        Mockito.when(httpInput.getContentReceived()).thenReturn(3L);
+        Mockito.when(request.getHttpInput()).thenReturn(httpInput);
 
         MetaData.Response metaResponse = Mockito.mock(MetaData.Response.class);
         Mockito.when(metaResponse.getStatus()).thenReturn(401);
@@ -196,7 +203,10 @@ public class AthenzRequestLogTest {
 
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getProtocol()).thenReturn("HTTP/1.1");
-        Mockito.when(request.getContentLengthLong()).thenReturn(102400L);
+
+        HttpInput httpInput = Mockito.mock(HttpInput.class);
+        Mockito.when(httpInput.getContentReceived()).thenReturn(102400L);
+        Mockito.when(request.getHttpInput()).thenReturn(httpInput);
 
         MetaData.Response metaResponse = Mockito.mock(MetaData.Response.class);
         Mockito.when(metaResponse.getStatus()).thenReturn(200);
@@ -247,7 +257,10 @@ public class AthenzRequestLogTest {
 
         Mockito.when(request.getMethod()).thenReturn("GET");
         Mockito.when(request.getProtocol()).thenReturn("HTTP/1.1");
-        Mockito.when(request.getContentLengthLong()).thenReturn(102400L);
+
+        HttpInput httpInput = Mockito.mock(HttpInput.class);
+        Mockito.when(httpInput.getContentReceived()).thenReturn(102400L);
+        Mockito.when(request.getHttpInput()).thenReturn(httpInput);
 
         MetaData.Response metaResponse = Mockito.mock(MetaData.Response.class);
         Mockito.when(metaResponse.getStatus()).thenReturn(200);
@@ -272,5 +285,15 @@ public class AthenzRequestLogTest {
         assertTrue(data.endsWith("Auth-X509 TLSv1.2 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\n"), data);
 
         Files.delete(file.toPath());
+    }
+
+    @Test
+    public void testAthenzRequestLogWithWriter() {
+        RequestLogWriter logWriter = new RequestLogWriter(TEST_FILE);
+        logWriter.setTimeZone("GMT");
+        logWriter.setRetainDays(7);
+
+        AthenzRequestLog requestLog = new AthenzRequestLog(logWriter);
+        assertNotNull(requestLog);
     }
 }

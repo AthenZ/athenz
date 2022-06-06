@@ -4168,39 +4168,57 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testAuthHistoryList() {
-        AuthHistoryList a = new AuthHistoryList();
-        AuthHistoryList a2 = new AuthHistoryList();
+    public void testAuthHistoryDependencies() {
+        AuthHistoryDependencies a = new AuthHistoryDependencies();
+        AuthHistoryDependencies a2 = new AuthHistoryDependencies();
         assertEquals(a, a2);
         assertFalse(a.equals(null));
         assertFalse(a.equals(new Object()));
 
-        a.setAuthHistoryList(new ArrayList<>());
+        a.setIncomingDependencies(new ArrayList<>());
         assertNotEquals(a, a2);
-        a2.setAuthHistoryList(new ArrayList<>());
+        a2.setIncomingDependencies(new ArrayList<>());
+        assertEquals(a, a2);
+
+        a.setOutgoingDependencies(new ArrayList<>());
+        assertNotEquals(a, a2);
+        a2.setOutgoingDependencies(new ArrayList<>());
         assertEquals(a, a2);
 
         AuthHistory authHistory = new AuthHistory();
-        a.setAuthHistoryList(Arrays.asList(authHistory));
-        assertNotEquals(a, a2);
-        AuthHistory authHistory2 = new AuthHistory();
-        a2.setAuthHistoryList(Arrays.asList(authHistory2));
-        assertEquals(a, a2);
-        a.getAuthHistoryList().equals(a2.getAuthHistoryList());
         assertFalse(authHistory.equals(null));
         assertFalse(authHistory.equals(new Object()));
 
-        authHistory.setDomainName("test");
+        a.setIncomingDependencies(Arrays.asList(authHistory));
         assertNotEquals(a, a2);
-        authHistory2.setDomainName("test");
+        AuthHistory authHistory2 = new AuthHistory();
+        a2.setIncomingDependencies(Arrays.asList(authHistory2));
         assertEquals(a, a2);
-        authHistory.getDomainName().equals(authHistory2.getDomainName());
+        a.getIncomingDependencies().equals(a2.getIncomingDependencies());
 
-        authHistory.setPrincipal("principal");
+        a.setOutgoingDependencies(Arrays.asList(authHistory));
         assertNotEquals(a, a2);
-        authHistory2.setPrincipal("principal");
+        a2.setOutgoingDependencies(Arrays.asList(authHistory2));
         assertEquals(a, a2);
-        authHistory.getPrincipal().equals(authHistory2.getPrincipal());
+        a.getOutgoingDependencies().equals(a2.getOutgoingDependencies());
+
+        authHistory.setUriDomain("test");
+        assertNotEquals(a, a2);
+        authHistory2.setUriDomain("test");
+        assertEquals(a, a2);
+        authHistory.getUriDomain().equals(authHistory2.getUriDomain());
+
+        authHistory.setPrincipalDomain("test2");
+        assertNotEquals(a, a2);
+        authHistory2.setPrincipalDomain("test2");
+        assertEquals(a, a2);
+        authHistory.getPrincipalDomain().equals(authHistory2.getPrincipalDomain());
+
+        authHistory.setPrincipalName("principal");
+        assertNotEquals(a, a2);
+        authHistory2.setPrincipalName("principal");
+        assertEquals(a, a2);
+        authHistory.getPrincipalName().equals(authHistory2.getPrincipalName());
 
         authHistory.setEndpoint("https://some.endpoint");
         assertNotEquals(a, a2);

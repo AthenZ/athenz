@@ -1,3 +1,32 @@
+Athenz v1.11.2 Release / Jun 3, 2022
+-------------------------------------
+
+#1876 Athens JWK config
+#1880 Fix for role member expiry notifications
+#1881 Exposed authentication history in zms-cli and ZMS Java / go clients
+#1882 support getting id tokens for tenant domains
+#1883 increase test coverage and fix copyrights
+#1884 athenz jwk config for sia agent
+#1885 return specific error message instead of generic dns suffix failure
+#1886 review all api possible resource exceptions in rdl
+#1887 updated dependencies to their latest releases
+#1888 AuthHistory - Return dependencies instead of list
+#1890 allow config of request log retain days
+
+Athenz v1.11.1 Release / May 19, 2022
+-------------------------------------
+
+#1866 Bump ejs from 3.1.6 to 3.1.7 in /ui
+#1868 use 1.7 slf4j for clients, while 2.x for servers
+#1869 validate spiffe uri for zts-svccert requests
+#1870 Adding an api method to MsdStoreConnection to help in building caches
+#1872 Generic metric implementation with increment change value
+#1873 small timeout after starting mock meta/zts servers with unique port numbers
+#1874 expose servlet context to web application
+#1875 Get Auth History implementation
+#1877 add /info endpoint for zms/zts servers
+#1879 unit tests for the /info endpoints
+
 Athenz v1.11.0 Release / May 11, 2022
 -------------------------------------
 

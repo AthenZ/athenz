@@ -15,10 +15,8 @@
  */
 package com.yahoo.athenz.zms.store;
 
-import com.yahoo.athenz.zms.AuthHistory;
-
+import com.yahoo.athenz.zms.AuthHistoryDependencies;
 import java.io.Closeable;
-import java.util.List;
 
 public interface AuthHistoryStoreConnection extends Closeable {
 
@@ -37,5 +35,5 @@ public interface AuthHistoryStoreConnection extends Closeable {
      * Retrieve the authentication history records for the given domain
      * @return the authentication history records
      */
-    List<AuthHistory> getAuthHistory(String domain);
+    AuthHistoryDependencies getAuthHistory(String domain);
 }

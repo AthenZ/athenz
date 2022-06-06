@@ -36,8 +36,10 @@ resource DomainSignedPolicyData GET "/domain/{domainName}/signed_policy_data" {
     authenticate;
     expected OK, NOT_MODIFIED;
     exceptions {
+        ResourceError UNAUTHORIZED;
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -67,7 +69,9 @@ resource JWSPolicyData POST "/domain/{domainName}/policy/signed" {
     authenticate;
     expected OK, NOT_MODIFIED;
     exceptions {
+        ResourceError UNAUTHORIZED;
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

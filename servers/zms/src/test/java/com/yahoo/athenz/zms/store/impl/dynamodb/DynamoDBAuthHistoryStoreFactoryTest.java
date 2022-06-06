@@ -18,15 +18,16 @@
 
 package com.yahoo.athenz.zms.store.impl.dynamodb;
 
+import com.yahoo.athenz.zms.ZMSConsts;
+import com.yahoo.athenz.zms.store.AuthHistoryStore;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class DynamoDBAuthHistoryStoreFactoryTest {
     @Test
-    public void testCreate() {
+    public void testCreateNoRegionException() {
         try {
             DynamoDBAuthHistoryStoreFactory dynamoDBAuthHistoryStoreFactory = new DynamoDBAuthHistoryStoreFactory();
             dynamoDBAuthHistoryStoreFactory.create(null);
@@ -34,5 +35,13 @@ public class DynamoDBAuthHistoryStoreFactoryTest {
         } catch (SdkClientException sdkClientException) {
             assertEquals(sdkClientException.getMessage(),"Unable to contact EC2 metadata service.");
         }
+    }
+
+    @Test
+    public void testCreateWithRegion() {
+        System.setProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION, "us-west-2");
+        DynamoDBAuthHistoryStoreFactory dynamoDBAuthHistoryStoreFactory = new DynamoDBAuthHistoryStoreFactory();
+        AuthHistoryStore authHistoryStore = dynamoDBAuthHistoryStoreFactory.create(null);
+        assertNotNull(authHistoryStore);
     }
 }

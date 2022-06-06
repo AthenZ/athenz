@@ -2,58 +2,13 @@
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 //Name Types
-include "Names.tdl";
-
-type AccessTokenResponse Struct {
-    String access_token; //access token
-    String token_type; //token type e.g. Bearer
-    Int32 expires_in (optional); //expiration in seconds
-    String scope (optional); //scope of the access token e.g. openid
-    String refresh_token (optional); //refresh token
-    String id_token (optional); //id token
-}
-
-type JWK Struct {
-    String kty; //key type: EC or RSA
-    String kid; //identifier
-    String alg (optional); //key algorithm
-    String use (optional); //usage: sig or enc
-    String crv (optional); //ec curve name
-    String x (optional); //ec x value
-    String y (optional); //ec y value
-    String n (optional); //rsa modulus value
-    String e (optional); //rsa public exponent value
-}
-
-type OpenIDConfig Struct {
-    String issuer; //url using the https scheme
-    String authorization_endpoint; //oauth 2.0 authorization endpoint url
-    String jwks_uri; //public server jwk set url
-    Array<String> response_types_supported; //list of supported response types
-    Array<String> subject_types_supported; //list of supported subject identifier types
-    Array<String> id_token_signing_alg_values_supported; //list of supported algorithms for issued id tokens
-    Array<String> claims_supported (optional); //list of supported id claims
-}
-
-type OAuthConfig Struct {
-    String issuer; //url using the https scheme
-    String authorization_endpoint; //oauth 2.0 authorization endpoint url
-    String token_endpoint; //authorization server token endpoint
-    String jwks_uri; //public server jwk set url
-    Array<String> response_types_supported; //list of supported response types
-    Array<String> grant_types_supported; //supported grant types
-    Array<String> token_endpoint_auth_signing_alg_values_supported; //list of supported algorithms for issued access tokens
-}
-
-//JSON Web Key (JWK) List
-type JWKList Struct {
-    Array<JWK> keys; //array of JWKs
-}
+include "OAuth.tdl";
 
 resource OpenIDConfig GET "/.well-known/openid-configuration" {
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -61,6 +16,7 @@ resource OAuthConfig GET "/.well-known/oauth-authorization-server" {
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
@@ -69,10 +25,9 @@ resource JWKList GET "/oauth2/keys?rfc={rfc}" {
     expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
-
-type AccessTokenRequest String;
 
 // Fetch OAuth2 Access Token
 resource AccessTokenResponse POST "/oauth2/token" {
@@ -84,15 +39,12 @@ resource AccessTokenResponse POST "/oauth2/token" {
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }
 
-type OIDCResponse Struct {
-    String location;
-};
-
 // Fetch OAuth OpenID Connect ID Token
-resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}" {
+resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}&fullArn={fullArn}" {
     String responseType; //response type - currently only supporting id tokens - id_token
     ServiceName clientId; //client id - must be valid athenz service identity name
     String redirectUri; //redirect uri for the response
@@ -100,6 +52,7 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
     EntityName state (optional); //optional state claim included in the response location header
     EntityName nonce; //nonce claim included in the id token
     SimpleName keyType (optional); //optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured
+    Bool fullArn (optional, default=false); //flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)
     String location (header="Location", out); //return location header with id token
     authenticate;
     expected FOUND;
@@ -108,5 +61,6 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
         ResourceError FORBIDDEN;
         ResourceError NOT_FOUND;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
     }
 }

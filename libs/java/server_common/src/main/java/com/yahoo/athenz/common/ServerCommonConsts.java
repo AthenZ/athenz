@@ -34,6 +34,7 @@ public final class ServerCommonConsts {
     public static final String ZTS_PROP_ZMS_URL_OVERRIDE    = "athenz.zts.zms_url";
     public static final String ATHENZ_SYS_DOMAIN            = "sys.auth";
     public static final String ZTS_SERVICE                  = "zts";
+    public static final String ZMS_SERVICE                  = "zms";
     public static final String PROP_USER_DOMAIN             = "athenz.user_domain";
     public static final String PROP_ATHENZ_CONF             = "athenz.athenz_conf";
     public static final String ZTS_PROP_FILE_NAME           = "athenz.zts.prop_file";
@@ -41,7 +42,7 @@ public final class ServerCommonConsts {
 
     public static final String REQUEST_PRINCIPAL    = "com.yahoo.athenz.auth.principal";
     public static final String REQUEST_AUTHORITY_ID = "com.yahoo.athenz.auth.authority_id";
-    
+
     public static final String METRIC_DEFAULT_FACTORY_CLASS = "com.yahoo.athenz.common.metrics.impl.NoOpMetricFactory";
 
     public static final String ACTION_LAUNCH     = "launch";
