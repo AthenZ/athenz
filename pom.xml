@@ -115,6 +115,7 @@
     <slf4j.server.version>2.0.0-alpha7</slf4j.server.version>
     <testng.version>7.6.0</testng.version>
     <swagger.version>2.2.1</swagger.version>
+    <commons.logging.version>1.2</commons.logging.version>
 
     <code.coverage.min>0.95</code.coverage.min>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -139,7 +140,9 @@
     <module>libs/java/client_common</module>
     <module>libs/java/cert_refresher</module>
     <module>libs/java/server_common</module>
+    <module>libs/java/syncer_common</module>
     <module>libs/java/instance_provider</module>
+    <module>libs/java/dynamodb_client_factory</module>
     <module>clients/java/zms</module>
     <module>clients/java/zts</module>
     <module>clients/java/zpe</module>
@@ -147,6 +150,7 @@
     <module>servers/zms</module>
     <module>servers/zts</module>
     <module>containers/jetty</module>
+    <module>syncers/auth_history_syncer</module>
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
     <module>clients/go/msd</module>

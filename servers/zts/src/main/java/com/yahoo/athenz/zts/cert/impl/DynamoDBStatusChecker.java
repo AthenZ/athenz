@@ -20,6 +20,9 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientAndCredentials;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcher;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcherFactory;
 import org.apache.http.HttpStatus;
 
 import java.io.IOException;
@@ -40,7 +43,8 @@ public class DynamoDBStatusChecker implements StatusChecker {
         try {
             // Get DynamoDB client and temp credentials (if required)
             DynamoDBClientFetcher dynamoDBClientFetcher = getDynamoDBClientFetcher();
-            clientAndCreds = dynamoDBClientFetcher.getDynamoDBClient(null, keyStore);
+            ZTSDynamoDBClientSettingsFactory ztsDynamoDBClientSettingsFactory = new ZTSDynamoDBClientSettingsFactory(keyStore);
+            clientAndCreds = dynamoDBClientFetcher.getDynamoDBClient(null, ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings());
             AmazonDynamoDB amazonDynamoDB = clientAndCreds.getAmazonDynamoDB();
 
             // Get list of tables and verify our table appears

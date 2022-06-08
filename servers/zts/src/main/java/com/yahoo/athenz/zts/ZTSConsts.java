@@ -111,14 +111,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_DYNAMODB_RETRIES                   = "athenz.zts.cert_dynamodb_retries";
     public static final String ZTS_PROP_CERT_DYNAMODB_RETRIES_SLEEP_MILLIS      = "athenz.zts.cert_dynamodb_retries_sleep_millis";
 
-
     public static final String ZTS_PROP_DYNAMODB_KEY_PATH            = "athenz.zts.dynamodb_key_path";
     public static final String ZTS_PROP_DYNAMODB_CERT_PATH           = "athenz.zts.dynamodb_cert_path";
     public static final String ZTS_PROP_DYNAMODB_DOMAIN              = "athenz.zts.dynamodb_aws_domain";
     public static final String ZTS_PROP_DYNAMODB_ROLE                = "athenz.zts.dynamodb_aws_role";
     public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE          = "athenz.zts.dynamodb_trust_store_path";
     public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD = "athenz.zts.dynamodb_trust_store_password";
-    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME = "athenz.zts.dynamodb_trust_store_app_name";
+    public static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME  = "athenz.zts.dynamodb_trust_store_app_name";
     public static final String ZTS_PROP_DYNAMODB_REGION              = "athenz.zts.dynamodb_region";
     public static final String ZTS_PROP_DYNAMODB_ZTS_URL             = "athenz.zts.dynamodb_zts_url";
     public static final String ZTS_PROP_DYNAMODB_EXTERNAL_ID         = "athenz.zts.dynamodb_external_id";
