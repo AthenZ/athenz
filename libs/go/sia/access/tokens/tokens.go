@@ -20,10 +20,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/access/config"
-	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
-	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -31,13 +27,29 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
+	"github.com/AthenZ/athenz/libs/go/sia/futil"
+	tlsconfig "github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
-const USER_AGENT = "User-Agent"
+const (
+	USER_AGENT                = "User-Agent"
+	TOKEN_REFRESH_PERIOD_PROP = "TOKEN_REFRESH_PERIOD"
+	DEFAULT_REFRESH_DURATION  = "1.5h"
+)
 
 // ToBeRefreshed looks into /var/lib/sia/tokens folder and returns the list of tokens whose
 // age is half of their validity
-func ToBeRefreshed(tokenDir string, tokens []config.AccessToken) ([]config.AccessToken, []error) {
+func ToBeRefreshed(opts *config.TokenOptions) ([]config.AccessToken, []error) {
+	tokenDir := opts.TokenDir
+	tokens := opts.Tokens
+
 	file := func(domain, name string) string {
 		return filepath.Join(tokenDir, domain, name)
 	}
@@ -60,6 +72,14 @@ func ToBeRefreshed(tokenDir string, tokens []config.AccessToken) ([]config.Acces
 				errs = append(errs, fmt.Errorf("token: %s exists, but could not read it, err: %v", tpath, err))
 				continue
 			}
+
+			// if the token is being stored without expiration property (i.e - not AccessTokenResponse
+			// but AccessTokenResponse::Access_token only), we should refresh immediately
+			if opts.StoreOptions != config.ZTS_RESPONSE {
+				refresh = append(refresh, t)
+				continue
+			}
+
 			atr := zts.AccessTokenResponse{}
 			err = json.Unmarshal(content, &atr)
 			if err != nil {
@@ -79,7 +99,6 @@ func ToBeRefreshed(tokenDir string, tokens []config.AccessToken) ([]config.Acces
 	return refresh, errs
 }
 
-// Fetch retrieves the configured set of access tokens from the ZTS Server
 func Fetch(opts *config.TokenOptions) []error {
 	errs := []error{}
 	tlsConfigs, e := loadSvcCerts(opts)
@@ -89,7 +108,7 @@ func Fetch(opts *config.TokenOptions) []error {
 
 	client := zts.NewClient(opts.ZtsUrl, nil)
 
-	toRefresh, e := ToBeRefreshed(opts.TokenDir, opts.Tokens)
+	toRefresh, e := ToBeRefreshed(opts)
 	if len(e) != 0 {
 		errs = append(errs, e...)
 	}
@@ -113,13 +132,22 @@ func Fetch(opts *config.TokenOptions) []error {
 		}
 
 		fileName := filepath.Join(opts.TokenDir, t.Domain, t.FileName)
-		bytes, err := json.Marshal(res)
+
+		tokenBytesToStore := func(res *zts.AccessTokenResponse, opts *config.TokenOptions) ([]byte, error) {
+			if opts.StoreOptions == config.ZTS_RESPONSE {
+				return json.Marshal(res)
+			} else {
+				return json.Marshal(res.Access_token)
+			}
+		}
+
+		bytes, err := tokenBytesToStore(res, opts)
+
 		if err != nil {
 			// note: since it was just unmarshalled into AccessTokenResponse by the ZTS client library, re-marshalling should never be an issue
 			errs = append(errs, fmt.Errorf("unable to marshall the token response for domain: %q, roles: %v, response: %v, err: %v", t.Domain, t.Roles, res, err))
 			continue
 		}
-
 		err = siafile.Update(fileName, bytes, t.Uid, t.Gid, 0440, nil)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("unable to write to file: %q for access token request for domain: %q, roles: %v, err: %v", fileName, t.Domain, t.Roles, err))
@@ -175,4 +203,46 @@ func makeTokenRequest(domain string, roles []string, expiryTime int) string {
 	}
 	params.Add("scope", scope)
 	return params.Encode()
+}
+
+func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) (*config.TokenOptions, error) {
+	if options.AccessTokens == nil {
+		return nil, fmt.Errorf("access-token object is not presented")
+	}
+	dirs := []string{options.CertDir, options.KeyDir, options.BackUpDir}
+	dirs = append(dirs, TokenDirs(options.TokenDir, options.AccessTokens)...)
+
+	err := futil.MakeDirs(dirs, 0755)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create access-token directories, err: %v", err)
+	}
+
+	tokenRefreshPeriod := util.EnvOrDefault(TOKEN_REFRESH_PERIOD_PROP, DEFAULT_REFRESH_DURATION)
+	tokenRefresh, err := time.ParseDuration(tokenRefreshPeriod)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token refresh period %q, %v", tokenRefreshPeriod, err)
+	}
+
+	tokenOpts := &config.TokenOptions{
+		Domain:       options.Domain,
+		Services:     toServiceNames(options.Services),
+		TokenDir:     options.TokenDir,
+		Tokens:       options.AccessTokens,
+		CertDir:      options.CertDir,
+		KeyDir:       options.KeyDir,
+		ZtsUrl:       ztsUrl,
+		UserAgent:    userAgent,
+		TokenRefresh: tokenRefresh,
+	}
+	return tokenOpts, nil
+}
+
+func toServiceNames(services []options.Service) []string {
+	var serviceNames []string
+
+	for _, srv := range services {
+		serviceNames = append(serviceNames, srv.Name)
+	}
+
+	return serviceNames
 }

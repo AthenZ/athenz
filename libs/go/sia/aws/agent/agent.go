@@ -23,12 +23,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/ardielle/ardielle-go/rdl"
 	"io/ioutil"
 	"log"
 	"os"
@@ -37,6 +31,16 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/ardielle/ardielle-go/rdl"
+	"github.com/cenkalti/backoff"
 )
 
 const siaMainDir = "/var/lib/sia"
@@ -491,6 +495,10 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 	}
 	svcs := options.GetSvcNames(opts.Services)
 
+	tokenOpts, err := tokenOptions(opts, ztsUrl)
+	if err != nil {
+		log.Printf(err.Error())
+	}
 	switch siaCmd {
 	case "rolecert":
 		GetRoleCertificate(ztsUrl,
@@ -498,6 +506,15 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 			opts,
 		)
+	case "token":
+		if tokenOpts != nil {
+			err := accessTokenRequest(tokenOpts)
+			if err != nil {
+				log.Fatalf("Unable to fetch access token, err: %v\n", err)
+			}
+		} else {
+			log.Print("unable to obtain fetch token, invalid sia_config")
+		}
 	case "post", "register":
 		err := RegisterInstance(data, ztsUrl, opts, false)
 		if err != nil {
@@ -518,11 +535,13 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		// over and try to rotate the certs
 
 		initialSetup := true
+
 		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
 			err := RegisterInstance(data, ztsUrl, opts, true)
 			if err != nil {
 				log.Fatalf("Register identity failed, error: %v\n", err)
 			}
+
 		} else {
 			initialSetup = false
 			log.Println("Identity certificate file already exists. Retrieving identity details...")
@@ -553,6 +572,14 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 						return
 					}
 					log.Printf("identity successfully refreshed for services: %s\n", svcs)
+					if tokenOpts != nil {
+						err := accessTokenRequest(tokenOpts)
+						if err != nil {
+							errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
+						}
+					} else {
+						log.Print("token config does not exist - do not refresh token")
+					}
 				} else {
 					initialSetup = false
 				}
@@ -594,12 +621,92 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 			stop <- true
 		}()
 
+		go func() {
+			if tokenOpts == nil || tokenOpts.TokenRefresh == 0 {
+				return
+			}
+
+			log.Printf("start refresh access-token task every [%s]", fmt.Sprint(tokenOpts.TokenRefresh))
+			t2 := time.NewTicker(tokenOpts.TokenRefresh)
+			defer t2.Stop()
+			for {
+				select {
+				case <-t2.C:
+					log.Printf("refreshing access-token..")
+					err := accessTokenRequest(tokenOpts)
+					if err != nil {
+						errors <- fmt.Errorf("refresh access-token task got error: %v\n", err)
+					}
+				case <-stop:
+					errors <- nil
+					return
+				}
+			}
+		}()
+
 		err = <-errors
 		if err != nil {
 			log.Printf("%v\n", err)
 		}
 	}
 	os.Exit(0)
+}
+
+func accessTokenRequest(tokenOpts *config.TokenOptions) error {
+	// getExponentialBackoffToken will return a backoff config with first retry delay of 5s, and backoff retry
+	// until params.tokenRefresh / 4
+	getExponentialBackoffToken := func() *backoff.ExponentialBackOff {
+		b := backoff.NewExponentialBackOff()
+		b.InitialInterval = 5 * time.Second
+		b.Multiplier = 2
+		b.MaxElapsedTime = tokenOpts.TokenRefresh / 4
+		return b
+	}
+
+	notifyOnAccessTokenErr := func(err error, backoffDelay time.Duration) {
+		log.Printf("Failed to create/refresh access token: %s. Retrying in %s", err.Error(), backoffDelay)
+	}
+
+	accessTokenFunc := func() error {
+		return fetchAccessToken(tokenOpts)
+	}
+	err := backoff.RetryNotify(accessTokenFunc, getExponentialBackoffToken(), notifyOnAccessTokenErr)
+
+	if err != nil {
+		log.Printf("access tokens errors: %v", err)
+	}
+	return err
+}
+
+func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, error) {
+	userAgent := fmt.Sprintf("%s-%s", opts.Provider, opts.InstanceId)
+	tokenOpts, err := tokens.NewTokenOptions(opts, ztsUrl, userAgent)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create token options: %s", err.Error())
+	}
+	tokenOpts.StoreOptions = config.ACCESS_TOKEN_PROP
+
+	log.Printf("token options created successfully")
+	return tokenOpts, nil
+}
+
+func fetchAccessToken(tokenOpts *config.TokenOptions) error {
+
+	errs := tokens.Fetch(tokenOpts)
+	log.Printf("Fetch access token completed successfully with [%d] errors", len(errs))
+
+	switch len(errs) {
+	case 0:
+		return nil
+	case 1:
+		return errs[0]
+	default:
+		var errsStr []string
+		for _, er := range errs {
+			errsStr = append(errsStr, er.Error())
+		}
+		return fmt.Errorf(strings.Join(errsStr, ","))
+	}
 }
 
 func shouldSkipRegister(opts *options.Options) bool {

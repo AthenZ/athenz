@@ -89,7 +89,6 @@ func main() {
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
 	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
 	opts.InstanceId = sia.GetEKSPodId()
-
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
 	}

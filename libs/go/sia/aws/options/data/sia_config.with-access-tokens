@@ -1,0 +1,46 @@
+{
+  "service": "api",
+  "services": {
+    "api": {},
+    "splunk": {
+      "user": "nobody"
+    },
+    "logger": {
+      "user": "nobody",
+      "group": "sys"
+    }
+  },
+
+  "access_tokens": {
+    "athenz.demo/reader": {},
+
+    "athenz.demo/poweruser": {
+      "roles": ["reader-admin"],
+       "expires_in": 10800
+    },
+
+    "athenz.demo/consumer": {
+      "roles": ["reader", "reader-admin"]
+    },
+
+    "athenz.demo/writer": {
+      "roles": ["writer", "writer-admin"],
+      "expires_in": 10800
+    },
+
+    "athenz.demo/splunk": {
+      "service": "logger"
+    },
+
+    "athenz.demo/all": {
+      "roles": ["*"]
+    }
+  },
+  "accounts": [
+       {
+           "domain": "athenz",
+           "user": "nobody",
+           "account": "123456789012"
+       }
+  ]
+}
