@@ -552,15 +552,6 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		errors := make(chan error, 1)
 		certUpdates := make(chan bool, 1)
 
-		// token setup can be started only after we have an identity
-		identityCreated := make(chan bool, 1)
-
-		if tokenOpts != nil && tokenOpts.TokenRefresh > 0 {
-			identityCreated <- true
-		} else {
-			log.Printf("token options are not provided - do not process access tokens")
-		}
-
 		go func() {
 			for {
 				log.Printf("Identity being used: %s\n", opts.Name)
@@ -581,6 +572,14 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 						return
 					}
 					log.Printf("identity successfully refreshed for services: %s\n", svcs)
+					if tokenOpts != nil {
+						err := accessTokenRequest(tokenOpts)
+						if err != nil {
+							errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
+						}
+					} else {
+						log.Print("token config does not exist - do not refresh token")
+					}
 				} else {
 					initialSetup = false
 				}
@@ -589,14 +588,6 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
 					opts,
 				)
-				if tokenOpts != nil {
-					err := accessTokenRequest(tokenOpts)
-					if err != nil {
-						errors <- fmt.Errorf("Unable to fetch access token, err: %v\n", err)
-					}
-				} else {
-					log.Print("token config does not exist - do not refresh token")
-				}
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true
 				}
@@ -634,20 +625,18 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 			if tokenOpts == nil || tokenOpts.TokenRefresh == 0 {
 				return
 			}
-			fetchToken := func() {
-				err := fetchAccessToken(tokenOpts)
-				if err != nil {
-					log.Printf("fetch access token errors: %s", err.Error())
-				}
-			}
-			// wait until service identity has created
+
+			log.Printf("start refresh access-token task every [%s]", fmt.Sprint(tokenOpts.TokenRefresh))
+			t2 := time.NewTicker(tokenOpts.TokenRefresh)
+			defer t2.Stop()
 			for {
 				select {
-				case <-identityCreated:
-					log.Printf("service identity has created, about to fetch access token..")
-					fetchToken()
-					go refreshToken(fetchToken, tokenOpts, stop, errors)
-					break
+				case <-t2.C:
+					log.Printf("refreshing access-token..")
+					err := accessTokenRequest(tokenOpts)
+					if err != nil {
+						errors <- fmt.Errorf("refresh access-token task got error: %v\n", err)
+					}
 				case <-stop:
 					errors <- nil
 					return
@@ -661,22 +650,6 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 		}
 	}
 	os.Exit(0)
-}
-
-func refreshToken(fetchToken func(), tokenOpts *config.TokenOptions, stop chan bool, errors chan error) {
-	log.Printf("start refresh access-token task every [%s]", fmt.Sprint(tokenOpts.TokenRefresh))
-	t2 := time.NewTicker(tokenOpts.TokenRefresh)
-	defer t2.Stop()
-	for {
-		select {
-		case <-t2.C:
-			log.Printf("refreshing access-token..")
-			fetchToken()
-		case <-stop:
-			errors <- nil
-			return
-		}
-	}
 }
 
 func accessTokenRequest(tokenOpts *config.TokenOptions) error {
