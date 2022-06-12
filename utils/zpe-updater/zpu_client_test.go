@@ -6,9 +6,13 @@ package zpu
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/require"
+	"io"
 	"io/ioutil"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -32,6 +36,33 @@ const (
 var testConfig *ZpuConfiguration
 var ztsClient zts.ZTSClient
 var port string
+
+type testServer struct {
+	listener net.Listener
+	addr     string
+}
+
+func (t *testServer) start(h http.Handler) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Panicln("Unable to serve on randomly assigned port")
+	}
+	s := &http.Server{Handler: h}
+	t.listener = listener
+	t.addr = listener.Addr().String()
+
+	go func() {
+		s.Serve(listener)
+	}()
+}
+
+func (t *testServer) stop() {
+	t.listener.Close()
+}
+
+func (t *testServer) baseUrl(version string) string {
+	return "http://" + t.addr + "/" + version
+}
 
 var ecdsaPrivateKeyPEM = []byte(`-----BEGIN EC PRIVATE KEY-----
 MIGkAgEBBDA27vlziu7AYNJo/aaG3mS4XPK2euiTLQDxzUoDkiMpVHRXLxSbX897
@@ -378,4 +409,75 @@ func TestECJwkToPem(t *testing.T) {
 
 	require.Equal(t, jwkAsPem, ecPublicKeyPEM)
 
+}
+
+func TestPolicyUpdater(t *testing.T) {
+	a := assert.New(t)
+
+	ztsRouter := httptreemux.New()
+
+	// the PEM public key, left here for debugging purpose
+	// pub := "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"
+	// pubkey, _ := new(zmssvctoken.YBase64).DecodeString(pub)
+	// log.Printf("pubkey: [%s]", pubKey)
+
+	signedPolicy := `{"expires":"2017-06-09T06:11:12.125Z","modified":"2017-06-02T06:11:12.125Z","policyData":{"domain":"sys.auth","policies":[{"assertions":[{"action":"*","effect":"ALLOW","resource":"*","role":"sys.auth:role.admin"},{"action":"*","effect":"DENY","resource":"*","role":"sys.auth:role.non-admin"}],"name":"sys.auth:policy.admin"}]},"zmsKeyId":"0","zmsSignature":"Y2HuXmgL86PL1WnleGFHwPmNEqUdWgDxmmIsDnF5f5oqakacqTtwt9JNqDV9nuJ7LnKl3zsZoDQSAtcHMu4IGA--"}`
+	pubJwk := "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"kid\":\"0\",\"n\":\"vN9I5NAl8SbV6bgveyTI1VD9vHQw5Opr5HA4fdlwwrKgbE4mj0DJ5FroVcya8kkZizk_fhizMWmePa4BuLbicQ\"}"
+	signature := "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--"
+
+	// Mock GetDomainSignedPolicyData
+	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		//http://[::]:60995/zts/v1/domain/test/signed_policy_data
+		log.Println("Called /domain/sys.auth/signed_policy_data")
+		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
+		pd, _ := json.Marshal(policyData)
+		io.WriteString(w, string(pd))
+	})
+
+	ztsServer := &testServer{}
+	ztsServer.start(ztsRouter)
+	defer ztsServer.stop()
+
+	conf := &ZpuConfiguration{
+		Zts:               ztsServer.baseUrl("zts/v1"),
+		DomainList:        "sys.auth",
+		MetricsDir:        MetricDir,
+		PolicyFileDir:     PoliciesDir,
+		TempPolicyFileDir: TempPoliciesDir,
+		AthenzJWKConfig:   zpuAthenzJWK(pubJwk),
+		CheckZMSSignature: true,
+		ExpiredFunc: func() bool {
+			return false
+		},
+	}
+	err := PolicyUpdater(conf)
+	a.Nil(err)
+	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, "sys.auth")
+	a.Equal(util.Exists(policyFile), true)
+}
+
+func zpuAthenzJWK(pubJwk string) *zts.AthenzJWKConfig {
+
+	jwkKey := func() *zts.JWKList {
+
+		var jwkKey = zts.JWK{}
+		json.Unmarshal([]byte(pubJwk), &jwkKey)
+
+		keysArr := []*zts.JWK{
+			&jwkKey,
+		}
+
+		return &zts.JWKList{
+			Keys: keysArr,
+		}
+	}
+
+	now := rdl.TimestampNow()
+	jwkConf := zts.AthenzJWKConfig{
+		Modified: &now,
+		Zms:      jwkKey(),
+		Zts:      jwkKey(),
+	}
+
+	return &jwkConf
 }

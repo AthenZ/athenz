@@ -136,9 +136,9 @@ func main() {
 	// process regular zpu update process
 	if zpuConfig.StartUpDelay > 0 {
 		rand.Seed(time.Now().Unix())
-		randmonSleepInterval := rand.Intn(zpuConfig.StartUpDelay)
-		log.Printf("Launching zpe_policy_updater in %v seconds\n", randmonSleepInterval)
-		time.Sleep(time.Duration(randmonSleepInterval) * time.Second)
+		randomSleepInterval := rand.Intn(zpuConfig.StartUpDelay)
+		log.Printf("Launching zpe_policy_updater in %v seconds\n", randomSleepInterval)
+		time.Sleep(time.Duration(randomSleepInterval) * time.Second)
 	} else {
 		log.Println("Launching zpe_policy_updater without delay")
 	}

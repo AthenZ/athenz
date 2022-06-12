@@ -49,6 +49,7 @@ type ZpuConfiguration struct {
 	PolicyVersions    map[string]string
 	ForceRefresh      bool
 	AthenzJWKConfig   *zts.AthenzJWKConfig
+	ExpiredFunc       func() bool
 }
 
 type AthenzConf struct {

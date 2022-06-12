@@ -773,7 +773,7 @@ func ReadAthenzJwkConf(jwkConfFile string, jwkConfObj *zts.AthenzJWKConfig) erro
 	}
 	err = json.Unmarshal(jwkConfStr, jwkConfObj)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshel athenz.conf: [%s], err: %v", jwkConfFile, err.Error())
+		return fmt.Errorf("failed to unmarshal athenz.conf: [%s], err: %v", jwkConfFile, err.Error())
 	}
 	return nil
 }
