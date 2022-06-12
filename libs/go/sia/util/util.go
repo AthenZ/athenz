@@ -734,6 +734,14 @@ func ExecIdCommand(arg string) int {
 	return id
 }
 
+func EnvOrDefault(name string, defaultValue string) string {
+	v := os.Getenv(name)
+	if v == "" {
+		return defaultValue
+	}
+	return v
+}
+
 func WriteAthenzJWKFile(athenzJwk *zts.AthenzJWKConfig, siaDir string, uid int, gid int) error {
 	confJson, err := json.MarshalIndent(athenzJwk, "", "  ")
 	if err != nil {

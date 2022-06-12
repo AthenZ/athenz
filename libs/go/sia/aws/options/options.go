@@ -21,16 +21,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"syscall"
 	"time"
+
+	ac "github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
 // package options contains types for parsing sia_config file and options to carry those config values
@@ -85,6 +87,7 @@ type Config struct {
 	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
 	ZTSRegion       string                   `json:"zts_region,omitempty"`        //specifies zts region for the requests
 	KeepPrivileges  bool                     `json:"keep_privileges,omitempty"`   //keep privileges as root instead of dropping to configured user
+	AccessTokens    map[string]ac.Role       `json:"access_tokens,omitempty"`     // map of role name to token attributes
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -158,7 +161,13 @@ type Options struct {
 	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
 	ZTSRegion          string                //ZTS region in case the client needs this information
 	KeepPrivileges     bool                  //Keep privileges as root instead of dropping to configured user
+	TokenDir           string                //Access tokens directory
+	AccessTokens       []ac.AccessToken      //Access tokens object
 }
+
+const (
+	DEFAULT_TOKEN_EXPIRY = 28800 // 8 hrs
+)
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
 	// first try to get the account from our creds and if
@@ -434,6 +443,12 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		services = append(services, first)
 		services = append(services, tail...)
 	}
+	// Process all access_tokens
+	accessTokens, err := processAccessTokens(config, services)
+
+	if err != nil {
+		return nil, err
+	}
 
 	for _, r := range account.Roles {
 		if r.Filename != "" && r.Filename[0] == '/' {
@@ -457,6 +472,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		SanDnsWildcard:   sanDnsWildcard,
 		Services:         services,
 		Roles:            account.Roles,
+		TokenDir:         fmt.Sprintf("%s/tokens", siaDir),
 		CertDir:          fmt.Sprintf("%s/certs", siaDir),
 		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
 		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
@@ -467,7 +483,65 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		RefreshInterval:  refreshInterval,
 		ZTSRegion:        ztsRegion,
 		KeepPrivileges:   keepPrivileges,
+		AccessTokens:     accessTokens,
 	}, nil
+}
+
+func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessToken, error) {
+	if config == nil || config.AccessTokens == nil {
+		return nil, nil
+	}
+
+	var accessTokens []ac.AccessToken
+
+	for k, t := range config.AccessTokens {
+		parts := strings.Split(k, "/")
+		if len(parts) <= 1 || strings.TrimSpace(parts[0]) == "" || strings.TrimSpace(parts[1]) == "" {
+			return nil, fmt.Errorf("invalid access-token role, domain: %v, role: %v", k, t.Roles)
+		}
+		domain := parts[0]
+		fileName := parts[1]
+		roles := t.Roles
+		if len(roles) == 0 {
+			roles = []string{fileName}
+		}
+		expiry := DEFAULT_TOKEN_EXPIRY
+		if t.Expiry != 0 {
+			expiry = t.Expiry
+		}
+		service := t.Service
+
+		// if service is not presented, choose the main service
+		if service == "" {
+			service = config.Service
+		}
+
+		processedSvc, err := getSvc(service, processedSvcs)
+		if err != nil {
+			return nil, err
+		}
+
+		accessTokens = append(accessTokens, ac.AccessToken{
+			FileName: fileName,
+			Service:  service,
+			Domain:   domain,
+			Roles:    roles,
+			Expiry:   expiry,
+			User:     processedSvc.User,
+			Uid:      processedSvc.Uid,
+			Gid:      processedSvc.Gid,
+		})
+	}
+	return accessTokens, nil
+}
+
+func getSvc(name string, services []Service) (Service, error) {
+	for _, s := range services {
+		if s.Name == name {
+			return s, nil
+		}
+	}
+	return Service{}, fmt.Errorf("%q not found in processed services", name)
 }
 
 // GetSvcNames returns comma separated list of service names

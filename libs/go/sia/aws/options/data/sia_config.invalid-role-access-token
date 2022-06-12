@@ -1,0 +1,24 @@
+{
+  "service": "api",
+  "services": {
+    "api": {},
+    "splunk": {
+      "user": "nobody"
+    },
+    "logger": {
+      "user": "nobody",
+      "group": "sys"
+    }
+  },
+
+  "access_tokens": {
+    "athenz.invalid": {}
+  },
+  "accounts": [
+       {
+           "domain": "athenz",
+           "user": "nobody",
+           "account": "123456789012"
+       }
+  ]
+}

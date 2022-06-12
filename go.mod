@@ -4,6 +4,7 @@ require (
 	github.com/ardielle/ardielle-go v1.5.2
 	github.com/ardielle/ardielle-tools v1.5.4 // indirect
 	github.com/aws/aws-sdk-go v1.42.37
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cncf/xds/go v0.0.0-20211130200136-a8f946100490 // indirect
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/envoyproxy/go-control-plane v0.10.1
