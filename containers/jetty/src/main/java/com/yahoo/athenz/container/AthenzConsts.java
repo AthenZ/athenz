@@ -70,6 +70,14 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_RATE_LIMIT_FACTORY_CLASS        = "athenz.ratelimit_factory_class";
     public static final String ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.private_keystore_factory_class";
 
+    public static final String ATHENZ_PROP_SERVER_POOL_SET_ENABLED       = "athenz.server.pool.set_enabled";
+    public static final String ATHENZ_PROP_SERVER_POOL_MAX_HEAP_MEMORY   = "athenz.server.pool.max_heap_memory";
+    public static final String ATHENZ_PROP_SERVER_POOL_MAX_DIRECT_MEMORY = "athenz.server.pool.max_direct_memory";
+    public static final String ATHENZ_PROP_SERVER_POOL_MIN_CAPACITY      = "athenz.server.pool.min_capacity";
+    public static final String ATHENZ_PROP_SERVER_POOL_MAX_CAPACITY      = "athenz.server.pool.max_capacity";
+    public static final String ATHENZ_PROP_SERVER_POOL_FACTOR            = "athenz.server.pool.factor";
+    public static final String ATHENZ_PROP_SERVER_POOL_MAX_BUCKET_SIZE   = "athenz.server.pool.max_bucket_size";
+
     public static final String STR_DEF_ROOT     = "/home/athenz";
 
     public static final String ATHENZ_PROP_HTTP_PORT   = "athenz.port";

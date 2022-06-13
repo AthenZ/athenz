@@ -37,6 +37,7 @@ import org.eclipse.jetty.deploy.providers.WebAppProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.io.ArrayRetainableByteBufferPool;
 import org.eclipse.jetty.rewrite.handler.HeaderPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.*;
@@ -122,10 +123,10 @@ public class AthenzJettyContainer {
         String accessSlf4jLogger = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_SLF4J_LOGGER);
         if (!StringUtil.isEmpty(accessSlf4jLogger)) {
 
-            Slf4jRequestLogWriter slfjRequestLogWriter = new Slf4jRequestLogWriter();
-            slfjRequestLogWriter.setLoggerName(accessSlf4jLogger);
+            Slf4jRequestLogWriter slf4jRequestLogWriter = new Slf4jRequestLogWriter();
+            slf4jRequestLogWriter.setLoggerName(accessSlf4jLogger);
 
-            CustomRequestLog customRequestLog = new CustomRequestLog(slfjRequestLogWriter, CustomRequestLog.EXTENDED_NCSA_FORMAT);
+            CustomRequestLog customRequestLog = new CustomRequestLog(slf4jRequestLogWriter, CustomRequestLog.EXTENDED_NCSA_FORMAT);
             server.setRequestLog(customRequestLog);
 
         } else {
@@ -157,8 +158,8 @@ public class AthenzJettyContainer {
         
         RewriteHandler rewriteHandler = new RewriteHandler();
         
-        // Check whether or not to disable Keep-Alive support in Jetty.
-        // This will be the first handler in our array so we always set
+        // Check whether to disable Keep-Alive support in Jetty.
+        // This will be the first handler in our array, so we always set
         // the appropriate header in response. However, since we're now
         // behind ATS, we want to keep the connections alive so ATS
         // can re-use them as necessary
@@ -261,7 +262,6 @@ public class AthenzJettyContainer {
         }
         contexts.addHandler(servletCtxHandler);
 
-
         DeploymentManager deployer = new DeploymentManager();
         
         boolean debug = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_DEBUG, "false"));
@@ -283,7 +283,10 @@ public class AthenzJettyContainer {
         webappProvider.setExtractWars(true);
         webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
         webappProvider.setParentLoaderPriority(true);
-        //set up a Default web.xml file.  file is applied to a Web application before it's own WEB_INF/web.xml
+
+        // set up a Default web.xml file.  file is applied to a Web application
+        // before its own WEB_INF/web.xml
+
         setDefaultsDescriptor(webappProvider, jettyHome);
         final String jettyTemp = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_TEMP, jettyHome + "/temp");
         webappProvider.setTempDir(new File(jettyTemp));
@@ -293,8 +296,10 @@ public class AthenzJettyContainer {
     }
 
     private void setDefaultsDescriptor(WebAppProvider webappProvider, String jettyHome) {
-        //set up a Default web.xml file. file is applied to a Web application before it's own WEB_INF/web.xml
-        //check for file existence
+
+        // set up a Default web.xml file. file is applied to a Web application before
+        // its own WEB_INF/web.xml. check for file existence
+
         String webDefaultXML = jettyHome + DEFAULT_WEBAPP_DESCRIPTOR;
         File file = new File(webDefaultXML);
         if (!file.exists()) {
@@ -463,7 +468,7 @@ public class AthenzJettyContainer {
                 keystoreScanner.setScanInterval(reloadSslContextSeconds);
                 server.addBean(keystoreScanner);
             } catch (IllegalArgumentException exception) {
-                LOG.error("Keystore cant be automatically reloaded when \"{}\" is changed: {}",
+                LOG.error("Keystore can't be automatically reloaded when \"{}\" is changed: {}",
                         sslContextFactory.getKeyStorePath(), exception.getMessage());
                 throw exception;
             }
@@ -550,6 +555,31 @@ public class AthenzJettyContainer {
         threadPool.setMaxThreads(maxThreads);
 
         server = new Server(threadPool);
+
+        // if configured to override Jetty's default retainable byte buffer pool,
+        // make sure the ArrayRetainableByteBufferPool is added before the server is started
+
+        boolean setRetainableByteBufferPoolEnabled = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED, "false"));
+
+        if (setRetainableByteBufferPoolEnabled) {
+            long maxHeapMemory = Long.parseLong(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_HEAP_MEMORY, "134217728"));
+            long maxDirectMemory = Long.parseLong(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_DIRECT_MEMORY, "134217728"));
+            int minCapacity = Integer.parseInt(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MIN_CAPACITY, "0"));
+            int maxCapacity = Integer.parseInt(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_CAPACITY, "-1"));
+            int factor = Integer.parseInt(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_FACTOR, "-1"));
+            int maxBucketSize = Integer.parseInt(
+                    System.getProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_MAX_BUCKET_SIZE, "1000"));
+
+            server.addBean(new ArrayRetainableByteBufferPool(minCapacity, factor, maxCapacity,
+                    maxBucketSize, maxHeapMemory, maxDirectMemory));
+        }
+
         handlers = new HandlerCollection();
         server.setHandler(handlers);
     }

@@ -84,9 +84,10 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testContainerThreadPool() {
-        
+
         System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
-        
+        System.setProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED, "true");
+
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
         
