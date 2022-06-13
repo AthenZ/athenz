@@ -444,9 +444,9 @@ func TestPolicyUpdater(t *testing.T) {
 		MetricsDir:        MetricDir,
 		PolicyFileDir:     PoliciesDir,
 		TempPolicyFileDir: TempPoliciesDir,
-		AthenzJWKConfig:   zpuAthenzJWK(pubJwk),
+		AthenzJWKConfig:   zpuAthenzJwkConf(pubJwk),
 		CheckZMSSignature: true,
-		ExpiredFunc: func() bool {
+		ExpiredFunc: func(rdl.Timestamp) bool {
 			return false
 		},
 	}
@@ -456,7 +456,7 @@ func TestPolicyUpdater(t *testing.T) {
 	a.Equal(util.Exists(policyFile), true)
 }
 
-func zpuAthenzJWK(pubJwk string) *zts.AthenzJWKConfig {
+func zpuAthenzJwkConf(pubJwk string) *zts.AthenzJWKConfig {
 
 	jwkKey := func() *zts.JWKList {
 

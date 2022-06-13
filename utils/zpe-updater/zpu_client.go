@@ -310,15 +310,17 @@ func jwkToPem(ztsJwk *zts.JWK) ([]byte, error) {
 	), nil
 }
 
+func isExpired(config *ZpuConfiguration, expires *rdl.Timestamp) bool {
+	if config.ExpiredFunc != nil {
+		return config.ExpiredFunc(*expires)
+	} else {
+		return expired(*expires, 0)
+	}
+}
+
 func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) ([]byte, error) {
 	expires := data.SignedPolicyData.Expires
-	var exp bool
-	if config.ExpiredFunc != nil {
-		exp = config.ExpiredFunc()
-	} else {
-		exp = expired(expires, 0)
-	}
-	if exp {
+	if isExpired(config, &expires) {
 		return nil, fmt.Errorf("policy data is expired on %v", expires)
 	}
 	signedPolicyData := data.SignedPolicyData

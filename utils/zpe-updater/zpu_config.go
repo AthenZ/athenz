@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/ardielle/ardielle-go/rdl"
 	"io/ioutil"
 	"log"
 	"os"
@@ -49,7 +50,7 @@ type ZpuConfiguration struct {
 	PolicyVersions    map[string]string
 	ForceRefresh      bool
 	AthenzJWKConfig   *zts.AthenzJWKConfig
-	ExpiredFunc       func() bool
+	ExpiredFunc       func(rdl.Timestamp) bool
 }
 
 type AthenzConf struct {
