@@ -75,6 +75,7 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED);
     }
     
     @AfterClass
