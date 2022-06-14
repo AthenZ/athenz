@@ -117,6 +117,7 @@ class Tabs extends React.Component {
                     `/domain/${domain}/domain-settings`,
                     `/domain/${domain}/domain-settings`
                 );
+                break;
             case 'visibility':
                 this.props.router.push(
                     `/domain/${domain}/visibility`,
