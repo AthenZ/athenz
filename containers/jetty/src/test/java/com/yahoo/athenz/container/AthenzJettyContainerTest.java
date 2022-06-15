@@ -75,6 +75,7 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED);
     }
     
     @AfterClass
@@ -84,9 +85,10 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testContainerThreadPool() {
-        
+
         System.setProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS, "100");
-        
+        System.setProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED, "true");
+
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.createServer(100);
         
