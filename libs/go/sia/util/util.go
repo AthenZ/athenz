@@ -761,7 +761,7 @@ func GetAthenzJwkConfModTime(siaDir string) rdl.Timestamp {
 	err := ReadAthenzJwkConf(jwkConfFile, &jwkConfObj)
 	if err != nil {
 		log.Print(err.Error())
-		return rdl.TimestampNow()
+		return rdl.TimestampFromEpoch(0)
 	}
 	return *jwkConfObj.Modified
 }
@@ -769,11 +769,11 @@ func GetAthenzJwkConfModTime(siaDir string) rdl.Timestamp {
 func ReadAthenzJwkConf(jwkConfFile string, jwkConfObj *zts.AthenzJWKConfig) error {
 	jwkConfStr, err := ioutil.ReadFile(jwkConfFile)
 	if err != nil {
-		return fmt.Errorf("athenz.conf does not exist in [%s], return current timestamp", jwkConfFile)
+		return fmt.Errorf("athenz.conf does not exist in [%s]", jwkConfFile)
 	}
 	err = json.Unmarshal(jwkConfStr, jwkConfObj)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshel athenz.conf: [%s], return current timestamp, err: %v", jwkConfFile, err.Error())
+		return fmt.Errorf("failed to unmarshel athenz.conf: [%s], err: %v", jwkConfFile, err.Error())
 	}
 	return nil
 }
