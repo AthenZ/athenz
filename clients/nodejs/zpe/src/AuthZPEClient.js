@@ -1,11 +1,10 @@
 'use strict';
 
-const winston = require('winston');
-
 let config = require('../config/config')();
 const RoleToken = require('@athenz/auth-core').RoleToken;
 const AccessCheckStatus = require('./AccessCheckStatus');
 const PublicKeyStore = require('./PublicKeyStore');
+const logger = require('../logger');
 
 let _publicKeyStore, _allowedOffset;
 
@@ -15,8 +14,6 @@ let ZPEUpdater;
 class AuthZPEClient {
     static init() {
         if (!initialized) {
-            winston.level = config.logLevel;
-
             _publicKeyStore = new PublicKeyStore();
             _allowedOffset = Number(config.allowedOffset);
             if (_allowedOffset < 0) {
@@ -69,15 +66,13 @@ class AuthZPEClient {
             );
         }
 
-        winston.debug(
-            'allowAccess: action=' + action + ' resource=' + resource
-        );
+        logger.debug('allowAccess: action=' + action + ' resource=' + resource);
 
         let tokenCache = ZPEUpdater.getRoleTokenCacheMap();
         let rToken = tokenCache.get(roleToken);
 
         if (!rToken) {
-            winston.debug('allowAccess: Role Token Cache Miss');
+            logger.debug('allowAccess: Role Token Cache Miss');
 
             rToken = new RoleToken(roleToken);
 
@@ -94,7 +89,7 @@ class AuthZPEClient {
                 const expiry = Number(rToken.getExpiryTime());
                 if (expiry !== 0 && expiry < now) {
                     const signedToken = rToken.getSignedToken();
-                    winston.error(
+                    logger.error(
                         'allowAccess: Authorization denied. Token expired. now=' +
                             now +
                             ' expiry=' +
@@ -112,7 +107,7 @@ class AuthZPEClient {
                     );
                 }
 
-                winston.error(
+                logger.error(
                     'allowAccess: Authorization denied. Authentication of token failed for token=' +
                         rToken.getSignedToken()
                 );
@@ -126,7 +121,7 @@ class AuthZPEClient {
                 tokenCache.put(roleToken, rToken, config.tokenRefresh * 1000);
             }
         } else {
-            winston.debug('allowAccess: Role Token Cache Hit');
+            logger.debug('allowAccess: Role Token Cache Hit');
         }
 
         delete params.roleToken;
@@ -147,7 +142,7 @@ class AuthZPEClient {
             resource = params.resource,
             action = params.action;
         if (!rToken) {
-            winston.error('allowAccess: Authorization denied. Token is null');
+            logger.error('allowAccess: Authorization denied. Token is null');
             return cb(null, AccessCheckStatus.DENY_ROLETOKEN_INVALID);
         }
 
@@ -335,14 +330,14 @@ class AuthZPEClient {
             msgPrefix = params.msgPrefix;
 
         if (status === AccessCheckStatus.DENY_DOMAIN_NOT_FOUND) {
-            winston.debug(
+            logger.debug(
                 msgPrefix +
                     ': No role map found for domain=' +
                     domain +
                     ' so access denied'
             );
         } else if (status === AccessCheckStatus.DENY_DOMAIN_EMPTY) {
-            winston.debug(
+            logger.debug(
                 msgPrefix +
                     ': No policy assertions for domain=' +
                     domain +
@@ -378,12 +373,12 @@ class AuthZPEClient {
             ')';
 
         for (let role of roles) {
-            winston.debug(msgPrefix + ': Process role (' + role + ')');
+            logger.debug(msgPrefix + ': Process role (' + role + ')');
 
             let asserts = roleMap[role];
 
             if (!asserts || asserts.length === 0) {
-                winston.debug(
+                logger.debug(
                     msgPrefix +
                         ': No policy assertions in domain=' +
                         domain +
@@ -416,13 +411,13 @@ class AuthZPEClient {
         let keys = Object.keys(roleMap);
 
         for (let role of roles) {
-            winston.debug(msgPrefix + ': Process role (' + role + ')');
+            logger.debug(msgPrefix + ': Process role (' + role + ')');
 
             for (let roleName of keys) {
                 let asserts = roleMap[roleName];
 
                 if (!asserts || asserts.length === 0) {
-                    winston.debug(
+                    logger.debug(
                         msgPrefix +
                             ': No policy assertions in domain=' +
                             domain +
@@ -437,7 +432,7 @@ class AuthZPEClient {
                 let matchStruct = assert.roleMatchStruct;
                 if (!matchStruct.matches(role)) {
                     const polName = assert.polName;
-                    winston.debug(
+                    logger.debug(
                         msgPrefix +
                             ': policy(' +
                             polName +
@@ -475,7 +470,7 @@ class AuthZPEClient {
                 assertRole = assert.role,
                 polname = assert.polname;
 
-            winston.debug(
+            logger.debug(
                 msgPrefix +
                     ': Process Assertion: policy(' +
                     polname +
@@ -489,7 +484,7 @@ class AuthZPEClient {
 
             matchStruct = assert.actionMatchStruct;
             if (!matchStruct.matches(action)) {
-                winston.debug(
+                logger.debug(
                     msgPrefix +
                         ': policy(' +
                         polname +
@@ -504,7 +499,7 @@ class AuthZPEClient {
 
             matchStruct = assert.resourceMatchStruct;
             if (!matchStruct.matches(resource)) {
-                winston.debug(
+                logger.debug(
                     msgPrefix +
                         ': policy(' +
                         polname +
@@ -517,7 +512,7 @@ class AuthZPEClient {
                 continue;
             }
 
-            winston.debug(
+            logger.debug(
                 msgPrefix +
                     ': policy(' +
                     polname +

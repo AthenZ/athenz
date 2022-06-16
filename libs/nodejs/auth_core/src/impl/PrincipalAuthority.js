@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var winston = require('winston');
+const logger = require('../../logger');
 var PrincipalToken = require('../token/PrincipalToken');
 var SimplePrincipal = require('./SimplePrincipal');
 var config = require('../../config/config')();
@@ -30,8 +30,6 @@ var ATHENZ_PROP_PRINCIPAL_HEADER;
 
 class PrincipalAuthority {
     constructor() {
-        winston.level = config.logLevel;
-
         ATHENZ_PROP_TOKEN_OFFSET = Number(config.principalTokenAllowedOffset);
         ATHENZ_PROP_IP_CHECK_MODE = config.principalIpCheckMode;
         ATHENZ_PROP_USER_DOMAIN = config.principalUserDomain;
@@ -69,13 +67,13 @@ class PrincipalAuthority {
     }
 
     authenticate(signedToken, remoteAddr, httpMethod) {
-        winston.debug('Authenticating PrincipalToken: ' + signedToken);
+        logger.debug('Authenticating PrincipalToken: ' + signedToken);
 
         var serviceToken = null;
         try {
             serviceToken = new PrincipalToken(signedToken);
         } catch (e) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:authenticate: Invalid token: exc=' +
                     e.message +
                     ' : credential=' +
@@ -89,7 +87,7 @@ class PrincipalAuthority {
          * components are provided (the method already logs
          * all error messages) */
         if (!serviceToken.isValidAuthorizedServiceToken()) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:authenticate: Invalid authorized service token: credential=' +
                     PrincipalToken.getUnsignedToken(signedToken)
             );
@@ -116,7 +114,7 @@ class PrincipalAuthority {
             serviceToken.validate(publicKey, this._allowedOffset, !writeOp) ===
             false
         ) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:authenticate: service token validation failure: credential=' +
                     PrincipalToken.getUnsignedToken(signedToken)
             );
@@ -131,7 +129,7 @@ class PrincipalAuthority {
             authorizedServiceName =
                 this._validateAuthorizeService(serviceToken);
             if (!authorizedServiceName) {
-                winston.error(
+                logger.error(
                     'PrincipalAuthority:authenticate: validation of authorized service failure: credential=' +
                         PrincipalToken.getUnsignedToken(signedToken)
                 );
@@ -150,7 +148,7 @@ class PrincipalAuthority {
                 authorizedServiceName
             )
         ) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:authenticate: IP Mismatch - token (' +
                     serviceToken.getIP() +
                     ') request (' +
@@ -260,7 +258,7 @@ class PrincipalAuthority {
         var err = null;
         if (!serviceName) {
             if (authorizedServices.length !== 1) {
-                winston.error(
+                logger.error(
                     'getAuthorizedServiceName() failed: No authorized service name specified'
                 );
                 return null;
@@ -268,7 +266,7 @@ class PrincipalAuthority {
             serviceName = authorizedServices[0];
         } else {
             if (authorizedServices.indexOf(serviceName) === -1) {
-                winston.error(
+                logger.error(
                     'getAuthorizedServiceName() failed: Invalid authorized service name specified:' +
                         serviceName
                 );
@@ -287,7 +285,7 @@ class PrincipalAuthority {
         if (!authorizedServiceName) {
             var authorizedServices = userToken.getAuthorizedServices();
             if (!authorizedServices || authorizedServices.length !== 1) {
-                winston.error(
+                logger.error(
                     'PrincipalAuthority:validateAuthorizeService: ' +
                         'No service name and services list empty OR contains multiple entries: token=' +
                         userToken.getUnsignedToken()
@@ -301,7 +299,7 @@ class PrincipalAuthority {
         /* need to extract domain and service name from our full service name value */
         var idx = authorizedServiceName.lastIndexOf('.');
         if (idx <= 0 || idx === authorizedServiceName.length - 1) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:validateAuthorizeService: ' +
                     'failed: token=' +
                     userToken.getUnsignedToken() +
@@ -319,7 +317,7 @@ class PrincipalAuthority {
 
         /* the token method reports all error messages */
         if (!userToken.validateForAuthorizedService(publicKey)) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:validateAuthorizeService: token validation for authorized service failed'
             );
             return null;
