@@ -32,7 +32,7 @@
     "debug": "^2.6.8",
     "lodash.clone": "^4.5.0",
     "memory-cache": "^0.2.0",
-    "winston": "^2.3.1",
+    "winston": "^3.7.2",
     "@athenz/auth-core": "^1.0.0"
   },
   "devDependencies": {

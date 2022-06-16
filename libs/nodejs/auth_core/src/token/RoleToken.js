@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var winston = require('winston');
+const logger = require('../../logger');
 var Token = require('./Token');
 var Crypto = require('../util/Crypto');
 var config = require('../../config/config')();
@@ -21,8 +21,6 @@ var config = require('../../config/config')();
 class RoleToken extends Token {
     constructor(token) {
         super();
-
-        winston.level = config.logLevel;
 
         this._roles = null;
         this._principal = null;
@@ -51,7 +49,7 @@ class RoleToken extends Token {
 
     /*eslint complexity: ["error", 24]*/
     parseSignedToken(signedToken) {
-        winston.debug(
+        logger.debug(
             'Constructing RoleToken with input string: ' + signedToken
         );
 
@@ -158,7 +156,7 @@ class RoleToken extends Token {
 
         this._signedToken = signedToken;
 
-        winston.debug(
+        logger.debug(
             'Values extracted from token ' +
                 ' version:' +
                 this._version +
@@ -249,7 +247,7 @@ class RoleToken extends Token {
             parts.push('i=' + this._ip);
         }
         this._unsignedToken = parts.join(';');
-        winston.debug('RoleToken created: ' + this._unsignedToken);
+        logger.debug('RoleToken created: ' + this._unsignedToken);
     }
 
     getPrincipal() {

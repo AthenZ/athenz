@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var winston = require('winston');
+const logger = require('../../logger');
 var RoleToken = require('../token/RoleToken');
 var SimplePrincipal = require('./SimplePrincipal');
 var config = require('../../config/config')();
@@ -28,8 +28,6 @@ var ATHENZ_PROP_ROLE_HEADER;
 
 class RoleAuthority {
     constructor() {
-        winston.level = config.logLevel;
-
         ATHENZ_PROP_TOKEN_OFFSET = Number(config.roleTokenAllowedOffset);
         ATHENZ_PROP_USER_DOMAIN = config.roleUserDomain;
         ATHENZ_PROP_ROLE_HEADER = config.roleHeader;
@@ -64,13 +62,13 @@ class RoleAuthority {
     }
 
     authenticate(signedToken, remoteAddr, httpMethod) {
-        winston.debug('Authenticating PrincipalToken: ' + signedToken);
+        logger.debug('Authenticating PrincipalToken: ' + signedToken);
 
         var roleToken = null;
         try {
             roleToken = new RoleToken(signedToken);
         } catch (e) {
-            winston.error(
+            logger.error(
                 'PrincipalAuthority:authenticate: Invalid token: exc=' +
                     e.message +
                     ' : credential=' +
@@ -91,7 +89,7 @@ class RoleAuthority {
             var idx = tokenPrincipal.lastIndexOf('.');
 
             if (idx <= 0 || idx === tokenPrincipal.length - 1) {
-                winston.error(
+                logger.error(
                     'RoleAuthority:authenticate failed: Invalid principal specified: ' +
                         tokenPrincipal +
                         ': credential=' +
@@ -104,7 +102,7 @@ class RoleAuthority {
                 tokenPrincipal.substring(0, idx).toLowerCase() ===
                 this._userDomain
             ) {
-                winston.error(
+                logger.error(
                     'RoleAuthority:authenticate failed: IP Mismatch - tokenip(' +
                         roleToken.getIP() +
                         ') request-addr(' +
@@ -125,7 +123,7 @@ class RoleAuthority {
         if (
             roleToken.validate(publicKey, this._allowedOffset, false) === false
         ) {
-            winston.error(
+            logger.error(
                 'RoleAuthority:authenticate failed: validation was not successful: credential=' +
                     RoleToken.getUnsignedToken(signedToken)
             );

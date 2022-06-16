@@ -13,15 +13,13 @@
  */
 'use strict';
 
-var winston = require('winston');
+const logger = require('../../logger');
 var Validate = require('../util/Validate');
 var config = require('../../config/config')();
 
 class SimplePrincipal {
     /*eslint max-params: ["error", 6]*/
     constructor(domain, name, creds, roles, issueTime, authority) {
-        winston.level = config.logLevel;
-
         this._domain = domain;
         this._name = name;
         this._creds = creds;
@@ -71,11 +69,11 @@ class SimplePrincipal {
      */
     static createByRoles(domain, creds, roles, authority) {
         if (!Validate.domainName(domain)) {
-            winston.warn('createByRoles: failed to validate domain ' + domain);
+            logger.warn('createByRoles: failed to validate domain ' + domain);
         }
 
         if (!roles || roles.length === 0) {
-            winston.warn('zero roles: ' + creds);
+            logger.warn('zero roles: ' + creds);
         }
 
         return this._simplePrincipalByRoles(domain, creds, roles, authority);
@@ -104,13 +102,13 @@ class SimplePrincipal {
      */
     static createByUserIdentity(domain, name, creds, issueTime, authority) {
         if (!Validate.domainName(domain)) {
-            winston.warn(
+            logger.warn(
                 'createByUserIdentity: failed to validate domain ' + domain
             );
         }
 
         if (!Validate.principalName(name)) {
-            winston.warn(
+            logger.warn(
                 'createByUserIdentity: failed to validate name ' + name
             );
         }
@@ -118,7 +116,7 @@ class SimplePrincipal {
         if (domain) {
             var matchDomain = !authority ? null : authority.getDomain();
             if (matchDomain && domain !== matchDomain) {
-                winston.warn(
+                logger.warn(
                     'domain mismatch for user ' +
                         name +
                         ' in authority + ' +
@@ -128,7 +126,7 @@ class SimplePrincipal {
             }
         } else if (authority) {
             if (authority.getDomain()) {
-                winston.warn(
+                logger.warn(
                     'domain mismatch for user ' +
                         name +
                         ' in authority + ' +

@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var winston = require('winston');
+const logger = require('../../logger');
 var Token = require('./Token');
 var Crypto = require('../util/Crypto');
 var config = require('../../config/config')();
@@ -21,8 +21,6 @@ var config = require('../../config/config')();
 class PrincipalToken extends Token {
     constructor(token) {
         super();
-
-        winston.level = config.logLevel;
 
         this._name = null;
         this._originalRequestor = null;
@@ -54,7 +52,7 @@ class PrincipalToken extends Token {
 
     /*eslint complexity: ["error", 24]*/
     parseSignedToken(signedToken) {
-        winston.debug(
+        logger.debug(
             'Constructing PrincipalToken with input string: ' + signedToken
         );
 
@@ -168,7 +166,7 @@ class PrincipalToken extends Token {
 
         this._signedToken = signedToken;
 
-        winston.debug(
+        logger.debug(
             'Values extracted from token ' +
                 ' version:' +
                 this._version +
@@ -196,7 +194,7 @@ class PrincipalToken extends Token {
                 this._signature
         );
         if (this._authorizedServices) {
-            winston.debug(
+            logger.debug(
                 'Authorized service details from token ' +
                     ' authorizedServices:' +
                     this._authorizedServices.join(',') +
@@ -259,7 +257,7 @@ class PrincipalToken extends Token {
             parts.push('b=' + this._authorizedServices.join(','));
         }
         this._unsignedToken = parts.join(';');
-        winston.debug('PrincipalToken created: ' + this._unsignedToken);
+        logger.debug('PrincipalToken created: ' + this._unsignedToken);
     }
 
     signForAuthorizedService(
@@ -307,7 +305,7 @@ class PrincipalToken extends Token {
                     ' : missing data/signature component: public key=' +
                     publicKey
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -318,7 +316,7 @@ class PrincipalToken extends Token {
                     this._unsignedToken +
                     ' : not signed by any authorized service'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -332,7 +330,7 @@ class PrincipalToken extends Token {
                     this._unsignedToken +
                     ' : No public key provided'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -351,15 +349,15 @@ class PrincipalToken extends Token {
                         ' : authentication failed: public key=' +
                         publicKey
                 );
-                winston.error(err);
+                logger.error(err);
             }
-            winston.debug(
+            logger.debug(
                 'PrincipalToken:validateForAuthorizedService: token=' +
                     this._unsignedToken +
                     ' -  successfully authenticated'
             );
         } catch (e) {
-            winston.error(
+            logger.error(
                 'PrincipalToken:validateForAuthorizedService: token=' +
                     this._unsignedToken +
                     ' : authentication failed verifying signature: exc=' +
@@ -388,7 +386,7 @@ class PrincipalToken extends Token {
                     this._unsignedToken +
                     ' : Authorized Service Signature available without service name'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -400,7 +398,7 @@ class PrincipalToken extends Token {
                     this._unsignedToken +
                     ' : Missing signature for specified authorized service'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -420,7 +418,7 @@ class PrincipalToken extends Token {
                         this._authorizedServiceName +
                         ' is not listed in the service list'
                 );
-                winston.error(err);
+                logger.error(err);
                 return false;
             }
         } else if (this._authorizedServices.length !== 1) {
@@ -429,7 +427,7 @@ class PrincipalToken extends Token {
                     this._unsignedToken +
                     ' : No service name and Authorized service list contains multiple entries'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
