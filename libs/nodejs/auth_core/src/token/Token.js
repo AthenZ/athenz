@@ -13,7 +13,7 @@
  */
 'use strict';
 
-var winston = require('winston');
+const logger = require('../../logger');
 var Crypto = require('../util/Crypto');
 var config = require('../../config/config')();
 
@@ -22,8 +22,6 @@ var ATHENZ_TOKEN_NO_EXPIRY;
 
 class Token {
     constructor() {
-        winston.level = config.logLevel;
-
         ATHENZ_TOKEN_MAX_EXPIRY =
             Number(config.tokenMaxExpiry) > 30 * 24 * 60 * 60
                 ? 30 * 24 * 60 * 60
@@ -76,7 +74,7 @@ class Token {
                     this._unsignedToken +
                     ' : missing data/signature component'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -86,7 +84,7 @@ class Token {
                     this._unsignedToken +
                     ' : No public key provided'
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -105,7 +103,7 @@ class Token {
                     ' : allowed offset=' +
                     allowedOffset
             );
-            winston.error(err);
+            logger.error(err);
             return false;
         }
 
@@ -126,7 +124,7 @@ class Token {
                         ' : current time=' +
                         now
                 );
-                winston.error(err);
+                logger.error(err);
                 return false;
             }
             if (
@@ -145,7 +143,7 @@ class Token {
                         ' : allowed offset=' +
                         allowedOffset
                 );
-                winston.error(err);
+                logger.error(err);
                 return false;
             }
         }
@@ -164,12 +162,12 @@ class Token {
                         this._unsignedToken +
                         ' : authentication failed'
                 );
-                winston.error(err);
+                logger.error(err);
             } else {
-                winston.debug('validate: Token successfully authenticated');
+                logger.debug('validate: Token successfully authenticated');
             }
         } catch (e) {
-            winston.error(
+            logger.error(
                 'Token:validate: token=' +
                     this._unsignedToken +
                     ' : verify signature failed due to Exception=' +

@@ -847,6 +847,10 @@ func TestReadWriteAthenzJwkConf(t *testing.T) {
 	require.Nil(t, err, "should be able to create temp folder for sia")
 	defer os.RemoveAll(siaDir)
 
+	// verify without athenz.conf - modify time is 0
+	modTime := GetAthenzJwkConfModTime(siaDir)
+	a.Equal(rdl.TimestampFromEpoch(0).Millis(), modTime.Millis())
+
 	u, err := user.Current()
 	if err != nil {
 		panic(err)
@@ -870,7 +874,7 @@ func TestReadWriteAthenzJwkConf(t *testing.T) {
 	a.Equal("x", jwkObjFromFile.Zts.Keys[0].X)
 	a.Equal(rdl.TimestampFromEpoch(100).Millis(), jwkObjFromFile.Modified.Millis())
 
-	modTime := GetAthenzJwkConfModTime(siaDir)
+	modTime = GetAthenzJwkConfModTime(siaDir)
 	a.Equal(rdl.TimestampFromEpoch(100).Millis(), modTime.Millis())
 
 }

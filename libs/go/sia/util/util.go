@@ -761,7 +761,7 @@ func GetAthenzJwkConfModTime(siaDir string) rdl.Timestamp {
 	err := ReadAthenzJwkConf(jwkConfFile, &jwkConfObj)
 	if err != nil {
 		log.Print(err.Error())
-		return rdl.TimestampNow()
+		return rdl.TimestampFromEpoch(0)
 	}
 	return *jwkConfObj.Modified
 }

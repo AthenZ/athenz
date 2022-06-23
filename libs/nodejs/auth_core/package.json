@@ -29,7 +29,7 @@
   },
   "homepage": "http://www.athenz.io",
   "dependencies": {
-    "winston": "^2.3.1"
+    "winston": "^3.7.2"
   },
   "devDependencies": {
     "prettier": "^2.3.0",

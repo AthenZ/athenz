@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const winston = require('winston');
+const logger = require('../logger');
 
 let config = require('../config/config')();
 const Crypto = require('@athenz/auth-core').Crypto;
@@ -55,7 +55,7 @@ class ZPEUpdater {
                 }
             });
         } catch (e) {
-            winston.error('watchPolicyDir: invalid filePath: ' + e.fileName);
+            logger.error('watchPolicyDir: invalid filePath: ' + e.fileName);
             _dirWatcher.close();
         }
     }
@@ -72,7 +72,7 @@ class ZPEUpdater {
     }
 
     static loadFiles(polDir) {
-        winston.debug('loadFiles: load start directory=' + polDir);
+        logger.debug('loadFiles: load start directory=' + polDir);
         let files = fs
             .readdirSync(polDir)
             .filter((fileName) => fileName.endsWith('.pol'));
@@ -83,14 +83,12 @@ class ZPEUpdater {
     }
 
     static _loadFile(polDir, fileName) {
-        winston.debug('loadFiles: load start file name=' + fileName);
+        logger.debug('loadFiles: load start file name=' + fileName);
         let path = polDir + '/' + fileName;
         let spols = JSON.parse(fs.readFileSync(path, 'utf8'));
 
         if (!spols) {
-            winston.error(
-                '_loadFile: unable to decode policy file=' + fileName
-            );
+            logger.error('_loadFile: unable to decode policy file=' + fileName);
             return;
         }
 
@@ -130,7 +128,7 @@ class ZPEUpdater {
         }
 
         if (!verified) {
-            winston.error('loadFile: policy file=' + fileName + ' is invalid');
+            logger.error('loadFile: policy file=' + fileName + ' is invalid');
             return;
         }
 
@@ -141,7 +139,7 @@ class ZPEUpdater {
         // HAVE: valid policy file
         let domainName = policyData.domain;
 
-        winston.debug(
+        logger.debug(
             'loadFile: policy file(' +
                 fileName +
                 ') for domain(' +
@@ -166,7 +164,7 @@ class ZPEUpdater {
             let assertions = policy.assertions;
             let pname = policy.name;
 
-            winston.debug(
+            logger.debug(
                 'loadFile: domain(' + domainName + ') policy(' + pname + ')'
             );
 
@@ -240,10 +238,10 @@ class ZPEUpdater {
         let roleMap = _policyCache.get(domain);
 
         if (!roleMap) {
-            winston.debug('_lookupPolicyInCache: Policy Cache Miss');
+            logger.debug('_lookupPolicyInCache: Policy Cache Miss');
             this.loadFiles(config.policyDir);
         } else {
-            winston.debug('_lookupPolicyInCache: Policy Cache Hit');
+            logger.debug('_lookupPolicyInCache: Policy Cache Hit');
         }
 
         return _policyCache.get(domain) || {};

@@ -13,7 +13,7 @@
  */
 'use strict';
 
-const winston = require('winston');
+const logger = require('./logger');
 
 // configurable fields
 let config = require('./config/config.js')();
@@ -22,8 +22,6 @@ let tokenMinExpiryTime = 900;
 
 class ZTSClient {
     constructor(params) {
-        winston.level = config.logLevel;
-
         this._ztsUrl = null;
         this._domain = null;
         this._service = null;
@@ -168,7 +166,7 @@ class ZTSClient {
                 this._domain +
                 '.' +
                 this._service;
-            winston.error(msg);
+            logger.error(msg);
             throw new Error(msg);
         }
 
@@ -312,7 +310,7 @@ class ZTSClient {
     _lookupRoleTokenInCache(cacheKey, minExpiryTime, maxExpiryTime) {
         const roleToken = this._cache.get(cacheKey);
         if (!roleToken) {
-            winston.info(
+            logger.info(
                 'LookupRoleTokenInCache: cache-lookup key: ' +
                     cacheKey +
                     ' result: not found'
@@ -331,7 +329,7 @@ class ZTSClient {
                 tokenMinExpiryTime
             )
         ) {
-            winston.info(
+            logger.info(
                 'LookupRoleTokenInCache: role-cache-lookup key: ' +
                     cacheKey +
                     ' token-expiry: ' +
