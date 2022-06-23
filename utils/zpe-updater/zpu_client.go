@@ -4,15 +4,13 @@
 package zpu
 
 import (
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -233,26 +231,29 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID string) (string, error) {
 	ztsPublicKey := config.GetZtsPublicKey(ztsKeyID)
 	if ztsPublicKey == "" {
-		// first, try to retrieve it from jwk conf
-		jwkKey, err := getJwkAsPem(config.AthenzJWKConfig.Zts.Keys, ztsKeyID)
-		if err == nil {
-			return string(jwkKey), nil
+		// first, reload athenz jwks from disk and try again
+		log.Debugf("key id: [%s] does not exist in public keys map, reload athenz jwks from disk", ztsKeyID)
+		config.loadAthenzJwks()
+		ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
+
+		if ztsPublicKey != "" {
+			return ztsPublicKey, nil
 		}
 
-		// if it does not exist, fetch all zts jwk keys
+		// if it does not exist, fetch all zts jwk keys and update config
+		log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", ztsKeyID)
 		rfc := true
 		ztsJwkList, err := ztsClient.GetJWKList(&rfc)
 		if err != nil {
-			return "", fmt.Errorf("unable to get the zts jwk keys, err: %s", err.Error())
+			return "", fmt.Errorf("unable to get the zts jwk keys, err: %v", err)
 		}
+		config.updateZtsJwks(ztsJwkList)
 
-		// update athenz jwk config and try again
-		config.AthenzJWKConfig.Zts = ztsJwkList
-		jwkKey, err = getJwkAsPem(config.AthenzJWKConfig.Zts.Keys, ztsKeyID)
-		if err == nil {
-			return string(jwkKey), nil
+		// now, try again
+		ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
+		if ztsPublicKey == "" {
+			return "", fmt.Errorf("unable to get the zts public key with id:\"%v\" to verify data", ztsKeyID)
 		}
-		return "", fmt.Errorf("unable to get the zts public key with id:\"%v\" to verify data", ztsKeyID)
 	}
 	return ztsPublicKey, nil
 }
@@ -261,53 +262,26 @@ func getZmsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsKeyID
 	zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
 	if zmsPublicKey == "" {
 
-		// first, try to retrieve it from jwk conf
-		pemPubKey, err := getJwkAsPem(config.AthenzJWKConfig.Zms.Keys, zmsKeyID)
-		if err == nil {
-			return string(pemPubKey), nil
+		// first, reload athenz jwks from disk and try again
+		log.Debugf("key id: [%s] does not exist in public keys map, reload athenz jwks from disk", zmsKeyID)
+		config.loadAthenzJwks()
+		zmsPublicKey = config.GetZmsPublicKey(zmsKeyID)
+
+		// if we didn't succeed, retrieve it from zts
+		if zmsPublicKey == "" {
+			log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", zmsKeyID)
+			key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
+			if err != nil {
+				return "", fmt.Errorf("unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
+			}
+			decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
+			if err != nil {
+				return "", fmt.Errorf("unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
+			}
+			zmsPublicKey = string(decodedKey)
 		}
-		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
-		if err != nil {
-			return "", fmt.Errorf("unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
-		}
-		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
-		if err != nil {
-			return "", fmt.Errorf("unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
-		}
-		zmsPublicKey = string(decodedKey)
 	}
 	return zmsPublicKey, nil
-}
-
-func getJwkAsPem(keys []*zts.JWK, id string) ([]byte, error) {
-	for _, key := range keys {
-		if key.Kid == id {
-			return jwkToPem(key)
-		}
-	}
-	return nil, fmt.Errorf("cannot find jwk with id: %s", id)
-}
-
-func jwkToPem(ztsJwk *zts.JWK) ([]byte, error) {
-	jwkJson, err := json.Marshal(ztsJwk)
-	if err != nil {
-		return nil, err
-	}
-	var jwk jose.JSONWebKey
-	err = jwk.UnmarshalJSON(jwkJson)
-	if err != nil {
-		return nil, err
-	}
-	res, err := x509.MarshalPKIXPublicKey(jwk.Key)
-	if err != nil {
-		return nil, err
-	}
-	return pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: res,
-		},
-	), nil
 }
 
 func isExpired(config *ZpuConfiguration, expires *rdl.Timestamp) bool {

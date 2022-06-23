@@ -6,16 +6,19 @@ package zpu
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dimfeld/httptreemux"
-	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/dimfeld/httptreemux"
+	"github.com/stretchr/testify/require"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
@@ -45,7 +48,7 @@ type testServer struct {
 func (t *testServer) start(h http.Handler) {
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
+		log.Fatalf("Unable to serve on randomly assigned port")
 	}
 	s := &http.Server{Handler: h}
 	t.listener = listener
@@ -411,12 +414,17 @@ func TestECJwkToPem(t *testing.T) {
 
 }
 
-func TestPolicyUpdater(t *testing.T) {
+func TestPolicyUpdaterJwkOnInit(t *testing.T) {
 	a := assert.New(t)
-
 	ztsRouter := httptreemux.New()
 
-	// the PEM public key, left here for debugging purpose
+	siaDir, err := ioutil.TempDir("", "sia")
+	if err != nil {
+		a.Nil(err)
+	}
+	defer os.RemoveAll(siaDir)
+
+	// left here the PEM public key for debugging purpose
 	// pub := "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"
 	// pubkey, _ := new(zmssvctoken.YBase64).DecodeString(pub)
 	// log.Printf("pubkey: [%s]", pubKey)
@@ -427,8 +435,7 @@ func TestPolicyUpdater(t *testing.T) {
 
 	// Mock GetDomainSignedPolicyData
 	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		//http://[::]:60995/zts/v1/domain/test/signed_policy_data
-		log.Println("Called /domain/sys.auth/signed_policy_data")
+		log.Printf("Called /domain/sys.auth/signed_policy_data")
 		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
 		pd, _ := json.Marshal(policyData)
 		io.WriteString(w, string(pd))
@@ -438,26 +445,105 @@ func TestPolicyUpdater(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
-	conf := &ZpuConfiguration{
+	zmsKeysmap := make(map[string]string)
+	zmsKeysmap["0"] = "previous value"
+	log.Debug = true
+
+	conf := ZpuConfiguration{
 		Zts:               ztsServer.baseUrl("zts/v1"),
 		DomainList:        "sys.auth",
+		SiaDir:            siaDir,
+		ZmsKeysmap:        zmsKeysmap,
+		ZtsKeysmap:        make(map[string]string),
 		MetricsDir:        MetricDir,
 		PolicyFileDir:     PoliciesDir,
 		TempPolicyFileDir: TempPoliciesDir,
-		AthenzJWKConfig:   zpuAthenzJwkConf(pubJwk),
 		CheckZMSSignature: true,
 		ExpiredFunc: func(rdl.Timestamp) bool {
 			return false
 		},
 	}
-	err := PolicyUpdater(conf)
+
+	writeAthenzJwkConf(pubJwk, &conf)
+	conf.loadAthenzJwks()
+	err = PolicyUpdater(&conf)
 	a.Nil(err)
 	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, "sys.auth")
 	a.Equal(util.Exists(policyFile), true)
 }
 
-func zpuAthenzJwkConf(pubJwk string) *zts.AthenzJWKConfig {
+func TestPolicyUpdaterJwkOnZtsCall(t *testing.T) {
+	a := assert.New(t)
+	ztsRouter := httptreemux.New()
+	ztsRouter.EscapeAddedRoutes = true
 
+	siaDir, err := ioutil.TempDir("", "sia")
+	if err != nil {
+		a.Nil(err)
+	}
+	defer os.RemoveAll(siaDir)
+
+	signedPolicy := `{"expires":"2017-06-09T06:11:12.125Z","modified":"2017-06-02T06:11:12.125Z","policyData":{"domain":"sys.auth","policies":[{"assertions":[{"action":"*","effect":"ALLOW","resource":"*","role":"sys.auth:role.admin"},{"action":"*","effect":"DENY","resource":"*","role":"sys.auth:role.non-admin"}],"name":"sys.auth:policy.admin"}]},"zmsKeyId":"0","zmsSignature":"Y2HuXmgL86PL1WnleGFHwPmNEqUdWgDxmmIsDnF5f5oqakacqTtwt9JNqDV9nuJ7LnKl3zsZoDQSAtcHMu4IGA--"}`
+	pubJwk := "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"kid\":\"0\",\"n\":\"vN9I5NAl8SbV6bgveyTI1VD9vHQw5Opr5HA4fdlwwrKgbE4mj0DJ5FroVcya8kkZizk_fhizMWmePa4BuLbicQ\"}"
+	signature := "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--"
+
+	// Mock GetDomainSignedPolicyData
+	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /domain/sys.auth/signed_policy_data")
+		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
+		pd, _ := json.Marshal(policyData)
+		io.WriteString(w, string(pd))
+	})
+
+	jwkConf := athenzJwkFromString(pubJwk)
+	// Mock GetJWKList
+	ztsRouter.GET("/zts/v1/oauth2/keys", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/oauth2/keys")
+		ztsKeys, _ := json.Marshal(jwkConf.Zts)
+		io.WriteString(w, string(ztsKeys))
+	})
+
+	ztsServer := &testServer{}
+	ztsServer.start(ztsRouter)
+	defer ztsServer.stop()
+
+	conf := ZpuConfiguration{
+		Zts:               ztsServer.baseUrl("zts/v1"),
+		DomainList:        "sys.auth",
+		SiaDir:            siaDir,
+		ZmsKeysmap:        make(map[string]string),
+		ZtsKeysmap:        make(map[string]string),
+		MetricsDir:        MetricDir,
+		PolicyFileDir:     PoliciesDir,
+		TempPolicyFileDir: TempPoliciesDir,
+		CheckZMSSignature: false,
+		ExpiredFunc: func(rdl.Timestamp) bool {
+			return false
+		},
+	}
+
+	err = PolicyUpdater(&conf)
+	a.Nil(err)
+	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, "sys.auth")
+	a.Equal(util.Exists(policyFile), true)
+}
+
+func writeAthenzJwkConf(pubJwk string, zpuConf *ZpuConfiguration) {
+
+	jwkConf := athenzJwkFromString(pubJwk)
+
+	bytes, err := json.MarshalIndent(jwkConf, "", "    ")
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	confFile := filepath.Join(zpuConf.SiaDir, siautil.JwkConfFile)
+	if err := ioutil.WriteFile(confFile, bytes, 0600); err != nil {
+		log.Fatalf("Unable to create the file %q: %v", confFile, err)
+	}
+}
+
+func athenzJwkFromString(pubJwk string) *zts.AthenzJWKConfig {
 	jwkKey := func() *zts.JWKList {
 
 		var jwkKey = zts.JWK{}
@@ -478,6 +564,5 @@ func zpuAthenzJwkConf(pubJwk string) *zts.AthenzJWKConfig {
 		Zms:      jwkKey(),
 		Zts:      jwkKey(),
 	}
-
 	return &jwkConf
 }
