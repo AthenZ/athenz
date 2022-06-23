@@ -34,13 +34,13 @@ public class InstanceUtils {
             final String propertyName) {
 
         if (attributes == null) {
-            LOGGER.error("getInstanceProperty: no attributes available");
+            LOGGER.debug("getInstanceProperty: no attributes available");
             return null;
         }
 
         final String value = attributes.get(propertyName);
         if (value == null) {
-            LOGGER.error("getInstanceProperty: {} attribute not available", propertyName);
+            LOGGER.debug("getInstanceProperty: {} attribute not available", propertyName);
             return null;
         }
 
