@@ -1,5 +1,18 @@
+Athenz v1.11.3 Release / Jun 24, 2022
+-------------------------------_-----
+
+#1863 Add athenz service access token support to SIA EKS sidecar
+#1892 provide option to specify a retainable byte buffer pool for jetty
+#1893 UI: fix tab redirect from settings to visibility
+#1894 updating go crypto version to latest
+#1895 Update nodejs package winstonjs
+#1896 when athenz jwk conf file does not exist we should return zero time instead current time
+#1898 avoid spamming server logs with attribute not available messages
+#1899 update jetty and other dependencies to latest release
+#1900 make crypki connection pool settings configurable
+
 Athenz v1.11.2 Release / Jun 3, 2022
--------------------------------------
+------------------------------------
 
 #1876 Athens JWK config
 #1880 Fix for role member expiry notifications
