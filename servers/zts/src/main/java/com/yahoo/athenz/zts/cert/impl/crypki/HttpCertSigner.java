@@ -72,9 +72,6 @@ public class HttpCertSigner implements CertSigner {
     private static final String CONTENT_JSON = "application/json";
     private static final String X509_KEY_META_IDENTIFIER = "x509-key";
 
-    private static final int DEFAULT_MAX_POOL_TOTAL = 30;
-    private static final int DEFAULT_MAX_POOL_PER_ROUTE = 20;
-
     //default certificate expiration value of 30 days in seconds
     private static final int DEFAULT_CERT_EXPIRE_SECS = (int) TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
 
@@ -199,10 +196,13 @@ public class HttpCertSigner implements CertSigner {
         Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create().register("https", sslsf).build();
         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registry);
 
-        //route is host + port.  Since we have only one, set the max and the route the same
+        // route is host + port
 
-        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_POOL_PER_ROUTE);
-        poolingHttpClientConnectionManager.setMaxTotal(DEFAULT_MAX_POOL_TOTAL);
+        int defaultMaxPerRoute = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONN_MAX_PER_ROUTE, "20"));
+        int maxTotal = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_CONN_MAX_TOTAL, "30"));
+
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(defaultMaxPerRoute);
+        poolingHttpClientConnectionManager.setMaxTotal(maxTotal);
         return poolingHttpClientConnectionManager;
     }
 
