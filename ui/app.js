@@ -81,6 +81,10 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                 },
                 expressApp
             );
+            server.on('secureConnection', (tlsSocket) => {
+                // catch all handler emitted on that socket
+                tlsSocket.disableRenegotiation();
+            });
             server.listen(appConfig.port, (err) => {
                 if (err) {
                     throw err;

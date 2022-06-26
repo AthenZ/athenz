@@ -29,7 +29,7 @@ describe('secure test', () => {
             const app = {};
             app.use = jest.fn();
             secure(app, {}, { cookieSession: '1234' });
-            expect(app.use).toHaveBeenCalledTimes(7);
+            expect(app.use).toHaveBeenCalledTimes(8);
         });
     });
     describe('middleware calls test', () => {
