@@ -15,19 +15,16 @@
  */
 package com.yahoo.athenz.zpe;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
-import java.util.*;
-
-import javax.security.auth.x500.X500Principal;
-
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.RSAKey;
 import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.RoleToken;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.utils.SignUtils;
+import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
+import com.yahoo.athenz.zts.DomainSignedPolicyData;
+import com.yahoo.athenz.zts.SignedPolicyData;
+import com.yahoo.rdl.JSON;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -36,14 +33,23 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.token.RoleToken;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
-import com.yahoo.athenz.zts.DomainSignedPolicyData;
-import com.yahoo.athenz.zts.SignedPolicyData;
-import com.yahoo.rdl.JSON;
+import javax.security.auth.x500.X500Principal;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
+import static com.yahoo.athenz.auth.util.Crypto.convertToPEMFormat;
 import static org.testng.Assert.*;
 
 /**
@@ -1421,5 +1427,20 @@ public class TestAuthZpe {
 
         accessToken = AuthZpeClient.validateAccessToken("Bearer " + invalidKeyIdToken, null, null);
         assertNull(accessToken);
+    }
+
+    @Test
+    public void testJwkToPem() throws ParseException, JOSEException {
+        String jwk = "{\n" +
+                "  \"kty\": \"RSA\",\n" +
+                "  \"e\": \"AQAB\",\n" +
+                "  \"kid\": \"c6e34b18-fb1c-43bb-9de7-7edc8981b14d\",\n" +
+                "  \"n\": \"xq83nCd8AqH5n40dEBMElbaJd2gFWu6bjhNzyp9562dpf454BUSN0uF-g3i1yzcwdvADTiuExKN1u_IoGURxVCa0JTzAPJw6_JIoyOZnHZCoarcgQQqZ56_udkSQ2NssrwGSQjOwxMrgIdH6XeLgGqVN4BoEEI-gpaQZa7rSytU5RFSGOnZWO2Vwgs1OBxiOiYg1gzA1spJXQhxcBWw_v-YrUFtjxBKsG1UrWbnHbgciiN5U2v51Yztjo8A1T-o9eIG90jVo3EhS2qhbzd8mLAsEhjV1sP8GItjfdfwXpXT7q2QG99W3PM75-HdwGLvJIrkED7YRj4CpMkz6F1etaw\"\n" +
+                "}";
+
+        RSAKey rsaJwk = RSAKey.parse(jwk);
+        RSAPublicKey pub = rsaJwk.toRSAPublicKey();
+        System.out.println("PEM result: " + convertToPEMFormat(pub));
+
     }
 }
