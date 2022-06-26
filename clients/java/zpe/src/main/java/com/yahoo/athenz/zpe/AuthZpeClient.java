@@ -39,6 +39,8 @@ import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
 import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
 import com.yahoo.rdl.Struct;
 
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
+
 public class AuthZpeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthZpeClient.class);
@@ -70,6 +72,8 @@ public class AuthZpeClient {
 
     private static final Set<String> X509_ISSUERS_NAMES = new HashSet<>();
     private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
+
+    private static long lastZtsJwkFetchTime;
     
     public enum AccessCheckStatus {
         ALLOW {
@@ -170,6 +174,10 @@ public class AuthZpeClient {
         // initialize the access token signing key resolver
 
         setAccessTokenSignKeyResolver(null, null);
+        
+        // save the last zts api call time 
+        
+        lastZtsJwkFetchTime = System.currentTimeMillis();
     }
     
     public static void init() {
@@ -282,7 +290,21 @@ public class AuthZpeClient {
     }
     
     public static PublicKey getZtsPublicKey(String keyId) {
-        return publicKeyStore.getZtsKey(keyId);
+        PublicKey publicKey = publicKeyStore.getZtsKey(keyId);
+        if (publicKey == null && canFetchLatestJwksFromZts()) {
+            //  fetch all zts jwk keys and update config and try again
+            accessSignKeyResolver.loadPublicKeysFromServer();
+            lastZtsJwkFetchTime = System.currentTimeMillis();
+            publicKey = accessSignKeyResolver.getPublicKey(keyId); 
+        }
+        return publicKey;
+    }
+    
+    protected static boolean canFetchLatestJwksFromZts() {
+        int millisBetweenZtsCalls = Integer.parseInt(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "30000"));
+        long now = System.currentTimeMillis();
+        long millisDiff = now - lastZtsJwkFetchTime;
+        return millisDiff > millisBetweenZtsCalls;
     }
     
     public static PublicKey getZmsPublicKey(String keyId) {

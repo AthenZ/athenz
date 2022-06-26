@@ -1438,6 +1438,7 @@ public class TestAuthZpe {
                 "  \"n\": \"xq83nCd8AqH5n40dEBMElbaJd2gFWu6bjhNzyp9562dpf454BUSN0uF-g3i1yzcwdvADTiuExKN1u_IoGURxVCa0JTzAPJw6_JIoyOZnHZCoarcgQQqZ56_udkSQ2NssrwGSQjOwxMrgIdH6XeLgGqVN4BoEEI-gpaQZa7rSytU5RFSGOnZWO2Vwgs1OBxiOiYg1gzA1spJXQhxcBWw_v-YrUFtjxBKsG1UrWbnHbgciiN5U2v51Yztjo8A1T-o9eIG90jVo3EhS2qhbzd8mLAsEhjV1sP8GItjfdfwXpXT7q2QG99W3PM75-HdwGLvJIrkED7YRj4CpMkz6F1etaw\"\n" +
                 "}";
 
+        // TODO : use the Key object instead.
         RSAKey rsaJwk = RSAKey.parse(jwk);
         RSAPublicKey pub = rsaJwk.toRSAPublicKey();
         System.out.println("PEM result: " + convertToPEMFormat(pub));
