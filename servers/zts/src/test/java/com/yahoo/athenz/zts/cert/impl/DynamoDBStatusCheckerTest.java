@@ -20,6 +20,9 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.ListTablesResult;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.status.StatusCheckException;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientAndCredentials;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcher;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientSettings;
 import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -65,8 +68,8 @@ public class DynamoDBStatusCheckerTest {
         String tableName = "testTable";
         when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableName));
         when(amazonDynamoDB.listTables()).thenReturn(listTablesResult);
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any())).thenReturn(dynamoDBClientAndCredentials);
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         dynamoDBStatusChecker.check();
@@ -80,8 +83,8 @@ public class DynamoDBStatusCheckerTest {
         String tableName = "testTable";
         when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableName));
         when(amazonDynamoDB.listTables()).thenReturn(listTablesResult);
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any())).thenReturn(dynamoDBClientAndCredentials);
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, null);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         dynamoDBStatusChecker.check();
@@ -94,8 +97,8 @@ public class DynamoDBStatusCheckerTest {
         // Mock getting client and credentials successfully and table exists
         String tableName = "testTable";
         when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableName));
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(null, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any())).thenReturn(dynamoDBClientAndCredentials);
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(null, null, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         try {
@@ -115,8 +118,8 @@ public class DynamoDBStatusCheckerTest {
         // Mock getting client and credentials successfully but table doesn't exist
         when(listTablesResult.getTableNames()).thenReturn(Collections.singletonList(tableNameInAws));
         when(amazonDynamoDB.listTables()).thenReturn(listTablesResult);
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any())).thenReturn(dynamoDBClientAndCredentials);
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(requestedTable);
 
         try {
@@ -136,8 +139,8 @@ public class DynamoDBStatusCheckerTest {
         String tableName = "testTable";
         when(amazonDynamoDB.listTables()).thenReturn(null);
 
-        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, awsCredentialsProvider);
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any())).thenReturn(dynamoDBClientAndCredentials);
+        DynamoDBClientAndCredentials dynamoDBClientAndCredentials = new DynamoDBClientAndCredentials(amazonDynamoDB, null, awsCredentialsProvider);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(dynamoDBClientAndCredentials);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         try {
@@ -156,7 +159,7 @@ public class DynamoDBStatusCheckerTest {
     public void testClientNull() throws IOException {
         String tableName = "testTable";
         // Mock getting client failed (returns null)
-        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any())).thenReturn(null);
+        when(dynamoDBClientFetcher.getDynamoDBClient(any(), any(DynamoDBClientSettings.class))).thenReturn(null);
         DynamoDBStatusCheckerTestClass dynamoDBStatusChecker = new DynamoDBStatusCheckerTestClass(tableName);
 
         try {

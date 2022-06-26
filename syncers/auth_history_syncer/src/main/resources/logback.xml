@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="3 minutes">
+
+    <property name="LOG_DIR" value="/var/opt/auth_history_syncer/logs" />
+
+    <!--Daily rolling file appender -->
+    <appender name="SERVER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <append>true</append>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/auth_history_syncer.%d.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger used exclusively for audit logging -->
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <logger name="org.eclipse" level="WARN"/>
+    <logger name="org.apache.http" level="WARN"/>
+
+    <root>
+        <level value="INFO" />
+        <appender-ref ref="SERVER" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
+

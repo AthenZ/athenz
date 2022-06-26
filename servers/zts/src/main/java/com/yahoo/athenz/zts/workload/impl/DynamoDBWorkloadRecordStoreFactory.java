@@ -19,10 +19,11 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStore;
 import com.yahoo.athenz.common.server.workload.WorkloadRecordStoreFactory;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcher;
+import com.yahoo.athenz.db.dynamodb.DynamoDBClientFetcherFactory;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
-import com.yahoo.athenz.zts.cert.impl.DynamoDBClientFetcher;
-import com.yahoo.athenz.zts.cert.impl.DynamoDBClientFetcherFactory;
+import com.yahoo.athenz.zts.cert.impl.ZTSDynamoDBClientSettingsFactory;
 import com.yahoo.athenz.zts.notification.ZTSClientNotificationSenderImpl;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -59,6 +60,7 @@ public class DynamoDBWorkloadRecordStoreFactory implements WorkloadRecordStoreFa
 
     AmazonDynamoDB getDynamoDBClient(ZTSClientNotificationSenderImpl ztsClientNotificationSender, PrivateKeyStore keyStore) {
         DynamoDBClientFetcher dynamoDBClientFetcher = DynamoDBClientFetcherFactory.getDynamoDBClientFetcher();
-        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, keyStore).getAmazonDynamoDB();
+        ZTSDynamoDBClientSettingsFactory ztsDynamoDBClientSettingsFactory = new ZTSDynamoDBClientSettingsFactory(keyStore);
+        return dynamoDBClientFetcher.getDynamoDBClient(ztsClientNotificationSender, ztsDynamoDBClientSettingsFactory.getDynamoDBClientSettings()).getAmazonDynamoDB();
     }
 }
