@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -23,6 +23,8 @@ import (
 
 	"gopkg.in/square/go-jose.v2"
 )
+
+var lastZtsJwkFetchTime = time.Time{}
 
 func PolicyUpdater(config *ZpuConfiguration) error {
 	if config == nil {
@@ -231,22 +233,84 @@ func GetEtagForExistingPolicy(config *ZpuConfiguration, ztsClient zts.ZTSClient,
 func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID string) (string, error) {
 	ztsPublicKey := config.GetZtsPublicKey(ztsKeyID)
 	if ztsPublicKey == "" {
-		key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zts", ztsKeyID)
-		if err != nil {
-			return "", fmt.Errorf("unable to get the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+		// first, reload athenz jwks from disk and try again
+		log.Debugf("key id: [%s] does not exist in public keys map, reload athenz jwks from disk", ztsKeyID)
+		config.loadAthenzJwks()
+		ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
+
+		if ztsPublicKey != "" {
+			return ztsPublicKey, nil
 		}
-		decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
-		if err != nil {
-			return "", fmt.Errorf("unable to decode the Zts public key with id:\"%v\" to verify data", ztsKeyID)
+		if canFetchLatestJwksFromZts(config) {
+			//  fetch all zts jwk keys and update config
+			log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", ztsKeyID)
+			rfc := true
+			ztsJwkList, err := ztsClient.GetJWKList(&rfc)
+			if err != nil {
+				return "", fmt.Errorf("unable to get the zts jwk keys, err: %v", err)
+			}
+			config.updateZtsJwks(ztsJwkList)
+			lastZtsJwkFetchTime = time.Now()
+
+			// after fetching all jwks from zts, try again
+			ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
+		} else {
+			log.Printf("not allowed to fetch jwks from zts, last fetch time: %v", lastZtsJwkFetchTime)
 		}
-		ztsPublicKey = string(decodedKey)
+		if ztsPublicKey == "" {
+			return "", fmt.Errorf("unable to get the zts public key with id:\"%v\" to verify data", ztsKeyID)
+		}
 	}
 	return ztsPublicKey, nil
 }
 
+func canFetchLatestJwksFromZts(config *ZpuConfiguration) bool {
+	minutesBetweenZtsCalls := 30
+	if config.MinutesBetweenZtsCalls > 0 {
+		minutesBetweenZtsCalls = config.MinutesBetweenZtsCalls
+	}
+	now := time.Now()
+	minDiff := int(now.Sub(lastZtsJwkFetchTime).Minutes())
+	return minDiff > minutesBetweenZtsCalls
+}
+
+func getZmsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsKeyID string) (string, error) {
+	zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
+	if zmsPublicKey == "" {
+
+		// first, reload athenz jwks from disk and try again
+		log.Debugf("key id: [%s] does not exist in public keys map, reload athenz jwks from disk", zmsKeyID)
+		config.loadAthenzJwks()
+		zmsPublicKey = config.GetZmsPublicKey(zmsKeyID)
+
+		// if we didn't succeed, retrieve it from zts
+		if zmsPublicKey == "" {
+			log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", zmsKeyID)
+			key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
+			if err != nil {
+				return "", fmt.Errorf("unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
+			}
+			decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
+			if err != nil {
+				return "", fmt.Errorf("unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
+			}
+			zmsPublicKey = string(decodedKey)
+		}
+	}
+	return zmsPublicKey, nil
+}
+
+func isExpired(config *ZpuConfiguration, expires *rdl.Timestamp) bool {
+	if config.ExpiredFunc != nil {
+		return config.ExpiredFunc(*expires)
+	} else {
+		return expired(*expires, 0)
+	}
+}
+
 func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, data *zts.DomainSignedPolicyData) ([]byte, error) {
 	expires := data.SignedPolicyData.Expires
-	if expired(expires, 0) {
+	if isExpired(config, &expires) {
 		return nil, fmt.Errorf("policy data is expired on %v", expires)
 	}
 	signedPolicyData := data.SignedPolicyData
@@ -262,6 +326,7 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	if err != nil {
 		return nil, err
 	}
+
 	err = verify(input, ztsSignature, ztsPublicKey)
 	if err != nil {
 		return nil, fmt.Errorf("verification of data with zts key having id:\"%v\" failed, Error :%v", ztsKeyID, err)
@@ -273,23 +338,16 @@ func ValidateSignedPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, d
 	if config.CheckZMSSignature {
 		zmsSignature := data.SignedPolicyData.ZmsSignature
 		zmsKeyID := data.SignedPolicyData.ZmsKeyId
-		zmsPublicKey := config.GetZmsPublicKey(zmsKeyID)
-		if zmsPublicKey == "" {
-			key, err := ztsClient.GetPublicKeyEntry("sys.auth", "zms", zmsKeyID)
-			if err != nil {
-				return nil, fmt.Errorf("unable to get the Zms public key with id:\"%v\" to verify data", zmsKeyID)
-			}
-			decodedKey, err := new(zmssvctoken.YBase64).DecodeString(key.Key)
-			if err != nil {
-				return nil, fmt.Errorf("unable to decode the Zms public key with id:\"%v\" to verify data", zmsKeyID)
-			}
-			zmsPublicKey = string(decodedKey)
+		zmsPublicKey, err := getZmsPublicKey(config, ztsClient, zmsKeyID)
+		if err != nil {
+			return nil, err
 		}
 		policyData := data.SignedPolicyData.PolicyData
 		input, err = util.ToCanonicalString(policyData)
 		if err != nil {
 			return nil, err
 		}
+
 		err = verify(input, zmsSignature, zmsPublicKey)
 		if err != nil {
 			return nil, fmt.Errorf("verification of data with zms key with id:\"%v\" failed, Error :%v", zmsKeyID, err)
@@ -313,10 +371,12 @@ func ValidateJWSPolicies(config *ZpuConfiguration, ztsClient zts.ZTSClient, jwsP
 	if err != nil {
 		return nil, err
 	}
+
 	publicKey, err := athenzutils.LoadPublicKey([]byte(ztsPublicKey))
 	if err != nil {
 		return nil, err
 	}
+
 	// Now we can verify the signature on the payload. An error here would
 	// indicate that the message failed to verify, e.g. because the signature was
 	// broken or the message was tampered with.

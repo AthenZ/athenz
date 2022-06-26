@@ -4,12 +4,19 @@
 package zpu
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strconv"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/ardielle/ardielle-go/rdl"
+	"gopkg.in/square/go-jose.v2"
 
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
@@ -23,29 +30,32 @@ const (
 )
 
 type ZpuConfiguration struct {
-	Zts               string
-	Zms               string
-	DomainList        string
-	ZpuOwner          string
-	PolicyFileDir     string
-	TempPolicyFileDir string
-	MetricsDir        string
-	ZmsKeysmap        map[string]string
-	ZtsKeysmap        map[string]string
-	StartUpDelay      int
-	ExpiryCheck       int
-	LogSize           int
-	LogAge            int
-	LogBackups        int
-	LogCompression    bool
-	PrivateKeyFile    string
-	CertFile          string
-	CaCertFile        string
-	Proxy             bool
-	CheckZMSSignature bool
-	JWSPolicySupport  bool
-	PolicyVersions    map[string]string
-	ForceRefresh      bool
+	Zts                    string
+	Zms                    string
+	DomainList             string
+	ZpuOwner               string
+	PolicyFileDir          string
+	TempPolicyFileDir      string
+	SiaDir                 string
+	MetricsDir             string
+	ZmsKeysmap             map[string]string
+	ZtsKeysmap             map[string]string
+	StartUpDelay           int
+	ExpiryCheck            int
+	LogSize                int
+	LogAge                 int
+	LogBackups             int
+	LogCompression         bool
+	PrivateKeyFile         string
+	CertFile               string
+	CaCertFile             string
+	Proxy                  bool
+	CheckZMSSignature      bool
+	JWSPolicySupport       bool
+	PolicyVersions         map[string]string
+	ForceRefresh           bool
+	ExpiredFunc            func(rdl.Timestamp) bool
+	MinutesBetweenZtsCalls int
 }
 
 type AthenzConf struct {
@@ -81,7 +91,7 @@ type ZpuConf struct {
 	PolicyVersions    map[string]string `json:"policyVersions"`
 }
 
-func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfiguration, error) {
+func NewZpuConfiguration(root, athensConfFile, zpuConfFile, siaDir string) (*ZpuConfiguration, error) {
 	zmsKeysmap := make(map[string]string)
 	ztsKeysmap := make(map[string]string)
 	athenzConf, err := ReadAthenzConf(athensConfFile)
@@ -159,11 +169,13 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 	if user == "" {
 		user = "root"
 	}
-	return &ZpuConfiguration{
+
+	zpuConfiguration := ZpuConfiguration{
 		Zts:               athenzConf.ZtsUrl,
 		Zms:               athenzConf.ZmsUrl,
 		DomainList:        zpuConf.Domains,
 		ZpuOwner:          user,
+		SiaDir:            siaDir,
 		PolicyFileDir:     policyDir,
 		TempPolicyFileDir: tempPolicyDir,
 		MetricsDir:        metricDir,
@@ -182,7 +194,65 @@ func NewZpuConfiguration(root, athensConfFile, zpuConfFile string) (*ZpuConfigur
 		CheckZMSSignature: zpuConf.CheckZMSSignature,
 		JWSPolicySupport:  zpuConf.JWSPolicySupport,
 		PolicyVersions:    zpuConf.PolicyVersions,
-	}, nil
+	}
+	zpuConfiguration.loadAthenzJwks()
+
+	return &zpuConfiguration, nil
+}
+
+func (config ZpuConfiguration) loadAthenzJwks() {
+	jwkConfFile := fmt.Sprintf("%s/"+siautil.JwkConfFile, config.SiaDir)
+	jwkConf := &zts.AthenzJWKConfig{}
+	err := siautil.ReadAthenzJwkConf(jwkConfFile, jwkConf)
+	if err != nil {
+		log.Printf(err.Error())
+		return
+	}
+	loadJwkList(jwkConf.Zts.Keys, config.ZtsKeysmap)
+	loadJwkList(jwkConf.Zms.Keys, config.ZmsKeysmap)
+	log.Debugf("athenz jwks loaded successfully")
+}
+
+func (config ZpuConfiguration) updateZtsJwks(ztsJwks *zts.JWKList) {
+	loadJwkList(ztsJwks.Keys, config.ZtsKeysmap)
+	log.Debugf("zts jwks updated successfully")
+}
+
+func loadJwkList(jwkList []*zts.JWK, keysMap map[string]string) {
+	for _, jwk := range jwkList {
+		keyBytes, err := jwkToPem(jwk)
+		if err != nil {
+			log.Printf("failed to convert jwk, err: %s", err.Error())
+			continue
+		}
+		key := string(keyBytes)
+		if val, ok := keysMap[jwk.Kid]; ok {
+			log.Debugf("key id: [%s] already exist in the public keys map. replacing value from: [%s] to: [%s]", jwk.Kid, val, key)
+		}
+		keysMap[jwk.Kid] = key
+	}
+}
+
+func jwkToPem(athenzJwk *zts.JWK) ([]byte, error) {
+	jwkJson, err := json.Marshal(athenzJwk)
+	if err != nil {
+		return nil, err
+	}
+	var jwk jose.JSONWebKey
+	err = jwk.UnmarshalJSON(jwkJson)
+	if err != nil {
+		return nil, err
+	}
+	res, err := x509.MarshalPKIXPublicKey(jwk.Key)
+	if err != nil {
+		return nil, err
+	}
+	return pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: res,
+		},
+	), nil
 }
 
 func ReadAthenzConf(athenzConf string) (*AthenzConf, error) {

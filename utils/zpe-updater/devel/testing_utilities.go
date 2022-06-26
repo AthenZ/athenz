@@ -60,6 +60,20 @@ func loadPrivateKey(privateKeyPEM []byte) (crypto.PrivateKey, error) {
 	}
 }
 
+func SignPolicy(policyDataStr []byte, signature string, keyVersion string) (*zts.DomainSignedPolicyData, error) {
+	var signedPolicyData *zts.SignedPolicyData
+	err := json.Unmarshal(policyDataStr, &signedPolicyData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the signed policy data file, Error:%v", err)
+	}
+	domainSignedPolicyData := zts.DomainSignedPolicyData{}
+	domainSignedPolicyData.SignedPolicyData = signedPolicyData
+	domainSignedPolicyData.SignedPolicyData.ZmsKeyId = keyVersion
+	domainSignedPolicyData.Signature = signature
+	domainSignedPolicyData.KeyId = keyVersion
+	return &domainSignedPolicyData, nil
+}
+
 func GenerateSignedPolicyData(filename string, privateKeyPEM []byte, keyVersion string, expiryOffset float64) (*zts.DomainSignedPolicyData, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -121,8 +135,8 @@ func GenerateJWSPolicyData(filename string, privateKeyPEM []byte, keyVersion, al
 		return nil, fmt.Errorf("failed to generate payload datar, Error:%v", err)
 	}
 	jwsPolicyData := new(zts.JWSPolicyData)
-	jwsPolicyData.Header=make(map[string]string)
-	jwsPolicyData.Header["kid"]=keyVersion
+	jwsPolicyData.Header = make(map[string]string)
+	jwsPolicyData.Header["kid"] = keyVersion
 	encoding := base64.RawURLEncoding
 	jwsPolicyData.Payload = encoding.EncodeToString(payloadData)
 	protectedData := "{\"alg\":\"" + algorithm + "\",\"kid\":\"" + keyVersion + "\"}"

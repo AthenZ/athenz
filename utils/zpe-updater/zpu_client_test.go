@@ -6,11 +6,19 @@ package zpu
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
+	"net"
+	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/dimfeld/httptreemux"
+	"github.com/stretchr/testify/require"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
@@ -32,6 +40,33 @@ var testConfig *ZpuConfiguration
 var ztsClient zts.ZTSClient
 var port string
 
+type testServer struct {
+	listener net.Listener
+	addr     string
+}
+
+func (t *testServer) start(h http.Handler) {
+	listener, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatalf("Unable to serve on randomly assigned port")
+	}
+	s := &http.Server{Handler: h}
+	t.listener = listener
+	t.addr = listener.Addr().String()
+
+	go func() {
+		s.Serve(listener)
+	}()
+}
+
+func (t *testServer) stop() {
+	t.listener.Close()
+}
+
+func (t *testServer) baseUrl(version string) string {
+	return "http://" + t.addr + "/" + version
+}
+
 var ecdsaPrivateKeyPEM = []byte(`-----BEGIN EC PRIVATE KEY-----
 MIGkAgEBBDA27vlziu7AYNJo/aaG3mS4XPK2euiTLQDxzUoDkiMpVHRXLxSbX897
 Gz7dQNFo3UWgBwYFK4EEACKhZANiAARBr6GWO6EGIV09DGInLfC/JSvPOKc26mZu
@@ -47,6 +82,34 @@ oT44uYj+Hfa0BDpvxvT12d/2WRM+Q7mL
 -----END PUBLIC KEY-----
 `)
 
+var rsaPublicKeyPEM = []byte(`-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxq83nCd8AqH5n40dEBME
+lbaJd2gFWu6bjhNzyp9562dpf454BUSN0uF+g3i1yzcwdvADTiuExKN1u/IoGURx
+VCa0JTzAPJw6/JIoyOZnHZCoarcgQQqZ56/udkSQ2NssrwGSQjOwxMrgIdH6XeLg
+GqVN4BoEEI+gpaQZa7rSytU5RFSGOnZWO2Vwgs1OBxiOiYg1gzA1spJXQhxcBWw/
+v+YrUFtjxBKsG1UrWbnHbgciiN5U2v51Yztjo8A1T+o9eIG90jVo3EhS2qhbzd8m
+LAsEhjV1sP8GItjfdfwXpXT7q2QG99W3PM75+HdwGLvJIrkED7YRj4CpMkz6F1et
+awIDAQAB
+-----END PUBLIC KEY-----
+`)
+
+var rsaPublicKeyJwk = []byte(`{"kty":"RSA","e":"AQAB","kid":"c6e34b18-fb1c-43bb-9de7-7edc8981b14d","n":"xq83nCd8AqH5n40dEBMElbaJd2gFWu6bjhNzyp9562dpf454BUSN0uF-g3i1yzcwdvADTiuExKN1u_IoGURxVCa0JTzAPJw6_JIoyOZnHZCoarcgQQqZ56_udkSQ2NssrwGSQjOwxMrgIdH6XeLgGqVN4BoEEI-gpaQZa7rSytU5RFSGOnZWO2Vwgs1OBxiOiYg1gzA1spJXQhxcBWw_v-YrUFtjxBKsG1UrWbnHbgciiN5U2v51Yztjo8A1T-o9eIG90jVo3EhS2qhbzd8mLAsEhjV1sP8GItjfdfwXpXT7q2QG99W3PM75-HdwGLvJIrkED7YRj4CpMkz6F1etaw"}`)
+
+var ecPublicKeyPEM = []byte(`-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAESVqB4JcUD6lsfvqMr+OKUNUphdNn
+64Eay60978ZlL76V/S7SkyPiUYDNmLHm7gKbkIxAiAw2mTDLXrfC0phUog==
+-----END PUBLIC KEY-----
+`)
+
+var ecPublicKeyJwk = []byte(`{
+  "kid" : "FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ",
+  "kty" : "EC",
+  "crv" : "P-256",
+  "x"   : "SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74",
+  "y"   : "lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI",
+  "d"   : "0g5vAEKzugrXaRbgKG0Tj2qJ5lMP4Bezds1_sTybkfk"
+}`)
+
 func TestMain(m *testing.M) {
 	setUp()
 	code := m.Run()
@@ -61,7 +124,7 @@ func getTestConfiguration() (*ZpuConfiguration, error) {
 	_ = devel.CreateFile(ConfPath+"/athenz.conf", athenzConf)
 	zpuConf := `{"domains":"test"}`
 	_ = devel.CreateFile(ConfPath+"/zpu.conf", zpuConf)
-	config, err := NewZpuConfiguration("", ConfPath+"/athenz.conf", ConfPath+"/zpu.conf")
+	config, err := NewZpuConfiguration("", ConfPath+"/athenz.conf", ConfPath+"/zpu.conf", ConfPath)
 	config.PolicyFileDir = PoliciesDir
 	config.TempPolicyFileDir = TempPoliciesDir
 	config.MetricsDir = MetricDir
@@ -323,4 +386,197 @@ func TestFormatUrl(t *testing.T) {
 	a.Equal(url, "zmsURL/zms/v1")
 	url = formatURL("zmsURL", "zms/v1")
 	a.Equal(url, "zmsURL/zms/v1")
+}
+
+func TestRSAJwkToPem(t *testing.T) {
+
+	var ztsJwk zts.JWK
+	err := json.Unmarshal(rsaPublicKeyJwk, &ztsJwk)
+	require.Nil(t, err, "should be able to convert json to zts.JWK")
+
+	jwkAsPem, err := jwkToPem(&ztsJwk)
+	require.Nil(t, err, "should be able to convert zts.JWK to pem")
+
+	require.Equal(t, jwkAsPem, rsaPublicKeyPEM)
+
+}
+
+func TestECJwkToPem(t *testing.T) {
+
+	var ztsJwk zts.JWK
+	err := json.Unmarshal(ecPublicKeyJwk, &ztsJwk)
+	require.Nil(t, err, "should be able to convert json to zts.JWK")
+
+	jwkAsPem, err := jwkToPem(&ztsJwk)
+	require.Nil(t, err, "should be able to convert zts.JWK to pem")
+
+	require.Equal(t, jwkAsPem, ecPublicKeyPEM)
+
+}
+
+func TestPolicyUpdaterJwkOnInit(t *testing.T) {
+	a := assert.New(t)
+	ztsRouter := httptreemux.New()
+
+	siaDir, err := ioutil.TempDir("", "sia")
+	if err != nil {
+		a.Nil(err)
+	}
+	defer os.RemoveAll(siaDir)
+
+	// left here the PEM public key for debugging purpose
+	// pub := "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZ3d0RRWUpLb1pJaHZjTkFRRUJCUUFEU3dBd1NBSkJBTHpmU09UUUpmRW0xZW00TDNza3lOVlEvYngwTU9UcQphK1J3T0gzWmNNS3lvR3hPSm85QXllUmE2RlhNbXZKSkdZczVQMzRZc3pGcG5qMnVBYmkyNG5FQ0F3RUFBUT09Ci0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo-"
+	// pubkey, _ := new(zmssvctoken.YBase64).DecodeString(pub)
+	// log.Printf("pubkey: [%s]", pubKey)
+
+	signedPolicy := `{"expires":"2017-06-09T06:11:12.125Z","modified":"2017-06-02T06:11:12.125Z","policyData":{"domain":"sys.auth","policies":[{"assertions":[{"action":"*","effect":"ALLOW","resource":"*","role":"sys.auth:role.admin"},{"action":"*","effect":"DENY","resource":"*","role":"sys.auth:role.non-admin"}],"name":"sys.auth:policy.admin"}]},"zmsKeyId":"0","zmsSignature":"Y2HuXmgL86PL1WnleGFHwPmNEqUdWgDxmmIsDnF5f5oqakacqTtwt9JNqDV9nuJ7LnKl3zsZoDQSAtcHMu4IGA--"}`
+	pubJwk := "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"kid\":\"0\",\"n\":\"vN9I5NAl8SbV6bgveyTI1VD9vHQw5Opr5HA4fdlwwrKgbE4mj0DJ5FroVcya8kkZizk_fhizMWmePa4BuLbicQ\"}"
+	signature := "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--"
+
+	// Mock GetDomainSignedPolicyData
+	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /domain/sys.auth/signed_policy_data")
+		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
+		pd, _ := json.Marshal(policyData)
+		io.WriteString(w, string(pd))
+	})
+
+	ztsServer := &testServer{}
+	ztsServer.start(ztsRouter)
+	defer ztsServer.stop()
+
+	zmsKeysmap := make(map[string]string)
+	zmsKeysmap["0"] = "previous value"
+	log.Debug = true
+
+	conf := ZpuConfiguration{
+		Zts:               ztsServer.baseUrl("zts/v1"),
+		DomainList:        "sys.auth",
+		SiaDir:            siaDir,
+		ZmsKeysmap:        zmsKeysmap,
+		ZtsKeysmap:        make(map[string]string),
+		MetricsDir:        MetricDir,
+		PolicyFileDir:     PoliciesDir,
+		TempPolicyFileDir: TempPoliciesDir,
+		CheckZMSSignature: true,
+		ExpiredFunc: func(rdl.Timestamp) bool {
+			return false
+		},
+	}
+
+	writeAthenzJwkConf(pubJwk, &conf)
+	conf.loadAthenzJwks()
+	err = PolicyUpdater(&conf)
+	a.Nil(err)
+	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, "sys.auth")
+	a.Equal(util.Exists(policyFile), true)
+}
+
+func TestPolicyUpdaterJwkOnZtsCall(t *testing.T) {
+	a := assert.New(t)
+	ztsRouter := httptreemux.New()
+	ztsRouter.EscapeAddedRoutes = true
+
+	siaDir, err := ioutil.TempDir("", "sia")
+	if err != nil {
+		a.Nil(err)
+	}
+	defer os.RemoveAll(siaDir)
+
+	signedPolicy := `{"expires":"2017-06-09T06:11:12.125Z","modified":"2017-06-02T06:11:12.125Z","policyData":{"domain":"sys.auth","policies":[{"assertions":[{"action":"*","effect":"ALLOW","resource":"*","role":"sys.auth:role.admin"},{"action":"*","effect":"DENY","resource":"*","role":"sys.auth:role.non-admin"}],"name":"sys.auth:policy.admin"}]},"zmsKeyId":"0","zmsSignature":"Y2HuXmgL86PL1WnleGFHwPmNEqUdWgDxmmIsDnF5f5oqakacqTtwt9JNqDV9nuJ7LnKl3zsZoDQSAtcHMu4IGA--"}`
+	pubJwk := "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"kid\":\"0\",\"n\":\"vN9I5NAl8SbV6bgveyTI1VD9vHQw5Opr5HA4fdlwwrKgbE4mj0DJ5FroVcya8kkZizk_fhizMWmePa4BuLbicQ\"}"
+	signature := "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--"
+
+	// Mock GetDomainSignedPolicyData
+	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /domain/sys.auth/signed_policy_data")
+		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
+		pd, _ := json.Marshal(policyData)
+		io.WriteString(w, string(pd))
+	})
+
+	jwkConf := athenzJwkFromString(pubJwk)
+	// Mock GetJWKList
+	ztsRouter.GET("/zts/v1/oauth2/keys", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Printf("Called /zts/v1/oauth2/keys")
+		ztsKeys, _ := json.Marshal(jwkConf.Zts)
+		io.WriteString(w, string(ztsKeys))
+	})
+
+	ztsServer := &testServer{}
+	ztsServer.start(ztsRouter)
+	defer ztsServer.stop()
+
+	conf := ZpuConfiguration{
+		Zts:               ztsServer.baseUrl("zts/v1"),
+		DomainList:        "sys.auth",
+		SiaDir:            siaDir,
+		ZmsKeysmap:        make(map[string]string),
+		ZtsKeysmap:        make(map[string]string),
+		MetricsDir:        MetricDir,
+		PolicyFileDir:     PoliciesDir,
+		TempPolicyFileDir: TempPoliciesDir,
+		CheckZMSSignature: false,
+		ExpiredFunc: func(rdl.Timestamp) bool {
+			return false
+		},
+	}
+
+	err = PolicyUpdater(&conf)
+	a.Nil(err)
+	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, "sys.auth")
+	a.Equal(util.Exists(policyFile), true)
+}
+
+func writeAthenzJwkConf(pubJwk string, zpuConf *ZpuConfiguration) {
+
+	jwkConf := athenzJwkFromString(pubJwk)
+
+	bytes, err := json.MarshalIndent(jwkConf, "", "    ")
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	confFile := filepath.Join(zpuConf.SiaDir, siautil.JwkConfFile)
+	if err := ioutil.WriteFile(confFile, bytes, 0600); err != nil {
+		log.Fatalf("Unable to create the file %q: %v", confFile, err)
+	}
+}
+
+func athenzJwkFromString(pubJwk string) *zts.AthenzJWKConfig {
+	jwkKey := func() *zts.JWKList {
+
+		var jwkKey = zts.JWK{}
+		json.Unmarshal([]byte(pubJwk), &jwkKey)
+
+		keysArr := []*zts.JWK{
+			&jwkKey,
+		}
+
+		return &zts.JWKList{
+			Keys: keysArr,
+		}
+	}
+
+	now := rdl.TimestampNow()
+	jwkConf := zts.AthenzJWKConfig{
+		Modified: &now,
+		Zms:      jwkKey(),
+		Zts:      jwkKey(),
+	}
+	return &jwkConf
+}
+
+func TestCanFetchLatestJwksFromZts(t *testing.T) {
+	lastZtsJwkFetchTime = time.Time{}
+	a := assert.New(t)
+	conf := ZpuConfiguration{
+		MinutesBetweenZtsCalls: 1,
+	}
+
+	a.True(canFetchLatestJwksFromZts(&conf), "should be able to fetch keys from zts")
+
+	// now set the last fetch time and try again
+	lastZtsJwkFetchTime = time.Now()
+	a.False(canFetchLatestJwksFromZts(&conf), "should not be able to fetch keys from zts")
 }
