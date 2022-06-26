@@ -30,31 +30,32 @@ const (
 )
 
 type ZpuConfiguration struct {
-	Zts               string
-	Zms               string
-	DomainList        string
-	ZpuOwner          string
-	PolicyFileDir     string
-	TempPolicyFileDir string
-	SiaDir            string
-	MetricsDir        string
-	ZmsKeysmap        map[string]string
-	ZtsKeysmap        map[string]string
-	StartUpDelay      int
-	ExpiryCheck       int
-	LogSize           int
-	LogAge            int
-	LogBackups        int
-	LogCompression    bool
-	PrivateKeyFile    string
-	CertFile          string
-	CaCertFile        string
-	Proxy             bool
-	CheckZMSSignature bool
-	JWSPolicySupport  bool
-	PolicyVersions    map[string]string
-	ForceRefresh      bool
-	ExpiredFunc       func(rdl.Timestamp) bool
+	Zts                      string
+	Zms                      string
+	DomainList               string
+	ZpuOwner                 string
+	PolicyFileDir            string
+	TempPolicyFileDir        string
+	SiaDir                   string
+	MetricsDir               string
+	ZmsKeysmap               map[string]string
+	ZtsKeysmap               map[string]string
+	StartUpDelay             int
+	ExpiryCheck              int
+	LogSize                  int
+	LogAge                   int
+	LogBackups               int
+	LogCompression           bool
+	PrivateKeyFile           string
+	CertFile                 string
+	CaCertFile               string
+	Proxy                    bool
+	CheckZMSSignature        bool
+	JWSPolicySupport         bool
+	PolicyVersions           map[string]string
+	ForceRefresh             bool
+	ExpiredFunc              func(rdl.Timestamp) bool
+	MinutesBetweenZtsUpdates int
 }
 
 type AthenzConf struct {

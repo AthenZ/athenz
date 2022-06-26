@@ -566,3 +566,17 @@ func athenzJwkFromString(pubJwk string) *zts.AthenzJWKConfig {
 	}
 	return &jwkConf
 }
+
+func TestCanFetchLatestJwksFromZts(t *testing.T) {
+	lastZtsJwkFetchTime = time.Time{}
+	a := assert.New(t)
+	conf := ZpuConfiguration{
+		MinutesBetweenZtsUpdates: 1,
+	}
+
+	a.True(canFetchLatestJwksFromZts(&conf), "should be able to fetch keys from zts")
+
+	// now set the last fetch time and try again
+	lastZtsJwkFetchTime = time.Now()
+	a.False(canFetchLatestJwksFromZts(&conf), "should not be able to fetch keys from zts")
+}

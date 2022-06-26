@@ -24,6 +24,8 @@ import (
 	"gopkg.in/square/go-jose.v2"
 )
 
+var lastZtsJwkFetchTime = time.Time{}
+
 func PolicyUpdater(config *ZpuConfiguration) error {
 	if config == nil {
 		return errors.New("nil configuration")
@@ -239,23 +241,37 @@ func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID
 		if ztsPublicKey != "" {
 			return ztsPublicKey, nil
 		}
+		if canFetchLatestJwksFromZts(config) {
+			//  fetch all zts jwk keys and update config
+			log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", ztsKeyID)
+			rfc := true
+			ztsJwkList, err := ztsClient.GetJWKList(&rfc)
+			if err != nil {
+				return "", fmt.Errorf("unable to get the zts jwk keys, err: %v", err)
+			}
+			config.updateZtsJwks(ztsJwkList)
+			lastZtsJwkFetchTime = time.Now()
 
-		// if it does not exist, fetch all zts jwk keys and update config
-		log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", ztsKeyID)
-		rfc := true
-		ztsJwkList, err := ztsClient.GetJWKList(&rfc)
-		if err != nil {
-			return "", fmt.Errorf("unable to get the zts jwk keys, err: %v", err)
+			// after fetching all jwks from zts, try again
+			ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
+		} else {
+			log.Printf("not allowed to fetch jwks from zts, last fetch time: %v", lastZtsJwkFetchTime)
 		}
-		config.updateZtsJwks(ztsJwkList)
-
-		// now, try again
-		ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
 		if ztsPublicKey == "" {
 			return "", fmt.Errorf("unable to get the zts public key with id:\"%v\" to verify data", ztsKeyID)
 		}
 	}
 	return ztsPublicKey, nil
+}
+
+func canFetchLatestJwksFromZts(config *ZpuConfiguration) bool {
+	minutesBetweenZtsCheck := 30
+	if config.MinutesBetweenZtsUpdates > 0 {
+		minutesBetweenZtsCheck = config.MinutesBetweenZtsUpdates
+	}
+	now := time.Now()
+	minDiff := int(now.Sub(lastZtsJwkFetchTime).Minutes())
+	return minDiff > minutesBetweenZtsCheck
 }
 
 func getZmsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsKeyID string) (string, error) {
