@@ -81,6 +81,11 @@
       <version>2.11.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>${nimbus.jose.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
