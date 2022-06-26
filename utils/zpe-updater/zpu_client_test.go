@@ -571,7 +571,7 @@ func TestCanFetchLatestJwksFromZts(t *testing.T) {
 	lastZtsJwkFetchTime = time.Time{}
 	a := assert.New(t)
 	conf := ZpuConfiguration{
-		MinutesBetweenZtsUpdates: 1,
+		MinutesBetweenZtsCalls: 1,
 	}
 
 	a.True(canFetchLatestJwksFromZts(&conf), "should be able to fetch keys from zts")

@@ -265,13 +265,13 @@ func getZtsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, ztsKeyID
 }
 
 func canFetchLatestJwksFromZts(config *ZpuConfiguration) bool {
-	minutesBetweenZtsCheck := 30
-	if config.MinutesBetweenZtsUpdates > 0 {
-		minutesBetweenZtsCheck = config.MinutesBetweenZtsUpdates
+	minutesBetweenZtsCalls := 30
+	if config.MinutesBetweenZtsCalls > 0 {
+		minutesBetweenZtsCalls = config.MinutesBetweenZtsCalls
 	}
 	now := time.Now()
 	minDiff := int(now.Sub(lastZtsJwkFetchTime).Minutes())
-	return minDiff > minutesBetweenZtsCheck
+	return minDiff > minutesBetweenZtsCalls
 }
 
 func getZmsPublicKey(config *ZpuConfiguration, ztsClient zts.ZTSClient, zmsKeyID string) (string, error) {
