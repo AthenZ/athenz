@@ -203,7 +203,14 @@ public class AthenzJettyContainer {
         hostNameRule.setName(HttpHeader.HOST.asString());
         hostNameRule.setValue(serverHostName);
         rewriteHandler.addRule(hostNameRule);
-        
+
+        // Security: Set the "Referrer-Policy: strict-origin-when-cross-origin" header
+        HeaderPatternRule referrerPolicyRule = new HeaderPatternRule();
+        referrerPolicyRule.setPattern("/*");
+        referrerPolicyRule.setName("Referrer-Policy");
+        referrerPolicyRule.setValue("strict-origin-when-cross-origin");
+        rewriteHandler.addRule(referrerPolicyRule);
+
         handlers.addHandler(rewriteHandler);
 
         ContextHandlerCollection contexts = new ContextHandlerCollection();
