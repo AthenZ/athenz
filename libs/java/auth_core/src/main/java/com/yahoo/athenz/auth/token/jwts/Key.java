@@ -15,6 +15,10 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.math.BigInteger;
 import java.security.AlgorithmParameters;
 import java.security.KeyFactory;
@@ -30,6 +34,13 @@ public class Key {
 
     private static final Map<String, String> EC_CURVE_ALIASES = createCurveAliasMap();
 
+    private static final ObjectMapper JSON_MAPPER = initJsonMapper();
+
+    static ObjectMapper initJsonMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return mapper;
+    }
     private String alg;
     private String e;
     private String kid;
@@ -149,5 +160,9 @@ public class Key {
                 throw new NoSuchAlgorithmException(kty);
         }
         return publicKey;
+    }
+    
+    public static Key fromString(String jwkStr) throws JsonProcessingException {
+        return JSON_MAPPER.readValue(jwkStr, Key.class);
     }
 }

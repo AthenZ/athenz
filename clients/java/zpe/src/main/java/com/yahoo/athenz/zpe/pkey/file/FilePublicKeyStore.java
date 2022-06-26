@@ -15,33 +15,30 @@
  */
 package com.yahoo.athenz.zpe.pkey.file;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.PublicKey;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.RSAKey;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.yahoo.athenz.zts.AthenzJWKConfig;
-import com.yahoo.athenz.zts.JWK;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.yahoo.athenz.auth.token.jwts.Key;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zpe.ZpeConsts;
 import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
+import com.yahoo.athenz.zts.AthenzJWKConfig;
+import com.yahoo.athenz.zts.JWK;
 import com.yahoo.rdl.JSON;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FilePublicKeyStore implements PublicKeyStore {
 
@@ -52,12 +49,12 @@ public class FilePublicKeyStore implements PublicKeyStore {
 
     private Map<String, PublicKey> ztsPublicKeyMap = new ConcurrentHashMap<>();
     private Map<String, PublicKey> zmsPublicKeyMap = new ConcurrentHashMap<>();
-    
+
     public void init() {
         initAthenzConfig();
         initAthenzJWKConfig();
     }
-
+    
     private void initAthenzConfig() {
         String rootDir = System.getenv("ROOT");
         if (rootDir == null) {
@@ -96,28 +93,17 @@ public class FilePublicKeyStore implements PublicKeyStore {
         for (JWK jwkObj : jwkList) {
             try {
                 PublicKey jwk = jwkToPubKey(jwkObj);
-                if (jwk != null) {
-                    keysMap.put(jwkObj.kid, jwk);
-                } else {
-                    LOG.warn("failed to load jwk id : {}, type is: {}", jwkObj.kid, jwkObj.kty);
-                }
-            } catch (ParseException | JOSEException e) {
+                keysMap.put(jwkObj.kid, jwk);
+            } catch (Exception e) {
                 LOG.warn("failed to load jwk id : {}, ex: {}", jwkObj.kid, e.getMessage(), e);
             }
         }
     }
 
-    private PublicKey jwkToPubKey(JWK rdlObj) throws ParseException, JOSEException {
+    private PublicKey jwkToPubKey(JWK rdlObj) throws NoSuchAlgorithmException, JsonProcessingException, InvalidKeySpecException, InvalidParameterSpecException {
         String jwk = JSON.string(rdlObj);
-        switch (rdlObj.kty) {
-            case "RSA":
-                RSAKey rsaKey = RSAKey.parse(jwk);
-                return rsaKey.toRSAPublicKey();
-            case "EC":
-                ECKey ecKey = ECKey.parse(jwk);
-                return ecKey.toECPublicKey();
-        }
-        return null;
+        Key key = Key.fromString(jwk);
+        return key.getPublicKey();
     }
 
     void loadPublicKeys(ArrayList<PublicKeyEntry> publicKeys, Map<String, PublicKey> keyMap) {
@@ -158,42 +144,12 @@ public class FilePublicKeyStore implements PublicKeyStore {
         }
         PublicKey publicKey = zmsPublicKeyMap.get(keyId);
         if (publicKey == null) {
-            // first, reload athenz jwks from disk and try again
+            // reload athenz jwks from disk and try again
             LOG.debug("key id: {} does not exist in public keys map, reload athenz jwks from disk", keyId);
             initAthenzJWKConfig();
             publicKey = zmsPublicKeyMap.get(keyId);
-            if (publicKey != null) {
-                return publicKey;
-            }
-            if canFetchLatestJwksFromZts(config) {
-                //  fetch all zts jwk keys and update config
-                log.Debugf("key id: [%s] does not exist in also after reloading athenz jwks from disk, about to fetch directly from zts", ztsKeyID)
-                rfc := true
-                ztsJwkList, err := ztsClient.GetJWKList(&rfc)
-                if err != nil {
-                    return "", fmt.Errorf("unable to get the zts jwk keys, err: %v", err)
-                }
-                config.updateZtsJwks(ztsJwkList)
-                lastZtsJwkFetchTime = time.Now()
-
-                // after fetching all jwks from zts, try again
-                ztsPublicKey = config.GetZtsPublicKey(ztsKeyID)
-            } else {
-                log.Printf("not allowed to fetch jwks from zts, last fetch time: %v", lastZtsJwkFetchTime)
-            }
         }
         return publicKey;
     }
-
-    protected boolean canFetchLatestJwksFromZts() {
-        int minutesBetweenZtsCheck = Integer.parseInt(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "30000"));
-        minutesBetweenZtsCheck := 30
-        if config.MinutesBetweenZtsUpdates > 0 {
-            minutesBetweenZtsCheck = config.MinutesBetweenZtsUpdates
-        }
-        now := time.Now()
-        minDiff := int(now.Sub(lastZtsJwkFetchTime).Minutes())
-        return minDiff > minutesBetweenZtsCheck
-    }
-
+    
 }
