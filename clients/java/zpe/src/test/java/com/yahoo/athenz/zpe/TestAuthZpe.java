@@ -15,8 +15,6 @@
  */
 package com.yahoo.athenz.zpe;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.RSAKey;
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.RoleToken;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -27,11 +25,10 @@ import com.yahoo.athenz.zts.SignedPolicyData;
 import com.yahoo.rdl.JSON;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.mockito.Mockito;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.HttpResponse;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import javax.security.auth.x500.X500Principal;
 import java.io.File;
@@ -42,14 +39,16 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.yahoo.athenz.auth.util.Crypto.convertToPEMFormat;
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF;
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
+import static org.mockito.Mockito.mock;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
 import static org.testng.Assert.*;
 
 /**
@@ -81,7 +80,7 @@ public class TestAuthZpe {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeClass
     public void beforeClass() throws IOException {
-
+        System.setProperty(ZPE_PROP_JWK_ATHENZ_CONF, TestAuthZpe.class.getClassLoader().getResource("jwk/athenz.conf").getPath());
         System.setProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "true");
 
         Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
@@ -173,6 +172,11 @@ public class TestAuthZpe {
 
         renamedFile = new File("./src/test/resources/pol_dir/empty.pol");
         file.renameTo(renamedFile);
+    }
+    
+    @AfterClass
+    public void afterClass() {
+        System.clearProperty(ZPE_PROP_JWK_ATHENZ_CONF);
     }
     
     @BeforeMethod
@@ -391,7 +395,7 @@ public class TestAuthZpe {
         String angResource = "ANGler:stuff";
         StringBuilder roleName = new StringBuilder();
         
-        RoleToken tokenMock = Mockito.mock(RoleToken.class);
+        RoleToken tokenMock = mock(RoleToken.class);
         Mockito.when(tokenMock.getExpiryTime()).thenReturn(1L); // too old
         
         AccessCheckStatus status = AuthZpeClient.allowAccess(tokenMock, angResource, action, roleName);
@@ -1279,9 +1283,9 @@ public class TestAuthZpe {
         AuthZpeClient.setX509CAIssuers(issuers);
 
         final String action = "read";
-        X509Certificate cert = Mockito.mock(X509Certificate.class);
-        X500Principal x500Principal = Mockito.mock(X500Principal.class);
-        X500Principal x500PrincipalS = Mockito.mock(X500Principal.class);
+        X509Certificate cert = mock(X509Certificate.class);
+        X500Principal x500Principal = mock(X500Principal.class);
+        X500Principal x500PrincipalS = mock(X500Principal.class);
         Mockito.when(x500Principal.getName()).thenReturn(issuer);
         Mockito.when(x500PrincipalS.getName()).thenReturn(subject);
         Mockito.when(cert.getIssuerX500Principal()).thenReturn(x500Principal);
@@ -1430,18 +1434,39 @@ public class TestAuthZpe {
     }
 
     @Test
-    public void testJwkToPem() throws ParseException, JOSEException {
-        String jwk = "{\n" +
-                "  \"kty\": \"RSA\",\n" +
-                "  \"e\": \"AQAB\",\n" +
-                "  \"kid\": \"c6e34b18-fb1c-43bb-9de7-7edc8981b14d\",\n" +
-                "  \"n\": \"xq83nCd8AqH5n40dEBMElbaJd2gFWu6bjhNzyp9562dpf454BUSN0uF-g3i1yzcwdvADTiuExKN1u_IoGURxVCa0JTzAPJw6_JIoyOZnHZCoarcgQQqZ56_udkSQ2NssrwGSQjOwxMrgIdH6XeLgGqVN4BoEEI-gpaQZa7rSytU5RFSGOnZWO2Vwgs1OBxiOiYg1gzA1spJXQhxcBWw_v-YrUFtjxBKsG1UrWbnHbgciiN5U2v51Yztjo8A1T-o9eIG90jVo3EhS2qhbzd8mLAsEhjV1sP8GItjfdfwXpXT7q2QG99W3PM75-HdwGLvJIrkED7YRj4CpMkz6F1etaw\"\n" +
-                "}";
+    public void testFetchPublicKeysUsingSignKeyResolver() {
+        System.setProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "0");
+        String ecKeys = "{\n" +
+                "        \"keys\": [\n" +
+                "            {\n" +
+                "                \"kid\" : \"FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ\",\n" +
+                "                \"kty\" : \"EC\",\n" +
+                "                \"crv\" : \"prime256v1\",\n" +
+                "                \"x\"   : \"SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74\",\n" +
+                "                \"y\"   : \"lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI\",\n" +
+                "                \"d\"   : \"0g5vAEKzugrXaRbgKG0Tj2qJ5lMP4Bezds1_sTybkfk\"\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    }";
+        HttpResponse response = new HttpResponse()
+                .withStatusCode(200)
+                .withBody(ecKeys);
+        ClientAndServer mockServer = startClientAndServer(1080);
+        mockServer
+                .when(request().withPath("/mock"))
+                .respond(response);
+        
+        AuthZpeClient.setAccessTokenSignKeyResolver("http://127.0.0.1:1080/mock", null);
+        assertNotNull(AuthZpeClient.getZtsPublicKey("FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ"));
+        mockServer.stop();
+        System.clearProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS);
+    }
 
-        // TODO : use the Key object instead.
-        RSAKey rsaJwk = RSAKey.parse(jwk);
-        RSAPublicKey pub = rsaJwk.toRSAPublicKey();
-        System.out.println("PEM result: " + convertToPEMFormat(pub));
-
+    @Test
+    public void testCanFetch() {
+        assertFalse(AuthZpeClient.canFetchLatestJwksFromZts());
+        System.setProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "0");
+        assertTrue(AuthZpeClient.canFetchLatestJwksFromZts());
+        System.clearProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS);
     }
 }

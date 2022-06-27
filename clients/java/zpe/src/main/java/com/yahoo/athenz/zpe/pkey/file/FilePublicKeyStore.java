@@ -90,19 +90,19 @@ public class FilePublicKeyStore implements PublicKeyStore {
     }
 
     private void loadJwkList(List<JWK> jwkList, Map<String, PublicKey> keysMap) {
-        for (JWK jwkObj : jwkList) {
+        for (JWK jwk : jwkList) {
             try {
-                PublicKey jwk = jwkToPubKey(jwkObj);
-                keysMap.put(jwkObj.kid, jwk);
+                PublicKey publicKey = jwkToPubKey(jwk);
+                keysMap.put(jwk.kid, publicKey);
             } catch (Exception e) {
-                LOG.warn("failed to load jwk id : {}, ex: {}", jwkObj.kid, e.getMessage(), e);
+                LOG.warn("failed to load jwk id : {}, ex: {}", jwk.kid, e.getMessage(), e);
             }
         }
     }
 
-    private PublicKey jwkToPubKey(JWK rdlObj) throws NoSuchAlgorithmException, JsonProcessingException, InvalidKeySpecException, InvalidParameterSpecException {
-        String jwk = JSON.string(rdlObj);
-        Key key = Key.fromString(jwk);
+    protected PublicKey jwkToPubKey(JWK jwk) throws NoSuchAlgorithmException, JsonProcessingException, InvalidKeySpecException, InvalidParameterSpecException {
+        String jwkStr = JSON.string(jwk);
+        Key key = Key.fromString(jwkStr);
         return key.getPublicKey();
     }
 
@@ -131,25 +131,26 @@ public class FilePublicKeyStore implements PublicKeyStore {
     
     @Override
     public PublicKey getZtsKey(String keyId) {
-        if (keyId == null) {
-            return null;
-        }
-        return ztsPublicKeyMap.get(keyId);
+        return getPublicKey(keyId, ztsPublicKeyMap);
     }
 
     @Override
     public PublicKey getZmsKey(String keyId) {
+        return getPublicKey(keyId, zmsPublicKeyMap);
+    }
+
+    private PublicKey getPublicKey(String keyId, Map<String, PublicKey> ztsPublicKeyMap) {
         if (keyId == null) {
             return null;
         }
-        PublicKey publicKey = zmsPublicKeyMap.get(keyId);
+        PublicKey publicKey = ztsPublicKeyMap.get(keyId);
         if (publicKey == null) {
             // reload athenz jwks from disk and try again
             LOG.debug("key id: {} does not exist in public keys map, reload athenz jwks from disk", keyId);
             initAthenzJWKConfig();
-            publicKey = zmsPublicKeyMap.get(keyId);
+            publicKey = ztsPublicKeyMap.get(keyId);
         }
         return publicKey;
     }
-    
+        
 }

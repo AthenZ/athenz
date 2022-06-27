@@ -115,7 +115,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
             LOGGER.error("Unable to extract json web keys from {}", jwksUri, ex);
         }
     }
-
+    
     String getHttpData(final String jwksUri, final SSLContext sslContext) {
         JwtsHelper jwtsHelper = new JwtsHelper();
         return jwtsHelper.getHttpData(jwksUri, sslContext);
@@ -210,10 +210,15 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
     static class JWKList {
         List<com.yahoo.athenz.auth.token.jwts.Key> keys;
+
+        public void setKeys(List<com.yahoo.athenz.auth.token.jwts.Key> keys) {
+            this.keys = keys;
+        }
     }
     static class AthenzJWKConfig {
-        JWKList zms;
         JWKList zts;
-        String modified;
+        public void setZts(JWKList zts) {
+            this.zts = zts;
+        }
     }
 }

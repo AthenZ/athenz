@@ -82,9 +82,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.nimbusds</groupId>
-      <artifactId>nimbus-jose-jwt</artifactId>
-      <version>${nimbus.jose.version}</version>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-netty-no-dependencies</artifactId>
+      <version>RELEASE</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

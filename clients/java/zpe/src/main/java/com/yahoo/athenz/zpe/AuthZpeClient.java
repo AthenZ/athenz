@@ -15,29 +15,28 @@
  */
 package com.yahoo.athenz.zpe;
 
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
-import java.util.*;
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.impl.RoleAuthority;
+import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.RoleToken;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.zpe.match.ZpeMatch;
+import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
+import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
+import com.yahoo.rdl.Struct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLContext;
 import javax.security.auth.x500.X500Principal;
-
-import com.yahoo.athenz.auth.token.AccessToken;
-import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
-import com.yahoo.athenz.auth.util.CryptoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.impl.RoleAuthority;
-import com.yahoo.athenz.auth.token.RoleToken;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zpe.match.ZpeMatch;
-import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
-import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
-import com.yahoo.rdl.Struct;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.util.*;
 
 import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
 
@@ -301,7 +300,7 @@ public class AuthZpeClient {
     }
     
     protected static boolean canFetchLatestJwksFromZts() {
-        int millisBetweenZtsCalls = Integer.parseInt(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "30000"));
+        int millisBetweenZtsCalls = Integer.parseInt(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Integer.toString(30 * 1000 * 60)));
         long now = System.currentTimeMillis();
         long millisDiff = now - lastZtsJwkFetchTime;
         return millisDiff > millisBetweenZtsCalls;
