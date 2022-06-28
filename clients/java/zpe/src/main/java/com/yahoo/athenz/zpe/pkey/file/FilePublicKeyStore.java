@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_RELOAD_CONFIG;
+
 public class FilePublicKeyStore implements PublicKeyStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(FilePublicKeyStore.class);
@@ -49,10 +51,13 @@ public class FilePublicKeyStore implements PublicKeyStore {
 
     private Map<String, PublicKey> ztsPublicKeyMap = new ConcurrentHashMap<>();
     private Map<String, PublicKey> zmsPublicKeyMap = new ConcurrentHashMap<>();
-
+    protected long millisBetweenReloadAthenzConfig;
+    private long lastReloadAthenzConfigTime;
+    
     public void init() {
         initAthenzConfig();
         initAthenzJWKConfig();
+        millisBetweenReloadAthenzConfig = Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_RELOAD_CONFIG, Long.toString(30 * 1000 * 60)));
     }
     
     private void initAthenzConfig() {
@@ -84,6 +89,7 @@ public class FilePublicKeyStore implements PublicKeyStore {
             AthenzJWKConfig jwkConf = JSON.fromBytes(Files.readAllBytes(path), AthenzJWKConfig.class);
             loadJwkList(jwkConf.getZts().getKeys(), ztsPublicKeyMap);
             loadJwkList(jwkConf.getZms().getKeys(), zmsPublicKeyMap);
+            lastReloadAthenzConfigTime = System.currentTimeMillis();
         } catch (Exception ex) {
             LOG.error("Unable to extract athenz jwk config {} exc: {}", jwkConfFileName, ex.getMessage(), ex);
         }
@@ -144,13 +150,19 @@ public class FilePublicKeyStore implements PublicKeyStore {
             return null;
         }
         PublicKey publicKey = ztsPublicKeyMap.get(keyId);
-        if (publicKey == null) {
+        if (publicKey == null && canReloadAthenzConfig()) {
             // reload athenz jwks from disk and try again
             LOG.debug("key id: {} does not exist in public keys map, reload athenz jwks from disk", keyId);
             initAthenzJWKConfig();
             publicKey = ztsPublicKeyMap.get(keyId);
         }
         return publicKey;
+    }
+
+    protected boolean canReloadAthenzConfig() {
+        long now = System.currentTimeMillis();
+        long millisDiff = now - lastReloadAthenzConfigTime;
+        return millisDiff > millisBetweenReloadAthenzConfig;
     }
         
 }

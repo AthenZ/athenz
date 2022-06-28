@@ -74,6 +74,8 @@ public class AuthZpeClient {
 
     private static long lastZtsJwkFetchTime;
     
+    private static long millisBetweenZtsCalls;
+    
     public enum AccessCheckStatus {
         ALLOW {
             public String toString() {
@@ -174,11 +176,13 @@ public class AuthZpeClient {
 
         setAccessTokenSignKeyResolver(null, null);
         
-        // save the last zts api call time 
-        
+        // save the last zts api call time, and the allowed interval between api calls
+
         lastZtsJwkFetchTime = System.currentTimeMillis();
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
+
     }
-    
+
     public static void init() {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Init: load the ZPE");
@@ -298,9 +302,12 @@ public class AuthZpeClient {
         }
         return publicKey;
     }
+
+    protected static void setMillisBetweenZtsCalls(long millis) {
+        millisBetweenZtsCalls = millis;
+    }
     
     protected static boolean canFetchLatestJwksFromZts() {
-        int millisBetweenZtsCalls = Integer.parseInt(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Integer.toString(30 * 1000 * 60)));
         long now = System.currentTimeMillis();
         long millisDiff = now - lastZtsJwkFetchTime;
         return millisDiff > millisBetweenZtsCalls;

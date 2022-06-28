@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF;
-import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
 import static org.mockito.Mockito.mock;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
@@ -1435,7 +1434,7 @@ public class TestAuthZpe {
 
     @Test
     public void testFetchPublicKeysUsingSignKeyResolver() {
-        System.setProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "0");
+        AuthZpeClient.setMillisBetweenZtsCalls(0);
         String ecKeys = "{\n" +
                 "        \"keys\": [\n" +
                 "            {\n" +
@@ -1453,20 +1452,18 @@ public class TestAuthZpe {
                 .withBody(ecKeys);
         ClientAndServer mockServer = startClientAndServer(1080);
         mockServer
-                .when(request().withPath("/mock"))
+                .when(request().withPath("/mockJwksUri"))
                 .respond(response);
         
-        AuthZpeClient.setAccessTokenSignKeyResolver("http://127.0.0.1:1080/mock", null);
+        AuthZpeClient.setAccessTokenSignKeyResolver("http://127.0.0.1:1080/mockJwksUri", null);
         assertNotNull(AuthZpeClient.getZtsPublicKey("FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ"));
         mockServer.stop();
-        System.clearProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS);
     }
 
     @Test
     public void testCanFetch() {
         assertFalse(AuthZpeClient.canFetchLatestJwksFromZts());
-        System.setProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, "0");
+        AuthZpeClient.setMillisBetweenZtsCalls(0);
         assertTrue(AuthZpeClient.canFetchLatestJwksFromZts());
-        System.clearProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS);
     }
 }
