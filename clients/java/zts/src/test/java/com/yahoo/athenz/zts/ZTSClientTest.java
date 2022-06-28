@@ -3665,4 +3665,20 @@ public class ZTSClientTest {
             assertEquals(400, ex.getCode());
         }
     }
+
+    @Test
+    public void testEncodeAWSRoleName() {
+
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        assertEquals(client.encodeAWSRoleName("aws-role"), "aws-role");
+        assertEquals(client.encodeAWSRoleName("sso/aws-role"), "sso%252Faws-role");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
 }
