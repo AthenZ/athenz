@@ -2628,11 +2628,6 @@ public class ZTSClient implements Closeable {
     public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
             String externalId, Integer minExpiryTime, Integer maxExpiryTime, boolean ignoreCache) {
 
-        // since our aws role name can contain the path element thus /'s
-        // we need to encode the value and use that instead
-
-        roleName = URLEncoder.encode(roleName, StandardCharsets.UTF_8);
-
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
         
@@ -2662,7 +2657,7 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
 
         try {
-            awsCred = ztsClient.getAWSTemporaryCredentials(domainName, roleName,
+            awsCred = ztsClient.getAWSTemporaryCredentials(domainName, encodeAWSRoleName(roleName),
                     maxExpiryTime, externalId);
         } catch (ResourceException ex) {
 
@@ -2707,7 +2702,21 @@ public class ZTSClient implements Closeable {
         }
         return awsCred;
     }
-    
+
+    String encodeAWSRoleName(final String roleName) {
+
+        // since our aws role name can contain the path element thus /'s
+        // we need to encode the value and use that instead. we're going
+        // to need to encode the value twice since one will be decoded
+        // by jetty and the second one is decoded by zts aws creds api itself
+
+        if (roleName.indexOf('/') == -1) {
+            return roleName;
+        }
+
+        return URLEncoder.encode(URLEncoder.encode(roleName, StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+    }
+
     /**
      * Retrieve the list of all policies (not just names) from the ZTS Server that
      * is signed with both ZTS's and ZMS's private keys. It will pass an option matchingTag
