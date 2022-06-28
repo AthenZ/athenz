@@ -15,20 +15,18 @@
  */
 package com.yahoo.athenz.auth.impl;
 
+import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.Principal;
+import org.jvnet.libpam.PAM;
+import org.jvnet.libpam.PAMException;
+import org.jvnet.libpam.UnixUser;
+import org.mockito.Mockito;
+import org.testng.annotations.Test;
+
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.testng.Assert.*;
-
-import com.yahoo.athenz.auth.Authority;
-import org.jvnet.libpam.PAM;
-import org.jvnet.libpam.PAMException;
-import org.jvnet.libpam.UnixUser;
-import org.testng.annotations.Test;
-
-import com.yahoo.athenz.auth.Principal;
-
-import org.mockito.Mockito;
 
 public class UserAuthorityTest {
 

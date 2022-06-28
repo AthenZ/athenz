@@ -50,21 +50,23 @@ public final class ZpeConsts {
     public static final String ZPE_METRIC_LOAD_DOM_GOOD         = DomainMetricType.LOAD_DOMAIN_GOOD.toString();
     
     // properties
-    public static final String ZPE_PROP_ATHENZ_CONF               = "athenz.athenz_conf";
-
-    public static final String ZPE_PROP_STATS_ENABLED              = "athenz.zpe.enable_stats";
-    public static final String ZPE_PROP_METRIC_CLASS               = "athenz.zpe.metric_factory_class";
-    public static final String ZPE_PROP_PUBLIC_KEY_CLASS           = "athenz.zpe.public_key_class";
-    public static final String ZPE_PROP_CLIENT_IMPL                = "athenz.zpe.updater_class";
-    public static final String ZPE_PROP_TOKEN_OFFSET               = "athenz.zpe.token_allowed_offset";
-    public static final String ZPE_PROP_METRIC_WRITE_INTERVAL      = "athenz.zpe.metric_write_interval";
-    public static final String ZPE_PROP_METRIC_FILE_PATH           = "athenz.zpe.metric_file_path";
-    public static final String ZPE_PROP_MON_TIMEOUT                = "athenz.zpe.monitor_timeout_secs";
-    public static final String ZPE_PROP_MON_CLEANUP_TOKENS         = "athenz.zpe.cleanup_tokens_secs";
-    public static final String ZPE_PROP_POLICY_DIR                 = "athenz.zpe.policy_dir";
-    public static final String ZPE_PROP_SKIP_POLICY_DIR_CHECK      = "athenz.zpe.skip_policy_dir_check";
-    public static final String ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE = "athenz.zpe.check_policy_zms_signature";
-
-    public static final String ZPE_PROP_X509_CA_ISSUERS           = "athenz.zpe.x509.ca.issuers";
+    public static final String ZPE_PROP_ATHENZ_CONF                  = "athenz.athenz_conf";
+    public static final String ZPE_PROP_JWK_ATHENZ_CONF              = "athenz.jwk_athenz_conf";
+  
+    public static final String ZPE_PROP_STATS_ENABLED                = "athenz.zpe.enable_stats";
+    public static final String ZPE_PROP_METRIC_CLASS                 = "athenz.zpe.metric_factory_class";
+    public static final String ZPE_PROP_PUBLIC_KEY_CLASS             = "athenz.zpe.public_key_class";
+    public static final String ZPE_PROP_CLIENT_IMPL                  = "athenz.zpe.updater_class";
+    public static final String ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS     = "athenz.zpe.millis_between_zts_calls";
+    public static final String ZPE_PROP_MILLIS_BETWEEN_RELOAD_CONFIG = "athenz.zpe.millis_between_reload_config";
+    public static final String ZPE_PROP_TOKEN_OFFSET                 = "athenz.zpe.token_allowed_offset";
+    public static final String ZPE_PROP_METRIC_WRITE_INTERVAL        = "athenz.zpe.metric_write_interval";
+    public static final String ZPE_PROP_METRIC_FILE_PATH             = "athenz.zpe.metric_file_path";
+    public static final String ZPE_PROP_MON_TIMEOUT                  = "athenz.zpe.monitor_timeout_secs";
+    public static final String ZPE_PROP_MON_CLEANUP_TOKENS           = "athenz.zpe.cleanup_tokens_secs";
+    public static final String ZPE_PROP_POLICY_DIR                   = "athenz.zpe.policy_dir";
+    public static final String ZPE_PROP_SKIP_POLICY_DIR_CHECK        = "athenz.zpe.skip_policy_dir_check";
+    public static final String ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE   = "athenz.zpe.check_policy_zms_signature";
+    public static final String ZPE_PROP_X509_CA_ISSUERS              = "athenz.zpe.x509.ca.issuers";
 
 }

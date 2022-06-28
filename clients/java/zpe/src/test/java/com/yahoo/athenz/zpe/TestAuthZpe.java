@@ -15,6 +15,22 @@
  */
 package com.yahoo.athenz.zpe;
 
+import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.RoleToken;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.utils.SignUtils;
+import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
+import com.yahoo.athenz.zts.DomainSignedPolicyData;
+import com.yahoo.athenz.zts.SignedPolicyData;
+import com.yahoo.rdl.JSON;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.mockito.Mockito;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.model.HttpResponse;
+import org.testng.Assert;
+import org.testng.annotations.*;
+
+import javax.security.auth.x500.X500Principal;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,27 +39,15 @@ import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import javax.security.auth.x500.X500Principal;
-
-import com.yahoo.athenz.auth.token.AccessToken;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.mockito.Mockito;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import com.yahoo.athenz.auth.token.RoleToken;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.common.utils.SignUtils;
-import com.yahoo.athenz.zpe.AuthZpeClient.AccessCheckStatus;
-import com.yahoo.athenz.zts.DomainSignedPolicyData;
-import com.yahoo.athenz.zts.SignedPolicyData;
-import com.yahoo.rdl.JSON;
-
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_JWK_ATHENZ_CONF;
+import static org.mockito.Mockito.mock;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
 import static org.testng.Assert.*;
 
 /**
@@ -75,7 +79,7 @@ public class TestAuthZpe {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeClass
     public void beforeClass() throws IOException {
-
+        System.setProperty(ZPE_PROP_JWK_ATHENZ_CONF, TestAuthZpe.class.getClassLoader().getResource("jwk/athenz.conf").getPath());
         System.setProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "true");
 
         Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
@@ -167,6 +171,11 @@ public class TestAuthZpe {
 
         renamedFile = new File("./src/test/resources/pol_dir/empty.pol");
         file.renameTo(renamedFile);
+    }
+    
+    @AfterClass
+    public void afterClass() {
+        System.clearProperty(ZPE_PROP_JWK_ATHENZ_CONF);
     }
     
     @BeforeMethod
@@ -385,7 +394,7 @@ public class TestAuthZpe {
         String angResource = "ANGler:stuff";
         StringBuilder roleName = new StringBuilder();
         
-        RoleToken tokenMock = Mockito.mock(RoleToken.class);
+        RoleToken tokenMock = mock(RoleToken.class);
         Mockito.when(tokenMock.getExpiryTime()).thenReturn(1L); // too old
         
         AccessCheckStatus status = AuthZpeClient.allowAccess(tokenMock, angResource, action, roleName);
@@ -1273,9 +1282,9 @@ public class TestAuthZpe {
         AuthZpeClient.setX509CAIssuers(issuers);
 
         final String action = "read";
-        X509Certificate cert = Mockito.mock(X509Certificate.class);
-        X500Principal x500Principal = Mockito.mock(X500Principal.class);
-        X500Principal x500PrincipalS = Mockito.mock(X500Principal.class);
+        X509Certificate cert = mock(X509Certificate.class);
+        X500Principal x500Principal = mock(X500Principal.class);
+        X500Principal x500PrincipalS = mock(X500Principal.class);
         Mockito.when(x500Principal.getName()).thenReturn(issuer);
         Mockito.when(x500PrincipalS.getName()).thenReturn(subject);
         Mockito.when(cert.getIssuerX500Principal()).thenReturn(x500Principal);
@@ -1421,5 +1430,40 @@ public class TestAuthZpe {
 
         accessToken = AuthZpeClient.validateAccessToken("Bearer " + invalidKeyIdToken, null, null);
         assertNull(accessToken);
+    }
+
+    @Test
+    public void testFetchPublicKeysUsingSignKeyResolver() {
+        AuthZpeClient.setMillisBetweenZtsCalls(0);
+        String ecKeys = "{\n" +
+                "        \"keys\": [\n" +
+                "            {\n" +
+                "                \"kid\" : \"FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ\",\n" +
+                "                \"kty\" : \"EC\",\n" +
+                "                \"crv\" : \"prime256v1\",\n" +
+                "                \"x\"   : \"SVqB4JcUD6lsfvqMr-OKUNUphdNn64Eay60978ZlL74\",\n" +
+                "                \"y\"   : \"lf0u0pMj4lGAzZix5u4Cm5CMQIgMNpkwy163wtKYVKI\",\n" +
+                "                \"d\"   : \"0g5vAEKzugrXaRbgKG0Tj2qJ5lMP4Bezds1_sTybkfk\"\n" +
+                "            }\n" +
+                "        ]\n" +
+                "    }";
+        HttpResponse response = new HttpResponse()
+                .withStatusCode(200)
+                .withBody(ecKeys);
+        ClientAndServer mockServer = startClientAndServer(1080);
+        mockServer
+                .when(request().withPath("/mockJwksUri"))
+                .respond(response);
+        
+        AuthZpeClient.setAccessTokenSignKeyResolver("http://127.0.0.1:1080/mockJwksUri", null);
+        assertNotNull(AuthZpeClient.getZtsPublicKey("FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ"));
+        mockServer.stop();
+    }
+
+    @Test
+    public void testCanFetch() {
+        assertFalse(AuthZpeClient.canFetchLatestJwksFromZts());
+        AuthZpeClient.setMillisBetweenZtsCalls(0);
+        assertTrue(AuthZpeClient.canFetchLatestJwksFromZts());
     }
 }

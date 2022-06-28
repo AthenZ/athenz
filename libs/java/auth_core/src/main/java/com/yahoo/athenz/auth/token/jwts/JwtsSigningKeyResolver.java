@@ -15,12 +15,16 @@
  */
 package com.yahoo.athenz.auth.token.jwts;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.util.Crypto;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.SigningKeyResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,22 +32,19 @@ import java.nio.file.Paths;
 import java.security.Key;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLContext;
 
 public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
-    public static final String ZTS_PROP_ATHENZ_CONF = "athenz.athenz_conf";
-    private static final String ZTS_DEFAULT_ATHENZ_CONFIG = "/conf/athenz/athenz.conf";
-
+    public static final String ZTS_PROP_ATHENZ_CONF           = "athenz.athenz_conf";
+    public static final String ZTS_PROP_JWK_ATHENZ_CONF       = "athenz.jwk_athenz_conf";
+    private static final String ZTS_DEFAULT_ATHENZ_CONFIG     = "/conf/athenz/athenz.conf";
+    private static final String ZTS_DEFAULT_JWK_ATHENZ_CONFIG = "/var/lib/sia/athenz.conf";
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtsSigningKeyResolver.class);
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
+    private final SSLContext sslContext;
+    private final String jwksUri;
 
     ConcurrentHashMap<String, PublicKey> publicKeys;
 
@@ -58,13 +59,16 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
 
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
-        publicKeys = new ConcurrentHashMap<>();
+        this.jwksUri = jwksUri;
+        this.sslContext = sslContext;
+        this.publicKeys = new ConcurrentHashMap<>();
         if (!skipConfig) {
             loadPublicKeysFromConfig();
+            loadJwksFromConfig();
         }
-        loadPublicKeysFromServer(jwksUri, sslContext);
+        loadPublicKeysFromServer();
     }
-
+    
     @Override
     public Key resolveSigningKey(JwsHeader jwsHeader, Claims claims) {
         return resolveSigningKey(jwsHeader);
@@ -78,6 +82,10 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     private Key resolveSigningKey(JwsHeader jwsHeader) {
         return publicKeys.get(jwsHeader.getKeyId());
     }
+    
+    public PublicKey getPublicKey(String keyId) {
+        return publicKeys.get(keyId);
+    }
 
     public void addPublicKey(final String keyId, final PublicKey publicKey) {
         publicKeys.put(keyId, publicKey);
@@ -87,7 +95,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         return publicKeys.size();
     }
 
-    void loadPublicKeysFromServer(final String jwksUri, final SSLContext sslContext) {
+    public void loadPublicKeysFromServer() {
 
         final String jwksData = getHttpData(jwksUri, sslContext);
         if (jwksData == null) {
@@ -107,7 +115,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
             LOGGER.error("Unable to extract json web keys from {}", jwksUri, ex);
         }
     }
-
+    
     String getHttpData(final String jwksUri, final SSLContext sslContext) {
         JwtsHelper jwtsHelper = new JwtsHelper();
         return jwtsHelper.getHttpData(jwksUri, sslContext);
@@ -153,6 +161,24 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         }
     }
 
+    private void loadJwksFromConfig() {
+        String jwkConfFileName = System.getProperty(ZTS_PROP_JWK_ATHENZ_CONF, ZTS_DEFAULT_JWK_ATHENZ_CONFIG);
+        try {
+            Path path = Paths.get(jwkConfFileName);
+            AthenzJWKConfig jwkConf = JSON_MAPPER.readValue(Files.readAllBytes(path), AthenzJWKConfig.class);
+            for (com.yahoo.athenz.auth.token.jwts.Key key : jwkConf.zts.keys) {
+                try {
+                    publicKeys.put(key.getKid(), key.getPublicKey());
+                } catch (Exception e) {
+                    LOGGER.warn("failed to load jwk id : {}, ex: {}", key.getKid(), e.getMessage(), e);
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Unable to extract athenz jwk config {} exc: {}", jwkConfFileName, ex.getMessage(), ex);
+        }
+    }
+
+
     static class ZTSPublicKey {
         private String id;
         private String key;
@@ -170,7 +196,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
             this.key = key;
         }
     }
-
+        
     static class AthenzConfig {
         private ArrayList<ZTSPublicKey> ztsPublicKeys;
 
@@ -179,6 +205,20 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         }
         public void setZtsPublicKeys(ArrayList<ZTSPublicKey> ztsPublicKeys) {
             this.ztsPublicKeys = ztsPublicKeys;
+        }
+    }
+
+    static class JWKList {
+        List<com.yahoo.athenz.auth.token.jwts.Key> keys;
+
+        public void setKeys(List<com.yahoo.athenz.auth.token.jwts.Key> keys) {
+            this.keys = keys;
+        }
+    }
+    static class AthenzJWKConfig {
+        JWKList zts;
+        public void setZts(JWKList zts) {
+            this.zts = zts;
         }
     }
 }

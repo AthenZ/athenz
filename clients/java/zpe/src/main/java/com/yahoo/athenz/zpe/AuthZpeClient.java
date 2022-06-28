@@ -15,29 +15,30 @@
  */
 package com.yahoo.athenz.zpe;
 
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
-import java.util.*;
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.impl.RoleAuthority;
+import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.RoleToken;
+import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.zpe.match.ZpeMatch;
+import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
+import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
+import com.yahoo.rdl.Struct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLContext;
 import javax.security.auth.x500.X500Principal;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.util.*;
 
-import com.yahoo.athenz.auth.token.AccessToken;
-import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
-import com.yahoo.athenz.auth.util.CryptoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.impl.RoleAuthority;
-import com.yahoo.athenz.auth.token.RoleToken;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.zpe.match.ZpeMatch;
-import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
-import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
-import com.yahoo.rdl.Struct;
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
 
 public class AuthZpeClient {
 
@@ -70,6 +71,10 @@ public class AuthZpeClient {
 
     private static final Set<String> X509_ISSUERS_NAMES = new HashSet<>();
     private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
+
+    private static long lastZtsJwkFetchTime;
+    
+    private static long millisBetweenZtsCalls;
     
     public enum AccessCheckStatus {
         ALLOW {
@@ -170,8 +175,14 @@ public class AuthZpeClient {
         // initialize the access token signing key resolver
 
         setAccessTokenSignKeyResolver(null, null);
+        
+        // save the last zts api call time, and the allowed interval between api calls
+
+        lastZtsJwkFetchTime = System.currentTimeMillis();
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
+
     }
-    
+
     public static void init() {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Init: load the ZPE");
@@ -282,7 +293,24 @@ public class AuthZpeClient {
     }
     
     public static PublicKey getZtsPublicKey(String keyId) {
-        return publicKeyStore.getZtsKey(keyId);
+        PublicKey publicKey = publicKeyStore.getZtsKey(keyId);
+        if (publicKey == null && canFetchLatestJwksFromZts()) {
+            //  fetch all zts jwk keys and update config and try again
+            accessSignKeyResolver.loadPublicKeysFromServer();
+            lastZtsJwkFetchTime = System.currentTimeMillis();
+            publicKey = accessSignKeyResolver.getPublicKey(keyId); 
+        }
+        return publicKey;
+    }
+
+    protected static void setMillisBetweenZtsCalls(long millis) {
+        millisBetweenZtsCalls = millis;
+    }
+    
+    protected static boolean canFetchLatestJwksFromZts() {
+        long now = System.currentTimeMillis();
+        long millisDiff = now - lastZtsJwkFetchTime;
+        return millisDiff > millisBetweenZtsCalls;
     }
     
     public static PublicKey getZmsPublicKey(String keyId) {
