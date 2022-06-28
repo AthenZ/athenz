@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import CustomPrimaryServiceNode from './CustomPrimaryServiceNode';
-import CustomSecondaryServiceNode from './CustomSecondaryServiceNode';
 import ReactFlow, {
     Background,
     Controls,
@@ -59,14 +57,9 @@ const getLayoutedElements = (elements, nodes, api, _csrf) => {
 };
 
 const nodeHasDimension = (el) => el.__rf.width && el.__rf.height;
-const nodeTypes = {
-    svcNode: CustomPrimaryServiceNode,
-    inboundNode: CustomSecondaryServiceNode,
-    outboundNode: CustomSecondaryServiceNode,
-};
 
 const ReactFlowRenderer = (props) => {
-    const { elements, api, _csrf } = props;
+    const { elements, nodeTypes, api, _csrf } = props;
     const [shouldLayout, setShouldLayout] = useState(true);
 
     const nodes = useStoreState((state) => state.nodes);
@@ -153,7 +146,7 @@ const ReactFlowRenderer = (props) => {
             <MiniMap
                 nodeColor={(node) => {
                     switch (node.type) {
-                        case 'svcNode':
+                        case 'primaryNode':
                             return 'LightBlue';
                         case 'inboundNode':
                             return 'LightGreen';
