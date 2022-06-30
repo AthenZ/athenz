@@ -15,15 +15,17 @@
  */
 import React from 'react';
 import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import NameUtils from '../utils/NameUtils';
 import styled from '@emotion/styled';
 import DeleteModal from '../modal/DeleteModal';
 import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import { withRouter } from 'next/router';
-import { css, keyframes } from '@emotion/react';
+import {withRouter} from 'next/router';
+import {css, keyframes} from '@emotion/react';
+import {deleteGroup} from '../../redux/thunks/groups';
+import {connect} from 'react-redux';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -85,7 +87,7 @@ class GroupRow extends React.Component {
     }
 
     saveJustification(val) {
-        this.setState({ deleteJustification: val });
+        this.setState({deleteJustification: val});
     }
 
     onClickDelete(name) {
@@ -99,7 +101,7 @@ class GroupRow extends React.Component {
         this.props.router.push(route, route);
     }
 
-    onSubmitDelete(domain) {
+    onSubmitDelete() {
         let groupName = this.state.deleteName;
         if (
             this.props.justificationRequired &&
@@ -111,32 +113,35 @@ class GroupRow extends React.Component {
             });
             return;
         }
-        this.api
-            .deleteGroup(
-                domain,
-                groupName,
-                this.state.deleteJustification
-                    ? this.state.deleteJustification
-                    : 'deleted using Athenz UI',
-                this.props._csrf
-            )
-            .then(() => {
-                this.setState({
-                    showDelete: false,
-                    deleteName: null,
-                    deleteJustification: null,
-                    errorMessage: null,
-                });
-                this.props.onUpdateSuccess(
-                    `Successfully deleted group ${groupName}`,
-                    groupName
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+
+        let auditRef = this.state.deleteJustification
+            ? this.state.deleteJustification
+            : 'deleted using Athenz UI';
+        let onSuccess = () => {
+            this.setState({
+                showDelete: false,
+                deleteName: null,
+                deleteJustification: null,
+                errorMessage: null,
             });
+            this.props.onUpdateSuccess(
+                `Successfully deleted group ${groupName}`,
+                groupName
+            );
+        };
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        };
+
+        this.props.deleteGroup(
+            groupName,
+            auditRef,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     onClickDeleteCancel() {
@@ -227,10 +232,10 @@ class GroupRow extends React.Component {
                 <TDStyled color={color} align={center}>
                     {group.lastReviewedDate
                         ? this.localDate.getLocalDate(
-                              group.lastReviewedDate,
-                              'UTC',
-                              'UTC'
-                          )
+                            group.lastReviewedDate,
+                            'UTC',
+                            'UTC'
+                        )
                         : 'N/A'}
                 </TDStyled>
                 <TDStyled color={color} align={center}>
@@ -370,4 +375,21 @@ class GroupRow extends React.Component {
         return rows;
     }
 }
-export default withRouter(GroupRow);
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: state.isLoading,
+        groups: state.groups.groups,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteGroup: (groupName, auditRef, _csrf, onSubmit, onFail) =>
+        dispatch(deleteGroup(groupName, auditRef, _csrf, onSubmit, onFail)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(GroupRow));

@@ -17,10 +17,7 @@ import Fetchr from 'fetchr';
 import 'setimmediate';
 import NameUtils from './components/utils/NameUtils';
 import DateUtils from './components/utils/DateUtils';
-import {
-    SERVICE_TYPE_STATIC,
-    SERVICE_TYPE_STATIC_LABEL,
-} from './components/constants/constants';
+import {SERVICE_TYPE_STATIC,} from './components/constants/constants';
 
 const Api = (req) => {
     let localDate = new DateUtils();
@@ -40,7 +37,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('domain-list')
-                    .params({ roleName })
+                    .params({roleName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -67,7 +64,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('admin-domains')
-                    .params({ roleName })
+                    .params({roleName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -82,7 +79,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('domain')
-                    .params({ domain })
+                    .params({domain})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -107,7 +104,7 @@ const Api = (req) => {
                 };
                 fetchr
                     .create('domain')
-                    .params({ parent, detail })
+                    .params({parent, detail})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -149,7 +146,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('role-members')
-                    .params({ domainName })
+                    .params({domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -164,7 +161,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('dependencies')
-                    .params({ domainName })
+                    .params({domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -183,7 +180,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('role-list')
-                    .params({ domainName })
+                    .params({domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -194,11 +191,11 @@ const Api = (req) => {
             });
         },
 
-        getRoles(domainName) {
+        getRoles(domainName, members) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('roles')
-                    .params({ domainName })
+                    .params({domainName, members})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -213,11 +210,11 @@ const Api = (req) => {
             });
         },
 
-        getGroups(domainName) {
+        getGroups(domainName, members) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('groups')
-                    .params({ domainName })
+                    .params({domainName, members})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -236,7 +233,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('get-service-host')
-                    .params({ domain, service })
+                    .params({domain, service})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -255,7 +252,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('groups')
-                    .params({ domainName, groupName })
+                    .params({domainName, groupName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -274,7 +271,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('groups-list')
-                    .params({ domainName })
+                    .params({domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -295,7 +292,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('role')
-                    .params({ domainName, roleName, auditLog, expand, pending })
+                    .params({domainName, roleName, auditLog, expand, pending})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -386,7 +383,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('pending-approval-domain')
-                    .params({ domainName: domainName })
+                    .params({domainName: domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -401,7 +398,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('pending-approval-domain-count')
-                    .params({ domainName: domainName })
+                    .params({domainName: domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -457,7 +454,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .create('role')
-                    .params({ domainName, roleName, role, auditRef })
+                    .params({domainName, roleName, role, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -477,7 +474,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .create('group')
-                    .params({ domainName, groupName, group, auditRef })
+                    .params({domainName, groupName, group, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -497,7 +494,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .delete('role')
-                    .params({ domainName, roleName, auditRef })
+                    .params({domainName, roleName, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -517,7 +514,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .delete('group')
-                    .params({ domainName, groupName, auditRef })
+                    .params({domainName, groupName, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -537,7 +534,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .update('role')
-                    .params({ domainName, roleName, role, auditRef })
+                    .params({domainName, roleName, role, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -594,7 +591,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .update('group')
-                    .params({ domainName, groupName, group, auditRef })
+                    .params({domainName, groupName, group, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -614,7 +611,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .delete('role-members')
-                    .params({ domainName, memberName, auditRef })
+                    .params({domainName, memberName, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -737,7 +734,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .delete('pending-member')
-                    .params({ domainName, roleName, memberName, auditRef })
+                    .params({domainName, roleName, memberName, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -764,7 +761,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('search-domain')
-                    .params({ domainName })
+                    .params({domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -775,11 +772,11 @@ const Api = (req) => {
             });
         },
 
-        getServices(domainName) {
+        getServices(domainName, publickeys, hosts) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('services')
-                    .params({ domainName })
+                    .params({domainName, publickeys, hosts})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -798,7 +795,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('service')
-                    .params({ domain, service, expand, auditLog })
+                    .params({domain, service, expand, auditLog})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -990,7 +987,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('policy')
-                    .params({ domainName, policyName })
+                    .params({domainName, policyName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1038,7 +1035,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('provider')
-                    .params({ domainName, serviceName })
+                    .params({domainName, serviceName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1091,7 +1088,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('policies-versions')
-                    .params({ domainName: domainName, policyName: policyName })
+                    .params({domainName: domainName, policyName: policyName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1305,7 +1302,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .read('domain-history')
-                    .params({ domainName, roleName, startDate, endDate })
+                    .params({domainName, roleName, startDate, endDate})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1550,7 +1547,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .delete('domain')
-                    .params({ parent, name, auditRef })
+                    .params({parent, name, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1606,7 +1603,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('domain-templates')
-                    .params({ name: domainName })
+                    .params({name: domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1632,7 +1629,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .create('domain-templates')
-                    .params({ domainName, auditRef })
+                    .params({domainName, auditRef})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1647,7 +1644,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('templates')
-                    .params({ name })
+                    .params({name})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1777,7 +1774,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('collection-members')
-                    .params({ domainName, collectionName, category, trust })
+                    .params({domainName, collectionName, category, trust})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1792,7 +1789,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('domain-role-member')
-                    .params({ principal })
+                    .params({principal})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1822,7 +1819,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('page-feature-flag')
-                    .params({ pageName })
+                    .params({pageName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1837,7 +1834,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('instances')
-                    .params({ domainName, serviceName, category })
+                    .params({domainName, serviceName, category})
                     .end((err, workloadList) => {
                         if (err) {
                             reject(err);
@@ -1892,7 +1889,7 @@ const Api = (req) => {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('microsegmentation')
-                    .params({ domainName: domainName })
+                    .params({domainName: domainName})
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1998,7 +1995,7 @@ const Api = (req) => {
                 });
                 fetchr
                     .update('graph-layout')
-                    .params({ elements, style })
+                    .params({elements, style})
                     .end((err, data) => {
                         if (err) {
                             reject(err);

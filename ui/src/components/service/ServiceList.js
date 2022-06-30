@@ -15,15 +15,17 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Button from '../denali/Button';
 import NameUtils from '../utils/NameUtils';
-import ServiceRow from './ServiceRow';
 import Alert from '../denali/Alert';
-import AddService from './AddService';
 import DeleteModal from '../modal/DeleteModal';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import ServiceRow from './ServiceRow';
+import AddService from './AddService';
+import {deleteService} from '../../redux/thunks/services';
+import {connect} from 'react-redux';
 
 const ServicesSectionDiv = styled.div`
     margin: 20px;
@@ -65,7 +67,7 @@ const StyledAnchor = styled.a`
     cursor: pointer;
 `;
 
-export default class ServiceList extends React.Component {
+class SeviceList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -80,23 +82,25 @@ export default class ServiceList extends React.Component {
     }
 
     onSubmitDeleteService() {
-        this.api
-            .deleteService(
-                this.props.domain,
-                this.state.deleteServiceName,
-                this.props._csrf
-            )
-            .then(() => {
-                this.reloadServices(
-                    `Successfully deleted service ${this.state.deleteServiceName}`,
-                    true
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        let onSuccess = () => {
+            this.reloadServices(
+                `Successfully deleted service ${this.state.deleteServiceName}`,
+                true
+            );
+        };
+
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
             });
+        };
+
+        this.props.deleteService(
+            this.state.deleteServiceName,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     onCancelDeleteService() {
@@ -113,35 +117,54 @@ export default class ServiceList extends React.Component {
             errorMessage: null,
         });
     }
+
+    // componentDidUpdate(prevProps) {
+    //     console.log(
+    //         'in update because props changed',
+    //         prevProps.services,
+    //         'curr props: ',
+    //         this.props.services
+    //     );
+    //     if (
+    //         this.props.services.length !== prevProps.services.length ||
+    //         this.props.services.every(
+    //             (value, index) => value !== prevProps.services[index]
+    //         )
+    //     ) {
+    //         console.log('in array check because props changed');
+    //         this.setState({
+    //             list: this.props.services,
+    //         });
+    //         setTimeout(
+    //             () =>
+    //                 this.setState({
+    //                     showSuccess: false,
+    //                 }),
+    //             MODAL_TIME_OUT
+    //         );
+    //     }
+    // }
+
+    //TODO roy - mobeit into componentDidUpdtae
     //successMessage is only name of new service when adding a service
     reloadServices(successMessage, showSuccess) {
-        this.api
-            .getServices(this.props.domain)
-            .then((data) => {
+        this.setState({
+            showAddService: false,
+            showSuccess,
+            successMessage,
+            showDelete: false,
+        });
+        setTimeout(
+            () =>
                 this.setState({
-                    list: data,
-                    showAddService: false,
-                    showSuccess,
-                    successMessage,
-                    showDelete: false,
-                });
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     closeModal() {
-        this.setState({ showSuccess: false });
+        this.setState({showSuccess: false});
     }
 
     toggleAddService() {
@@ -151,37 +174,41 @@ export default class ServiceList extends React.Component {
     }
 
     render() {
-        const { domain } = this.props;
+        const {domain} = this.props;
         const left = 'left';
         const center = 'center';
-        const rows = this.state.list.map((item, i) => {
-            const serviceName = NameUtils.getShortName('.', item.name);
-            let newService = serviceName === this.state.successMessage;
-            let onClickDeleteService = this.onClickDeleteService.bind(
-                this,
-                serviceName
-            );
-            let color = '';
-            if (i % 2 === 0) {
-                color = colors.row;
-            }
-            let toReturn = [];
-            toReturn.push(
-                <ServiceRow
-                    serviceName={serviceName}
-                    domainName={domain}
-                    modified={item.modified}
-                    newService={newService}
-                    color={color}
-                    api={this.api}
-                    key={item.name}
-                    _csrf={this.props._csrf}
-                    onClickDeleteService={onClickDeleteService}
-                    featureFlag={this.props.featureFlag}
-                />
-            );
-            return toReturn;
-        });
+
+        // TODO roy - move it into componentDidUpdate
+        const rows = this.props.services
+            ? this.props.services.map((item, i) => {
+                const serviceName = NameUtils.getShortName('.', item.name);
+                let newService = serviceName === this.state.successMessage;
+                let onClickDeleteService = this.onClickDeleteService.bind(
+                    this,
+                    serviceName
+                );
+                let color = '';
+                if (i % 2 === 0) {
+                    color = colors.row;
+                }
+                let toReturn = [];
+                toReturn.push(
+                    <ServiceRow
+                        serviceName={serviceName}
+                        domainName={domain}
+                        modified={item.modified}
+                        newService={newService}
+                        color={color}
+                        api={this.api}
+                        key={item.name}
+                        _csrf={this.props._csrf}
+                        onClickDeleteService={onClickDeleteService}
+                        featureFlag={this.props.featureFlag}
+                    />
+                );
+                return toReturn;
+            })
+            : [];
         let addService = this.state.showAddService ? (
             <AddService
                 showAddService={this.state.showAddService}
@@ -207,26 +234,26 @@ export default class ServiceList extends React.Component {
                 </AddContainerDiv>
                 <ServiceTable>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                Service
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Modified Date
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Instances
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Public Keys
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Providers
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Delete
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={left}>
+                            Service
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Modified Date
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Instances
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Public Keys
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Providers
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Delete
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </ServiceTable>
@@ -254,3 +281,18 @@ export default class ServiceList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: state.isLoading,
+        services: state.services.services,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteService: (serviceName, _csrf, onSuccess, onFail) =>
+        dispatch(deleteService(serviceName, _csrf, onSuccess, onFail)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SeviceList);

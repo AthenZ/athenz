@@ -15,14 +15,16 @@
  */
 import React from 'react';
 import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import styled from '@emotion/styled';
 import DeleteModal from '../modal/DeleteModal';
 import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import GroupMemberList from './GroupMemberList';
-import { css, keyframes } from '@emotion/react';
+import {css, keyframes} from '@emotion/react';
+import {deleteMember} from '../../redux/thunks/collections';
+import {connect} from 'react-redux';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -42,12 +44,12 @@ const GroupTDStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`
@@ -80,7 +82,7 @@ const StyledSpan = styled.span`
     }
 `;
 
-export default class MemberRow extends React.Component {
+class MemberRow extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -95,7 +97,7 @@ export default class MemberRow extends React.Component {
     }
 
     saveJustification(val) {
-        this.setState({ deleteJustification: val });
+        this.setState({deleteJustification: val});
     }
 
     onClickDelete(name) {
@@ -106,7 +108,7 @@ export default class MemberRow extends React.Component {
     }
 
     onSubmitDelete(domain) {
-        let roleName = this.props.collection;
+        let collectionName = this.props.collection;
         let name = this.state.deleteName;
 
         if (
@@ -119,44 +121,50 @@ export default class MemberRow extends React.Component {
             });
             return;
         }
-
-        this.api
-            .deleteMember(
-                domain,
-                roleName,
-                this.state.deleteName,
-                this.state.deleteJustification
-                    ? this.state.deleteJustification
-                    : 'deleted using Athenz UI',
-                this.props.pending,
-                this.props.category,
-                this.props._csrf
-            )
-            .then(() => {
-                this.setState({
-                    showDelete: false,
-                    deleteName: null,
-                    deleteJustification: null,
-                    errorMessage: null,
-                });
-                //TODO add logic for pending vs non-pending
-                if (this.props.pending) {
-                    this.props.onUpdateSuccess(
-                        `Successfully deleted pending member ${name}`,
-                        true
-                    );
-                } else {
-                    this.props.onUpdateSuccess(
-                        `Successfully deleted member ${name}`,
-                        true
-                    );
-                }
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        console.log(
+            'in sub,it delete',
+            collectionName,
+            this.state.deleteName,
+            this.props.category
+        );
+        let onSuccess = () => {
+            this.setState({
+                showDelete: false,
+                deleteName: null,
+                deleteJustification: null,
+                errorMessage: null,
             });
+            //TODO add logic for pending vs non-pending
+            if (this.props.pending) {
+                this.props.onUpdateSuccess(
+                    `Successfully deleted pending member ${name}`,
+                    true
+                );
+            } else {
+                this.props.onUpdateSuccess(
+                    `Successfully deleted member ${name}`,
+                    true
+                );
+            }
+        };
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        };
+        this.props.deleteMember(
+            this.props.domain,
+            collectionName,
+            this.props.category,
+            this.state.deleteName,
+            this.state.deleteJustification
+                ? this.state.deleteJustification
+                : 'deleted using Athenz UI',
+            this.props.pending,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     onClickDeleteCancel() {
@@ -179,12 +187,12 @@ export default class MemberRow extends React.Component {
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
         let isSuccess =
             member.memberName +
-                '-' +
-                this.props.category +
-                '-' +
-                this.props.domain +
-                '-' +
-                this.props.collection ===
+            '-' +
+            this.props.category +
+            '-' +
+            this.props.domain +
+            '-' +
+            this.props.collection ===
             this.props.newMember;
         rows.push(
             <TrStyled
@@ -220,20 +228,20 @@ export default class MemberRow extends React.Component {
                 <TDStyled color={color} align={left}>
                     {member.expiration
                         ? this.localDate.getLocalDate(
-                              member.expiration,
-                              'UTC',
-                              'UTC'
-                          )
+                            member.expiration,
+                            'UTC',
+                            'UTC'
+                        )
                         : 'N/A'}
                 </TDStyled>
                 {this.props.category != 'group' && (
                     <TDStyled color={color} align={left}>
                         {member.reviewReminder
                             ? this.localDate.getLocalDate(
-                                  member.reviewReminder,
-                                  'UTC',
-                                  'UTC'
-                              )
+                                member.reviewReminder,
+                                'UTC',
+                                'UTC'
+                            )
                             : 'N/A'}
                     </TDStyled>
                 )}
@@ -280,3 +288,39 @@ export default class MemberRow extends React.Component {
         return rows;
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        // domain: state.domainDetails.name,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteMember: (
+        domainName,
+        groupName,
+        category,
+        memberName,
+        auditRef,
+        pending,
+        _csrf,
+        onSuccess,
+        onFail
+    ) =>
+        dispatch(
+            deleteMember(
+                domainName,
+                groupName,
+                category,
+                memberName,
+                auditRef,
+                pending,
+                _csrf,
+                onSuccess,
+                onFail
+            )
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MemberRow);

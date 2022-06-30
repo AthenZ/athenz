@@ -21,13 +21,19 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 
 import DomainDetails from '../../../components/header/DomainDetails';
-import PolicyList from '../../../components/policy/PolicyList';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import { getPolicies } from '../../../redux/thunks/policies';
+import PolicyList from '../../../components/policy/PolicyList';
+import { getRoles } from '../../../redux/thunks/roles';
+import { selectIsLoading } from '../../../redux/selectors';
+import { selectDomainData } from '../../../redux/selectors/domainData';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -79,42 +85,42 @@ export async function getServerSideProps(context) {
         attributeName: 'businessService',
     };
     const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getPolicies(context.query.domain, false, true),
+        // api.listUserDomains(),
+        // api.getHeaderDetails(),
+        // api.getDomain(context.query.domain),
+        // api.getPolicies(context.query.domain, false, true),
         api.getForm(),
-        api.getPendingDomainMembersList(),
-        api.isAWSTemplateApplied(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
+        // api.getPendingDomainMembersList(),
+        // api.isAWSTemplateApplied(context.query.domain),
+        // api.getFeatureFlag(),
+        // api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
+        // api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}];
     });
-    let businessServiceOptions = [];
-    if (domains[8] && domains[8].validValues) {
-        domains[8].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
+    // let businessServiceOptions = [];
+    // if (domains[8] && domains[8].validValues) {
+    //     domains[8].validValues.forEach((businessService) => {
+    //         let bServiceOnlyId = businessService.substring(
+    //             0,
+    //             businessService.indexOf(':')
+    //         );
+    //         let bServiceOnlyName = businessService.substring(
+    //             businessService.indexOf(':') + 1
+    //         );
+    //         businessServiceOptions.push({
+    //             value: bServiceOnlyId,
+    //             name: bServiceOnlyName,
+    //         });
+    //     });
+    // }
     let businessServiceOptionsAll = [];
-    if (domains[9] && domains[9].validValues) {
-        domains[9].validValues.forEach((businessService) => {
+    if (domains[1] && domains[1].validValues) {
+        domains[1].validValues.forEach((businessService) => {
             let bServiceOnlyId = businessService.substring(
                 0,
                 businessService.indexOf(':')
@@ -128,30 +134,21 @@ export async function getServerSideProps(context) {
             });
         });
     }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[6];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: context.query.domain,
-            domainDetails: domainDetails,
-            policies: domains[3],
-            _csrf: domains[4],
-            pending: domains[5],
+            userName: context.req.session.shortId,
+            domainName: context.query.domain,
+            _csrf: domains[0],
             nonce: context.req.headers.rid,
-            featureFlag: domains[7],
-            validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: domains[10],
         },
     };
 }
 
-export default class PolicyPage extends React.Component {
+class PolicyPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -161,8 +158,16 @@ export default class PolicyPage extends React.Component {
         });
     }
 
+    componentWillMount() {
+        const { getPolicies, domainName, getDomainData, userName, getRoles } =
+            this.props;
+        getDomainData(domainName, userName);
+        getPolicies(domainName);
+        getRoles(domainName);
+    }
+
     render() {
-        const { domain, reload, domainDetails, policies, _csrf } = this.props;
+        const { domainName, reload, isLoading, domainData, _csrf } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -170,7 +175,10 @@ export default class PolicyPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
+
+        return isLoading.length !== 0 ? (
+            <h1>Loading...</h1>
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='policy'>
                     <Head>
@@ -178,8 +186,8 @@ export default class PolicyPage extends React.Component {
                     </Head>
                     <Header
                         showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
+                        headerDetails={domainData.headerDetails}
+                        pending={domainData.pendingMembersList}
                     />
                     <MainContentDiv>
                         <AppContainerDiv>
@@ -187,22 +195,31 @@ export default class PolicyPage extends React.Component {
                                 <PoliciesContentDiv>
                                     <PageHeaderDiv>
                                         <DomainNameHeader
-                                            domainName={this.props.domain}
+                                            domainName={domainData.name}
                                             pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
+                                                domainData.pendingMembersList
+                                                    ? domainData
+                                                        .pendingMembersList
+                                                        .length
+                                                    : 0
                                             }
                                         />
                                         <DomainDetails
-                                            domainDetails={domainDetails}
+                                            domainDetails={
+                                                domainData.domainDetails || {}
+                                            }
                                             api={this.api}
                                             _csrf={_csrf}
                                             productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
+                                                domainData.headerDetails
+                                                    ? domainData.headerDetails
+                                                        .productMasterLink
+                                                    : ''
                                             }
                                             validBusinessServices={
-                                                this.props.validBusinessServices
+                                                domainData
+                                                    ? domainData.businessData
+                                                    : ''
                                             }
                                             validBusinessServicesAll={
                                                 this.props
@@ -211,24 +228,21 @@ export default class PolicyPage extends React.Component {
                                         />
                                         <Tabs
                                             api={this.api}
-                                            domain={domain}
+                                            domain={domainName}
                                             selectedName={'policies'}
-                                            featureFlag={this.props.featureFlag}
+                                            featureFlag={
+                                                domainData.featureFlag || ''
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <PolicyList
                                         api={this.api}
-                                        domain={domain}
-                                        policies={policies}
-                                        _csrf={this.props._csrf}
+                                        domain={domainName}
+                                        _csrf={_csrf}
                                     />
                                 </PoliciesContentDiv>
                             </PoliciesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains api={this.api} domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -236,3 +250,20 @@ export default class PolicyPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getPolicies: (domainName) => dispatch(getPolicies(domainName, true, true)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getRoles: (domainName) => dispatch(getRoles(domainName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(PolicyPage);

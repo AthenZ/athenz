@@ -18,8 +18,10 @@ import AddModal from '../modal/AddModal';
 import AddServiceForm from './AddServiceForm';
 import ServiceKeyUtils from '../utils/ServiceKeyUtils';
 import RequestUtils from '../utils/RequestUtils';
+import {connect} from 'react-redux';
+import {addService} from '../../redux/thunks/services';
 
-export default class AddService extends React.Component {
+class AddService extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -45,47 +47,34 @@ export default class AddService extends React.Component {
                 ServiceKeyUtils.trimKey(keyValue)
             );
         }
+        let onSuccess = () => {
+            this.setState({showModal: false});
+            this.props.onSubmit(`${this.state.name}`, false);
+        };
 
-        this.api
-            .getService(this.props.domain, this.state.name)
-            .then(() => {
-                this.setState({
-                    errorMessage:
-                        'Service ' + this.state.name + ' already exists.',
-                });
-            })
-            .catch((err) => {
-                if (err.statusCode === 404) {
-                    this.api
-                        .addService(
-                            this.props.domain,
-                            this.state.name,
-                            this.state.description,
-                            this.state.providerEndpoint,
-                            this.state.keyId,
-                            keyValue,
-                            this.props._csrf
-                        )
-                        .then(() => {
-                            this.setState({ showModal: false });
-                            this.props.onSubmit(`${this.state.name}`, false);
-                        })
-                        .catch((err) => {
-                            this.setState({
-                                errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
-                            });
-                        });
-                } else {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                }
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
             });
+        };
+        let service = {
+            description: this.state.description,
+            providerEndpoint: this.state.providerEndpoint,
+            keyId: this.state.keyId,
+            keyValue,
+        };
+
+        this.props.addService(
+            this.state.name,
+            service,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     onChange(key, value) {
-        this.setState({ [key]: value });
+        this.setState({[key]: value});
     }
 
     render() {
@@ -108,3 +97,18 @@ export default class AddService extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: state.isLoading,
+        services: state.services,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addService: (serviceName, service, _csrf, onSuccess, onFail) =>
+        dispatch(addService(serviceName, service, _csrf, onSuccess, onFail)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddService);

@@ -15,8 +15,11 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import RoleRow from './RoleRow';
 import RoleGroup from './RoleGroup';
+import RoleRow from './RoleRow';
+import {addRole} from '../../redux/thunks/roles';
+import {connect} from 'react-redux';
+import {selectRoles} from '../../redux/selectors/roles';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -65,7 +68,7 @@ const TableHeadStyledRoleName = styled.th`
     word-break: break-all;
 `;
 
-export default class RoleTable extends React.Component {
+class RoleTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -113,7 +116,7 @@ export default class RoleTable extends React.Component {
     render() {
         const center = 'center';
         const left = 'left';
-        const { domain } = this.props;
+        const {domain} = this.props;
         const adminRole = domain + ':role.admin';
         let rows = [];
 
@@ -153,10 +156,6 @@ export default class RoleTable extends React.Component {
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
-                            justificationRequired={
-                                this.props.justificationRequired
-                            }
-                            userProfileLink={this.props.userProfileLink}
                         />
                     );
                 });
@@ -197,10 +196,6 @@ export default class RoleTable extends React.Component {
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
-                            justificationRequired={
-                                this.props.justificationRequired
-                            }
-                            userProfileLink={this.props.userProfileLink}
                             newRole={this.props.newRole}
                         />
                     );
@@ -228,3 +223,16 @@ export default class RoleTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roles: selectRoles(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addRole: () => dispatch(addRole()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RoleTable);

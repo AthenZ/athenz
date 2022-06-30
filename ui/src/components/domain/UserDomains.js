@@ -16,10 +16,12 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Link from 'next/link';
-import { withRouter } from 'next/router';
+import {withRouter} from 'next/router';
 import PageUtils from '../utils/PageUtils';
+import {connect} from 'react-redux';
+import {getUserDomainsList} from '../../redux/thunks/domains';
 
 const DomainListDiv = styled.div`
     padding: 0 30px 0 15px;
@@ -105,6 +107,11 @@ class UserDomains extends React.Component {
         });
     }
 
+    componentWillMount() {
+        const {getDomainList} = this.props;
+        getDomainList();
+    }
+
     render() {
         let userIcons = [];
         let currentDomain = this.props.domain ? this.props.domain : null;
@@ -134,11 +141,11 @@ class UserDomains extends React.Component {
             });
         }
         let arrow = (
-            <Icon size={'1em'} icon={'arrow-left'} color={colors.black} />
+            <Icon size={'1em'} icon={'arrow-left'} color={colors.black}/>
         );
         if (this.state.showDomains) {
             arrow = (
-                <Icon size={'1em'} icon={'arrow-right'} color={colors.black} />
+                <Icon size={'1em'} icon={'arrow-right'} color={colors.black}/>
             );
         }
         return (
@@ -172,4 +179,19 @@ class UserDomains extends React.Component {
         );
     }
 }
-export default withRouter(UserDomains);
+
+const mapStateToProps = (state) => ({
+    domains: state.domains.domainsList,
+    isLoading: state.isLoading,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainList: () => dispatch(getUserDomainsList()),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(UserDomains));
+
+// export default withRouter(UserDomains);

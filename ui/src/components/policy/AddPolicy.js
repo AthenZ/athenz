@@ -59,26 +59,21 @@ export default class AddPolicy extends React.Component {
             return;
         }
 
-        this.api
-            .addPolicy(
-                this.props.domain,
-                this.state.name,
-                this.state.role,
-                this.state.resource,
-                this.state.action,
-                this.state.effect,
-                this.state.case,
-                this.props._csrf
-            )
-            .then((data) => {
-                this.setState({ showModal: false });
-                this.props.onSubmit(`${this.state.name}`, false);
-            })
-            .catch((err) => {
+        this.props.onSubmit(
+            this.props.domain,
+            this.state.name,
+            this.state.role,
+            this.state.resource,
+            this.state.action,
+            this.state.effect,
+            this.state.case,
+            this.props._csrf,
+            () => this.setState({ showModal: false }),
+            (err) =>
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                })
+        );
     }
 
     onChange(key, value) {

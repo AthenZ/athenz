@@ -15,9 +15,9 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
-import MemberRow from './MemberRow';
+import {colors} from '../denali/styles';
 import Icon from '../denali/icons/Icon';
+import MemberRow from './MemberRow';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -114,7 +114,7 @@ export default class MemberTable extends React.Component {
     render() {
         const center = 'center';
         const left = 'left';
-        const { domain, collection, caption } = this.props;
+        const {domain, collection, caption} = this.props;
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
         let expandMembers = this.expandMembers.bind(this);
@@ -158,35 +158,14 @@ export default class MemberTable extends React.Component {
             return (
                 <StyleTable data-testid='member-table'>
                     <thead>
-                        <TableCaptionStyled>
-                            <LeftMarginSpan>
-                                <Icon
-                                    icon={
-                                        this.state.expanded
-                                            ? arrowup
-                                            : arrowdown
-                                    }
-                                    onClick={expandMembers}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </LeftMarginSpan>
-                            {`${caption} (${length})`}
-                        </TableCaptionStyled>
-                    </thead>
-                </StyleTable>
-            );
-        }
-
-        return (
-            <StyleTable data-testid='member-table'>
-                <thead>
                     <TableCaptionStyled>
                         <LeftMarginSpan>
                             <Icon
-                                icon={this.state.expanded ? arrowup : arrowdown}
+                                icon={
+                                    this.state.expanded
+                                        ? arrowup
+                                        : arrowdown
+                                }
                                 onClick={expandMembers}
                                 color={colors.icons}
                                 isLink
@@ -196,24 +175,45 @@ export default class MemberTable extends React.Component {
                         </LeftMarginSpan>
                         {`${caption} (${length})`}
                     </TableCaptionStyled>
-                    <tr>
-                        <TableHeadStyledRoleName align={left}>
-                            User Name
-                        </TableHeadStyledRoleName>
-                        <TableHeadStyled align={left}>
-                            Name of User
-                        </TableHeadStyled>
+                    </thead>
+                </StyleTable>
+            );
+        }
 
+        return (
+            <StyleTable data-testid='member-table'>
+                <thead>
+                <TableCaptionStyled>
+                    <LeftMarginSpan>
+                        <Icon
+                            icon={this.state.expanded ? arrowup : arrowdown}
+                            onClick={expandMembers}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </LeftMarginSpan>
+                    {`${caption} (${length})`}
+                </TableCaptionStyled>
+                <tr>
+                    <TableHeadStyledRoleName align={left}>
+                        User Name
+                    </TableHeadStyledRoleName>
+                    <TableHeadStyled align={left}>
+                        Name of User
+                    </TableHeadStyled>
+
+                    <TableHeadStyled align={left}>
+                        Expiration Date
+                    </TableHeadStyled>
+                    {this.props.category !== 'group' && (
                         <TableHeadStyled align={left}>
-                            Expiration Date
+                            Review Reminder Date
                         </TableHeadStyled>
-                        {this.props.category !== 'group' && (
-                            <TableHeadStyled align={left}>
-                                Review Reminder Date
-                            </TableHeadStyled>
-                        )}
-                        <TableHeadStyled align={center}>Delete</TableHeadStyled>
-                    </tr>
+                    )}
+                    <TableHeadStyled align={center}>Delete</TableHeadStyled>
+                </tr>
                 </thead>
                 <tbody>{rows}</tbody>
             </StyleTable>

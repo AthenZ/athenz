@@ -17,8 +17,10 @@ import React from 'react';
 import AddModal from '../modal/AddModal';
 import AddRuleForRoleForm from './AddRuleForRoleForm';
 import RequestUtils from '../utils/RequestUtils';
+import { addPolicy } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
 
-export default class AddPolicyToRole extends React.Component {
+export class AddPolicyToRole extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -52,26 +54,38 @@ export default class AddPolicyToRole extends React.Component {
             return;
         }
 
-        this.api
-            .addPolicy(
-                this.props.domain,
-                this.state.name,
-                this.props.role,
-                this.state.resource,
-                this.state.action,
-                this.state.effect,
-                this.state.case,
-                this.props._csrf
-            )
-            .then((data) => {
-                this.setState({ showModal: false });
-                this.props.onSubmit(`${this.state.name}`, false);
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        const onSuccess = (data) => {
+            this.setState({ showModal: false });
+            this.props.onSubmit(`${this.state.name}`, false);
+        };
+
+        const onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
             });
+        };
+
+        this.props.addPolicy(
+            this.props.domain,
+            this.state.name,
+            this.props.role,
+            this.state.resource,
+            this.state.action,
+            this.state.effect,
+            this.state.case,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
+        // .then((data) => {
+        //     this.setState({ showModal: false });
+        //     this.props.onSubmit(`${this.state.name}`, false);
+        // })
+        // .catch((err) => {
+        //     this.setState({
+        //         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+        //     });
+        // });
     }
 
     onChange(key, value) {
@@ -98,3 +112,34 @@ export default class AddPolicyToRole extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    addPolicy: (
+        domain,
+        policyName,
+        role,
+        resource,
+        action,
+        effect,
+        caseSensitive,
+        _csrf,
+        resolve,
+        reject
+    ) =>
+        dispatch(
+            addPolicy(
+                domain,
+                policyName,
+                role,
+                resource,
+                action,
+                effect,
+                caseSensitive,
+                _csrf,
+                resolve,
+                reject
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(AddPolicyToRole);

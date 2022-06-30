@@ -16,13 +16,13 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
-import PublicKeyTable from '../service/PublicKeyTable';
+import {colors} from '../denali/styles';
 import ProviderTable from '../service/ProviderTable';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import { keyframes, css } from '@emotion/react';
-import { withRouter } from 'next/router';
+import {css, keyframes} from '@emotion/react';
+import {withRouter} from 'next/router';
+import PublicKeyTable from './PublicKeyTable';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -33,12 +33,12 @@ const TdStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`
@@ -104,7 +104,7 @@ class ServiceRow extends React.Component {
                 .getProvider(this.props.domainName, this.props.serviceName)
                 .then((data) => {
                     this.setState({
-                        provider: { provider: data.provider },
+                        provider: {provider: data.provider},
                         allProviders: data.allProviders,
                     });
                 })
@@ -218,4 +218,5 @@ class ServiceRow extends React.Component {
         return row;
     }
 }
+
 export default withRouter(ServiceRow);

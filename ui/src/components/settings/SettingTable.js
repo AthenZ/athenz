@@ -21,7 +21,9 @@ import UpdateModal from '../modal/UpdateModal';
 import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import _ from 'lodash';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
+import {updateSettings} from '../../redux/thunks/domain';
+import {connect} from 'react-redux';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -37,7 +39,7 @@ const RolesSectionDiv = styled.div`
 
 const StyledSettingRow = styled(SettingRow)`
     box-shadow: 0 50px 20px -50px rgba(0, 0, 0, 0.1),
-        0 8px 20px 0 rgba(0, 0, 0, 0.1);
+    0 8px 20px 0 rgba(0, 0, 0, 0.1);
 `;
 
 const AddContainerDiv = styled.div`
@@ -48,14 +50,13 @@ const AddContainerDiv = styled.div`
     flex-flow: row nowrap;
 `;
 
-export default class SettingTable extends React.Component {
+class SettingTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
         this.toggleSubmit = this.toggleSubmit.bind(this);
         this.toggleReset = this.toggleReset.bind(this);
         this.onSubmitUpdate = this.onSubmitUpdate.bind(this);
-        this.reloadCollection = this.reloadCollection.bind(this);
         this.onClickUpdateCancel = this.onClickUpdateCancel.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.updateCollectionMeta = this.updateCollectionMeta.bind(this);
@@ -108,7 +109,7 @@ export default class SettingTable extends React.Component {
     }
 
     saveJustification(val) {
-        this.setState({ justification: val });
+        this.setState({justification: val});
     }
 
     setCollectionDetails(collection) {
@@ -223,28 +224,6 @@ export default class SettingTable extends React.Component {
         });
     }
 
-    reloadCollection() {
-        this.api
-            .getCollection(
-                this.props.domain,
-                this.props.collection,
-                this.props.category
-            )
-            .then((collection) => {
-                let collectionDetails = this.setCollectionDetails(collection);
-                this.setState({
-                    originalCollectionDetails: collectionDetails,
-                    copyCollectionDetails: _.cloneDeep(collectionDetails),
-                    errorMessage: null,
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
-    }
-
     updateCollectionMeta() {
         let collectionMeta = {};
 
@@ -276,45 +255,49 @@ export default class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.roleCertExpiryMins;
         }
 
-        this.api
-            .putMeta(
-                this.props.domain,
-                this.props.collection,
-                collectionMeta,
-                'Updated' + this.props.category + 'Meta using Athenz UI',
-                this.props._csrf,
-                this.props.category
-            )
-            .then(() => {
-                this.setState({
-                    showSuccess: true,
-                    showSubmit: false,
-                    enableSubmit: false,
-                    justification: '',
-                });
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-                this.reloadCollection();
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        let onSuccess = () => {
+            const {collectionDetails} = this.props;
+            let newCollectionDetails = this.setCollectionDetails({
+                ...collectionDetails,
             });
+            this.setState({
+                originalCollectionDetails: newCollectionDetails,
+                copyCollectionDetails: _.cloneDeep(newCollectionDetails),
+                errorMessage: null,
+                showSuccess: true,
+                showSubmit: false,
+                enableSubmit: false,
+                justification: '',
+            });
+            setTimeout(
+                () =>
+                    this.setState({
+                        showSuccess: false,
+                    }),
+                MODAL_TIME_OUT
+            );
+        };
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        };
+        this.props.updateSettings(
+            collectionMeta,
+            this.props.collection,
+            this.props._csrf,
+            this.props.category,
+            onSuccess,
+            onFail
+        );
     }
 
     render() {
-        const { domain, collection } = this.props;
         let rows = [];
 
         let submitSettings = this.state.showSubmit ? (
             <UpdateModal
-                name={collection}
+                name={this.props.domain}
                 isOpen={this.state.showSubmit}
                 cancel={this.onClickUpdateCancel}
                 submit={this.onSubmitUpdate}
@@ -356,47 +339,47 @@ export default class SettingTable extends React.Component {
             this.props.category +
             ' updates require another review and approval';
         (this.props.category === 'role' || this.props.category === 'group') &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-reviewEnabled'}
-                    domain={domain}
-                    name='reviewEnabled'
-                    label='Review'
-                    type='switch'
-                    desc={reviewDesc}
-                    value={this.state.copyCollectionDetails.reviewEnabled}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-reviewEnabled'}
+                domain={this.props.domain}
+                name='reviewEnabled'
+                label='Review'
+                type='switch'
+                desc={reviewDesc}
+                value={this.state.copyCollectionDetails.reviewEnabled}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         let selfServiceDesc =
             'Flag indicates whether or not ' +
             this.props.category +
             ' allows self service';
         (this.props.category === 'role' || this.props.category === 'group') &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-selfServe'}
-                    domain={domain}
-                    name='selfServe'
-                    label='Self-Service'
-                    type='switch'
-                    desc={selfServiceDesc}
-                    value={this.state.copyCollectionDetails.selfServe}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-selfServe'}
+                domain={this.props.domain}
+                name='selfServe'
+                label='Self-Service'
+                type='switch'
+                desc={selfServiceDesc}
+                value={this.state.copyCollectionDetails.selfServe}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         rows.push(
             <StyledSettingRow
                 key={'setting-row-memberExpiryDays'}
-                domain={domain}
+                domain={this.props.domain}
                 name='memberExpiryDays'
                 label='User Expiry'
                 type='input'
@@ -415,67 +398,67 @@ export default class SettingTable extends React.Component {
         );
 
         this.props.category === 'role' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-memberReviewDays'}
-                    domain={domain}
-                    name='memberReviewDays'
-                    label='User Review'
-                    type='input'
-                    desc='All user members in the role will have specified review days'
-                    unit='Days'
-                    value={this.state.copyCollectionDetails.memberReviewDays}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-memberReviewDays'}
+                domain={this.props.domain}
+                name='memberReviewDays'
+                label='User Review'
+                type='input'
+                desc='All user members in the role will have specified review days'
+                unit='Days'
+                value={this.state.copyCollectionDetails.memberReviewDays}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         (this.props.category === 'role' || this.props.category === 'domain') &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-groupExpiryDays'}
-                    domain={domain}
-                    name='groupExpiryDays'
-                    label='Group Expiry'
-                    type='input'
-                    desc={
-                        'All group members in the ' +
-                        this.props.category +
-                        ' will have specified max expiry days'
-                    }
-                    unit='Days'
-                    value={this.state.copyCollectionDetails.groupExpiryDays}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-groupExpiryDays'}
+                domain={this.props.domain}
+                name='groupExpiryDays'
+                label='Group Expiry'
+                type='input'
+                desc={
+                    'All group members in the ' +
+                    this.props.category +
+                    ' will have specified max expiry days'
+                }
+                unit='Days'
+                value={this.state.copyCollectionDetails.groupExpiryDays}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         this.props.category === 'role' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-groupReviewDays'}
-                    domain={domain}
-                    name='groupReviewDays'
-                    label='Group Review'
-                    type='input'
-                    desc='All groups in the role will have specified max review days'
-                    unit='Days'
-                    value={this.state.copyCollectionDetails.groupReviewDays}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-groupReviewDays'}
+                domain={this.props.domain}
+                name='groupReviewDays'
+                label='Group Review'
+                type='input'
+                desc='All groups in the role will have specified max review days'
+                unit='Days'
+                value={this.state.copyCollectionDetails.groupReviewDays}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         rows.push(
             <StyledSettingRow
                 key={'setting-row-serviceExpiryDays'}
-                domain={domain}
+                domain={this.props.domain}
                 name='serviceExpiryDays'
                 label='Service Expiry'
                 type='input'
@@ -494,122 +477,122 @@ export default class SettingTable extends React.Component {
         );
 
         this.props.category === 'role' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-serviceReviewDays'}
-                    domain={domain}
-                    name='serviceReviewDays'
-                    label='Service Review'
-                    type='input'
-                    desc='All service members in the role will have specified review days'
-                    unit='Days'
-                    value={this.state.copyCollectionDetails.serviceReviewDays}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-serviceReviewDays'}
+                domain={this.props.domain}
+                name='serviceReviewDays'
+                label='Service Review'
+                type='input'
+                desc='All service members in the role will have specified review days'
+                unit='Days'
+                value={this.state.copyCollectionDetails.serviceReviewDays}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         (this.props.category === 'role' || this.props.category === 'domain') &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-tokenExpiryMins'}
-                    domain={domain}
-                    name='tokenExpiryMins'
-                    label='Token Expiry'
-                    type='input'
-                    unit='Mins'
-                    desc={
-                        'Tokens issued for this ' +
-                        this.props.category +
-                        ' will have specified max timeout in mins'
-                    }
-                    value={this.state.copyCollectionDetails.tokenExpiryMins}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-tokenExpiryMins'}
+                domain={this.props.domain}
+                name='tokenExpiryMins'
+                label='Token Expiry'
+                type='input'
+                unit='Mins'
+                desc={
+                    'Tokens issued for this ' +
+                    this.props.category +
+                    ' will have specified max timeout in mins'
+                }
+                value={this.state.copyCollectionDetails.tokenExpiryMins}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         this.props.category === 'role' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-certExpiryMins'}
-                    domain={domain}
-                    name='certExpiryMins'
-                    label='Certificate Expiry'
-                    type='input'
-                    unit='Mins'
-                    desc='Certs issued for this role will have specified max timeout in mins'
-                    value={this.state.copyCollectionDetails.certExpiryMins}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-certExpiryMins'}
+                domain={this.props.domain}
+                name='certExpiryMins'
+                label='Certificate Expiry'
+                type='input'
+                unit='Mins'
+                desc='Certs issued for this role will have specified max timeout in mins'
+                value={this.state.copyCollectionDetails.certExpiryMins}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         this.props.category === 'domain' &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-roleCertExpiryMins'}
-                    domain={domain}
-                    name='roleCertExpiryMins'
-                    label='Role Certificate Expiry'
-                    type='input'
-                    unit='Mins'
-                    desc={
-                        'Role Certs issued for this domain will have specified max timeout in mins'
-                    }
-                    value={this.state.copyCollectionDetails.roleCertExpiryMins}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-roleCertExpiryMins'}
+                domain={this.props.domain}
+                name='roleCertExpiryMins'
+                label='Role Certificate Expiry'
+                type='input'
+                unit='Mins'
+                desc={
+                    'Role Certs issued for this domain will have specified max timeout in mins'
+                }
+                value={this.state.copyCollectionDetails.roleCertExpiryMins}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         (this.props.category === 'role' || this.props.category === 'group') &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-userAuthorityFilter'}
-                    domain={domain}
-                    name='userAuthorityFilter'
-                    label='User Authority Filter'
-                    type='dropdown'
-                    options={this.state.boolUserAuthorityAttributes}
-                    placeholder='User Authority Filter'
-                    desc='membership filtered based on user authority configured attributes'
-                    value={this.state.copyCollectionDetails.userAuthorityFilter}
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-userAuthorityFilter'}
+                domain={this.props.domain}
+                name='userAuthorityFilter'
+                label='User Authority Filter'
+                type='dropdown'
+                options={this.state.boolUserAuthorityAttributes}
+                placeholder='User Authority Filter'
+                desc='membership filtered based on user authority configured attributes'
+                value={this.state.copyCollectionDetails.userAuthorityFilter}
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         (this.props.category === 'role' || this.props.category === 'group') &&
-            rows.push(
-                <StyledSettingRow
-                    key={'setting-row-userAuthorityExpiration'}
-                    domain={domain}
-                    name='userAuthorityExpiration'
-                    label='User Authority Expiration'
-                    type='dropdown'
-                    options={this.state.dateUserAuthorityAttributes}
-                    placeholder='User Authority Expiration'
-                    desc='expiration enforced by a user authority configured attribute'
-                    value={
-                        this.state.copyCollectionDetails.userAuthorityExpiration
-                    }
-                    api={this.api}
-                    onValueChange={this.onValueChange}
-                    _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
-                />
-            );
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-userAuthorityExpiration'}
+                domain={this.props.domain}
+                name='userAuthorityExpiration'
+                label='User Authority Expiration'
+                type='dropdown'
+                options={this.state.dateUserAuthorityAttributes}
+                placeholder='User Authority Expiration'
+                desc='expiration enforced by a user authority configured attribute'
+                value={
+                    this.state.copyCollectionDetails.userAuthorityExpiration
+                }
+                api={this.api}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+                userProfileLink={this.props.userProfileLink}
+            />
+        );
 
         rows.push();
 
@@ -632,3 +615,26 @@ export default class SettingTable extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    updateSettings: (
+        collectionMeta,
+        collectionName,
+        _csrf,
+        category,
+        onSuccess,
+        onFail
+    ) =>
+        dispatch(
+            updateSettings(
+                collectionMeta,
+                collectionName,
+                _csrf,
+                category,
+                onSuccess,
+                onFail
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(SettingTable);

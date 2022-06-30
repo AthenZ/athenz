@@ -25,10 +25,13 @@ import RequestUtils from '../../../../../components/utils/RequestUtils';
 import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
+import {getDomainData} from '../../../../../redux/thunks/domain';
+import {getGroup} from '../../../../../redux/thunks/groups';
+import {connect} from 'react-redux';
+import {selectIsLoading} from '../../../../../redux/selectors';
+import {selectGroup} from '../../../../../redux/selectors/group';
+import {selectDomainData} from '../../../../../redux/selectors/domainData';
 import SettingTable from '../../../../../components/settings/SettingTable';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -66,11 +69,6 @@ export async function getServerSideProps(context) {
     let notFound = false;
     let error = null;
     const groups = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getGroup(context.query.domain, context.query.group),
-        api.getPendingDomainMembersList(),
         api.getForm(),
         api.getAuthorityAttributes(),
     ]).catch((err) => {
@@ -84,106 +82,139 @@ export async function getServerSideProps(context) {
             reload,
             notFound,
             error,
-            domains: groups[0],
-            group: context.query.group,
-            headerDetails: groups[1],
-            domainDeails: groups[2],
-            auditEnabled: groups[2].auditEnabled,
-            groupDetails: JsonUtils.omitUndefined(groups[3]),
-            domain: context.query.domain,
-            pending: groups[4],
-            _csrf: groups[5],
-            userAuthorityAttributes: groups[6],
+            groupName: context.query.group,
+            domainName: context.query.domain,
+            _csrf: groups[0],
+            userAuthorityAttributes: groups[1],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class GroupSettingsPage extends React.Component {
+class GroupSettingsPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+    }
+
+    componentDidMount() {
+        const {domainName, userName, getDomainData, groupName, getGroup} =
+            this.props;
+        getDomainData(domainName, userName);
+        getGroup(domainName, groupName);
     }
 
     render() {
-        const { domain, reload, groupDetails, group, auditEnabled, _csrf } =
-            this.props;
+        const {
+            domainName,
+            reload,
+            groupDetails,
+            groupName,
+            domainData,
+            _csrf,
+            isLoading,
+        } = this.props;
         if (reload) {
             window.location.reload();
-            return <div />;
+            return <div/>;
         }
         if (this.props.error) {
-            return <Error err={this.props.error} />;
+            return <Error err={this.props.error}/>;
         }
-        return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='group-settings'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <RolesContainerDiv>
-                                <RolesContentDiv>
-                                    <PageHeaderDiv>
-                                        <NameHeader
-                                            category={'group'}
-                                            domain={domain}
-                                            collection={group}
-                                            collectionDetails={groupDetails}
-                                        />
-                                        <CollectionDetails
-                                            collectionDetails={groupDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                        />
-                                        <GroupTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            group={group}
-                                            selectedName={'settings'}
-                                        />
-                                    </PageHeaderDiv>
-                                    <SettingTable
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={group}
-                                        collectionDetails={groupDetails}
-                                        _csrf={_csrf}
-                                        justificationRequired={auditEnabled}
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
+        return isLoading.length !== 0 ? (
+            <h1>Loading...</h1>
+        ) : (
+            <div data-testid='group-settings'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header
+                    showSearch={true}
+                    headerDetails={this.props.headerDetails}
+                    pending={this.props.pending}
+                />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <RolesContainerDiv>
+                            <RolesContentDiv>
+                                <PageHeaderDiv>
+                                    <NameHeader
                                         category={'group'}
-                                        userAuthorityAttributes={
-                                            this.props.userAuthorityAttributes
+                                        domain={domainName}
+                                        collection={groupName}
+                                        collectionDetails={
+                                            groupDetails ? groupDetails : {}
                                         }
                                     />
-                                </RolesContentDiv>
-                            </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <CollectionDetails
+                                        collectionDetails={
+                                            groupDetails ? groupDetails : {}
+                                        }
+                                        api={this.api}
+                                        _csrf={_csrf}
+                                        productMasterLink={
+                                            domainData.headerDetails
+                                                ? domainData.headerDetails
+                                                    .productMasterLink
+                                                : ''
+                                        }
+                                    />
+                                    <GroupTabs
+                                        api={this.api}
+                                        domain={domainName}
+                                        group={groupName}
+                                        selectedName={'settings'}
+                                    />
+                                </PageHeaderDiv>
+                                <SettingTable
+                                    api={this.api}
+                                    domain={domainName}
+                                    collection={groupName}
+                                    collectionDetails={
+                                        groupDetails ? groupDetails : {}
+                                    }
+                                    _csrf={_csrf}
+                                    justificationRequired={
+                                        domainData.auditEnabled
+                                    }
+                                    userProfileLink={
+                                        domainData.headerDetails
+                                            ? domainData.headerDetails.userData
+                                                .userLink
+                                            : ''
+                                    }
+                                    category={'group'}
+                                    userAuthorityAttributes={
+                                        this.props.userAuthorityAttributes
+                                    }
+                                />
+                            </RolesContentDiv>
+                        </RolesContainerDiv>
+                        <UserDomains api={this.api} domain={domainName}/>
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+        groupDetails: selectGroup(state, props.groupName),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroup: (domainName, groupName) =>
+        dispatch(getGroup(domainName, groupName)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(GroupSettingsPage);

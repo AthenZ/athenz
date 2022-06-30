@@ -109,13 +109,13 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putAssertion(
             params,
-            responseHandler.bind({ caller: 'putAssertion', callback, req })
+            responseHandler.bind({caller: 'putAssertion', callback, req})
         );
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteAssertion(
             params,
-            responseHandler.bind({ caller: 'deleteAssertion', callback, req })
+            responseHandler.bind({caller: 'deleteAssertion', callback, req})
         );
     },
 });
@@ -210,7 +210,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getDomain(
             params,
-            responseHandler.bind({ caller: 'getDomain', callback, req })
+            responseHandler.bind({caller: 'getDomain', callback, req})
         );
     },
     // we will be reusing this api for creating sub domains as well as user domains
@@ -219,7 +219,7 @@ Fetchr.registerService({
         if (params.parent) {
             req.clients.zms.postSubDomain(
                 params,
-                responseHandler.bind({ caller: 'postSubDomain', callback, req })
+                responseHandler.bind({caller: 'postSubDomain', callback, req})
             );
         } else {
             params.detail.templates.templateNames = appConfig.templates;
@@ -236,7 +236,7 @@ Fetchr.registerService({
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteSubDomain(
             params,
-            responseHandler.bind({ caller: 'deleteSubDomain', callback, req })
+            responseHandler.bind({caller: 'deleteSubDomain', callback, req})
         );
     },
 });
@@ -373,7 +373,7 @@ Fetchr.registerService({
         if (req.session.shortId.indexOf('.') !== -1) {
             username = req.session.shortId;
         }
-        const adminReqParams = { roleMember: username, roleName: 'admin' };
+        const adminReqParams = {roleMember: username, roleName: 'admin'};
         Promise.all([
             new Promise((resolve, reject) => {
                 req.clients.zms.getDomainList(
@@ -391,7 +391,7 @@ Fetchr.registerService({
             }),
             new Promise((resolve, reject) => {
                 req.clients.zms.getSignedDomains(
-                    { metaOnly: 'true', metaAttr: 'all' },
+                    {metaOnly: 'true', metaAttr: 'all'},
                     function (err, json) {
                         if (err) {
                             return reject(err);
@@ -434,7 +434,7 @@ Fetchr.registerService({
         if (req.session.shortId.indexOf('.') !== -1) {
             username = req.session.shortId;
         }
-        const userReqParams = { roleMember: username };
+        const userReqParams = {roleMember: username};
 
         let promises = [];
         promises.push(
@@ -454,7 +454,7 @@ Fetchr.registerService({
             })
         );
 
-        const adminReqParams = { ...userReqParams };
+        const adminReqParams = {...userReqParams};
         adminReqParams.roleName = 'admin';
 
         promises.push(
@@ -483,13 +483,13 @@ Fetchr.registerService({
                 memberDomains = values[0];
                 adminDomains = values[1];
                 adminDomains.forEach((domainName) => {
-                    let searchData = { name: domainName };
+                    let searchData = {name: domainName};
                     searchData.adminDomain = true;
                     searchResults.push(searchData);
                 });
 
                 memberDomains.forEach((domainName) => {
-                    let searchData = { name: domainName };
+                    let searchData = {name: domainName};
                     let searchDomain = adminDomains.includes(domainName);
                     if (!searchDomain) {
                         searchData.userDomain = true;
@@ -532,7 +532,7 @@ Fetchr.registerService({
                 return callback(errorHandler.fetcherError(err));
             } else if (Array.isArray(json.names)) {
                 json.names.forEach((domainName) => {
-                    let domainData = { name: domainName, value: domainName };
+                    let domainData = {name: domainName, value: domainName};
                     domains.push(domainData);
                 });
                 return callback(null, domains);
@@ -555,7 +555,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getServiceIdentity(
             params,
-            responseHandler.bind({ caller: 'get-service-host', callback, req })
+            responseHandler.bind({caller: 'get-service-host', callback, req})
         );
     },
 });
@@ -588,7 +588,7 @@ Fetchr.registerService({
                     auditRef: params.auditRef,
                     membership: params.membership,
                 },
-                responseHandler.bind({ caller: 'putMembership', callback, req })
+                responseHandler.bind({caller: 'putMembership', callback, req})
             );
         }
     },
@@ -805,7 +805,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getPolicy(
             params,
-            responseHandler.bind({ caller: 'getPolicy', callback, req })
+            responseHandler.bind({caller: 'getPolicy', callback, req})
         );
     },
 
@@ -857,13 +857,13 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putPolicyVersion(
             params,
-            responseHandler.bind({ caller: 'putPolicyVersion', callback, req })
+            responseHandler.bind({caller: 'putPolicyVersion', callback, req})
         );
     },
     read(req, resource, params, config, callback) {
         req.clients.zms.getPolicyVersion(
             params,
-            responseHandler.bind({ caller: 'getPolicyVersion', callback, req })
+            responseHandler.bind({caller: 'getPolicyVersion', callback, req})
         );
     },
     update(req, resource, params, body, config, callback) {
@@ -1047,7 +1047,7 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putDomainTemplate(
             params,
-            responseHandler.bind({ caller: 'putDomainTemplate', callback, req })
+            responseHandler.bind({caller: 'putDomainTemplate', callback, req})
         );
     },
 });
@@ -1079,7 +1079,7 @@ Fetchr.registerService({
         const getGroupMembers = (domainName, groupName, roleMember) => {
             return new Promise((resolve, reject) => {
                 req.clients.zms.getGroup(
-                    { domainName, groupName },
+                    {domainName, groupName},
                     (err, data) => {
                         if (err) {
                             reject(err);
@@ -1221,19 +1221,19 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putRole(
             params,
-            responseHandler.bind({ caller: 'putRole', callback, req })
+            responseHandler.bind({caller: 'putRole', callback, req})
         );
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteRole(
             params,
-            responseHandler.bind({ caller: 'deleteRole', callback, req })
+            responseHandler.bind({caller: 'deleteRole', callback, req})
         );
     },
     update(req, resource, params, body, config, callback) {
         req.clients.zms.putRoleReview(
             params,
-            responseHandler.bind({ caller: 'putRoleReview', callback, req })
+            responseHandler.bind({caller: 'putRoleReview', callback, req})
         );
     },
 });
@@ -1249,7 +1249,7 @@ Fetchr.registerService({
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
-                responseHandler.bind({ caller: 'putGroupMeta', callback, req })
+                responseHandler.bind({caller: 'putGroupMeta', callback, req})
             );
         } else if (params.category === 'role') {
             req.clients.zms.putRoleMeta(
@@ -1259,7 +1259,7 @@ Fetchr.registerService({
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
-                responseHandler.bind({ caller: 'putRoleMeta', callback, req })
+                responseHandler.bind({caller: 'putRoleMeta', callback, req})
             );
         } else if (params.category === 'domain') {
             req.clients.zms.putDomainMeta(
@@ -1268,7 +1268,7 @@ Fetchr.registerService({
                     auditRef: params.auditRef,
                     detail: params.detail,
                 },
-                responseHandler.bind({ caller: 'putDomainMeta', callback, req })
+                responseHandler.bind({caller: 'putDomainMeta', callback, req})
             );
         }
     },
@@ -1291,7 +1291,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getRoles(
             params,
-            responseHandler.bind({ caller: 'getRoles', callback, req })
+            responseHandler.bind({caller: 'getRoles', callback, req})
         );
     },
 });
@@ -1348,7 +1348,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getRoleList(
             params,
-            responseHandler.bind({ caller: 'getRoleList', callback, req })
+            responseHandler.bind({caller: 'getRoleList', callback, req})
         );
     },
 });
@@ -1397,7 +1397,7 @@ Fetchr.registerService({
     update(req, resource, params, body, config, callback) {
         req.clients.zms.putServiceIdentity(
             params,
-            responseHandler.bind({ caller: 'add-service-host', callback, req })
+            responseHandler.bind({caller: 'add-service-host', callback, req})
         );
     },
 });
@@ -1588,7 +1588,7 @@ Fetchr.registerService({
                 adminDomains = values[2];
                 allDomains.forEach(function (domainName) {
                     if (domainName.includes(params.domainName)) {
-                        let searchData = { name: domainName };
+                        let searchData = {name: domainName};
                         let userDomain = memberDomains.find(
                             (domain) => domain === domainName
                         );
@@ -1658,7 +1658,7 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putPublicKeyEntry(
             params,
-            responseHandler.bind({ caller: 'putPublicKeyEntry', callback, req })
+            responseHandler.bind({caller: 'putPublicKeyEntry', callback, req})
         );
     },
     delete(req, resource, params, config, callback) {
@@ -1747,21 +1747,21 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putGroup(
             params,
-            responseHandler.bind({ caller: 'putGroup', callback, req })
+            responseHandler.bind({caller: 'putGroup', callback, req})
         );
     },
 
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteGroup(
             params,
-            responseHandler.bind({ caller: 'deleteGroup', callback, req })
+            responseHandler.bind({caller: 'deleteGroup', callback, req})
         );
     },
 
     update(req, resource, params, body, config, callback) {
         req.clients.zms.putGroupReview(
             params,
-            responseHandler.bind({ caller: 'putGroupReview', callback, req })
+            responseHandler.bind({caller: 'putGroupReview', callback, req})
         );
     },
 });
@@ -1809,7 +1809,7 @@ Fetchr.registerService({
                 const getGroupMembers = (domainName, groupName, roleMember) => {
                     return new Promise((resolve, reject) => {
                         req.clients.zms.getGroup(
-                            { domainName, groupName },
+                            {domainName, groupName},
                             (err, data) => {
                                 if (err) {
                                     reject(err);
@@ -1904,7 +1904,7 @@ Fetchr.registerService({
                 const getGroupMembers = (domainName, groupName, roleMember) => {
                     return new Promise((resolve, reject) => {
                         req.clients.zms.getGroup(
-                            { domainName, groupName },
+                            {domainName, groupName},
                             (err, data) => {
                                 if (err) {
                                     reject(err);
@@ -2084,7 +2084,7 @@ Fetchr.registerService({
         let promises = [];
 
         req.clients.zms.getPolicies(
-            { domainName: params.domainName, assertions: true },
+            {domainName: params.domainName, assertions: true},
             (err, data) => {
                 if (!err && Array.isArray(data.list)) {
                     data.list.forEach((item, index) => {
@@ -2099,102 +2099,102 @@ Fetchr.registerService({
                             let category = '';
 
                             item.assertions &&
-                                item.assertions.forEach(
-                                    (assertionItem, assertionIdx) => {
-                                        if (
-                                            !apiUtils
-                                                .getMicrosegmentationActionRegex()
-                                                .test(assertionItem.action)
-                                        ) {
-                                            return;
-                                        }
-                                        let tempData = {};
-                                        let tempProtocol =
-                                            assertionItem.action.split('-');
-                                        tempData['layer'] =
-                                            apiUtils.omitUndefined(
-                                                tempProtocol[0]
-                                            );
-                                        let tempPort =
-                                            assertionItem.action.split(':');
-                                        tempData['source_port'] =
-                                            apiUtils.omitUndefined(tempPort[1]);
-                                        tempData['destination_port'] =
-                                            apiUtils.omitUndefined(tempPort[2]);
-                                        if (assertionItem.conditions) {
-                                            tempData['conditionsList'] = [];
-
-                                            assertionItem.conditions[
-                                                'conditionsList'
-                                            ].forEach((condition) => {
-                                                let tempCondition = {};
-                                                Object.keys(
-                                                    condition['conditionsMap']
-                                                ).forEach((key) => {
-                                                    tempCondition[key] =
-                                                        condition[
-                                                            'conditionsMap'
-                                                        ][key]['value'];
-                                                });
-                                                tempCondition['id'] =
-                                                    condition['id'];
-                                                tempCondition['assertionId'] =
-                                                    assertionItem['id'];
-                                                tempCondition['policyName'] =
-                                                    item.name;
-                                                tempData['conditionsList'].push(
-                                                    tempCondition
-                                                );
-                                            });
-                                        }
-                                        let index = 0;
-                                        if (item.name.includes('inbound')) {
-                                            category = 'inbound';
-                                            tempData['destination_service'] =
-                                                serviceName;
-                                            tempData['source_services'] = [];
-                                            tempData['assertionIdx'] =
-                                                assertionItem.id;
-                                            jsonData['inbound'].push(tempData);
-                                            index = jsonData['inbound'].length;
-                                        } else if (
-                                            item.name.includes('outbound')
-                                        ) {
-                                            category = 'outbound';
-                                            tempData['source_service'] =
-                                                serviceName;
-                                            tempData['destination_services'] =
-                                                [];
-                                            tempData['assertionIdx'] =
-                                                assertionItem.id;
-                                            jsonData['outbound'].push(tempData);
-                                            index = jsonData['outbound'].length;
-                                        }
-                                        //assertion convention for microsegmentation:
-                                        //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
-                                        // role name will be of the form : <domain>:role.<roleName>
-                                        let roleName =
-                                            assertionItem.role.substring(
-                                                params.domainName.length + 6
-                                            );
-                                        promises.push(
-                                            getRole(
-                                                roleName,
-                                                params.domainName,
-                                                category,
-                                                index
-                                            )
-                                        );
-
-                                        promises.push(
-                                            getIdentifier(
-                                                roleName,
-                                                category,
-                                                index
-                                            )
-                                        );
+                            item.assertions.forEach(
+                                (assertionItem, assertionIdx) => {
+                                    if (
+                                        !apiUtils
+                                            .getMicrosegmentationActionRegex()
+                                            .test(assertionItem.action)
+                                    ) {
+                                        return;
                                     }
-                                );
+                                    let tempData = {};
+                                    let tempProtocol =
+                                        assertionItem.action.split('-');
+                                    tempData['layer'] =
+                                        apiUtils.omitUndefined(
+                                            tempProtocol[0]
+                                        );
+                                    let tempPort =
+                                        assertionItem.action.split(':');
+                                    tempData['source_port'] =
+                                        apiUtils.omitUndefined(tempPort[1]);
+                                    tempData['destination_port'] =
+                                        apiUtils.omitUndefined(tempPort[2]);
+                                    if (assertionItem.conditions) {
+                                        tempData['conditionsList'] = [];
+
+                                        assertionItem.conditions[
+                                            'conditionsList'
+                                            ].forEach((condition) => {
+                                            let tempCondition = {};
+                                            Object.keys(
+                                                condition['conditionsMap']
+                                            ).forEach((key) => {
+                                                tempCondition[key] =
+                                                    condition[
+                                                        'conditionsMap'
+                                                        ][key]['value'];
+                                            });
+                                            tempCondition['id'] =
+                                                condition['id'];
+                                            tempCondition['assertionId'] =
+                                                assertionItem['id'];
+                                            tempCondition['policyName'] =
+                                                item.name;
+                                            tempData['conditionsList'].push(
+                                                tempCondition
+                                            );
+                                        });
+                                    }
+                                    let index = 0;
+                                    if (item.name.includes('inbound')) {
+                                        category = 'inbound';
+                                        tempData['destination_service'] =
+                                            serviceName;
+                                        tempData['source_services'] = [];
+                                        tempData['assertionIdx'] =
+                                            assertionItem.id;
+                                        jsonData['inbound'].push(tempData);
+                                        index = jsonData['inbound'].length;
+                                    } else if (
+                                        item.name.includes('outbound')
+                                    ) {
+                                        category = 'outbound';
+                                        tempData['source_service'] =
+                                            serviceName;
+                                        tempData['destination_services'] =
+                                            [];
+                                        tempData['assertionIdx'] =
+                                            assertionItem.id;
+                                        jsonData['outbound'].push(tempData);
+                                        index = jsonData['outbound'].length;
+                                    }
+                                    //assertion convention for microsegmentation:
+                                    //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
+                                    // role name will be of the form : <domain>:role.<roleName>
+                                    let roleName =
+                                        assertionItem.role.substring(
+                                            params.domainName.length + 6
+                                        );
+                                    promises.push(
+                                        getRole(
+                                            roleName,
+                                            params.domainName,
+                                            category,
+                                            index
+                                        )
+                                    );
+
+                                    promises.push(
+                                        getIdentifier(
+                                            roleName,
+                                            category,
+                                            index
+                                        )
+                                    );
+                                }
+                            );
                         }
                     });
                 } else if (err) {
@@ -2238,11 +2238,11 @@ Fetchr.registerService({
                                     if (category === 'inbound') {
                                         jsonData[category][jsonIndex - 1][
                                             'source_services'
-                                        ].push(roleMember.memberName);
+                                            ].push(roleMember.memberName);
                                     } else if (category === 'outbound') {
                                         jsonData[category][jsonIndex - 1][
                                             'destination_services'
-                                        ].push(roleMember.memberName);
+                                            ].push(roleMember.memberName);
                                     }
                                 });
                                 resolve();
@@ -2603,7 +2603,7 @@ Fetchr.registerService({
         }
 
         req.clients.msd.validateTransportPolicy(
-            { transportPolicy: transportPolicy },
+            {transportPolicy: transportPolicy},
             (err, data) => {
                 if (err) {
                     return callback(errorHandler.fetcherError(err));
@@ -2619,7 +2619,7 @@ Fetchr.registerService({
     name: 'instances',
     read(req, resource, params, config, callback) {
         req.clients.msd.getWorkloadsByService(
-            { domainName: params.domainName, serviceName: params.serviceName },
+            {domainName: params.domainName, serviceName: params.serviceName},
             (err, data) => {
                 if (data) {
                     if (
@@ -2746,7 +2746,6 @@ module.exports.load = function (config, secrets) {
 };
 
 module.exports.route = function (expressApp) {
-    // TODO fetchr statsCollector
     expressApp.use(CLIENTS.middleware());
     expressApp.use('/api/v1', Fetchr.middleware());
 };

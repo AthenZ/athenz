@@ -17,8 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
-import AddPolicy from './AddPolicy';
-import AddPolicyToRole from './AddPolicyToRole';
 import PolicyRow from './PolicyRow';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
@@ -29,6 +27,14 @@ import RequestUtils from '../utils/RequestUtils';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import AppUtils from '../utils/AppUtils';
+import {
+    addPolicy,
+    deletePolicy,
+    duplicatePolicyVersion,
+} from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
+import AddPolicy from './AddPolicy';
+import { selectPolicies } from '../../redux/selectors/policies';
 
 const PolicySectionDiv = styled.div`
     margin: 20px;
@@ -92,7 +98,7 @@ const TableHeadStyled = styled.th`
     word-break: break-all;
 `;
 
-export default class PolicyList extends React.Component {
+export class PolicyList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -104,9 +110,9 @@ export default class PolicyList extends React.Component {
         this.reloadPolicies = this.reloadPolicies.bind(this);
         this.closeModals = this.closeModals.bind(this);
         this.policyListToMap = this.policyListToMap.bind(this);
-
         this.state = {
-            policiesMap: this.policyListToMap(props.policies),
+            policiesMap:
+                (props.policies && this.policyListToMap(props.policies)) || [],
             showAddPolicy: false,
             showDelete: false,
             deletePolicyName: null,
@@ -116,6 +122,23 @@ export default class PolicyList extends React.Component {
             duplicateVersionName: null,
         };
     }
+
+    arrayEquals = (arr1, arr2) => {
+        return (
+            Array.isArray(arr1) &&
+            Array.isArray(arr2) &&
+            arr1.length === arr2.length &&
+            arr1.every((val, index) => val === arr2[index])
+        );
+    };
+
+    componentDidUpdate = (prevProps) => {
+        if (!this.arrayEquals(prevProps.policies, this.props.policies)) {
+            this.setState({
+                policiesMap: this.policyListToMap(this.props.policies),
+            });
+        }
+    };
 
     policyListToMap(policies) {
         let policyList = policies || [];
@@ -130,49 +153,68 @@ export default class PolicyList extends React.Component {
     }
 
     onSubmitDeletePolicy() {
-        this.api
-            .deletePolicy(
-                this.props.domain,
-                this.state.deletePolicyName,
-                this.props._csrf
-            )
-            .then(() => {
-                this.reloadPolicies(
-                    `Successfully deleted policy ${this.state.deletePolicyName}`,
-                    true
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        const { deletePolicy } = this.props;
+        const resolve = () => {
+            let showSuccess = true;
+            let successMessage = `Successfully deleted policy ${this.state.deletePolicyName}`;
+            this.setState({
+                showSuccess,
+                successMessage,
+                showAddPolicy: false,
+                showDelete: false,
+                showDuplicatePolicy: false,
             });
+            // this is to close the success alert
+            setTimeout(
+                () =>
+                    this.setState({
+                        showSuccess: false,
+                    }),
+                MODAL_TIME_OUT
+            );
+        };
+        const reject = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        };
+
+        deletePolicy(
+            this.props.domain,
+            this.state.deletePolicyName,
+            this.props._csrf,
+            resolve,
+            reject
+        );
     }
 
     onSubmitDuplicatePolicy() {
-        this.api
-            .duplicatePolicyVersion(
-                this.props.domain,
-                this.state.duplicatePolicyName,
-                this.state.duplicateVersionSourceName,
-                this.state.duplicateVersionName,
-                this.props._csrf
-            )
-            .then(() => {
-                this.state.reloadPolicyVersionsFunc(
-                    'duplicatePolicyVersion',
-                    false,
-                    `${this.state.duplicatePolicyName}` +
-                        '-' +
-                        `${this.state.duplicateVersionName}`,
-                    this.closeModals
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        const onSuccess = () => {
+            this.state.reloadPolicyVersionsFunc(
+                'duplicatePolicyVersion',
+                false,
+                `${this.state.duplicatePolicyName}` +
+                '-' +
+                `${this.state.duplicateVersionName}`,
+                this.closeModals
+            );
+        };
+
+        const onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
             });
+        };
+
+        this.props.duplicatePolicyVersion(
+            this.props.domain,
+            this.state.duplicatePolicyName,
+            this.state.duplicateVersionSourceName,
+            this.state.duplicateVersionName,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     onCancelDeletePolicy() {
@@ -230,31 +272,27 @@ export default class PolicyList extends React.Component {
         );
     }
     reloadPolicies(successMessage, showSuccess) {
-        this.api
-            .getPolicies(this.props.domain, false, true)
-            .then((data) => {
+        this.setState({
+            policiesMap: this.policyListToMap(this.props.policies),
+            showAddPolicy: false,
+            showSuccess,
+            successMessage,
+            showDelete: false,
+            showDuplicatePolicy: false,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
                 this.setState({
-                    policiesMap: this.policyListToMap(data),
-                    showAddPolicy: false,
-                    showSuccess,
-                    successMessage,
-                    showDelete: false,
-                    showDuplicatePolicy: false,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
+        // .catch((err) => {
+        //     this.setState({
+        //         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+        //     });
+        // });
     }
 
     toggleAddPolicy() {
@@ -299,10 +337,12 @@ export default class PolicyList extends React.Component {
                     name={name}
                     isActive={true}
                     version={item.version}
+                    policies={this.props.policies}
                     policyVersions={this.state.policiesMap[policyName]}
                     domain={domain}
                     modified={item.modified}
                     api={this.api}
+                    duplicatePolicyVersion={this.props.duplicatePolicyVersion}
                     key={item.name + '-' + item.version}
                     _csrf={this.props._csrf}
                     onClickDeletePolicy={onClickDeletePolicy}
@@ -323,7 +363,7 @@ export default class PolicyList extends React.Component {
             <AddPolicy
                 showAddPolicy={this.state.showAddPolicy}
                 onCancel={this.toggleAddPolicy}
-                onSubmit={this.reloadPolicies}
+                onSubmit={this.props.addPolicy}
                 domain={domain}
                 api={this.api}
                 _csrf={this.props._csrf}
@@ -362,29 +402,29 @@ export default class PolicyList extends React.Component {
                 </AddContainerDiv>
                 <PolicyTable>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={center}>
-                                Active
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Policy
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Versions
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Modified Date
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Rules
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Duplicate
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Delete
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={center}>
+                            Active
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Policy
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Versions
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Modified Date
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Rules
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Duplicate
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Delete
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </PolicyTable>
@@ -423,3 +463,63 @@ export default class PolicyList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        policies: selectPolicies(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    duplicatePolicyVersion: (
+        domain,
+        duplicatePolicyName,
+        duplicateVersionSourceName,
+        duplicateVersionName,
+        _csrf,
+        resolve,
+        reject
+    ) =>
+        dispatch(
+            duplicatePolicyVersion(
+                domain,
+                duplicatePolicyName,
+                duplicateVersionSourceName,
+                duplicateVersionName,
+                _csrf,
+                resolve,
+                reject
+            )
+        ),
+    deletePolicy: (domainName, policyName, _csrf, resolve, reject) =>
+        dispatch(deletePolicy(domainName, policyName, _csrf, resolve, reject)),
+    addPolicy: (
+        domain,
+        policyName,
+        role,
+        resource,
+        action,
+        effect,
+        caseSensitive,
+        _csrf,
+        resolve,
+        reject
+    ) =>
+        dispatch(
+            addPolicy(
+                domain,
+                policyName,
+                role,
+                resource,
+                action,
+                effect,
+                caseSensitive,
+                _csrf,
+                resolve,
+                reject
+            )
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(PolicyList);

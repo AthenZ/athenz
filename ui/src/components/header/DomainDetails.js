@@ -19,11 +19,13 @@ import React from 'react';
 import Button from '../denali/Button';
 import Switch from '../denali/Switch';
 import Alert from '../denali/Alert';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
 import BusinessServiceModal from '../modal/BusinessServiceModal';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
+import {connect} from 'react-redux';
+import {selectDomainData, selectProductMasterLink,} from '../../redux/selectors/domainData';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -71,7 +73,7 @@ const StyledAnchor = styled.a`
     font-weight: '';
 `;
 
-export default class DomainDetails extends React.Component {
+class DomainDetails extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -95,13 +97,13 @@ export default class DomainDetails extends React.Component {
     componentDidUpdate = (prevProps, prevState, snapshot) => {
         if (
             prevState.businessServiceName !==
-                this.props.domainDetails.businessService &&
+            this.props.domainDetails.businessService &&
             prevProps.domainDetails !== this.props.domainDetails
         ) {
             this.setState({
                 businessServiceName: this.props.domainDetails.businessService,
                 tempBusinessServiceName:
-                    this.props.domainDetails.businessService,
+                this.props.domainDetails.businessService,
             });
         }
     };
@@ -127,6 +129,7 @@ export default class DomainDetails extends React.Component {
             auditRef: val,
         });
     }
+
     saveBusinessService(val) {
         this.setState({
             tempBusinessServiceName: val,
@@ -249,10 +252,15 @@ export default class DomainDetails extends React.Component {
     }
 
     closeModal() {
-        this.setState({ showSuccess: null });
+        this.setState({showSuccess: null});
     }
 
     render() {
+        console.log(
+            'domainDetails',
+            this.props.domainDetails,
+            this.props.domainData
+        );
         let localDate = new DateUtils();
         let modifiedDate = localDate.getLocalDate(
             this.props.domainDetails.modified,
@@ -274,8 +282,8 @@ export default class DomainDetails extends React.Component {
         );
         let businessServiceTitle = this.state.businessServiceName
             ? this.state.businessServiceName.substring(
-                  this.state.businessServiceName.indexOf(':') + 1
-              )
+                this.state.businessServiceName.indexOf(':') + 1
+            )
             : 'add';
         if (!businessServiceTitle) {
             businessServiceTitle = this.state.businessServiceName
@@ -301,7 +309,7 @@ export default class DomainDetails extends React.Component {
                                     onClick={() =>
                                         window.open(
                                             this.props.productMasterLink.url +
-                                                this.props.domainDetails.ypmId,
+                                            this.props.domainDetails.ypmId,
                                             this.props.productMasterLink.target
                                         )
                                     }
@@ -406,3 +414,15 @@ export default class DomainDetails extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        domainDetails: selectDomainData(state),
+        productMasterLink: selectProductMasterLink(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DomainDetails);

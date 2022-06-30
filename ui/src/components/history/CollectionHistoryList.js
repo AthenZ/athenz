@@ -15,13 +15,14 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Button from '../denali/Button';
 import FlatPicker from '../flatpicker/FlatPicker';
 import Menu from '../denali/Menu/Menu';
 import Alert from '../denali/Alert';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
+
 const HistorySectionDiv = styled.div`
     margin: 20px;
 `;
@@ -88,7 +89,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -100,6 +101,7 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
+// this component is not supposed to connect into the store because it has multiple place which use it and it will be easier to use the father's props.
 export default class CollectionHistoryList extends React.Component {
     constructor(props) {
         super(props);
@@ -118,7 +120,7 @@ export default class CollectionHistoryList extends React.Component {
     }
 
     closeModal() {
-        this.setState({ showSuccess: null });
+        this.setState({showSuccess: null});
     }
 
     exportToCSV() {
@@ -146,11 +148,11 @@ export default class CollectionHistoryList extends React.Component {
         this.downloadCSV(
             result,
             this.props.domain +
-                '-' +
-                this.props.collection +
-                '-' +
-                this.props.category +
-                '-audit-history.csv'
+            '-' +
+            this.props.collection +
+            '-' +
+            this.props.category +
+            '-audit-history.csv'
         );
     }
 
@@ -158,7 +160,7 @@ export default class CollectionHistoryList extends React.Component {
         let csvFile;
         let downloadLink;
         // CSV file
-        csvFile = new Blob([csv], { type: 'text/csv' });
+        csvFile = new Blob([csv], {type: 'text/csv'});
         // Download link
         downloadLink = document.createElement('a');
         // File name
@@ -224,16 +226,16 @@ export default class CollectionHistoryList extends React.Component {
                 }
                 let historyRows = data.auditLog
                     ? data.auditLog.filter(
-                          (item) =>
-                              item.created >=
-                                  this.dateUtils.uxDatetimeToRDLTimestamp(
-                                      this.state.startDate
-                                  ) &&
-                              item.created <=
-                                  this.dateUtils.uxDatetimeToRDLTimestamp(
-                                      this.state.endDate
-                                  )
-                      )
+                        (item) =>
+                            item.created >=
+                            this.dateUtils.uxDatetimeToRDLTimestamp(
+                                this.state.startDate
+                            ) &&
+                            item.created <=
+                            this.dateUtils.uxDatetimeToRDLTimestamp(
+                                this.state.endDate
+                            )
+                    )
                     : [];
                 this.setState({
                     list: historyRows,
@@ -311,10 +313,10 @@ export default class CollectionHistoryList extends React.Component {
         return (
             <HistorySectionDiv data-testid='collection-history-list'>
                 <HistoryFilterDiv>
-                    <div />
+                    <div/>
                     <HistoryFilterTitleDiv>Start Date</HistoryFilterTitleDiv>
                     <HistoryFilterTitleDiv>End Date</HistoryFilterTitleDiv>
-                    <div />
+                    <div/>
                     <div>
                         <Button onClick={this.exportToCSV}>
                             Export to CSV
@@ -323,7 +325,7 @@ export default class CollectionHistoryList extends React.Component {
                     <FlatPickrInputDiv>
                         <FlatPicker
                             onChange={(startDate) => {
-                                this.setState({ startDate });
+                                this.setState({startDate});
                             }}
                             minDate={this.getMinDate()}
                             maxDate={new Date()}
@@ -338,7 +340,7 @@ export default class CollectionHistoryList extends React.Component {
                     <FlatPickrInputDiv>
                         <FlatPicker
                             onChange={(endDate) => {
-                                this.setState({ endDate });
+                                this.setState({endDate});
                             }}
                             minDate={this.getMinDate()}
                             maxDate={new Date()}
@@ -358,23 +360,23 @@ export default class CollectionHistoryList extends React.Component {
                 </HistoryFilterDiv>
                 <HistoryTable>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                ACTION
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                EXECUTED BY
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                MODIFIED DATE
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                MEMBERS
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                AUDIT REFERENCE
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={left}>
+                            ACTION
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            EXECUTED BY
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            MODIFIED DATE
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            MEMBERS
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            AUDIT REFERENCE
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </HistoryTable>

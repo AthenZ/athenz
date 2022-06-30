@@ -18,11 +18,12 @@ import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import SearchInput from '../denali/SearchInput';
 import Alert from '../denali/Alert';
-import { MODAL_TIME_OUT } from '../constants/constants';
-import RequestUtils from '../utils/RequestUtils';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
-import GroupTable from './GroupTable';
 import AddGroup from './AddGroup';
+import {connect} from 'react-redux';
+import {selectGroups} from '../../redux/selectors/group';
+import GroupTable from '../microsegmentation/GroupTable';
 
 const GroupsSectionDiv = styled.div`
     margin: 20px;
@@ -40,13 +41,13 @@ const AddContainerDiv = styled.div`
     flex-flow: row nowrap;
 `;
 
-export default class GroupList extends React.Component {
+class GroupList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
         this.state = {
             showAddGroup: false,
-            groups: props.groups || [],
+            // groups: props.groups || [],
             errorMessage: null,
             searchText: '',
             error: false,
@@ -65,7 +66,7 @@ export default class GroupList extends React.Component {
     componentDidUpdate = (prevProps) => {
         if (prevProps.domain !== this.props.domain) {
             this.setState({
-                groups: this.props.groups,
+                // groups: this.props.groups,
                 showAddGroup: false,
                 errorMessage: null,
                 searchText: '',
@@ -74,41 +75,33 @@ export default class GroupList extends React.Component {
     };
 
     reloadGroups(successMessage, groupName, showSuccess = true) {
-        this.api
-            .reloadGroups(this.props.domain, groupName)
-            .then((groups) => {
+        console.log('reloadGroups', successMessage, showSuccess);
+        this.setState({
+            showAddGroup: false,
+            showSuccess,
+            successMessage,
+            errorMessage: null,
+        });
+
+        setTimeout(
+            () =>
                 this.setState({
-                    groups,
-                    showAddGroup: false,
-                    showSuccess,
-                    successMessage,
-                    errorMessage: null,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                            successMessage: '',
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                    successMessage: '',
+                }),
+            MODAL_TIME_OUT
+        );
+        // this is to close the success alert
     }
 
     closeModal() {
-        this.setState({ showSuccess: null });
+        this.setState({showSuccess: null});
     }
 
     render() {
-        let groups = this.state.groups;
+        let groups = this.props.groups;
         if (this.state.searchText.trim() !== '') {
-            groups = this.state.groups.filter((group) => {
+            groups = this.props.groups.filter((group) => {
                 return NameUtils.getShortName(':group.', group.name).includes(
                     this.state.searchText.trim()
                 );
@@ -116,7 +109,7 @@ export default class GroupList extends React.Component {
         }
         let addGroup = this.state.showAddGroup ? (
             <AddGroup
-                api={this.api}
+                // api={this.api}
                 domain={this.props.domain}
                 onSubmit={this.reloadGroups}
                 onCancel={this.toggleAddGroup}
@@ -129,7 +122,7 @@ export default class GroupList extends React.Component {
         );
 
         let searchInput =
-            this.state.groups.length > 0 ? (
+            this.props.groups.length > 0 ? (
                 <SearchInput
                     dark={false}
                     name='search'
@@ -158,7 +151,7 @@ export default class GroupList extends React.Component {
                         {addGroup}
                     </div>
                 </AddContainerDiv>
-                {this.state.groups.length > 0 && (
+                {this.props.groups.length > 0 && (
                     <GroupTable
                         groups={groups}
                         api={this.api}
@@ -182,3 +175,12 @@ export default class GroupList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        groups: selectGroups(state),
+    };
+};
+
+export default connect(mapStateToProps)(GroupList);

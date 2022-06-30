@@ -16,13 +16,16 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import DeleteModal from '../modal/DeleteModal';
 import Alert from '../denali/Alert';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import { keyframes, css } from '@emotion/react';
+import {css, keyframes} from '@emotion/react';
+import {selectRoleUsers} from '../../redux/selectors/roles';
+import {getRoleMembers} from '../../redux/thunks/roles';
+import {connect} from 'react-redux';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -84,12 +87,12 @@ const TrStyled = styled.div`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const StyledTd = styled.div`
@@ -114,7 +117,7 @@ const FlexDiv = styled.div`
     display: flex;
 `;
 
-export default class UserRoleTable extends React.Component {
+class UserRoleTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -261,7 +264,7 @@ export default class UserRoleTable extends React.Component {
     }
 
     saveJustification(val) {
-        this.setState({ deleteJustification: val });
+        this.setState({deleteJustification: val});
     }
 
     expandRole(memberName) {
@@ -270,6 +273,14 @@ export default class UserRoleTable extends React.Component {
         const left = 'left';
         let content = this.state.contents;
         let expandArray = this.state.expandTable;
+        console.log('content: ', content);
+        console.log(
+            'expand role: ',
+            this.state,
+            memberName,
+            content[memberName]
+        );
+
         if (content[memberName] !== null) {
             content[memberName] = null;
             expandArray[memberName] = false;
@@ -277,6 +288,7 @@ export default class UserRoleTable extends React.Component {
                 contents: content,
                 expandTable: expandArray,
             });
+            console.log('expand role if the if: ', this.state, memberName);
         } else {
             content[memberName] = expand[memberName].map((role, i) => {
                 let deleteItem = this.deleteItem.bind(
@@ -292,10 +304,10 @@ export default class UserRoleTable extends React.Component {
                         <TDStyledIcon align={center}>
                             {role.expiration
                                 ? this.dateUtils.getLocalDate(
-                                      role.expiration,
-                                      'UTC',
-                                      'UTC'
-                                  )
+                                    role.expiration,
+                                    'UTC',
+                                    'UTC'
+                                )
                                 : null}
                         </TDStyledIcon>
                         <TDStyledIcon align={center}>
@@ -316,10 +328,29 @@ export default class UserRoleTable extends React.Component {
                 contents: content,
                 expandTable: expandArray,
             });
+            console.log('expand role if the else: ', this.state, memberName);
         }
     }
 
+    // TODO roy - check if need to be seperate reducer or part of the roles.
     loadRoleByUser() {
+        let onSuccess = () => {
+            this.setState({
+                loaded: 'done',
+            });
+        };
+        let onFail = (err) => {
+            let message;
+            if (err.statusCode === 0) {
+                window.location.reload();
+            } else {
+                message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
+            }
+            this.setState({
+                errorMessage: message,
+            });
+        };
+        this.props.getRoleMembers(this.props.domain, onSuccess, onFail);
         this.api
             .getRoleMembers(this.props.domain)
             .then((members) => {
@@ -363,7 +394,7 @@ export default class UserRoleTable extends React.Component {
     }
 
     render() {
-        const { domain } = this.props;
+        const {domain} = this.props;
         const center = 'center';
         const left = 'left';
         let deleteCancel = this.deleteRoleCancel.bind(this);
@@ -371,7 +402,7 @@ export default class UserRoleTable extends React.Component {
         let submitDeleteMember = this.onSubmitDeleteMember.bind(this, domain);
         let closeSuccess = this.onCloseAlert.bind(this);
         if (this.state.loaded === 'todo') {
-            return <div data-testid='userroletable' />;
+            return <div data-testid='userroletable'/>;
         }
         const rows =
             this.state.list.members &&
@@ -416,20 +447,20 @@ export default class UserRoleTable extends React.Component {
                                         />
                                     </LeftMarginSpan>
                                     {item.memberName +
-                                        (this.state.fullNames[
-                                            item.memberName
+                                    (this.props.roleUsers.fullNames[
+                                        item.memberName
                                         ] !== undefined
-                                            ? ' (' +
-                                              this.state.fullNames[
-                                                  item.memberName
-                                              ] +
-                                              ')'
-                                            : '') +
-                                        ' (' +
-                                        item.memberRoles.length +
-                                        ')'}
+                                        ? ' (' +
+                                        this.props.roleUsers.fullNames[
+                                            item.memberName
+                                            ] +
+                                        ')'
+                                        : '') +
+                                    ' (' +
+                                    item.memberRoles.length +
+                                    ')'}
                                 </TDStyledMember>
-                                <TDStyledIcon align={center} />
+                                <TDStyledIcon align={center}/>
                                 <TDStyledIcon align={center}>
                                     <Icon
                                         icon={'trash'}
@@ -467,20 +498,22 @@ export default class UserRoleTable extends React.Component {
                                                     />
                                                 </LeftMarginSpan>
                                                 {item.memberName +
-                                                    (this.state.fullNames[
-                                                        item.memberName
+                                                (this.props.roleUsers
+                                                    .fullNames[
+                                                    item.memberName
                                                     ] !== undefined
-                                                        ? ' (' +
-                                                          this.state.fullNames[
-                                                              item.memberName
-                                                          ] +
-                                                          ')'
-                                                        : '') +
-                                                    ' (' +
-                                                    item.memberRoles.length +
-                                                    ')'}
+                                                    ? ' (' +
+                                                    this.props.roleUsers
+                                                        .fullNames[
+                                                        item.memberName
+                                                        ] +
+                                                    ')'
+                                                    : '') +
+                                                ' (' +
+                                                item.memberRoles.length +
+                                                ')'}
                                             </TDStyledMember>
-                                            <TDStyledIcon align={center} />
+                                            <TDStyledIcon align={center}/>
                                             <TDStyledIcon align={center}>
                                                 <Icon
                                                     icon={'trash'}
@@ -494,7 +527,11 @@ export default class UserRoleTable extends React.Component {
                                                 />
                                             </TDStyledIcon>
                                         </FlexDiv>
-                                        {this.state.contents[item.memberName]}
+                                        {
+                                            this.props.roleUsers.contents[
+                                                item.memberName
+                                                ]
+                                        }
                                     </StyledTable>
                                 </StyledTd>
                             </TrStyled>
@@ -547,3 +584,17 @@ export default class UserRoleTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roleUsers: selectRoleUsers(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getRoleMembers: (domainName, onSuccess, onFail) =>
+        dispatch(getRoleMembers(domainName, onSuccess, onFail)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserRoleTable);

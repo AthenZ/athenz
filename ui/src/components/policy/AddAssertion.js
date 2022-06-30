@@ -20,6 +20,8 @@ import Button from '../denali/Button';
 import { colors } from '../denali/styles';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import { addAssertionPolicyVersion } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
 
 const StyledDiv = styled.div`
     background-color: ${colors.white};
@@ -38,7 +40,7 @@ const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
 
-export default class AddAssertion extends React.Component {
+class AddAssertion extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -74,29 +76,28 @@ export default class AddAssertion extends React.Component {
             });
             return;
         }
-        this.api
-            .addAssertionPolicyVersion(
-                this.props.domain,
-                this.props.name,
-                this.props.version,
-                this.state.role,
-                this.state.resource,
-                this.state.action,
-                this.state.effect,
-                this.state.case,
-                this.props._csrf
-            )
-            .then((data) => {
+        this.props.addAssertionPolicyVersion(
+            this.props.domain,
+            this.props.name,
+            this.props.version,
+            this.state.role,
+            this.state.resource,
+            this.state.action,
+            this.state.effect,
+            this.state.case,
+            this.props._csrf,
+            (data) => {
                 this.props.submit(
-                    `${this.props.name}-${this.props.version}-${this.state.role}-${this.state.resource}-${this.state.action}`,
+                    `${this.props.name}-${this.props.version}-${data.role}-${data.resource}-${data.action}`,
                     false
                 );
-            })
-            .catch((err) => {
+            },
+            (err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
-            });
+            }
+        );
     }
 
     render() {
@@ -125,3 +126,36 @@ export default class AddAssertion extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    addAssertionPolicyVersion: (
+        domain,
+        policyName,
+        version,
+        role,
+        resource,
+        action,
+        effect,
+        caseSensitive,
+        _csrf,
+        onSuccess,
+        onFail
+    ) =>
+        dispatch(
+            addAssertionPolicyVersion(
+                domain,
+                policyName,
+                version,
+                role,
+                resource,
+                action,
+                effect,
+                caseSensitive,
+                _csrf,
+                onSuccess,
+                onFail
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(AddAssertion);

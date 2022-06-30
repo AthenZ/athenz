@@ -15,15 +15,19 @@
  */
 import React from 'react';
 import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import NameUtils from '../utils/NameUtils';
 import styled from '@emotion/styled';
 import DeleteModal from '../modal/DeleteModal';
 import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import { withRouter } from 'next/router';
-import { css, keyframes } from '@emotion/react';
+import {withRouter} from 'next/router';
+import {css, keyframes} from '@emotion/react';
+import {deleteRole} from '../../redux/thunks/roles';
+import {connect} from 'react-redux';
+import {selectDomainAuditEnabled,} from '../../redux/selectors/domainData';
+import {selectRoles} from '../../redux/selectors/roles';
 
 const TDStyledName = styled.div`
     background-color: ${(props) => props.color};
@@ -71,12 +75,12 @@ const TrStyled = styled.div`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const MenuDiv = styled.div`
@@ -105,7 +109,7 @@ class RoleRow extends React.Component {
     }
 
     saveJustification(val) {
-        this.setState({ deleteJustification: val });
+        this.setState({deleteJustification: val});
     }
 
     onClickDelete(name) {
@@ -131,32 +135,30 @@ class RoleRow extends React.Component {
             });
             return;
         }
-
-        this.api
-            .deleteRole(
-                domain,
-                roleName,
-                this.state.deleteJustification
-                    ? this.state.deleteJustification
-                    : 'deleted using Athenz UI',
-                this.props._csrf
-            )
-            .then(() => {
-                this.setState({
-                    showDelete: false,
-                    deleteName: null,
-                    deleteJustification: null,
-                    errorMessage: null,
-                });
-                this.props.onUpdateSuccess(
-                    `Successfully deleted role ${roleName}`
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        let auditRef = this.state.deleteJustification
+            ? this.state.deleteJustification
+            : 'deleted using Athenz UI';
+        let onSuccess = (roleName) => {
+            this.setState({
+                showDelete: false,
+                deleteName: null,
+                deleteJustification: null,
+                errorMessage: null,
             });
+            this.props.onUpdateSuccess(`Successfully deleted role ${roleName}`);
+        };
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        };
+        this.props.deleteRole(
+            roleName,
+            auditRef,
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     onClickDeleteCancel() {
@@ -275,10 +277,10 @@ class RoleRow extends React.Component {
                 <TDStyledTime color={color} align={left}>
                     {role.lastReviewedDate
                         ? this.localDate.getLocalDate(
-                              role.lastReviewedDate,
-                              'UTC',
-                              'UTC'
-                          )
+                            role.lastReviewedDate,
+                            'UTC',
+                            'UTC'
+                        )
                         : 'N/A'}
                 </TDStyledTime>
                 <TDStyledIcon color={color} align={center}>
@@ -441,4 +443,21 @@ class RoleRow extends React.Component {
         return rows;
     }
 }
-export default withRouter(RoleRow);
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roles: selectRoles(state),
+        justificationRequired: selectDomainAuditEnabled(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteRole: (roleName, auditRef, _csrf, onSuccess, onFail) =>
+        dispatch(deleteRole(roleName, auditRef, _csrf, onSuccess, onFail)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(RoleRow));

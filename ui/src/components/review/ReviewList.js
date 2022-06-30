@@ -15,15 +15,17 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
+import Alert from '../denali/Alert';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import GroupReviewTable from '../group/GroupReviewTable';
 import ReviewTable from './ReviewTable';
-import Alert from '../denali/Alert';
-import { MODAL_TIME_OUT } from '../constants/constants';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
 `;
 
+// dont need to make it as redux because it get props from groups and role and in order to not need to figure out
+// which data to get from the store it easier to get the data from the father component which is seperated between roles and groups
 export default class ReviewList extends React.Component {
     constructor(props) {
         super(props);
@@ -65,20 +67,17 @@ export default class ReviewList extends React.Component {
     }
 
     closeModal() {
-        this.setState({ showSuccess: null });
+        this.setState({showSuccess: null});
     }
 
     render() {
-        const { domain, collection, collectionDetails } = this.props;
-
+        const {domain, collection, collectionDetails} = this.props;
         return (
             <RolesSectionDiv data-testid='review-list'>
                 {this.props.category === 'group' && (
                     <GroupReviewTable
                         domain={domain}
-                        group={collection}
-                        groupDetails={collectionDetails}
-                        members={this.state.members}
+                        groupName={collection}
                         api={this.api}
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
@@ -91,7 +90,7 @@ export default class ReviewList extends React.Component {
                         domain={domain}
                         role={collection}
                         roleDetails={collectionDetails}
-                        members={this.state.members}
+                        members={this.props.members}
                         api={this.api}
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}

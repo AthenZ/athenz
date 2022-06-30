@@ -15,16 +15,18 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Icon from '../denali/icons/Icon';
 import ServiceKeyUtils from '../utils/ServiceKeyUtils';
 import Color from '../denali/Color';
 import AddKey from './AddKey';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
-import { css, keyframes } from '@emotion/react';
+import {css, keyframes} from '@emotion/react';
+import {deleteKey} from '../../redux/thunks/services';
+import {connect} from 'react-redux';
 
 const HeaderDiv = styled.div`
     display: flex;
@@ -105,15 +107,15 @@ const StyledAnchor = styled.a`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
-export default class PublicKeyTable extends React.Component {
+class PublicKeyTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -165,7 +167,7 @@ export default class PublicKeyTable extends React.Component {
     }
 
     closeModal() {
-        this.setState({ showSuccess: false });
+        this.setState({showSuccess: false});
     }
 
     onClickDeleteKey(keyId) {
@@ -177,24 +179,28 @@ export default class PublicKeyTable extends React.Component {
     }
 
     onSubmitDeleteKey() {
-        this.api
+
+        const onSuccess = () => {
+            this.reloadKeys(
+                `Successfully deleted key id ${this.state.deleteKeyId} from service ${this.props.service}`,
+                true
+            );
+        };
+
+        const onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        }
+
+        this.props
             .deleteKey(
-                this.props.domain,
                 this.props.service,
                 this.state.deleteKeyId,
-                this.props._csrf
-            )
-            .then(() => {
-                this.reloadKeys(
-                    `Successfully deleted key id ${this.state.deleteKeyId} from service ${this.props.service}`,
-                    true
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                this.props._csrf,
+                onSuccess,
+                onFail,
+            );
     }
 
     onCancelDeleteKey() {
@@ -311,3 +317,10 @@ export default class PublicKeyTable extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteKey: (serviceName, deleteKeyId, _csrf, onSuccess, onFail) =>
+        dispatch(deleteKey(serviceName, deleteKeyId, _csrf, onSuccess, onFail)),
+});
+
+export default connect(null, mapDispatchToProps)(PublicKeyTable);

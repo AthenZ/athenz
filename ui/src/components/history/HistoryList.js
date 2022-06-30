@@ -15,15 +15,17 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Button from '../denali/Button';
 import InputDropdown from '../denali/InputDropdown';
 import FlatPicker from '../flatpicker/FlatPicker';
 import NameUtils from '../utils/NameUtils';
 import Alert from '../denali/Alert';
 import Menu from '../denali/Menu/Menu';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {MODAL_TIME_OUT} from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
+import {connect} from 'react-redux';
+
 const HistorySectionDiv = styled.div`
     margin: 20px;
 `;
@@ -90,7 +92,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -106,13 +108,14 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class HistoryList extends React.Component {
+class HistoryList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
+        console.log('HistoryList constructor historyrows', this.props.historyrows);
         this.state = {
             list: props.historyrows || [],
-            selectedRole: { name: 'ALL', value: 'ALL' },
+            selectedRole: {name: 'ALL', value: 'ALL'},
             roles: props.roles || [],
             startDate: this.getDefaultStartDate(props.startDate),
             endDate: props.endDate ? new Date(props.endDate) : new Date(),
@@ -126,7 +129,7 @@ export default class HistoryList extends React.Component {
     }
 
     closeModal() {
-        this.setState({ showSuccess: null });
+        this.setState({showSuccess: null});
     }
 
     exportToCSV() {
@@ -161,7 +164,7 @@ export default class HistoryList extends React.Component {
         let csvFile;
         let downloadLink;
         // CSV file
-        csvFile = new Blob([csv], { type: 'text/csv' });
+        csvFile = new Blob([csv], {type: 'text/csv'});
         // Download link
         downloadLink = document.createElement('a');
         // File name
@@ -246,13 +249,14 @@ export default class HistoryList extends React.Component {
 
     onRoleChange(selected) {
         if (selected) {
-            this.setState({ selectedRole: selected });
+            this.setState({selectedRole: selected});
         } else {
-            this.setState({ selectedRole: { name: 'ALL', value: 'ALL' } });
+            this.setState({selectedRole: {name: 'ALL', value: 'ALL'}});
         }
     }
 
     render() {
+        console.log("render HistoryList, store is", this.props.store);
         const left = 'left';
         const rows = this.state.list.map((item, i) => {
             let color = '';
@@ -293,19 +297,19 @@ export default class HistoryList extends React.Component {
         });
         const rolesOptions = this.state.roles.map((item, i) => {
             let roleName = NameUtils.getShortName(':role.', item.name);
-            return { name: roleName, value: roleName };
+            return {name: roleName, value: roleName};
         });
-        rolesOptions.push({ name: 'ALL', value: 'ALL' });
+        rolesOptions.push({name: 'ALL', value: 'ALL'});
         return (
             <HistorySectionDiv data-testid='history-list'>
                 <HistoryFilterDiv>
-                    <div />
+                    <div/>
                     <HistoryFilterTitleDiv>
                         Filter by Role
                     </HistoryFilterTitleDiv>
                     <HistoryFilterTitleDiv>Start Date</HistoryFilterTitleDiv>
                     <HistoryFilterTitleDiv>End Date</HistoryFilterTitleDiv>
-                    <div />
+                    <div/>
                     <div>
                         <Button onClick={this.exportToCSV}>
                             Export to CSV
@@ -325,7 +329,7 @@ export default class HistoryList extends React.Component {
                     <FlatPickrInputDiv>
                         <FlatPicker
                             onChange={(startDate) => {
-                                this.setState({ startDate });
+                                this.setState({startDate});
                             }}
                             minDate={this.getMinDate()}
                             maxDate={new Date()}
@@ -340,7 +344,7 @@ export default class HistoryList extends React.Component {
                     <FlatPickrInputDiv>
                         <FlatPicker
                             onChange={(endDate) => {
-                                this.setState({ endDate });
+                                this.setState({endDate});
                             }}
                             minDate={this.getMinDate()}
                             maxDate={new Date()}
@@ -360,26 +364,26 @@ export default class HistoryList extends React.Component {
                 </HistoryFilterDiv>
                 <HistoryTable>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                ACTION
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                ENTITY
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                EXECUTED BY
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                MODIFIED DATE
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                DETAILS
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                JUSTIFICATION
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={left}>
+                            ACTION
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            ENTITY
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            EXECUTED BY
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            MODIFIED DATE
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            DETAILS
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            JUSTIFICATION
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </HistoryTable>
@@ -395,3 +399,13 @@ export default class HistoryList extends React.Component {
         );
     }
 }
+
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roles: state.roles.roles,
+    };
+};
+
+export default connect(mapStateToProps, null)(HistoryList);

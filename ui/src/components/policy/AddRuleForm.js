@@ -20,9 +20,10 @@ import Input from '../denali/Input';
 import InputDropdown from '../denali/InputDropdown';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
-import RequestUtils from '../utils/RequestUtils';
 import Color from '../denali/Color';
 import CheckBox from '../denali/CheckBox';
+import { connect } from 'react-redux';
+import { selectRoles } from '../../redux/selectors/roles';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -63,7 +64,7 @@ const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
 
-export default class AddRuleForm extends React.Component {
+export class AddRuleForm extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -80,6 +81,7 @@ export default class AddRuleForm extends React.Component {
                     value: 'DENY',
                 },
             ],
+            roles: this.getRoles(),
             selectedEffect: 'ALLOW',
             errorMessage: null,
             name: '',
@@ -87,7 +89,6 @@ export default class AddRuleForm extends React.Component {
             resource: '',
             case: false,
         };
-        this.getRoles();
     }
 
     ruleEffectChanged(evt) {
@@ -96,26 +97,15 @@ export default class AddRuleForm extends React.Component {
     }
 
     getRoles() {
-        this.api
-            .listRoles(this.props.domain)
-            .then((data) => {
-                let options = [];
-                data.forEach((role) => {
-                    options.push({
-                        value: role,
-                        name: role,
-                    });
-                });
-                this.setState({
-                    roles: options,
-                    errorMessage: null,
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        let options = [];
+        this.props.roles.forEach((role) => {
+            let shortName = role.name.split(':role.')[1];
+            options.push({
+                value: shortName,
+                name: shortName,
             });
+        });
+        return options;
     }
 
     roleChanged(evt) {
@@ -238,3 +228,12 @@ export default class AddRuleForm extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roles: selectRoles(state),
+    };
+};
+
+export default connect(mapStateToProps, null)(AddRuleForm);

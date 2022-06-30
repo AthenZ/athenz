@@ -16,7 +16,7 @@
 import React from 'react';
 import AddModal from '../modal/AddModal';
 import FlatPicker from '../flatpicker/FlatPicker';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import styled from '@emotion/styled';
@@ -25,6 +25,12 @@ import DateUtils from '../utils/DateUtils';
 import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
 import SearchInput from '../denali/SearchInput';
+import {selectIsLoading} from '../../redux/selectors';
+import {selectDomainData} from '../../redux/selectors/domainData';
+import {selectRoles} from '../../redux/selectors/roles';
+import {getRoles} from '../../redux/thunks/roles';
+import {getDomainData} from '../../redux/thunks/domain';
+import {connect} from 'react-redux';
 
 const SectionsDiv = styled.div`
     width: 800px;
@@ -66,6 +72,7 @@ const FlatPickrInputDiv = styled.div`
     margin-right: 10px;
     max-width: 500px;
     width: 260px;
+
     & > div input {
         position: relative;
         font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
@@ -86,7 +93,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -111,7 +118,7 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
-export default class AddMemberToRoles extends React.Component {
+class AddMemberToRoles extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -158,15 +165,15 @@ export default class AddMemberToRoles extends React.Component {
             expiration:
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberExpiry
-                      )
+                        this.state.memberExpiry
+                    )
                     : '',
             reviewReminder:
                 this.state.memberReviewReminder &&
                 this.state.memberReviewReminder.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberReviewReminder
-                      )
+                        this.state.memberReviewReminder
+                    )
                     : '',
         };
         // send api call and then reload existing members component
@@ -199,7 +206,7 @@ export default class AddMemberToRoles extends React.Component {
     }
 
     inputChanged(key, evt) {
-        this.setState({ [key]: evt.target.value });
+        this.setState({[key]: evt.target.value});
     }
 
     onCheckboxChanged(role, event) {
@@ -211,7 +218,7 @@ export default class AddMemberToRoles extends React.Component {
         } else {
             checkedRoles.push(role);
         }
-        this.setState({ checkedRoles });
+        this.setState({checkedRoles});
     }
 
     render() {
@@ -262,7 +269,7 @@ export default class AddMemberToRoles extends React.Component {
                         <FlatPickrInputDiv>
                             <FlatPicker
                                 onChange={(memberExpiry) => {
-                                    this.setState({ memberExpiry });
+                                    this.setState({memberExpiry});
                                 }}
                                 id='addMemberToRoles'
                                 clear={this.state.memberExpiry}
@@ -271,7 +278,7 @@ export default class AddMemberToRoles extends React.Component {
                         <FlatPickrInputDiv>
                             <FlatPicker
                                 onChange={(memberReviewReminder) => {
-                                    this.setState({ memberReviewReminder });
+                                    this.setState({memberReviewReminder});
                                 }}
                                 placeholder='Reminder (Optional)'
                                 id='addMemberToRoles-reminder'
@@ -334,3 +341,23 @@ export default class AddMemberToRoles extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+        roles: selectRoles(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getRoles: (domainName) => dispatch(getRoles(domainName)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(AddMemberToRoles);

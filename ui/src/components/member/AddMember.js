@@ -16,17 +16,16 @@
 import React from 'react';
 import AddModal from '../modal/AddModal';
 import FlatPicker from '../flatpicker/FlatPicker';
-import { colors } from '../denali/styles';
+import {colors} from '../denali/styles';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import styled from '@emotion/styled';
-import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
-import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
-import MemberUtils from '../utils/MemberUtils';
-import { GROUP_MEMBER_NAME_REGEX } from '../constants/constants';
+import {GROUP_MEMBER_NAME_REGEX} from '../constants/constants';
 import RegexUtils from '../utils/RegexUtils';
+import {connect} from 'react-redux';
+import {addMember} from '../../redux/thunks/collections';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -63,6 +62,7 @@ const FlatPickrInputDiv = styled.div`
     margin-right: 10px;
     max-width: 500px;
     width: 260px;
+
     & > div input {
         position: relative;
         font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
@@ -83,7 +83,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -92,10 +92,9 @@ const StyledJustification = styled(Input)`
     width: 300px;
 `;
 
-export default class AddMember extends React.Component {
+class AddMember extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.state = {
             showModal: !!this.props.showAddMember,
@@ -139,49 +138,51 @@ export default class AddMember extends React.Component {
             expiration:
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberExpiry
-                      )
+                        this.state.memberExpiry
+                    )
                     : '',
             reviewReminder:
                 this.state.memberReviewReminder &&
                 this.state.memberReviewReminder.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberReviewReminder
-                      )
+                        this.state.memberReviewReminder
+                    )
                     : '',
         };
-        // send api call and then reload existing members component
-        this.api
-            .addMember(
-                this.props.domain,
-                this.props.collection,
-                this.state.memberName,
-                member,
-                this.state.justification
-                    ? this.state.justification
-                    : 'added using Athenz UI',
-                this.props.category,
-                this.props._csrf
-            )
-            .then(() => {
-                this.setState({
-                    showModal: false,
-                    justification: '',
-                });
-                this.props.onSubmit(
-                    `${this.state.memberName}-${this.props.category}-${this.props.domain}-${this.props.collection}`,
-                    false
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+
+        let onSuccess = () => {
+            this.setState({
+                showModal: false,
+                justification: '',
             });
+            this.props.onSubmit(
+                `${this.state.memberName}-${this.props.category}-${this.props.domainName}-${this.props.collection}`,
+                false
+            );
+        };
+        let onFail = (err) => {
+            this.setState({
+                errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+            });
+        };
+
+        // change the props names to group and not groupName
+        this.props.addMember(
+            this.props.domainName,
+            this.props.collection,
+            this.props.category,
+            member,
+            this.state.justification
+                ? this.state.justification
+                : 'added using Athenz UI',
+            this.props._csrf,
+            onSuccess,
+            onFail
+        );
     }
 
     inputChanged(key, evt) {
-        this.setState({ [key]: evt.target.value });
+        this.setState({[key]: evt.target.value});
     }
 
     render() {
@@ -215,7 +216,7 @@ export default class AddMember extends React.Component {
                         <FlatPickrInputDiv>
                             <FlatPicker
                                 onChange={(memberExpiry) => {
-                                    this.setState({ memberExpiry });
+                                    this.setState({memberExpiry});
                                 }}
                                 id='addMember'
                                 clear={this.state.memberExpiry}
@@ -226,7 +227,7 @@ export default class AddMember extends React.Component {
                         <FlatPickrInputDiv>
                             <FlatPicker
                                 onChange={(memberReviewReminder) => {
-                                    this.setState({ memberReviewReminder });
+                                    this.setState({memberReviewReminder});
                                 }}
                                 placeholder='Reminder (Optional)'
                                 id='addMemberToRoles-reminder'
@@ -276,3 +277,36 @@ export default class AddMember extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addMember: (
+        domainName,
+        collection,
+        category,
+        member,
+        auditRef,
+        _csrf,
+        onSubmit,
+        onFail
+    ) =>
+        dispatch(
+            addMember(
+                domainName,
+                collection,
+                category,
+                member,
+                auditRef,
+                _csrf,
+                onSubmit,
+                onFail
+            )
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddMember);

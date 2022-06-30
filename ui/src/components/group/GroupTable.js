@@ -51,34 +51,18 @@ const TableHeadStyledGroupName = styled.th`
     word-break: break-all;
 `;
 
+// we dont connect it to the store because we want to use the groups from the props after filter by search
 export default class GroupTable extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
-
-        this.state = {
-            groups: props.groups || [],
-        };
     }
 
-    componentDidUpdate = (prevProps) => {
-        if (prevProps.domain !== this.props.domain) {
-            this.setState({
-                rows: {},
-            });
-        } else if (prevProps.groups !== this.props.groups) {
-            this.setState({
-                groups: this.props.groups || [],
-            });
-        }
-    };
-
     render() {
-        const { domain } = this.props;
+        const {domain, groups} = this.props;
         let rows = [];
-
-        if (this.props.groups && this.props.groups.length > 0) {
-            rows = this.props.groups
+        if (groups && groups.length > 0) {
+            rows = groups
                 .sort((a, b) => {
                     return a.name.localeCompare(b.name);
                 })
@@ -107,30 +91,30 @@ export default class GroupTable extends React.Component {
         return (
             <StyleTable key='group-table' data-testid='grouptable'>
                 <colgroup>
-                    <col style={{ width: 26 + '%' }} />
-                    <col style={{ width: 13 + '%' }} />
-                    <col style={{ width: 13 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
-                    <col style={{ width: 8 + '%' }} />
+                    <col style={{width: 26 + '%'}}/>
+                    <col style={{width: 13 + '%'}}/>
+                    <col style={{width: 13 + '%'}}/>
+                    <col style={{width: 8 + '%'}}/>
+                    <col style={{width: 8 + '%'}}/>
+                    <col style={{width: 8 + '%'}}/>
+                    <col style={{width: 8 + '%'}}/>
+                    <col style={{width: 8 + '%'}}/>
+                    <col style={{width: 8 + '%'}}/>
                 </colgroup>
                 <thead>
-                    <tr>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Group
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyled>Modified Date</TableHeadStyled>
-                        <TableHeadStyled>Reviewed Date</TableHeadStyled>
-                        <TableHeadStyled>Members</TableHeadStyled>
-                        <TableHeadStyled>Roles</TableHeadStyled>
-                        <TableHeadStyled>Tags</TableHeadStyled>
-                        <TableHeadStyled>Settings</TableHeadStyled>
-                        <TableHeadStyled>History</TableHeadStyled>
-                        <TableHeadStyled>Delete</TableHeadStyled>
-                    </tr>
+                <tr>
+                    <TableHeadStyledGroupName align={'left'}>
+                        Group
+                    </TableHeadStyledGroupName>
+                    <TableHeadStyled>Modified Date</TableHeadStyled>
+                    <TableHeadStyled>Reviewed Date</TableHeadStyled>
+                    <TableHeadStyled>Members</TableHeadStyled>
+                    <TableHeadStyled>Roles</TableHeadStyled>
+                    <TableHeadStyled>Tags</TableHeadStyled>
+                    <TableHeadStyled>Settings</TableHeadStyled>
+                    <TableHeadStyled>History</TableHeadStyled>
+                    <TableHeadStyled>Delete</TableHeadStyled>
+                </tr>
                 </thead>
                 <tbody>{rows}</tbody>
             </StyleTable>

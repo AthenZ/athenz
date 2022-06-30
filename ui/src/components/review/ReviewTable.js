@@ -21,7 +21,9 @@ import Color from '../denali/Color';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
-import { withRouter } from 'next/router';
+import {withRouter} from 'next/router';
+import {connect} from 'react-redux';
+import {reviewRole} from '../../redux/thunks/roles';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -96,7 +98,6 @@ class ReviewTable extends React.Component {
         super(props);
         this.api = this.props.api;
         this.submitReview = this.submitReview.bind(this);
-        this.submitRoleMetaExpiry = this.submitRoleMetaExpiry.bind(this);
         this.onClickSettings = this.onClickSettings.bind(this);
         this.cancelRoleMetaUpdate = this.cancelRoleMetaUpdate.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
@@ -112,101 +113,30 @@ class ReviewTable extends React.Component {
     }
 
     loadRole() {
-        if (this.props.roleDetails.trust) {
-            this.props.api
-                .getRole(this.props.domain, this.props.role, false, true, false)
-                .then((role) => {
-                    if (role.trust != null) {
-                        this.setState({
-                            showTrustError: true,
-                            errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
-                        });
-                    } else {
-                        let members =
-                            role.roleMembers &&
-                            role.roleMembers.map((m) => m.memberName);
-                        this.setState({
-                            roleObj: role,
-                            list: role.roleMembers || [],
-                            extendedMembers: new Set(members),
-                            deletedMembers: new Set(),
-                            submittedReview: false,
-                        });
-                    }
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+        const {roleDetails} = this.props;
+        if (roleDetails.trust != null) {
+            this.setState({
+                showTrustError: true,
+                errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
+            });
         } else {
-            this.props.api
-                .getRole(
-                    this.props.domain,
-                    this.props.role,
-                    false,
-                    false,
-                    false
-                )
-                .then((role) => {
-                    if (role.trust != null) {
-                        this.setState({
-                            showTrustError: true,
-                            errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
-                        });
-                    } else {
-                        let members =
-                            role.roleMembers &&
-                            role.roleMembers.map((m) => m.memberName);
-                        this.setState({
-                            roleObj: role,
-                            list: role.roleMembers || [],
-                            extendedMembers: new Set(members),
-                            deletedMembers: new Set(),
-                            submittedReview: false,
-                        });
-                    }
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            let members =
+                roleDetails.roleMembers &&
+                roleDetails.roleMembers.map((m) => m.memberName);
+            this.setState({
+                extendedMembers: new Set(members),
+                deletedMembers: new Set(),
+                submittedReview: false,
+            });
         }
     }
 
     inputChanged(key, evt) {
-        this.setState({ [key]: evt.target.value });
-    }
-
-    submitRoleMetaExpiry() {
-        let roleMeta = {
-            selfServe: this.state.roleObj.selfServe,
-            reviewEnabled: this.state.roleObj.reviewEnabled,
-        };
-        this.props.api
-            .putRoleMeta(
-                this.props.domain,
-                this.props.role,
-                roleMeta,
-                'Added using Athenz UI',
-                this.props._csrf
-            )
-            .then(() => {
-                this.loadRole();
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+        this.setState({[key]: evt.target.value});
     }
 
     submitReview() {
-        if (
-            this.state.roleObj.roleMembers &&
-            this.state.roleObj.roleMembers.length > 0
-        ) {
+        if (this.props.members && this.props.members.length > 0) {
             if (
                 this.state.justification === undefined ||
                 this.state.justification.trim() === ''
@@ -222,7 +152,7 @@ class ReviewTable extends React.Component {
             let role = {
                 name: this.props.role,
             };
-            role.roleMembers = this.state.roleObj.roleMembers;
+            role.roleMembers = this.props.members;
             role.roleMembers.forEach((m) => {
                 if (this.state.deletedMembers.has(m.memberName)) {
                     m.active = false;
@@ -239,31 +169,30 @@ class ReviewTable extends React.Component {
                     return m;
                 }
             });
-            this.props.api
-                .reviewRole(
-                    this.props.domain,
-                    this.props.role,
-                    role,
-                    this.state.justification,
-                    this.props._csrf
-                )
-                .then(() => {
-                    this.setState({
-                        submittedReview: true,
-                        errorMessage: null,
-                    });
-                    this.props.onUpdateSuccess(
-                        `Successfully submitted the review for role ${this.props.role}`
-                    );
-                    this.loadRole();
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
+            let onSuccess = () => {
+                this.setState({
+                    submittedReview: true,
+                    errorMessage: null,
                 });
-        } else {
-            this.props.onUpdateSuccess('There is nothing to review.');
+                this.props.onUpdateSuccess(
+                    `Successfully submitted the review for role ${this.props.role}`
+                );
+                this.loadRole();
+            };
+            let onError = (err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            };
+            this.props.reviewRole(
+                this.props.domain,
+                this.props.role,
+                role,
+                this.state.justification,
+                this.props._csrf,
+                onSuccess,
+                onError
+            );
         }
     }
 
@@ -274,7 +203,8 @@ class ReviewTable extends React.Component {
         );
     }
 
-    cancelRoleMetaUpdate() {}
+    cancelRoleMetaUpdate() {
+    }
 
     onUpdate(key, value) {
         switch (key) {
@@ -296,51 +226,57 @@ class ReviewTable extends React.Component {
     getDefaultExpiryText() {
         let text = 'Current default settings are - ';
         let noDaysConfigured = true;
-        if (this.state.roleObj && this.state.roleObj.memberExpiryDays) {
+        if (this.props.roleDetails && this.props.roleDetails.memberExpiryDays) {
             text =
                 text +
                 'Member Expiry: ' +
-                this.state.roleObj.memberExpiryDays +
+                this.props.roleDetails.memberExpiryDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.serviceExpiryDays) {
+        if (
+            this.props.roleDetails &&
+            this.props.roleDetails.serviceExpiryDays
+        ) {
             text =
                 text +
                 'Service Expiry: ' +
-                this.state.roleObj.serviceExpiryDays +
+                this.props.roleDetails.serviceExpiryDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.groupExpiryDays) {
+        if (this.props.roleDetails && this.props.roleDetails.groupExpiryDays) {
             text =
                 text +
                 'Group Expiry: ' +
-                this.state.roleObj.groupExpiryDays +
+                this.props.roleDetails.groupExpiryDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.memberReviewDays) {
+        if (this.props.roleDetails && this.props.roleDetails.memberReviewDays) {
             text =
                 text +
                 'Member Review: ' +
-                this.state.roleObj.memberReviewDays +
+                this.props.roleDetails.memberReviewDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.serviceReviewDays) {
+        if (
+            this.props.roleDetails &&
+            this.props.roleDetails.serviceReviewDays
+        ) {
             text =
                 text +
                 'Service Review: ' +
-                this.state.roleObj.serviceReviewDays +
+                this.props.roleDetails.serviceReviewDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.groupReviewDays) {
+        if (this.props.roleDetails && this.props.roleDetails.groupReviewDays) {
             text =
                 text +
                 'Group Review: ' +
-                this.state.roleObj.groupReviewDays +
+                this.props.roleDetails.groupReviewDays +
                 ' days. ';
             noDaysConfigured = false;
         }
@@ -353,7 +289,7 @@ class ReviewTable extends React.Component {
         return (
             <SubmitTextSpan>
                 {text}
-                <br />
+                <br/>
                 {changeText}
                 <StyledAnchor onClick={this.onClickSettings}>
                     {' '}
@@ -367,26 +303,26 @@ class ReviewTable extends React.Component {
         const left = 'left';
         let center = 'center';
         const rows =
-            this.state.list && this.state.list.length > 0
-                ? this.state.list
-                      .sort((a, b) => {
-                          return a.memberName.localeCompare(b.memberName);
-                      })
-                      .map((item, i) => {
-                          let color = 'white';
-                          return (
-                              <ReviewRow
-                                  category={'role'}
-                                  key={'role-review-' + i}
-                                  idx={'role-review-' + i}
-                                  details={item}
-                                  role={this.props.role}
-                                  color={color}
-                                  onUpdate={this.onUpdate}
-                                  submittedReview={this.state.submittedReview}
-                              />
-                          );
-                      })
+            this.props.members && this.props.members.length > 0
+                ? this.props.members
+                    .sort((a, b) => {
+                        return a.memberName.localeCompare(b.memberName);
+                    })
+                    .map((item, i) => {
+                        let color = 'white';
+                        return (
+                            <ReviewRow
+                                category={'role'}
+                                key={'role-review-' + i}
+                                idx={'role-review-' + i}
+                                details={item}
+                                role={this.props.role}
+                                color={color}
+                                onUpdate={this.onUpdate}
+                                submittedReview={this.state.submittedReview}
+                            />
+                        );
+                    })
                 : [];
 
         if (this.state.showTrustError) {
@@ -402,8 +338,7 @@ class ReviewTable extends React.Component {
                 </ReviewMembersContainerDiv>
             );
         }
-
-        if (!this.state.list || this.state.list.length === 0) {
+        if (!this.props.members || this.props.members.length === 0) {
             return (
                 <ReviewMembersContainerDiv>
                     There is no members to review for role: {this.props.role}.
@@ -417,73 +352,73 @@ class ReviewTable extends React.Component {
                 <ReviewMembersSectionDiv data-testid='review-table'>
                     <ReviewMembersTable>
                         <thead>
-                            <tr>
-                                <TableHeadStyled align={left}>
-                                    MEMBER
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    MEMBER NAME
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    EXPIRATION DATE
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    REVIEW REMINDER DATE
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    EXTEND
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    NO ACTION
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    DELETE
-                                </TableHeadStyled>
-                            </tr>
+                        <tr>
+                            <TableHeadStyled align={left}>
+                                MEMBER
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>
+                                MEMBER NAME
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>
+                                EXPIRATION DATE
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>
+                                REVIEW REMINDER DATE
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                EXTEND
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                NO ACTION
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                DELETE
+                            </TableHeadStyled>
+                        </tr>
                         </thead>
                         <tbody>
-                            {rows}
-                            <tr key='submit-review'>
-                                <td colSpan={2}>
-                                    <StyledJustification
-                                        id='justification'
-                                        name='justification'
-                                        value={
-                                            this.state.justification
-                                                ? this.state.justification
-                                                : ''
-                                        }
-                                        onChange={this.inputChanged.bind(
-                                            this,
-                                            'justification'
-                                        )}
-                                        autoComplete={'off'}
-                                        placeholder='Enter justification here'
-                                    />
-                                </td>
-                                <td colSpan={1}>
-                                    <SubmitDiv>
-                                        <Button
-                                            secondary={true}
-                                            onClick={this.submitReview}
-                                        >
-                                            Submit Review
-                                        </Button>
-                                    </SubmitDiv>
-                                </td>
-                                <td colSpan={3}>
-                                    {this.getDefaultExpiryText()}
-                                </td>
-                            </tr>
-                            <tr key='error-message'>
-                                <td colSpan={6}>
-                                    {this.state.errorMessage && (
-                                        <Color name={'red600'}>
-                                            {this.state.errorMessage}
-                                        </Color>
+                        {rows}
+                        <tr key='submit-review'>
+                            <td colSpan={2}>
+                                <StyledJustification
+                                    id='justification'
+                                    name='justification'
+                                    value={
+                                        this.state.justification
+                                            ? this.state.justification
+                                            : ''
+                                    }
+                                    onChange={this.inputChanged.bind(
+                                        this,
+                                        'justification'
                                     )}
-                                </td>
-                            </tr>
+                                    autoComplete={'off'}
+                                    placeholder='Enter justification here'
+                                />
+                            </td>
+                            <td colSpan={1}>
+                                <SubmitDiv>
+                                    <Button
+                                        secondary={true}
+                                        onClick={this.submitReview}
+                                    >
+                                        Submit Review
+                                    </Button>
+                                </SubmitDiv>
+                            </td>
+                            <td colSpan={3}>
+                                {this.getDefaultExpiryText()}
+                            </td>
+                        </tr>
+                        <tr key='error-message'>
+                            <td colSpan={6}>
+                                {this.state.errorMessage && (
+                                    <Color name={'red600'}>
+                                        {this.state.errorMessage}
+                                    </Color>
+                                )}
+                            </td>
+                        </tr>
                         </tbody>
                     </ReviewMembersTable>
                 </ReviewMembersSectionDiv>
@@ -491,4 +426,28 @@ class ReviewTable extends React.Component {
         );
     }
 }
-export default withRouter(ReviewTable);
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    reviewRole: (groupName, group, justification, _csrf, onSuccess, onFail) =>
+        dispatch(
+            reviewRole(
+                groupName,
+                group,
+                justification,
+                _csrf,
+                onSuccess,
+                onFail
+            )
+        ),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(ReviewTable));
