@@ -34,6 +34,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECKey;
+import java.security.interfaces.RSAKey;
+import java.security.spec.ECParameterSpec;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -45,8 +48,10 @@ public class Utils {
     private static final String SSLCONTEXT_ALGORITHM_TLS12 = "TLSv1.2";
     private static final String SSLCONTEXT_ALGORITHM_TLS13 = "TLSv1.3";
 
-    private static final String PROP_KEY_WAIT_TIME = "athenz.cert_refresher.key_wait_time";
-    private static final String PROP_TLS_ALGORITHM = "athenz.cert_refresher.tls_algorithm";
+    private static final String PROP_KEY_WAIT_TIME         = "athenz.cert_refresher.key_wait_time";
+    private static final String PROP_TLS_ALGORITHM         = "athenz.cert_refresher.tls_algorithm";
+    private static final String PROP_DISABLE_PUB_KEY_CHECK = "athenz.cert_refresher.disable_public_key_check";
+    private static final String PROP_SKIP_BC_PROVIDER      = "athenz.cert_refresher.skip_bc_provider";
 
     private static final char[] KEYSTORE_PASSWORD = "secret".toCharArray();
 
@@ -56,6 +61,20 @@ public class Utils {
 
     private static final long KEY_WAIT_TIME_MILLIS = TimeUnit.MINUTES.toMillis(
             Integer.parseInt(System.getProperty(PROP_KEY_WAIT_TIME, "10")));
+
+    private static boolean disablePublicKeyCheck = Boolean.parseBoolean(
+            System.getProperty(PROP_DISABLE_PUB_KEY_CHECK, "false"));
+
+    static {
+        boolean skipBCProvider = Boolean.parseBoolean(System.getProperty(PROP_SKIP_BC_PROVIDER, "false"));
+        if (!skipBCProvider) {
+            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        }
+    }
+
+    public static void setDisablePublicKeyCheck(boolean state) {
+        disablePublicKeyCheck = state;
+    }
 
     public static KeyStore getKeyStore(final String jksFilePath) throws IOException, KeyRefresherException {
         return getKeyStore(jksFilePath, KEYSTORE_PASSWORD);
@@ -459,6 +478,10 @@ public class Utils {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} number of certificates found. Using {} alias to create the keystore", certificates.size(), alias);
             }
+            // if configured (default - true) verify that the private key and certificate match
+            // you would only want to disable this check if the library does not support
+            // the private key type (currently RSA and EC keys are supported)
+            verifyPrivateKeyCertsMatch(privateKey, certificates);
             keyStore = KeyStore.getInstance(DEFAULT_KEYSTORE_TYPE);
             keyStore.load(null);
             keyStore.setKeyEntry(alias, privateKey, KEYSTORE_PASSWORD,
@@ -472,6 +495,45 @@ public class Utils {
         }
 
         return keyStore;
+    }
+
+    static boolean verifyPrivatePublicKeyMatch(PrivateKey privateKey, PublicKey publicKey) {
+        if (publicKey instanceof RSAKey) {
+            if (!(privateKey instanceof RSAKey)) {
+                return false;
+            }
+            RSAKey pubRSAKey = (RSAKey) publicKey;
+            RSAKey prvRSAKey = (RSAKey) privateKey;
+            return pubRSAKey.getModulus().compareTo(prvRSAKey.getModulus()) == 0;
+        } else if (publicKey instanceof ECKey) {
+            if (!(privateKey instanceof ECKey)) {
+                return false;
+            }
+            ECKey pubECKey = (ECKey) publicKey;
+            ECKey prvECKey = (ECKey) privateKey;
+            ECParameterSpec pubECParam = pubECKey.getParams();
+            ECParameterSpec prvECParam = prvECKey.getParams();
+            return (pubECParam.getCurve().equals(prvECParam.getCurve()) &&
+                    pubECParam.getGenerator().equals(prvECParam.getGenerator()) &&
+                    pubECParam.getOrder().compareTo(prvECParam.getOrder()) == 0 &&
+                    pubECParam.getCofactor() == prvECParam.getCofactor());
+        }
+        return false;
+    }
+
+    static void verifyPrivateKeyCertsMatch(PrivateKey privateKey, List<? extends Certificate> certificates) throws KeyRefresherException {
+        // if the check is disabled then we have nothing to do
+        if (disablePublicKeyCheck) {
+            return;
+        }
+        // we need to make sure at least one of the certificates matches
+        // the public key for the given private key
+        for (Certificate certificate : certificates) {
+            if (verifyPrivatePublicKeyMatch(privateKey, certificate.getPublicKey())) {
+                return;
+            }
+        }
+        throw new KeyRefresherException("Public key mismatch");
     }
 
     /**

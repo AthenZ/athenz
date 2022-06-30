@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
@@ -46,7 +47,7 @@ public class KeyStoreTest {
 
 
     @Test
-    public void testCreateKeyStore() throws Exception {
+    public void testCreateKeyStoreRSA() throws Exception {
         KeyStore keyStore = Utils.createKeyStore("rsa_public_x509.cert", "unit_test_rsa_private.key");
         assertNotNull(keyStore);
         String alias = null;
@@ -57,6 +58,54 @@ public class KeyStoreTest {
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
         assertTrue(chain.length == 1);
+    }
+
+    @Test
+    public void testCreateKeyStoreEC() throws Exception {
+        KeyStore keyStore = Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private.key");
+        assertNotNull(keyStore);
+        String alias = null;
+        for (Enumeration<?> e = keyStore.aliases(); e.hasMoreElements(); ) {
+            alias = (String) e.nextElement();
+            assertEquals(ALIAS_NAME, alias);
+        }
+        X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
+        assertNotNull(chain);
+        assertTrue(chain.length == 1);
+    }
+
+    @Test
+    public void testCreateKeyStoreRSAMismatch() throws Exception {
+
+        // first enabled public key match
+        Utils.setDisablePublicKeyCheck(false);
+        try {
+            Utils.createKeyStore("rsa_public_x509.cert", "unit_test_rsa_private2.key");
+        } catch (KeyRefresherException ex) {
+            assertEquals(ex.getMessage(), "Public key mismatch");
+        }
+        // now disable public key match
+        Utils.setDisablePublicKeyCheck(true);
+        KeyStore keyStore = Utils.createKeyStore("rsa_public_x509.cert", "unit_test_rsa_private.key");
+        assertNotNull(keyStore);
+        Utils.setDisablePublicKeyCheck(false);
+    }
+
+    @Test
+    public void testCreateKeyStoreECMismatch() throws Exception {
+
+        // first enabled public key match
+        Utils.setDisablePublicKeyCheck(false);
+        try {
+            Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private2.key");
+        } catch (KeyRefresherException ex) {
+            assertEquals(ex.getMessage(), "Public key mismatch");
+        }
+        // now disable public key match
+        Utils.setDisablePublicKeyCheck(true);
+        KeyStore keyStore = Utils.createKeyStore("ec_public_x509.cert", "unit_test_ec_private2.key");
+        assertNotNull(keyStore);
+        Utils.setDisablePublicKeyCheck(false);
     }
 
     @Test
