@@ -1592,6 +1592,74 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "AuthHistory",
+                "fields": [
+                    {
+                        "name": "uriDomain",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "Name of the domain from URI"
+                    },
+                    {
+                        "name": "principalDomain",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "Principal domain"
+                    },
+                    {
+                        "name": "principalName",
+                        "type": "SimpleName",
+                        "optional": false,
+                        "comment": "Principal name"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "Timestamp",
+                        "optional": false,
+                        "comment": "Last authorization event timestamp"
+                    },
+                    {
+                        "name": "endpoint",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Last authorization endpoint used"
+                    },
+                    {
+                        "name": "ttl",
+                        "type": "Int64",
+                        "optional": false,
+                        "comment": "Time until the record will expire"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "AuthHistoryDependencies",
+                "fields": [
+                    {
+                        "name": "incomingDependencies",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of incoming auth dependencies for domain",
+                        "items": "AuthHistory"
+                    },
+                    {
+                        "name": "outgoingDependencies",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of incoming auth dependencies for domain",
+                        "items": "AuthHistory"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "DanglingPolicy",
                 "comment": "A dangling policy where the assertion is referencing a role name that doesn't exist in the domain",
                 "fields": [
@@ -2897,6 +2965,40 @@
                 ],
                 "closed": false
             }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "Info",
+                "comment": "Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object",
+                "fields": [
+                    {
+                        "name": "buildJdkSpec",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "jdk build version"
+                    },
+                    {
+                        "name": "implementationTitle",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "implementation title - e.g. athenz-zms-server"
+                    },
+                    {
+                        "name": "implementationVersion",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "implementation version - e.g. 1.11.1"
+                    },
+                    {
+                        "name": "implementationVendor",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "implementation vendor - Athenz"
+                    }
+                ],
+                "closed": false
+            }
         }
     ],
     "resources": [
@@ -3752,6 +3854,40 @@
                     "pathParam": false,
                     "queryParam": "user",
                     "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "AuthHistoryDependencies",
+            "method": "GET",
+            "path": "/domain/{domainName}/history/auth",
+            "comment": "Get the authorization and token requests history for the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
                     "flag": false
                 }
             ],
@@ -8688,6 +8824,9 @@
                 "UNAUTHORIZED": {
                     "type": "ResourceError"
                 },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
                 "NOT_FOUND": {
                     "type": "ResourceError"
                 },
@@ -8746,6 +8885,9 @@
                     "type": "ResourceError"
                 },
                 "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
                     "type": "ResourceError"
                 },
                 "NOT_FOUND": {
@@ -8830,6 +8972,9 @@
             "expected": "OK",
             "exceptions": {
                 "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
                     "type": "ResourceError"
                 },
                 "BAD_REQUEST": {
@@ -8992,6 +9137,12 @@
                 },
                 "UNAUTHORIZED": {
                     "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
                 }
             }
         },
@@ -9125,6 +9276,12 @@
             },
             "expected": "OK",
             "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
                 "BAD_REQUEST": {
                     "type": "ResourceError"
                 },
@@ -9172,6 +9329,9 @@
             },
             "expected": "NO_CONTENT",
             "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
                 "CONFLICT": {
                     "type": "ResourceError"
                 },
@@ -9220,6 +9380,9 @@
             },
             "expected": "NO_CONTENT",
             "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
                 "CONFLICT": {
                     "type": "ResourceError"
                 },
@@ -9247,6 +9410,9 @@
             },
             "expected": "OK",
             "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
                 "UNAUTHORIZED": {
                     "type": "ResourceError"
                 },
@@ -9350,6 +9516,12 @@
             },
             "expected": "OK",
             "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
                 "BAD_REQUEST": {
                     "type": "ResourceError"
                 },
@@ -9370,7 +9542,16 @@
             },
             "expected": "OK",
             "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
                 "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
                     "type": "ResourceError"
                 }
             },
@@ -9596,6 +9777,35 @@
                 }
             },
             "name": "getDependentDomainList"
+        },
+        {
+            "type": "Info",
+            "method": "GET",
+            "path": "/sys/info",
+            "comment": "Retrieve the server info. Since we're exposing server version details, the request will require authorization",
+            "auth": {
+                "authenticate": false,
+                "action": "get",
+                "resource": "sys.auth:info"
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
         }
     ]
 }
