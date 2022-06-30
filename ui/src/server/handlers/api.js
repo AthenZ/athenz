@@ -1368,6 +1368,20 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'auth-history',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getAuthHistoryDependencies(
+            params,
+            responseHandler.bind({
+                caller: 'getAuthHistory',
+                callback,
+                req,
+            })
+        );
+    },
+});
+
+Fetchr.registerService({
     name: 'groups-list',
     read(req, resource, params, config, callback) {
         req.clients.zms.getGroups(params, function (err, data) {

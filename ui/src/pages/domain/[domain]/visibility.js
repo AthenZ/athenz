@@ -86,11 +86,12 @@ export async function getServerSideProps(context) {
         api.getMeta(bServicesParams),
         api.getMeta(bServicesParamsAll),
         api.getPendingDomainMembersCountByDomain(context.query.domain),
+        api.getAuthHistory(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
     });
     let businessServiceOptions = [];
     if (domains[9] && domains[9].validValues) {
@@ -144,6 +145,7 @@ export async function getServerSideProps(context) {
             validBusinessServices: businessServiceOptions,
             validBusinessServicesAll: businessServiceOptionsAll,
             domainPendingMemberCount: domains[11],
+            authHistory: domains[12],
         },
     };
 }
@@ -164,6 +166,7 @@ export default class VisibilityPage extends React.Component {
             reload,
             domainDetails,
             serviceDependencies,
+            authHistory,
             users,
             prefixes,
             _csrf,
@@ -224,10 +227,12 @@ export default class VisibilityPage extends React.Component {
                                     </PageHeaderDiv>
                                     <VisibilityList
                                         key={'dependencyVisibilityList'}
+                                        api={this.api}
                                         domain={domain}
                                         serviceDependencies={
                                             serviceDependencies
                                         }
+                                        authHistory={authHistory}
                                         _csrf={_csrf}
                                         prefixes={prefixes}
                                         isDomainAuditEnabled={

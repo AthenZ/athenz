@@ -6,6 +6,102 @@ exports[`VisibilityList should render 1`] = `
 }
 
 .emotion-2 {
+  vertical-align: middle;
+}
+
+.emotion-4 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-4::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  -webkit-transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
+  width: calc(50% + 4px);
+}
+
+.emotion-5 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-5:hover {
+  color: #303030;
+}
+
+.emotion-6 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  -webkit-transition: color 0.2s ease-in 0.1s;
+  transition: color 0.2s ease-in 0.1s;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-6:hover {
+  color: #3570f4;
+}
+
+.emotion-7 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -22,7 +118,7 @@ exports[`VisibilityList should render 1`] = `
   height: 50px;
 }
 
-.emotion-4 {
+.emotion-9 {
   height: 25px;
   margin-left: 10px;
   margin-top: 10px;
@@ -33,18 +129,18 @@ exports[`VisibilityList should render 1`] = `
   display: block;
 }
 
-.emotion-6 {
+.emotion-11 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-8 {
+.emotion-13 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-15 {
+.emotion-20 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -54,19 +150,42 @@ exports[`VisibilityList should render 1`] = `
   class="emotion-0 emotion-1"
   data-testid="visibilitySection"
 >
-  <table
+  <div
     class="emotion-2 emotion-3"
+  >
+    <div
+      class="emotion-4 denali-button-group"
+      data-testid="buttongroup"
+    >
+      <div
+        class="emotion-5"
+        data-active="true"
+        id="button-dependencies"
+      >
+        Dependencies
+      </div>
+      <div
+        class="emotion-6"
+        data-active="false"
+        id="button-auth"
+      >
+        Access History
+      </div>
+    </div>
+  </div>
+  <table
+    class="emotion-7 emotion-8"
     data-testid="dependency-sgroup-table"
   >
     <thead>
       <caption
-        class="emotion-4 emotion-5"
+        class="emotion-9 emotion-10"
       >
         <span
-          class="emotion-6 emotion-7"
+          class="emotion-11 emotion-12"
         >
           <svg
-            class="emotion-8"
+            class="emotion-13"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -88,18 +207,18 @@ exports[`VisibilityList should render 1`] = `
     </thead>
   </table>
   <table
-    class="emotion-2 emotion-3"
+    class="emotion-7 emotion-8"
     data-testid="dependency-sgroup-table"
   >
     <thead>
       <caption
-        class="emotion-4 emotion-5"
+        class="emotion-9 emotion-10"
       >
         <span
-          class="emotion-6 emotion-7"
+          class="emotion-11 emotion-12"
         >
           <svg
-            class="emotion-15"
+            class="emotion-20"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"

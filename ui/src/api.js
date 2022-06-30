@@ -179,6 +179,25 @@ const Api = (req) => {
             });
         },
 
+        getAuthHistory(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('auth-history')
+                    .params({ domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                resolve([]);
+                            }
+                        }
+                    });
+            });
+        },
+
         listRoles(domainName) {
             return new Promise((resolve, reject) => {
                 fetchr

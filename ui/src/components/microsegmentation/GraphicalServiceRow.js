@@ -19,8 +19,10 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import styled from '@emotion/styled';
 import { css, keyframes } from '@emotion/react';
-import ReactFlowRenderer from './ReactFlowRenderer';
+import ReactFlowRenderer from '../react-flow/ReactFlowRenderer';
 import { ReactFlowProvider } from 'react-flow-renderer';
+import CustomPrimaryServiceNode from './CustomPrimaryServiceNode';
+import CustomSecondaryServiceNode from './CustomSecondaryServiceNode';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -78,6 +80,12 @@ const StyledDiv = styled.div`
     width: 100%;
     height: 600px;
 `;
+
+const nodeTypes = {
+    primaryNode: CustomPrimaryServiceNode,
+    inboundNode: CustomSecondaryServiceNode,
+    outboundNode: CustomSecondaryServiceNode,
+};
 
 export default class GraphicalServiceRow extends React.Component {
     constructor(props) {
@@ -160,7 +168,7 @@ export default class GraphicalServiceRow extends React.Component {
         let newElements = [];
         newElements.push({
             id: '0',
-            type: 'svcNode',
+            type: 'primaryNode',
             data: {
                 data: this.props.data,
                 name: this.state.name,
@@ -220,6 +228,7 @@ export default class GraphicalServiceRow extends React.Component {
                         <StyledDiv>
                             <ReactFlowProvider>
                                 <ReactFlowRenderer
+                                    nodeTypes={nodeTypes}
                                     elements={elementsList}
                                     name={this.state.name}
                                     api={this.api}
