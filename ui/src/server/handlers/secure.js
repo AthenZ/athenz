@@ -103,4 +103,9 @@ module.exports = function (expressApp, config, secrets) {
         error.message = 'Failed Input validation. Please refresh the page';
         return res.status(403).send(error);
     });
+    expressApp.use(
+        helmet.referrerPolicy({
+            policy: 'strict-origin-when-cross-origin',
+        })
+    );
 };
