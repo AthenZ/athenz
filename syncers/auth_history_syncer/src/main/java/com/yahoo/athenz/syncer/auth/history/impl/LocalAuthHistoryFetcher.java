@@ -61,12 +61,16 @@ public class LocalAuthHistoryFetcher implements AuthHistoryFetcher {
         try (BufferedReader stdin = new BufferedReader(new FileReader(logFileName))) {
             String line;
             while ((line = stdin.readLine()) != null) {
-                if (isAuthRecordInTimeRangeAndValid(line, startTime, endTime)) {
-                    records.add(LogsParserUtils.getRecordFromLogEvent(line));
+                try {
+                    if (isAuthRecordInTimeRangeAndValid(line, startTime, endTime)) {
+                        records.add(LogsParserUtils.getRecordFromLogEvent(line));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Failed to parse log event. line={}", line, e);
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to parse log event: " + e.getMessage());
+            LOGGER.error("Failed to parse log event", e);
             return null;
         }
 
