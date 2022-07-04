@@ -89,8 +89,7 @@ public class AwsAuthHistoryFetcher implements AuthHistoryFetcher {
                         AuthHistoryDynamoDBRecord record = LogsParserUtils.getRecordFromLogEvent(filteredLogEvent.message());
                         filteredEvents.add(record); // Only keep a single record per key (domain + principal pair)
                     } catch (MalformedURLException e) {
-                        LOGGER.error("Failed to parse log event: " + e.getMessage());
-                        return null;
+                        LOGGER.error("Failed to parse log event: {}", filteredLogEvent.message(), e);
                     }
                 }
             } while (nextToken != null && !nextToken.isEmpty());

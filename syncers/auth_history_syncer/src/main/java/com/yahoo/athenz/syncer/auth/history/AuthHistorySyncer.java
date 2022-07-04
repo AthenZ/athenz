@@ -84,7 +84,7 @@ public class AuthHistorySyncer {
         try {
             pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
         } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {}", pkeyFactoryClass, e);
             throw new IllegalArgumentException("Invalid private key store");
         }
 
