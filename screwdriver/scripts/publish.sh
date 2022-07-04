@@ -38,5 +38,6 @@ deployProject "com.yahoo.athenz:athenz-zpe-java-client"
 deployProject "com.yahoo.athenz:athenz-msd-java-client"
 deployProject "com.yahoo.athenz:athenz-server-common"
 deployProject "com.yahoo.athenz:athenz-instance-provider"
+deployProject "com.yahoo.athenz:athenz-syncer-common"
 
 rm -rf screwdriver/deploy
