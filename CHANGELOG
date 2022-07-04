@@ -1,5 +1,17 @@
+Athenz v1.11.4 Release / Jul 1, 2022
+------------------------------------
+
+#1889 zpu use jwk keys from sia
+#1891 Implement auth_history_syncer
+#1903 Disable client TLS renegotiation in UI and added strict policy header
+#1904 Bump netty-codec-http from 4.1.72.Final to 4.1.77.Final in /syncers/auth_history_syncer
+#1905 update zpe java library to use jwk conf file + api
+#1906 fix support for aws assume roles with / in the name
+#1907 Authentication History UI
+#1909 verify key/cert public keys + use BC Provider for EC support
+
 Athenz v1.11.3 Release / Jun 24, 2022
--------------------------------_-----
+-------------------------------------
 
 #1863 Add athenz service access token support to SIA EKS sidecar
 #1892 provide option to specify a retainable byte buffer pool for jetty
