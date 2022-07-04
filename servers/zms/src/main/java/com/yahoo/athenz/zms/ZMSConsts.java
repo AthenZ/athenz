@@ -362,9 +362,9 @@ public final class ZMSConsts {
 
     public static final String PROVIDER_RESPONSE_ALLOW = "allow";
     public static final String PROVIDER_RESPONSE_DENY = "deny";
-    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE = "athenz.zms.auth_history.dynamodb.table";
+    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_TABLE = "athenz.zms.auth_history_dynamodb_table";
     public static final String ZMS_DEFAULT_AUTH_HISTORY_DYNAMODB_TABLE = "Athenz-Auth-History";
-    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION = "athenz.zms.auth_history.dynamodb.region";
+    public static final String ZMS_PROP_AUTH_HISTORY_DYNAMODB_REGION = "athenz.zms.auth_history_dynamodb_region";
     public static final String ZMS_DYNAMODB_URI_DOMAIN_INDEX_NAME = "uriDomain-index";
     public static final String ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME = "principalDomain-index";
 }
