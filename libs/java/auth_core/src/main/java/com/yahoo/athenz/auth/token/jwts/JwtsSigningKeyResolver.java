@@ -131,11 +131,12 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         final String confFileName = System.getProperty(ZTS_PROP_ATHENZ_CONF,
                 rootDir + ZTS_DEFAULT_ATHENZ_CONFIG);
 
-        if (confFileName.isEmpty()) {
-            LOGGER.info("No conf file configured for json web keys");
+        Path path = Paths.get(confFileName);
+        if (!path.toFile().exists()) {
+            LOGGER.info("conf file {} does not exist", confFileName);
             return;
         }
-        Path path = Paths.get(confFileName);
+
         AthenzConfig conf;
         try {
             conf = JSON_MAPPER.readValue(Files.readAllBytes(path), AthenzConfig.class);
@@ -162,22 +163,27 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
 
     private void loadJwksFromConfig() {
+
         String jwkConfFileName = System.getProperty(ZTS_PROP_JWK_ATHENZ_CONF, ZTS_DEFAULT_JWK_ATHENZ_CONFIG);
         try {
             Path path = Paths.get(jwkConfFileName);
+            if (!path.toFile().exists()) {
+                LOGGER.info("conf file {} does not exist", jwkConfFileName);
+                return;
+            }
+
             AthenzJWKConfig jwkConf = JSON_MAPPER.readValue(Files.readAllBytes(path), AthenzJWKConfig.class);
             for (com.yahoo.athenz.auth.token.jwts.Key key : jwkConf.zts.keys) {
                 try {
                     publicKeys.put(key.getKid(), key.getPublicKey());
-                } catch (Exception e) {
-                    LOGGER.warn("failed to load jwk id : {}, ex: {}", key.getKid(), e.getMessage(), e);
+                } catch (Exception ex) {
+                    LOGGER.warn("failed to load jwk id: {}", key.getKid(), ex);
                 }
             }
         } catch (Exception ex) {
-            LOGGER.error("Unable to extract athenz jwk config {} exc: {}", jwkConfFileName, ex.getMessage(), ex);
+            LOGGER.error("Unable to extract athenz jwk config {}", jwkConfFileName, ex);
         }
     }
-
 
     static class ZTSPublicKey {
         private String id;
