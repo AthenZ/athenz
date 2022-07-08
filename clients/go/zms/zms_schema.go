@@ -1199,7 +1199,7 @@ func init() {
 	sb.AddResource(mPutMembership.Build())
 
 	mDeleteMembership := rdl.NewResourceBuilder("Membership", "DELETE", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-	mDeleteMembership.Comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\")")
+	mDeleteMembership.Comment("Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:role.{roleName}\") 2. (\"update_members\", \"{domainName}:role.{roleName}\") 3. principal matches memberName")
 	mDeleteMembership.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteMembership.Input("roleName", "EntityName", true, "", "", false, nil, "name of the role")
 	mDeleteMembership.Input("memberName", "MemberName", true, "", "", false, nil, "name of the user to be removed as a member")
@@ -1416,12 +1416,12 @@ func init() {
 	sb.AddResource(mPutGroupMembership.Build())
 
 	mDeleteGroupMembership := rdl.NewResourceBuilder("GroupMembership", "DELETE", "/domain/{domainName}/group/{groupName}/member/{memberName}")
-	mDeleteGroupMembership.Comment("Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+	mDeleteGroupMembership.Comment("Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:group.{groupName}\") 2. (\"update_members\", \"{domainName}:group.{groupName}\") 3. principal matches memberName")
 	mDeleteGroupMembership.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteGroupMembership.Input("groupName", "EntityName", true, "", "", false, nil, "name of the group")
 	mDeleteGroupMembership.Input("memberName", "GroupMemberName", true, "", "", false, nil, "name of the user to be removed as a member")
 	mDeleteGroupMembership.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit param required(not empty) if domain auditEnabled is true.")
-	mDeleteGroupMembership.Auth("update", "{domainName}:group.{groupName}", false, "")
+	mDeleteGroupMembership.Auth("", "", true, "")
 	mDeleteGroupMembership.Expected("NO_CONTENT")
 	mDeleteGroupMembership.Exception("BAD_REQUEST", "ResourceError", "")
 	mDeleteGroupMembership.Exception("CONFLICT", "ResourceError", "")

@@ -172,8 +172,10 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
 
 //Delete the specified role membership. Upon successful completion of this delete
 //request, the server will return NO_CONTENT status code without any data (no
-//object will be returned). The required authorization includes two options:
-//("update", "{domainName}:role.{roleName}") or ("update_members", "{domainName}:role.{roleName}")
+//object will be returned). The required authorization includes three options:
+// 1. ("update", "{domainName}:role.{roleName}")
+// 2. ("update_members", "{domainName}:role.{roleName}")
+// 3. principal matches memberName
 resource Membership DELETE "/domain/{domainName}/role/{roleName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role

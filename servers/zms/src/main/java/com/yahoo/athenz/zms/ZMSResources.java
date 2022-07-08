@@ -1163,7 +1163,7 @@ public class ZMSResources {
     @DELETE
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\")")
+    @Operation(description = "Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:role.{roleName}\") 2. (\"update_members\", \"{domainName}:role.{roleName}\") 3. principal matches memberName")
     public void deleteMembership(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
@@ -1716,7 +1716,7 @@ public class ZMSResources {
     @DELETE
     @Path("/domain/{domainName}/group/{groupName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    @Operation(description = "Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. (\"update\", \"{domainName}:group.{groupName}\") 2. (\"update_members\", \"{domainName}:group.{groupName}\") 3. principal matches memberName")
     public void deleteGroupMembership(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
@@ -1726,7 +1726,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteGroupMembership");
-            context.authorize("update", "" + domainName + ":group." + groupName + "", null);
+            context.authenticate();
             this.delegate.deleteGroupMembership(context, domainName, groupName, memberName, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();

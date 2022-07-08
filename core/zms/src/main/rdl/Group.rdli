@@ -130,13 +130,16 @@ resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{mem
 
 //Delete the specified group membership. Upon successful completion of this delete
 //request, the server will return NO_CONTENT status code without any data (no 
-//object will be returned).
+//object will be returned). The required authorization includes three options:
+// 1. ("update", "{domainName}:group.{groupName}")
+// 2. ("update_members", "{domainName}:group.{groupName}")
+// 3. principal matches memberName
 resource GroupMembership DELETE "/domain/{domainName}/group/{groupName}/member/{memberName}" {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
     GroupMemberName memberName; //name of the user to be removed as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    authorize ("update", "{domainName}:group.{groupName}");
+    authenticate;
     expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;

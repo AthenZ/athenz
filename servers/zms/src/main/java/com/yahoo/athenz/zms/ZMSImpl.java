@@ -4450,9 +4450,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         // authorization check since we have 2 actions: update and update_members
-        // that allow access callers to manage members in a role
+        // that allow access callers to manage members in a role plus we allow
+        // delete operation if the principal matches membername
 
-        if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
+        final String normalizedMember = normalizeDomainAliasUser(memberName);
+        if (!(principal.getFullName().equals(normalizedMember) || isAllowedPutMembershipAccess(principal, domain, role.getName()))) {
             throw ZMSUtils.forbiddenError("deleteMembership: principal is not authorized to delete members", caller);
         }
 
@@ -4460,7 +4462,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // the admin is not himself who happens to be the last
         // member in the role
 
-        final String normalizedMember = normalizeDomainAliasUser(memberName);
         if (ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)) {
             List<RoleMember> members = role.getRoleMembers();
             if (members.size() == 1 && members.get(0).getMemberName().equals(normalizedMember)) {
@@ -9042,13 +9043,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return null;
     }
 
-    boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final String roleName) {
+    boolean isAllowedPutMembershipAccess(Principal principal, final AthenzDomain domain, final String resourceName) {
 
         // evaluate our domain's roles and policies to see if either update or update_members
         // action is allowed for the given role (update allows access to manage both members
         // and metadata while update_members only allows access to manage members).
 
-        return isAllowedActionOnRole(principal, domain, roleName, "update", "update_members");
+        return isAllowedActionOnResource(principal, domain, resourceName, "update", "update_members");
     }
 
     boolean isAllowedPutRoleMetaAccess(Principal principal, final AthenzDomain domain, final String roleName) {
@@ -9057,19 +9058,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // action is allowed for the given role (update allows access to manage both members
         // and metadata while update_meta only allows access to manage metadata).
 
-        return isAllowedActionOnRole(principal, domain, roleName, "update", "update_meta");
+        return isAllowedActionOnResource(principal, domain, roleName, "update", "update_meta");
     }
 
-    private boolean isAllowedActionOnRole(Principal principal, final AthenzDomain domain, final String roleName, String... actions) {
+    private boolean isAllowedActionOnResource(Principal principal, final AthenzDomain domain, final String resourceName, String... actions) {
 
         // evaluate our domain's roles and policies to see if one of the actions specified
-        // is allowed for the given role:
+        // is allowed for the given resource (role or group):
         // update - allows access to manage both members and metadata
         // update_members - only allows access to manage members
         // update_meta - only allows access to manage metadata
 
         for (String action : actions) {
-            if (evaluateAccess(domain, principal.getFullName(), action, roleName, null, null, principal) == AccessStatus.ALLOWED) {
+            if (evaluateAccess(domain, principal.getFullName(), action, resourceName, null, null, principal) == AccessStatus.ALLOWED) {
                 return true;
             }
         }
@@ -9819,11 +9820,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         groupName = groupName.toLowerCase();
         memberName = memberName.toLowerCase();
 
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceGroupOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller, groupName);
+        verifyAuthorizedServiceGroupOperation(principal.getAuthorizedService(), caller, groupName);
 
-        dbService.executeDeleteGroupMembership(ctx, domainName, groupName, normalizeDomainAliasUser(memberName), auditRef);
+        // extract our role object to get its attributes
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Group group = getGroupFromDomain(groupName, domain);
+
+        if (group == null) {
+            throw ZMSUtils.notFoundError("Invalid domain/group name specified", caller);
+        }
+
+        // authorization check since we have 2 actions: update and update_members
+        // that allow access callers to manage members in a group plus we allow
+        // delete operation if the principal matches membername
+
+        final String normalizedMember = normalizeDomainAliasUser(memberName);
+        if (!(principal.getFullName().equals(normalizedMember) || isAllowedPutMembershipAccess(principal, domain, group.getName()))) {
+            throw ZMSUtils.forbiddenError("deleteGroupMembership: principal is not authorized to delete members", caller);
+        }
+
+        dbService.executeDeleteGroupMembership(ctx, domainName, groupName, normalizedMember, auditRef);
     }
 
     boolean isAllowedDeletePendingGroupMembership(Principal principal, final String domainName,

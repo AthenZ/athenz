@@ -3914,17 +3914,21 @@ public class ZMSImplTest {
     @Test
     public void testDeleteMembership() {
 
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         final String domainName = "mbr-del-dom";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null,
                 "user.joe", "user.jane");
-        zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "Role1", zmsTestInitializer.getAuditRef(), role1);
-        zmsTestInitializer.getZms().deleteMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "Role1", "user.joe", zmsTestInitializer.getAuditRef());
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, role1);
+        zmsImpl.deleteMembership(ctx, domainName, "Role1", "user.joe", auditRef);
 
-        Role role = zmsTestInitializer.getZms().getRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "Role1", false, false, false);
+        Role role = zmsImpl.getRole(ctx, domainName, "Role1", false, false, false);
         assertNotNull(role);
 
         List<RoleMember> members = role.getRoleMembers();
@@ -3944,7 +3948,54 @@ public class ZMSImplTest {
             fail("user.jane not found");
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteMembershipSelf() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom-self";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null,
+                "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, role1);
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=joe;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
+
+        // now let's try to delete ourselves which should work
+
+        zmsImpl.deleteMembership(rsrcCtx1, domainName, "Role1", "user.joe", auditRef);
+
+        // now try to delete the other user which should be rejected
+
+        try {
+            zmsImpl.deleteMembership(rsrcCtx1, domainName, "Role1", "user.jane", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        // now verify the results
+
+        Role role = zmsImpl.getRole(ctx, domainName, "Role1", false, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertEquals(members.get(0).getMemberName(), "user.jane");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
@@ -4018,30 +4069,38 @@ public class ZMSImplTest {
 
     @Test
     public void testDeleteMembershipInvalidRole() {
-        String domainName = "MbrGetRoleDom1";
-        String roleName = "Role1";
+
+        String domainName = "del-mbr-invalid-role";
+        String roleName = "role1";
         String memberName1 = "user.john";
         String memberName2 = "user.jane";
 
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         // Tests the deleteMembership() condition: if (role == null)...
+
         try {
-            String wrongRoleName = "Role2";
             Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null,
                     memberName1, memberName2);
-            zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, roleName, zmsTestInitializer.getAuditRef(), role1);
+            zmsImpl.putRole(ctx, domainName, roleName, auditRef, role1);
 
             // Should fail b/c trying to find a non-existent role.
-            zmsTestInitializer.getZms().deleteMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, wrongRoleName, memberName1, zmsTestInitializer.getAuditRef());
+
+            final String wrongRoleName = "role2";
+            zmsImpl.deleteMembership(ctx, domainName, wrongRoleName, memberName1, auditRef);
             fail("notfounderror not thrown.");
-        } catch (ResourceException e) {
-            assertEquals(e.getCode(), 404);
+
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
@@ -24023,8 +24082,12 @@ public class ZMSImplTest {
     @Test
     public void testSetGroupMemberExpiration() {
 
-        Authority savedAuthority = zmsTestInitializer.getZms().userAuthority;
-        zmsTestInitializer.getZms().userAuthority = null;
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        Authority savedAuthority = zmsImpl.userAuthority;
+        zmsImpl.userAuthority = null;
 
         // with authority null we always get no changes
 
@@ -24042,27 +24105,27 @@ public class ZMSImplTest {
         dateAttrSet.add("elevated-clearance");
         when(authority.dateAttributesSupported()).thenReturn(dateAttrSet);
 
-        zmsTestInitializer.getZms().userAuthority = authority;
+        zmsImpl.userAuthority = authority;
 
         // add a group with an elevated clearance option
 
         final String domainName = "userexpirydomain";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain2", "testOrg2", "user.user2");
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         final String groupName = "audit-group2";
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setUserAuthorityExpiration("elevated-clearance");
         group.setSelfServe(true);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, group);
 
         // add a valid member who should get the expiry date
 
         GroupMembership mbr = new GroupMembership().setMemberName("user.john2");
-        zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.john2", zmsTestInitializer.getAuditRef(), mbr);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.john2", auditRef, mbr);
 
-        GroupMembership mbrResult = zmsTestInitializer.getZms().getGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.john2", null);
+        GroupMembership mbrResult = zmsImpl.getGroupMembership(ctx, domainName, groupName, "user.john2", null);
         assertNotNull(mbrResult);
         assertEquals(mbrResult.getMemberName(), "user.john2");
         assertNotNull(mbrResult.getExpiration());
@@ -24072,7 +24135,7 @@ public class ZMSImplTest {
 
         mbr = new GroupMembership().setMemberName("user.joe2");
         try {
-            zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.joe2", zmsTestInitializer.getAuditRef(), mbr);
+            zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.joe2", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("User does not have required user authority expiry configured"));
@@ -24080,18 +24143,34 @@ public class ZMSImplTest {
 
         // First add service
         ServiceIdentity serviceIdentity = new ServiceIdentity().setName("userexpirydomain.api");
-        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "api", zmsTestInitializer.getAuditRef(), serviceIdentity);
+        zmsImpl.putServiceIdentity(ctx, domainName, "api", auditRef, serviceIdentity);
 
         // service user should be added ok since service user is not processed
         // by user authority
 
         mbr = new GroupMembership().setMemberName("userexpirydomain.api");
-        zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "userexpirydomain.api", zmsTestInitializer.getAuditRef(), mbr);
-        mbrResult = zmsTestInitializer.getZms().getGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "userexpirydomain.api", null);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "userexpirydomain.api", auditRef, mbr);
+        mbrResult = zmsImpl.getGroupMembership(ctx, domainName, groupName, "userexpirydomain.api", null);
         assertNotNull(mbrResult);
 
-        zmsTestInitializer.getZms().userAuthority = savedAuthority;
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.userAuthority = savedAuthority;
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testSetGroupMemberExpirationGroupRejected() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        GroupMember groupMember = new GroupMember().setMemberName("dev-group")
+                .setPrincipalType(Principal.Type.GROUP.getValue());
+        try {
+            zmsImpl.setGroupMemberExpiration(null, null, groupMember, null, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Group member can't be of type group"));
+        }
     }
 
     @DataProvider(name = "delegatedRoles")
@@ -25507,18 +25586,23 @@ public class ZMSImplTest {
 
         final String domainName = "put-group-mbr-ex";
         final String groupName = "group1";
+        final String groupName2 = "group2";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", "user.jane");
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), group1);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, group1);
 
         // member mismatch
 
         GroupMembership mbr = zmsTestInitializer.generateGroupMembership(groupName, "user.doe");
         try {
-            zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.joe", zmsTestInitializer.getAuditRef(), mbr);
+            zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.joe", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -25527,7 +25611,7 @@ public class ZMSImplTest {
         // groupname mismatch
 
         try {
-            zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "invalid-group", "user.doe", zmsTestInitializer.getAuditRef(), mbr);
+            zmsImpl.putGroupMembership(ctx, domainName, "invalid-group", "user.doe", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -25537,13 +25621,13 @@ public class ZMSImplTest {
 
         mbr = zmsTestInitializer.generateGroupMembership("invalid-group", "user.doe");
         try {
-            zmsTestInitializer.getZms().putGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "invalid-group", "user.doe", zmsTestInitializer.getAuditRef(), mbr);
+            zmsImpl.putGroupMembership(ctx, domainName, "invalid-group", "user.doe", auditRef, mbr);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
@@ -25903,14 +25987,19 @@ public class ZMSImplTest {
         final String domainName = "del-group-mbr";
         final String groupName = "group1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
+                "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, zmsTestInitializer.getAuditRef(), dom1);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", "user.jane");
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), group1);
-        zmsTestInitializer.getZms().deleteGroupMembership(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, "user.joe", zmsTestInitializer.getAuditRef());
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, group1);
+        zmsImpl.deleteGroupMembership(ctx, domainName, groupName, "user.joe", auditRef);
 
-        Group group = zmsTestInitializer.getZms().getGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, false, false);
+        Group group = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
         assertNotNull(group);
 
         List<GroupMember> members = group.getGroupMembers();
@@ -25930,7 +26019,89 @@ public class ZMSImplTest {
             fail("user.jane not found");
         }
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroupMembershipInvalidGroup() {
+
+        String domainName = "del-mbr-invalid-group";
+        String groupName = "group1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        // Tests the deleteGroupMembership() condition: if (group == null)...
+
+        try {
+            Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName,
+                    "user.joe", "user.jane");
+            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, group1);
+
+            // Should fail b/c trying to find a non-existent group.
+
+            final String wrongGroupName = "group2";
+            zmsImpl.deleteGroupMembership(ctx, domainName, wrongGroupName, "user.joe", auditRef);
+            fail("notfounderror not thrown.");
+
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteGroupMembershipSelf() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "del-group-mbr-self";
+        final String groupName = "group1";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.joe", "user.jane");
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, group1);
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Principal principal1 = principalAuthority.authenticate("v=U1;d=user;n=joe;s=signature",
+                "10.11.12.13", "GET", null);
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal1);
+
+        // now let's try to delete ourselves which should work
+
+        zmsImpl.deleteGroupMembership(rsrcCtx1, domainName, groupName, "user.joe", auditRef);
+
+        // now try to delete the other user which should be rejected
+
+        try {
+            zmsImpl.deleteGroupMembership(rsrcCtx1, domainName, groupName, "user.jane", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
+        // now verify the results
+
+        Group group = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        List<GroupMember> members = group.getGroupMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 1);
+        assertEquals(members.get(0).getMemberName(), "user.jane");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
