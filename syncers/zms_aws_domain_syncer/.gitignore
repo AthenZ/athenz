@@ -1,0 +1,4 @@
+src/test/resources/svc.ntoken
+src/test/resources/var/
+src/test/resources/domain_state.json
+src/test/resources/run_state.json
