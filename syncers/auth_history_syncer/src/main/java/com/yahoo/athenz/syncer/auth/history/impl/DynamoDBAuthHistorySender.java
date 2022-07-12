@@ -45,6 +45,8 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
     public static final String PROP_TABLE_NAME = "auth_history_syncer.table_name";
     public static final String URI_DOMAIN_INDEX_NAME = "uriDomain-index";
     public static final String PRINCIPAL_DOMAIN_INDEX_NAME = "principalDomain-index";
+    public static final String PROP_CREATE_TABLE = "auth_history_syncer.create_table";
+    public static final String PROP_CREATE_TABLE_DEFAULT = "false";
     private static final int MAX_WRITES_SINGLE_BATCH = 25;
     private static final int MAX_RETRIES = 8;
 
@@ -57,7 +59,9 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
                 .build();
 
         String tableName = System.getProperty(PROP_TABLE_NAME, PROP_TABLE_NAME_DEFAULT);
-        createTableIfNotExists(dynamoDB, tableName);
+        if (Boolean.parseBoolean(System.getProperty(PROP_CREATE_TABLE, PROP_CREATE_TABLE_DEFAULT))) {
+            createTableIfNotExists(dynamoDB, tableName);
+        }
         this.mappedTable = enhancedClient.table(tableName, TableSchema.fromBean(AuthHistoryDynamoDBRecord.class));
     }
 
