@@ -1,0 +1,29 @@
+{
+  "version": "1",
+  "domain_states": [
+    {
+      "domain": "coretech",
+      "modified": "2016-04-19T12:04:32.044Z"
+    },
+    {
+      "domain": "paas",
+      "modified": "2016-04-19T12:04:32.044Z"
+    },
+    {
+      "domain": "clouds",
+      "modified": "2016-04-19T12:04:32.044Z"
+    },
+    {
+      "domain": "moon",
+      "modified": "2016-04-19T12:04:32.044Z"
+    },
+    {
+      "domain": "pluto",
+      "modified": "2016-04-19T12:04:32.044Z"
+    },
+    {
+      "domain": "coriander",
+      "modified": "2016-04-19T12:04:32.044Z"
+    }
+  ]
+}
