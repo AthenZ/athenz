@@ -151,6 +151,7 @@
     <module>servers/zts</module>
     <module>containers/jetty</module>
     <module>syncers/auth_history_syncer</module>
+    <module>syncers/zms_aws_domain_syncer</module>
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
     <module>clients/go/msd</module>
