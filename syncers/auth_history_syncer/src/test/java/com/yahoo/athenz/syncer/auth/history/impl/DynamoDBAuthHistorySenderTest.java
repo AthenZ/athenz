@@ -37,14 +37,14 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.yahoo.athenz.syncer.auth.history.impl.DynamoDBAuthHistorySender.PRINCIPAL_DOMAIN_INDEX_NAME;
-import static com.yahoo.athenz.syncer.auth.history.impl.DynamoDBAuthHistorySender.URI_DOMAIN_INDEX_NAME;
-import static org.testng.AssertJUnit.assertEquals;
+import static com.yahoo.athenz.syncer.auth.history.impl.DynamoDBAuthHistorySender.*;
+import static org.testng.AssertJUnit.*;
 
 public class DynamoDBAuthHistorySenderTest {
 
     @Test
     public void testDynamoDBAuthHistorySender() throws ExecutionException, InterruptedException {
+        System.setProperty(PROP_CREATE_TABLE, "true");
         LocalDynamoDbAsyncClientFactory localDynamoDbAsyncClientFactory = new LocalDynamoDbAsyncClientFactory();
         localDynamoDbAsyncClientFactory.init();
         Set<AuthHistoryDynamoDBRecord> records = new HashSet<>();
@@ -75,6 +75,30 @@ public class DynamoDBAuthHistorySenderTest {
         }).get();
 
         assertEquals(0, records.size());
+        localDynamoDbAsyncClientFactory.terminate();
+        System.clearProperty(PROP_CREATE_TABLE);
+    }
+
+    @Test
+    public void testDynamoDBAuthHistorySenderNoTable() throws ExecutionException, InterruptedException {
+
+        LocalDynamoDbAsyncClientFactory localDynamoDbAsyncClientFactory = new LocalDynamoDbAsyncClientFactory();
+        localDynamoDbAsyncClientFactory.init();
+        Set<AuthHistoryDynamoDBRecord> records = new HashSet<>();
+        long ttl = System.currentTimeMillis() / 1000L + (3660 * 720);
+        int numberOfRecords = 10000;
+        for (int i = 0; i < numberOfRecords; ++i) {
+            records.add(generateRecordForTest(i, ttl));
+        }
+        // Push to dynamoDB
+        DynamoDbAsyncClientFactory dynamoDbAsyncClientFactory = new LocalDynamoDbAsyncClientFactory();
+        DynamoDBAuthHistorySender dynamoDBAuthHistorySender = new DynamoDBAuthHistorySender(dynamoDbAsyncClientFactory.create(null));
+        try {
+            dynamoDBAuthHistorySender.pushRecords(records);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().startsWith("software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException: Cannot do operations on a non-existent table (Service: DynamoDb, Status Code: 400, Request ID"));
+        }
         localDynamoDbAsyncClientFactory.terminate();
     }
 
