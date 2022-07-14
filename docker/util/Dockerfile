@@ -16,7 +16,7 @@ LABEL org.label-schema.vcs-ref=$VCS_REF
 RUN apk add --no-cache --virtual .build-deps bash gcc musl-dev openssl make git
 
 # get latest go from its own image, since its not available in apk
-COPY --from=golang:1.17.5-alpine /usr/local/go/ /usr/local/go/
+COPY --from=golang:1.18.4-alpine /usr/local/go/ /usr/local/go/
 
 ENV GOPATH="/root/go"
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz
