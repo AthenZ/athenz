@@ -24,14 +24,14 @@ export $(GOPATH)
 
 ifdef GO
 
-# we need to make sure we have go 1.17+
+# we need to make sure we have go 1.18+
 # the output for the go version command is:
-# go version go1.17.1 darwin/amd64
+# go version go1.18.4 darwin/amd64
 
-GO_VER_GTEQ := $(shell expr `go version | cut -f 3 -d' ' | cut -f2 -d.` \>= 17)
+GO_VER_GTEQ := $(shell expr `go version | cut -f 3 -d' ' | cut -f2 -d.` \>= 18)
 ifneq "$(GO_VER_GTEQ)" "1"
 all:
-	@echo "Please install 1.17.x or newer version of golang"
+	@echo "Please install 1.18.x or newer version of golang"
 else
 
 .PHONY: vet fmt build test
