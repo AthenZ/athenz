@@ -1409,7 +1409,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'add-service-host',
     update(req, resource, params, body, config, callback) {
-        req.clients.zms.putServiceIdentity(
+        req.clients.msd.putStaticWorkload(
             params,
             responseHandler.bind({ caller: 'add-service-host', callback, req })
         );
