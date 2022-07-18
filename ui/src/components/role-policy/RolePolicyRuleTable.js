@@ -17,7 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
-import AddAssertionForRole from './AddAssertionForRole';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import {
@@ -28,6 +27,10 @@ import {
 import RequestUtils from '../utils/RequestUtils';
 import NameUtils from '../utils/NameUtils';
 import { css, keyframes } from '@emotion/react';
+import { selectPolicyAssertions } from '../../redux/selectors/policies';
+import { deleteAssertion } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
+import AddAssertionForRole from './AddAssertionForRole';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -94,13 +97,13 @@ const StyledAnchor = styled.a`
 
 const TrStyled = styled.tr`
     ${(props) =>
-        props.isSuccess &&
-        css`
+    props.isSuccess &&
+    css`
             animation: ${colorTransition} 3s ease;
         `}
     ${(props) =>
-        !props.isSuccess &&
-        css`
+    !props.isSuccess &&
+    css`
             background-color: white;
         `}
 `;
@@ -114,7 +117,7 @@ const colorTransition = keyframes`
         }
 `;
 
-export default class RolePolicyRuleTable extends React.Component {
+class RolePolicyRuleTable extends React.Component {
     constructor(props) {
         super(props);
         this.toggleAddAssertion = this.toggleAddAssertion.bind(this);
@@ -122,7 +125,6 @@ export default class RolePolicyRuleTable extends React.Component {
         this.onSubmitDeleteAssertion = this.onSubmitDeleteAssertion.bind(this);
         this.onCancelDeleteAssertion = this.onCancelDeleteAssertion.bind(this);
         this.closeModal = this.closeModal.bind(this);
-        this.api = this.props.api;
         this.state = {
             addAssertion: false,
             assertions: this.props.assertions ? this.props.assertions : [],
@@ -135,31 +137,22 @@ export default class RolePolicyRuleTable extends React.Component {
     }
 
     reLoadAssertions(successMessage, showSuccess = true) {
-        this.api
-            .getPolicy(this.props.domain, this.props.name)
-            .then((assertions) => {
+        this.setState({
+            assertions: this.props.assertions,
+            addAssertion: false,
+            successMessage,
+            showDelete: false,
+            showSuccess,
+            errorMessage: null,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
                 this.setState({
-                    assertions: assertions.assertions,
-                    addAssertion: false,
-                    successMessage,
-                    showDelete: false,
-                    showSuccess,
-                    errorMessage: null,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     closeModal() {
@@ -176,7 +169,7 @@ export default class RolePolicyRuleTable extends React.Component {
     }
 
     onSubmitDeleteAssertion() {
-        this.api
+        this.props
             .deleteAssertion(
                 this.props.domain,
                 this.props.name,
@@ -238,12 +231,12 @@ export default class RolePolicyRuleTable extends React.Component {
                 );
                 let newAssertion =
                     this.props.name +
-                        '-' +
-                        tempRole +
-                        '-' +
-                        tempResource +
-                        '-' +
-                        assertion.action ===
+                    '-' +
+                    tempRole +
+                    '-' +
+                    tempResource +
+                    '-' +
+                    assertion.action ===
                     this.state.successMessage;
                 rows.push(
                     <TrStyled
@@ -280,7 +273,6 @@ export default class RolePolicyRuleTable extends React.Component {
             addAssertion = (
                 <AddAssertionForRole
                     id={id}
-                    api={this.api}
                     domain={this.props.domain}
                     role={this.props.role}
                     cancel={this.toggleAddAssertion}
@@ -296,54 +288,54 @@ export default class RolePolicyRuleTable extends React.Component {
                 data-testid='role-policy-rule-table'
             >
                 <tbody>
-                    <tr>
-                        <TableHeadStyled
-                            align={left}
-                            size={'16px'}
-                            weight={600}
-                            color={'#303030'}
-                        >
-                            Rule Details({this.props.assertions.length})
-                        </TableHeadStyled>
-                        <TableHeadStyled
-                            align={right}
-                            color={'#3570F4'}
-                            weight={300}
-                            size={'14px'}
-                            onClick={this.toggleAddAssertion}
-                        >
-                            <StyledAnchor>Add rule</StyledAnchor>
-                        </TableHeadStyled>
-                    </tr>
-                    <tr>
-                        <td colSpan={4}>{addAssertion}</td>
-                    </tr>
-                    <tr>
-                        <td colSpan={4}>
-                            <TableDiv>
-                                <StyleTable>
-                                    <thead>
-                                        <tr>
-                                            <RuleHeadStyled>
-                                                Effect
-                                            </RuleHeadStyled>
-                                            <RuleHeadStyled>
-                                                Action
-                                            </RuleHeadStyled>
-                                            <RuleHeadStyled>
-                                                Role
-                                            </RuleHeadStyled>
-                                            <RuleHeadStyled>
-                                                Resource
-                                            </RuleHeadStyled>
-                                            <IconHeadStyled />
-                                        </tr>
-                                    </thead>
-                                    <tbody>{rows}</tbody>
-                                </StyleTable>
-                            </TableDiv>
-                        </td>
-                    </tr>
+                <tr>
+                    <TableHeadStyled
+                        align={left}
+                        size={'16px'}
+                        weight={600}
+                        color={'#303030'}
+                    >
+                        Rule Details({this.props.assertions.length})
+                    </TableHeadStyled>
+                    <TableHeadStyled
+                        align={right}
+                        color={'#3570F4'}
+                        weight={300}
+                        size={'14px'}
+                        onClick={this.toggleAddAssertion}
+                    >
+                        <StyledAnchor>Add rule</StyledAnchor>
+                    </TableHeadStyled>
+                </tr>
+                <tr>
+                    <td colSpan={4}>{addAssertion}</td>
+                </tr>
+                <tr>
+                    <td colSpan={4}>
+                        <TableDiv>
+                            <StyleTable>
+                                <thead>
+                                <tr>
+                                    <RuleHeadStyled>
+                                        Effect
+                                    </RuleHeadStyled>
+                                    <RuleHeadStyled>
+                                        Action
+                                    </RuleHeadStyled>
+                                    <RuleHeadStyled>
+                                        Role
+                                    </RuleHeadStyled>
+                                    <RuleHeadStyled>
+                                        Resource
+                                    </RuleHeadStyled>
+                                    <IconHeadStyled />
+                                </tr>
+                                </thead>
+                                <tbody>{rows}</tbody>
+                            </StyleTable>
+                        </TableDiv>
+                    </td>
+                </tr>
                 </tbody>
                 {this.state.showSuccess ? (
                     <Alert
@@ -369,3 +361,28 @@ export default class RolePolicyRuleTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        assertions: selectPolicyAssertions(state, props.domain, props.name),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteAssertion: (domainName, name, deleteAssertionId, auditRef, _csrf) =>
+        dispatch(
+            deleteAssertion(
+                domainName,
+                name,
+                deleteAssertionId,
+                auditRef,
+                _csrf
+            )
+        ),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(RolePolicyRuleTable);

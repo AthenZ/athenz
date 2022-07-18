@@ -20,6 +20,11 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import { useRouter } from 'next/router';
 import PageUtils from '../utils/PageUtils';
+import {
+    selectHeaderDetails,
+    selectPendingMembersList,
+} from '../../redux/selectors/domainData';
+import { connect } from 'react-redux';
 
 const HeaderMenuDiv = styled.div`
     display: flex;
@@ -91,6 +96,7 @@ const HeaderMenu = (props) => {
     }
     let menuItems =
         props.headerDetails &&
+        props.headerDetails.headerLinks &&
         props.headerDetails.headerLinks.map((headerLink, idx) => {
             return (
                 <MenuItemDiv key={idx}>
@@ -187,4 +193,12 @@ const HeaderMenu = (props) => {
     );
 };
 
-export default HeaderMenu;
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        headerDetails: selectHeaderDetails(state),
+        pending: selectPendingMembersList(state),
+    };
+};
+
+export default connect(mapStateToProps)(HeaderMenu);

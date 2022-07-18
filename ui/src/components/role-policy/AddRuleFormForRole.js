@@ -65,7 +65,6 @@ const ErrorDiv = styled.div`
 export default class AddRuleFormForRole extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.ruleEffectChanged = this.ruleEffectChanged.bind(this);
         this.state = {
             effects: [

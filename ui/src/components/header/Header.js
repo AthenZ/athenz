@@ -59,10 +59,7 @@ const Header = (props) => {
                     <NavBarItem width='100%'>{search}</NavBarItem>
                 </NavBarItemDiv>
                 <NavBarItem right>
-                    <HeaderMenu
-                        headerDetails={props.headerDetails}
-                        pending={props.pending}
-                    />
+                    <HeaderMenu />
                 </NavBarItem>
             </NavBar>
         </NavBarDiv>

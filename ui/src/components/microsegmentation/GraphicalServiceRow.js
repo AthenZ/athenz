@@ -19,8 +19,8 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import styled from '@emotion/styled';
 import { css, keyframes } from '@emotion/react';
-import ReactFlowRenderer from './ReactFlowRenderer';
 import { ReactFlowProvider } from 'react-flow-renderer';
+import ReactFlowRenderer from './ReactFlowRenderer';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -31,12 +31,12 @@ const TdStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`

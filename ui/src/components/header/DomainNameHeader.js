@@ -20,6 +20,8 @@ import { withRouter } from 'next/router';
 import Icon from '../denali/icons/Icon';
 import { VIEW_PENDING_MEMBERS_BY_DOMAIN_TITLE } from '../constants/constants';
 import PageUtils from '../utils/PageUtils';
+import { connect } from 'react-redux';
+import { selectPendingMembersList } from '../../redux/selectors/domainData';
 
 const TitleDiv = styled.div`
     font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
@@ -40,7 +42,7 @@ class DomainNameHeader extends React.Component {
     render() {
         const { domainName, pendingCount } = this.props;
         let icon = 'notification';
-        if (pendingCount > 0) {
+        if (pendingCount.length > 0) {
             icon = 'notification-solid';
         }
         return (
@@ -67,4 +69,12 @@ class DomainNameHeader extends React.Component {
     }
 }
 
-export default withRouter(DomainNameHeader);
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        pendingCount: selectPendingMembersList(state),
+    };
+};
+
+export default connect(mapStateToProps)(withRouter(DomainNameHeader));
+// export default withRouter(DomainNameHeader);

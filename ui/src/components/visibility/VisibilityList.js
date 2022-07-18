@@ -29,7 +29,6 @@ export default class VisibilityList extends React.Component {
                 <ServiceDependenciesTable
                     key={'dependenciesView'}
                     data-testid='dependenciestable'
-                    serviceDependencies={this.props.serviceDependencies || []}
                 />
             </VisibilitySectionDiv>
         );

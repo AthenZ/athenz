@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import CustomPrimaryServiceNode from './CustomPrimaryServiceNode';
 import CustomSecondaryServiceNode from './CustomSecondaryServiceNode';
 import ReactFlow, {
     Background,
@@ -25,6 +24,7 @@ import ReactFlow, {
     useStoreActions,
     useStoreState,
 } from 'react-flow-renderer';
+import CustomPrimaryServiceNode from './CustomPrimaryServiceNode';
 
 const getLayoutedElements = (elements, nodes, api, _csrf) => {
     let graphLayoutElements = [];

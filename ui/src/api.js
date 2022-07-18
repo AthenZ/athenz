@@ -194,11 +194,11 @@ const Api = (req) => {
             });
         },
 
-        getRoles(domainName) {
+        getRoles(domainName, members) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('roles')
-                    .params({ domainName })
+                    .params({ domainName, members })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -213,11 +213,11 @@ const Api = (req) => {
             });
         },
 
-        getGroups(domainName) {
+        getGroups(domainName, members) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('groups')
-                    .params({ domainName })
+                    .params({ domainName, members })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -775,11 +775,11 @@ const Api = (req) => {
             });
         },
 
-        getServices(domainName) {
+        getServices(domainName, publickeys, hosts) {
             return new Promise((resolve, reject) => {
                 fetchr
                     .read('services')
-                    .params({ domainName })
+                    .params({ domainName, publickeys, hosts })
                     .end((err, data) => {
                         if (err) {
                             reject(err);
@@ -1340,7 +1340,10 @@ const Api = (req) => {
                     domainName,
                     policyName,
                     assertion: {
-                        role: domainName + ':role.' + roleName,
+                        role: NameUtils.getRoleAssertionName(
+                            roleName,
+                            domainName
+                        ),
                         resource: NameUtils.getResourceName(
                             resource,
                             domainName
@@ -1416,6 +1419,10 @@ const Api = (req) => {
             auditRef,
             _csrf
         ) {
+            console.log(
+                'addAssertionConditions:assertionConditions',
+                assertionConditions
+            );
             return new Promise((resolve, reject) => {
                 fetchr.updateOptions({
                     context: {
@@ -1429,8 +1436,43 @@ const Api = (req) => {
                     policyName,
                     auditRef,
                 };
+                console.log('params', params);
                 fetchr
                     .create('assertionConditions')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deleteAssertionConditions(
+            domainName,
+            policyName,
+            assertionId,
+            auditRef,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+
+                let params = {
+                    domainName,
+                    policyName,
+                    assertionId,
+                    auditRef,
+                };
+
+                fetchr
+                    .delete('assertionConditions')
                     .params(params)
                     .end((err, data) => {
                         if (err) {

@@ -17,9 +17,9 @@
 import React from 'react';
 
 import { Handle } from 'react-flow-renderer';
-import PrimaryServiceDetails from './PrimaryServiceDetails';
 import styled from '@emotion/styled';
 import { SERVICE_NAME_LABEL } from '../constants/constants';
+import PrimaryServiceDetails from './PrimaryServiceDetails';
 
 const StyledOuterDiv = styled.div`
     display: flex;

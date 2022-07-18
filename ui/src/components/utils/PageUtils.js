@@ -24,10 +24,10 @@ class PageUtils {
         return `/domain/${domain}/group`;
     }
     static createDomainPage() {
-        return `/domain/create`;
+        return `/domain/redux-create`;
     }
     static manageDomainPage() {
-        return `/domain/manage`;
+        return `/domain/redux-manage`;
     }
     static servicePage(domain) {
         return `/domain/${domain}/service`;

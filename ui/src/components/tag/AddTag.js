@@ -109,7 +109,6 @@ export default class AddTag extends React.Component {
                 }
                 sections={
                     <AddTagForm
-                        api={this.api}
                         onUpdate={this.onUpdate}
                         editedTagKey={this.state.tagName}
                         editedTagValues={this.state.tagValues}

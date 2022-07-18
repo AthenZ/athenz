@@ -19,7 +19,11 @@ import { colors } from '../denali/styles';
 import TemplateRow from './TemplateRow';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
-import RequestUtils from '../utils/RequestUtils';
+import { connect } from 'react-redux';
+import {
+    selectDomainTemplates,
+    selectServerTemplates,
+} from '../../redux/selectors/template';
 
 const TemplatesSectionDiv = styled.div`
     margin: 20px;
@@ -52,7 +56,7 @@ const TitleDiv = styled.div`
     margin-top: 40px;
 `;
 
-export default class TemplateList extends React.Component {
+class TemplateList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -96,44 +100,38 @@ export default class TemplateList extends React.Component {
     }
 
     reloadTemplates(successMessage) {
-        this.props.api
-            .getDomainTemplateDetailsList(this.props.domain)
-            .then((data) => {
-                let serverTemplateListCopy = [];
-                if (this.props.serverTemplateDetails) {
-                    serverTemplateListCopy =
-                        this.props.serverTemplateDetails.map((x) => x);
-                    if (data) {
-                        let domainTemplatesArray = data.map((template) => {
-                            return template.templateName;
-                        });
-
-                        let domainTemplatesSet = new Set(domainTemplatesArray);
-                        serverTemplateListCopy = serverTemplateListCopy.filter(
-                            (template) =>
-                                !domainTemplatesSet.has(template.templateName)
-                        );
-                    }
-                }
-
-                this.setState({
-                    list: data,
-                    serverTemplateDetails: serverTemplateListCopy || [],
-                    showSuccess: true,
-                    successMessage,
+        const data = this.props.domainTemplateDetails;
+        let serverTemplateListCopy = [];
+        if (this.props.serverTemplateDetails) {
+            serverTemplateListCopy = this.props.serverTemplateDetails.map(
+                (x) => x
+            );
+            if (data) {
+                let domainTemplatesArray = data.map((template) => {
+                    return template.templateName;
                 });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
+
+                let domainTemplatesSet = new Set(domainTemplatesArray);
+                serverTemplateListCopy = serverTemplateListCopy.filter(
+                    (template) => !domainTemplatesSet.has(template.templateName)
                 );
-            })
-            .catch((err) => {
-                this.showError(RequestUtils.xhrErrorCheckHelper(err));
-            });
+            }
+        }
+
+        this.setState({
+            list: data,
+            serverTemplateDetails: serverTemplateListCopy || [],
+            showSuccess: true,
+            successMessage,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     onClickUpdateTemplate() {
@@ -227,46 +225,46 @@ export default class TemplateList extends React.Component {
                 <TitleDiv>Domain Templates</TitleDiv>
                 <TemplateTable>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                TEMPLATE
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>INFO</TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                CURRENT VERSION
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                LATEST VERSION
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                UPDATED DATE
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                UPDATE VERSION
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={left}>
+                            TEMPLATE
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>INFO</TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            CURRENT VERSION
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            LATEST VERSION
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            UPDATED DATE
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            UPDATE VERSION
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                     <TitleDiv>Server Templates</TitleDiv>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>
-                                TEMPLATE
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>INFO</TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                CURRENT VERSION
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                LATEST VERSION
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                UPDATED DATE
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                UPDATE VERSION
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={left}>
+                            TEMPLATE
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>INFO</TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            CURRENT VERSION
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            LATEST VERSION
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            UPDATED DATE
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            UPDATE VERSION
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{serverTemplateRows}</tbody>
                 </TemplateTable>
@@ -290,3 +288,12 @@ export default class TemplateList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        domainTemplateDetails: selectDomainTemplates(state),
+    };
+};
+
+export default connect(mapStateToProps, null)(TemplateList);

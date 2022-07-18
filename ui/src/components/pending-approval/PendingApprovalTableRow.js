@@ -75,7 +75,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 10em;
     }
 `;

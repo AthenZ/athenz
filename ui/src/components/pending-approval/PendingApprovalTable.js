@@ -21,13 +21,15 @@ import PendingApprovalTableHeader from './PendingApprovalTableHeader';
 import Color from '../../components/denali/Color';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import StringUtils from '../utils/StringUtils';
 import {
     DATE_BEFORE_CURRENT_TIME_ERROR_MESSAGE,
-    PENDING_APPROVAL_ENUM_TYPE,
     PENDING_APPROVAL_KEY_ENUM,
     PENDING_APPROVAL_TYPE_ENUM,
 } from '../constants/constants';
+import produce from 'immer';
+import { processPendingMembers } from '../../redux/thunks/domains';
+import { connect } from 'react-redux';
+
 const TableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
@@ -96,10 +98,9 @@ const DomainListTable = styled.table`
     border-spacing: 0;
 `;
 
-export default class PendingApprovalTable extends React.Component {
+class PendingApprovalTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             checkedAll: false,
             pendingMap: this.props.pendingData,
@@ -118,8 +119,9 @@ export default class PendingApprovalTable extends React.Component {
                 selectAllAudit: event.target.value,
             });
         } else {
-            const pendingMap = this.state.pendingMap;
-            pendingMap[key].auditRef = event.target.value;
+            let pendingMap = produce(this.state.pendingMap, (draft) => {
+                draft[key].auditRef = event.target.value;
+            });
             this.setState({
                 pendingMap: pendingMap,
             });
@@ -144,12 +146,13 @@ export default class PendingApprovalTable extends React.Component {
                 });
             }
         } else {
-            const pendingMap = this.state.pendingMap;
-            if (type === PENDING_APPROVAL_TYPE_ENUM.EXPIRY) {
-                pendingMap[key].expiryDate = date;
-            } else {
-                pendingMap[key].reviewReminder = date;
-            }
+            let pendingMap = produce(this.state.pendingMap, (draft) => {
+                if (type === PENDING_APPROVAL_TYPE_ENUM.EXPIRY) {
+                    draft[key].expiryDate = date;
+                } else {
+                    draft[key].reviewReminder = date;
+                }
+            });
             this.setState({
                 pendingMap: pendingMap,
             });
@@ -159,26 +162,26 @@ export default class PendingApprovalTable extends React.Component {
     checkedChange(key) {
         const pos = this.state.checkedList.indexOf(key);
         let newList = this.state.checkedList;
-        let pendingMap = this.state.pendingMap;
         if (pos === -1) {
             newList.push(key);
-            pendingMap[key].auditRefMissing = false;
-            if (newList.length === Object.keys(this.state.pendingMap).length) {
+            let newPendingMap = produce(this.state.pendingMap, (draft) => {
+                draft[key].auditRefMissing = false;
+            });
+            if (newList.length === Object.keys(newPendingMap).length) {
                 this.setState({
                     checkedList: newList,
                     checkedAll: true,
-                    pendingMap: pendingMap,
+                    pendingMap: newPendingMap,
                 });
             } else {
                 this.setState({
                     checkedList: newList,
                     checkedAll: 2,
-                    pendingMap: pendingMap,
+                    pendingMap: newPendingMap,
                 });
             }
         } else {
             newList.splice(pos, 1);
-
             if (newList.length === 0) {
                 this.setState({
                     checkedList: newList,
@@ -195,23 +198,15 @@ export default class PendingApprovalTable extends React.Component {
     }
 
     initialLoad() {
-        this.api
-            .getPendingDomainMembersList()
-            .then((data) => {
-                this.setState({
-                    pendingMap: data,
-                    checkedList: [],
-                    selectAllAuditMissing: false,
-                    selectAllDateExpiry: '',
-                    selectAllReviewReminder: '',
-                    error: '',
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+        console.log('initialLoad');
+        this.props.loadList();
+        this.setState({
+            checkedList: [],
+            selectAllAuditMissing: false,
+            selectAllDateExpiry: '',
+            selectAllReviewReminder: '',
+            error: '',
+        });
     }
 
     checkAllBoxOnchange() {
@@ -242,8 +237,8 @@ export default class PendingApprovalTable extends React.Component {
                 if (
                     approved &&
                     (this.dateUtils.validateDate(
-                        this.state.selectAllDateExpiry
-                    ) ||
+                            this.state.selectAllDateExpiry
+                        ) ||
                         this.dateUtils.validateDate(
                             this.state.selectAllDateReviewReminder
                         ))
@@ -253,8 +248,6 @@ export default class PendingApprovalTable extends React.Component {
                     });
                     return;
                 }
-
-                let promises = [];
                 this.state.checkedList.forEach((key) => {
                     let membership = {
                         memberName: this.state.pendingMap[key].memberName,
@@ -262,8 +255,8 @@ export default class PendingApprovalTable extends React.Component {
                         expiration: this.state.selectAllDateExpiry,
                         reviewReminder: this.state.selectAllDateReviewReminder,
                     };
-                    promises.push(
-                        this.api.processPending(
+                    this.props
+                        .processPending(
                             this.state.pendingMap[key].domainName,
                             this.state.pendingMap[key].roleName,
                             this.state.pendingMap[key].memberName,
@@ -272,49 +265,25 @@ export default class PendingApprovalTable extends React.Component {
                             membership,
                             this.props._csrf
                         )
-                    );
-                });
-                Promise.allSettled(promises)
-                    .then((values) => {
-                        let error = '';
-                        for (let i = 0; i < values.length; i++) {
-                            if (values[i].status === 'rejected') {
-                                error =
-                                    error +
-                                    "Couldn't approve/deny request for domain:" +
-                                    this.state.pendingMap[
-                                        this.state.checkedList[i]
-                                    ].domainName +
-                                    ', role: ' +
-                                    this.state.pendingMap[
-                                        this.state.checkedList[i]
-                                    ].roleName +
-                                    ', member: ' +
-                                    this.state.pendingMap[
-                                        this.state.checkedList[i]
-                                    ].memberName +
-                                    '\n';
-                            }
-                        }
-                        if (error !== '') {
+                        .catch((err) => {
                             this.setState({
-                                errorMessage: error,
+                                errorMessage:
+                                    RequestUtils.xhrErrorCheckHelper(err),
                             });
-                        } else {
-                            this.initialLoad();
-                        }
-                    })
-                    .catch((err) => {
-                        this.setState({
-                            errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                         });
-                    });
+                });
+                this.initialLoad();
+                this.checkAllBoxOnchange();
+                this.setState({
+                    selectAllAudit: '',
+                });
             }
         } else {
             let auditRef = this.state.pendingMap[key].auditRef;
             if (auditRef === '') {
-                let pendingMap = this.state.pendingMap;
-                pendingMap[key].auditRefMissing = true;
+                let pendingMap = produce(this.state.pendingMap, (draft) => {
+                    draft[key].auditRefMissing = true;
+                });
                 this.setState({
                     pendingMap: pendingMap,
                 });
@@ -323,8 +292,8 @@ export default class PendingApprovalTable extends React.Component {
                 if (
                     approved &&
                     (this.dateUtils.validateDate(
-                        this.state.pendingMap[key].expiryDate
-                    ) ||
+                            this.state.pendingMap[key].expiryDate
+                        ) ||
                         this.dateUtils.validateDate(
                             this.state.pendingMap[key].reviewReminder
                         ))
@@ -341,7 +310,12 @@ export default class PendingApprovalTable extends React.Component {
                     expiration: this.state.pendingMap[key].expiryDate,
                     reviewReminder: this.state.pendingMap[key].reviewReminder,
                 };
-                this.api
+                console.log(
+                    'in my pendingDecision',
+                    membership,
+                    this.state.pendingMap[key]
+                );
+                this.props
                     .processPending(
                         this.state.pendingMap[key].domainName,
                         this.state.pendingMap[key].roleName,
@@ -454,38 +428,37 @@ export default class PendingApprovalTable extends React.Component {
                 )}
                 <DomainListTable data-testid='pending-approval-table'>
                     <thead>
-                        <PendingApprovalTableHeader
-                            checked={this.state.checkedAll}
-                            onChange={this.checkAllBoxOnchange}
-                            checkedList={this.state.checkedList}
-                            pendingDecision={pendingDecision}
-                            auditRefChange={auditRefChange}
-                            dateChange={dateChange}
-                            auditRefMissing={this.state.selectAllAuditMissing}
-                            api={this.api}
-                            clearExpiry={this.state.selectAllDateExpiry}
-                            clearReviewReminder={
-                                this.state.selectAllDateReviewReminder
-                            }
-                            view={view}
-                        />
-                        <tr>
-                            <TableHeader />
-                            {view === 'admin' && (
-                                <TableHeaderDomain>Domain</TableHeaderDomain>
-                            )}
-                            <TableHeader>Type</TableHeader>
-                            <TableHeader>Name</TableHeader>
-                            <TableHeader>Member</TableHeader>
-                            <TableHeader colSpan={2}>User Comment</TableHeader>
-                            <TableHeader>Requester</TableHeader>
-                            <TableHeader>Request Time</TableHeader>
-                            <TableHeader>Audit Reference</TableHeader>
-                            <TableHeader>Expiration Date</TableHeader>
-                            <TableHeader>Reminder Date</TableHeader>
-                            <ApproveTableHeader>Approve</ApproveTableHeader>
-                            <RejectTableHeader>Reject</RejectTableHeader>
-                        </tr>
+                    <PendingApprovalTableHeader
+                        checked={this.state.checkedAll}
+                        onChange={this.checkAllBoxOnchange}
+                        checkedList={this.state.checkedList}
+                        pendingDecision={pendingDecision}
+                        auditRefChange={auditRefChange}
+                        dateChange={dateChange}
+                        auditRefMissing={this.state.selectAllAuditMissing}
+                        clearExpiry={this.state.selectAllDateExpiry}
+                        clearReviewReminder={
+                            this.state.selectAllDateReviewReminder
+                        }
+                        view={view}
+                    />
+                    <tr>
+                        <TableHeader />
+                        {view === 'admin' && (
+                            <TableHeaderDomain>Domain</TableHeaderDomain>
+                        )}
+                        <TableHeader>Type</TableHeader>
+                        <TableHeader>Name</TableHeader>
+                        <TableHeader>Member</TableHeader>
+                        <TableHeader colSpan={2}>User Comment</TableHeader>
+                        <TableHeader>Requester</TableHeader>
+                        <TableHeader>Request Time</TableHeader>
+                        <TableHeader>Audit Reference</TableHeader>
+                        <TableHeader>Expiration Date</TableHeader>
+                        <TableHeader>Reminder Date</TableHeader>
+                        <ApproveTableHeader>Approve</ApproveTableHeader>
+                        <RejectTableHeader>Reject</RejectTableHeader>
+                    </tr>
                     </thead>
                     <tbody>{contents}</tbody>
                 </DomainListTable>
@@ -493,3 +466,28 @@ export default class PendingApprovalTable extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    processPending: (
+        domainName,
+        roleName,
+        memberName,
+        auditRef,
+        category,
+        membership,
+        _csrf
+    ) =>
+        dispatch(
+            processPendingMembers(
+                domainName,
+                roleName,
+                memberName,
+                auditRef,
+                category,
+                membership,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(PendingApprovalTable);

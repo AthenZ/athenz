@@ -145,6 +145,7 @@ export default class ApplyTemplate extends React.Component {
     }
 
     applyTemplateApi(params, csrf) {
+        console.log('-------applyTemplateApi:params:', params);
         this.api
             .updateTemplate(params, csrf)
             .then(() => {

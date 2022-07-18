@@ -81,9 +81,9 @@ export default class Member extends React.Component {
         let fullName = '';
         let shortId = this.props.item.memberName.startsWith('user.')
             ? this.props.item.memberName.substr(
-                  5,
-                  this.props.item.memberName.length
-              )
+                5,
+                this.props.item.memberName.length
+            )
             : this.props.item.memberName;
         if (this.props.item.memberFullName) {
             fullName = (

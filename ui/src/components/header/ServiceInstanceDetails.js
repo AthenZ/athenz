@@ -96,9 +96,9 @@ export default function ServiceInstanceDetails(props) {
                                     <Menu
                                         placement='bottom-end'
                                         trigger={({
-                                            getTriggerProps,
-                                            triggerRef,
-                                        }) => (
+                                                      getTriggerProps,
+                                                      triggerRef,
+                                                  }) => (
                                             <Icon
                                                 icon={'help-circle'}
                                                 {...getTriggerProps({
@@ -135,9 +135,9 @@ export default function ServiceInstanceDetails(props) {
                                         placement='bottom-end'
                                         padding-left='10px'
                                         trigger={({
-                                            getTriggerProps,
-                                            triggerRef,
-                                        }) => (
+                                                      getTriggerProps,
+                                                      triggerRef,
+                                                  }) => (
                                             <Icon
                                                 icon={'help-circle'}
                                                 {...getTriggerProps({
@@ -176,9 +176,9 @@ export default function ServiceInstanceDetails(props) {
                                         placement='bottom-end'
                                         padding-left='10px'
                                         trigger={({
-                                            getTriggerProps,
-                                            triggerRef,
-                                        }) => (
+                                                      getTriggerProps,
+                                                      triggerRef,
+                                                  }) => (
                                             <Icon
                                                 icon={'help-circle'}
                                                 {...getTriggerProps({

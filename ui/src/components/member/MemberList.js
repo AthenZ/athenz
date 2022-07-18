@@ -16,11 +16,10 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
-import MemberTable from './MemberTable';
 import Alert from '../denali/Alert';
-import AddMember from './AddMember';
 import { MODAL_TIME_OUT } from '../constants/constants';
-import RequestUtils from '../utils/RequestUtils';
+import AddMember from './AddMember';
+import MemberTable from './MemberTable';
 
 const MembersSectionDiv = styled.div`
     margin: 20px;
@@ -38,7 +37,6 @@ const AddContainerDiv = styled.div`
 export default class MemberList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             showuser: false,
             showAddMember: false,
@@ -70,35 +68,20 @@ export default class MemberList extends React.Component {
     };
 
     reloadMembers(successMessage, showSuccess = true) {
-        this.api
-            .getCollectionMembers(
-                this.props.domain,
-                this.props.collection,
-                this.props.category,
-                this.props.collectionDetails.trust
-            )
-            .then((members) => {
+        this.setState({
+            showAddMember: false,
+            showSuccess,
+            successMessage: successMessage,
+            errorMessage: null,
+        });
+        setTimeout(
+            () =>
                 this.setState({
-                    members: members,
-                    showAddMember: false,
-                    showSuccess,
-                    successMessage: successMessage,
-                    errorMessage: null,
-                });
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                            successMessage: '',
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                    successMessage: '',
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     closeModal() {
@@ -111,15 +94,13 @@ export default class MemberList extends React.Component {
         let pendingMembers = [];
         let addMemberButton = '';
         let justificationReq =
-            this.props.isDomainAuditEnabled ||
+            collectionDetails.isDomainAuditEnabled ||
             collectionDetails.reviewEnabled ||
             collectionDetails.selfServe;
-
         let addMember = this.state.showAddMember ? (
             <AddMember
                 category={this.props.category}
-                api={this.api}
-                domain={this.props.domain}
+                domainName={this.props.domain}
                 collection={this.props.collection}
                 onSubmit={this.reloadMembers}
                 onCancel={this.toggleAddMember}
@@ -131,13 +112,13 @@ export default class MemberList extends React.Component {
             ''
         );
         if (collectionDetails.trust) {
-            approvedMembers = this.state.members;
+            approvedMembers = this.props.members;
         } else {
-            approvedMembers = this.state.members
-                ? this.state.members.filter((item) => item.approved)
+            approvedMembers = this.props.members
+                ? this.props.members.filter((item) => item.approved)
                 : [];
-            pendingMembers = this.state.members
-                ? this.state.members.filter((item) => !item.approved)
+            pendingMembers = this.props.members
+                ? this.props.members.filter((item) => !item.approved)
                 : [];
         }
         addMemberButton = (
@@ -162,11 +143,9 @@ export default class MemberList extends React.Component {
                     collection={collection}
                     members={approvedMembers}
                     caption='Approved'
-                    api={this.api}
                     _csrf={this.props._csrf}
                     onSubmit={this.reloadMembers}
                     justificationRequired={justificationReq}
-                    userProfileLink={this.props.userProfileLink}
                     newMember={newMember}
                 />
                 <br />
@@ -178,11 +157,9 @@ export default class MemberList extends React.Component {
                         members={pendingMembers}
                         pending={true}
                         caption='Pending'
-                        api={this.api}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadMembers}
                         justificationRequired={justificationReq}
-                        userProfileLink={this.props.userProfileLink}
                         newMember={newMember}
                     />
                 ) : null}

@@ -49,7 +49,6 @@ const TableHeadStyledLabel = styled.div`
 export default class GroupRoleTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         let subRows = [];
 
         if (props.prefixes) {
@@ -104,7 +103,6 @@ export default class GroupRoleTable extends React.Component {
                         <RoleGroup
                             category={GROUP_ROLES_CATEGORY}
                             key={'group-role:' + name}
-                            api={this.api}
                             domain={name}
                             name={name}
                             roles={this.state.rows[name]}

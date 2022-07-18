@@ -48,9 +48,9 @@ export default class TemplateDescription extends React.Component {
             >
                 <TemplateDesc>
                     <thead>
-                        <TrStyled>
-                            <TdStyled>{this.props.description}</TdStyled>
-                        </TrStyled>
+                    <TrStyled>
+                        <TdStyled>{this.props.description}</TdStyled>
+                    </TrStyled>
                     </thead>
                 </TemplateDesc>
             </TdStyled>

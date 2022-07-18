@@ -77,7 +77,6 @@ const StyledMenu = styled(Menu)`
 class ServiceList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.localDate = new DateUtils();
         this.viewServiceDetails = this.viewServiceDetails.bind(this);
     }

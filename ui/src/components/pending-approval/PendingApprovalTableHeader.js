@@ -103,7 +103,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 10em;
     }
 `;
@@ -150,7 +150,6 @@ const AllRejectApproveIcon = styled.div`
 export default class PendingApprovalTableHeader extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             checked: this.props.checked,
         };
@@ -167,17 +166,17 @@ export default class PendingApprovalTableHeader extends React.Component {
         let approveOnClick = disabled
             ? () => {}
             : this.props.pendingDecision.bind(
-                  this,
-                  PENDING_APPROVAL_KEY_ENUM.SELECTALL,
-                  true
-              );
+                this,
+                PENDING_APPROVAL_KEY_ENUM.SELECTALL,
+                true
+            );
         let rejectOnClick = disabled
             ? () => {}
             : this.props.pendingDecision.bind(
-                  this,
-                  PENDING_APPROVAL_KEY_ENUM.SELECTALL,
-                  false
-              );
+                this,
+                PENDING_APPROVAL_KEY_ENUM.SELECTALL,
+                false
+            );
         return (
             <tr data-testid='pending-approval-table-header'>
                 <SelectAllRejectTableHeaderCheckBox>

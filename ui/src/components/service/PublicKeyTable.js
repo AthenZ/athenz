@@ -19,12 +19,18 @@ import { colors } from '../denali/styles';
 import Icon from '../denali/icons/Icon';
 import ServiceKeyUtils from '../utils/ServiceKeyUtils';
 import Color from '../denali/Color';
-import AddKey from './AddKey';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import { css, keyframes } from '@emotion/react';
+import { deleteKey } from '../../redux/thunks/services';
+import { connect } from 'react-redux';
+import {
+    selectServiceDescription,
+    selectServicePublicKeys,
+} from '../../redux/selectors/services';
+import AddKey from './AddKey';
 
 const HeaderDiv = styled.div`
     display: flex;
@@ -113,14 +119,13 @@ const colorTransition = keyframes`
         }
 `;
 
-export default class PublicKeyTable extends React.Component {
+class PublicKeyTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
-            desc: this.props.serviceDetails.description,
-            pubKeys: this.props.serviceDetails.publicKeys,
-            errorMessage: this.props.serviceDetails.errorMessage,
+            // desc: this.props.serviceDetails.description,
+            // pubKeys: this.props.serviceDetails.publicKeys,
+            // errorMessage: this.props.serviceDetails.errorMessage,
         };
         this.toggleAddKey = this.toggleAddKey.bind(this);
         this.reloadKeys = this.reloadKeys.bind(this);
@@ -136,32 +141,21 @@ export default class PublicKeyTable extends React.Component {
     }
 
     reloadKeys(successMessage, showSuccess) {
-        this.api
-            .getService(this.props.domain, this.props.service)
-            .then((detail) => {
+        this.setState({
+            showAddKey: null,
+            successMessage,
+            showSuccess,
+            showDelete: false,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
                 this.setState({
-                    desc: detail.description,
-                    pubKeys: detail.publicKeys,
-                    showAddKey: null,
-                    successMessage,
-                    showSuccess,
-                    showDelete: false,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                            successMessage: '',
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                    successMessage: '',
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     closeModal() {
@@ -177,7 +171,7 @@ export default class PublicKeyTable extends React.Component {
     }
 
     onSubmitDeleteKey() {
-        this.api
+        this.props
             .deleteKey(
                 this.props.domain,
                 this.props.service,
@@ -216,44 +210,40 @@ export default class PublicKeyTable extends React.Component {
         let description = null;
         let publicKeys = [];
 
-        if (this.state.desc) {
+        if (this.props.desc) {
             description = (
                 <DescriptionDiv>
                     <DescriptionSpan>Description</DescriptionSpan>
-                    <span>{this.state.desc}</span>
+                    <span>{this.props.desc}</span>
                 </DescriptionDiv>
             );
         }
-
-        if (this.state.pubKeys) {
-            const keys = this.state.pubKeys;
-            keys.map((key) => {
-                let onClickDeleteKey = this.onClickDeleteKey.bind(this, key.id);
-                let newKey =
-                    key.id + '-' + this.props.service ===
-                    this.state.successMessage;
-                const formattedKey = ServiceKeyUtils.y64Decode(key.key);
-                publicKeys.push(
-                    <PublicKeyDiv
-                        key={this.props.service + key.id}
-                        isSuccess={newKey}
-                    >
-                        <KeyLabelDiv>Public Key Version: {key.id}</KeyLabelDiv>
-                        <KeyContentDiv>{formattedKey}</KeyContentDiv>
-                        <IconDiv>
-                            <Icon
-                                icon={'trash'}
-                                onClick={onClickDeleteKey}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </IconDiv>
-                    </PublicKeyDiv>
-                );
-            });
-        }
+        const keys = this.props.pubKeys;
+        keys.map((key) => {
+            let onClickDeleteKey = this.onClickDeleteKey.bind(this, key.id);
+            let newKey =
+                key.id + '-' + this.props.service === this.state.successMessage;
+            const formattedKey = ServiceKeyUtils.y64Decode(key.key);
+            publicKeys.push(
+                <PublicKeyDiv
+                    key={this.props.service + key.id}
+                    isSuccess={newKey}
+                >
+                    <KeyLabelDiv>Public Key Version: {key.id}</KeyLabelDiv>
+                    <KeyContentDiv>{formattedKey}</KeyContentDiv>
+                    <IconDiv>
+                        <Icon
+                            icon={'trash'}
+                            onClick={onClickDeleteKey}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </IconDiv>
+                </PublicKeyDiv>
+            );
+        });
 
         let addKey = this.state.showAddKey ? (
             <AddKey
@@ -262,7 +252,6 @@ export default class PublicKeyTable extends React.Component {
                 onSubmit={this.reloadKeys}
                 domain={this.props.domain}
                 service={this.props.service}
-                api={this.api}
                 _csrf={this.props._csrf}
             />
         ) : (
@@ -311,3 +300,18 @@ export default class PublicKeyTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        pubKeys: selectServicePublicKeys(state, props.domain, props.service),
+        desc: selectServiceDescription(state, props.domain, props.service),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteKey: (domainName, serviceName, deleteKeyId, _csrf) =>
+        dispatch(deleteKey(domainName, serviceName, deleteKeyId, _csrf)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(PublicKeyTable);

@@ -23,6 +23,12 @@ import Button from '../denali/Button';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
+import { connect } from 'react-redux';
+import {
+    createSubDomain,
+    createUserDomain,
+    getDomain,
+} from '../../redux/thunks/domains';
 
 const TABS = [
     {
@@ -104,9 +110,10 @@ class CreateDomain extends React.Component {
         let pdom = 'home.' + this.props.userId;
         switch (tab.name) {
             case 'personal':
-                self.api
+                self.props
                     .getDomain('home.' + self.props.userId)
                     .then((data) => {
+                        // self.props.router.push(`/domain/${pdom}/role`);
                         self.props.router.push(`/domain/${pdom}/role`);
                     })
                     .catch((err) => {
@@ -158,7 +165,7 @@ class CreateDomain extends React.Component {
     }
 
     onSubmit() {
-        this.api
+        this.props
             .createSubDomain(
                 this.state.domain,
                 this.state.subDomain,
@@ -167,7 +174,8 @@ class CreateDomain extends React.Component {
             )
             .then(() => {
                 this.props.router.push(
-                    `/domain/${this.state.domain}.${this.state.subDomain}/role`
+                    // `/domain/${this.state.domain}.${this.state.subDomain}/role`
+                    `/domain/${this.state.domain}.${this.state.subDomain}/redux-role-page`
                 );
             })
             .catch((err) => {
@@ -331,4 +339,13 @@ class CreateDomain extends React.Component {
         );
     }
 }
-export default withRouter(CreateDomain);
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomain: (domainName) => dispatch(getDomain(domainName)),
+    createSubDomain: (parentDomain, domain, adminUser, _csrf) =>
+        dispatch(createSubDomain(parentDomain, domain, adminUser, _csrf)),
+    createUserDomain: (userId, _csrf) =>
+        dispatch(createUserDomain(userId, _csrf)),
+});
+
+export default connect(null, mapDispatchToProps)(withRouter(CreateDomain));

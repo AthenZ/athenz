@@ -62,7 +62,6 @@ const StyledTd = styled.td`
 class GroupMemberList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.viewGroup = this.viewGroup.bind(this);
         this.localDate = new DateUtils();
     }
@@ -88,10 +87,10 @@ class GroupMemberList extends React.Component {
                         <StyledTd>
                             {item.expiration
                                 ? this.localDate.getLocalDate(
-                                      item.expiration,
-                                      'UTC',
-                                      'UTC'
-                                  )
+                                    item.expiration,
+                                    'UTC',
+                                    'UTC'
+                                )
                                 : 'N/A'}
                         </StyledTd>
                     </StyledTr>
@@ -119,13 +118,13 @@ class GroupMemberList extends React.Component {
 
                     {rows}
                     <tfoot colspan={'0'}>
-                        <tr>
-                            <StyledTd colSpan={2}>
-                                <Button secondary onClick={this.viewGroup}>
-                                    View Members
-                                </Button>
-                            </StyledTd>
-                        </tr>
+                    <tr>
+                        <StyledTd colSpan={2}>
+                            <Button secondary onClick={this.viewGroup}>
+                                View Members
+                            </Button>
+                        </StyledTd>
+                    </tr>
                     </tfoot>
                 </StyleTable>
             </StyledDiv>

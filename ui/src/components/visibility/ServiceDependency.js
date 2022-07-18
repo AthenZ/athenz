@@ -136,29 +136,29 @@ export default class ServiceDependency extends React.Component {
             return (
                 <StyleTable data-testid='dependency-sgroup-table'>
                     <thead>
-                        <TableCaptionStyled>
-                            <LeftMarginSpan>
-                                <Icon
-                                    icon={
-                                        this.state.expanded
-                                            ? arrowup
-                                            : arrowdown
-                                    }
-                                    onClick={this.expandResourceGroups}
-                                    color={
-                                        this.state.disabled
-                                            ? colors.grey500
-                                            : colors.icons
-                                    }
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </LeftMarginSpan>
-                            {this.state.disabled
-                                ? `${service}`
-                                : `${service} (${length})`}
-                        </TableCaptionStyled>
+                    <TableCaptionStyled>
+                        <LeftMarginSpan>
+                            <Icon
+                                icon={
+                                    this.state.expanded
+                                        ? arrowup
+                                        : arrowdown
+                                }
+                                onClick={this.expandResourceGroups}
+                                color={
+                                    this.state.disabled
+                                        ? colors.grey500
+                                        : colors.icons
+                                }
+                                isLink
+                                size={'1.25em'}
+                                verticalAlign={'text-bottom'}
+                            />
+                        </LeftMarginSpan>
+                        {this.state.disabled
+                            ? `${service}`
+                            : `${service} (${length})`}
+                    </TableCaptionStyled>
                     </thead>
                 </StyleTable>
             );
@@ -170,25 +170,25 @@ export default class ServiceDependency extends React.Component {
                 data-testid='dependencySgroupTable'
             >
                 <thead>
-                    <TableCaptionStyled>
-                        <LeftMarginSpan>
-                            <Icon
-                                icon={this.state.expanded ? arrowup : arrowdown}
-                                onClick={this.expandResourceGroups}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </LeftMarginSpan>
-                        {`${service} (${length})`}
-                    </TableCaptionStyled>
-                    <tr>
-                        <TableHeadStyledRsGroupName align={left}>
-                            Resource Group
-                        </TableHeadStyledRsGroupName>
-                        <TableHeadStyled align={left}>Role</TableHeadStyled>
-                    </tr>
+                <TableCaptionStyled>
+                    <LeftMarginSpan>
+                        <Icon
+                            icon={this.state.expanded ? arrowup : arrowdown}
+                            onClick={this.expandResourceGroups}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </LeftMarginSpan>
+                    {`${service} (${length})`}
+                </TableCaptionStyled>
+                <tr>
+                    <TableHeadStyledRsGroupName align={left}>
+                        Resource Group
+                    </TableHeadStyledRsGroupName>
+                    <TableHeadStyled align={left}>Role</TableHeadStyled>
+                </tr>
                 </thead>
                 <tbody>{toReturn}</tbody>
             </StyleTable>
@@ -199,42 +199,42 @@ export default class ServiceDependency extends React.Component {
         let length = 0;
         const left = 'left';
         let resGroupMap = this.state.dependency.resourceGroups.reduce(function (
-            map,
-            obj
-        ) {
-            // Extract the provider, resource group and role to create the role the resource group and role tags.
-            // For example:
-            // service - paranoids.ppse.ckms.ykeykey_alpha
-            // obj - ykeykey_alpha.tenant.home.olevi.res_group.test_res_grp1.writers
-            // Then the resource group will be 'test_res_grp1', the role will be 'writers' and the link will be:
-            // "/domain/paranoids.ppse.ckms/role/ykeykey_alpha.tenant.home.olevi.res_group.test_res_grp1.writers/policy";
-            let resGroupIndexStart = obj.indexOf('.res_group.') + 11;
-            let resGroupIndexEnd = obj.indexOf('.', resGroupIndexStart);
-            let resGroupRoleStart = obj.indexOf('.', resGroupIndexEnd) + 1;
-            let resourceGroup = obj.substring(
-                resGroupIndexStart,
-                resGroupIndexEnd
-            );
-            let resourceGroupRole = obj.substring(resGroupRoleStart);
-            let providerService = service.substring(
-                0,
-                service.lastIndexOf('.')
-            );
-            let roleLink =
-                '/domain/' + providerService + '/role/' + obj + '/policy';
+                map,
+                obj
+            ) {
+                // Extract the provider, resource group and role to create the role the resource group and role tags.
+                // For example:
+                // service - paranoids.ppse.ckms.ykeykey_alpha
+                // obj - ykeykey_alpha.tenant.home.olevi.res_group.test_res_grp1.writers
+                // Then the resource group will be 'test_res_grp1', the role will be 'writers' and the link will be:
+                // "/domain/paranoids.ppse.ckms/role/ykeykey_alpha.tenant.home.olevi.res_group.test_res_grp1.writers/policy";
+                let resGroupIndexStart = obj.indexOf('.res_group.') + 11;
+                let resGroupIndexEnd = obj.indexOf('.', resGroupIndexStart);
+                let resGroupRoleStart = obj.indexOf('.', resGroupIndexEnd) + 1;
+                let resourceGroup = obj.substring(
+                    resGroupIndexStart,
+                    resGroupIndexEnd
+                );
+                let resourceGroupRole = obj.substring(resGroupRoleStart);
+                let providerService = service.substring(
+                    0,
+                    service.lastIndexOf('.')
+                );
+                let roleLink =
+                    '/domain/' + providerService + '/role/' + obj + '/policy';
 
-            if (!map[resourceGroup]) {
-                map[resourceGroup] = [];
-                length++;
-            }
-            map[resourceGroup].push({
-                resourceGroup: resourceGroup,
-                resourceGroupRole: resourceGroupRole,
-                roleLink: roleLink,
-            });
-            return map;
-        },
-        {});
+                if (!map[resourceGroup]) {
+                    map[resourceGroup] = [];
+                    length++;
+                }
+                map[resourceGroup].push({
+                    resourceGroup: resourceGroup,
+                    resourceGroupRole: resourceGroupRole,
+                    roleLink: roleLink,
+                });
+                return map;
+            },
+            {});
 
         let color = '';
         for (const [key, value] of Object.entries(resGroupMap)) {

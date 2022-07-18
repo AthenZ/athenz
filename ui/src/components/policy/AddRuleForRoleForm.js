@@ -19,9 +19,10 @@ import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
-import RequestUtils from '../utils/RequestUtils';
 import Color from '../denali/Color';
 import CheckBox from '../denali/CheckBox';
+import { connect } from 'react-redux';
+import { selectRoles } from '../../redux/selectors/roles';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -58,10 +59,9 @@ const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
 
-export default class AddRuleForRoleForm extends React.Component {
+export class AddRuleForRoleForm extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.ruleEffectChanged = this.ruleEffectChanged.bind(this);
         this.state = {
             effects: [
@@ -74,6 +74,7 @@ export default class AddRuleForRoleForm extends React.Component {
                     value: 'DENY',
                 },
             ],
+            roles: this.getRoles(),
             selectedEffect: 'ALLOW',
             errorMessage: null,
             name: '',
@@ -81,7 +82,6 @@ export default class AddRuleForRoleForm extends React.Component {
             resource: '',
             case: false,
         };
-        this.getRoles();
     }
 
     ruleEffectChanged(evt) {
@@ -90,26 +90,22 @@ export default class AddRuleForRoleForm extends React.Component {
     }
 
     getRoles() {
-        this.api
-            .listRoles(this.props.domain)
-            .then((data) => {
-                let options = [];
-                data.forEach((role) => {
-                    options.push({
-                        value: role,
-                        name: role,
-                    });
-                });
-                this.setState({
-                    roles: options,
-                    errorMessage: null,
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+        const getShortName = (name) => {
+            let splitName = name.split(':role.');
+            if (splitName.length > 0) {
+                return splitName[1];
+            }
+            return name;
+        };
+        let options = [];
+        this.props.roles.forEach((role) => {
+            let shortName = getShortName(role.name);
+            options.push({
+                value: shortName,
+                name: shortName,
             });
+        });
+        return options;
     }
 
     inputChanged(key, evt) {
@@ -212,3 +208,12 @@ export default class AddRuleForRoleForm extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roles: selectRoles(state),
+    };
+};
+
+export default connect(mapStateToProps, null)(AddRuleForRoleForm);

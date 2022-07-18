@@ -16,6 +16,8 @@
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
+import { selectFeatureFlag } from '../../redux/selectors/domainData';
+import { connect } from 'react-redux';
 
 class Tabs extends React.Component {
     constructor(props) {
@@ -146,4 +148,12 @@ class Tabs extends React.Component {
         );
     }
 }
-export default withRouter(Tabs);
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        featureFlag: selectFeatureFlag(state),
+    };
+};
+
+export default connect(mapStateToProps)(withRouter(Tabs));

@@ -17,10 +17,12 @@ import React from 'react';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import styled from '@emotion/styled';
-import RolePolicyRuleTable from './RolePolicyRuleTable';
 import DateUtils from '../utils/DateUtils';
-import RequestUtils from '../utils/RequestUtils';
 import { css, keyframes } from '@emotion/react';
+import { selectPolicyAssertions } from '../../redux/selectors/policies';
+import { deletePolicy } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
+import RolePolicyRuleTable from './RolePolicyRuleTable';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -31,12 +33,12 @@ const TdStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`
@@ -78,10 +80,9 @@ const StyledDiv = styled.div`
     width: 100%;
 `;
 
-export default class RolePolicyRow extends React.Component {
+class RolePolicyRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.toggleAssertions = this.toggleAssertions.bind(this);
         this.state = {
             name: this.props.name,
@@ -92,27 +93,10 @@ export default class RolePolicyRow extends React.Component {
     }
 
     toggleAssertions() {
-        if (this.state.assertions) {
-            this.setState({
-                assertions: null,
-                newPolicy: false,
-            });
-        } else {
-            this.api
-                .getPolicy(this.props.domain, this.state.name)
-                .then((assertions) => {
-                    this.setState({
-                        assertions: assertions.assertions,
-                        errorMessage: null,
-                        newPolicy: false,
-                    });
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
-        }
+        this.setState({
+            assertions: !this.state.assertions,
+            newPolicy: false,
+        });
     }
 
     render() {
@@ -147,10 +131,8 @@ export default class RolePolicyRow extends React.Component {
                         </StyledDiv>
                         <StyledDiv>
                             <RolePolicyRuleTable
-                                assertions={this.state.assertions}
                                 id={id}
                                 name={this.state.name}
-                                api={this.api}
                                 domain={this.props.domain}
                                 role={this.props.role}
                                 _csrf={this.props._csrf}
@@ -187,3 +169,17 @@ export default class RolePolicyRow extends React.Component {
         return rows;
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        assertions: selectPolicyAssertions(state, props.domain, props.name),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deletePolicy: (domainName, roleName) =>
+        dispatch(deletePolicy(domainName, roleName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RolePolicyRow);

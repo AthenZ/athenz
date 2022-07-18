@@ -65,11 +65,14 @@ export default class TemplateRow extends React.Component {
         });
     }
 
+    // TODO mendi - remove api calls
     toggleApplyTemplateNoKeyword() {
         let params = {
             name: this.props.domain,
             domainTemplate: { templateNames: [this.props.templateName] },
         };
+        console.log('-------toggleApplyTemplateNoKeyword:params:', params);
+
         this.props.api
             .updateTemplate(params, this.props._csrf)
             .then(() => {

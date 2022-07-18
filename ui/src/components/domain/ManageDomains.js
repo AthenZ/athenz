@@ -24,6 +24,11 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import BusinessServiceModal from '../modal/BusinessServiceModal';
 import { css, keyframes } from '@emotion/react';
+import { deleteSubDomain } from '../../redux/thunks/domains';
+import { connect } from 'react-redux';
+import { withRouter } from 'next/router';
+import { selectBusinessServices } from '../../redux/selectors/domainData';
+import { selectBusinessServicesAll } from '../../redux/selectors/domains';
 
 const ManageDomainSectionDiv = styled.div`
     margin: 20px;
@@ -84,8 +89,8 @@ const StyledAnchor = styled.a`
 
 const TrStyled = styled.tr`
     ${(props) =>
-        props.isSuccess === true &&
-        css`
+    props.isSuccess === true &&
+    css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -99,7 +104,7 @@ const colorTransition = keyframes`
         }
 `;
 
-export default class ManageDomains extends React.Component {
+class ManageDomains extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -205,7 +210,7 @@ export default class ManageDomains extends React.Component {
         const splittedDomain = domainName.split('.');
         const domain = splittedDomain.pop();
         const parent = splittedDomain.join('.');
-        this.api
+        this.props
             .deleteSubDomain(
                 parent,
                 domain,
@@ -307,93 +312,93 @@ export default class ManageDomains extends React.Component {
         const center = 'center';
         const rows = this.props.domains
             ? this.props.domains.map((item, i) => {
-                  const domainType = this.ascertainDomainType(item.domain.name);
-                  let isSuccess =
-                      item.domain.name === this.props.successMessage;
-                  let deletable = false;
-                  let auditEnabled = !!item.domain.auditEnabled;
-                  let deleteItem = this.onClickDelete.bind(
-                      this,
-                      item.domain.name,
-                      auditEnabled
-                  );
-                  let businessServiceItem = this.onClickBusinessService.bind(
-                      this,
-                      item.domain.name,
-                      item.domain.businessService,
-                      auditEnabled
-                  );
+                const domainType = this.ascertainDomainType(item.domain.name);
+                let isSuccess =
+                    item.domain.name === this.props.successMessage;
+                let deletable = false;
+                let auditEnabled = !!item.domain.auditEnabled;
+                let deleteItem = this.onClickDelete.bind(
+                    this,
+                    item.domain.name,
+                    auditEnabled
+                );
+                let businessServiceItem = this.onClickBusinessService.bind(
+                    this,
+                    item.domain.name,
+                    item.domain.businessService,
+                    auditEnabled
+                );
 
-                  let color = '';
-                  if (i % 2 === 0) {
-                      color = colors.row;
-                  }
-                  if (domainType === 'Sub domain') {
-                      deletable = true;
-                  }
-                  let title = item.domain.businessService
-                      ? item.domain.businessService.substring(
-                            item.domain.businessService.indexOf(':') + 1
-                        )
-                      : 'add';
-                  if (!title) {
-                      title = item.domain.businessService
-                          ? item.domain.businessService
-                          : 'add';
-                  }
-                  return (
-                      <TrStyled key={item.domain.name} isSuccess={isSuccess}>
-                          <TDStyled color={color} align={left}>
-                              {item.domain.name}
-                          </TDStyled>
-                          <TDStyled color={color} align={left}>
-                              {domainType}
-                          </TDStyled>
-                          <TDStyled color={color} align={left}>
-                              {this.dateUtils.getLocalDate(
-                                  item.domain.modified,
-                                  'UTC',
-                                  'UTC'
-                              )}
-                          </TDStyled>
-                          <TDStyled color={color} align={center}>
-                              {item.domain.ypmId ? item.domain.ypmId : ''}
-                          </TDStyled>
-                          <TDStyled color={color} align={center}>
-                              <Switch
-                                  name={'selfServe-' + i}
-                                  value={auditEnabled}
-                                  checked={auditEnabled}
-                                  disabled
-                              />
-                          </TDStyled>
-                          <TDStyled color={color} align={center}>
-                              {item.domain.account ? item.domain.account : ''}
-                          </TDStyled>
-                          <TDStyledBusinessService
-                              color={color}
-                              align={left}
-                              title={title}
-                          >
-                              <StyledAnchor onClick={businessServiceItem}>
-                                  {title}
-                              </StyledAnchor>
-                          </TDStyledBusinessService>
-                          <TDStyled color={color} align={center}>
-                              {deletable ? (
-                                  <Icon
-                                      icon={'trash'}
-                                      onClick={deleteItem}
-                                      color={colors.icons}
-                                      isLink
-                                      size={'1.25em'}
-                                      verticalAlign={'text-bottom'}
-                                  />
-                              ) : null}
-                          </TDStyled>
-                      </TrStyled>
-                  );
-              })
+                let color = '';
+                if (i % 2 === 0) {
+                    color = colors.row;
+                }
+                if (domainType === 'Sub domain') {
+                    deletable = true;
+                }
+                let title = item.domain.businessService
+                    ? item.domain.businessService.substring(
+                        item.domain.businessService.indexOf(':') + 1
+                    )
+                    : 'add';
+                if (!title) {
+                    title = item.domain.businessService
+                        ? item.domain.businessService
+                        : 'add';
+                }
+                return (
+                    <TrStyled key={item.domain.name} isSuccess={isSuccess}>
+                        <TDStyled color={color} align={left}>
+                            {item.domain.name}
+                        </TDStyled>
+                        <TDStyled color={color} align={left}>
+                            {domainType}
+                        </TDStyled>
+                        <TDStyled color={color} align={left}>
+                            {this.dateUtils.getLocalDate(
+                                item.domain.modified,
+                                'UTC',
+                                'UTC'
+                            )}
+                        </TDStyled>
+                        <TDStyled color={color} align={center}>
+                            {item.domain.ypmId ? item.domain.ypmId : ''}
+                        </TDStyled>
+                        <TDStyled color={color} align={center}>
+                            <Switch
+                                name={'selfServe-' + i}
+                                value={auditEnabled}
+                                checked={auditEnabled}
+                                disabled
+                            />
+                        </TDStyled>
+                        <TDStyled color={color} align={center}>
+                            {item.domain.account ? item.domain.account : ''}
+                        </TDStyled>
+                        <TDStyledBusinessService
+                            color={color}
+                            align={left}
+                            title={title}
+                        >
+                            <StyledAnchor onClick={businessServiceItem}>
+                                {title}
+                            </StyledAnchor>
+                        </TDStyledBusinessService>
+                        <TDStyled color={color} align={center}>
+                            {deletable ? (
+                                <Icon
+                                    icon={'trash'}
+                                    onClick={deleteItem}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            ) : null}
+                        </TDStyled>
+                    </TrStyled>
+                );
+            })
             : '';
         if (this.state.showDelete) {
             let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
@@ -451,28 +456,28 @@ export default class ManageDomains extends React.Component {
                 )}
                 <RoleTable>
                     <thead>
-                        <tr>
-                            <TableHeadStyled align={left}>Name</TableHeadStyled>
-                            <TableHeadStyled align={left}>Type</TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Modified Date
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Product Master Id
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Audit
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                AWS Account #
-                            </TableHeadStyled>
-                            <TableHeadStyled align={left}>
-                                Business Service
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Delete
-                            </TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyled align={left}>Name</TableHeadStyled>
+                        <TableHeadStyled align={left}>Type</TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Modified Date
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Product Master Id
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Audit
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            AWS Account #
+                        </TableHeadStyled>
+                        <TableHeadStyled align={left}>
+                            Business Service
+                        </TableHeadStyled>
+                        <TableHeadStyled align={center}>
+                            Delete
+                        </TableHeadStyled>
+                    </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </RoleTable>
@@ -480,3 +485,21 @@ export default class ManageDomains extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        validBusinessServices: selectBusinessServices(state),
+        validBusinessServicesAll: selectBusinessServicesAll(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteSubDomain: (parentDomain, domain, auditRef, _csrf) =>
+        dispatch(deleteSubDomain(parentDomain, domain, auditRef, _csrf)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(ManageDomains));

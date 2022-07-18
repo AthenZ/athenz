@@ -43,7 +43,6 @@ const LabelDiv = styled.div`
 export default class CollectionDetails extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
     }
 
     render() {
@@ -55,10 +54,10 @@ export default class CollectionDetails extends React.Component {
         );
         let lastReviewedDate = this.props.collectionDetails.lastReviewedDate
             ? localDate.getLocalDate(
-                  this.props.collectionDetails.lastReviewedDate,
-                  'UTC',
-                  'UTC'
-              )
+                this.props.collectionDetails.lastReviewedDate,
+                'UTC',
+                'UTC'
+            )
             : 'N/A';
         return (
             <DomainSectionDiv data-testid='collection-details'>

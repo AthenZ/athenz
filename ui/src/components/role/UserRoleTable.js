@@ -15,14 +15,18 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import Icon from '../denali/icons/Icon';
-import { colors } from '../denali/styles';
 import DeleteModal from '../modal/DeleteModal';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
-import { keyframes, css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
+import { selectRoleUsers } from '../../redux/selectors/roles';
+import { deleteMemberFromAllRoles } from '../../redux/thunks/roles';
+import { connect } from 'react-redux';
+import { deleteMember } from '../../redux/thunks/collections';
+import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import ReduxUserRoleRow from './ReduxUserRoleRow';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -84,12 +88,12 @@ const TrStyled = styled.div`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const StyledTd = styled.div`
@@ -113,17 +117,17 @@ const StyledIconCol = styled.div`
 const FlexDiv = styled.div`
     display: flex;
 `;
-
-export default class UserRoleTable extends React.Component {
+// TODO roy - not finished need to fix this page
+class UserRoleTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.deleteRoleCancel = this.deleteRoleCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
-        this.loadRoleByUser();
+        this.deleteItemMember = this.deleteItemMember.bind(this);
+        this.deleteItem = this.deleteItem.bind(this);
         this.state = {
             list: {},
-            loaded: 'todo',
+            loaded: 'done',
             expand: {},
             contents: {},
             showDelete: false,
@@ -139,12 +143,6 @@ export default class UserRoleTable extends React.Component {
             this.setState({
                 searchText: this.props.searchText,
             });
-        }
-        if (
-            prevProps.roles !== this.props.roles ||
-            prevProps.users !== this.props.users
-        ) {
-            this.loadRoleByUser();
         }
     }
 
@@ -176,8 +174,8 @@ export default class UserRoleTable extends React.Component {
             });
             return;
         }
-        this.api
-            .deleteRoleMember(
+        this.props
+            .deleteMemberFromAllRoles(
                 domain,
                 this.state.deleteName,
                 this.state.deleteJustification
@@ -186,7 +184,6 @@ export default class UserRoleTable extends React.Component {
                 this.props._csrf
             )
             .then(() => {
-                this.loadRoleByUser();
                 this.setState({
                     showDelete: false,
                     showSuccess: true,
@@ -219,7 +216,7 @@ export default class UserRoleTable extends React.Component {
             });
             return;
         }
-        this.api
+        this.props
             .deleteMember(
                 domain,
                 this.state.deleteName,
@@ -227,12 +224,9 @@ export default class UserRoleTable extends React.Component {
                 this.state.deleteJustification
                     ? this.state.deleteJustification
                     : 'deleted using Athenz UI',
-                false,
-                'role',
                 this.props._csrf
             )
             .then(() => {
-                this.loadRoleByUser();
                 this.setState({
                     showDelete: false,
                     showSuccess: true,
@@ -264,98 +258,6 @@ export default class UserRoleTable extends React.Component {
         this.setState({ deleteJustification: val });
     }
 
-    expandRole(memberName) {
-        let expand = this.state.expand;
-        const center = 'center';
-        const left = 'left';
-        let content = this.state.contents;
-        let expandArray = this.state.expandTable;
-        if (content[memberName] !== null) {
-            content[memberName] = null;
-            expandArray[memberName] = false;
-            this.setState({
-                contents: content,
-                expandTable: expandArray,
-            });
-        } else {
-            content[memberName] = expand[memberName].map((role, i) => {
-                let deleteItem = this.deleteItem.bind(
-                    this,
-                    role.roleName,
-                    memberName
-                );
-                return (
-                    <FlexDiv key={role.roleName}>
-                        <TDStyledMember align={left}>
-                            {role.roleName}
-                        </TDStyledMember>
-                        <TDStyledIcon align={center}>
-                            {role.expiration
-                                ? this.dateUtils.getLocalDate(
-                                      role.expiration,
-                                      'UTC',
-                                      'UTC'
-                                  )
-                                : null}
-                        </TDStyledIcon>
-                        <TDStyledIcon align={center}>
-                            <Icon
-                                icon={'trash'}
-                                onClick={deleteItem}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </TDStyledIcon>
-                    </FlexDiv>
-                );
-            });
-            expandArray[memberName] = true;
-            this.setState({
-                contents: content,
-                expandTable: expandArray,
-            });
-        }
-    }
-
-    loadRoleByUser() {
-        this.api
-            .getRoleMembers(this.props.domain)
-            .then((members) => {
-                let expand = {};
-                let contents = {};
-                let expandArray = {};
-                let fullNameArr = {};
-                for (let i = 0; i < members.members.length; i++) {
-                    let name = members.members[i].memberName;
-                    expand[name] = members.members[i].memberRoles;
-                    fullNameArr[name] = members.members[i].memberFullName;
-                    contents[name] = null;
-                    expandArray[name] = false;
-                }
-                this.setState({
-                    list: members,
-                    loaded: 'done',
-                    expand: expand,
-                    contents: contents,
-                    expandTable: expandArray,
-                    fullNames: fullNameArr,
-                });
-            })
-            .catch((err) => {
-                let message;
-                if (err.statusCode === 0) {
-                    window.location.reload();
-                } else {
-                    message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
-                }
-                this.setState({
-                    errorMessage: message,
-                });
-            });
-    }
-
     onCloseAlert() {
         this.setState({
             showSuccess: false,
@@ -373,9 +275,8 @@ export default class UserRoleTable extends React.Component {
         if (this.state.loaded === 'todo') {
             return <div data-testid='userroletable' />;
         }
-        const rows =
-            this.state.list.members &&
-            this.state.list.members
+        const rows = this.props.roleUsers
+            ? this.props.roleUsers
                 .filter((member) => {
                     return member.memberName.includes(
                         this.state.searchText.trim()
@@ -385,124 +286,19 @@ export default class UserRoleTable extends React.Component {
                     return a.memberName.localeCompare(b.memberName);
                 })
                 .map((item, i) => {
-                    let deleteItem = this.deleteItemMember.bind(
-                        this,
-                        item.memberName
-                    );
-                    let expandRole = this.expandRole.bind(
-                        this,
-                        item.memberName
-                    );
-
-                    let toReturn = [];
                     let newMember =
                         this.props.domain + '-' + item.memberName ===
                         this.props.newMember;
-                    if (!this.state.contents[item.memberName]) {
-                        toReturn.push(
-                            <TrStyled
-                                key={item.memberName}
-                                isSuccess={newMember}
-                            >
-                                <TDStyledMember align={left}>
-                                    <LeftMarginSpan>
-                                        <Icon
-                                            icon={'arrowhead-down-circle'}
-                                            onClick={expandRole}
-                                            color={colors.icons}
-                                            isLink
-                                            size={'1.5em'}
-                                            verticalAlign={'text-bottom'}
-                                        />
-                                    </LeftMarginSpan>
-                                    {item.memberName +
-                                        (this.state.fullNames[
-                                            item.memberName
-                                        ] !== undefined
-                                            ? ' (' +
-                                              this.state.fullNames[
-                                                  item.memberName
-                                              ] +
-                                              ')'
-                                            : '') +
-                                        ' (' +
-                                        item.memberRoles.length +
-                                        ')'}
-                                </TDStyledMember>
-                                <TDStyledIcon align={center} />
-                                <TDStyledIcon align={center}>
-                                    <Icon
-                                        icon={'trash'}
-                                        onClick={deleteItem}
-                                        color={colors.icons}
-                                        isLink
-                                        size={'1.25em'}
-                                        verticalAlign={'text-bottom'}
-                                    />
-                                </TDStyledIcon>
-                            </TrStyled>
-                        );
-                    } else {
-                        toReturn.push(
-                            <TrStyled
-                                key={item.memberName}
-                                isSuccess={newMember}
-                            >
-                                <StyledTd>
-                                    <StyledTable>
-                                        <FlexDiv>
-                                            <TDStyledMember align={left}>
-                                                <LeftMarginSpan>
-                                                    <Icon
-                                                        icon={
-                                                            'arrowhead-up-circle-solid'
-                                                        }
-                                                        onClick={expandRole}
-                                                        color={colors.icons}
-                                                        isLink
-                                                        size={'1.5em'}
-                                                        verticalAlign={
-                                                            'text-bottom'
-                                                        }
-                                                    />
-                                                </LeftMarginSpan>
-                                                {item.memberName +
-                                                    (this.state.fullNames[
-                                                        item.memberName
-                                                    ] !== undefined
-                                                        ? ' (' +
-                                                          this.state.fullNames[
-                                                              item.memberName
-                                                          ] +
-                                                          ')'
-                                                        : '') +
-                                                    ' (' +
-                                                    item.memberRoles.length +
-                                                    ')'}
-                                            </TDStyledMember>
-                                            <TDStyledIcon align={center} />
-                                            <TDStyledIcon align={center}>
-                                                <Icon
-                                                    icon={'trash'}
-                                                    onClick={deleteItem}
-                                                    color={colors.icons}
-                                                    isLink
-                                                    size={'1.25em'}
-                                                    verticalAlign={
-                                                        'text-bottom'
-                                                    }
-                                                />
-                                            </TDStyledIcon>
-                                        </FlexDiv>
-                                        {this.state.contents[item.memberName]}
-                                    </StyledTable>
-                                </StyledTd>
-                            </TrStyled>
-                        );
-                    }
-                    return toReturn;
-                });
-
+                    return (
+                        <ReduxUserRoleRow
+                            newMember={newMember}
+                            memberData={item}
+                            onDelete={this.deleteItemMember}
+                            deleteRoleMember={this.deleteItem}
+                        />
+                    );
+                })
+            : [];
         return (
             <StyleTable key='user-role-table' data-testid='userroletable'>
                 <TableHeadStyled>
@@ -547,3 +343,38 @@ export default class UserRoleTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roleUsers: selectRoleUsers(state),
+        justificationRequired: selectDomainAuditEnabled(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteMember: (
+        domainName,
+        collectionName,
+        memberName,
+        justification,
+        _csrf
+    ) =>
+        dispatch(
+            deleteMember(
+                domainName,
+                collectionName,
+                'role',
+                memberName,
+                justification,
+                false,
+                _csrf
+            )
+        ),
+    deleteMemberFromAllRoles: (domainName, deleteName, auditRef, _csrf) =>
+        dispatch(
+            deleteMemberFromAllRoles(domainName, deleteName, auditRef, _csrf)
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserRoleTable);

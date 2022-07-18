@@ -16,8 +16,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
-import RuleRow from './RuleRow';
 import Icon from '../denali/icons/Icon';
+import RuleRow from './RuleRow';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -81,7 +81,6 @@ const LeftMarginSpan = styled.span`
 export default class RuleTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
 
         this.state = {
             expanded: true,
@@ -126,7 +125,6 @@ export default class RuleTable extends React.Component {
                     details={item}
                     idx={i}
                     color={color}
-                    api={this.api}
                     key={key}
                     onUpdateSuccess={this.props.onSubmit}
                     _csrf={this.props._csrf}
@@ -140,35 +138,14 @@ export default class RuleTable extends React.Component {
             return (
                 <StyleTable data-testid='segmentation-rule-table'>
                     <thead>
-                        <TableCaptionStyled>
-                            <LeftMarginSpan>
-                                <Icon
-                                    icon={
-                                        this.state.expanded
-                                            ? arrowup
-                                            : arrowdown
-                                    }
-                                    onClick={expandRules}
-                                    color={colors.icons}
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </LeftMarginSpan>
-                            {`${caption} (${length})`}
-                        </TableCaptionStyled>
-                    </thead>
-                </StyleTable>
-            );
-        }
-
-        return (
-            <StyleTable data-testid='segmentation-rule-table'>
-                <thead>
                     <TableCaptionStyled>
                         <LeftMarginSpan>
                             <Icon
-                                icon={this.state.expanded ? arrowup : arrowdown}
+                                icon={
+                                    this.state.expanded
+                                        ? arrowup
+                                        : arrowdown
+                                }
                                 onClick={expandRules}
                                 color={colors.icons}
                                 isLink
@@ -178,30 +155,51 @@ export default class RuleTable extends React.Component {
                         </LeftMarginSpan>
                         {`${caption} (${length})`}
                     </TableCaptionStyled>
-                    <tr>
-                        <TableHeadStyledRoleName align={left}>
-                            Identifier
-                        </TableHeadStyledRoleName>
-                        <TableHeadStyledRoleName align={left}>
-                            {inbound ? 'Destination Service' : 'Source Service'}
-                        </TableHeadStyledRoleName>
-                        <TableHeadStyled align={left}>
-                            {inbound ? 'Destination Port' : 'Source Port'}
-                        </TableHeadStyled>
+                    </thead>
+                </StyleTable>
+            );
+        }
 
-                        <TableHeadStyled align={left}>
-                            {inbound ? 'Source Service' : 'Destination Service'}
-                        </TableHeadStyled>
-                        <TableHeadStyled align={left}>
-                            {inbound ? 'Source Port' : 'Destination Port'}
-                        </TableHeadStyled>
-                        <TableHeadStyled align={left}>Layer</TableHeadStyled>
-                        <TableHeadStyled align={center}>
-                            Enforcement State
-                        </TableHeadStyled>
-                        <TableHeadStyled align={center}>Edit</TableHeadStyled>
-                        <TableHeadStyled align={center}>Delete</TableHeadStyled>
-                    </tr>
+        return (
+            <StyleTable data-testid='segmentation-rule-table'>
+                <thead>
+                <TableCaptionStyled>
+                    <LeftMarginSpan>
+                        <Icon
+                            icon={this.state.expanded ? arrowup : arrowdown}
+                            onClick={expandRules}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </LeftMarginSpan>
+                    {`${caption} (${length})`}
+                </TableCaptionStyled>
+                <tr>
+                    <TableHeadStyledRoleName align={left}>
+                        Identifier
+                    </TableHeadStyledRoleName>
+                    <TableHeadStyledRoleName align={left}>
+                        {inbound ? 'Destination Service' : 'Source Service'}
+                    </TableHeadStyledRoleName>
+                    <TableHeadStyled align={left}>
+                        {inbound ? 'Destination Port' : 'Source Port'}
+                    </TableHeadStyled>
+
+                    <TableHeadStyled align={left}>
+                        {inbound ? 'Source Service' : 'Destination Service'}
+                    </TableHeadStyled>
+                    <TableHeadStyled align={left}>
+                        {inbound ? 'Source Port' : 'Destination Port'}
+                    </TableHeadStyled>
+                    <TableHeadStyled align={left}>Layer</TableHeadStyled>
+                    <TableHeadStyled align={center}>
+                        Enforcement State
+                    </TableHeadStyled>
+                    <TableHeadStyled align={center}>Edit</TableHeadStyled>
+                    <TableHeadStyled align={center}>Delete</TableHeadStyled>
+                </tr>
                 </thead>
                 <tbody>{rows}</tbody>
             </StyleTable>

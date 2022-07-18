@@ -18,9 +18,12 @@ import styled from '@emotion/styled';
 import ReviewRow from '../review/ReviewRow';
 import Button from '../denali/Button';
 import Color from '../denali/Color';
-import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
+import { selectGroupMembers } from '../../redux/selectors/group';
+import { reviewGroup } from '../../redux/thunks/groups';
+import { connect } from 'react-redux';
+import produce from 'immer';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -75,42 +78,26 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
-export default class GroupReviewTable extends React.Component {
+class GroupReviewTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.submitReview = this.submitReview.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
         let members = props.members && props.members.map((m) => m.memberName);
         this.state = {
-            groupObj: props.groupDetails,
-            list: props.members || [],
             submittedReview: false,
             extendedMembers: new Set(members),
             deletedMembers: new Set(),
         };
     }
-
     loadGroup() {
-        this.props.api
-            .getGroup(this.props.domain, this.props.group)
-            .then((group) => {
-                let members =
-                    group.groupMembers &&
-                    group.groupMembers.map((m) => m.memberName);
-                this.setState({
-                    groupObj: group,
-                    list: group.groupMembers || [],
-                    extendedMembers: new Set(members),
-                    deletedMembers: new Set(),
-                    submittedReview: false,
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+        let members =
+            this.props.members && this.props.members.map((m) => m.memberName);
+        this.setState({
+            extendedMembers: new Set(members),
+            deletedMembers: new Set(),
+            submittedReview: false,
+        });
     }
 
     inputChanged(key, evt) {
@@ -118,10 +105,7 @@ export default class GroupReviewTable extends React.Component {
     }
 
     submitReview() {
-        if (
-            this.state.groupObj.groupMembers &&
-            this.state.groupObj.groupMembers.length > 0
-        ) {
+        if (this.props.members && this.props.members.length > 0) {
             if (
                 this.state.justification === undefined ||
                 this.state.justification.trim() === ''
@@ -135,15 +119,16 @@ export default class GroupReviewTable extends React.Component {
 
             //construct role object from state
             let group = {
-                name: this.props.group,
+                name: this.props.groupName,
             };
-            group.groupMembers = this.state.groupObj.groupMembers;
-            group.groupMembers.forEach((m) => {
-                if (this.state.deletedMembers.has(m.memberName)) {
-                    m.active = false;
-                }
-                m.expiration = null;
-                delete m.memberFullName; // memberFullName is not a valid property on the server
+            group.groupMembers = produce(this.props.members, (draft) => {
+                draft.forEach((member) => {
+                    if (this.state.deletedMembers.has(member.memberName)) {
+                        member.active = false;
+                    }
+                    member.expiration = null;
+                    delete member.memberFullName;
+                });
             });
             group.groupMembers = group.groupMembers.filter((m) => {
                 if (
@@ -153,10 +138,9 @@ export default class GroupReviewTable extends React.Component {
                     return m;
                 }
             });
-            this.props.api
+            this.props
                 .reviewGroup(
-                    this.props.domain,
-                    this.props.group,
+                    this.props.groupName,
                     group,
                     this.state.justification,
                     this.props._csrf
@@ -165,9 +149,10 @@ export default class GroupReviewTable extends React.Component {
                     this.setState({
                         submittedReview: true,
                         errorMessage: null,
+                        justification: '',
                     });
                     this.props.onUpdateSuccess(
-                        `Successfully submitted the review for group ${this.props.group}`
+                        `Successfully submitted the review for group ${this.props.groupName}`
                     );
                     this.loadGroup();
                 })
@@ -176,8 +161,6 @@ export default class GroupReviewTable extends React.Component {
                         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
                 });
-        } else {
-            this.props.onUpdateSuccess('There is nothing to review.');
         }
     }
 
@@ -202,26 +185,26 @@ export default class GroupReviewTable extends React.Component {
         const left = 'left';
         let center = 'center';
         const rows =
-            this.state.list && this.state.list.length > 0
-                ? this.state.list
-                      .sort((a, b) => {
-                          return a.memberName.localeCompare(b.memberName);
-                      })
-                      .map((item, i) => {
-                          let color = 'white';
-                          return (
-                              <ReviewRow
-                                  category={'group'}
-                                  key={'group-review-' + i}
-                                  idx={'group-review-' + i}
-                                  details={item}
-                                  collection={this.props.group}
-                                  color={color}
-                                  onUpdate={this.onUpdate}
-                                  submittedReview={this.state.submittedReview}
-                              />
-                          );
-                      })
+            this.props.members && this.props.members.length > 0
+                ? this.props.members
+                    .sort((a, b) => {
+                        return a.memberName.localeCompare(b.memberName);
+                    })
+                    .map((item, i) => {
+                        let color = 'white';
+                        return (
+                            <ReviewRow
+                                category={'group'}
+                                key={'group-review-' + i}
+                                idx={'group-review-' + i}
+                                details={item}
+                                collection={this.props.groupName}
+                                color={color}
+                                onUpdate={this.onUpdate}
+                                submittedReview={this.state.submittedReview}
+                            />
+                        );
+                    })
                 : [];
 
         if (this.state.showTrustError) {
@@ -238,10 +221,11 @@ export default class GroupReviewTable extends React.Component {
             );
         }
 
-        if (!this.state.list || this.state.list.length === 0) {
+        if (!this.props.members || this.props.members.length === 0) {
             return (
                 <ReviewMembersContainerDiv>
-                    There is no members to review for group: {this.props.group}.
+                    There is no members to review for group:{' '}
+                    {this.props.groupName}.
                 </ReviewMembersContainerDiv>
             );
         }
@@ -252,68 +236,68 @@ export default class GroupReviewTable extends React.Component {
                 <ReviewMembersSectionDiv data-testid='review-table'>
                     <ReviewMembersTable>
                         <thead>
-                            <tr>
-                                <TableHeadStyled align={left}>
-                                    MEMBER
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    MEMBER NAME
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left} colSpan={2}>
-                                    EXPIRATION DATE
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    EXTEND
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    NO ACTION
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    DELETE
-                                </TableHeadStyled>
-                            </tr>
+                        <tr>
+                            <TableHeadStyled align={left}>
+                                MEMBER
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>
+                                MEMBER NAME
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left} colSpan={2}>
+                                EXPIRATION DATE
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                EXTEND
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                NO ACTION
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                DELETE
+                            </TableHeadStyled>
+                        </tr>
                         </thead>
                         <tbody>
-                            {rows}
-                            <tr key='submit-review'>
-                                <td colSpan={2}>
-                                    <StyledJustification
-                                        id='justification'
-                                        name='justification'
-                                        value={
-                                            this.state.justification
-                                                ? this.state.justification
-                                                : ''
-                                        }
-                                        onChange={this.inputChanged.bind(
-                                            this,
-                                            'justification'
-                                        )}
-                                        autoComplete={'off'}
-                                        placeholder='Enter justification here'
-                                    />
-                                </td>
-                                <td colSpan={1}>
-                                    <SubmitDiv>
-                                        <Button
-                                            secondary={true}
-                                            onClick={this.submitReview}
-                                        >
-                                            Submit Review
-                                        </Button>
-                                    </SubmitDiv>
-                                </td>
-                                <td colSpan={3}></td>
-                            </tr>
-                            <tr key='error-message'>
-                                <td colSpan={6}>
-                                    {this.state.errorMessage && (
-                                        <Color name={'red600'}>
-                                            {this.state.errorMessage}
-                                        </Color>
+                        {rows}
+                        <tr key='submit-review'>
+                            <td colSpan={2}>
+                                <StyledJustification
+                                    id='justification'
+                                    name='justification'
+                                    value={
+                                        this.state.justification
+                                            ? this.state.justification
+                                            : ''
+                                    }
+                                    onChange={this.inputChanged.bind(
+                                        this,
+                                        'justification'
                                     )}
-                                </td>
-                            </tr>
+                                    autoComplete={'off'}
+                                    placeholder='Enter justification here'
+                                />
+                            </td>
+                            <td colSpan={1}>
+                                <SubmitDiv>
+                                    <Button
+                                        secondary={true}
+                                        onClick={this.submitReview}
+                                    >
+                                        Submit Review
+                                    </Button>
+                                </SubmitDiv>
+                            </td>
+                            <td colSpan={3}></td>
+                        </tr>
+                        <tr key='error-message'>
+                            <td colSpan={6}>
+                                {this.state.errorMessage && (
+                                    <Color name={'red600'}>
+                                        {this.state.errorMessage}
+                                    </Color>
+                                )}
+                            </td>
+                        </tr>
                         </tbody>
                     </ReviewMembersTable>
                 </ReviewMembersSectionDiv>
@@ -321,3 +305,17 @@ export default class GroupReviewTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        members: selectGroupMembers(state, props.domain, props.groupName),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    reviewGroup: (groupName, group, justification, _csrf) =>
+        dispatch(reviewGroup(groupName, group, justification, _csrf)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupReviewTable);
