@@ -71,6 +71,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberPurgeExpiryDays;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -212,6 +215,13 @@ public class DomainData {
     public String getBusinessService() {
         return businessService;
     }
+    public DomainData setMemberPurgeExpiryDays(Integer memberPurgeExpiryDays) {
+        this.memberPurgeExpiryDays = memberPurgeExpiryDays;
+        return this;
+    }
+    public Integer getMemberPurgeExpiryDays() {
+        return memberPurgeExpiryDays;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -324,6 +334,9 @@ public class DomainData {
                 return false;
             }
             if (businessService == null ? a.businessService != null : !businessService.equals(a.businessService)) {
+                return false;
+            }
+            if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -312,6 +312,11 @@ type DomainMeta struct {
 	// associated business service with domain
 	//
 	BusinessService string `json:"businessService" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// purge role/group members with expiry date configured days in the past
+	//
+	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -526,6 +531,11 @@ type Domain struct {
 	// associated business service with domain
 	//
 	BusinessService string `json:"businessService" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// purge role/group members with expiry date configured days in the past
+	//
+	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -1187,6 +1197,11 @@ type RoleMeta struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// a description of the role
+	//
+	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -1244,6 +1259,12 @@ func (self *RoleMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
 		if !val.Valid {
 			return fmt.Errorf("RoleMeta.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
+		if !val.Valid {
+			return fmt.Errorf("RoleMeta.description does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1331,6 +1352,11 @@ type Role struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// a description of the role
+	//
+	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the role
@@ -1430,6 +1456,12 @@ func (self *Role) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.UserAuthorityExpiration)
 		if !val.Valid {
 			return fmt.Errorf("Role.userAuthorityExpiration does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
+		if !val.Valid {
+			return fmt.Errorf("Role.description does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -2532,6 +2564,11 @@ type Policy struct {
 	// if multi-version policy then indicates active version
 	//
 	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// a description of the policy
+	//
+	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 }
 
 //
@@ -2592,6 +2629,12 @@ func (self *Policy) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
 		if !val.Valid {
 			return fmt.Errorf("Policy.version does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
+		if !val.Valid {
+			return fmt.Errorf("Policy.description does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -3762,6 +3805,11 @@ type TopLevelDomain struct {
 	BusinessService string `json:"businessService" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// purge role/group members with expiry date configured days in the past
+	//
+	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3998,6 +4046,11 @@ type SubDomain struct {
 	// associated business service with domain
 	//
 	BusinessService string `json:"businessService" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// purge role/group members with expiry date configured days in the past
+	//
+	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -4250,6 +4303,11 @@ type UserDomain struct {
 	// associated business service with domain
 	//
 	BusinessService string `json:"businessService" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// purge role/group members with expiry date configured days in the past
+	//
+	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -6752,6 +6810,11 @@ type DomainData struct {
 	// associated business service with domain
 	//
 	BusinessService string `json:"businessService" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// purge role/group members with expiry date configured days in the past
+	//
+	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain

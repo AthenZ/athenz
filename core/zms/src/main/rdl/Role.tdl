@@ -50,6 +50,7 @@ type RoleMeta Struct {
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     Int32 groupReviewDays (optional); //all groups in the domain roles will have specified max review days
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
+    String description (optional); //a description of the role
 }
 
 //The representation for a Role with set of members.

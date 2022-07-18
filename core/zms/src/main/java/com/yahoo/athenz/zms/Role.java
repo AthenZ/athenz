@@ -59,6 +59,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String description;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -187,6 +190,13 @@ public class Role {
     public Map<String, TagValueList> getTags() {
         return tags;
     }
+    public Role setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+    public String getDescription() {
+        return description;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -294,6 +304,9 @@ public class Role {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (description == null ? a.description != null : !description.equals(a.description)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

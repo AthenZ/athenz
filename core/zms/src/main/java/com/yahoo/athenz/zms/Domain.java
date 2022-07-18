@@ -75,6 +75,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberPurgeExpiryDays;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -216,6 +219,13 @@ public class Domain {
     public String getBusinessService() {
         return businessService;
     }
+    public Domain setMemberPurgeExpiryDays(Integer memberPurgeExpiryDays) {
+        this.memberPurgeExpiryDays = memberPurgeExpiryDays;
+        return this;
+    }
+    public Integer getMemberPurgeExpiryDays() {
+        return memberPurgeExpiryDays;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -300,6 +310,9 @@ public class Domain {
                 return false;
             }
             if (businessService == null ? a.businessService != null : !businessService.equals(a.businessService)) {
+                return false;
+            }
+            if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

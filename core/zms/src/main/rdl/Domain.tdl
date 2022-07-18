@@ -25,6 +25,7 @@ type DomainMeta Struct {
     String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check)
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String businessService (optional, x_allowempty="true"); //associated business service with domain
+    Int32 memberPurgeExpiryDays (optional); //purge role/group members with expiry date configured days in the past
 }
 
 //A domain is an independent partition of users, roles, and resources.

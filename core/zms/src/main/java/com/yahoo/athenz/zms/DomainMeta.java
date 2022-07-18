@@ -71,6 +71,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String businessService;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer memberPurgeExpiryDays;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -205,6 +208,13 @@ public class DomainMeta {
     public String getBusinessService() {
         return businessService;
     }
+    public DomainMeta setMemberPurgeExpiryDays(Integer memberPurgeExpiryDays) {
+        this.memberPurgeExpiryDays = memberPurgeExpiryDays;
+        return this;
+    }
+    public Integer getMemberPurgeExpiryDays() {
+        return memberPurgeExpiryDays;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -268,6 +278,9 @@ public class DomainMeta {
                 return false;
             }
             if (businessService == null ? a.businessService != null : !businessService.equals(a.businessService)) {
+                return false;
+            }
+            if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
                 return false;
             }
         }

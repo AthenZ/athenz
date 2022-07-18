@@ -59,6 +59,9 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String description;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -165,6 +168,13 @@ public class RoleMeta {
     public Map<String, TagValueList> getTags() {
         return tags;
     }
+    public RoleMeta setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+    public String getDescription() {
+        return description;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -216,6 +226,9 @@ public class RoleMeta {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
+                return false;
+            }
+            if (description == null ? a.description != null : !description.equals(a.description)) {
                 return false;
             }
         }
