@@ -1290,7 +1290,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
+    Role executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
             String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -1341,7 +1341,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
                 
-                return;
+                return role;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {

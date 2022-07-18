@@ -37,7 +37,7 @@ public interface ZMSHandler {
     RoleList getRoleList(ResourceContext context, String domainName, Integer limit, String skip);
     Roles getRoles(ResourceContext context, String domainName, Boolean members, String tagKey, String tagValue);
     Role getRole(ResourceContext context, String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending);
-    void putRole(ResourceContext context, String domainName, String roleName, String auditRef, Role role);
+    Role putRole(ResourceContext context, String domainName, String roleName, String auditRef, Boolean returnObj, Role role);
     void deleteRole(ResourceContext context, String domainName, String roleName, String auditRef);
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName, String expiration);
     DomainRoleMembers getOverdueReview(ResourceContext context, String domainName);

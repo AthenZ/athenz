@@ -901,17 +901,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Create/update the specified role.")
-    public void putRole(
+    public Role putRole(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role to be added/updated", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "flag to indicate whether or not to return the role object.", required = true) @HeaderParam("Return-Object") Boolean returnObj,
         @Parameter(description = "Role object to be added/updated in the domain", required = true) Role role) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRole");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
-            this.delegate.putRole(context, domainName, roleName, auditRef, role);
+            return this.delegate.putRole(context, domainName, roleName, auditRef, returnObj, role);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

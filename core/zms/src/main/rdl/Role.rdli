@@ -57,9 +57,9 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be added/updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (header="Return-Object"); //flag to indicate whether or not to return the role object.
     Role role; //Role object to be added/updated in the domain
     authorize ("update", "{domainName}:role.{roleName}");
-    expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

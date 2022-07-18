@@ -3618,7 +3618,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
+    public Role putRole(ResourceContext ctx, String domainName, String roleName, String auditRef,Boolean returnObj, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3707,7 +3707,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process our request
 
-        dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
+        Role dbRole = dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
+        return returnObj != null && returnObj ? dbRole : null;
     }
 
     void validateRoleStructure(final Role role, final String domainName, final String caller) {
