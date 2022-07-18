@@ -47,6 +47,7 @@ type Policy Struct {
     Bool caseSensitive (optional); // If true, we should store action and resource in their original case
     SimpleName version (optional); // optional version string, defaults to 0
     Bool active (optional); // if multi-version policy then indicates active version
+    String description (optional); //a description of the policy
 }
 
 //The representation of list of policy objects

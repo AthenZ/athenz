@@ -132,7 +132,8 @@ public class ZMSSchema {
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
-            .field("businessService", "String", true, "associated business service with domain");
+            .field("businessService", "String", true, "associated business service with domain")
+            .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -192,7 +193,8 @@ public class ZMSSchema {
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("groupReviewDays", "Int32", true, "all groups in the domain roles will have specified max review days")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .field("description", "String", true, "a description of the role");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")
@@ -290,7 +292,8 @@ public class ZMSSchema {
             .arrayField("assertions", "Assertion", false, "list of defined assertions for this policy")
             .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
-            .field("active", "Bool", true, "if multi-version policy then indicates active version");
+            .field("active", "Bool", true, "if multi-version policy then indicates active version")
+            .field("description", "String", true, "a description of the policy");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")

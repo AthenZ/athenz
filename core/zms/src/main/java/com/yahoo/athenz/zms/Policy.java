@@ -27,6 +27,9 @@ public class Policy {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean active;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String description;
 
     public Policy setName(String name) {
         this.name = name;
@@ -70,6 +73,13 @@ public class Policy {
     public Boolean getActive() {
         return active;
     }
+    public Policy setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+    public String getDescription() {
+        return description;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -94,6 +104,9 @@ public class Policy {
                 return false;
             }
             if (active == null ? a.active != null : !active.equals(a.active)) {
+                return false;
+            }
+            if (description == null ? a.description != null : !description.equals(a.description)) {
                 return false;
             }
         }

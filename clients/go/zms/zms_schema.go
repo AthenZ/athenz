@@ -158,6 +158,7 @@ func init() {
 	tDomainMeta.Field("azureSubscription", "String", true, nil, "associated azure subscription id (system attribute - uniqueness check)")
 	tDomainMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tDomainMeta.Field("businessService", "String", true, nil, "associated business service with domain")
+	tDomainMeta.Field("memberPurgeExpiryDays", "Int32", true, nil, "purge role/group members with expiry date configured days in the past")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -225,6 +226,7 @@ func init() {
 	tRoleMeta.Field("groupExpiryDays", "Int32", true, nil, "all groups in the domain roles will have specified max expiry days")
 	tRoleMeta.Field("groupReviewDays", "Int32", true, nil, "all groups in the domain roles will have specified max review days")
 	tRoleMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+	tRoleMeta.Field("description", "String", true, nil, "a description of the role")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -338,6 +340,7 @@ func init() {
 	tPolicy.Field("caseSensitive", "Bool", true, nil, "If true, we should store action and resource in their original case")
 	tPolicy.Field("version", "SimpleName", true, nil, "optional version string, defaults to 0")
 	tPolicy.Field("active", "Bool", true, nil, "if multi-version policy then indicates active version")
+	tPolicy.Field("description", "String", true, nil, "a description of the policy")
 	sb.AddType(tPolicy.Build())
 
 	tPolicies := rdl.NewStructTypeBuilder("Struct", "Policies")
