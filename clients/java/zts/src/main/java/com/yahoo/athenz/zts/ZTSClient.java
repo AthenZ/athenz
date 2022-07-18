@@ -688,7 +688,7 @@ public class ZTSClient implements Closeable {
         HttpHost proxy = null;
         if (proxyUrl != null && !proxyUrl.isEmpty()) {
             final URI u = URI.create(proxyUrl);
-            proxy = new HttpHost(u.getHost());
+            proxy = new HttpHost(u.getHost(), u.getPort(), u.getScheme());
         }
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connTimeoutMs)
