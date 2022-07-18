@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -686,7 +687,8 @@ public class ZTSClient implements Closeable {
         //apache http client expects in milliseconds
         HttpHost proxy = null;
         if (proxyUrl != null && !proxyUrl.isEmpty()) {
-            proxy = new HttpHost(proxyUrl);
+            final URI u = URI.create(proxyUrl);
+            proxy = new HttpHost(u.getHost(), u.getPort(), u.getScheme());
         }
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connTimeoutMs)
