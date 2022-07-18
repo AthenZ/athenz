@@ -72,8 +72,8 @@
 
   <properties>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <aws.version>1.12.246</aws.version>
-    <aws2.version>2.17.218</aws2.version>
+    <aws.version>1.12.262</aws.version>
+    <aws2.version>2.17.233</aws2.version>
     <bouncycastle.version>1.70</bouncycastle.version>
     <commons.daemon.version>1.3.1</commons.daemon.version>
     <guava.version>31.1-jre</guava.version>
@@ -113,7 +113,7 @@
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.0-alpha7</slf4j.server.version>
-    <testng.version>7.6.0</testng.version>
+    <testng.version>7.6.1</testng.version>
     <swagger.version>2.2.1</swagger.version>
     <commons.logging.version>1.2</commons.logging.version>
 
