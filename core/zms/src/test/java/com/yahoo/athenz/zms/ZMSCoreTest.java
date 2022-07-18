@@ -182,6 +182,7 @@ public class ZMSCoreTest {
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
+                .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(r, "Role");
@@ -210,6 +211,7 @@ public class ZMSCoreTest {
         assertEquals(r.getUserAuthorityExpiration(), "attr1");
         assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(r.getTags().get("tagKey").getList().get(0), "tagValue");
+        assertEquals(r.getDescription(), "test role");
 
         Role r2 = new Role()
                 .setName("sys.auth:role.admin")
@@ -234,6 +236,7 @@ public class ZMSCoreTest {
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
+                .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(r2.equals(r));
@@ -258,6 +261,13 @@ public class ZMSCoreTest {
         r2.setReviewEnabled(null);
         assertFalse(r2.equals(r));
         r2.setReviewEnabled(false);
+        assertTrue(r2.equals(r));
+
+        r2.setDescription("test role1");
+        assertFalse(r2.equals(r));
+        r2.setDescription(null);
+        assertFalse(r2.equals(r));
+        r2.setDescription("test role");
         assertTrue(r2.equals(r));
 
         r2.setSignAlgorithm("rsa");
@@ -800,7 +810,7 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -832,6 +842,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getTags(),
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(dd.getBusinessService(), "business-service");
+        assertEquals(dd.getMemberPurgeExpiryDays(), 10);
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -840,7 +851,7 @@ public class ZMSCoreTest {
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         assertTrue(dd.equals(dd2));
         assertFalse(dd.equals(null));
@@ -894,6 +905,13 @@ public class ZMSCoreTest {
         dd2.setMemberExpiryDays(null);
         assertFalse(dd2.equals(dd));
         dd2.setMemberExpiryDays(30);
+        assertTrue(dd2.equals(dd));
+
+        dd2.setMemberPurgeExpiryDays(45);
+        assertFalse(dd2.equals(dd));
+        dd2.setMemberPurgeExpiryDays(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setMemberPurgeExpiryDays(10);
         assertTrue(dd2.equals(dd));
 
         dd2.setServiceExpiryDays(45);
@@ -1179,7 +1197,7 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1207,6 +1225,7 @@ public class ZMSCoreTest {
         assertEquals(d.getTags(),
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(d.getBusinessService(), "business-service");
+        assertEquals(d.getMemberPurgeExpiryDays(), 10);
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1216,7 +1235,7 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
@@ -1261,6 +1280,13 @@ public class ZMSCoreTest {
         d2.setMemberExpiryDays(null);
         assertFalse(d2.equals(d));
         d2.setMemberExpiryDays(30);
+        assertTrue(d2.equals(d));
+
+        d2.setMemberPurgeExpiryDays(45);
+        assertFalse(d2.equals(d));
+        d2.setMemberPurgeExpiryDays(null);
+        assertFalse(d2.equals(d));
+        d2.setMemberPurgeExpiryDays(10);
         assertTrue(d2.equals(d));
 
         d2.setServiceExpiryDays(45);
@@ -1408,7 +1434,8 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
                 .setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
+                .setMemberPurgeExpiryDays(10);
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -1433,6 +1460,7 @@ public class ZMSCoreTest {
         assertEquals(dm.getTags(),
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(dm.getBusinessService(), "business-service");
+        assertEquals(dm.getMemberPurgeExpiryDays(), 10);
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -1441,7 +1469,8 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
                 .setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
+                .setMemberPurgeExpiryDays(10);
 
         assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
@@ -1486,6 +1515,13 @@ public class ZMSCoreTest {
         dm2.setMemberExpiryDays(null);
         assertFalse(dm2.equals(dm));
         dm2.setMemberExpiryDays(30);
+        assertTrue(dm2.equals(dm));
+
+        dm2.setMemberPurgeExpiryDays(45);
+        assertFalse(dm2.equals(dm));
+        dm2.setMemberPurgeExpiryDays(null);
+        assertFalse(dm2.equals(dm));
+        dm2.setMemberPurgeExpiryDays(10);
         assertTrue(dm2.equals(dm));
 
         dm2.setServiceExpiryDays(45);
@@ -1583,7 +1619,7 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -1611,6 +1647,7 @@ public class ZMSCoreTest {
         assertEquals(tld.getTags(),
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(tld.getBusinessService(), "business-service");
+        assertEquals(tld.getMemberPurgeExpiryDays(), 10);
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -1618,7 +1655,7 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         assertTrue(tld2.equals(tld));
         assertTrue(tld.equals(tld));
@@ -1663,6 +1700,13 @@ public class ZMSCoreTest {
         tld2.setMemberExpiryDays(null);
         assertFalse(tld2.equals(tld));
         tld2.setMemberExpiryDays(30);
+        assertTrue(tld2.equals(tld));
+
+        tld2.setMemberPurgeExpiryDays(45);
+        assertFalse(tld2.equals(tld));
+        tld2.setMemberPurgeExpiryDays(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setMemberPurgeExpiryDays(10);
         assertTrue(tld2.equals(tld));
 
         tld2.setServiceExpiryDays(45);
@@ -1748,7 +1792,7 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -1777,6 +1821,7 @@ public class ZMSCoreTest {
         assertEquals(sd.getTags(),
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(sd.getBusinessService(), "business-service");
+        assertEquals(sd.getMemberPurgeExpiryDays(), 10);
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -1786,7 +1831,7 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
 
         assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
@@ -1831,6 +1876,13 @@ public class ZMSCoreTest {
         sd2.setMemberExpiryDays(null);
         assertFalse(sd2.equals(sd));
         sd2.setMemberExpiryDays(30);
+        assertTrue(sd2.equals(sd));
+
+        sd2.setMemberPurgeExpiryDays(45);
+        assertFalse(sd2.equals(sd));
+        sd2.setMemberPurgeExpiryDays(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setMemberPurgeExpiryDays(10);
         assertTrue(sd2.equals(sd));
 
         sd2.setServiceExpiryDays(45);
@@ -1914,7 +1966,8 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
+                .setMemberPurgeExpiryDays(10);
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1941,6 +1994,7 @@ public class ZMSCoreTest {
         assertEquals(ud.getTags(),
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(ud.getBusinessService(), "business-service");
+        assertEquals(ud.getMemberPurgeExpiryDays(), 10);
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -1949,7 +2003,8 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
+                .setMemberPurgeExpiryDays(10);
 
         assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
@@ -1994,6 +2049,13 @@ public class ZMSCoreTest {
         ud2.setMemberExpiryDays(null);
         assertFalse(ud2.equals(ud));
         ud2.setMemberExpiryDays(30);
+        assertTrue(ud2.equals(ud));
+
+        ud2.setMemberPurgeExpiryDays(45);
+        assertFalse(ud2.equals(ud));
+        ud2.setMemberPurgeExpiryDays(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setMemberPurgeExpiryDays(10);
         assertTrue(ud2.equals(ud));
 
         ud2.setServiceExpiryDays(45);
@@ -3617,6 +3679,7 @@ public class ZMSCoreTest {
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
+                .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(rm.equals(rm));
 
@@ -3635,6 +3698,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getTags().get("tagKey").getList().get(0), "tagValue");
+        assertEquals(rm.getDescription(), "test role");
 
         RoleMeta rm2 = new RoleMeta()
                 .setMemberExpiryDays(30)
@@ -3651,6 +3715,7 @@ public class ZMSCoreTest {
                 .setReviewEnabled(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
+                .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(rm2.equals(rm));
@@ -3674,6 +3739,13 @@ public class ZMSCoreTest {
         rm2.setSignAlgorithm(null);
         assertFalse(rm2.equals(rm));
         rm2.setSignAlgorithm("rsa");
+        assertTrue(rm2.equals(rm));
+
+        rm2.setDescription("test role1");
+        assertFalse(rm2.equals(rm));
+        rm2.setDescription(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setDescription("test role");
         assertTrue(rm2.equals(rm));
 
         rm2.setMemberExpiryDays(45);
