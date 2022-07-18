@@ -28,6 +28,8 @@
 
   <properties>
     <jmh.version>1.35</jmh.version>
+    <mock.server.version>5.13.2</mock.server.version>
+    <commons.io.version>2.11.0</commons.io.version>
     <uberjar.name>benchmarks</uberjar.name>
     <code.coverage.min>0.8590</code.coverage.min>
   </properties>
@@ -78,13 +80,13 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.11.0</version>
+      <version>${commons.io.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-netty-no-dependencies</artifactId>
-      <version>RELEASE</version>
+      <version>${mock.server.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
