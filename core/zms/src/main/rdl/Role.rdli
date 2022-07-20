@@ -59,7 +59,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Role role; //Role object to be added/updated in the domain
     authorize ("update", "{domainName}:role.{roleName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -157,7 +157,7 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authenticate;
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -220,7 +220,7 @@ resource DefaultAdmins PUT "/domain/{domainName}/admins" {
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     DefaultAdmins defaultAdmins; //list of domain administrators
     authorize ("update", "sys.auth:domain");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -240,7 +240,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta/system/{attribute}"
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     RoleSystemMeta detail; //RoleSystemMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.role.{attribute}.{domainName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -258,7 +258,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta" {
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     RoleMeta detail; //RoleMeta object with updated attribute values
     authenticate;
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -280,7 +280,7 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authenticate;
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -298,7 +298,7 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleRev
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Role role; // Role object with updated and/or deleted members
     authorize ("update", "{domainName}:role.{roleName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

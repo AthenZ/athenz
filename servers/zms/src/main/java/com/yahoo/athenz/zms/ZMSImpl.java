@@ -2047,7 +2047,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
+    public Domain putDomainMeta(ResourceContext ctx, String domainName, String auditRef,
             DomainMeta meta) {
 
         final String caller = ctx.getApiName();
@@ -2098,12 +2098,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process put domain meta request
 
-        dbService.executePutDomainMeta(ctx, domain, meta, null, false, auditRef, caller);
+        Domain dbDomain = dbService.executePutDomainMeta(ctx, domain, meta, null, false, auditRef, caller);
 
         // since our operation was successful we need to see if we
         // need to update any of our values in the meta store
 
         updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
+        return dbDomain;
     }
 
     void validateString(final String value, final String type, final String caller) {
@@ -2367,7 +2368,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putDomainSystemMeta(ResourceContext ctx, String domainName, String attribute,
+    public Domain putDomainSystemMeta(ResourceContext ctx, String domainName, String attribute,
             String auditRef, DomainMeta meta) {
 
         final String caller = ctx.getApiName();
@@ -2418,7 +2419,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (ZMSConsts.SYSTEM_META_LAST_MOD_TIME.equals(attribute)) {
             dbService.updateDomainModTimestamp(domainName);
-            return;
+            // TODO roy - dont return a domain Object
+            return null;
         }
 
         // if we are resetting the configured value then the caller
@@ -2448,12 +2450,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process our put domain meta request
 
-        dbService.executePutDomainMeta(ctx, domain, meta, attribute, deleteAllowed, auditRef, caller);
+        Domain dbDomain = dbService.executePutDomainMeta(ctx, domain, meta, attribute, deleteAllowed, auditRef, caller);
 
         // since our operation was successful we need to see if we
         // need to update any of our values in the meta store
 
         updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
+        return dbDomain;
     }
 
     void validateSolutionTemplates(List<String> templateNames, String caller) {
@@ -2484,7 +2487,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putDomainTemplate(ResourceContext ctx, String domainName, String auditRef,
+    public DomainTemplate putDomainTemplate(ResourceContext ctx, String domainName, String auditRef,
             DomainTemplate domainTemplate) {
 
         final String caller = ctx.getApiName();
@@ -2524,10 +2527,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
+
+        return domainTemplate;
     }
 
     @Override
-    public void putDomainTemplateExt(ResourceContext ctx, String domainName,
+    public DomainTemplate putDomainTemplateExt(ResourceContext ctx, String domainName,
             String templateName, String auditRef, DomainTemplate domainTemplate) {
 
         final String caller = ctx.getApiName();
@@ -2572,7 +2577,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller, "name", templateName);
 
-        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
+      dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
+
+      return domainTemplate;
     }
 
     @Override
@@ -3098,7 +3105,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putEntity(ResourceContext ctx, String domainName, String entityName, String auditRef, Entity resource) {
+    public Entity putEntity(ResourceContext ctx, String domainName, String entityName, String auditRef, Entity resource) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3132,6 +3139,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         dbService.executePutEntity(ctx, domainName, entityName, resource, auditRef, caller);
+
+        return resource;
     }
 
     void validateAuthorizationDetailsEntity(final String entityName, Entity resource, final String caller) {
@@ -3618,7 +3627,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
+    public Role putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3708,6 +3717,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // process our request
 
         dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
+
+        return role;
     }
 
     void validateRoleStructure(final Role role, final String domainName, final String caller) {
@@ -4145,7 +4156,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putMembership(ResourceContext ctx, String domainName, String roleName,
+    public Membership putMembership(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef, Membership membership) {
 
         final String caller = ctx.getApiName();
@@ -4224,6 +4235,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // add the member to the specified role
 
+
+
         dbService.executePutMembership(ctx, domainName, roleName, roleMember, auditRef, caller);
 
         // new role member with pending status. Notify approvers
@@ -4232,6 +4245,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             sendMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), roleName,
                     roleMember.getMemberName(), auditRef, principal.getFullName(), role);
         }
+
+        // TODO roy - the problem is that the ZMSResource gets Membership Object and need to returns one as well
+        //  but the db works with RoleMember Object so we need to convert the RoleMember object into Membership object
+        //  or we can combine those 2 object into 1 object because they are very similar objects.
+        Membership dbMembership = ZMSUtils.copyRoleMemberToMemberShip(roleMember,roleName);
+        return dbMembership;
     }
 
     String enforcedUserAuthorityFilter(final String roleUserAuthorityFilter, final String domainUserAuthorityFilter) {
@@ -4694,7 +4713,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putPolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public Policy putPolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -4729,11 +4748,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError(caller + ": admin policy cannot be modified", caller);
         }
 
-        dbService.executePutPolicyVersion(ctx, domainName, policyName, policyOptions.getVersion(), policyOptions.getFromVersion(), auditRef, caller);
+        return dbService.executePutPolicyVersion(ctx, domainName, policyName, policyOptions.getVersion(), policyOptions.getFromVersion(), auditRef, caller);
     }
 
     @Override
-    public void setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
+    public Policy setActivePolicyVersion(ResourceContext ctx, String domainName, String policyName, PolicyOptions policyOptions, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -4769,7 +4788,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError(caller + ": admin policy cannot be modified", caller);
         }
 
-        dbService.executeSetActivePolicy(ctx, domainName, policyName, policyOptions.getVersion(), auditRef, caller);
+        return dbService.executeSetActivePolicy(ctx, domainName, policyName, policyOptions.getVersion(), auditRef, caller);
     }
 
     @Override
@@ -5203,7 +5222,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putPolicy(ResourceContext ctx, String domainName, String policyName, String auditRef, Policy policy) {
+    public Policy putPolicy(ResourceContext ctx, String domainName, String policyName, String auditRef, Policy policy) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5256,6 +5275,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validatePolicyAssertions(policy.getAssertions(), domainName, caller);
 
         dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller);
+
+        return policy;
     }
 
     @Override
@@ -5567,7 +5588,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
+    public ServiceIdentity putServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
                                    String auditRef, ServiceIdentity service) {
 
         final String caller = ctx.getApiName();
@@ -5616,10 +5637,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller);
+        return service;
     }
 
     @Override
-    public void putServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
+    public ServiceIdentity putServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
              String attribute, String auditRef, ServiceIdentitySystemMeta meta) {
 
         final String caller = "putservicesystemmeta";
@@ -5654,7 +5676,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName, serviceName, attribute, meta);
         }
 
-        dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute, auditRef, caller);
+        return dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute, auditRef, caller);
     }
 
     public ServiceIdentity getServiceIdentity(ResourceContext ctx, String domainName, String serviceName) {
@@ -5865,7 +5887,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
+    public PublicKeyEntry putPublicKeyEntry(ResourceContext ctx, String domainName, String serviceName,
             String keyId, String auditRef, PublicKeyEntry keyEntry) {
 
         final String caller = ctx.getApiName();
@@ -5908,6 +5930,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutPublicKeyEntry(ctx, domainName, serviceName, keyEntry, auditRef, caller);
+        return keyEntry;
     }
 
     String removeQuotes(String value) {
@@ -7993,7 +8016,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putDefaultAdmins(ResourceContext ctx, String domainName, String auditRef,
+    public DefaultAdmins putDefaultAdmins(ResourceContext ctx, String domainName, String auditRef,
             DefaultAdmins defaultAdmins) {
 
         final String caller = ctx.getApiName();
@@ -8084,6 +8107,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 defaultAdmins, auditRef);
 
         addDefaultAdminMembers(ctx, domainName, adminRole, defaultAdmins, auditRef, caller);
+        return defaultAdmins;
     }
 
     void addDefaultAdminAssertion(ResourceContext ctx, String domainName, Policy adminPolicy,
@@ -8648,7 +8672,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, String attribute,
+    public Role putRoleSystemMeta(ResourceContext ctx, String domainName, String roleName, String attribute,
             String auditRef, RoleSystemMeta meta) {
 
         final String caller = ctx.getApiName();
@@ -8683,11 +8707,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName, roleName, attribute, meta);
         }
 
-        dbService.executePutRoleSystemMeta(ctx, domainName, roleName, meta, attribute, auditRef, caller);
+        return dbService.executePutRoleSystemMeta(ctx, domainName, roleName, meta, attribute, auditRef, caller);
     }
 
     @Override
-    public void putRoleMeta(ResourceContext ctx, String domainName, String roleName, String auditRef, RoleMeta meta) {
+    public Role putRoleMeta(ResourceContext ctx, String domainName, String roleName, String auditRef, RoleMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -8753,7 +8777,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("putRoleMeta: name={}, role={} meta={}", domainName, roleName, meta);
         }
 
-        dbService.executePutRoleMeta(ctx, domainName, roleName, role, meta, auditRef, caller);
+       return dbService.executePutRoleMeta(ctx, domainName, roleName, role, meta, auditRef, caller);
     }
 
     void validateGroupMemberAuthorityAttributes(Role role, final String userAuthorityFilter,
@@ -8803,7 +8827,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putMembershipDecision(ResourceContext ctx, String domainName, String roleName,
+    public Membership putMembershipDecision(ResourceContext ctx, String domainName, String roleName,
             String memberName, String auditRef, Membership membership) {
 
         final String caller = ctx.getApiName();
@@ -8891,8 +8915,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     userAuthorityFilter, role.getUserAuthorityExpiration(), role.getAuditEnabled(),
                     disallowGroups, caller);
         }
-
         dbService.executePutMembershipDecision(ctx, domainName, roleName, roleMember, auditRef, caller);
+        Membership dbMembership = ZMSUtils.copyRoleMemberToMemberShip(roleMember,roleName);
+
+        return dbMembership;
     }
 
     private void validatePutMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
@@ -9168,7 +9194,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putRoleReview(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
+    public Role putRoleReview(ResourceContext ctx, String domainName, String roleName, String auditRef, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -9228,7 +9254,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process our request
 
-        dbService.executePutRoleReview(ctx, domainName, roleName, role, memberExpiryDueDays,
+        return dbService.executePutRoleReview(ctx, domainName, roleName, role, memberExpiryDueDays,
                 memberReminderDueDays, auditRef, caller);
     }
 
@@ -9422,7 +9448,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putGroup(ResourceContext ctx, String domainName, String groupName, String auditRef, Group group) {
+    public Group putGroup(ResourceContext ctx, String domainName, String groupName, String auditRef, Group group) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -9497,6 +9523,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // process our request
 
         dbService.executePutGroup(ctx, domainName, groupName, group, auditRef);
+
+        return group;
     }
 
     void updateGroupMemberExpiration(MemberDueDays memberExpiryDueDays,
@@ -9689,7 +9717,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) {
+    public GroupMembership putGroupMembership(ResourceContext ctx, String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -9764,7 +9792,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // add the member to the specified role
 
-        dbService.executePutGroupMembership(ctx, domainName, group, groupMember, auditRef);
+       dbService.executePutGroupMembership(ctx, domainName, group, groupMember, auditRef);
 
         // new group member with pending status. Notify approvers
 
@@ -9772,6 +9800,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             sendGroupMembershipApprovalNotification(domainName, domain.getDomain().getOrg(), groupName,
                     groupMember.getMemberName(), auditRef, principal.getFullName(), group);
         }
+
+        // TODO roy - to do the same solution here
+        return new GroupMembership();
     }
 
     @Override
@@ -9898,7 +9929,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void putGroupSystemMeta(ResourceContext ctx, String domainName, String groupName, String attribute,
+    public Group putGroupSystemMeta(ResourceContext ctx, String domainName, String groupName, String attribute,
                                    String auditRef, GroupSystemMeta meta) {
 
         final String caller = ctx.getApiName();
@@ -9933,11 +9964,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainName, groupName, attribute, meta);
         }
 
-        dbService.executePutGroupSystemMeta(ctx, domainName, groupName, meta, attribute, auditRef);
+        return dbService.executePutGroupSystemMeta(ctx, domainName, groupName, meta, attribute, auditRef);
     }
 
     @Override
-    public void putGroupMeta(ResourceContext ctx, String domainName, String groupName, String auditRef, GroupMeta meta) {
+    public Group putGroupMeta(ResourceContext ctx, String domainName, String groupName, String auditRef, GroupMeta meta) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -9980,11 +10011,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("putGroupMeta: name={}, role={} meta={}", domainName, groupName, meta);
         }
 
-        dbService.executePutGroupMeta(ctx, domainName, groupName, meta, auditRef);
+        return dbService.executePutGroupMeta(ctx, domainName, groupName, meta, auditRef);
     }
 
     @Override
-    public void putGroupMembershipDecision(ResourceContext ctx, String domainName, String groupName, String memberName,
+    public GroupMembership putGroupMembershipDecision(ResourceContext ctx, String domainName, String groupName, String memberName,
                                            String auditRef, GroupMembership membership) {
 
         final String caller = ctx.getApiName();
@@ -10071,10 +10102,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutGroupMembershipDecision(ctx, domainName, group, groupMember, auditRef);
+
+        // TODO roy - to the same solution here
+        return new GroupMembership();
     }
 
     @Override
-    public void putGroupReview(ResourceContext ctx, String domainName, String groupName, String auditRef, Group group) {
+    public Group putGroupReview(ResourceContext ctx, String domainName, String groupName, String auditRef, Group group) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -10128,7 +10162,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process our request
 
-        dbService.executePutGroupReview(ctx, domainName, groupName, group, memberExpiryDueDays, auditRef);
+        return dbService.executePutGroupReview(ctx, domainName, groupName, group, memberExpiryDueDays, auditRef);
     }
 
     @Override

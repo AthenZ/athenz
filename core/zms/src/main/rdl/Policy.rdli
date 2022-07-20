@@ -61,7 +61,7 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}" {
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     Policy policy; //Policy object to be added or updated in the domain
     authorize("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
@@ -297,7 +297,7 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/create" (n
     PolicyOptions policyOptions; // name of the source version to copy from and name of new version
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
@@ -315,7 +315,7 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/active" (n
     PolicyOptions policyOptions; // name of the version
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     authorize("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

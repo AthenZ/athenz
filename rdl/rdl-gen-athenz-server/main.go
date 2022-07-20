@@ -470,6 +470,8 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	}
 	if noContent {
 		s += "            this.delegate." + methName + "(context" + sargs + ");\n"
+	} else if (r.Method == "PUT") {
+		s += "            return returnObj != null && returnObj ? this.delegate." + methName + "(context" + sargs + ") : null;\n"
 	} else {
 		s += "            return this.delegate." + methName + "(context" + sargs + ");\n"
 	}
@@ -567,6 +569,10 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 		ptype := javaType(reg, v.Type, true, "", "")
 		params = append(params, pdecl+ptype+" "+javaName(k))
 	}
+	if (r.Method == "PUT") {
+		params = append(params, "@Parameter(description = \"Flag to indicate whether or not to return the " + returnType + " object.\", required = false) @HeaderParam(\"Return-Object\") Boolean returnObj")
+	}
+
 	// include @Produces json annotation for all methods except OPTIONS
 	// even if we have no content we need to have the produce annotation
 	// because our errors are coming back as json objects

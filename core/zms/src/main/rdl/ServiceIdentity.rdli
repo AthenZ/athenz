@@ -10,7 +10,7 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
     String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     ServiceIdentity detail; //ServiceIdentity object to be added/updated in the domain
     authorize ("update", "{domain}:service.{service}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -106,7 +106,7 @@ resource PublicKeyEntry PUT "/domain/{domain}/service/{service}/publickey/{id}" 
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     PublicKeyEntry publicKeyEntry; //PublicKeyEntry object to be added/updated in the service
     authorize ("update", "{domain}:service.{service}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -145,7 +145,7 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}/meta/system/{at
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
     ServiceIdentitySystemMeta detail; //ServiceIdentitySystemMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.service.{attribute}.{domain}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

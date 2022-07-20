@@ -458,4 +458,18 @@ public class ZMSUtils {
         }
         return provider.substring(n + 1);
     }
+
+    public static Membership copyRoleMemberToMemberShip(RoleMember roleMember, String roleName) {
+        Membership membership = new Membership();
+        membership.setRoleName(roleName);
+        membership.setMemberName(roleMember.getMemberName());
+        membership.setExpiration(roleMember.getExpiration());
+        membership.setReviewReminder(roleMember.getReviewReminder());
+        membership.setActive(roleMember.getActive());
+        membership.setAuditRef(roleMember.getAuditRef());
+        membership.setRequestPrincipal(roleMember.getRequestPrincipal());
+        membership.setSystemDisabled(roleMember.getSystemDisabled());
+        return membership;
+    }
+
 }

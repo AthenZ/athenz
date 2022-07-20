@@ -315,16 +315,17 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Update the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself.")
-    public void putDomainMeta(
+    public Domain putDomainMeta(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "DomainMeta object with updated attribute values", required = true) DomainMeta detail) {
+        @Parameter(description = "DomainMeta object with updated attribute values", required = true) DomainMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the Domain object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainMeta");
             context.authorize("update", "" + name + ":", null);
-            this.delegate.putDomainMeta(context, name, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putDomainMeta(context, name, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -355,17 +356,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
-    public void putDomainSystemMeta(
+    public Domain putDomainSystemMeta(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
         @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "DomainMeta object with updated attribute values", required = true) DomainMeta detail) {
+        @Parameter(description = "DomainMeta object with updated attribute values", required = true) DomainMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the Domain object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainSystemMeta");
             context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
-            this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -396,16 +398,17 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
-    public void putDomainTemplate(
+    public DomainTemplate putDomainTemplate(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "DomainTemplate object with solution template name(s)", required = true) DomainTemplate domainTemplate) {
+        @Parameter(description = "DomainTemplate object with solution template name(s)", required = true) DomainTemplate domainTemplate,
+        @Parameter(description = "Flag to indicate whether or not to return the DomainTemplate object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainTemplate");
             context.authorize("update", "" + name + ":template", null);
-            this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate);
+            return returnObj != null && returnObj ? this.delegate.putDomainTemplate(context, name, auditRef, domainTemplate) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -436,17 +439,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Update the given domain by applying the roles and policies defined in the specified solution template(s). Caller must have UPDATE privileges on the domain itself.")
-    public void putDomainTemplateExt(
+    public DomainTemplate putDomainTemplateExt(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
         @Parameter(description = "name of the solution template", required = true) @PathParam("template") String template,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "DomainTemplate object with a single template name to match URI", required = true) DomainTemplate domainTemplate) {
+        @Parameter(description = "DomainTemplate object with a single template name to match URI", required = true) DomainTemplate domainTemplate,
+        @Parameter(description = "Flag to indicate whether or not to return the DomainTemplate object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainTemplateExt");
             context.authorize("update", "" + name + ":template." + template + "", null);
-            this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate);
+            return returnObj != null && returnObj ? this.delegate.putDomainTemplateExt(context, name, template, auditRef, domainTemplate) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -645,17 +649,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Put an entity into the domain.")
-    public void putEntity(
+    public Entity putEntity(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of entity", required = true) @PathParam("entityName") String entityName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Entity object to be added to the domain", required = true) Entity entity) {
+        @Parameter(description = "Entity object to be added to the domain", required = true) Entity entity,
+        @Parameter(description = "Flag to indicate whether or not to return the Entity object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putEntity");
             context.authorize("update", "" + domainName + ":entity." + entityName + "", null);
-            this.delegate.putEntity(context, domainName, entityName, auditRef, entity);
+            return returnObj != null && returnObj ? this.delegate.putEntity(context, domainName, entityName, auditRef, entity) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -901,17 +906,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Create/update the specified role.")
-    public void putRole(
+    public Role putRole(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role to be added/updated", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Role object to be added/updated in the domain", required = true) Role role) {
+        @Parameter(description = "Role object to be added/updated in the domain", required = true) Role role,
+        @Parameter(description = "Flag to indicate whether or not to return the Role object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRole");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
-            this.delegate.putRole(context, domainName, roleName, auditRef, role);
+            return returnObj != null && returnObj ? this.delegate.putRole(context, domainName, roleName, auditRef, role) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1121,18 +1127,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
-    public void putMembership(
+    public Membership putMembership(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Membership object (must contain role/member names as specified in the URI)", required = true) Membership membership) {
+        @Parameter(description = "Membership object (must contain role/member names as specified in the URI)", required = true) Membership membership,
+        @Parameter(description = "Flag to indicate whether or not to return the Membership object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putMembership");
             context.authenticate();
-            this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership);
+            return returnObj != null && returnObj ? this.delegate.putMembership(context, domainName, roleName, memberName, auditRef, membership) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1243,16 +1250,17 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Verify and, if necessary, fix domain roles and policies to make sure the given set of users have administrative access to the domain. This request is only restricted to \"sys.auth\" domain administrators and can be used when the domain administrators incorrectly have blocked their own access to their domains.")
-    public void putDefaultAdmins(
+    public DefaultAdmins putDefaultAdmins(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "list of domain administrators", required = true) DefaultAdmins defaultAdmins) {
+        @Parameter(description = "list of domain administrators", required = true) DefaultAdmins defaultAdmins,
+        @Parameter(description = "Flag to indicate whether or not to return the DefaultAdmins object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDefaultAdmins");
             context.authorize("update", "sys.auth:domain", null);
-            this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins);
+            return returnObj != null && returnObj ? this.delegate.putDefaultAdmins(context, domainName, auditRef, defaultAdmins) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1281,18 +1289,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Set the specified role metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
-    public void putRoleSystemMeta(
+    public Role putRoleSystemMeta(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "RoleSystemMeta object with updated attribute values", required = true) RoleSystemMeta detail) {
+        @Parameter(description = "RoleSystemMeta object with updated attribute values", required = true) RoleSystemMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the Role object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleSystemMeta");
             context.authorize("update", "sys.auth:meta.role." + attribute + "." + domainName + "", null);
-            this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putRoleSystemMeta(context, domainName, roleName, attribute, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1323,17 +1332,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Update the specified role metadata. Caller must have update privileges on the domain itself.")
-    public void putRoleMeta(
+    public Role putRoleMeta(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "RoleMeta object with updated attribute values", required = true) RoleMeta detail) {
+        @Parameter(description = "RoleMeta object with updated attribute values", required = true) RoleMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the Role object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleMeta");
             context.authenticate();
-            this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putRoleMeta(context, domainName, roleName, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1364,18 +1374,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Approve or Reject the request to add specified user to role membership. This endpoint will be used by 2 use cases: 1. Audit enabled roles with authorize (\"update\", \"sys.auth:meta.role.{attribute}.{domainName}\") 2. Selfserve roles in any domain with authorize (\"update\", \"{domainName}:\")")
-    public void putMembershipDecision(
+    public Membership putMembershipDecision(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Membership object (must contain role/member names as specified in the URI)", required = true) Membership membership) {
+        @Parameter(description = "Membership object (must contain role/member names as specified in the URI)", required = true) Membership membership,
+        @Parameter(description = "Flag to indicate whether or not to return the Membership object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putMembershipDecision");
             context.authenticate();
-            this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership);
+            return returnObj != null && returnObj ? this.delegate.putMembershipDecision(context, domainName, roleName, memberName, auditRef, membership) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1406,17 +1417,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Review role membership and take action to either extend and/or delete existing members.")
-    public void putRoleReview(
+    public Role putRoleReview(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the role", required = true) @PathParam("roleName") String roleName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Role object with updated and/or deleted members", required = true) Role role) {
+        @Parameter(description = "Role object with updated and/or deleted members", required = true) Role role,
+        @Parameter(description = "Flag to indicate whether or not to return the Role object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putRoleReview");
             context.authorize("update", "" + domainName + ":role." + roleName + "", null);
-            this.delegate.putRoleReview(context, domainName, roleName, auditRef, role);
+            return returnObj != null && returnObj ? this.delegate.putRoleReview(context, domainName, roleName, auditRef, role) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1519,17 +1531,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Create/update the specified group.")
-    public void putGroup(
+    public Group putGroup(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group to be added/updated", required = true) @PathParam("groupName") String groupName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Group object to be added/updated in the domain", required = true) Group group) {
+        @Parameter(description = "Group object to be added/updated in the domain", required = true) Group group,
+        @Parameter(description = "Flag to indicate whether or not to return the Group object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroup");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
-            this.delegate.putGroup(context, domainName, groupName, auditRef, group);
+            return returnObj != null && returnObj ? this.delegate.putGroup(context, domainName, groupName, auditRef, group) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1671,18 +1684,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )")
-    public void putGroupMembership(
+    public GroupMembership putGroupMembership(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
         @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Membership object (must contain group/member names as specified in the URI)", required = true) GroupMembership membership) {
+        @Parameter(description = "Membership object (must contain group/member names as specified in the URI)", required = true) GroupMembership membership,
+        @Parameter(description = "Flag to indicate whether or not to return the GroupMembership object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupMembership");
             context.authenticate();
-            this.delegate.putGroupMembership(context, domainName, groupName, memberName, auditRef, membership);
+            return returnObj != null && returnObj ? this.delegate.putGroupMembership(context, domainName, groupName, memberName, auditRef, membership) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1793,18 +1807,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Set the specified group metadata. Caller must have update privileges on the sys.auth domain. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
-    public void putGroupSystemMeta(
+    public Group putGroupSystemMeta(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
         @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "GroupSystemMeta object with updated attribute values", required = true) GroupSystemMeta detail) {
+        @Parameter(description = "GroupSystemMeta object with updated attribute values", required = true) GroupSystemMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the Group object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupSystemMeta");
             context.authorize("update", "sys.auth:meta.group." + attribute + "." + domainName + "", null);
-            this.delegate.putGroupSystemMeta(context, domainName, groupName, attribute, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putGroupSystemMeta(context, domainName, groupName, attribute, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1835,17 +1850,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Update the specified group metadata. Caller must have update privileges on the domain itself.")
-    public void putGroupMeta(
+    public Group putGroupMeta(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "GroupMeta object with updated attribute values", required = true) GroupMeta detail) {
+        @Parameter(description = "GroupMeta object with updated attribute values", required = true) GroupMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the Group object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupMeta");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
-            this.delegate.putGroupMeta(context, domainName, groupName, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putGroupMeta(context, domainName, groupName, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1876,18 +1892,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Approve or Reject the request to add specified user to group membership. This endpoint will be used by 2 use cases: 1. Audit enabled groups with authorize (\"update\", \"sys.auth:meta.group.{attribute}.{domainName}\") 2. Selfserve groups in any domain with authorize (\"update\", \"{domainName}:\")")
-    public void putGroupMembershipDecision(
+    public GroupMembership putGroupMembershipDecision(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
         @Parameter(description = "name of the user to be added as a member", required = true) @PathParam("memberName") String memberName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "GroupMembership object (must contain group/member names as specified in the URI)", required = true) GroupMembership membership) {
+        @Parameter(description = "GroupMembership object (must contain group/member names as specified in the URI)", required = true) GroupMembership membership,
+        @Parameter(description = "Flag to indicate whether or not to return the GroupMembership object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupMembershipDecision");
             context.authenticate();
-            this.delegate.putGroupMembershipDecision(context, domainName, groupName, memberName, auditRef, membership);
+            return returnObj != null && returnObj ? this.delegate.putGroupMembershipDecision(context, domainName, groupName, memberName, auditRef, membership) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -1918,17 +1935,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Review group membership and take action to either extend and/or delete existing members.")
-    public void putGroupReview(
+    public Group putGroupReview(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the group", required = true) @PathParam("groupName") String groupName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Group object with updated and/or deleted members", required = true) Group group) {
+        @Parameter(description = "Group object with updated and/or deleted members", required = true) Group group,
+        @Parameter(description = "Flag to indicate whether or not to return the Group object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putGroupReview");
             context.authorize("update", "" + domainName + ":group." + groupName + "", null);
-            this.delegate.putGroupReview(context, domainName, groupName, auditRef, group);
+            return returnObj != null && returnObj ? this.delegate.putGroupReview(context, domainName, groupName, auditRef, group) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2099,17 +2117,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Create or update the specified policy.")
-    public void putPolicy(
+    public Policy putPolicy(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy to be added/updated", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Policy object to be added or updated in the domain", required = true) Policy policy) {
+        @Parameter(description = "Policy object to be added or updated in the domain", required = true) Policy policy,
+        @Parameter(description = "Flag to indicate whether or not to return the Policy object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicy");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            this.delegate.putPolicy(context, domainName, policyName, auditRef, policy);
+            return returnObj != null && returnObj ? this.delegate.putPolicy(context, domainName, policyName, auditRef, policy) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2219,13 +2238,14 @@ public class ZMSResources {
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Assertion object to be added to the given policy", required = true) Assertion assertion) {
+        @Parameter(description = "Assertion object to be added to the given policy", required = true) Assertion assertion,
+        @Parameter(description = "Flag to indicate whether or not to return the Assertion object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            return this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion);
+            return returnObj != null && returnObj ? this.delegate.putAssertion(context, domainName, policyName, auditRef, assertion) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2261,13 +2281,14 @@ public class ZMSResources {
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "name of the version", required = true) @PathParam("version") String version,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Assertion object to be added to the given policy version", required = true) Assertion assertion) {
+        @Parameter(description = "Assertion object to be added to the given policy version", required = true) Assertion assertion,
+        @Parameter(description = "Flag to indicate whether or not to return the Assertion object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertionPolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            return this.delegate.putAssertionPolicyVersion(context, domainName, policyName, version, auditRef, assertion);
+            return returnObj != null && returnObj ? this.delegate.putAssertionPolicyVersion(context, domainName, policyName, version, auditRef, assertion) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2384,13 +2405,14 @@ public class ZMSResources {
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Assertion conditions object to be added to the given assertion", required = true) AssertionConditions assertionConditions) {
+        @Parameter(description = "Assertion conditions object to be added to the given assertion", required = true) AssertionConditions assertionConditions,
+        @Parameter(description = "Flag to indicate whether or not to return the AssertionConditions object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertionConditions");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            return this.delegate.putAssertionConditions(context, domainName, policyName, assertionId, auditRef, assertionConditions);
+            return returnObj != null && returnObj ? this.delegate.putAssertionConditions(context, domainName, policyName, assertionId, auditRef, assertionConditions) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2426,13 +2448,14 @@ public class ZMSResources {
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "assertion id", required = true) @PathParam("assertionId") Long assertionId,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Assertion conditions object to be added to the given assertion", required = true) AssertionCondition assertionCondition) {
+        @Parameter(description = "Assertion conditions object to be added to the given assertion", required = true) AssertionCondition assertionCondition,
+        @Parameter(description = "Flag to indicate whether or not to return the AssertionCondition object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putAssertionCondition");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            return this.delegate.putAssertionCondition(context, domainName, policyName, assertionId, auditRef, assertionCondition);
+            return returnObj != null && returnObj ? this.delegate.putAssertionCondition(context, domainName, policyName, assertionId, auditRef, assertionCondition) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2615,17 +2638,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Create a new disabled policy version based on active policy")
-    public void putPolicyVersion(
+    public Policy putPolicyVersion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy to be added/updated", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "name of the source version to copy from and name of new version", required = true) PolicyOptions policyOptions,
-        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Flag to indicate whether or not to return the Policy object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            this.delegate.putPolicyVersion(context, domainName, policyName, policyOptions, auditRef);
+            return returnObj != null && returnObj ? this.delegate.putPolicyVersion(context, domainName, policyName, policyOptions, auditRef) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2656,17 +2680,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Mark the specified policy version as active")
-    public void setActivePolicyVersion(
+    public Policy setActivePolicyVersion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the policy", required = true) @PathParam("policyName") String policyName,
         @Parameter(description = "name of the version", required = true) PolicyOptions policyOptions,
-        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Flag to indicate whether or not to return the Policy object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "setActivePolicyVersion");
             context.authorize("update", "" + domainName + ":policy." + policyName + "", null);
-            this.delegate.setActivePolicyVersion(context, domainName, policyName, policyOptions, auditRef);
+            return returnObj != null && returnObj ? this.delegate.setActivePolicyVersion(context, domainName, policyName, policyOptions, auditRef) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2737,17 +2762,18 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Register the specified ServiceIdentity in the specified domain")
-    public void putServiceIdentity(
+    public ServiceIdentity putServiceIdentity(
         @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
         @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "ServiceIdentity object to be added/updated in the domain", required = true) ServiceIdentity detail) {
+        @Parameter(description = "ServiceIdentity object to be added/updated in the domain", required = true) ServiceIdentity detail,
+        @Parameter(description = "Flag to indicate whether or not to return the ServiceIdentity object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putServiceIdentity");
             context.authorize("update", "" + domain + ":service." + service + "", null);
-            this.delegate.putServiceIdentity(context, domain, service, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putServiceIdentity(context, domain, service, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2958,18 +2984,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Add the specified public key to the service.")
-    public void putPublicKeyEntry(
+    public PublicKeyEntry putPublicKeyEntry(
         @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
         @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
         @Parameter(description = "the identifier of the public key to be added", required = true) @PathParam("id") String id,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "PublicKeyEntry object to be added/updated in the service", required = true) PublicKeyEntry publicKeyEntry) {
+        @Parameter(description = "PublicKeyEntry object to be added/updated in the service", required = true) PublicKeyEntry publicKeyEntry,
+        @Parameter(description = "Flag to indicate whether or not to return the PublicKeyEntry object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPublicKeyEntry");
             context.authorize("update", "" + domain + ":service." + service + "", null);
-            this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry);
+            return returnObj != null && returnObj ? this.delegate.putPublicKeyEntry(context, domain, service, id, auditRef, publicKeyEntry) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -3040,18 +3067,19 @@ public class ZMSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Set the specified service metadata. Caller must have update privileges on the sys.auth domain.")
-    public void putServiceIdentitySystemMeta(
+    public ServiceIdentity putServiceIdentitySystemMeta(
         @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
         @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
         @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "ServiceIdentitySystemMeta object with updated attribute values", required = true) ServiceIdentitySystemMeta detail) {
+        @Parameter(description = "ServiceIdentitySystemMeta object with updated attribute values", required = true) ServiceIdentitySystemMeta detail,
+        @Parameter(description = "Flag to indicate whether or not to return the ServiceIdentity object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putServiceIdentitySystemMeta");
             context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
-            this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -3086,7 +3114,8 @@ public class ZMSResources {
         @Parameter(description = "name of the tenant domain", required = true) @PathParam("domain") String domain,
         @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "tenancy object", required = true) Tenancy detail) {
+        @Parameter(description = "tenancy object", required = true) Tenancy detail,
+        @Parameter(description = "Flag to indicate whether or not to return the void object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
@@ -3167,7 +3196,8 @@ public class ZMSResources {
         @Parameter(description = "name of the provider service", required = true) @PathParam("service") String service,
         @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "tenancy object", required = true) Tenancy detail) {
+        @Parameter(description = "tenancy object", required = true) Tenancy detail,
+        @Parameter(description = "Flag to indicate whether or not to return the void object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
@@ -3250,13 +3280,14 @@ public class ZMSResources {
         @Parameter(description = "name of the tenant domain", required = true) @PathParam("tenantDomain") String tenantDomain,
         @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "list of roles to be added/updated for the tenant", required = true) TenantResourceGroupRoles detail) {
+        @Parameter(description = "list of roles to be added/updated for the tenant", required = true) TenantResourceGroupRoles detail,
+        @Parameter(description = "Flag to indicate whether or not to return the TenantResourceGroupRoles object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putTenantResourceGroupRoles");
             context.authorize("update", "" + domain + ":tenant." + service + "", null);
-            return this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putTenantResourceGroupRoles(context, domain, service, tenantDomain, resourceGroup, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -3371,13 +3402,14 @@ public class ZMSResources {
         @Parameter(description = "name of the provider service", required = true) @PathParam("provService") String provService,
         @Parameter(description = "tenant resource group", required = true) @PathParam("resourceGroup") String resourceGroup,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "list of roles to be added/updated for the provider", required = true) ProviderResourceGroupRoles detail) {
+        @Parameter(description = "list of roles to be added/updated for the provider", required = true) ProviderResourceGroupRoles detail,
+        @Parameter(description = "Flag to indicate whether or not to return the ProviderResourceGroupRoles object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putProviderResourceGroupRoles");
             context.authorize("update", "" + tenantDomain + ":tenancy." + provDomain + "." + provService + "", null);
-            return this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail);
+            return returnObj != null && returnObj ? this.delegate.putProviderResourceGroupRoles(context, tenantDomain, provDomain, provService, resourceGroup, auditRef, detail) : null;
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -4025,7 +4057,8 @@ public class ZMSResources {
     public void putQuota(
         @Parameter(description = "name of the domain", required = true) @PathParam("name") String name,
         @Parameter(description = "Audit reference", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Quota object with limits for the domain", required = true) Quota quota) {
+        @Parameter(description = "Quota object with limits for the domain", required = true) Quota quota,
+        @Parameter(description = "Flag to indicate whether or not to return the void object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
@@ -4266,7 +4299,8 @@ public class ZMSResources {
     public void putDomainDependency(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
-        @Parameter(description = "Dependent service provider details", required = true) DependentService service) {
+        @Parameter(description = "Dependent service provider details", required = true) DependentService service,
+        @Parameter(description = "Flag to indicate whether or not to return the void object.", required = false) @HeaderParam("Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
