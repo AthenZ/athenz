@@ -57,9 +57,10 @@ resource Role PUT "/domain/{domainName}/role/{roleName}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to be added/updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     Role role; //Role object to be added/updated in the domain
     authorize ("update", "{domainName}:role.{roleName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -155,9 +156,10 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
     EntityName roleName; //name of the role
     MemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authenticate;
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -218,9 +220,10 @@ resource Membership DELETE "/domain/{domainName}/role/{roleName}/pendingmember/{
 resource DefaultAdmins PUT "/domain/{domainName}/admins" {
     DomainName domainName; //name of the domain
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     DefaultAdmins defaultAdmins; //list of domain administrators
     authorize ("update", "sys.auth:domain");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -238,9 +241,10 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta/system/{attribute}"
     EntityName roleName; //name of the role
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     RoleSystemMeta detail; //RoleSystemMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.role.{attribute}.{domainName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -256,9 +260,10 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/meta" {
     DomainName domainName; //name of the domain to be updated
     EntityName roleName; //name of the role
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     RoleMeta detail; //RoleMeta object with updated attribute values
     authenticate;
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -278,9 +283,10 @@ resource Membership PUT "/domain/{domainName}/role/{roleName}/member/{memberName
     EntityName roleName; //name of the role
     MemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     Membership membership; //Membership object (must contain role/member names as specified in the URI)
     authenticate;
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -296,9 +302,10 @@ resource Role PUT "/domain/{domainName}/role/{roleName}/review" (name=PutRoleRev
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     Role role; // Role object with updated and/or deleted members
     authorize ("update", "{domainName}:role.{roleName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

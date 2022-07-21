@@ -8,9 +8,10 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
     DomainName domain; //name of the domain
     SimpleName service; //name of the service
     String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     ServiceIdentity detail; //ServiceIdentity object to be added/updated in the domain
     authorize ("update", "{domain}:service.{service}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -104,9 +105,10 @@ resource PublicKeyEntry PUT "/domain/{domain}/service/{service}/publickey/{id}" 
     SimpleName service; //name of the service
     String id; //the identifier of the public key to be added
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     PublicKeyEntry publicKeyEntry; //PublicKeyEntry object to be added/updated in the service
     authorize ("update", "{domain}:service.{service}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -143,9 +145,10 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}/meta/system/{at
     SimpleName service; //name of the service
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     ServiceIdentitySystemMeta detail; //ServiceIdentitySystemMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.service.{attribute}.{domain}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

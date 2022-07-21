@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -459,7 +460,13 @@ public class ZMSUtils {
         return provider.substring(n + 1);
     }
 
-    public static Membership copyRoleMemberToMemberShip(RoleMember roleMember, String roleName) {
+    public static <T> Response returnPutResponse(Boolean flag, T returnObj ){
+        return (flag != null && flag)
+                ? Response.status(ResourceException.OK).entity(returnObj).build()
+                : Response.status(ResourceException.NO_CONTENT).build();
+    }
+
+    public static  Membership copyRoleMemberToMemberShip(RoleMember roleMember, String roleName) {
         Membership membership = new Membership();
         membership.setRoleName(roleName);
         membership.setMemberName(roleMember.getMemberName());

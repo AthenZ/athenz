@@ -41,9 +41,10 @@ resource Group PUT "/domain/{domainName}/group/{groupName}" {
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group to be added/updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     Group group; //Group object to be added/updated in the domain
     authorize ("update", "{domainName}:group.{groupName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -112,9 +113,10 @@ resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{mem
     EntityName groupName; //name of the group
     GroupMemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     GroupMembership membership; //Membership object (must contain group/member names as specified in the URI)
     authenticate;
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -175,9 +177,10 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/meta/system/{attribut
     EntityName groupName; //name of the group
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     GroupSystemMeta detail; //GroupSystemMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.group.{attribute}.{domainName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -193,9 +196,10 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/meta" {
     DomainName domainName; //name of the domain to be updated
     EntityName groupName; //name of the group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     GroupMeta detail; //GroupMeta object with updated attribute values
     authorize ("update", "{domainName}:group.{groupName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -215,9 +219,10 @@ resource GroupMembership PUT "/domain/{domainName}/group/{groupName}/member/{mem
     EntityName groupName; //name of the group
     GroupMemberName memberName; //name of the user to be added as a member
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     GroupMembership membership; //GroupMembership object (must contain group/member names as specified in the URI)
     authenticate;
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -233,9 +238,10 @@ resource Group PUT "/domain/{domainName}/group/{groupName}/review" (name=PutGrou
     DomainName domainName; //name of the domain
     EntityName groupName; //name of the group
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
     Group group; // Group object with updated and/or deleted members
     authorize ("update", "{domainName}:group.{groupName}");
-    expected OK;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
