@@ -1,3 +1,20 @@
+Athenz v1.11.5 Release / Jul 19, 2022
+-------------------------------------
+
+#1910 Publish athenz-syncer-common package
+#1911 Fixed auth history syncer + properties
+#1912 report conf not found messages at info and not error level
+#1913 allow users to remove themselves from roles/groups
+#1914 Auth_history_syncer - prevent table creation by default
+#1915 Add zms aws jws domain syncer 
+#1916 add zms aws json domain syncer to archive
+#1917 Bump moment from 2.29.2 to 2.29.4 in /ui
+#1918 update go library dependencies to their latest releases
+#1919 schema update: role/policy - description, domain - purge expiry days
+#1920 update dependency packages to their latest releases
+#1921 update put static workload from zms to msd
+#1924 Add URI parsing in createHttpClient
+
 Athenz v1.11.4 Release / Jul 1, 2022
 ------------------------------------
 
