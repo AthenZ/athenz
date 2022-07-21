@@ -13,7 +13,7 @@ import jakarta.inject.Inject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
-@Path("/zms/v1")
+@Path("/v1")
 public class ZMSResources {
 
     @GET
