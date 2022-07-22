@@ -260,6 +260,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_SERVICE_CERT_EXPIRY_MINS = "service_cert_expiry_mins";
     public static final String DB_COLUMN_PRINCIPAL_GROUP          = "principal_group";
     public static final String DB_COLUMN_PRINCIPAL_GROUP_MEMBER   = "principal_group_member";
+    public static final String DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS = "member_purge_expiry_days";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";

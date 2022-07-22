@@ -762,6 +762,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainMemberExpiryDays(dn, days)
 			}
+		case "set-domain-member-purge-expiry-days":
+			if argc == 1 {
+				days, err := cli.getInt32(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainMemberPurgeExpiryDays(dn, days)
+			}
 		case "set-domain-service-expiry-days":
 			if argc == 1 {
 				days, err := cli.getInt32(args[0])
@@ -1360,6 +1368,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   days          : all user members in this domain will have this max expiry days\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-member-expiry-days 60\n")
+	case "set-domain-member-purge-expiry-days":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-member-purge-expiry-days days\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   days          : expunge expired member longer than this expiry days\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-member-purge-expiry-days 180\n")
 	case "set-domain-service-expiry-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-domain-service-expiry-days days\n")
@@ -2959,6 +2977,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-org-name org-name\n")
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   set-domain-member-expiry-days user-member-expiry-days\n")
+	buf.WriteString("   set-domain-member-purge-expiry-days member-purge-expiry-days\n")
 	buf.WriteString("   set-domain-service-expiry-days service-member-expiry-days\n")
 	buf.WriteString("   set-domain-group-expiry-days group-member-expiry-days\n")
 	buf.WriteString("   set-domain-token-expiry-mins token-expiry-mins\n")

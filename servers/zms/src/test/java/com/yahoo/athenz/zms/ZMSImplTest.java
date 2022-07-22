@@ -1723,11 +1723,15 @@ public class ZMSImplTest {
     @Test
     public void testPutDomainMeta() {
 
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("MetaDom1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
-        Domain resDom1 = zmsTestInitializer.getZms().getDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1");
+        Domain resDom1 = zmsImpl.getDomain(ctx, "MetaDom1");
         assertNotNull(resDom1);
         assertEquals(resDom1.getDescription(), "Test Domain1");
         assertEquals(resDom1.getOrg(), "testorg");
@@ -1739,23 +1743,26 @@ public class ZMSImplTest {
         assertNull(resDom1.getServiceExpiryDays());
         assertNull(resDom1.getGroupExpiryDays());
         assertNull(resDom1.getTokenExpiryMins());
+        assertNull(resDom1.getMemberPurgeExpiryDays());
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
         meta.setCertDnsDomain("YAHOO.cloud");
         meta.setServiceCertExpiryMins(100);
         meta.setRoleCertExpiryMins(200);
+        meta.setMemberPurgeExpiryDays(90);
         meta.setSignAlgorithm("ec");
-        zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", zmsTestInitializer.getAuditRef(), meta);
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "auditenabled", zmsTestInitializer.getAuditRef(), meta);
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "account", zmsTestInitializer.getAuditRef(), meta);
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "certdnsdomain", zmsTestInitializer.getAuditRef(), meta);
+        zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "auditenabled", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "account", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "certdnsdomain", auditRef, meta);
 
-        zmsTestInitializer.setupPrincipalSystemMetaDelete(zmsTestInitializer.getZms(), zmsTestInitializer.getMockDomRsrcCtx().principal().getFullName(), "metadom1", "productid", "org", "certdnsdomain");
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "org", zmsTestInitializer.getAuditRef(), meta);
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "productid", zmsTestInitializer.getAuditRef(), meta);
+        zmsTestInitializer.setupPrincipalSystemMetaDelete(zmsImpl, ctx.principal().getFullName(),
+                "metadom1", "productid", "org", "certdnsdomain");
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "org", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "productid", auditRef, meta);
 
-        Domain resDom3 = zmsTestInitializer.getZms().getDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1");
+        Domain resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "Test2 Domain");
         assertEquals(resDom3.getOrg(), "neworg");
@@ -1765,6 +1772,7 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
         assertEquals(resDom3.getCertDnsDomain(), "yahoo.cloud");
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(100));
+        assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(90));
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(200));
         assertNull(resDom3.getMemberExpiryDays());
         assertNull(resDom3.getServiceExpiryDays());
@@ -1780,9 +1788,9 @@ public class ZMSImplTest {
         meta.setServiceExpiryDays(350);
         meta.setGroupExpiryDays(375);
         meta.setTokenExpiryMins(400);
-        zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", zmsTestInitializer.getAuditRef(), meta);
+        zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
 
-        resDom3 = zmsTestInitializer.getZms().getDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1");
+        resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "just a new desc");
         //org is system attr. so it won't be changed by putdomainmeta call
@@ -1797,9 +1805,10 @@ public class ZMSImplTest {
         assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(350));
         assertEquals(resDom3.getGroupExpiryDays(), Integer.valueOf(375));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(400));
+        assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(90));
 
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "org", zmsTestInitializer.getAuditRef(), meta);
-        resDom3 = zmsTestInitializer.getZms().getDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1");
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "org", auditRef, meta);
+        resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
         assertNotNull(resDom3);
         assertEquals(resDom3.getOrg(), "organs");
 
@@ -1814,11 +1823,12 @@ public class ZMSImplTest {
         meta.setServiceExpiryDays(17);
         meta.setGroupExpiryDays(18);
         meta.setTokenExpiryMins(20);
+        meta.setMemberPurgeExpiryDays(120);
         meta.setSignAlgorithm("rsa");
-        zmsTestInitializer.getZms().putDomainMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", zmsTestInitializer.getAuditRef(), meta);
-        zmsTestInitializer.getZms().putDomainSystemMeta(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", "productid", zmsTestInitializer.getAuditRef(), meta);
+        zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "productid", auditRef, meta);
 
-        resDom3 = zmsTestInitializer.getZms().getDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1");
+        resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "just a new desc");
         assertEquals(resDom3.getOrg(), "organs");
@@ -1832,10 +1842,11 @@ public class ZMSImplTest {
         assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(17));
         assertEquals(resDom3.getGroupExpiryDays(), Integer.valueOf(18));
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(20));
+        assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(120));
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
 
-        zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsTestInitializer.getZms());
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "MetaDom1", zmsTestInitializer.getAuditRef());
+        zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsImpl);
+        zmsImpl.deleteTopLevelDomain(ctx, "MetaDom1", auditRef);
     }
 
     @Test
@@ -19991,7 +20002,11 @@ public class ZMSImplTest {
     @Test
     public void testReceiveSignedDomainDataAuditExpiryFields() {
 
-        Authority savedAuthority = zmsTestInitializer.getZms().userAuthority;
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        Authority savedAuthority = zmsImpl.userAuthority;
         final String domainName = "signed-dom-fields";
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
@@ -20015,15 +20030,15 @@ public class ZMSImplTest {
         attrs.add("elevated-clearance");
         when(authority.booleanAttributesSupported()).thenReturn(attrs);
         when(authority.dateAttributesSupported()).thenReturn(attrs);
-        zmsTestInitializer.getZms().userAuthority = authority;
-        zmsTestInitializer.getZms().dbService.zmsConfig.setUserAuthority(authority);
+        zmsImpl.userAuthority = authority;
+        zmsImpl.dbService.zmsConfig.setUserAuthority(authority);
 
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         // get the domain which would return from cache
 
         Domain dom = new Domain().setName(domainName).setModified(Timestamp.fromMillis(0));
-        SignedDomain signedDomain = zmsTestInitializer.getZms().retrieveSignedDomainData(dom, false, false);
+        SignedDomain signedDomain = zmsImpl.retrieveSignedDomainData(dom, false, false);
         assertTrue(signedDomain.getDomain().getAuditEnabled());
         assertEquals(Integer.valueOf(10), signedDomain.getDomain().getTokenExpiryMins());
         assertEquals(Integer.valueOf(20), signedDomain.getDomain().getRoleCertExpiryMins());
@@ -20036,9 +20051,9 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(50), signedDomain.getDomain().getGroupExpiryDays());
         assertEquals(Integer.valueOf(60), signedDomain.getDomain().getServiceExpiryDays());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
-        zmsTestInitializer.getZms().userAuthority = savedAuthority;
-        zmsTestInitializer.getZms().dbService.zmsConfig.setUserAuthority(savedAuthority);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        zmsImpl.userAuthority = savedAuthority;
+        zmsImpl.dbService.zmsConfig.setUserAuthority(savedAuthority);
     }
 
     @Test
@@ -23399,16 +23414,22 @@ public class ZMSImplTest {
 
         final String domainName = "jws-domain";
 
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        dom1.setMemberPurgeExpiryDays(90);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
-        Response response = zmsTestInitializer.getZms().getJWSDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, null, null);
+        Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
         JWSDomain jwsDomain = (JWSDomain) response.getEntity();
         DomainData domainData = getDomainData(jwsDomain);
 
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "jws-domain");
+        assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
 
         Map<String, String> header = jwsDomain.getHeader();
         assertEquals(header.get("kid"), "0");
@@ -23417,30 +23438,32 @@ public class ZMSImplTest {
         // and make sure we get back 304
 
         EntityTag tag = response.getEntityTag();
-        response = zmsTestInitializer.getZms().getJWSDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.FALSE, tag.toString());
+        response = zmsImpl.getJWSDomain(ctx, domainName, Boolean.FALSE, tag.toString());
         assertEquals(response.getStatus(), ResourceException.NOT_MODIFIED);
 
         // pass a timestamp a minute back and make sure we
         // get back the domain
 
         Timestamp tstamp = Timestamp.fromMillis(System.currentTimeMillis() - 3600);
-        response = zmsTestInitializer.getZms().getJWSDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, false, tstamp.toString());
+        response = zmsImpl.getJWSDomain(ctx, domainName, false, tstamp.toString());
         jwsDomain = (JWSDomain) response.getEntity();
         domainData = getDomainData(jwsDomain);
 
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "jws-domain");
+        assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
 
         // any invalid data is also treated as no etag
 
-        response = zmsTestInitializer.getZms().getJWSDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, null, "unknown-date");
+        response = zmsImpl.getJWSDomain(ctx, domainName, null, "unknown-date");
         jwsDomain = (JWSDomain) response.getEntity();
         domainData = getDomainData(jwsDomain);
 
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "jws-domain");
+        assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
