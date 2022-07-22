@@ -3340,7 +3340,8 @@ public class DBService implements RolesProvider {
                         .setUserAuthorityFilter(domain.getUserAuthorityFilter())
                         .setBusinessService(domain.getBusinessService())
                         .setTags(domain.getTags())
-                        .setBusinessService(domain.getBusinessService());
+                        .setBusinessService(domain.getBusinessService())
+                        .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3651,6 +3652,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getTags() != null) {
             domain.setTags(meta.getTags());
+        }
+        if (meta.getMemberPurgeExpiryDays() != null) {
+            domain.setMemberPurgeExpiryDays(meta.getMemberPurgeExpiryDays());
         }
     }
 

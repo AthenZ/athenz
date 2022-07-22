@@ -40,6 +40,7 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpInt32Value(buf, indentLevel1, "service_cert_expiry_mins", domain.ServiceCertExpiryMins)
 	dumpInt32Value(buf, indentLevel1, "role_cert_expiry_mins", domain.RoleCertExpiryMins)
 	dumpStringValue(buf, indentLevel1, "sign_algorithm", string(domain.SignAlgorithm))
+	dumpInt32Value(buf, indentLevel1, "member_purge_expiry_days", domain.MemberPurgeExpiryDays)
 }
 
 func dumpStringValue(buf *bytes.Buffer, indent, label, value string) {
@@ -232,7 +233,7 @@ func (cli Zms) dumpGroups(buf *bytes.Buffer, dn string, tagKey string, tagValue 
 func (cli Zms) dumpGroup(buf *bytes.Buffer, group zms.Group, auditLog bool, indent1 string, indent2 string) {
 	cli.displayObjectName(buf, string(group.Name), ":group.", indent1)
 	dumpInt32Value(buf, indent2, "member_expiry_days", group.MemberExpiryDays)
-    dumpInt32Value(buf, indent2, "service_expiry_days", group.ServiceExpiryDays)
+	dumpInt32Value(buf, indent2, "service_expiry_days", group.ServiceExpiryDays)
 	dumpBoolValue(buf, indent2, "audit_enabled", group.AuditEnabled)
 	dumpBoolValue(buf, indent2, "review_enabled", group.ReviewEnabled)
 	dumpBoolValue(buf, indent2, "self_serve", group.SelfServe)

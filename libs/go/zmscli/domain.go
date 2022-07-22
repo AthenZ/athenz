@@ -677,6 +677,7 @@ func getDomainMetaObject(domain *zms.Domain) zms.DomainMeta {
 		ServiceExpiryDays:     domain.ServiceExpiryDays,
 		GroupExpiryDays:       domain.GroupExpiryDays,
 		Tags:                  domain.Tags,
+		MemberPurgeExpiryDays: domain.MemberPurgeExpiryDays,
 	}
 }
 
@@ -754,6 +755,27 @@ func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error)
 	}
 	meta := getDomainMetaObject(domain)
 	meta.MemberExpiryDays = &days
+
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetDomainMemberPurgeExpiryDays(dn string, days int32) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	meta := getDomainMetaObject(domain)
+	meta.MemberPurgeExpiryDays = &days
 
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
