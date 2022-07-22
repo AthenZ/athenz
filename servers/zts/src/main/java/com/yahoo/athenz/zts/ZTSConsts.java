@@ -65,6 +65,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_OAUTH_ISSUER           = "athenz.zts.oauth_issuer";
     public static final String ZTS_PROP_OAUTH_OPENID_SCOPE     = "athenz.zts.oauth_openid_scope";
     public static final String ZTS_PROP_OPENID_ISSUER          = "athenz.zts.openid_issuer";
+    public static final String ZTS_PROP_REDIRECT_URI_SUFFIX    = "athenz.zts.redirect_uri_suffix";
 
     public static final String ZTS_PROP_CERTSIGN_BASE_URI            = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT     = "athenz.zts.certsign_request_timeout";
