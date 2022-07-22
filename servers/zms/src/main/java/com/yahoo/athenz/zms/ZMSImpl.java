@@ -1508,6 +1508,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setMemberPurgeExpiryDays(detail.getMemberPurgeExpiryDays())
                 .setServiceExpiryDays(detail.getServiceExpiryDays())
                 .setGroupExpiryDays(detail.getGroupExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
@@ -1744,6 +1745,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setMemberPurgeExpiryDays(detail.getMemberPurgeExpiryDays())
                 .setServiceExpiryDays(detail.getServiceExpiryDays())
                 .setGroupExpiryDays(detail.getGroupExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
@@ -1837,6 +1839,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
+                .setMemberPurgeExpiryDays(detail.getMemberPurgeExpiryDays())
                 .setServiceExpiryDays(detail.getServiceExpiryDays())
                 .setGroupExpiryDays(detail.getGroupExpiryDays())
                 .setTokenExpiryMins(detail.getTokenExpiryMins())
@@ -6023,6 +6026,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setBusinessService(domain.getBusinessService());
         domainData.setSignAlgorithm(domain.getSignAlgorithm());
         domainData.setCertDnsDomain(domain.getCertDnsDomain());
+        domainData.setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
@@ -6104,6 +6108,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (athenzDomain.getDomain().getServiceExpiryDays() != null) {
             domainData.setServiceExpiryDays(athenzDomain.getDomain().getServiceExpiryDays());
+        }
+        if (athenzDomain.getDomain().getMemberPurgeExpiryDays() != null) {
+            domainData.setMemberPurgeExpiryDays(athenzDomain.getDomain().getMemberPurgeExpiryDays());
         }
 
         // set the domain tags

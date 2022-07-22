@@ -74,6 +74,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("12345").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
         Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn(90).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
         Mockito.doReturn("service1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
@@ -90,6 +91,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getId());
         assertNull(domain.getUserAuthorityFilter());
         assertEquals("service1", domain.getBusinessService());
+        assertEquals(domain.getMemberPurgeExpiryDays(), 90);
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
         jdbcConn.close();
     }
@@ -608,7 +610,8 @@ public class JDBCConnectionTest {
                 .setSignAlgorithm("ec")
                 .setUserAuthorityFilter("OnShore")
                 .setAzureSubscription("azure")
-                .setBusinessService("service1");
+                .setBusinessService("service1")
+                .setMemberPurgeExpiryDays(90);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -633,7 +636,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(17, 55);
         Mockito.verify(mockPrepStmt, times(1)).setString(18, "azure");
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "service1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(20, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(20, 90);
+        Mockito.verify(mockPrepStmt, times(1)).setString(21, "my-domain");
         jdbcConn.close();
     }
 
@@ -669,7 +673,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(17, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(18, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(20, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(20, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setString(21, "my-domain");
         jdbcConn.close();
     }
 
