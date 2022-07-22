@@ -163,6 +163,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected OpenIDConfig openIDConfig;
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
+    protected String redirectUriSuffix;
     protected Info serverInfo = null;
     protected AthenzJWKConfig jwkConfig;
     private long lastAthenzJWKUpdateTime = 0;
@@ -619,6 +620,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         ztsOAuthIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, serverHostName);
         ztsOpenIDIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, ztsOAuthIssuer);
+        redirectUriSuffix = System.getProperty(ZTSConsts.ZTS_PROP_REDIRECT_URI_SUFFIX);
 
         // set up our health check file
 
@@ -890,7 +892,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return domain + "." + service;
     }
 
-    ServiceIdentity lookupServiceIdentity(DomainData domainData, String serviceName) {
+    ServiceIdentity lookupServiceIdentity(DomainData domainData, final String serviceName) {
+
+        com.yahoo.athenz.zms.ServiceIdentity service = lookupZMSServiceIdentity(domainData, serviceName);
+        if (service == null) {
+            return null;
+        }
+
+        return generateZTSServiceIdentity(service);
+    }
+
+    com.yahoo.athenz.zms.ServiceIdentity lookupZMSServiceIdentity(DomainData domainData, final String serviceName) {
 
         List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
         if (services == null) {
@@ -899,7 +911,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
             if (service.getName().equalsIgnoreCase(serviceName)) {
-                return generateZTSServiceIdentity(service);
+                return service;
             }
         }
 
@@ -1952,13 +1964,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        final String serviceEndpoint = extractServiceEndpoint(data.getDomainData(), clientId);
-        if (StringUtil.isEmpty(serviceEndpoint)) {
-            throw requestError("Invalid Service or empty service endpoint", caller, principal.getDomain(), principalDomain);
-        }
+        // validate redirect uri
 
-        if (!serviceEndpoint.equalsIgnoreCase(redirectUri)) {
-            throw requestError("Unregistered redirect uri", caller, principal.getDomain(), principalDomain);
+        if (!validateOidcRedirectUri(data.getDomainData(), clientId, redirectUri)) {
+            throw requestError("invalid redirect uri", caller, principal.getDomain(), principalDomain);
         }
 
         // validate the request data. For now, we only support the implicit flow
@@ -2101,6 +2110,47 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return Response.status(ResourceException.FOUND).header("Location", location).build();
     }
 
+    boolean validateOidcRedirectUri(DomainData domainData, final String clientId, final String redirectUri) {
+
+        // make sure we have valid data
+
+        if (domainData == null) {
+            return false;
+        }
+
+        // if the service has an endpoint specified then the value
+        // of the redirect uri must match that value
+
+        com.yahoo.athenz.zms.ServiceIdentity service = lookupZMSServiceIdentity(domainData, clientId);
+        if (service == null) {
+            return false;
+        }
+        final String serviceEndpoint = service.getProviderEndpoint();
+        if (!StringUtil.isEmpty(serviceEndpoint)) {
+            return serviceEndpoint.equalsIgnoreCase(redirectUri);
+        }
+
+        // make sure we have a redirect uri suffix configured
+
+        if (StringUtil.isEmpty(redirectUriSuffix)) {
+            return false;
+        }
+
+        // otherwise, we're going to auto generate the redirect uri
+        // based on our client id and make sure they match. since
+        // our service is valid, it must have a domain and service
+        // components. we need to generate domain name based on
+        // our athenz domain name where .'s are converted to dashes.
+        // e.g. athenz.prod.api will become api.athenz-prod
+
+        int idx = clientId.lastIndexOf('.');
+        final String serviceName = clientId.substring(idx + 1);
+        final String dashDomain = clientId.substring(0, idx).replace('.', '-');
+
+        final String generatedRedirectUri = "https://" + serviceName + "." + dashDomain + redirectUriSuffix;
+        return generatedRedirectUri.equalsIgnoreCase(redirectUri);
+    }
+
     List<String> getIdTokenGroupsFromGroups(List<String> groups, final String domainName, Boolean fullArn) {
         if (fullArn != Boolean.TRUE || groups == null) {
             return groups;
@@ -2156,24 +2206,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             location = redirectUri + "?error=invalid_request";
         }
         return Response.status(ResourceException.FOUND).header("Location", location).build();
-    }
-
-    String extractServiceEndpoint(DomainData domainData, final String serviceName) {
-
-        if (domainData == null) {
-            return null;
-        }
-
-        List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
-        if (services != null) {
-            for (com.yahoo.athenz.zms.ServiceIdentity service : services) {
-                if (service.getName().equalsIgnoreCase(serviceName)) {
-                    return service.getProviderEndpoint();
-                }
-            }
-        }
-
-        return null;
     }
 
     @Override

@@ -70,6 +70,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.ServletContext;
+import org.eclipse.jetty.util.StringUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -13259,24 +13260,58 @@ public class ZTSImplTest {
     @Test
     public void testExtractServiceEndpoint() {
 
-        DomainData domainData = new DomainData();
+        // null domain data
 
-        assertNull(zts.extractServiceEndpoint(null, "athenz.api"));
-        assertNull(zts.extractServiceEndpoint(domainData, "athenz.api"));
-        assertNull(zts.extractServiceEndpoint(domainData, "athenz.backend"));
+        assertFalse(zts.validateOidcRedirectUri(null, "coretech.api", "https://api.coretech.athenz.io"));
+
+        // null services
+
+        DomainData domainData = new DomainData();
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.api", "https://api.coretech.athenz.io"));
 
         List<com.yahoo.athenz.zms.ServiceIdentity> services = new ArrayList<>();
         com.yahoo.athenz.zms.ServiceIdentity serviceBackend = new com.yahoo.athenz.zms.ServiceIdentity()
-                .setName("athenz.backend").setProviderEndpoint("https://localhost:4443/endpoint");
+                .setName("coretech.backend").setProviderEndpoint("https://localhost:4443/endpoint");
         com.yahoo.athenz.zms.ServiceIdentity serviceApi = new com.yahoo.athenz.zms.ServiceIdentity()
-                .setName("athenz.api");
+                .setName("coretech.api");
         services.add(serviceBackend);
         services.add(serviceApi);
 
         domainData.setServices(services);
 
-        assertEquals(zts.extractServiceEndpoint(domainData, "athenz.backend"), "https://localhost:4443/endpoint");
-        assertNull(zts.extractServiceEndpoint(domainData, "athenz.api"));
+        // service endpoint exists - both valid and invalid cases
+
+        assertTrue(zts.validateOidcRedirectUri(domainData, "coretech.backend", "https://localhost:4443/endpoint"));
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.backend", "https://api.coretech.athenz.io"));
+
+        // valid service but no redirect uri suffix
+
+        final String savedUriSuffix = zts.redirectUriSuffix;
+        zts.redirectUriSuffix = null;
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.api", "https://api.coretech.athenz.io"));
+
+        zts.redirectUriSuffix = ".athenz.io";
+
+        // invalid client id
+
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech", "https://api.coretech.athenz.io"));
+
+        // valid and invalid cases
+
+        assertTrue(zts.validateOidcRedirectUri(domainData, "coretech.api", "https://api.coretech.athenz.io"));
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.api", "https://api-coretech.athenz.io"));
+
+        // now verify list with subdomains
+
+        services = new ArrayList<>();
+        serviceApi = new com.yahoo.athenz.zms.ServiceIdentity().setName("coretech.sports.api");
+        services.add(serviceApi);
+
+        domainData.setServices(services);
+
+        assertTrue(zts.validateOidcRedirectUri(domainData, "coretech.sports.api", "https://api.coretech-sports.athenz.io"));
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.sports.api", "https://api-coretech-sports.athenz.io"));
+        zts.redirectUriSuffix = savedUriSuffix;
     }
 
     @Test
@@ -13341,7 +13376,6 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
-            assertTrue(ex.getMessage().contains("Invalid Service or empty service endpoint"));
         }
 
         // mismatch service endpoint
@@ -13352,7 +13386,6 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
-            assertTrue(ex.getMessage().contains("Unregistered redirect uri"));
         }
 
         // invalid response type
