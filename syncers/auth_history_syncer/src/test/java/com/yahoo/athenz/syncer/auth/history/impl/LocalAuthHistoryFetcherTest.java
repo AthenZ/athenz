@@ -72,7 +72,7 @@ public class LocalAuthHistoryFetcherTest {
         LocalAuthHistoryFetcher localAuthHistoryFetcher = new LocalAuthHistoryFetcher();
         Long startTime = 1654819140000L; // 09/Jun/2022:23:59:00
         Long endTime = 1654819201000L; // 10/Jun/2022:00:00:01
-        Set<AuthHistoryDynamoDBRecord> logs = localAuthHistoryFetcher.getLogs(startTime, endTime);
+        Set<AuthHistoryDynamoDBRecord> logs = localAuthHistoryFetcher.getLogs(startTime, endTime, true);
         List<String> justPrincipals = logs.stream().map(record -> record.getPrimaryKey()).collect(Collectors.toList());
         assertEquals(7, justPrincipals.size());
         assertTrue(justPrincipals.contains("home.testuser:user:testprincipal4"));

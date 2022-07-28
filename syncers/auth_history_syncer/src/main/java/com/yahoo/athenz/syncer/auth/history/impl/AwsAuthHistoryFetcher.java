@@ -46,12 +46,13 @@ public class AwsAuthHistoryFetcher implements AuthHistoryFetcher {
      *
      * @param startTime - the start of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
      * @param endTime - the end of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
+     * @param useFilterPattern - if true, filter access events in request. False means that all events in the time range will return.
      * @return - authorization checks and token requests history ready to be pushed to a data store. On error return null.
      */
     @Override
-    public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime) {
-        Set<AuthHistoryDynamoDBRecord> zmsLogs = getLogs("athenz-zms-service-access", startTime, endTime);
-        Set<AuthHistoryDynamoDBRecord> ztsLogs = getLogs("athenz-zts-service-access", startTime, endTime);
+    public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime, boolean useFilterPattern) {
+        Set<AuthHistoryDynamoDBRecord> zmsLogs = getLogs("athenz-zms-service-access", startTime, endTime, useFilterPattern);
+        Set<AuthHistoryDynamoDBRecord> ztsLogs = getLogs("athenz-zts-service-access", startTime, endTime, useFilterPattern);
         Set<AuthHistoryDynamoDBRecord> allRecords = new HashSet<>();
         if (zmsLogs != null && !zmsLogs.isEmpty()) {
             allRecords.addAll(zmsLogs);
@@ -67,35 +68,41 @@ public class AwsAuthHistoryFetcher implements AuthHistoryFetcher {
      * @param logGroup - Log group name
      * @param startTime - the start of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
      * @param endTime - the end of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
+     * @param useFilterPattern - if true, filter access events in request. False means that all events in the time range will return.
      * @return - authorization checks and token requests history ready to be pushed to a data store. On error return null.
      */
-    private Set<AuthHistoryDynamoDBRecord> getLogs(String logGroup, Long startTime, Long endTime) {
-        LOGGER.info("Getting logs from logGroup " + logGroup + ", startTime(milli): " + startTime + ", endTime(milli): " + endTime);
+    private Set<AuthHistoryDynamoDBRecord> getLogs(String logGroup, Long startTime, Long endTime, boolean useFilterPattern) {
+        LOGGER.info("Getting logs from logGroup {}, startTime(milli): {}, endTime(milli): {}, useFilterPattern: {}", logGroup, startTime, endTime, useFilterPattern);
         try {
             String nextToken = null;
             Set<AuthHistoryDynamoDBRecord> filteredEvents = new HashSet<>();
             do {
-                FilterLogEventsRequest filterLogEventsRequest = FilterLogEventsRequest.builder()
+                FilterLogEventsRequest.Builder builder = FilterLogEventsRequest.builder()
                         .logGroupName(logGroup)
                         .startTime(startTime)
                         .endTime(endTime)
-                        .nextToken(nextToken)
-                        .filterPattern("?\"/access/\" ?\"/token\" ?\"/rolecert\"")
-                        .build();
+                        .nextToken(nextToken);
+                FilterLogEventsRequest filterLogEventsRequest = useFilterPattern ?
+                        builder.filterPattern("?\"/access/\" ?\"/token\" ?\"/rolecert\"").build() :
+                        builder.build();
                 FilterLogEventsResponse filterLogEventsResponse = cloudWatchLogsClient.filterLogEvents(filterLogEventsRequest);
                 nextToken = filterLogEventsResponse.nextToken();
                 for (FilteredLogEvent filteredLogEvent : filterLogEventsResponse.events()) {
+                    String message = filteredLogEvent.message();
                     try {
-                        AuthHistoryDynamoDBRecord record = LogsParserUtils.getRecordFromLogEvent(filteredLogEvent.message());
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug(message);
+                        }
+                        AuthHistoryDynamoDBRecord record = LogsParserUtils.getRecordFromLogEvent(message);
                         filteredEvents.add(record); // Only keep a single record per key (domain + principal pair)
                     } catch (MalformedURLException e) {
-                        LOGGER.error("Failed to parse log event: {}", filteredLogEvent.message(), e);
+                        LOGGER.error("Failed to parse log event: {}", message, e);
                     }
                 }
             } while (nextToken != null && !nextToken.isEmpty());
             return filteredEvents;
         } catch (CloudWatchException e) {
-            LOGGER.error("Failed to parse log event: " + e.awsErrorDetails().errorMessage());
+            LOGGER.error("Failed to parse log event: {}", e.awsErrorDetails().errorMessage(), e);
             return null;
         }
     }

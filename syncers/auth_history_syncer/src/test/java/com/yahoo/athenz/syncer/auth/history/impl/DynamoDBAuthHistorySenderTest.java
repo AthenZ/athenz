@@ -21,10 +21,12 @@ package com.yahoo.athenz.syncer.auth.history.impl;
 import com.yahoo.athenz.syncer.auth.history.AuthHistoryDynamoDBRecord;
 import com.yahoo.athenz.syncer.auth.history.DynamoDbAsyncClientFactory;
 import com.yahoo.athenz.syncer.auth.history.LogsParserUtils;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -41,6 +43,37 @@ import static com.yahoo.athenz.syncer.auth.history.impl.DynamoDBAuthHistorySende
 import static org.testng.AssertJUnit.*;
 
 public class DynamoDBAuthHistorySenderTest {
+
+    @Test
+    public void testPushToDynamoDBFail() {
+        DynamoDbEnhancedAsyncClient dynamodb = Mockito.mock(DynamoDbEnhancedAsyncClient.class);
+        System.setProperty(PROP_CREATE_TABLE, "false");
+        DynamoDbAsyncTable<AuthHistoryDynamoDBRecord> table = Mockito.mock(DynamoDbAsyncTable.class);
+        Mockito.when(table.tableName()).thenReturn("Auth-History-Table");
+        DynamoDBAuthHistorySender dynamoDBAuthHistorySender = new DynamoDBAuthHistorySender(dynamodb, table);
+        Set<AuthHistoryDynamoDBRecord> logs = new HashSet<>();
+        AuthHistoryDynamoDBRecord record = new AuthHistoryDynamoDBRecord();
+        logs.add(record);
+        try {
+            dynamoDBAuthHistorySender.pushRecords(logs);
+            fail();
+        } catch (Exception ex) {
+            assertEquals(null, ex.getMessage());
+        }
+
+        System.clearProperty(PROP_CREATE_TABLE);
+    }
+
+    @Test
+    public void testPushToDynamoDBEmpty() throws ExecutionException, InterruptedException {
+        DynamoDbEnhancedAsyncClient dynamodb = Mockito.mock(DynamoDbEnhancedAsyncClient.class);
+        System.setProperty(PROP_CREATE_TABLE, "false");
+        DynamoDbAsyncTable<AuthHistoryDynamoDBRecord> table = Mockito.mock(DynamoDbAsyncTable.class);
+        DynamoDBAuthHistorySender dynamoDBAuthHistorySender = new DynamoDBAuthHistorySender(dynamodb, table);
+        Set<AuthHistoryDynamoDBRecord> logs = new HashSet<>();
+        dynamoDBAuthHistorySender.pushRecords(logs);
+        System.clearProperty(PROP_CREATE_TABLE);
+    }
 
     @Test
     public void testDynamoDBAuthHistorySender() throws ExecutionException, InterruptedException {

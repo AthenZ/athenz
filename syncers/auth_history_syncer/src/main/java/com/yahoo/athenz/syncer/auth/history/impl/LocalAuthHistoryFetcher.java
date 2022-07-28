@@ -45,7 +45,7 @@ public class LocalAuthHistoryFetcher implements AuthHistoryFetcher {
     }
 
     @Override
-    public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime) {
+    public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime, boolean useFilterPattern) {
         // The log files are expected to be in the format access.yyyy_MM_dd.log
         String logFileNameStart = getFileNameFromTimestamp(startTime);
         String logFileNameEnd = getFileNameFromTimestamp(endTime);
