@@ -3720,9 +3720,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // process our request
 
-        dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller);
+        Role dbRole = dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller, returnObj);
 
-        return ZMSUtils.returnPutResponse(returnObj, role);
+
+        return ZMSUtils.returnPutResponse(returnObj, dbRole);
 
     }
 
@@ -5763,6 +5764,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             for (ServiceIdentity service : domain.getServices()) {
                 ServiceIdentity newService = new ServiceIdentity()
                         .setName(service.getName())
+                        .setDescription(service.getDescription())
                         .setModified(service.getModified())
                         .setExecutable(service.getExecutable())
                         .setGroup(service.getGroup())
@@ -8082,7 +8084,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 LOG.info("putDefaultAdmins: Adding domain admin role because no domain admin role was found for domain: {}", domainName);
             }
             adminRole = ZMSUtils.makeAdminRole(domainName, new ArrayList<>());
-            dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, auditRef, caller);
+            dbService.executePutRole(ctx, domainName, ADMIN_ROLE_NAME, adminRole, auditRef, caller, returnObj);
         }
 
         Policy adminPolicy = null;

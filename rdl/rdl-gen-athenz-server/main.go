@@ -468,7 +468,7 @@ func (gen *javaServerGenerator) handlerBody(r *rdl.Resource) string {
 	if len(fargs) > 0 {
 		sargs = ", " + strings.Join(fargs, ", ")
 	}
-	if noContent  {
+	if noContent {
 		s += "            this.delegate." + methName + "(context" + sargs + ");\n"
 	} else {
 		s += "            return this.delegate." + methName + "(context" + sargs + ");\n"

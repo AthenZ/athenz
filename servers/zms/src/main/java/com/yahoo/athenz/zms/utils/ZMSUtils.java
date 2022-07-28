@@ -461,7 +461,7 @@ public class ZMSUtils {
     }
 
     public static <T> Response returnPutResponse(Boolean flag, T returnObj ){
-        return (flag != null && flag)
+        return (flag == Boolean.TRUE)
                 ? Response.status(ResourceException.OK).entity(returnObj).build()
                 : Response.status(ResourceException.NO_CONTENT).build();
     }

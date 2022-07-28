@@ -171,7 +171,7 @@ resource UserDomain DELETE "/userdomain/{name}" {
 resource Domain PUT "/domain/{name}/meta" {
     DomainName name; //name of the domain to be updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     DomainMeta detail; //DomainMeta object with updated attribute values
     authorize ("update", "{name}:");
     expected NO_CONTENT, OK;
@@ -194,7 +194,7 @@ resource Domain PUT "/domain/{name}/meta/system/{attribute}" (name=PutDomainSyst
     DomainName name; //name of the domain to be updated
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     DomainMeta detail; //DomainMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.domain.{attribute}.{name}");
     expected NO_CONTENT, OK;
@@ -214,7 +214,7 @@ resource Domain PUT "/domain/{name}/meta/system/{attribute}" (name=PutDomainSyst
 resource DomainTemplate PUT "/domain/{name}/template" {
     DomainName name; //name of the domain to be updated
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     DomainTemplate domainTemplate; //DomainTemplate object with solution template name(s)
     authorize ("update", "{name}:template");
     expected NO_CONTENT, OK;
@@ -235,7 +235,7 @@ resource DomainTemplate PUT "/domain/{name}/template/{template}" (name=PutDomain
     DomainName name; //name of the domain to be updated
     SimpleName template; //name of the solution template
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Return-Object"); //Return object param if want to get the role object back.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     DomainTemplate domainTemplate; //DomainTemplate object with a single template name to match URI
     authorize ("update", "{name}:template.{template}");
     expected NO_CONTENT, OK;
