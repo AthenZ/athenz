@@ -104,7 +104,6 @@ const StyledAnchorActiveInline = { color: colors.linkActive };
 export default class AddTagForm extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         AppUtils.bindClassMethods(this);
         if (props.editedTagKey && props.editedTagValues) {
             this.state = {
@@ -185,18 +184,18 @@ export default class AddTagForm extends React.Component {
     render() {
         let tagValues = this.state.tagValues
             ? this.state.tagValues.map((val, idx) => {
-                  return (
-                      <StyledTagColor
-                          key={val}
-                          onClickRemove={() => this.removeValue(idx)}
-                      >
-                          <StyledAnchor style={StyledAnchorActiveInline}>
-                              {' '}
-                              {val}{' '}
-                          </StyledAnchor>
-                      </StyledTagColor>
-                  );
-              })
+                return (
+                    <StyledTagColor
+                        key={val}
+                        onClickRemove={() => this.removeValue(idx)}
+                    >
+                        <StyledAnchor style={StyledAnchorActiveInline}>
+                            {' '}
+                            {val}{' '}
+                        </StyledAnchor>
+                    </StyledTagColor>
+                );
+            })
             : '';
 
         return (

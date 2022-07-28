@@ -24,6 +24,18 @@ import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
 import BusinessServiceModal from '../modal/BusinessServiceModal';
 import { colors } from '../denali/styles';
+import { updateBusinessService } from '../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import {
+    selectDomainAuditEnabled,
+    selectDomainData,
+    selectProductMasterLink,
+    selectBusinessServices,
+} from '../../redux/selectors/domainData';
+import { selectBusinessServicesAll } from '../../redux/selectors/domains';
+import { getBusinessServicesAll } from '../../redux/thunks/domains';
+// import { makeRolesExpires } from '../../redux/actions/roles';
+// import { makePoliciesExpires } from '../../redux/actions/policies';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -71,7 +83,7 @@ const StyledAnchor = styled.a`
     font-weight: '';
 `;
 
-export default class DomainDetails extends React.Component {
+class DomainDetails extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -92,16 +104,21 @@ export default class DomainDetails extends React.Component {
         this.saveJustification = this.saveJustification.bind(this);
     }
 
+    componentDidMount() {
+        const { getBusinessServicesAll } = this.props;
+        getBusinessServicesAll();
+    }
+
     componentDidUpdate = (prevProps, prevState, snapshot) => {
         if (
             prevState.businessServiceName !==
-                this.props.domainDetails.businessService &&
+            this.props.domainDetails.businessService &&
             prevProps.domainDetails !== this.props.domainDetails
         ) {
             this.setState({
                 businessServiceName: this.props.domainDetails.businessService,
                 tempBusinessServiceName:
-                    this.props.domainDetails.businessService,
+                this.props.domainDetails.businessService,
             });
         }
     };
@@ -138,9 +155,8 @@ export default class DomainDetails extends React.Component {
         if (!auditMsg) {
             auditMsg = 'Updated ' + domainName + ' Meta using Athenz UI';
         }
-        this.api
-            .putMeta(
-                domainName,
+        this.props
+            .updateBusinessService(
                 domainName,
                 meta,
                 auditMsg,
@@ -183,7 +199,7 @@ export default class DomainDetails extends React.Component {
         }
 
         if (this.state.tempBusinessServiceName) {
-            var index = this.props.validBusinessServicesAll.findIndex(
+            var index = this.props.businessServicesAll.findIndex(
                 (x) =>
                     x.value ==
                     this.state.tempBusinessServiceName.substring(
@@ -226,6 +242,10 @@ export default class DomainDetails extends React.Component {
                     showSuccess: true,
                     showOnBoardToAWSModal: false,
                 });
+
+                // if template boarded, the policies and roles sorted in the store is out of date
+                // this.props.makeRolesAndPoliciesExpires();
+
                 // this is to close the success alert
                 setTimeout(
                     () =>
@@ -270,12 +290,12 @@ export default class DomainDetails extends React.Component {
             this,
             this.props.domainDetails.name,
             this.state.businessServiceName,
-            this.props.domainDetails.auditEnabled
+            this.props.auditEnabled
         );
         let businessServiceTitle = this.state.businessServiceName
             ? this.state.businessServiceName.substring(
-                  this.state.businessServiceName.indexOf(':') + 1
-              )
+                this.state.businessServiceName.indexOf(':') + 1
+            )
             : 'add';
         if (!businessServiceTitle) {
             businessServiceTitle = this.state.businessServiceName
@@ -301,7 +321,7 @@ export default class DomainDetails extends React.Component {
                                     onClick={() =>
                                         window.open(
                                             this.props.productMasterLink.url +
-                                                this.props.domainDetails.ypmId,
+                                            this.props.domainDetails.ypmId,
                                             this.props.productMasterLink.target
                                         )
                                     }
@@ -326,8 +346,8 @@ export default class DomainDetails extends React.Component {
                         <ValueDiv>
                             <Switch
                                 name={'auditDomainDetails'}
-                                value={this.props.domainDetails.auditEnabled}
-                                checked={this.props.domainDetails.auditEnabled}
+                                value={this.props.auditEnabled}
+                                checked={this.props.auditEnabled}
                                 disabled
                             />
                         </ValueDiv>
@@ -384,20 +404,15 @@ export default class DomainDetails extends React.Component {
                             businessServiceName={this.state.businessServiceName}
                             domainName={this.props.domainDetails.name}
                             submit={clickBusinessServiceSubmit}
-                            showJustification={
-                                this.props.domainDetails.auditEnabled
-                            }
+                            showJustification={this.props.auditEnabled}
                             onJustification={this.saveJustification}
                             onBusinessService={this.saveBusinessService}
                             key={'business-service-modal'}
                             errorMessage={this.state.errorMessageForModal}
-                            api={this.api}
                             userId={this.state.userId}
-                            validBusinessServices={
-                                this.props.validBusinessServices
-                            }
+                            validBusinessServices={this.props.businessServices}
                             validBusinessServicesAll={
-                                this.props.validBusinessServicesAll
+                                this.props.businessServicesAll
                             }
                         />
                     ) : null}
@@ -406,3 +421,28 @@ export default class DomainDetails extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        domainDetails: selectDomainData(state),
+        productMasterLink: selectProductMasterLink(state),
+        auditEnabled: selectDomainAuditEnabled(state),
+        businessServices: selectBusinessServices(state),
+        businessServicesAll: selectBusinessServicesAll(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    // makeRolesAndPoliciesExpires: () => {
+    //     dispatch(makeRolesExpires());
+    //     dispatch(makePoliciesExpires());
+    // },
+    updateBusinessService: (domainName, meta, auditMsg, csrf, category) =>
+        dispatch(
+            updateBusinessService(domainName, meta, auditMsg, csrf, category)
+        ),
+    getBusinessServicesAll: () => dispatch(getBusinessServicesAll()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DomainDetails);
