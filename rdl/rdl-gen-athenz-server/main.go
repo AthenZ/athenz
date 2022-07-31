@@ -567,7 +567,6 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 		ptype := javaType(reg, v.Type, true, "", "")
 		params = append(params, pdecl+ptype+" "+javaName(k))
 	}
-
 	// include @Produces json annotation for all methods except OPTIONS
 	// even if we have no content we need to have the produce annotation
 	// because our errors are coming back as json objects
