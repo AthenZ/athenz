@@ -105,10 +105,9 @@ resource PublicKeyEntry PUT "/domain/{domain}/service/{service}/publickey/{id}" 
     SimpleName service; //name of the service
     String id; //the identifier of the public key to be added
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     PublicKeyEntry publicKeyEntry; //PublicKeyEntry object to be added/updated in the service
     authorize ("update", "{domain}:service.{service}");
-    expected NO_CONTENT, OK;
+    expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -145,10 +144,9 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}/meta/system/{at
     SimpleName service; //name of the service
     SimpleName attribute; //name of the system attribute to be modified
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     ServiceIdentitySystemMeta detail; //ServiceIdentitySystemMeta object with updated attribute values
     authorize ("update", "sys.auth:meta.service.{attribute}.{domain}");
-    expected NO_CONTENT, OK;
+    expected NO_CONTENT;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

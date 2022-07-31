@@ -112,10 +112,9 @@ resource Assertion PUT "/domain/{domainName}/policy/{policyName}/assertion" {
     DomainName domainName; //name of the domain
     EntityName policyName; //name of the policy
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     Assertion assertion; //Assertion object to be added to the given policy
     authorize ("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT, OK;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -132,10 +131,9 @@ resource Assertion PUT "/domain/{domainName}/policy/{policyName}/version/{versio
     EntityName policyName; //name of the policy
     SimpleName version;    //name of the version
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     Assertion assertion; //Assertion object to be added to the given policy version
     authorize ("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT, OK;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -193,10 +191,9 @@ resource AssertionConditions PUT "/domain/{domainName}/policy/{policyName}/asser
     EntityName policyName; //name of the policy
     Int64 assertionId; //assertion id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     AssertionConditions assertionConditions; //Assertion conditions object to be added to the given assertion
     authorize ("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT, OK;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -213,10 +210,9 @@ resource AssertionCondition PUT "/domain/{domainName}/policy/{policyName}/assert
     EntityName policyName; //name of the policy
     Int64 assertionId; //assertion id
     String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     AssertionCondition assertionCondition; //Assertion conditions object to be added to the given assertion
     authorize ("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT, OK;
+    expected OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;
@@ -320,9 +316,8 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/active" (n
     EntityName policyName; //name of the policy
     PolicyOptions policyOptions; // name of the version
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
-    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     authorize("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT, OK;
+    expected NO_CONTENT;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
