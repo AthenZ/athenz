@@ -9789,7 +9789,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // add the member to the specified role
 
-       dbService.executePutGroupMembership(ctx, domainName, group, groupMember, auditRef, returnObj);
+       GroupMembership dbGroupMember = dbService.executePutGroupMembership(ctx, domainName, group, groupMember, auditRef, returnObj);
 
         // new group member with pending status. Notify approvers
 
@@ -9798,8 +9798,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     groupMember.getMemberName(), auditRef, principal.getFullName(), group);
         }
 
-        // TODO roy - is it ok to return GroupMember if Got GroupMemberShip
-        return ZMSUtils.returnPutResponse(returnObj, groupMember);
+        return ZMSUtils.returnPutResponse(returnObj, dbGroupMember);
     }
 
     @Override
