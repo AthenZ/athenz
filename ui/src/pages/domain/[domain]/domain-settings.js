@@ -19,15 +19,19 @@ import UserDomains from '../../../components/domain/UserDomains';
 import API from '../../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-
-import DomainDetails from '../../../components/header/DomainDetails';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
-import SettingTable from '../../../components/settings/SettingTable';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import SettingTable from '../../../components/settings/SettingTable';
+import {
+    selectAuthorityAttributes,
+    selectDomainData,
+} from '../../../redux/selectors/domainData';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import DomainDetails from '../../../components/header/DomainDetails';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -69,101 +73,38 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
-    const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-        api.isAWSTemplateApplied(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getAuthorityAttributes(),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
-    ]).catch((err) => {
+    const domains = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}];
     });
-    let businessServiceOptions = [];
-    if (domains[7] && domains[7].validValues) {
-        domains[7].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (domains[8] && domains[8].validValues) {
-        domains[8].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[5];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: domains[2].name,
-            domainDetails,
-            users: domains[1],
-            pending: domains[3],
-            _csrf: domains[4],
+            domainName: context.query.domain,
+            userName: context.req.session.shortId,
+            _csrf: domains[0],
             nonce: context.req.headers.rid,
-            featureFlag: domains[6],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            userAuthorityAttributes: domains[9],
-            domainPendingMemberCount: domains[10],
         },
     };
 }
 
-export default class DomainSettingsPage extends React.Component {
+class DomainSettingsPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+    }
+
+    componentDidMount() {
+        const { getDomainData, domainName, userName } = this.props;
+        getDomainData(domainName, userName);
     }
 
     render() {
-        const { domain, reload, domainDetails, users, _csrf } = this.props;
+        const { domainName, domainData, reload, isLoading, _csrf } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -171,82 +112,64 @@ export default class DomainSettingsPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-
-        return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='domain-settings'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <DomainSettingsContainerDiv>
-                                <DomainSettingsContentDiv>
-                                    <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
-                                        />
-                                        <Tabs
-                                            api={this.api}
-                                            domain={domain}
-                                            selectedName={'domain-settings'}
-                                            featureFlag={this.props.featureFlag}
-                                        />
-                                    </PageHeaderDiv>
-                                    <SettingTable
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={domain}
-                                        collectionDetails={domainDetails}
-                                        _csrf={_csrf}
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
-                                        justificationRequired={
-                                            domainDetails.auditEnabled
-                                        }
-                                        category={'domain'}
-                                        userAuthorityAttributes={
-                                            this.props.userAuthorityAttributes
-                                        }
+        return isLoading.length > 0 ? (
+            <h1>Loading...</h1>
+        ) : (
+            <div data-testid='domain-settings'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <DomainSettingsContainerDiv>
+                            <DomainSettingsContentDiv>
+                                <PageHeaderDiv>
+                                    <DomainNameHeader
+                                        showSearch={true}
+                                        domainName={domainName}
                                     />
-                                </DomainSettingsContentDiv>
-                            </DomainSettingsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <DomainDetails
+                                        api={this.api}
+                                        _csrf={_csrf}
+                                    />
+                                    <Tabs
+                                        domain={domainName}
+                                        selectedName={'domain-settings'}
+                                    />
+                                </PageHeaderDiv>
+                                <SettingTable
+                                    domain={domainName}
+                                    collection={domainName}
+                                    collectionDetails={domainData}
+                                    _csrf={_csrf}
+                                    category={'domain'}
+                                    userAuthorityAttributes={
+                                        this.props.userAuthorityAttributes
+                                    }
+                                />
+                            </DomainSettingsContentDiv>
+                        </DomainSettingsContainerDiv>
+                        <UserDomains domain={domainName} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+        userAuthorityAttributes: selectAuthorityAttributes(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(DomainSettingsPage);

@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import MemberPage from '../../../../../../pages/domain/[domain]/role/[role]/members';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../../../mock/MockApi';
 
+// Test pass before, they didn't put a role name. now we have to in order to get the right data for the props
 describe('MemberPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -28,8 +35,17 @@ describe('MemberPage', () => {
         let domainDetails = {
             modified: '2020-02-12T21:44:37.792Z',
         };
+        let rolesDetails = [
+            {
+                roleName: 'redux-role1',
+                modified: '2020-02-12T21:44:37.792Z',
+                roleMembers: [],
+            },
+        ];
         let roleDetails = {
+            roleName: 'redux-role1',
             modified: '2020-02-12T21:44:37.792Z',
+            roleMembers: [],
         };
         let headerDetails = {
             headerLinks: [
@@ -47,20 +63,62 @@ describe('MemberPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(),
+            ...mockRolesApiCalls(),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getDomain: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domainDetails);
+                })
+            ),
+            getHeaderDetails: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(headerDetails);
+                })
+            ),
+            getRoles: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(rolesDetails);
+                })
+            ),
+            getRole: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(roleDetails);
+                })
+            ),
+            getRoleMembers: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([
+                        {
+                            members: [],
+                        },
+                    ]);
+                })
+            ),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+        };
+
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = renderWithRedux(
             <MemberPage
-                domains={domains}
-                req='req'
-                userId='userid'
-                query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                roleDetails={roleDetails}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName='dom'
+                roleName={'redux-role1'}
             />
         );
+        await waitFor(() => {
+            expect(getByTestId('member')).toBeInTheDocument();
+        });
         const memberPage = getByTestId('member');
         expect(memberPage).toMatchSnapshot();
     });

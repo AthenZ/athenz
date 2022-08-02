@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import PolicyList from '../../../components/policy/PolicyList';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('PolicyList', () => {
     it('should render', () => {
-        const { getByTestId } = render(<PolicyList />);
+        const { getByTestId } = renderWithRedux(<PolicyList />);
         const policylist = getByTestId('policylist');
 
         expect(policylist).toMatchSnapshot();

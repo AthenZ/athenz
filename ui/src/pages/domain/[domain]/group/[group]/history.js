@@ -26,9 +26,14 @@ import NameHeader from '../../../../../components/header/NameHeader';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import { getGroup } from '../../../../../redux/thunks/groups';
+import { connect } from 'react-redux';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
+import {
+    selectGroup,
+    selectGroupHistory,
+} from '../../../../../redux/selectors/group';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -65,58 +70,48 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const historyData = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getGroup(context.query.domain, context.query.group),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-    ]).catch((err) => {
+    const historyData = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: historyData[0],
-            domain: context.query.domain,
-            collection: context.query.group,
-            headerDetails: historyData[1],
-            domainDeails: historyData[2],
-            auditEnabled: historyData[2].auditEnabled,
-            collectionDetails: JsonUtils.omitUndefined(historyData[3]),
-            historyrows: JsonUtils.omitUndefined(historyData[3].auditLog),
-            pending: historyData[4],
-            _csrf: historyData[5],
+            domainName: context.query.domain,
+            groupName: context.query.group,
+            userName: context.req.session.shortId,
+            _csrf: historyData[0],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class GroupHistoryPage extends React.Component {
+class GroupHistoryPage extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+    }
+    componentDidMount() {
+        const { domainName, userName, getDomainData, groupName, getGroup } =
+            this.props;
+        getDomainData(domainName, userName);
+        getGroup(domainName, groupName);
     }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
+            groupName,
+            isLoading,
             collectionDetails,
-            collection,
             historyrows,
             _csrf,
         } = this.props;
+
         if (reload) {
             window.location.reload();
             return <div />;
@@ -124,67 +119,82 @@ export default class GroupHistoryPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='member'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <GroupsContainerDiv>
-                                <GroupsContentDiv>
-                                    <PageHeaderDiv>
-                                        <NameHeader
-                                            category={'group'}
-                                            domain={domain}
-                                            collection={collection}
-                                            collectionDetails={
-                                                collectionDetails
-                                            }
-                                        />
-                                        <CollectionDetails
-                                            collectionDetails={
-                                                collectionDetails
-                                            }
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                        />
-                                        <GroupTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            group={collection}
-                                            selectedName={'history'}
-                                        />
-                                    </PageHeaderDiv>
-                                    <CollectionHistoryList
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={collection}
-                                        historyrows={historyrows}
-                                        _csrf={_csrf}
+        return isLoading.length !== 0 ? (
+            <h1>Loading...</h1>
+        ) : (
+            <div data-testid='member'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <GroupsContainerDiv>
+                            <GroupsContentDiv>
+                                <PageHeaderDiv>
+                                    <NameHeader
                                         category={'group'}
+                                        domain={domainName}
+                                        collection={groupName}
+                                        collectionDetails={
+                                            collectionDetails
+                                                ? collectionDetails
+                                                : {}
+                                        }
                                     />
-                                </GroupsContentDiv>
-                            </GroupsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <CollectionDetails
+                                        collectionDetails={
+                                            collectionDetails
+                                                ? collectionDetails
+                                                : {}
+                                        }
+                                        _csrf={_csrf}
+                                    />
+                                    <GroupTabs
+                                        domain={domainName}
+                                        group={groupName}
+                                        selectedName={'history'}
+                                    />
+                                </PageHeaderDiv>
+                                <CollectionHistoryList
+                                    domain={domainName}
+                                    collection={groupName}
+                                    historyrows={historyrows}
+                                    _csrf={_csrf}
+                                    category={'group'}
+                                />
+                            </GroupsContentDiv>
+                        </GroupsContainerDiv>
+                        <UserDomains domain={domainName} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        collectionDetails: selectGroup(
+            state,
+            props.domainName,
+            props.groupName
+        ),
+        historyrows: selectGroupHistory(
+            state,
+            props.domainName,
+            props.groupName
+        ),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroup: (domainName, groupName) =>
+        dispatch(getGroup(domainName, groupName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupHistoryPage);

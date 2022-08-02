@@ -14,11 +14,22 @@
  *  limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import WorkflowDomain from '../../../pages/workflow/domain';
+import {
+    buildDomainDataForState,
+    buildUserForState, getStateWithDomainData, getStateWithUser,
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
+//TODO
 describe('PendingApprovalPage', () => {
-    it('should render', () => {
+    afterEach(() => {
+       MockApi.cleanMockApi();
+    });
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -94,22 +105,43 @@ describe('PendingApprovalPage', () => {
                 value: 'home.domain1',
             },
         ];
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            listAllDomains: jest.fn().mockReturnValue(
+                Promise.resolve(allDomainList)
+            ),
+            getPendingDomainMembersListByDomain: jest.fn().mockReturnValue(
+                Promise.resolve(pendingData)
+            ),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                Promise.resolve(pendingData)
+            )
+        };
+        // const pendingUserData = buildUserForState(pendingData);
+        // const domainData = buildDomainDataForState(pendingData, domain);
+        const domainData = buildDomainDataForState({}, domain);
 
-        const { getByTestId } = render(
+        MockApi.setMockApi(mockApi);
+        const { getByTestId } = renderWithRedux(
             <WorkflowDomain
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
-                domainDetails={domainDetails}
                 domain={domain}
-                headerDetails={headerDetails}
-                pendingData={pendingData}
-                allDomainList={allDomainList}
+                selectedDomain={domain}
                 error={null}
-            />
+            />,
+            // getStateWithDomainData(domainData)
+            // getStateWithDomainData(domainData, getStateWithUser(pendingUserData))
         );
-
+        await waitFor(() => {
+            expect(getByTestId('domain-pending-approval')).toBeInTheDocument();
+        });
         const pendingapproval = getByTestId('domain-pending-approval');
         expect(pendingapproval).toMatchSnapshot();
     });

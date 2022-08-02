@@ -17,62 +17,40 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import UserRoleTable from '../../../components/role/UserRoleTable';
 import API from '../../../api';
+import { buildRolesForState, getStateWithRoles, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
+//TODO roy - failed because extra 3 divs
 describe('UserRoleTable', () => {
     it('should render', async () => {
         let domain = 'athens';
-        let roles = [];
-        let role1 = {
-            name: 'a',
-        };
-        let role2 = {
-            name: 'b',
-        };
-        roles.push(role1);
-        roles.push(role2);
-        const api = {
-            getRoleMembers(domain) {
-                return new Promise((resolve, reject) => {
-                    // reject({
-                    //     statusCode: 500,
-                    //     body: {
-                    //         message: "Test error"
-                    //     }
-                    // });
-                    let member = {
-                        members: [
-                            {
-                                memberName: 'user.test1',
-                                memberRoles: ['role1'],
-                                memberFullName: 'testing1',
-                            },
-                            {
-                                memberName: 'user.test2',
-                                memberRoles: ['role2'],
-                                memberFullName: 'testing2',
-                            },
-                        ],
-                    };
-                    resolve(member);
-                });
+        const roles = buildRolesForState({
+            'role1': {
+                name: 'role1',
+                roleMembers: {
+                    'user.test1': {
+                        memberName: 'user.test1',
+                        memberFullName: 'testing1',
+                    }
+                }
             },
-        };
+            'role2': {
+                name: 'role2',
+                roleMembers: {
+                    'user.test2': {
+                        memberName: 'user.test2',
+                        memberFullName: 'testing2',
+                    },
+                }
+            }
+        } ,domain)
 
-        // for (let i = 0; i < members.members.length; i++) {
-        //                     let name = members.members[i].memberName;
-        //                     expand[name] = members.members[i].memberRoles;
-        //                     fullNameArr[name] = members.members[i].memberFullName;
-        //                     contents[name] = null;
-        //                     expandArray[name] = false;
-        //                 }
-
-        const { getByTestId, queryByText } = render(
+        const { getByTestId, queryByText } = renderWithRedux(
             <UserRoleTable
-                roles={roles}
-                api={api}
                 domain={domain}
                 searchText={'test'}
-            />
+            />,
+            getStateWithRoles(roles)
         );
         await waitFor(() => {
             expect(queryByText('test'));

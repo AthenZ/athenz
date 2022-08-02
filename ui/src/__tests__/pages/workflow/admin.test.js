@@ -14,11 +14,20 @@
  *  limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import WorkflowAdmin from '../../../pages/workflow/admin';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
 describe('PendingApprovalPage', () => {
-    it('should render', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    })
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -83,20 +92,31 @@ describe('PendingApprovalPage', () => {
                 },
             ],
         };
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(pendingData);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = render(
+        const { getByTestId } = await renderWithRedux(
             <WorkflowAdmin
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
-                domainDetails={domainDetails}
                 domain={domain}
-                headerDetails={headerDetails}
-                pendingData={pendingData}
             />
         );
 
+        await waitFor(() => expect(getByTestId('pending-approval')).toBeInTheDocument());
         const pendingapproval = getByTestId('pending-approval');
         expect(pendingapproval).toMatchSnapshot();
     });

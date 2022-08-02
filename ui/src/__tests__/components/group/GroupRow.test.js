@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import GroupRow from '../../../components/group/GroupRow';
 import { colors } from '../../../components/denali/styles';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('GroupRow', () => {
     it('should render', () => {
@@ -27,7 +28,7 @@ describe('GroupRow', () => {
         let domain = 'domain';
         let color = colors.row;
         let idx = '50';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <GroupRow

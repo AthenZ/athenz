@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import TemplatePage from '../../../../pages/domain/[domain]/template';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('Template Page', () => {
-    it('should render', () => {
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -47,19 +56,37 @@ describe('Template Page', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <TemplatePage
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain={domain}
+                domainName={domain}
                 domainResult={[]}
-                headerDetails={headerDetails}
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('template')).toBeInTheDocument();
+        });
+
         const templatePage = getByTestId('template');
         expect(templatePage).toMatchSnapshot();
     });

@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import ServicePage from '../../../../pages/domain/[domain]/service';
+import MockApi from '../../../../mock/MockApi';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('ServicePage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -59,21 +68,41 @@ describe('ServicePage', () => {
             ],
         };
 
-        const { getByTestId } = render(
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getServices: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(services);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <ServicePage
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain={domain}
-                services={services}
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName={domain}
             />
         );
-        const pagehome = getByTestId('service');
-        expect(pagehome).toMatchSnapshot();
+
+        await waitFor(() => {
+            expect(getByTestId('service')).toBeInTheDocument();
+        });
+
+        const servicePage = getByTestId('service');
+        expect(servicePage).toMatchSnapshot();
     });
 });

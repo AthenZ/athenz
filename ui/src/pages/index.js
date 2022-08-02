@@ -16,15 +16,11 @@
 import React from 'react';
 import Header from '../components/header/Header';
 import UserDomains from '../components/domain/UserDomains';
-import API from '../api.js';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 
 import Search from '../components/search/Search';
-import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -86,26 +82,13 @@ const StyledAnchor = styled.a`
 `;
 
 export async function getServerSideProps(context) {
-    let api = API(context.req);
     let reload = false;
     let error = null;
-    const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getPendingDomainMembersList(),
-    ]).catch((err) => {
-        let response = RequestUtils.errorCheckHelper(err);
-        reload = response.reload;
-        error = response.error;
-        return [{}, {}, {}];
-    });
     return {
         props: {
             reload,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            pending: domains[2],
+            userName: context.req.session.shortId,
             nonce: context.req.headers.rid,
         },
     };
@@ -114,11 +97,6 @@ export async function getServerSideProps(context) {
 export default class PageHome extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
     }
 
     render() {
@@ -130,55 +108,45 @@ export default class PageHome extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='home'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={false}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <HomeContainerDiv>
-                                <HomeContentDiv>
-                                    <MainLogoDiv>
-                                        <LogoStyled />
-                                    </MainLogoDiv>
-                                    <DetailsDiv>
-                                        <span>
-                                            Athenz is an open source platform
-                                            which provides secure identity in
-                                            the form of X.509 certificate to
-                                            every workload for service
-                                            authentication (mutual TLS
-                                            authentication) and provides
-                                            fine-grained Role Based Access
-                                            Control (RBAC) for authorization.
-                                        </span>
-                                        <StyledAnchor
-                                            rel='noopener'
-                                            target='_blank'
-                                            href='https://git.ouroath.com/pages/athens/athenz-guide/'
-                                        >
-                                            Learn more
-                                        </StyledAnchor>
-                                    </DetailsDiv>
-                                    <SearchContainerDiv>
-                                        <Search />
-                                    </SearchContainerDiv>
-                                </HomeContentDiv>
-                            </HomeContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+            <div data-testid='home'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={false} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <HomeContainerDiv>
+                            <HomeContentDiv>
+                                <MainLogoDiv>
+                                    <LogoStyled />
+                                </MainLogoDiv>
+                                <DetailsDiv>
+                                    <span>
+                                        Athenz is an open source platform which
+                                        provides secure identity in the form of
+                                        X.509 certificate to every workload for
+                                        service authentication (mutual TLS
+                                        authentication) and provides
+                                        fine-grained Role Based Access Control
+                                        (RBAC) for authorization.
+                                    </span>
+                                    <StyledAnchor
+                                        rel='noopener'
+                                        target='_blank'
+                                        href='https://git.ouroath.com/pages/athens/athenz-guide/'
+                                    >
+                                        Learn more
+                                    </StyledAnchor>
+                                </DetailsDiv>
+                                <SearchContainerDiv>
+                                    <Search />
+                                </SearchContainerDiv>
+                            </HomeContentDiv>
+                        </HomeContainerDiv>
+                        <UserDomains />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }

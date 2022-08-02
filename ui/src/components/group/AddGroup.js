@@ -22,7 +22,6 @@ import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
-import RequestUtils from '../utils/RequestUtils';
 import {
     GROUP_MEMBER_NAME_REGEX,
     GROUP_MEMBER_PLACEHOLDER,
@@ -30,6 +29,8 @@ import {
 } from '../constants/constants';
 import MemberUtils from '../utils/MemberUtils';
 import RegexUtils from '../utils/RegexUtils';
+import { connect } from 'react-redux';
+import { addGroup } from '../../redux/thunks/groups';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -88,10 +89,9 @@ const StyledButton = styled(Button)`
     width: 125px;
 `;
 
-export default class AddGroup extends React.Component {
+class AddGroup extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.addMember = this.addMember.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.dateUtils = new DateUtils();
@@ -233,51 +233,26 @@ export default class AddGroup extends React.Component {
             });
             return;
         }
+        let auditRef = this.state.justification ? this.state.justification : ''; // no UX for this
 
-        this.api
-            .listGroups(this.props.domain)
-            .then((groups) => {
-                if (
-                    groups.includes(this.props.domain + ':group.' + groupName)
-                ) {
-                    this.setState({
-                        errorMessage: 'Group already exists.',
-                    });
-                    return;
-                }
-                let auditRef = this.state.justification
-                    ? this.state.justification
-                    : ''; // no UX for this
-                this.api
-                    .addGroup(
-                        this.props.domain,
-                        groupName,
-                        group,
-                        auditRef,
-                        this.props._csrf
-                    )
-                    .then(() => {
-                        this.props.onSubmit(
-                            `${this.props.domain}-${groupName}`,
-                            groupName,
-                            false
-                        );
-                    })
-                    .catch((err) => {
-                        let message = '';
-                        if (err.statusCode === 0) {
-                            message = 'Okta expired. Please refresh the page';
-                        } else {
-                            message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
-                        }
-                        this.setState({
-                            errorMessage: message,
-                        });
-                    });
+        this.props
+            .addGroup(groupName, auditRef, group, this.props._csrf)
+            .then(() => {
+                this.props.onSubmit(
+                    `${this.props.domain}-${groupName}`,
+                    groupName,
+                    false
+                );
             })
             .catch((err) => {
+                let message = '';
+                if (err.statusCode === 0) {
+                    message = 'Okta expired. Please refresh the page';
+                } else {
+                    message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
+                }
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: message,
                 });
             });
     }
@@ -365,3 +340,10 @@ export default class AddGroup extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    addGroup: (groupName, auditRef, role, _csrf) =>
+        dispatch(addGroup(groupName, auditRef, role, _csrf)),
+});
+
+export default connect(null, mapDispatchToProps)(AddGroup);

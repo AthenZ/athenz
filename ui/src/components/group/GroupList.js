@@ -19,10 +19,12 @@ import Button from '../denali/Button';
 import SearchInput from '../denali/SearchInput';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
-import RequestUtils from '../utils/RequestUtils';
 import NameUtils from '../utils/NameUtils';
-import GroupTable from './GroupTable';
 import AddGroup from './AddGroup';
+import GroupTable from './GroupTable';
+import { connect } from 'react-redux';
+import { selectGroups } from '../../redux/selectors/group';
+import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 
 const GroupsSectionDiv = styled.div`
     margin: 20px;
@@ -40,10 +42,9 @@ const AddContainerDiv = styled.div`
     flex-flow: row nowrap;
 `;
 
-export default class GroupList extends React.Component {
+class GroupList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             showAddGroup: false,
             groups: props.groups || [],
@@ -62,7 +63,7 @@ export default class GroupList extends React.Component {
         });
     }
 
-    componentDidUpdate = (prevProps) => {
+    componentDidUpdate = (prevProps, prevState) => {
         if (prevProps.domain !== this.props.domain) {
             this.setState({
                 groups: this.props.groups,
@@ -71,34 +72,44 @@ export default class GroupList extends React.Component {
                 searchText: '',
             });
         }
+        if (prevProps.groups !== this.props.groups) {
+            this.setState({
+                groups: this.props.groups,
+            });
+        }
+        if (prevState.searchText !== this.state.searchText) {
+            let groups = this.props.groups;
+            if (this.state.searchText.trim() !== '') {
+                groups = this.props.groups.filter((group) => {
+                    return NameUtils.getShortName(
+                        ':group.',
+                        group.name
+                    ).includes(this.state.searchText.trim());
+                });
+            }
+            this.setState({
+                groups,
+            });
+        }
     };
 
     reloadGroups(successMessage, groupName, showSuccess = true) {
-        this.api
-            .reloadGroups(this.props.domain, groupName)
-            .then((groups) => {
+        this.setState({
+            showAddGroup: false,
+            showSuccess,
+            successMessage,
+            errorMessage: null,
+        });
+
+        setTimeout(
+            () =>
                 this.setState({
-                    groups,
-                    showAddGroup: false,
-                    showSuccess,
-                    successMessage,
-                    errorMessage: null,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                            successMessage: '',
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+                    showSuccess: false,
+                    successMessage: '',
+                }),
+            MODAL_TIME_OUT
+        );
+        // this is to close the success alert
     }
 
     closeModal() {
@@ -106,17 +117,9 @@ export default class GroupList extends React.Component {
     }
 
     render() {
-        let groups = this.state.groups;
-        if (this.state.searchText.trim() !== '') {
-            groups = this.state.groups.filter((group) => {
-                return NameUtils.getShortName(':group.', group.name).includes(
-                    this.state.searchText.trim()
-                );
-            });
-        }
+        const { groups } = this.state;
         let addGroup = this.state.showAddGroup ? (
             <AddGroup
-                api={this.api}
                 domain={this.props.domain}
                 onSubmit={this.reloadGroups}
                 onCancel={this.toggleAddGroup}
@@ -129,7 +132,7 @@ export default class GroupList extends React.Component {
         );
 
         let searchInput =
-            this.state.groups.length > 0 ? (
+            this.props.groups.length > 0 ? (
                 <SearchInput
                     dark={false}
                     name='search'
@@ -158,15 +161,13 @@ export default class GroupList extends React.Component {
                         {addGroup}
                     </div>
                 </AddContainerDiv>
-                {this.state.groups.length > 0 && (
+                {groups.length > 0 && (
                     <GroupTable
                         groups={groups}
-                        api={this.api}
                         domain={this.props.domain}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadGroups}
                         justificationRequired={this.props.isDomainAuditEnabled}
-                        userProfileLink={this.props.userProfileLink}
                         newGroup={this.state.successMessage}
                     />
                 )}
@@ -182,3 +183,12 @@ export default class GroupList extends React.Component {
         );
     }
 }
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        groups: selectGroups(state),
+        isDomainAuditEnabled: selectDomainAuditEnabled(state),
+    };
+};
+
+export default connect(mapStateToProps)(GroupList);

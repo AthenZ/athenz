@@ -16,9 +16,15 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import Search from '../../../../../pages/search/[type]/[searchterm]';
+import { renderWithRedux } from '../../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('Search', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -39,7 +45,14 @@ describe('Search', () => {
             ],
         };
 
-        const { getByTestId } = render(
+        const mockApi = {
+            listUserDomains: jest.fn().mockReturnValue(
+                Promise.resolve(domains)
+            ),
+        }
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <Search
                 domains={domains}
                 domain='test'

@@ -51,34 +51,17 @@ const TableHeadStyledGroupName = styled.th`
     word-break: break-all;
 `;
 
+// we dont connect it to the store because we want to use the groups from the props after filter by search
 export default class GroupTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
-
-        this.state = {
-            groups: props.groups || [],
-        };
     }
 
-    componentDidUpdate = (prevProps) => {
-        if (prevProps.domain !== this.props.domain) {
-            this.setState({
-                rows: {},
-            });
-        } else if (prevProps.groups !== this.props.groups) {
-            this.setState({
-                groups: this.props.groups || [],
-            });
-        }
-    };
-
     render() {
-        const { domain } = this.props;
+        const { domain, groups } = this.props;
         let rows = [];
-
-        if (this.props.groups && this.props.groups.length > 0) {
-            rows = this.props.groups
+        if (groups && groups.length > 0) {
+            rows = groups
                 .sort((a, b) => {
                     return a.name.localeCompare(b.name);
                 })
@@ -90,14 +73,12 @@ export default class GroupTable extends React.Component {
                             idx={i}
                             domain={domain}
                             color={color}
-                            api={this.api}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
                             justificationRequired={
                                 this.props.justificationRequired
                             }
-                            userProfileLink={this.props.userProfileLink}
                             newGroup={this.props.newGroup}
                         />
                     );

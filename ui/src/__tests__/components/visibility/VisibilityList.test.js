@@ -16,10 +16,12 @@
  *
  */
 import React from 'react';
-import { render } from '@testing-library/react';
-import RoleList from '../../../components/role/RoleList';
-import ServiceDependency from '../../../components/visibility/ServiceDependency';
 import VisibilityList from '../../../components/visibility/VisibilityList';
+import {
+    getStateWithServiceDependencies,
+    buildServiceDependencies,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 
 describe('VisibilityList', () => {
     it('should render', () => {
@@ -39,12 +41,11 @@ describe('VisibilityList', () => {
 
         serviceDependencies.push(dependency1);
         serviceDependencies.push(dependency2);
-        const { getByTestId } = render(
-            <VisibilityList
-                key={'dependencyVisibilityList'}
-                domain={domain}
-                serviceDependencies={serviceDependencies}
-            />
+        const { getByTestId } = renderWithRedux(
+            <VisibilityList key={'dependencyVisibilityList'} domain={domain} />,
+            getStateWithServiceDependencies(
+                buildServiceDependencies(serviceDependencies)
+            )
         );
         const visibilitySection = getByTestId('visibilitySection');
 

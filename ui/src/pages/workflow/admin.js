@@ -19,13 +19,13 @@ import UserDomains from '../../components/domain/UserDomains';
 import API from '../../api.js';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import PendingApprovalTable from '../../components/pending-approval/PendingApprovalTable';
 
 import RequestUtils from '../../components/utils/RequestUtils';
 import Error from '../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import PendingApprovalTabs from '../../components/pending-approval/PendingApprovalTabs';
+import PendingApprovalTable from '../../components/pending-approval/PendingApprovalTable';
+import { connect } from 'react-redux';
+import { getUserPendingMembers } from '../../redux/thunks/user';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -73,38 +73,34 @@ export async function getServerSideProps(context) {
     let api = API(context.req);
     let reload = false;
     let error = null;
-    const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getForm(),
-        api.getPendingDomainMembersList(),
-    ]).catch((err) => {
+    const domains = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}];
+        return [{}, {}];
     });
     return {
         props: {
             reload,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            pendingData: domains[3],
-            _csrf: domains[2],
+            _csrf: domains[0],
             nonce: context.req && context.req.headers.rid,
         },
     };
 }
 
-export default class WorkflowAdmin extends React.Component {
+class WorkflowAdmin extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+        this.state = {
+            pendingData: props.pendingData,
+        };
+    }
+
+    componentDidMount() {
+        const { getUserPendingMembers } = this.props;
+        getUserPendingMembers();
     }
 
     render() {
@@ -116,60 +112,45 @@ export default class WorkflowAdmin extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='pending-approval'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pendingData}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <HomeContainerDiv>
-                                <WorkFlowDiv>
-                                    <div>
-                                        <PageHeaderDiv>
-                                            <TitleDiv>
-                                                Pending Items for Approval
-                                            </TitleDiv>
-                                            <PendingApprovalTabs
-                                                api={this.api}
-                                                domain={this.props.domain}
-                                                selectedName={'admin'}
-                                            />
-                                        </PageHeaderDiv>
+            <div data-testid='pending-approval'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <HomeContainerDiv>
+                            <WorkFlowDiv>
+                                <div>
+                                    <PageHeaderDiv>
+                                        <TitleDiv>
+                                            Pending Items for Approval
+                                        </TitleDiv>
+                                        <PendingApprovalTabs
+                                            selectedName={'admin'}
+                                        />
+                                    </PageHeaderDiv>
 
-                                        <WorkFlowSectionDiv>
-                                            <PendingApprovalTable
-                                                api={this.api}
-                                                principal={
-                                                    'user.' +
-                                                    this.props.headerDetails
-                                                        .userId
-                                                }
-                                                domains={this.props.domains}
-                                                pendingData={
-                                                    this.props.pendingData
-                                                }
-                                                _csrf={this.props._csrf}
-                                                view={'admin'}
-                                            />
-                                        </WorkFlowSectionDiv>
-                                    </div>
-                                </WorkFlowDiv>
-                            </HomeContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                hideDomains={true}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <WorkFlowSectionDiv>
+                                        <PendingApprovalTable
+                                            loadList={this.loadList}
+                                            _csrf={this.props._csrf}
+                                            view={'admin'}
+                                        />
+                                    </WorkFlowSectionDiv>
+                                </div>
+                            </WorkFlowDiv>
+                        </HomeContainerDiv>
+                        <UserDomains hideDomains={true} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    getUserPendingMembers: () => dispatch(getUserPendingMembers()),
+});
+
+export default connect(null, mapDispatchToProps)(WorkflowAdmin);

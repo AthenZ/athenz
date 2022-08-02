@@ -70,7 +70,6 @@ const StyledAnchor = styled.a`
 export default class AddServiceForm extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {};
         this.keyChanged = this.keyChanged.bind(this);
     }

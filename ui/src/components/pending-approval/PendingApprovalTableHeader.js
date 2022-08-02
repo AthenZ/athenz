@@ -150,7 +150,6 @@ const AllRejectApproveIcon = styled.div`
 export default class PendingApprovalTableHeader extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             checked: this.props.checked,
         };

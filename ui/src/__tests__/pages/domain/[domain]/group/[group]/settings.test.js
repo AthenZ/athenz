@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import GroupSettingsPage from '../../../../../../pages/domain/[domain]/group/[group]/settings';
+import MockApi from '../../../../../../mock/MockApi';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../../../tests_utils/ComponentsTestUtils';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('GroupSettingPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let group = 'groupName';
         let domains = [];
         domains.push({ name: 'athens' });
@@ -50,21 +59,47 @@ describe('GroupSettingPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getGroup: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(groupDetails);
+                })
+            ),
+            getGroups: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <GroupSettingsPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
+                // groupName={group}
                 reload={false}
-                domainDetails={domainDetails}
-                groupDetails={groupDetails}
-                role={group}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName='dom'
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('group-settings')).toBeInTheDocument();
+        });
+
         const groupSettingsPage = getByTestId('group-settings');
         expect(groupSettingsPage).toMatchSnapshot();
     });

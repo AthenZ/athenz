@@ -19,15 +19,17 @@ import UserDomains from '../../../components/domain/UserDomains';
 import API from '../../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-
 import DomainDetails from '../../../components/header/DomainDetails';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
-import GroupList from '../../../components/group/GroupList';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { connect } from 'react-redux';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { getGroups } from '../../../redux/thunks/groups';
+import GroupList from '../../../components/group/GroupList';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import { selectDomainData } from '../../../redux/selectors/domainData';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -59,112 +61,45 @@ const PageHeaderDiv = styled.div`
     padding: 20px 30px 0;
 `;
 
-const TitleDiv = styled.div`
-    font: 600 20px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
-    margin-bottom: 10px;
-`;
-
 export async function getServerSideProps(context) {
     let api = API(context.req);
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
-    const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getGroups(context.query.domain),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-        api.isAWSTemplateApplied(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
-    ]).catch((err) => {
+    const domains = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}];
     });
-    let businessServiceOptions = [];
-    if (domains[8] && domains[8].validValues) {
-        domains[8].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (domains[9] && domains[9].validValues) {
-        domains[9].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[6];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: domains[2].name,
-            domainDetails,
-            groups: domains[3],
-            users: domains[1],
-            pending: domains[4],
-            _csrf: domains[5],
+            domainName: context.query.domain,
+            userName: context.req.session.shortId,
+            _csrf: domains[0],
             nonce: context.req.headers.rid,
-            featureFlag: domains[7],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: domains[10],
         },
     };
 }
 
-export default class GroupPage extends React.Component {
+class GroupPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+    }
+
+    componentDidMount() {
+        const { getDomainData, getGroupsList, domainName, userName } =
+            this.props;
+        getDomainData(domainName, userName);
+        getGroupsList(domainName);
     }
 
     render() {
-        const { domain, reload, domainDetails, groups, users, _csrf } =
-            this.props;
+        const { reload, _csrf, domainData, isLoading, domainName } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -172,78 +107,50 @@ export default class GroupPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-
         return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='group'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <GroupsContainerDiv>
-                                <GroupsContentDiv>
-                                    <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
-                                        />
-                                        <Tabs
-                                            api={this.api}
-                                            domain={domain}
-                                            selectedName={'groups'}
-                                            featureFlag={this.props.featureFlag}
-                                        />
-                                    </PageHeaderDiv>
-                                    <GroupList
+            <div data-testid='group'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <GroupsContainerDiv>
+                            <GroupsContentDiv>
+                                <PageHeaderDiv>
+                                    <DomainNameHeader domainName={domainName} />
+                                    <DomainDetails
                                         api={this.api}
-                                        domain={domain}
-                                        groups={groups}
-                                        users={users}
                                         _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            domainDetails.auditEnabled
-                                        }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
                                     />
-                                </GroupsContentDiv>
-                            </GroupsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <Tabs
+                                        domain={domainName}
+                                        selectedName={'groups'}
+                                    />
+                                </PageHeaderDiv>
+                                <GroupList domain={domainName} _csrf={_csrf} />
+                            </GroupsContentDiv>
+                        </GroupsContainerDiv>
+                        <UserDomains domain={domainName} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        domainData: selectDomainData(state),
+        isLoading: selectIsLoading(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroupsList: (domainName) => dispatch(getGroups(domainName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupPage);

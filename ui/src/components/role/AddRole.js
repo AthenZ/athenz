@@ -25,16 +25,22 @@ import Flatpicker from '../flatpicker/FlatPicker';
 import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
-import RequestUtils from '../utils/RequestUtils';
 import Icon from '../denali/icons/Icon';
 import {
-    ADD_ROLE_REVIEW_ENABLED_TOOLTIP,
-    ADD_ROLE_JUSTIFICATION_PLACEHOLDER,
     ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER,
+    ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER,
+    ADD_ROLE_JUSTIFICATION_PLACEHOLDER,
     ADD_ROLE_MEMBER_PLACEHOLDER,
     ADD_ROLE_REMINDER_PLACEHOLDER,
-    ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER,
+    ADD_ROLE_REVIEW_ENABLED_TOOLTIP,
 } from '../constants/constants';
+import { addRole } from '../../redux/thunks/roles';
+import { connect } from 'react-redux';
+import {
+    selectAuthorityAttributes,
+    selectDomainAuditEnabled,
+    selectUserLink,
+} from '../../redux/selectors/domainData';
 
 const CATEGORIES = [
     {
@@ -139,10 +145,9 @@ const StyleTable = styled.table`
     border-color: grey;
 `;
 
-export default class AddRole extends React.Component {
+class AddRole extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.categoryChanged = this.categoryChanged.bind(this);
         this.addMember = this.addMember.bind(this);
         this.delegateChanged = this.delegateChanged.bind(this);
@@ -329,49 +334,22 @@ export default class AddRole extends React.Component {
             });
             return;
         }
+        let auditRef = this.state.justification ? this.state.justification : ''; // no UX for this
 
-        this.api
-            .listRoles(this.props.domain)
-            .then((roles) => {
-                if (roles.includes(roleName)) {
-                    this.setState({
-                        errorMessage:
-                            'Role already exists. Please click on Cancel and use the drop down to select the role.',
-                    });
-                    return;
-                }
-                let auditRef = this.state.justification
-                    ? this.state.justification
-                    : ''; // no UX for this
-                this.api
-                    .addRole(
-                        this.props.domain,
-                        roleName,
-                        role,
-                        auditRef,
-                        this.props._csrf
-                    )
-                    .then(() => {
-                        this.props.onSubmit(
-                            `${this.props.domain}-${roleName}`,
-                            false
-                        );
-                    })
-                    .catch((err) => {
-                        let message = '';
-                        if (err.statusCode === 0) {
-                            message = 'Okta expired. Please refresh the page';
-                        } else {
-                            message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
-                        }
-                        this.setState({
-                            errorMessage: message,
-                        });
-                    });
-            })
+        this.props
+            .addRole(roleName, auditRef, role, this.props._csrf)
+            .then(() =>
+                this.props.onSubmit(`${this.props.domain}-${roleName}`, false)
+            )
             .catch((err) => {
+                let message = '';
+                if (err.statusCode === 0) {
+                    message = 'Okta expired. Please refresh the page';
+                } else {
+                    message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
+                }
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: message,
                 });
             });
     }
@@ -399,12 +377,14 @@ export default class AddRole extends React.Component {
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
                   // dummy place holder so that it can be be used in the form
-                  item.approved = true;
+                  let member = { ...item };
+                  member.approved = true;
+                  // item.approved = true;
                   let remove = this.deleteMember.bind(this, idx);
                   return (
                       <Member
                           key={idx}
-                          item={item}
+                          item={member}
                           onClickRemove={remove}
                           noanim
                       />
@@ -570,3 +550,19 @@ export default class AddRole extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isDomainAuditEnabled: selectDomainAuditEnabled(state),
+        userProfileLink: selectUserLink(state),
+        userAuthorityAttributes: selectAuthorityAttributes(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addRole: (roleName, auditRef, role, _csrf) =>
+        dispatch(addRole(roleName, auditRef, role, _csrf)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddRole);

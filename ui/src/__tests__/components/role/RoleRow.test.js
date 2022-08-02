@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import RoleRow from '../../../components/role/RoleRow';
 import { colors } from '../../../components/denali/styles';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleRow', () => {
     it('should render', () => {
@@ -27,7 +28,7 @@ describe('RoleRow', () => {
         let domain = 'domain';
         let color = colors.row;
         let idx = '50';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <RoleRow

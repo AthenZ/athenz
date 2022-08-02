@@ -26,10 +26,15 @@ import RequestUtils from '../../../../../components/utils/RequestUtils';
 import GroupTabs from '../../../../../components/header/GroupTabs';
 import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
-import { MODAL_TIME_OUT } from '../../../../../components/constants/constants';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import { getGroup } from '../../../../../redux/thunks/groups';
+import { connect } from 'react-redux';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
+import {
+    selectGroup,
+    selectGroupMembers,
+} from '../../../../../redux/selectors/group';
+import { selectDomainData } from '../../../../../redux/selectors/domainData';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -66,59 +71,48 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const groups = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getGroup(context.query.domain, context.query.group, false, false),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-    ]).catch((err) => {
+    const groups = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: groups[0],
-            domain: context.query.domain,
-            group: context.query.group,
-            members: JsonUtils.omitUndefined(groups[3].groupMembers),
-            headerDetails: groups[1],
-            domainDeails: groups[2],
-            isDomainAuditEnabled: groups[2].auditEnabled,
-            groupDetails: JsonUtils.omitUndefined(groups[3]),
-            pending: groups[4],
-            _csrf: groups[5],
+            domainName: context.query.domain,
+            groupName: context.query.group,
+            _csrf: groups[0],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class GroupReviewPage extends React.Component {
+class GroupReviewPage extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+    }
+
+    componentDidMount() {
+        const { domainName, userName, getDomainData, groupName, getGroup } =
+            this.props;
+        getDomainData(domainName, userName);
+        getGroup(domainName, groupName);
     }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
             groupDetails,
-            group,
+            groupName,
             members,
-            isDomainAuditEnabled,
+            isLoading,
             _csrf,
         } = this.props;
+
         if (reload) {
             window.location.reload();
             return <div />;
@@ -126,71 +120,71 @@ export default class GroupReviewPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='group-review'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <GroupsContainerDiv>
-                                <GroupsContentDiv>
-                                    <PageHeaderDiv>
-                                        <NameHeader
-                                            category={'group'}
-                                            domain={domain}
-                                            collection={group}
-                                            collectionDetails={groupDetails}
-                                        />
-                                        <CollectionDetails
-                                            collectionDetails={groupDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                        />
-                                        <GroupTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            group={group}
-                                            selectedName={'review'}
-                                        />
-                                    </PageHeaderDiv>
-                                    <ReviewList
+        return isLoading.length !== 0 ? (
+            <h1>Loading...</h1>
+        ) : (
+            <div data-testid='group-review'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <GroupsContainerDiv>
+                            <GroupsContentDiv>
+                                <PageHeaderDiv>
+                                    <NameHeader
                                         category={'group'}
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={group}
-                                        collectionDetails={groupDetails}
-                                        members={members}
-                                        _csrf={_csrf}
-                                        isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
+                                        domain={domainName}
+                                        collection={groupName}
+                                        collectionDetails={
+                                            groupDetails ? groupDetails : {}
                                         }
                                     />
-                                </GroupsContentDiv>
-                            </GroupsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <CollectionDetails
+                                        collectionDetails={
+                                            groupDetails ? groupDetails : {}
+                                        }
+                                        _csrf={_csrf}
+                                    />
+                                    <GroupTabs
+                                        domain={domainName}
+                                        group={groupName}
+                                        selectedName={'review'}
+                                    />
+                                </PageHeaderDiv>
+                                <ReviewList
+                                    category={'group'}
+                                    domain={domainName}
+                                    collection={groupName}
+                                    collectionDetails={groupDetails}
+                                    members={members}
+                                    _csrf={_csrf}
+                                />
+                            </GroupsContentDiv>
+                        </GroupsContainerDiv>
+                        <UserDomains domain={domainName} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        groupDetails: selectGroup(state, props.domainName, props.groupName),
+        members: selectGroupMembers(state, props.domainName, props.groupName),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroup: (domainName, groupName) =>
+        dispatch(getGroup(domainName, groupName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupReviewPage);

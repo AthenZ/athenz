@@ -23,6 +23,8 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import GroupMemberList from './GroupMemberList';
 import { css, keyframes } from '@emotion/react';
+import { deleteMember } from '../../redux/thunks/collections';
+import { connect } from 'react-redux';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -42,12 +44,12 @@ const GroupTDStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`
@@ -80,10 +82,9 @@ const StyledSpan = styled.span`
     }
 `;
 
-export default class MemberRow extends React.Component {
+class MemberRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
@@ -105,8 +106,8 @@ export default class MemberRow extends React.Component {
         });
     }
 
-    onSubmitDelete(domain) {
-        let roleName = this.props.collection;
+    onSubmitDelete() {
+        let collectionName = this.props.collection;
         let name = this.state.deleteName;
 
         if (
@@ -119,17 +120,16 @@ export default class MemberRow extends React.Component {
             });
             return;
         }
-
-        this.api
+        this.props
             .deleteMember(
-                domain,
-                roleName,
+                this.props.domain,
+                collectionName,
+                this.props.category,
                 this.state.deleteName,
                 this.state.deleteJustification
                     ? this.state.deleteJustification
                     : 'deleted using Athenz UI',
                 this.props.pending,
-                this.props.category,
                 this.props._csrf
             )
             .then(() => {
@@ -202,7 +202,6 @@ export default class MemberRow extends React.Component {
                             }
                         >
                             <GroupMemberList
-                                api={this.api}
                                 member={member}
                                 groupName={member.memberName}
                             />
@@ -280,3 +279,28 @@ export default class MemberRow extends React.Component {
         return rows;
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteMember: (
+        domainName,
+        collectionName,
+        category,
+        memberName,
+        auditRef,
+        pending,
+        _csrf
+    ) =>
+        dispatch(
+            deleteMember(
+                domainName,
+                collectionName,
+                category,
+                memberName,
+                auditRef,
+                pending,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(MemberRow);

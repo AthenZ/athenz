@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import GroupRolesPage from '../../../../../../pages/domain/[domain]/group/[group]/roles';
+import MockApi from '../../../../../../mock/MockApi';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../../../tests_utils/ComponentsTestUtils';
 
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
+
+// need to change the snapshot because 1. we change what display when not match to any role 2. we must sent the group name as props
 describe('GroupRolesPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -47,20 +57,52 @@ describe('GroupRolesPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getGroup: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(groupDetails);
+                })
+            ),
+            getGroups: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            getDomainRoleMembers: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve({});
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <GroupRolesPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                groupDetails={groupDetails}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName='dom'
+                groupName='grp'
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('group-role')).toBeInTheDocument();
+        });
+
         const groupRolesPage = getByTestId('group-role');
         expect(groupRolesPage).toMatchSnapshot();
     });

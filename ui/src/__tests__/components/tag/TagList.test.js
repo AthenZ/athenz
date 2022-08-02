@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 import React from 'react';
-import API from '../../../api';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import TagRow from '../../../components/tag/TagRow';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import TagList from '../../../components/tag/TagList';
+import {
+    buildDomainDataForState, buildRolesForState,
+    getStateWithDomainData,
+    getStateWithRoles, mockAllDomainDataApiCalls, mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi'
 
 describe('TagList', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
     it('should render', async () => {
-        const { getByTestId } = render(<TagList />);
+        const { getByTestId } = renderWithRedux(<TagList />);
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();
     });
@@ -33,7 +41,7 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList domain={'domain'} tags={tags} category={'domain'} />
         );
         const tagList = getByTestId('tag-list');
@@ -69,7 +77,7 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList domain={'domain'} tags={tags} category={'domain'} />
         );
         const tagList = getByTestId('tag-list');
@@ -107,7 +115,7 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList domain={'domain'} tags={tags} category={'domain'} />
         );
         const tagList = getByTestId('tag-list');
@@ -126,7 +134,7 @@ describe('TagList', () => {
     });
 
     it('should display add tag', async () => {
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList domain={'domain'} category={'domain'} />
         );
         const tagList = getByTestId('tag-list');
@@ -148,7 +156,7 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList domain={'domain'} tags={tags} category={'domain'} />
         );
         const tagList = getByTestId('tag-list');
@@ -165,33 +173,42 @@ describe('TagList', () => {
 
     it('should add new tag', async () => {
         let emptyObj = {}; // no tags
-        let toReturnGetDomain = {
+        let collectionDetails = {
             tags: {
                 'tag-name': {
                     list: ['first', 'second'],
                 },
             },
         };
+        // TODO - understand how to do the same logic
+        // const api = {
+        //     getDomain: jest
+        //         .fn()
+        //         .mockReturnValueOnce(
+        //             new Promise((resolve, reject) => {
+        //                 resolve(emptyObj);
+        //             })
+        //         )
+        //         .mockReturnValueOnce(
+        //             new Promise((resolve, reject) => {
+        //                 resolve(toReturnGetDomain);
+        //             })
+        //         ),
+        //     putMeta: jest.fn().mockReturnValue(
+        //         new Promise((resolve, reject) => {
+        //             resolve(true);
+        //         })
+        //     ),
+        // };
 
-        const api = {
-            getDomain: jest
-                .fn()
-                .mockReturnValueOnce(
-                    new Promise((resolve, reject) => {
-                        resolve(emptyObj);
-                    })
-                )
-                .mockReturnValueOnce(
-                    new Promise((resolve, reject) => {
-                        resolve(toReturnGetDomain);
-                    })
-                ),
+        const mockApi = {
             putMeta: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
                     resolve(true);
                 })
             ),
         };
+        MockApi.setMockApi(mockApi);
 
         let tags = {
             'tag-exist': {
@@ -199,14 +216,14 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList
                 domain={'domain'}
                 category={'domain'}
-                api={api}
                 tags={tags}
-                domainObj={toReturnGetDomain}
-            />
+                collectionDetails={collectionDetails}
+            />,
+            getStateWithDomainData({domainData:{}})
         );
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();
@@ -235,7 +252,7 @@ describe('TagList', () => {
     });
 
     it('should delete tag', async () => {
-        let toReturnGetDomain = {
+        let collectionDetails = {
             tags: {
                 'tag-name': {
                     list: ['first', 'second'],
@@ -243,14 +260,19 @@ describe('TagList', () => {
             },
         };
 
-        const api = {
-            getDomain: jest.fn().mockReturnValue(
-                new Promise((resolve, reject) => {
-                    resolve(toReturnGetDomain);
-                })
-            ),
+        // const api = {
+        //     getDomain: jest.fn().mockReturnValue(
+        //         new Promise((resolve, reject) => {
+        //             resolve(toReturnGetDomain);
+        //         })
+        //     ),
+        //     putMeta: jest.fn().mockResolvedValue(true),
+        // };
+
+        const mockApi = {
             putMeta: jest.fn().mockResolvedValue(true),
-        };
+        }
+        MockApi.setMockApi(mockApi);
 
         let tags = {
             'tag-name': {
@@ -258,14 +280,15 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TagList
                 domain={'domain'}
                 tags={tags}
-                api={api}
                 category={'domain'}
-                domainObj={toReturnGetDomain}
-            />
+                collectionDetails={collectionDetails}
+            />,
+            getStateWithDomainData({domainData:{}})
+
         );
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();
@@ -282,7 +305,10 @@ describe('TagList', () => {
 
     it('should add new role tag', async () => {
         let emptyObj = {}; // no tags
-        let toReturnGetRole = {
+        const domain = 'domain';
+        const role = 'role';
+        const roleFullName = domain + ':role.' + role;
+        let toReturnGetDomain = {
             tags: {
                 'tag-name': {
                     list: ['first', 'second'],
@@ -290,41 +316,35 @@ describe('TagList', () => {
             },
         };
 
+        const rolesForState = buildRolesForState({
+            [roleFullName]: {
+                name: roleFullName
+            }
+        },
+            domain)
         const api = {
-            getRole: jest
-                .fn()
-                .mockReturnValueOnce(
-                    new Promise((resolve, reject) => {
-                        resolve(emptyObj);
-                    })
-                )
-                .mockReturnValueOnce(
-                    new Promise((resolve, reject) => {
-                        resolve(toReturnGetRole);
-                    })
-                ),
             putMeta: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
                     resolve(true);
                 })
             ),
         };
-
+        MockApi.setMockApi(api);
         let tags = {
             'tag-exist': {
                 list: ['v1', 'v2'],
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = await renderWithRedux(
             <TagList
-                domain={'domain'}
-                role={'role'}
+                domain={domain}
+                collectionName={role}
                 category={'role'}
-                api={api}
                 tags={tags}
-                roleObj={toReturnGetRole}
-            />
+                collectionDetails={toReturnGetDomain}
+            />,
+            getStateWithRoles(rolesForState)
         );
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();
@@ -369,6 +389,7 @@ describe('TagList', () => {
             ),
             putMeta: jest.fn().mockResolvedValue(true),
         };
+        MockApi.setMockApi(api);
 
         let tags = {
             'tag-name': {
@@ -376,15 +397,20 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const stateWithRoles = getStateWithRoles({roles:{}});
+        const stateWithDomainDataAndRoles = getStateWithDomainData({domainData:{}}, stateWithRoles);
+
+        const { getByTestId } = renderWithRedux(
             <TagList
                 domain={'domain'}
                 tags={tags}
                 api={api}
                 role={'role'}
                 category={'role'}
-                roleObj={toReturnGetRole}
-            />
+                collectionName={'test'}
+                collectionDetails={toReturnGetRole}
+            />,
+            stateWithDomainDataAndRoles
         );
         const tagList = getByTestId('tag-list');
         expect(tagList).toMatchSnapshot();

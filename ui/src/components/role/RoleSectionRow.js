@@ -23,7 +23,9 @@ import Menu from '../denali/Menu/Menu';
 import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
-import { keyframes, css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
+import { deleteRole } from '../../redux/thunks/roles';
+import { connect } from 'react-redux';
 
 const TDName = styled.div`
     background-color: ${(props) => props.color};
@@ -78,12 +80,12 @@ const TrStyled = styled.div`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const MenuDiv = styled.div`
@@ -100,7 +102,6 @@ const LeftSpan = styled.span`
 class RoleSectionRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
@@ -141,9 +142,8 @@ class RoleSectionRow extends React.Component {
             return;
         }
 
-        this.api
+        this.props
             .deleteRole(
-                domain,
                 roleName,
                 this.state.deleteJustification
                     ? this.state.deleteJustification
@@ -488,4 +488,10 @@ class RoleSectionRow extends React.Component {
         return rows;
     }
 }
-export default withRouter(RoleSectionRow);
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteRole: (roleName, auditRef, _csrf) =>
+        dispatch(deleteRole(roleName, auditRef, _csrf)),
+});
+
+export default connect(null, mapDispatchToProps)(withRouter(RoleSectionRow));

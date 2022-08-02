@@ -188,6 +188,16 @@ Fetchr.registerService({
             })
         );
     },
+    delete(req, resource, params, config, callback) {
+        req.clients.zms.deleteAssertionConditions(
+            params,
+            responseHandler.bind({
+                caller: 'deleteAssertionConditions',
+                callback,
+                req,
+            })
+        );
+    },
 });
 
 Fetchr.registerService({

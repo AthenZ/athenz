@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import PolicyPage from '../../../../pages/domain/[domain]/policy';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('PolicyPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -47,19 +57,42 @@ describe('PolicyPage', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            ...mockRolesApiCalls(),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getPolicies: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+        };
+
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <PolicyPage
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain={domain}
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName={domain}
+                checked={false}
             />
         );
+        await waitFor(() => {
+            expect(getByTestId('policy')).toBeInTheDocument();
+        });
         const policyPage = getByTestId('policy');
         expect(policyPage).toMatchSnapshot();
     });

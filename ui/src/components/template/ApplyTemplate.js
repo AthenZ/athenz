@@ -20,6 +20,9 @@ import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
 import RequestUtils from '../utils/RequestUtils';
 import AddModal from '../modal/AddModal';
+import { makeRolesExpires } from '../../redux/actions/roles';
+import { makePoliciesExpires } from '../../redux/actions/policies';
+import { connect } from 'react-redux';
 
 const SectionDiv = styled.div`
     align-items: flex-start;

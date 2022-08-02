@@ -20,8 +20,14 @@ import Button from '../denali/Button';
 import UpdateModal from '../modal/UpdateModal';
 import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
-import _ from 'lodash';
+import { _ } from 'lodash';
 import { MODAL_TIME_OUT } from '../constants/constants';
+import { updateSettings } from '../../redux/thunks/collections';
+import { connect } from 'react-redux';
+import {
+    selectAuthorityAttributes,
+    selectUserLink,
+} from '../../redux/selectors/domainData';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -48,14 +54,12 @@ const AddContainerDiv = styled.div`
     flex-flow: row nowrap;
 `;
 
-export default class SettingTable extends React.Component {
+class SettingTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.toggleSubmit = this.toggleSubmit.bind(this);
         this.toggleReset = this.toggleReset.bind(this);
         this.onSubmitUpdate = this.onSubmitUpdate.bind(this);
-        this.reloadCollection = this.reloadCollection.bind(this);
         this.onClickUpdateCancel = this.onClickUpdateCancel.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.updateCollectionMeta = this.updateCollectionMeta.bind(this);
@@ -223,28 +227,6 @@ export default class SettingTable extends React.Component {
         });
     }
 
-    reloadCollection() {
-        this.api
-            .getCollection(
-                this.props.domain,
-                this.props.collection,
-                this.props.category
-            )
-            .then((collection) => {
-                let collectionDetails = this.setCollectionDetails(collection);
-                this.setState({
-                    originalCollectionDetails: collectionDetails,
-                    copyCollectionDetails: _.cloneDeep(collectionDetails),
-                    errorMessage: null,
-                });
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
-    }
-
     updateCollectionMeta() {
         let collectionMeta = {};
 
@@ -276,17 +258,23 @@ export default class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.roleCertExpiryMins;
         }
 
-        this.api
-            .putMeta(
+        this.props
+            .updateSettings(
                 this.props.domain,
-                this.props.collection,
                 collectionMeta,
-                'Updated' + this.props.category + 'Meta using Athenz UI',
+                this.props.collection,
                 this.props._csrf,
                 this.props.category
             )
             .then(() => {
+                const { collectionDetails } = this.props;
+                let newCollectionDetails = this.setCollectionDetails({
+                    ...collectionDetails,
+                });
                 this.setState({
+                    originalCollectionDetails: newCollectionDetails,
+                    copyCollectionDetails: _.cloneDeep(newCollectionDetails),
+                    errorMessage: null,
                     showSuccess: true,
                     showSubmit: false,
                     enableSubmit: false,
@@ -299,7 +287,6 @@ export default class SettingTable extends React.Component {
                         }),
                     MODAL_TIME_OUT
                 );
-                this.reloadCollection();
             })
             .catch((err) => {
                 this.setState({
@@ -309,12 +296,11 @@ export default class SettingTable extends React.Component {
     }
 
     render() {
-        const { domain, collection } = this.props;
         let rows = [];
 
         let submitSettings = this.state.showSubmit ? (
             <UpdateModal
-                name={collection}
+                name={this.props.collection}
                 isOpen={this.state.showSubmit}
                 cancel={this.onClickUpdateCancel}
                 submit={this.onSubmitUpdate}
@@ -359,16 +345,14 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-reviewEnabled'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='reviewEnabled'
                     label='Review'
                     type='switch'
                     desc={reviewDesc}
                     value={this.state.copyCollectionDetails.reviewEnabled}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -380,23 +364,21 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-selfServe'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='selfServe'
                     label='Self-Service'
                     type='switch'
                     desc={selfServiceDesc}
                     value={this.state.copyCollectionDetails.selfServe}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
         rows.push(
             <StyledSettingRow
                 key={'setting-row-memberExpiryDays'}
-                domain={domain}
+                domain={this.props.domain}
                 name='memberExpiryDays'
                 label='User Expiry'
                 type='input'
@@ -407,10 +389,8 @@ export default class SettingTable extends React.Component {
                 }
                 unit='Days'
                 value={this.state.copyCollectionDetails.memberExpiryDays}
-                api={this.api}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
-                userProfileLink={this.props.userProfileLink}
             />
         );
 
@@ -418,17 +398,15 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-memberReviewDays'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='memberReviewDays'
                     label='User Review'
                     type='input'
                     desc='All user members in the role will have specified review days'
                     unit='Days'
                     value={this.state.copyCollectionDetails.memberReviewDays}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -436,7 +414,7 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-groupExpiryDays'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='groupExpiryDays'
                     label='Group Expiry'
                     type='input'
@@ -447,10 +425,8 @@ export default class SettingTable extends React.Component {
                     }
                     unit='Days'
                     value={this.state.copyCollectionDetails.groupExpiryDays}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -458,24 +434,22 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-groupReviewDays'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='groupReviewDays'
                     label='Group Review'
                     type='input'
                     desc='All groups in the role will have specified max review days'
                     unit='Days'
                     value={this.state.copyCollectionDetails.groupReviewDays}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
         rows.push(
             <StyledSettingRow
                 key={'setting-row-serviceExpiryDays'}
-                domain={domain}
+                domain={this.props.domain}
                 name='serviceExpiryDays'
                 label='Service Expiry'
                 type='input'
@@ -486,10 +460,8 @@ export default class SettingTable extends React.Component {
                     ' will have specified max expiry days'
                 }
                 value={this.state.copyCollectionDetails.serviceExpiryDays}
-                api={this.api}
                 onValueChange={this.onValueChange}
                 _csrf={this.props._csrf}
-                userProfileLink={this.props.userProfileLink}
             />
         );
 
@@ -497,17 +469,15 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-serviceReviewDays'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='serviceReviewDays'
                     label='Service Review'
                     type='input'
                     desc='All service members in the role will have specified review days'
                     unit='Days'
                     value={this.state.copyCollectionDetails.serviceReviewDays}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -515,7 +485,7 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-tokenExpiryMins'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='tokenExpiryMins'
                     label='Token Expiry'
                     type='input'
@@ -526,10 +496,8 @@ export default class SettingTable extends React.Component {
                         ' will have specified max timeout in mins'
                     }
                     value={this.state.copyCollectionDetails.tokenExpiryMins}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -537,17 +505,15 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-certExpiryMins'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='certExpiryMins'
                     label='Certificate Expiry'
                     type='input'
                     unit='Mins'
                     desc='Certs issued for this role will have specified max timeout in mins'
                     value={this.state.copyCollectionDetails.certExpiryMins}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -555,7 +521,7 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-roleCertExpiryMins'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='roleCertExpiryMins'
                     label='Role Certificate Expiry'
                     type='input'
@@ -564,10 +530,8 @@ export default class SettingTable extends React.Component {
                         'Role Certs issued for this domain will have specified max timeout in mins'
                     }
                     value={this.state.copyCollectionDetails.roleCertExpiryMins}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -575,7 +539,7 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-userAuthorityFilter'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='userAuthorityFilter'
                     label='User Authority Filter'
                     type='dropdown'
@@ -583,10 +547,9 @@ export default class SettingTable extends React.Component {
                     placeholder='User Authority Filter'
                     desc='membership filtered based on user authority configured attributes'
                     value={this.state.copyCollectionDetails.userAuthorityFilter}
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
+                    // userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -594,7 +557,7 @@ export default class SettingTable extends React.Component {
             rows.push(
                 <StyledSettingRow
                     key={'setting-row-userAuthorityExpiration'}
-                    domain={domain}
+                    domain={this.props.domain}
                     name='userAuthorityExpiration'
                     label='User Authority Expiration'
                     type='dropdown'
@@ -604,10 +567,9 @@ export default class SettingTable extends React.Component {
                     value={
                         this.state.copyCollectionDetails.userAuthorityExpiration
                     }
-                    api={this.api}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    userProfileLink={this.props.userProfileLink}
+                    // userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -632,3 +594,32 @@ export default class SettingTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        userAuthorityAttributes: selectAuthorityAttributes(state),
+        // userProfileLink: selectUserLink(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    updateSettings: (
+        domainName,
+        collectionMeta,
+        collectionName,
+        _csrf,
+        category
+    ) =>
+        dispatch(
+            updateSettings(
+                domainName,
+                collectionMeta,
+                collectionName,
+                _csrf,
+                category
+            )
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(SettingTable);

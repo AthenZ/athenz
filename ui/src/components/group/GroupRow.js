@@ -24,6 +24,8 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
 import { css, keyframes } from '@emotion/react';
+import { deleteGroup } from '../../redux/thunks/groups';
+import { connect } from 'react-redux';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -73,7 +75,6 @@ const LeftSpan = styled.span`
 class GroupRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
@@ -99,7 +100,7 @@ class GroupRow extends React.Component {
         this.props.router.push(route, route);
     }
 
-    onSubmitDelete(domain) {
+    onSubmitDelete() {
         let groupName = this.state.deleteName;
         if (
             this.props.justificationRequired &&
@@ -111,15 +112,12 @@ class GroupRow extends React.Component {
             });
             return;
         }
-        this.api
-            .deleteGroup(
-                domain,
-                groupName,
-                this.state.deleteJustification
-                    ? this.state.deleteJustification
-                    : 'deleted using Athenz UI',
-                this.props._csrf
-            )
+
+        let auditRef = this.state.deleteJustification
+            ? this.state.deleteJustification
+            : 'deleted using Athenz UI';
+        this.props
+            .deleteGroup(groupName, auditRef, this.props._csrf)
             .then(() => {
                 this.setState({
                     showDelete: false,
@@ -370,4 +368,10 @@ class GroupRow extends React.Component {
         return rows;
     }
 }
-export default withRouter(GroupRow);
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteGroup: (groupName, auditRef, _csrf) =>
+        dispatch(deleteGroup(groupName, auditRef, _csrf)),
+});
+
+export default connect(null, mapDispatchToProps)(withRouter(GroupRow));

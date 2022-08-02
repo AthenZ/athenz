@@ -54,6 +54,7 @@ const SectionsDiv = styled.div`
     background-color: ${colors.white};
 `;
 
+// TODO mendi - doesnt find it any where
 export default class AddStaticInstances extends React.Component {
     constructor(props) {
         super(props);
@@ -116,6 +117,8 @@ export default class AddStaticInstances extends React.Component {
             type: this.state.resourceType,
             name: this.state.resourceValue,
         };
+
+        // TODO Mendi- change it after roy complete service page
         this.api
             .addServiceHost(
                 this.props.domain,

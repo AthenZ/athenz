@@ -20,11 +20,14 @@ import API from '../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 
-import ManageDomains from '../../components/domain/ManageDomains';
 import RequestUtils from '../../components/utils/RequestUtils';
 import { MODAL_TIME_OUT } from '../../components/constants/constants';
 import Error from '../_error';
 import createCache from '@emotion/cache';
+import ManageDomains from '../../components/domain/ManageDomains';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { connect } from 'react-redux';
+import { getBusinessServicesAll } from '../../redux/thunks/domains';
 import { CacheProvider } from '@emotion/react';
 
 const AppContainerDiv = styled.div`
@@ -71,28 +74,22 @@ export async function getServerSideProps(context) {
         attributeName: 'businessService',
         userName: context.req.session.shortId,
     };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
     const domains = await Promise.all([
-        api.listUserDomains(),
         api.getHeaderDetails(),
         api.listAdminDomains(),
         api.getPendingDomainMembersList(),
         api.getForm(),
         api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}, {}];
     });
 
     let businessServiceOptions = [];
-    if (domains[5] && domains[5].validValues) {
-        domains[5].validValues.forEach((businessService) => {
+    if (domains[4] && domains[4].validValues) {
+        domains[4].validValues.forEach((businessService) => {
             let bServiceOnlyId = businessService.substring(
                 0,
                 businessService.indexOf(':')
@@ -106,46 +103,28 @@ export async function getServerSideProps(context) {
             });
         });
     }
-    let businessServiceOptionsAll = [];
-    if (domains[6] && domains[6].validValues) {
-        domains[6].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
+
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            manageDomains: domains[2],
-            pending: domains[3],
-            _csrf: domains[4],
+            headerDetails: domains[0],
+            manageDomains: domains[1],
+            pending: domains[2],
+            _csrf: domains[3],
             nonce: context.req.headers.rid,
             validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
         },
     };
 }
 
-export default class ManageDomainsPage extends React.Component {
+class ManageDomainsPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
         this.state = {
             manageDomains: props.manageDomains || [],
-            domains: props.domains || [],
             successMessage: '',
         };
         this.loadDomains = this.loadDomains.bind(this);
@@ -155,12 +134,16 @@ export default class ManageDomainsPage extends React.Component {
         });
     }
 
+    componentDidMount() {
+        const { getBusinessServicesAll } = this.props;
+        getBusinessServicesAll();
+    }
+
     loadDomains(successMessage) {
-        Promise.all([this.api.listAdminDomains(), this.api.listUserDomains()])
+        Promise.all([this.api.listAdminDomains()])
             .then((domains) => {
                 this.setState({
                     manageDomains: domains[0],
-                    domains: domains[1],
                     showSuccess: true,
                     successMessage,
                 });
@@ -186,7 +169,7 @@ export default class ManageDomainsPage extends React.Component {
     }
 
     render() {
-        const { reload } = this.props;
+        const { reload, isLoading } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -194,17 +177,15 @@ export default class ManageDomainsPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
+        return isLoading.length !== 0 ? (
+            <h1>Loading...</h1>
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='page-manage-domains'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={false}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={false} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <RolesContainerDiv>
@@ -224,16 +205,10 @@ export default class ManageDomainsPage extends React.Component {
                                         validBusinessServices={
                                             this.props.validBusinessServices
                                         }
-                                        validBusinessServicesAll={
-                                            this.props.validBusinessServicesAll
-                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.state.domains}
-                                api={this.api}
-                            />
+                            <UserDomains api={this.api} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -241,3 +216,16 @@ export default class ManageDomainsPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getBusinessServicesAll: () => dispatch(getBusinessServicesAll()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ManageDomainsPage);

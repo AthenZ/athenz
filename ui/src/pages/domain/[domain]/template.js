@@ -20,14 +20,16 @@ import API from '../../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 
-import DomainDetails from '../../../components/header/DomainDetails';
-import TemplateList from '../../../components/template/TemplateList';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import TemplateList from '../../../components/template/TemplateList';
+import DomainDetails from '../../../components/header/DomainDetails';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -69,95 +71,34 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
     const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getServices(context.query.domain),
         api.getForm(),
-        api.getPendingDomainMembersList(),
         api.getServicePageConfig(),
-        api.isAWSTemplateApplied(context.query.domain),
         api.getDomainTemplateDetailsList(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
         api.getServerTemplateDetailsList(),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}, {}, {}];
     });
-    let businessServiceOptions = [];
-    if (domains[10] && domains[10].validValues) {
-        domains[10].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (domains[11] && domains[11].validValues) {
-        domains[11].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[7];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: context.query.domain,
-            domainDetails,
-            services: domains[3],
-            _csrf: domains[4],
-            pending: domains[5],
-            pageConfig: domains[6],
-            domainTemplateDetails: domains[8],
-            serverTemplateDetails: domains[12],
+            domainName: context.query.domain,
+            userName: context.req.session.shortId,
+            _csrf: domains[0],
+            pageConfig: domains[1],
+            domainTemplateDetails: domains[2],
+            serverTemplateDetails: domains[3],
             nonce: context.req.headers.rid,
-            featureFlag: domains[9],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: domains[13],
         },
     };
 }
 
-export default class TemplatePage extends React.Component {
+class TemplatePage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -166,16 +107,28 @@ export default class TemplatePage extends React.Component {
             nonce: this.props.nonce,
         });
     }
+    componentDidMount() {
+        const {
+            // getServices,
+            getDomainData,
+            // getTemplates,
+            domainName,
+            userName,
+        } = this.props;
+        // getTemplates(domainName);
+        getDomainData(domainName, userName);
+        // getServices(domainName);
+    }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
-            domainDetails,
+            // domainData,
             domainTemplateDetails,
             serverTemplateDetails,
-            services,
             _csrf,
+            isLoading,
         } = this.props;
         if (reload) {
             window.location.reload();
@@ -184,75 +137,62 @@ export default class TemplatePage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='template'>
-                    <Head>
-                        <title>Athenz for Template</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <ServicesContainerDiv>
-                                <ServicesContentDiv>
-                                    <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
-                                        />
-                                        <Tabs
-                                            api={this.api}
-                                            domain={domain}
-                                            selectedName={'templates'}
-                                            featureFlag={this.props.featureFlag}
-                                        />
-                                    </PageHeaderDiv>
-                                    <TemplateList
+        return isLoading.length > 0 ? (
+            <h1>Loading...</h1>
+        ) : (
+            <div data-testid='template'>
+                <Head>
+                    <title>Athenz for Template</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <ServicesContainerDiv>
+                            <ServicesContentDiv>
+                                <PageHeaderDiv>
+                                    <DomainNameHeader domainName={domainName} />
+                                    <DomainDetails
                                         api={this.api}
-                                        domain={domain}
-                                        domainTemplateDetails={
-                                            this.props.domainTemplateDetails
-                                        }
-                                        serverTemplateDetails={
-                                            this.props.serverTemplateDetails
-                                        }
-                                        _csrf={this.props._csrf}
-                                        pageConfig={this.props.pageConfig}
+                                        _csrf={_csrf}
                                     />
-                                </ServicesContentDiv>
-                            </ServicesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <Tabs
+                                        domain={domainName}
+                                        selectedName={'templates'}
+                                    />
+                                </PageHeaderDiv>
+                                <TemplateList
+                                    api={this.api}
+                                    domain={domainName}
+                                    domainTemplateDetails={
+                                        domainTemplateDetails
+                                    }
+                                    serverTemplateDetails={
+                                        serverTemplateDetails
+                                    }
+                                    _csrf={_csrf}
+                                    pageConfig={this.props.pageConfig}
+                                />
+                            </ServicesContentDiv>
+                        </ServicesContainerDiv>
+                        <UserDomains domain={domainName} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    // getTemplates: (domainName) => dispatch(getTemplates(domainName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(TemplatePage);

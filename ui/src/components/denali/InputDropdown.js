@@ -18,7 +18,7 @@ import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import Downshift from 'downshift';
 import { Manager, Popper, Reference } from 'react-popper';
-import _ from 'lodash';
+import { _ } from 'lodash';
 import Input from './Input';
 import Icon from './icons/Icon';
 import { cssDropShadow } from './styles/drop-shadow';

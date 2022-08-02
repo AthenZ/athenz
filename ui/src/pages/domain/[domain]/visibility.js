@@ -20,7 +20,6 @@ import RequestUtils from '../../../components/utils/RequestUtils';
 import React from 'react';
 import createCache from '@emotion/cache';
 import Error from '../../_error';
-import { CacheProvider } from '@emotion/react';
 import Head from 'next/head';
 import Header from '../../../components/header/Header';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
@@ -28,6 +27,12 @@ import DomainDetails from '../../../components/header/DomainDetails';
 import Tabs from '../../../components/header/Tabs';
 import VisibilityList from '../../../components/visibility/VisibilityList';
 import UserDomains from '../../../components/domain/UserDomains';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import { getServiceDependencies } from '../../../redux/thunks/visibility';
+import { selectServiceDependencies } from '../../../redux/selectors/visibility';
+import { selectDomainData } from '../../../redux/selectors/domainData';
+import { selectIsLoading } from '../../../redux/selectors/loading';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -64,93 +69,31 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
+
     const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getServiceDependencies(context.query.domain),
-        api.getPendingDomainMembersList(),
         api.getForm(),
-        api.isAWSTemplateApplied(context.query.domain),
         api.getRolePrefix(),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
-        api.getAuthHistory(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}];
     });
-    let businessServiceOptions = [];
-    if (domains[9] && domains[9].validValues) {
-        domains[9].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (domains[10] && domains[10].validValues) {
-        domains[10].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[6];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: domains[2].name,
-            domainDetails,
-            serviceDependencies: domains[3],
-            pending: domains[4],
-            _csrf: domains[5],
-            prefixes: domains[7].allPrefixes,
+            userName: context.req.session.shortId,
+            domain: context.query.domain,
+            _csrf: domains[0],
+            prefixes: domains[1].allPrefixes,
             nonce: context.req.headers.rid,
-            featureFlag: domains[8],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: domains[11],
-            authHistory: domains[12],
         },
     };
 }
 
-export default class VisibilityPage extends React.Component {
+class VisibilityPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -160,17 +103,16 @@ export default class VisibilityPage extends React.Component {
         });
     }
 
+    componentDidMount() {
+        const { getServiceDependencies, domain, getDomainData, userName } =
+            this.props;
+        getServiceDependencies(domain);
+        getDomainData(domain, userName);
+    }
+
     render() {
-        const {
-            domain,
-            reload,
-            domainDetails,
-            serviceDependencies,
-            authHistory,
-            users,
-            prefixes,
-            _csrf,
-        } = this.props;
+        const { domain, reload, domainData, prefixes, isLoading, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -179,77 +121,59 @@ export default class VisibilityPage extends React.Component {
             return <Error err={this.props.error} />;
         }
 
-        return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='visibility'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <VisibilityContainerDiv>
-                                <VisibilityContentDiv>
-                                    <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
-                                        />
-                                        <Tabs
-                                            api={this.api}
-                                            domain={domain}
-                                            selectedName={'visibility'}
-                                            featureFlag={this.props.featureFlag}
-                                        />
-                                    </PageHeaderDiv>
-                                    <VisibilityList
-                                        key={'dependencyVisibilityList'}
+        return isLoading.length === 0 ? (
+            <div data-testid='visibility'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <VisibilityContainerDiv>
+                            <VisibilityContentDiv>
+                                <PageHeaderDiv>
+                                    <DomainNameHeader domainName={domain} />
+                                    <DomainDetails
                                         api={this.api}
-                                        domain={domain}
-                                        serviceDependencies={
-                                            serviceDependencies
-                                        }
-                                        authHistory={authHistory}
                                         _csrf={_csrf}
-                                        prefixes={prefixes}
-                                        isDomainAuditEnabled={
-                                            domainDetails.auditEnabled
-                                        }
                                     />
-                                </VisibilityContentDiv>
-                            </VisibilityContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <Tabs
+                                        domain={domain}
+                                        selectedName={'visibility'}
+                                    />
+                                </PageHeaderDiv>
+                                <VisibilityList
+                                    key={'dependencyVisibilityList'}
+                                    domain={domain}
+                                    _csrf={_csrf}
+                                    prefixes={prefixes}
+                                />
+                            </VisibilityContentDiv>
+                        </VisibilityContainerDiv>
+                        <UserDomains domain={domain} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
+        ) : (
+            <h1>Loading...</h1>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+        serviceDependencies: selectServiceDependencies(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getServiceDependencies: (domainName) =>
+        dispatch(getServiceDependencies(domainName)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(VisibilityPage);

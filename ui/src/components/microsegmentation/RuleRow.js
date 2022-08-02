@@ -24,8 +24,11 @@ import RequestUtils from '../utils/RequestUtils';
 import ServiceList from './ServiceList';
 import { css, keyframes } from '@emotion/react';
 import EnforcementStateList from './EnforcementStateList';
-import AddSegmentation from './AddSegmentation';
 import { MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION } from '../constants/constants';
+import AddSegmentation from './AddSegmentation';
+import { connect } from 'react-redux';
+import { deleteTransportRule } from '../../redux/thunks/microsegmentation';
+import { deleteAssertionCondition } from '../../redux/thunks/policies';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -45,12 +48,12 @@ const GroupTDStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`
@@ -68,7 +71,7 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class RuleRow extends React.Component {
+export class RuleRow extends React.Component {
     constructor(props) {
         super(props);
         this.api = this.props.api;
@@ -156,8 +159,7 @@ export default class RuleRow extends React.Component {
         const auditRef =
             this.state.justification ||
             MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION;
-
-        this.api
+        this.props
             .deleteTransportRule(
                 domain,
                 deletePolicyName,
@@ -200,7 +202,7 @@ export default class RuleRow extends React.Component {
             return;
         }
 
-        this.api
+        this.props
             .deleteAssertionCondition(
                 this.props.domain,
                 this.state.policyName,
@@ -361,14 +363,12 @@ export default class RuleRow extends React.Component {
                         {inbound && (
                             <ServiceList
                                 list={data['source_services']}
-                                api={this.api}
                                 domain={this.props.domain}
                             />
                         )}
                         {!inbound && (
                             <ServiceList
                                 list={data['destination_services']}
-                                api={this.api}
                                 domain={this.props.domain}
                             />
                         )}
@@ -507,3 +507,44 @@ export default class RuleRow extends React.Component {
         return rows;
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteTransportRule: (
+        domain,
+        deletePolicyName,
+        assertionId,
+        auditRef,
+        deleteRoleName,
+        _csrf
+    ) =>
+        dispatch(
+            deleteTransportRule(
+                domain,
+                deletePolicyName,
+                assertionId,
+                auditRef,
+                deleteRoleName,
+                _csrf
+            )
+        ),
+    deleteAssertionCondition: (
+        domain,
+        policyName,
+        assertionId,
+        conditionId,
+        auditRef,
+        _csrf
+    ) =>
+        dispatch(
+            deleteAssertionCondition(
+                domain,
+                policyName,
+                assertionId,
+                conditionId,
+                auditRef,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(RuleRow);

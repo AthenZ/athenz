@@ -778,102 +778,6 @@ exports[`VisibilityPage should render 1`] = `
 }
 
 .emotion-88 {
-  vertical-align: middle;
-}
-
-.emotion-90 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  background: rgba(53,112,244,0.05);
-  border-radius: 2px;
-  box-sizing: border-box;
-  display: inline-grid;
-  grid-template-columns: repeat(2, 1fr);
-  height: 28px;
-  position: relative;
-}
-
-.emotion-90::before {
-  background: #fff;
-  border: 2px solid #0072df;
-  border-radius: 2px;
-  box-sizing: border-box;
-  content: '';
-  height: calc(100% + 4px);
-  margin: -2px -2px -2px calc(0% - 2px);
-  position: absolute;
-  -webkit-transition: all 0.3s ease-in;
-  transition: all 0.3s ease-in;
-  width: calc(50% + 4px);
-}
-
-.emotion-91 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  border-radius: 2px;
-  box-sizing: border-box;
-  color: #303030;
-  cursor: initial;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  margin: 3px;
-  padding: 0 12px;
-  -webkit-transition: color 0.2s ease-in 0.1s;
-  transition: color 0.2s ease-in 0.1s;
-  white-space: nowrap;
-  z-index: 1;
-}
-
-.emotion-91:hover {
-  color: #303030;
-}
-
-.emotion-92 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  border-radius: 2px;
-  box-sizing: border-box;
-  color: #3697f2;
-  cursor: pointer;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  margin: 3px;
-  padding: 0 12px;
-  -webkit-transition: color 0.2s ease-in 0.1s;
-  transition: color 0.2s ease-in 0.1s;
-  white-space: nowrap;
-  z-index: 1;
-}
-
-.emotion-92:hover {
-  color: #3570f4;
-}
-
-.emotion-93 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -899,13 +803,13 @@ exports[`VisibilityPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-95 {
+.emotion-90 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-96 {
+.emotion-91 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -920,7 +824,7 @@ exports[`VisibilityPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-98 {
+.emotion-93 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -939,28 +843,28 @@ exports[`VisibilityPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-100 {
+.emotion-95 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-102 {
+.emotion-97 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-104 {
+.emotion-99 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-108 {
+.emotion-103 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-110 {
+.emotion-105 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -968,12 +872,12 @@ exports[`VisibilityPage should render 1`] = `
   display: flex;
 }
 
-.emotion-112 {
+.emotion-107 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-114 {
+.emotion-109 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1313,42 +1217,18 @@ exports[`VisibilityPage should render 1`] = `
           <div
             class="emotion-86 emotion-87"
             data-testid="visibilitySection"
-          >
-            <div
-              class="emotion-88 emotion-89"
-            >
-              <div
-                class="emotion-90 denali-button-group"
-                data-testid="buttongroup"
-              >
-                <div
-                  class="emotion-91"
-                  data-active="true"
-                  id="button-dependencies"
-                >
-                  Dependencies
-                </div>
-                <div
-                  class="emotion-92"
-                  data-active="false"
-                  id="button-auth"
-                >
-                  Access History
-                </div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </div>
       <div
         data-testid="user-domains"
       >
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-88 emotion-89"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-95"
+            class="emotion-90"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1363,45 +1243,45 @@ exports[`VisibilityPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-96 emotion-97"
+          class="emotion-91 emotion-92"
         >
           <div
-            class="emotion-98 emotion-99"
+            class="emotion-93 emotion-94"
           >
             <div
-              class="emotion-100 emotion-101"
+              class="emotion-95 emotion-96"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-97 emotion-98"
               >
                 Create
               </a>
               <span
-                class="emotion-104 emotion-105"
+                class="emotion-99 emotion-100"
               >
                  | 
               </span>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-97 emotion-98"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-108 emotion-109"
+            class="emotion-103 emotion-104"
           >
             <div
-              class="emotion-110 emotion-111"
+              class="emotion-105 emotion-106"
             >
               <div
-                class="emotion-112 emotion-113"
+                class="emotion-107 emotion-108"
               >
                 <svg
-                  class="emotion-114"
+                  class="emotion-109"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1422,19 +1302,19 @@ exports[`VisibilityPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-97 emotion-98"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-110 emotion-111"
+              class="emotion-105 emotion-106"
             >
               <div
-                class="emotion-112 emotion-113"
+                class="emotion-107 emotion-108"
               >
                 <svg
-                  class="emotion-114"
+                  class="emotion-109"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1455,7 +1335,7 @@ exports[`VisibilityPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-102 emotion-103"
+                class="emotion-97 emotion-98"
               >
                 athens.ci
               </a>

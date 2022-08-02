@@ -25,9 +25,12 @@ import ServiceList from '../../../components/service/ServiceList';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import { getServices } from '../../../redux/thunks/services';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import { selectDomainData } from '../../../redux/selectors/domainData';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -65,102 +68,44 @@ export async function getServerSideProps(context) {
     let notFound = false;
     let error = null;
 
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
     const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getServices(context.query.domain),
         api.getForm(),
-        api.getPendingDomainMembersList(),
         api.getServicePageConfig(),
-        api.isAWSTemplateApplied(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}];
     });
-    let businessServiceOptions = [];
-    if (domains[9] && domains[9].validValues) {
-        domains[9].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (domains[10] && domains[10].validValues) {
-        domains[10].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[7];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: context.query.domain,
-            domainDetails,
-            services: domains[3],
-            _csrf: domains[4],
-            pending: domains[5],
-            pageConfig: domains[6],
-            featureFlag: domains[8],
+            domainName: context.query.domain,
+            userName: context.req.session.shortId,
+            _csrf: domains[0],
+            pageConfig: domains[1],
             nonce: context.req.headers.rid,
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: domains[11],
         },
     };
 }
 
-export default class ServicePage extends React.Component {
+class ServicePage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
+    }
+
+    componentDidMount() {
+        const { getServices, getDomainData, domainName, userName } = this.props;
+        getDomainData(domainName, userName);
+        getServices(domainName);
     }
 
     render() {
-        const { domain, reload, domainDetails, services, _csrf } = this.props;
+        const { domainName, domainData, reload, services, _csrf, isLoading } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -169,70 +114,53 @@ export default class ServicePage extends React.Component {
             return <Error err={this.props.error} />;
         }
         return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='service'>
-                    <Head>
-                        <title>Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            <ServicesContainerDiv>
-                                <ServicesContentDiv>
-                                    <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
-                                        <DomainDetails
-                                            domainDetails={domainDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
-                                        />
-                                        <Tabs
-                                            api={this.api}
-                                            domain={domain}
-                                            selectedName={'services'}
-                                            featureFlag={this.props.featureFlag}
-                                        />
-                                    </PageHeaderDiv>
-                                    <ServiceList
+            <div data-testid='service'>
+                <Head>
+                    <title>Athenz</title>
+                </Head>
+                <Header showSearch={true} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        <ServicesContainerDiv>
+                            <ServicesContentDiv>
+                                <PageHeaderDiv>
+                                    <DomainNameHeader domainName={domainName} />
+                                    <DomainDetails
                                         api={this.api}
-                                        domain={domain}
-                                        services={services}
-                                        _csrf={this.props._csrf}
-                                        pageConfig={this.props.pageConfig}
-                                        featureFlag={this.props.featureFlag}
+                                        _csrf={_csrf}
                                     />
-                                </ServicesContentDiv>
-                            </ServicesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+                                    <Tabs
+                                        domain={domainName}
+                                        selectedName={'services'}
+                                    />
+                                </PageHeaderDiv>
+                                <ServiceList
+                                    domain={domainName}
+                                    _csrf={this.props._csrf}
+                                    pageConfig={this.props.pageConfig}
+                                />
+                            </ServicesContentDiv>
+                        </ServicesContainerDiv>
+                        <UserDomains domain={domainName} />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getServices: (domainName) => dispatch(getServices(domainName)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ServicePage);

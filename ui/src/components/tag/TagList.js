@@ -24,11 +24,11 @@ import DeleteModal from '../modal/DeleteModal';
 import Button from '../denali/Button';
 import AddTag from './AddTag';
 import AppUtils from '../utils/AppUtils';
-
+import { connect } from 'react-redux';
+import { updateTags } from '../../redux/thunks/collections';
 const TagsSectionDiv = styled.div`
     margin: 20px;
 `;
-
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
     display: flex;
@@ -37,7 +37,6 @@ const AddContainerDiv = styled.div`
     flex-flow: row nowrap;
     float: right;
 `;
-
 const TagTable = styled.table`
     width: 100%;
     border-spacing: 0;
@@ -45,7 +44,6 @@ const TagTable = styled.table`
     border-collapse: separate;
     border-color: ${colors.grey600};
 `;
-
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
     border-bottom: 2px solid ${colors.grey500};
@@ -58,28 +56,21 @@ const TableHeadStyled = styled.th`
     padding: 5px 0 5px 15px;
     word-break: break-all;
 `;
-
-export default class TagList extends React.Component {
+class TagList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         AppUtils.bindClassMethods(this);
         this.state = {
             category: props.category,
             tags: props.tags || {},
-            roleObj: props.roleObj,
-            domainObj: props.domainObj,
-            groupObj: props.groupObj,
             successMessage: '',
         };
     }
-
     openAddTag() {
         this.setState({
             showAddTag: true,
         });
     }
-
     closeAddTag() {
         this.setState({
             showAddTag: false,
@@ -89,7 +80,6 @@ export default class TagList extends React.Component {
             errorMessage: null,
         });
     }
-
     onClickEditTag(tagKey, tagValues) {
         this.setState({
             showAddTag: true,
@@ -98,7 +88,6 @@ export default class TagList extends React.Component {
             editedTagValues: tagValues,
         });
     }
-
     onCancelDeleteTag() {
         this.setState({
             showDelete: false,
@@ -106,7 +95,6 @@ export default class TagList extends React.Component {
             deleteTagValue: null,
         });
     }
-
     onClickDeleteTag(tagName) {
         this.setState({
             showDelete: true,
@@ -114,7 +102,6 @@ export default class TagList extends React.Component {
             errorMessage: null,
         });
     }
-
     onCancelDeleteTagValue() {
         this.setState({
             showDeleteTagValue: false,
@@ -122,7 +109,6 @@ export default class TagList extends React.Component {
             deleteTagValue: null,
         });
     }
-
     onClickDeleteTagValue(tagKey, tagValue) {
         //its the last tag value - act as regular delete
         if (
@@ -139,31 +125,17 @@ export default class TagList extends React.Component {
             });
         }
     }
-
     validateTagExist(tagName) {
         return this.state.tags && this.state.tags[tagName] != null;
     }
-
     addNewTag(tagKey, tagValues) {
         const csrf = this.props._csrf;
-        if (this.state.category === 'domain') {
-            let domainMeta = this.domainMetaObject(
-                AppUtils.deepClone(this.state.domainObj)
-            );
-            this.updateMetaOnAdd(domainMeta, tagKey, tagValues, csrf);
-        } else if (this.state.category === 'role') {
-            let roleMeta = this.roleMetaObject(
-                AppUtils.deepClone(this.state.roleObj)
-            );
-            this.updateMetaOnAdd(roleMeta, tagKey, tagValues, csrf);
-        } else if (this.state.category === 'group') {
-            let groupMeta = this.groupMetaObject(
-                AppUtils.deepClone(this.state.groupObj)
-            );
-            this.updateMetaOnAdd(groupMeta, tagKey, tagValues, csrf);
-        }
+        let collectionMeta = this.metaObject(
+            AppUtils.deepClone(this.props.collectionDetails),
+            this.props.category
+        );
+        this.updateMetaOnAdd(collectionMeta, tagKey, tagValues, csrf);
     }
-
     updateMetaOnAdd(meta, tagKey, tagValues, csrf) {
         if (!meta.tags) {
             meta.tags = {};
@@ -176,24 +148,12 @@ export default class TagList extends React.Component {
 
     onSubmitDeleteTag() {
         const csrf = this.props._csrf;
-        if (this.state.category === 'domain') {
-            let domainMeta = this.domainMetaObject(
-                AppUtils.deepClone(this.state.domainObj)
-            );
-            this.updateMetaOnDelete(domainMeta, csrf);
-        } else if (this.state.category === 'role') {
-            let roleMeta = this.roleMetaObject(
-                AppUtils.deepClone(this.state.roleObj)
-            );
-            this.updateMetaOnDelete(roleMeta, csrf);
-        } else if (this.state.category === 'group') {
-            let groupMeta = this.groupMetaObject(
-                AppUtils.deepClone(this.state.groupObj)
-            );
-            this.updateMetaOnDelete(groupMeta, csrf);
-        }
+        let collectionMeta = this.metaObject(
+            AppUtils.deepClone(this.props.collectionDetails),
+            this.props.category
+        );
+        this.updateMetaOnDelete(collectionMeta, csrf);
     }
-
     updateMetaOnDelete(meta, csrf) {
         if (this.state.deleteTagValue) {
             //delete specific tag value
@@ -205,86 +165,76 @@ export default class TagList extends React.Component {
             //delete entire tag
             delete meta.tags[this.state.deleteTagName];
         }
-
         let successMessage = this.state.deleteTagValue
             ? `Successfully deleted ${this.state.deleteTagValue} from tag ${this.state.deleteTagName}`
             : `Successfully deleted tag ${this.state.deleteTagName}`;
         this.updateMeta(meta, csrf, successMessage, true);
     }
 
-    domainMetaObject(domain) {
-        return {
-            description: domain.description,
-            applicationId: domain.applicationId,
-            tokenExpiryMins: domain.tokenExpiryMins,
-            tagCertExpiryMins: domain.tagCertExpiryMins,
-            roleCertExpiryMins: domain.roleCertExpiryMins,
-            signAlgorithm: domain.signAlgorithm,
-            memberExpiryDays: domain.memberExpiryDays,
-            tagExpiryDays: domain.tagExpiryDays,
-            groupExpiryDays: domain.groupExpiryDays,
-            tags: domain.tags,
-        };
-    }
-
-    roleMetaObject(role) {
-        return {
-            selfServe: role.selfServe,
-            certExpiryMins: role.certExpiryMins,
-            reviewEnabled: role.reviewEnabled,
-            notifyRoles: role.notifyRoles,
-            serviceExpiryDays: role.serviceExpiryDays,
-            memberReviewDays: role.memberReviewDays,
-            serviceReviewDays: role.serviceReviewDays,
-            userAuthorityExpiration: role.userAuthorityExpiration,
-            userAuthorityFilter: role.userAuthorityFilter,
-            memberExpiryDays: role.memberExpiryDays,
-            tokenExpiryMins: role.tokenExpiryMins,
-            signAlgorithm: role.signAlgorithm,
-            groupExpiryDays: role.groupExpiryDays,
-            tags: role.tags,
-        };
-    }
-
-    groupMetaObject(group) {
-        return {
-            selfServe: group.selfServe,
-            reviewEnabled: group.reviewEnabled,
-            notifyRoles: group.notifyRoles,
-            serviceExpiryDays: group.serviceExpiryDays,
-            userAuthorityExpiration: group.userAuthorityExpiration,
-            userAuthorityFilter: group.userAuthorityFilter,
-            memberExpiryDays: group.memberExpiryDays,
-            tags: group.tags,
-        };
+    metaObject(collectionDetails, category) {
+        if (category === 'domain') {
+            return {
+                description: collectionDetails.description,
+                applicationId: collectionDetails.applicationId,
+                tokenExpiryMins: collectionDetails.tokenExpiryMins,
+                tagCertExpiryMins: collectionDetails.tagCertExpiryMins,
+                roleCertExpiryMins: collectionDetails.roleCertExpiryMins,
+                signAlgorithm: collectionDetails.signAlgorithm,
+                memberExpiryDays: collectionDetails.memberExpiryDays,
+                tagExpiryDays: collectionDetails.tagExpiryDays,
+                groupExpiryDays: collectionDetails.groupExpiryDays,
+                tags: collectionDetails.tags,
+            };
+        } else if (category === 'role') {
+            return {
+                selfServe: collectionDetails.selfServe,
+                certExpiryMins: collectionDetails.certExpiryMins,
+                reviewEnabled: collectionDetails.reviewEnabled,
+                notifyRoles: collectionDetails.notifyRoles,
+                serviceExpiryDays: collectionDetails.serviceExpiryDays,
+                memberReviewDays: collectionDetails.memberReviewDays,
+                serviceReviewDays: collectionDetails.serviceReviewDays,
+                userAuthorityExpiration:
+                    collectionDetails.userAuthorityExpiration,
+                userAuthorityFilter: collectionDetails.userAuthorityFilter,
+                memberExpiryDays: collectionDetails.memberExpiryDays,
+                tokenExpiryMins: collectionDetails.tokenExpiryMins,
+                signAlgorithm: collectionDetails.signAlgorithm,
+                groupExpiryDays: collectionDetails.groupExpiryDays,
+                tags: collectionDetails.tags,
+            };
+        } else if (category === 'group') {
+            return {
+                selfServe: collectionDetails.selfServe,
+                reviewEnabled: collectionDetails.reviewEnabled,
+                notifyRoles: collectionDetails.notifyRoles,
+                serviceExpiryDays: collectionDetails.serviceExpiryDays,
+                userAuthorityExpiration:
+                    collectionDetails.userAuthorityExpiration,
+                userAuthorityFilter: collectionDetails.userAuthorityFilter,
+                memberExpiryDays: collectionDetails.memberExpiryDays,
+                tags: collectionDetails.tags,
+            };
+        }
     }
 
     updateMeta(meta, csrf, successMessage, showSuccess = true) {
-        var categoryObject = this.props.domain;
-        var categoryType = 'domain';
-        if (this.state.category === 'role') {
-            categoryObject = this.props.role;
-            categoryType = this.state.category;
-        } else if (this.state.category === 'group') {
-            categoryObject = this.props.group;
-            categoryType = this.state.category;
-        }
-        this.api
+        let auditRef =
+            'Updated ' +
+            this.props.category +
+            ' ' +
+            this.props.collectionName +
+            ' Meta using Athenz UI';
+        this.props
             .putMeta(
                 this.props.domain,
-                categoryObject,
+                this.props.collectionName,
                 meta,
-                'Updated ' +
-                    categoryType +
-                    ' ' +
-                    categoryObject +
-                    ' Meta using Athenz UI',
+                auditRef,
                 csrf,
                 this.state.category
             )
-            .then(() => {
-                this.reloadTags(successMessage, showSuccess);
-            })
+            .then(() => this.reloadTags(successMessage, showSuccess))
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
@@ -293,55 +243,12 @@ export default class TagList extends React.Component {
     }
 
     reloadTags(successMessage, showSuccess = true) {
-        if (this.state.category === 'domain') {
-            this.props.api
-                .getDomain(this.props.domain)
-                .then((data) => {
-                    this.setState({ domainObj: data });
-                    this.updateStateAfterReload(
-                        data,
-                        successMessage,
-                        showSuccess
-                    );
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
-        } else if (this.state.category === 'role') {
-            this.props.api
-                .getRole(this.props.domain, this.props.role)
-                .then((data) => {
-                    this.setState({ roleObj: data });
-                    this.updateStateAfterReload(
-                        data,
-                        successMessage,
-                        showSuccess
-                    );
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
-        } else if (this.state.category === 'group') {
-            this.props.api
-                .getGroup(this.props.domain, this.props.group)
-                .then((data) => {
-                    this.setState({ groupObj: data });
-                    this.updateStateAfterReload(
-                        data,
-                        successMessage,
-                        showSuccess
-                    );
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
-        }
+        // if (this.state.category === 'domain') {
+        this.updateStateAfterReload(
+            this.props.collectionDetails,
+            successMessage,
+            showSuccess
+        );
     }
 
     updateStateAfterReload(data, successMessage, showSuccess = true) {
@@ -369,24 +276,22 @@ export default class TagList extends React.Component {
             MODAL_TIME_OUT
         );
     }
-
     closeModal() {
         this.setState({
             successMessage: '',
             showSuccess: false,
         });
     }
-
     render() {
         const left = 'left';
         const center = 'center';
         let rows = '';
-        const clonedTags = AppUtils.deepClone(this.state.tags);
+        const clonedTags = AppUtils.deepClone(this.props.tags || {});
         var categoryObject = this.props.domain;
         if (this.state.category === 'role') {
-            categoryObject = this.props.role;
+            categoryObject = this.props.collectionName;
         } else if (this.state.category === 'group') {
-            categoryObject = this.props.group;
+            categoryObject = this.props.collectionName;
         }
         rows = Object.entries(clonedTags).map((item, i) => {
             const tagKey = item[0];
@@ -403,7 +308,6 @@ export default class TagList extends React.Component {
                     tagKey={tagKey}
                     tagValues={tagValues}
                     color={color}
-                    api={this.api}
                     _csrf={this.props._csrf}
                     onClickDeleteTag={() => this.onClickDeleteTag(tagKey)}
                     onClickDeleteTagValue={this.onClickDeleteTagValue}
@@ -413,14 +317,12 @@ export default class TagList extends React.Component {
             );
             return toReturn;
         });
-
         let addTag = this.state.showAddTag ? (
             <AddTag
                 showAddTag={this.state.showAddTag}
                 editMode={this.state.editMode}
                 onCancel={this.closeAddTag}
                 resource={categoryObject}
-                api={this.api}
                 _csrf={this.props._csrf}
                 addNewTag={this.addNewTag}
                 editedTagKey={this.state.editedTagKey}
@@ -498,3 +400,19 @@ export default class TagList extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    putMeta: (domain, collectionName, detail, auditRef, _csrf, category) =>
+        dispatch(
+            updateTags(
+                domain,
+                collectionName,
+                detail,
+                auditRef,
+                _csrf,
+                category
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(TagList);

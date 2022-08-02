@@ -16,8 +16,8 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
-import RuleRow from './RuleRow';
 import Icon from '../denali/icons/Icon';
+import RuleRow from './RuleRow';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -81,7 +81,6 @@ const LeftMarginSpan = styled.span`
 export default class RuleTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
 
         this.state = {
             expanded: true,
@@ -126,7 +125,6 @@ export default class RuleTable extends React.Component {
                     details={item}
                     idx={i}
                     color={color}
-                    api={this.api}
                     key={key}
                     onUpdateSuccess={this.props.onSubmit}
                     _csrf={this.props._csrf}

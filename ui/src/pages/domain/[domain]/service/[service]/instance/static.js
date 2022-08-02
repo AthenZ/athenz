@@ -173,11 +173,7 @@ export default class StaticInstancePage extends React.Component {
                                     />
                                 </ServiceContentDiv>
                             </ServiceContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domain} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>

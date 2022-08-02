@@ -15,8 +15,10 @@
  */
 import React from 'react';
 import ServiceDependency from './ServiceDependency';
+import { connect } from 'react-redux';
+import { selectServiceDependencies } from '../../redux/selectors/visibility';
 
-export default class ServiceDependenciesTable extends React.Component {
+class ServiceDependenciesTable extends React.Component {
     render() {
         const rows =
             this.props.serviceDependencies &&
@@ -36,3 +38,12 @@ export default class ServiceDependenciesTable extends React.Component {
         return rows;
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        serviceDependencies: selectServiceDependencies(state),
+    };
+};
+
+export default connect(mapStateToProps, null)(ServiceDependenciesTable);

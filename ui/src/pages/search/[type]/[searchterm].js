@@ -100,7 +100,6 @@ const LineSeparator = styled.div`
 export async function getServerSideProps(context) {
     let api = API(context.req);
     let promises = [];
-    promises.push(api.listUserDomains());
     let type = context.query.type;
     let reload = false;
     let error = null;
@@ -116,15 +115,13 @@ export async function getServerSideProps(context) {
     });
     let domainResults = [];
     if (type === 'domain') {
-        domainResults = values[1];
+        domainResults = values[0];
     }
     return {
         props: {
             domain: context.query.searchterm,
-            domains: values[0],
             domainResults,
             type: type,
-            headerDetails: values[2],
             error,
             reload,
             nonce: context.req && context.req.headers.rid,
@@ -142,10 +139,6 @@ class PageSearchDetails extends React.Component {
             type: props.type,
             domain: props.domain,
         };
-        this.cache = createCache({
-            key: 'athenz',
-            nonce: this.props.nonce,
-        });
     }
 
     componentDidUpdate = (prevProps) => {
@@ -238,27 +231,18 @@ class PageSearchDetails extends React.Component {
             displayDomainResults = this.displayDomainResults();
         }
         return (
-            <CacheProvider value={this.cache}>
-                <div data-testid='search'>
-                    <Head>
-                        <title>{this.state.domain} - Athenz</title>
-                    </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        searchData={this.props.domain}
-                    />
-                    <MainContentDiv>
-                        <AppContainerDiv>
-                            {displayDomainResults}
-                            <UserDomains
-                                domains={this.state.domains}
-                                api={this.api}
-                            />
-                        </AppContainerDiv>
-                    </MainContentDiv>
-                </div>
-            </CacheProvider>
+            <div data-testid='search'>
+                <Head>
+                    <title>{this.state.domain} - Athenz</title>
+                </Head>
+                <Header showSearch={true} searchData={this.props.domain} />
+                <MainContentDiv>
+                    <AppContainerDiv>
+                        {displayDomainResults}
+                        <UserDomains />
+                    </AppContainerDiv>
+                </MainContentDiv>
+            </div>
         );
     }
 }

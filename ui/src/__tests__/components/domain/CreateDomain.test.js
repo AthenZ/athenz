@@ -17,18 +17,19 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import CreateDomain from '../../../components/domain/CreateDomain';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('CreateDomains', () => {
     it('should render', () => {
-        let domains = [];
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
+        // let domains = [];
+        // domains.push({ name: 'athens' });
+        // domains.push({ name: 'athens.ci' });
         let createDomainMessage =
             'Athenz top level domain creation is manual. \n Please connect with your system administrator to create top level domains. \n';
         let api = {};
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <CreateDomain
-                domains={domains}
+                // domains={domains}
                 api={api}
                 createDomainMessage={createDomainMessage}
             />

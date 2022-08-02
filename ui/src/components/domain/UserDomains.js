@@ -20,6 +20,10 @@ import { colors } from '../denali/styles';
 import Link from 'next/link';
 import { withRouter } from 'next/router';
 import PageUtils from '../utils/PageUtils';
+import { connect } from 'react-redux';
+import { getUserDomainsList } from '../../redux/thunks/domains';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectUserDomains } from '../../redux/selectors/domains';
 
 const DomainListDiv = styled.div`
     padding: 0 30px 0 15px;
@@ -92,7 +96,6 @@ const DividerSpan = styled.span`
 class UserDomains extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.toggleDomains = this.toggleDomains.bind(this);
         this.state = {
             showDomains: !(props.hideDomains ? props.hideDomains : false),
@@ -103,6 +106,11 @@ class UserDomains extends React.Component {
         this.setState({
             showDomains: !this.state.showDomains,
         });
+    }
+
+    componentDidMount() {
+        const { getDomainList } = this.props;
+        getDomainList();
     }
 
     render() {
@@ -172,4 +180,17 @@ class UserDomains extends React.Component {
         );
     }
 }
-export default withRouter(UserDomains);
+
+const mapStateToProps = (state) => ({
+    domains: selectUserDomains(state),
+    isLoading: selectIsLoading(state),
+});
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainList: () => dispatch(getUserDomainsList()),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(UserDomains));

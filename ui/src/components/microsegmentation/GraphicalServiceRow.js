@@ -19,10 +19,8 @@ import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import styled from '@emotion/styled';
 import { css, keyframes } from '@emotion/react';
-import ReactFlowRenderer from '../react-flow/ReactFlowRenderer';
 import { ReactFlowProvider } from 'react-flow-renderer';
-import CustomPrimaryServiceNode from './CustomPrimaryServiceNode';
-import CustomSecondaryServiceNode from './CustomSecondaryServiceNode';
+import ReactFlowRenderer from './ReactFlowRenderer';
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -33,12 +31,12 @@ const TdStyled = styled.td`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const TrStyled = styled.tr`
@@ -80,12 +78,6 @@ const StyledDiv = styled.div`
     width: 100%;
     height: 600px;
 `;
-
-const nodeTypes = {
-    primaryNode: CustomPrimaryServiceNode,
-    inboundNode: CustomSecondaryServiceNode,
-    outboundNode: CustomSecondaryServiceNode,
-};
 
 export default class GraphicalServiceRow extends React.Component {
     constructor(props) {
@@ -168,7 +160,7 @@ export default class GraphicalServiceRow extends React.Component {
         let newElements = [];
         newElements.push({
             id: '0',
-            type: 'primaryNode',
+            type: 'svcNode',
             data: {
                 data: this.props.data,
                 name: this.state.name,
@@ -228,7 +220,6 @@ export default class GraphicalServiceRow extends React.Component {
                         <StyledDiv>
                             <ReactFlowProvider>
                                 <ReactFlowRenderer
-                                    nodeTypes={nodeTypes}
                                     elements={elementsList}
                                     name={this.state.name}
                                     api={this.api}

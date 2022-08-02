@@ -16,6 +16,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import HeaderMenu from '../../../components/header/HeaderMenu';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('HeaderMenu', () => {
     it('should render', () => {
@@ -28,7 +29,7 @@ describe('HeaderMenu', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <HeaderMenu headerDetails={headerDetails} />
         );
         const headerMenu = getByTestId('header-menu');

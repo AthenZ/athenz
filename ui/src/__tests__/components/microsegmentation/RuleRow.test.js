@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { colors } from '../../../components/denali/styles';
 import RuleRow from '../../../components/microsegmentation/RuleRow';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RuleRow', () => {
     it('should render', () => {
@@ -31,7 +32,7 @@ describe('RuleRow', () => {
         let role = 'roleName';
         let color = colors.row;
         let idx = '50';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <RuleRow

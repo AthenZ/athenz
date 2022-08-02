@@ -19,7 +19,11 @@ import { colors } from '../denali/styles';
 import TemplateRow from './TemplateRow';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
+import { connect } from 'react-redux';
+
 import RequestUtils from '../utils/RequestUtils';
+import { makeRolesExpires } from '../../redux/actions/roles';
+import { makePoliciesExpires } from '../../redux/actions/policies';
 
 const TemplatesSectionDiv = styled.div`
     margin: 20px;
@@ -52,7 +56,7 @@ const TitleDiv = styled.div`
     margin-top: 40px;
 `;
 
-export default class TemplateList extends React.Component {
+class TemplateList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -122,6 +126,10 @@ export default class TemplateList extends React.Component {
                     showSuccess: true,
                     successMessage,
                 });
+
+                // if template boarded, the policies and roles sorted in the store is out of date
+                this.props.makeRolesAndPoliciesExpires();
+
                 // this is to close the success alert
                 setTimeout(
                     () =>
@@ -290,3 +298,19 @@ export default class TemplateList extends React.Component {
         );
     }
 }
+
+// const mapStateToProps = (state, props) => {
+//     return {
+//         ...props,
+//         // domainTemplateDetails: selectDomainTemplates(state),
+//     };
+// };
+
+const mapDispatchToProps = (dispatch) => ({
+    makeRolesAndPoliciesExpires: () => {
+        dispatch(makeRolesExpires());
+        dispatch(makePoliciesExpires());
+    },
+});
+
+export default connect(null, mapDispatchToProps)(TemplateList);

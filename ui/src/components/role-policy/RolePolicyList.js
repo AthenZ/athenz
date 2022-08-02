@@ -17,12 +17,15 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import AddPolicyToRole from '../policy/AddPolicyToRole';
-import RolePolicyRow from './RolePolicyRow';
 import Alert from '../denali/Alert';
 import DeleteModal from '../modal/DeleteModal';
 import NameUtils from '../utils/NameUtils';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import { selectActivePoliciesOnly } from '../../redux/selectors/policies';
+import { deletePolicy } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
+import RolePolicyRow from './RolePolicyRow';
 
 const PolicySectionDiv = styled.div`
     margin: 20px;
@@ -45,10 +48,9 @@ const PolicyTable = styled.table`
     border-color: grey;
 `;
 
-export default class RolePolicyList extends React.Component {
+class RolePolicyList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.onSubmitDeletePolicy = this.onSubmitDeletePolicy.bind(this);
         this.onCancelDeletePolicy = this.onCancelDeletePolicy.bind(this);
         this.toggleAddPolicy = this.toggleAddPolicy.bind(this);
@@ -61,7 +63,7 @@ export default class RolePolicyList extends React.Component {
     }
 
     onSubmitDeletePolicy() {
-        this.api
+        this.props
             .deletePolicy(
                 this.props.domain,
                 this.state.deletePolicyName,
@@ -96,53 +98,56 @@ export default class RolePolicyList extends React.Component {
         });
     }
 
-    reloadPolicies(successMessage, showSuccess = true) {
-        let role = this.props.role;
-
-        this.api
-            .getPolicies(this.props.domain, true)
-            .then((data) => {
-                let filteredPolicies = data;
-                if (role) {
-                    filteredPolicies = data.filter((policy) => {
-                        let included = false;
-                        if (policy.assertions) {
-                            policy.assertions.forEach((element) => {
-                                if (
-                                    NameUtils.getShortName(
-                                        ':role.',
-                                        element.role
-                                    ) == role
-                                ) {
-                                    included = true;
-                                }
-                            });
-                        }
-                        return included;
-                    });
-                }
-
-                this.setState({
-                    list: filteredPolicies,
-                    showAddPolicy: false,
-                    showSuccess,
-                    successMessage,
-                    showDelete: false,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
+    componentDidUpdate(prevProps) {
+        if (prevProps.policies !== this.props.policies && this.props.role) {
+            let filteredPolicies = this.filterPolicies();
+            this.setState({
+                list: filteredPolicies,
             });
+        }
+    }
+
+    filterPolicies() {
+        const { policies, role } = this.props;
+        let filteredPolicies = [];
+        if (role) {
+            filteredPolicies = policies.filter((policy) => {
+                let included = false;
+                if (policy.assertions) {
+                    for (const [, assertion] of Object.entries(
+                        policy.assertions
+                    )) {
+                        if (
+                            NameUtils.getShortName(':role.', assertion.role) ===
+                            role
+                        ) {
+                            included = true;
+                        }
+                    }
+                    return included;
+                }
+            });
+        }
+        return filteredPolicies;
+    }
+
+    reloadPolicies(successMessage, showSuccess = true) {
+        let filteredPolicies = this.filterPolicies();
+        this.setState({
+            list: filteredPolicies,
+            showAddPolicy: false,
+            showSuccess,
+            successMessage,
+            showDelete: false,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     toggleAddPolicy() {
@@ -173,7 +178,6 @@ export default class RolePolicyList extends React.Component {
                         domain={domain}
                         role={role}
                         modified={item.modified}
-                        api={this.api}
                         key={item.name}
                         _csrf={this.props._csrf}
                         onClickDeletePolicy={onClickDeletePolicy}
@@ -192,7 +196,6 @@ export default class RolePolicyList extends React.Component {
                 onSubmit={this.reloadPolicies}
                 domain={domain}
                 role={role}
-                api={this.api}
                 _csrf={this.props._csrf}
             />
         ) : (
@@ -236,3 +239,17 @@ export default class RolePolicyList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        policies: selectActivePoliciesOnly(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deletePolicy: (domainName, roleName) =>
+        dispatch(deletePolicy(domainName, roleName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RolePolicyList);

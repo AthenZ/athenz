@@ -14,13 +14,143 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
-import API from '../../../api';
+import { waitFor } from '@testing-library/react';
+import {
+    buildMicrosegmentationForState,
+    getStateWithMicrosegmentation,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 import RulesList from '../../../components/microsegmentation/RulesList';
 
 describe('RulesList', () => {
     it('should render', () => {
         let domain = 'domain';
+        // const policies = []
+        // policies.push({
+        //     name: 'domain:policy.acl.serviceB.inbound',
+        //     version: '0',
+        //     active: true,
+        //     assertion: [
+        //         {
+        //             role: 'domain:role.acl.serviceB.inbound-test0',
+        //             id: 0,
+        //             effect: 'ALLOW',
+        //             resource: 'domain:serviceB',
+        //             action: 'TCP-IN:1111:2222-2222',
+        //         },
+        //     ],
+        // })
+        // policies.push({
+        //     name: 'domain:policy.acl.serviceC.inbound',
+        //     version: '0',
+        //     active: true,
+        //     assertion: [
+        //         {
+        //             role: 'domain:role.acl.serviceC.inbound-test1',
+        //             id: 1,
+        //             effect: 'ALLOW',
+        //             resource: 'domain:serviceC',
+        //             action: 'TCP-IN:1111:2222-2222',
+        //         },
+        //     ],
+        // })
+        // policies.push({
+        //     name: 'domain:policy.acl.serviceD.inbound',
+        //     version: '0',
+        //     active: true,
+        //     assertion: [
+        //         {
+        //             role: 'domain:role.acl.serviceD.inbound-test2',
+        //             id: 2,
+        //             effect: 'ALLOW',
+        //             resource: 'domain:serviceD',
+        //             action: 'TCP-IN:1111:2222-2222',
+        //         },
+        //     ],
+        // })
+        // policies.push({
+        //     name: 'domain:policy.acl.serviceF.outbound',
+        //     version: '0',
+        //     active: true,
+        //     assertion: [
+        //         {
+        //             role: 'domain:role.acl.serviceF.outbound-test3',
+        //             id: 3,
+        //             effect: 'ALLOW',
+        //             resource: 'domain:serviceF',
+        //             action: 'UDP-OUT:3333:4444-4444',
+        //         },
+        //     ],
+        // })
+        // policies.push({
+        //     name: 'domain:policy.acl.serviceG.outbound',
+        //     version: '0',
+        //     active: true,
+        //     assertion: [
+        //         {
+        //             role: 'domain:role.acl.serviceG.outbound-test4',
+        //             id: 4,
+        //             effect: 'ALLOW',
+        //             resource: 'domain:serviceG',
+        //             action: 'UDP-OUT:3333:4444-4444',
+        //         },
+        //     ],
+        // })
+        // policies.push({
+        //     name: 'domain:policy.acl.serviceH.outbound',
+        //     version: '0',
+        //     active: true,
+        //     assertion: [
+        //         {
+        //             role: 'domain:role.acl.serviceH.outbound-test5',
+        //             id: 5,
+        //             effect: 'ALLOW',
+        //             resource: 'domain:serviceH',
+        //             action: 'UDP-OUT:3333:4444-4444',
+        //         },
+        //     ],
+        // })
+        //
+        // const roles = [];
+        // roles.push({
+        //     name: 'domain:role.acl.serviceB.inbound-test0',
+        //     roleMembers: [
+        //         { memberName: 'serviceA' },
+        //     ],
+        // });
+        // roles.push({
+        //     name: 'domain:role.acl.serviceC.inbound-test1',
+        //     roleMembers: [
+        //         { memberName: 'serviceA' },
+        //     ],
+        // });
+        // roles.push({
+        //     name: 'domain:role.acl.serviceD.inbound-test2',
+        //     roleMembers: [
+        //         { memberName: 'serviceA' },
+        //     ],
+        // });
+        // roles.push({
+        //     name: 'domain:role.acl.serviceF.outbound-test3',
+        //     roleMembers: [
+        //         { memberName: 'serviceE' },
+        //     ],
+        // });
+        // roles.push({
+        //     name: 'domain:role.acl.serviceG.outbound-test4',
+        //     roleMembers: [
+        //         { memberName: 'serviceE' },
+        //     ],
+        // });
+        // roles.push({
+        //     name: 'domain:role.acl.serviceH.outbound-test5',
+        //     roleMembers: [
+        //         { memberName: 'serviceE' },
+        //     ],
+        // });
+
+
         let segmentationData = {
             inbound: [
                 {
@@ -41,15 +171,16 @@ describe('RulesList', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+
+        const { getByTestId } = renderWithRedux(
             <RulesList
-                api={API()}
                 domain={domain}
                 _csrf={'_csrf'}
                 isDomainAuditEnabled={true}
-                data={segmentationData}
-            />
+            />,
+            getStateWithMicrosegmentation(buildMicrosegmentationForState(segmentationData, domain))
         );
+
         const rulesList = getByTestId('segmentation-data-list');
 
         expect(rulesList).toMatchSnapshot();

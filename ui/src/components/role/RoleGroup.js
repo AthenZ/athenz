@@ -15,10 +15,10 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import RoleSectionRow from './RoleSectionRow';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import { GROUP_ROLES_CATEGORY } from '../constants/constants';
+import RoleSectionRow from './RoleSectionRow';
 
 const LeftMarginSpan = styled.span`
     margin-right: 10px;
@@ -59,7 +59,6 @@ const StyledPaddingLeft = styled.div`
 export default class RoleGroup extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
 
         this.state = {
             expanded: false,
@@ -81,9 +80,8 @@ export default class RoleGroup extends React.Component {
     };
 
     expandRole() {
-        let expanded = this.state.expanded;
         this.setState({
-            expanded: !expanded,
+            expanded: !this.state.expanded,
         });
     }
 
@@ -125,8 +123,6 @@ export default class RoleGroup extends React.Component {
                         }
                         return (
                             <RoleSectionRow
-                                category={this.props.category}
-                                api={this.api}
                                 details={item}
                                 idx={i}
                                 color={color}
@@ -134,10 +130,6 @@ export default class RoleGroup extends React.Component {
                                 key={key}
                                 onUpdateSuccess={this.props.onUpdateSuccess}
                                 _csrf={this.props._csrf}
-                                justificationRequired={
-                                    this.props.justificationRequired
-                                }
-                                userProfileLink={this.props.userProfileLink}
                                 newRole={this.props.newRole}
                             />
                         );

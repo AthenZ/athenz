@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import Tabs from '../../../components/header/Tabs';
-import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('Tabs', () => {
     it('should render', () => {
@@ -27,7 +27,7 @@ describe('Tabs', () => {
                 });
             },
         };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <Tabs selectedName='history' api={api} />
         );
         const tabs = getByTestId('tabgroup');
