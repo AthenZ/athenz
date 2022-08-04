@@ -59,9 +59,10 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}" {
     DomainName domainName; //name of the domain
     EntityName policyName; //name of the policy to be added/updated
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     Policy policy; //Policy object to be added or updated in the domain
     authorize("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
@@ -296,8 +297,9 @@ resource Policy PUT "/domain/{domainName}/policy/{policyName}/version/create" (n
     EntityName policyName; //name of the policy to be added/updated
     PolicyOptions policyOptions; // name of the source version to copy from and name of new version
     String     auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     authorize("update", "{domainName}:policy.{policyName}");
-    expected NO_CONTENT;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

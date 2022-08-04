@@ -1036,8 +1036,8 @@ public class DBService implements RolesProvider {
         return retry;
     }
 
-    public void executePutPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, String fromVersion,
-                                        String auditRef, String caller) {
+    public Policy executePutPolicyVersion(ResourceContext ctx, String domainName, String policyName, String version, String fromVersion,
+                                        String auditRef, String caller, Boolean returnObj) {
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
         // count reaches 0
@@ -1138,9 +1138,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
-                
-                return;
 
+                if (returnObj == Boolean.TRUE) {
+                    return getPolicy(con, domainName, policyName, version);
+                }
+
+                return null;
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
@@ -1149,8 +1152,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
-            String auditRef, String caller) {
+    Policy executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
+            String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1211,8 +1214,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                    return getPolicy(con, domainName, policyName, policy.getVersion());
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1290,8 +1297,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
-            String auditRef, String caller) {
+    Role executePutRole(ResourceContext ctx, String domainName, String roleName, Role role,
+            String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1340,8 +1347,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE){
+                    return getRole(con, domainName, roleName, true,false, true);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1351,7 +1362,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutGroup(ResourceContext ctx, final String domainName, final String groupName, Group group, final String auditRef) {
+    Group executePutGroup(ResourceContext ctx, final String domainName, final String groupName, Group group, final String auditRef, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1400,8 +1411,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                    return getGroup(con, domainName, groupName, true, false);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1411,8 +1426,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
-            ServiceIdentity service, String auditRef, String caller) {
+    ServiceIdentity executePutServiceIdentity(ResourceContext ctx, String domainName, String serviceName,
+            ServiceIdentity service, String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1454,8 +1469,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                   return getServiceIdentity(con, domainName, serviceName, false);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1592,8 +1611,8 @@ public class DBService implements RolesProvider {
         return !StringUtil.isEmpty(role.getTrust());
     }
 
-    void executePutMembership(ResourceContext ctx, String domainName, String roleName,
-            RoleMember roleMember, String auditRef, String caller) {
+    Membership executePutMembership(ResourceContext ctx, String domainName, String roleName,
+            RoleMember roleMember, String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1657,8 +1676,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                   return con.getRoleMember(domainName, roleName, principal, 0, false);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
 
@@ -1671,8 +1694,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutGroupMembership(ResourceContext ctx, final String domainName, Group group,
-                                   GroupMember groupMember, final String auditRef) {
+    GroupMembership executePutGroupMembership(ResourceContext ctx, final String domainName, Group group,
+                                   GroupMember groupMember, final String auditRef, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -1723,7 +1746,12 @@ public class DBService implements RolesProvider {
                 // add domain change event
 
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                    return con.getGroupMember(domainName, groupName, principal, 0, false);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
 
@@ -3388,8 +3416,6 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
-
-                return;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -5375,7 +5401,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public void executePutGroupSystemMeta(ResourceContext ctx, final String domainName, final String groupName,
+    public Group executePutGroupSystemMeta(ResourceContext ctx, final String domainName, final String groupName,
                                           GroupSystemMeta meta, final String attribute, final String auditRef) {
 
         // our exception handling code does the check for retry count
@@ -5436,7 +5462,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
                 
-                return;
+                return updatedGroup;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -5446,7 +5472,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public void executePutServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
+    public ServiceIdentity executePutServiceIdentitySystemMeta(ResourceContext ctx, String domainName, String serviceName,
             ServiceIdentitySystemMeta meta, String attribute, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -5490,7 +5516,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
                 
-                return;
+                return serviceIdentity;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -5549,7 +5575,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public void executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, Role originalRole,
+    public Role executePutRoleMeta(ResourceContext ctx, String domainName, String roleName, Role originalRole,
                                    RoleMeta meta, String auditRef, String caller) {
 
         // our exception handling code does the check for retry count
@@ -5621,7 +5647,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
                 
-                return;
+                return updatedRole;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -5659,7 +5685,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    public void executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,
+    public Group executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,
                                     GroupMeta meta, final String auditRef) {
 
         // our exception handling code does the check for retry count
@@ -5735,7 +5761,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
                 
-                return;
+                return updatedGroup;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -6651,7 +6677,7 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
-                
+
                 return;
 
             } catch (ResourceException ex) {
@@ -6707,7 +6733,7 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
-                
+
                 return;
 
             } catch (ResourceException ex) {
@@ -6908,8 +6934,8 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutGroupReview(ResourceContext ctx, final String domainName, final String groupName,
-                               Group group, MemberDueDays memberExpiryDueDays, final String auditRef) {
+    Group executePutGroupReview(ResourceContext ctx, final String domainName, final String groupName,
+                               Group group, MemberDueDays memberExpiryDueDays, final String auditRef, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -6993,8 +7019,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                    return getGroup(con, domainName, groupName, true, false);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -7004,9 +7034,9 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executePutRoleReview(ResourceContext ctx, String domainName, String roleName, Role role,
+    Role executePutRoleReview(ResourceContext ctx, String domainName, String roleName, Role role,
                               MemberDueDays memberExpiryDueDays, MemberDueDays memberReminderDueDays,
-                              String auditRef, String caller) {
+                              String auditRef, String caller, Boolean returnObj) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -7095,8 +7125,12 @@ public class DBService implements RolesProvider {
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
-                
-                return;
+
+                if (returnObj == Boolean.TRUE) {
+                    return getRole(con, domainName, roleName, true, false, true);
+                }
+
+                return null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {

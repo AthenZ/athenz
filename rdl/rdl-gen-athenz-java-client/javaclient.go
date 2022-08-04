@@ -280,8 +280,13 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 			q += "\n        }"
 		} else if in.Header != "" {
 			h += "\n        if (" + iname + " != null) {"
-			h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", " + iname + ");"
+			if (in.Type == "String") {
+				h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", " + iname + ");"
+			} else {
+				h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", String.valueOf(" + iname + "));"
+			}
 			h += "\n        }"
+
 		} else { //the entity
 			entityName = iname
 		}
@@ -332,6 +337,8 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	expected = append(expected, rdl.StatusCode(r.Expected))
 	couldBeNoContent := "NO_CONTENT" == r.Expected
 	couldBeNotModified := "NOT_MODIFIED" == r.Expected
+	couldBeReturned := "OK" == r.Expected
+	fmt.Sprintf("hey %b",couldBeReturned)
 	noContent := couldBeNoContent && r.Alternatives == nil
 	for _, e := range r.Alternatives {
 		if "NO_CONTENT" == e {
@@ -339,6 +346,9 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 		}
 		if "NOT_MODIFIED" == e {
 			couldBeNotModified = true
+		}
+		if "OK" == e {
+			couldBeReturned = true
 		}
 		expected = append(expected, rdl.StatusCode(e))
 	}
