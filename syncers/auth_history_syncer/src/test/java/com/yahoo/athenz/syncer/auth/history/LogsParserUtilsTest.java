@@ -88,6 +88,11 @@ public class LogsParserUtilsTest {
         recordFromLogEvent = LogsParserUtils.getRecordFromLogEvent(message);
         TestUtils.assertRecordMatch(recordFromLogEvent, message);
         assertEquals("GET /zms/v1/access/create?principal=some.principal&domain=home.testuser&resource=home.origdomain:testsource", recordFromLogEvent.getEndpoint());
+
+        message="87.248.108.86 - user.testprincipal [19/Apr/2022:08:00:45 +0000] \"GET /zms/v1/access/sudo_test?resource=home.testuser:testsource&principal=user.testprincipal HTTP/1.1\" 200 16 \"-\" \"Go-http-client/1.1\" 0 22 Auth-X509 TLSv1.2 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
+        recordFromLogEvent = LogsParserUtils.getRecordFromLogEvent(message);
+        TestUtils.assertRecordMatch(recordFromLogEvent, message);
+        assertEquals("GET /zms/v1/access/sudo_test?resource=home.testuser:testsource&principal=user.testprincipal", recordFromLogEvent.getEndpoint());
     }
 
     @Test

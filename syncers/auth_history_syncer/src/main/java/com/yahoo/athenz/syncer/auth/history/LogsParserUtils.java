@@ -40,13 +40,16 @@ public class LogsParserUtils {
     // /access/{action}/{resource}?domain={domain}
     private static final Pattern ACCESS_RESOURCE_ALT_DOMAIN_PATTERN = Pattern.compile("/access/.*domain=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE);
 
+    // regex: /access/{action}?resource={domain}:{resource}
+    private static final Pattern ACCESS_RESOURCE_PATTERN_QUERY_PARAM = Pattern.compile("/access/.*resource=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE);
+
     // regex: /access/{action}/{resource}
     private static final Pattern ACCESS_RESOURCE_PATTERN = Pattern.compile("/access/.*/(" + DOMAIN_REGEX + "):.*", Pattern.MULTILINE);
 
     // regex: /rolecert?roleName={domain}:role.{role}
     private static final Pattern ROLE_CERT_PATTERN = Pattern.compile("/rolecert.roleName=(" + DOMAIN_REGEX + "):role.*", Pattern.MULTILINE);
 
-    private static final Pattern[] PATTERNS = {DOMAIN_PATH_PARAM_PATTERN, OAUTH_TOKEN_PATTERN, ACCESS_RESOURCE_ALT_DOMAIN_PATTERN, ACCESS_RESOURCE_PATTERN, ROLE_CERT_PATTERN};
+    private static final Pattern[] PATTERNS = {DOMAIN_PATH_PARAM_PATTERN, OAUTH_TOKEN_PATTERN, ACCESS_RESOURCE_ALT_DOMAIN_PATTERN, ACCESS_RESOURCE_PATTERN_QUERY_PARAM, ACCESS_RESOURCE_PATTERN, ROLE_CERT_PATTERN};
 
     private static final String PROP_TTL = "auth_history_syncer.ttl";
     private static final String PROP_TTL_DEFAULT = "720"; // 30 days

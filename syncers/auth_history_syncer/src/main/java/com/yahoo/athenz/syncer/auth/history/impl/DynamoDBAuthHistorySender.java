@@ -65,9 +65,14 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         this.mappedTable = enhancedClient.table(tableName, TableSchema.fromBean(AuthHistoryDynamoDBRecord.class));
     }
 
+    public DynamoDBAuthHistorySender(DynamoDbEnhancedAsyncClient enhancedClient, DynamoDbAsyncTable<AuthHistoryDynamoDBRecord> mappedTable) {
+        this.enhancedClient = enhancedClient;
+        this.mappedTable = mappedTable;
+    }
+
     @Override
-    public void pushRecords(Set<AuthHistoryDynamoDBRecord> logs) {
-        LOGGER.info("Started Pushing to DB " + logs.size() + " records");
+    public void pushRecords(Set<AuthHistoryDynamoDBRecord> logs) throws RuntimeException, ExecutionException, InterruptedException {
+        LOGGER.info("Started Pushing to DB {} records", logs.size());
         Iterable<List<AuthHistoryDynamoDBRecord>> batchPartitions = splitToBatchSizePartitions(logs);
         List<CompletableFuture<BatchWriteResult>> futures = new ArrayList<>();
         batchPartitions.forEach(partition -> {
@@ -75,7 +80,17 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
         });
 
         futures.forEach(CompletableFuture::join);
-        LOGGER.info("Finished Pushing to DB " + logs.size() + " records");
+        for (CompletableFuture<BatchWriteResult> future : futures) {
+            if (future.isCompletedExceptionally()) {
+                throw new RuntimeException("DynamoDB put completed exceptionally");
+            }
+            BatchWriteResult batchWriteResult = future.get();
+            List<AuthHistoryDynamoDBRecord> authHistoryDynamoDBRecords = batchWriteResult.unprocessedPutItemsForTable(mappedTable);
+            if (authHistoryDynamoDBRecords != null && !authHistoryDynamoDBRecords.isEmpty()) {
+                throw new RuntimeException("Failed to write " + authHistoryDynamoDBRecords.size() + " records");
+            }
+        }
+        LOGGER.info("Finished Pushing to DB {} records", logs.size());
     }
 
     private static void createTableIfNotExists(DynamoDbAsyncClient dynamoDbAsyncClient, String tableName) throws InterruptedException {
@@ -124,10 +139,10 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
                 .globalSecondaryIndexes(principalDomainIndex, uriDomainIndex)
                 .build();
         try {
-            LOGGER.info("Trying to create table: " + tableName);
+            LOGGER.info("Trying to create table: {}", tableName);
             dynamoDbAsyncClient.createTable(createTableRequest).get();
         } catch (ExecutionException | DynamoDbException ex) {
-            LOGGER.error("Table " + tableName + " creation failed. Error: " + ex.getMessage());
+            LOGGER.error("Table {} creation failed. Error: {}", tableName, ex.getMessage(), ex);
             // It is possible that the table already exists so if creation fails we will only log the error.
             // If the table doesn't exist, we will fail later during push.
         }
@@ -143,14 +158,15 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
                 .build();
         try {
             dynamoDbAsyncClient.updateTimeToLive(updateTimeToLiveRequest).get();
-            LOGGER.info("Table " + tableName + " TTL enabled successfully");
+            LOGGER.info("Table {} TTL enabled successfully", tableName);
         } catch (ExecutionException | DynamoDbException ex) {
-            LOGGER.error("Table " + tableName + " ttl update failed. Error: " + ex.getMessage());
+            LOGGER.error("Table {} ttl update failed. Error: {}", tableName, ex.getMessage(), ex);
         }
     }
 
     private CompletableFuture<BatchWriteResult> putBatchPartition(final List<AuthHistoryDynamoDBRecord> batchPartition, final int retryCount) {
         if (retryCount == MAX_RETRIES) {
+            LOGGER.error("Failed to write to DB after {} retries", retryCount);
             return batchWriteMaxFailuresResult(retryCount);
         }
 
@@ -189,7 +205,12 @@ public class DynamoDBAuthHistorySender implements AuthHistorySender {
 
     private CompletableFuture<BatchWriteResult> getBatchWriteResultCompletableFuture(List<AuthHistoryDynamoDBRecord> batchPartition) {
         WriteBatch.Builder<AuthHistoryDynamoDBRecord> writeBatchBuilder = WriteBatch.builder(AuthHistoryDynamoDBRecord.class).mappedTableResource(mappedTable);
-        batchPartition.forEach(record -> writeBatchBuilder.addPutItem(record));
+        batchPartition.forEach(record -> {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Writing record: {}", record.toString());
+            }
+            writeBatchBuilder.addPutItem(record);
+        });
         WriteBatch writeBatch = writeBatchBuilder.build();
         BatchWriteItemEnhancedRequest writeItemEnhancedRequest = BatchWriteItemEnhancedRequest.builder().addWriteBatch(writeBatch).build();
         CompletableFuture<BatchWriteResult> batchWriteResultCompletableFuture = enhancedClient.batchWriteItem(writeItemEnhancedRequest);

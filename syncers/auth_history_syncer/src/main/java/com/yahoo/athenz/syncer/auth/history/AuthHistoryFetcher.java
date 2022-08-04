@@ -25,5 +25,5 @@ public interface AuthHistoryFetcher {
     /**
      * Fetch access logs and convert them to {@link AuthHistoryDynamoDBRecord}
      */
-    Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime);
+    Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime, boolean useFilterPattern);
 }

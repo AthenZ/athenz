@@ -25,5 +25,5 @@ public interface AuthHistorySender {
     /**
      * Push filtered access log records to data store
      */
-    void pushRecords(Set<AuthHistoryDynamoDBRecord> logs);
+    void pushRecords(Set<AuthHistoryDynamoDBRecord> logs) throws Exception;
 }

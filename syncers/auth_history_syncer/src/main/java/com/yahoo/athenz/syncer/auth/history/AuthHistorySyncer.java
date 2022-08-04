@@ -34,6 +34,8 @@ public class AuthHistorySyncer {
     private static final Long MAX_SYNC_RANGE = TimeUnit.MINUTES.toMillis(30);
     private static final String PROP_REGION = "auth_history_syncer.aws.region";
     private static final String PROP_REGION_DEFAULT = "us-west-2";
+    private static final String PROP_AUTH_HISTORY_USE_FILTER_PATTERN = "auth_history_syncer.use_filter_pattern";
+    private static final String PROP_AUTH_HISTORY_USE_FILTER_PATTERN_DEFAULT = "true";
     private static final String PROP_AUTH_HISTORY_FETCH_FACTORY_CLASS = "auth_history_syncer.fetch_factory_class";
     private static final String PROP_AUTH_HISTORY_SEND_FACTORY_CLASS = "auth_history_syncer.send_factory_class";
     private static final String PROP_AUTH_HISTORY_SEND_FACTORY_CLASS_DEFAULT = "com.yahoo.athenz.syncer.auth.history.impl.DynamoDBAuthHistorySenderFactory";
@@ -61,9 +63,10 @@ public class AuthHistorySyncer {
 
             LOGGER.info("Start syncing. Range - {}", syncTimeRange);
             String region = System.getProperty(PROP_REGION, PROP_REGION_DEFAULT);
+            boolean useFilterPattern = Boolean.parseBoolean(System.getProperty(PROP_AUTH_HISTORY_USE_FILTER_PATTERN, PROP_AUTH_HISTORY_USE_FILTER_PATTERN_DEFAULT));
             PrivateKeyStore privateKeyStore = getPrivateKeyStore();
             AuthHistoryFetcher authHistoryFetcher = getAuthHistoryFetcher(privateKeyStore, region);
-            Set<AuthHistoryDynamoDBRecord> allRecords = authHistoryFetcher.getLogs(syncTimeRange.getStartTime(), syncTimeRange.getEndTime());
+            Set<AuthHistoryDynamoDBRecord> allRecords = authHistoryFetcher.getLogs(syncTimeRange.getStartTime(), syncTimeRange.getEndTime(), useFilterPattern);
             AuthHistorySender authHistorySender = getAuthHistorySender(privateKeyStore, region);
             authHistorySender.pushRecords(allRecords);
             LOGGER.info("Finished syncing successfully");
