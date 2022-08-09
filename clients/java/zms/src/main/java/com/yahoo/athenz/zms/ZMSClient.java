@@ -1068,10 +1068,10 @@ public class ZMSClient implements Closeable {
      * @param role       role object to be added to the domain
      * @throws ZMSClientException in case of failure
      */
-    public void putRole(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
+    public Role putRole(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
         updatePrincipal();
         try {
-            client.putRole(domainName, roleName, auditRef, returnObj, role);
+           return client.putRole(domainName, roleName, auditRef, returnObj, role);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1207,14 +1207,14 @@ public class ZMSClient implements Closeable {
      * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putMembershipWithReview(String domainName, String roleName, String memberName,
+    public Membership putMembershipWithReview(String domainName, String roleName, String memberName,
                                         Timestamp expiration, Timestamp review, String auditRef, Boolean returnObj) {
         Membership mbr = new Membership().setRoleName(roleName)
                 .setMemberName(memberName).setExpiration(expiration).setReviewReminder(review)
                 .setIsMember(true);
         updatePrincipal();
         try {
-            client.putMembership(domainName, roleName, memberName, auditRef, returnObj, mbr);
+            return client.putMembership(domainName, roleName, memberName, auditRef, returnObj, mbr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1577,10 +1577,10 @@ public class ZMSClient implements Closeable {
      * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putPolicy(String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy) {
+    public Policy putPolicy(String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy) {
         updatePrincipal();
         try {
-            client.putPolicy(domainName, policyName, auditRef, returnObj, policy);
+            return client.putPolicy(domainName, policyName, auditRef, returnObj, policy);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1647,7 +1647,7 @@ public class ZMSClient implements Closeable {
         putPolicyVersionImpl(domainName, policyName, version, fromVersion, auditRef, false);
     }
 
-    private void putPolicyVersionImpl(String domainName, String policyName, String version, String fromVersion, String auditRef, Boolean returnObj) {
+    private Policy putPolicyVersionImpl(String domainName, String policyName, String version, String fromVersion, String auditRef, Boolean returnObj) {
         updatePrincipal();
         try {
             PolicyOptions policyOptions = new PolicyOptions();
@@ -1655,7 +1655,7 @@ public class ZMSClient implements Closeable {
             if (fromVersion != null) {
                 policyOptions.setFromVersion(fromVersion);
             }
-            client.putPolicyVersion(domainName, policyName, policyOptions, auditRef, returnObj);
+            return client.putPolicyVersion(domainName, policyName, policyOptions, auditRef, returnObj);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1736,11 +1736,11 @@ public class ZMSClient implements Closeable {
      * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putServiceIdentity(String domainName, String serviceName,
+    public ServiceIdentity putServiceIdentity(String domainName, String serviceName,
                                    String auditRef, Boolean returnObj, ServiceIdentity service) {
         updatePrincipal();
         try {
-            client.putServiceIdentity(domainName, serviceName, auditRef, returnObj, service);
+            return client.putServiceIdentity(domainName, serviceName, auditRef, returnObj, service);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3034,10 +3034,10 @@ public class ZMSClient implements Closeable {
      * @param role        Role object containing updated and/or deleted members
      * @throws ZMSClientException in case of failure
      */
-    public void putRoleReview(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
+    public Role putRoleReview(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
         updatePrincipal();
         try {
-            client.putRoleReview(domainName, roleName, auditRef, returnObj, role);
+            return client.putRoleReview(domainName, roleName, auditRef, returnObj, role);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3280,10 +3280,10 @@ public class ZMSClient implements Closeable {
      * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putGroupReview(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
+    public Group putGroupReview(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
         updatePrincipal();
         try {
-            client.putGroupReview(domainName, groupName, auditRef, returnObj, group);
+            return client.putGroupReview(domainName, groupName, auditRef, returnObj, group);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3338,10 +3338,10 @@ public class ZMSClient implements Closeable {
      * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putGroup(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
+    public Group putGroup(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
         updatePrincipal();
         try {
-            client.putGroup(domainName, groupName, auditRef, returnObj, group);
+            return client.putGroup(domainName, groupName, auditRef, returnObj, group);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3409,12 +3409,12 @@ public class ZMSClient implements Closeable {
      * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putGroupMembership(String domainName, String groupName, String memberName, String auditRef, Boolean returnObj) {
+    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, Boolean returnObj) {
         GroupMembership mbr = new GroupMembership().setGroupName(groupName)
                 .setMemberName(memberName).setIsMember(true);
         updatePrincipal();
         try {
-            client.putGroupMembership(domainName, groupName, memberName, auditRef, returnObj, mbr);
+            return client.putGroupMembership(domainName, groupName, memberName, auditRef, returnObj, mbr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

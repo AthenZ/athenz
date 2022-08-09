@@ -1139,11 +1139,8 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
 
-                if (returnObj == Boolean.TRUE) {
-                    return getPolicy(con, domainName, policyName, version);
-                }
+                return returnObj == Boolean.TRUE ?  getPolicy(con, domainName, policyName, version) :  null;
 
-                return null;
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
                     throw ex;
@@ -1215,11 +1212,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
 
-                if (returnObj == Boolean.TRUE) {
-                    return getPolicy(con, domainName, policyName, policy.getVersion());
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? getPolicy(con, domainName, policyName, policy.getVersion()) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1348,11 +1341,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-                if (returnObj == Boolean.TRUE){
-                    return getRole(con, domainName, roleName, true,false, true);
-                }
-
-                return null;
+              return returnObj == Boolean.TRUE ? getRole(con, domainName, roleName, true, false, true) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1412,11 +1401,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                if (returnObj == Boolean.TRUE) {
-                    return getGroup(con, domainName, groupName, true, false);
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, false) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1470,11 +1455,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, serviceName, DomainChangeMessage.ObjectType.SERVICE);
 
-                if (returnObj == Boolean.TRUE) {
-                   return getServiceIdentity(con, domainName, serviceName, false);
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? getServiceIdentity(con, domainName, serviceName, false) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1677,11 +1658,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-                if (returnObj == Boolean.TRUE) {
-                   return con.getRoleMember(domainName, roleName, principal, 0, false);
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, principal, 0, false) : null;
 
             } catch (ResourceException ex) {
 
@@ -1747,11 +1724,7 @@ public class DBService implements RolesProvider {
 
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                if (returnObj == Boolean.TRUE) {
-                    return con.getGroupMember(domainName, groupName, principal, 0, false);
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? con.getGroupMember(domainName, groupName, principal, 0, false) : null;
 
             } catch (ResourceException ex) {
 
@@ -7020,11 +6993,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                if (returnObj == Boolean.TRUE) {
-                    return getGroup(con, domainName, groupName, true, false);
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, false) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -7126,11 +7095,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-                if (returnObj == Boolean.TRUE) {
-                    return getRole(con, domainName, roleName, true, false, true);
-                }
-
-                return null;
+                return returnObj == Boolean.TRUE ? getRole(con, domainName, roleName, true, false, true) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
