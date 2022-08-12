@@ -125,7 +125,7 @@ func main() {
 	// get our private key signer for csr
 	pkSigner, err := newSigner(keyBytes)
 	if err != nil {
-		log.Fatalf("Unable to retrieve private key %s, err: %v\n", svcKeyFile, err)
+		log.Fatalf("Unable to retrieve private key %s, err: %v\n", roleKeyFile, err)
 	}
 
 	csrData, err := generateCSR(pkSigner, subj, host, principal, dnsDomain, ip, uri)
