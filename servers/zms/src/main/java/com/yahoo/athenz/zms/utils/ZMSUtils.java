@@ -460,7 +460,7 @@ public class ZMSUtils {
         return provider.substring(n + 1);
     }
 
-    public static <T> Response returnPutResponse(Boolean flag, T returnObj ){
+    public static <T> Response returnPutResponse(Boolean flag, T returnObj) {
         return (flag == Boolean.TRUE)
                 ? Response.status(ResourceException.OK).entity(returnObj).build()
                 : Response.status(ResourceException.NO_CONTENT).build();

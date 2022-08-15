@@ -144,7 +144,7 @@ public class ZMSStatsTest {
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName2,
                 "Service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
-        zms.putServiceIdentity(ctx, domainName2, "Service1", zmsTestInitializer.getAuditRef(), service);
+        zms.putServiceIdentity(ctx, domainName2, "Service1", zmsTestInitializer.getAuditRef(), false, service);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -160,7 +160,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName2, "group1", "user.user1", "user.user2");
-        zms.putGroup(ctx, domainName2, "group1", zmsTestInitializer.getAuditRef(), group1);
+        zms.putGroup(ctx, domainName2, "group1", zmsTestInitializer.getAuditRef(), false, group1);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -176,7 +176,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Role role = zmsTestInitializer.createRoleObject(domainName2, "role1", null, "user.john", "user.jane");
-        zms.putRole(ctx, domainName2, "role1", zmsTestInitializer.getAuditRef(), role);
+        zms.putRole(ctx, domainName2, "role1", zmsTestInitializer.getAuditRef(), false, role);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -192,7 +192,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Policy pol = zmsTestInitializer.createPolicyObject(domainName2, "policy1", "role1", "action1", "*:resource1", AssertionEffect.ALLOW);
-        zms.putPolicy(ctx, domainName2, "policy1", zmsTestInitializer.getAuditRef(), pol);
+        zms.putPolicy(ctx, domainName2, "policy1", zmsTestInitializer.getAuditRef(), false, pol);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);

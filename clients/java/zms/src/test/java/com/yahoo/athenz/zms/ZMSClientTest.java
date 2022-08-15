@@ -681,14 +681,14 @@ public class ZMSClientTest {
         }
 
         try {
-            client.putPolicyVersion("PolicyAddDom2", "Policy1", "new-version", "from-version", AUDIT_REF);
+            client.putPolicyVersion("PolicyAddDom2", "Policy1", "new-version", "from-version", AUDIT_REF, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
 
         try {
-            client.putPolicyVersion("PolicyAddDom3", "Policy1", "new-version", "from-version", AUDIT_REF);
+            client.putPolicyVersion("PolicyAddDom3", "Policy1", "new-version", "from-version", AUDIT_REF, false);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -2070,6 +2070,35 @@ public class ZMSClientTest {
 
     @Test
     public void testPutServiceIdentity() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ServiceIdentity serviceMock = Mockito.mock(ServiceIdentity.class);
+
+        ServiceIdentity serviceIdentity1 = new ServiceIdentity().setName("domain1.service.test");
+
+        Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, true, serviceMock)).thenReturn(serviceIdentity1);
+        ServiceIdentity returnedService = client.putServiceIdentity("domain1", "service1", AUDIT_REF, true, serviceMock);
+        assertEquals(returnedService.getName(), "domain1.service.test");
+
+        try {
+            Mockito.when(c.putServiceIdentity("domain1", "service1", AUDIT_REF, false, serviceMock)).thenThrow(new ResourceException(403));
+            client.putServiceIdentity("domain1", "service1", AUDIT_REF, serviceMock);
+            fail();
+        } catch  (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        try {
+            Mockito.when(c.putServiceIdentity("domain2", "service1", AUDIT_REF, false, serviceMock)).thenThrow(new NullPointerException());
+            client.putServiceIdentity("domain2", "service1", AUDIT_REF, serviceMock);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testPutServiceIdentityReturnObj() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
@@ -3889,6 +3918,73 @@ public class ZMSClientTest {
         client.deleteTopLevelDomain(domainName, AUDIT_REF);
     }
 
+
+    @Test
+    public void testPutGroupReturnObject() throws URISyntaxException, IOException {
+
+        final String domainName = "put-group-test";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
+        final String groupName3 = "group3";
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        TopLevelDomain dom1Mock = Mockito.mock(TopLevelDomain.class);
+        Domain domainMock = Mockito.mock(Domain.class);
+        Mockito.when(c.postTopLevelDomain(AUDIT_REF, dom1Mock)).thenReturn(domainMock);
+
+        Group group1 = createGroupObject(client, domainName, groupName1, "user.joe", "user.jane");
+        Mockito.when(c.putGroup(domainName, groupName1, AUDIT_REF, true, group1)).thenReturn(group1);
+        Mockito.when(c.getGroup(domainName, groupName1, false, false)).thenReturn(group1);
+        Mockito.when(c.putGroup(domainName, groupName2, AUDIT_REF, false, group1)).thenThrow(new NullPointerException());
+        Mockito.when(c.putGroup(domainName, groupName3, AUDIT_REF, false, group1)).thenThrow(new ResourceException(404));
+        Mockito.when(c.getGroup(domainName, groupName2, false, false)).thenThrow(new NullPointerException());
+        Mockito.when(c.getGroup(domainName, groupName3, false, false)).thenThrow(new ResourceException(404));
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", systemAdminUser);
+        client.postTopLevelDomain(AUDIT_REF, dom1);
+
+        Group returnedGroup = client.putGroup(domainName, groupName1, AUDIT_REF, true, group1);
+
+        assertEquals(returnedGroup.name, "put-group-test:group.group1");
+
+        Group group1Res = client.getGroup(domainName, groupName1, false, false);
+        assertNotNull(group1Res);
+        assertEquals(group1Res.getName(), domainName + ":group." + groupName1);
+
+        try {
+            client.putGroup(domainName, groupName2, AUDIT_REF, false, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            client.putGroup(domainName, groupName3, AUDIT_REF, false, group1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            client.getGroup(domainName, groupName2, false, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+        try {
+            client.getGroup(domainName, groupName3, false, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        client.deleteTopLevelDomain(domainName, AUDIT_REF);
+    }
+
     @Test
     public void testPutGroupMembership() throws URISyntaxException, IOException {
 
@@ -3900,10 +3996,19 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         GroupMembership member = new GroupMembership().setGroupName(groupName).setMemberName("user.joe")
                 .setIsMember(true);
+        GroupMembership membership1 = new GroupMembership().setMemberName("testMember").setGroupName("testGroup");
 
         Mockito.when(c.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, false, member))
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
+
+        Mockito.when(c.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, true, member))
+                .thenReturn(membership1);
+
+        GroupMembership groupMembership1 = client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, true);
+
+        assertEquals(groupMembership1.groupName, "testGroup");
+        assertEquals(groupMembership1.memberName, "testMember");
 
         try {
             client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF);
@@ -3913,7 +4018,7 @@ public class ZMSClientTest {
         }
 
         try {
-            client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF);
+            client.putGroupMembership(domainName, groupName, "user.joe", AUDIT_REF, false);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3945,6 +4050,7 @@ public class ZMSClientTest {
 
         client.deleteTopLevelDomain("MbrDelDom1", AUDIT_REF);
     }
+
 
     @Test
     public void testDeleteGroupMembershipFailures() throws URISyntaxException, IOException {
@@ -4257,11 +4363,18 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
 
+        Group group1 = new Group().setName("TestGroup");
+
         Mockito.when(c.putGroupReview(anyString(), anyString(), anyString(), anyBoolean(), any(Group.class)))
+                .thenReturn(group1)
                 .thenThrow(new ResourceException(403))
                 .thenThrow(new NullPointerException());
 
         Group role = new Group();
+
+        Group returnedGroup = client.putGroupReview(domainName, groupName, AUDIT_REF, true, role);
+
+        assertEquals(returnedGroup.name, "TestGroup");
 
         try {
             client.putGroupReview(domainName, groupName, AUDIT_REF, role);

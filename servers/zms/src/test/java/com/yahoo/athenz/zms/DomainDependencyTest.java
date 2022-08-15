@@ -91,7 +91,7 @@ public class DomainDependencyTest {
                 serviceProviderName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), serviceProvider);
+        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), false, serviceProvider);
 
         final String sysAdminDomainName = "sys.auth";
         final String serviceProvidersRoleName = "service_providers";
@@ -104,7 +104,7 @@ public class DomainDependencyTest {
         role.setName(serviceProvidersRoleName);
         role.setRoleMembers(roleMembers);
 
-        zmsImpl.putRole(regularUserCtx, sysAdminDomainName, serviceProvidersRoleName, zmsTestInitializer.getAuditRef(), role);
+        zmsImpl.putRole(regularUserCtx, sysAdminDomainName, serviceProvidersRoleName, zmsTestInitializer.getAuditRef(), false, role);
 
         // Wait for cache to be ServiceProviderManager cache to refresh
 
@@ -267,8 +267,8 @@ public class DomainDependencyTest {
                 "some-other-service", "http://localhost/other-service", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), serviceProvider);
-        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, "some-other-service", zmsTestInitializer.getAuditRef(), someOtherServiceProvider);
+        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), false, serviceProvider);
+        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, "some-other-service", zmsTestInitializer.getAuditRef(), false, someOtherServiceProvider);
 
         DependentService dependentService = new DependentService().setService(fullSubDomainName + "." + serviceProviderName);
         try {
@@ -300,7 +300,7 @@ public class DomainDependencyTest {
         Role role = new Role();
         role.setName(serviceProvidersRoleName);
         role.setRoleMembers(roleMembers);
-        zmsImpl.putRole(zmsTestInitializer.getMockDomRsrcCtx(), sysAdminDomainName, serviceProvidersRoleName, zmsTestInitializer.getAuditRef(), role);
+        zmsImpl.putRole(zmsTestInitializer.getMockDomRsrcCtx(), sysAdminDomainName, serviceProvidersRoleName, zmsTestInitializer.getAuditRef(), false, role);
 
         // Wait for cache to be ServiceProviderManager cache to refresh
 
@@ -389,7 +389,7 @@ public class DomainDependencyTest {
 
         Membership membership = new Membership();
         membership.setMemberName(fullSubDomainName + "." + serviceProviderName);
-        zmsImpl.putMembership(sysAdminCtx, sysAdminDomainName, serviceProvidersRoleName, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef(), membership);
+        zmsImpl.putMembership(sysAdminCtx, sysAdminDomainName, serviceProvidersRoleName, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef(), false, membership);
         ZMSTestUtils.sleep((1000 * fetchFrequency) + 50);
         zmsImpl.deleteDomainDependency(sysAdminCtx, topLevelDomainName, fullSubDomainName + "." + serviceProviderName, zmsTestInitializer.getAuditRef());
         dependentDomainList = zmsImpl.getDependentDomainList(serviceProviderCtx, fullSubDomainName + "." + serviceProviderName);
@@ -443,7 +443,7 @@ public class DomainDependencyTest {
                 serviceProviderName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), serviceProvider);
+        zmsImpl.putServiceIdentity(regularUserCtx, fullSubDomainName, serviceProviderName, zmsTestInitializer.getAuditRef(), false, serviceProvider);
 
         // Now make the service a service provider
 
@@ -457,7 +457,7 @@ public class DomainDependencyTest {
         Role role = new Role();
         role.setName(serviceProvidersRoleName);
         role.setRoleMembers(roleMembers);
-        zmsImpl.putRole(zmsTestInitializer.getMockDomRsrcCtx(), sysAdminDomainName, serviceProvidersRoleName, zmsTestInitializer.getAuditRef(), role);
+        zmsImpl.putRole(zmsTestInitializer.getMockDomRsrcCtx(), sysAdminDomainName, serviceProvidersRoleName, zmsTestInitializer.getAuditRef(), false, role);
 
         // Wait for cache to be ServiceProviderManager cache to refresh
 

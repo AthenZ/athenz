@@ -3621,7 +3621,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putRole(ResourceContext ctx, String domainName, String roleName, String auditRef,Boolean returnObj, Role role) {
+    public Response putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
