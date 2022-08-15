@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.purge.PurgeMember;
 
 public interface ObjectStoreConnection extends Closeable {
 
@@ -227,4 +228,10 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteDomainDependency(String domainName, String service);
     List<String> listServiceDependencies(String domainName);
     List<String> listDomainDependencies(String service);
+
+    // purge commands
+
+    List<PurgeMember> getAllExpiredRoleMembers(int limit, int offset);
+    List<PurgeMember> getAllExpiredGroupMembers(int limit, int offset);
+
 }

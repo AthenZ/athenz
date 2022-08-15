@@ -29,7 +29,9 @@ import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.config.MemberDueDays;
+import com.yahoo.athenz.zms.purge.PurgeMember;
 import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.JSON;
@@ -46,6 +48,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class DBService implements RolesProvider {
 
@@ -79,6 +83,8 @@ public class DBService implements RolesProvider {
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
+    private DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
+    private DynamicConfigInteger purgeMembersLimitPerCall;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
 
@@ -132,6 +138,8 @@ public class DBService implements RolesProvider {
                 new UserAuthorityFilterEnforcer(), 0, 1, TimeUnit.DAYS);
 
         maxPolicyVersions = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT));
+        purgeMembersMaxDbCallsPerRun = new DynamicConfigInteger(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_PURGE_TASK_MAX_DB_CALLS_PER_RUN, ZMSConsts.PURGE_TASK_MAX_DB_CALLS_PER_RUN_DEF);
+        purgeMembersLimitPerCall = new DynamicConfigInteger(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_PURGE_TASK_LIMIT_PER_CALL, ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF);
     }
 
     void setAuditRefObjectBits() {
@@ -273,6 +281,36 @@ public class DBService implements RolesProvider {
         con.commitChanges();
         con.updateDomainModTimestamp(domainName);
         cacheStore.invalidate(domainName);
+    }
+
+    void purgeTaskSaveChanges(ResourceContext ctx, ObjectStoreConnection con, List<PurgeMember> purgeMemberList, String auditRef, String caller, DomainChangeMessage.ObjectType collectionType) {
+
+        // we're first going to commit our changes which will
+        // also set the connection in auto-commit mode.
+        con.commitChanges();
+
+        Set<String> domainsSet = new HashSet<>();
+        Set<String> collectionSet = new HashSet<>();
+
+        for (PurgeMember purgeMember: purgeMemberList) {
+            //we are going to change the domain timestamp in
+            // auto-commit mode so that we don't have a contention
+            if (!domainsSet.contains(purgeMember.getDomainName())) {
+                con.updateDomainModTimestamp(purgeMember.getDomainName());
+                cacheStore.invalidate(purgeMember.getDomainName());
+                domainsSet.add(purgeMember.getDomainName());
+            }
+
+            // audit log the request
+            auditLogRequest(ctx, purgeMember.getDomainName(), auditRef, caller, ZMSConsts.HTTP_DELETE,
+                    purgeMember.getCollectionName(), "{\"member\": \"" + purgeMember.getPrincipalName() + "\"}");
+
+            if (!collectionSet.contains(purgeMember.getCollectionName())) {
+                // add domain change event
+                addDomainChangeMessage(ctx, purgeMember.getDomainName(), purgeMember.getCollectionName(), collectionType);
+                collectionSet.add(purgeMember.getCollectionName());
+            }
+        }
     }
 
     void auditLogRequest(ResourceContext ctx, String domainName, String auditRef,
@@ -1796,6 +1834,11 @@ public class DBService implements RolesProvider {
             }
         }
     }
+
+//    void executeDeleteMembership(ResourceContext ctx, String domainName, String roleName,
+//                                 String normalizedMember, String auditRef, String caller) {
+//        executeDeleteMembership( ctx,  null, domainName, roleName, normalizedMember, auditRef, caller);
+//    }
 
     void executeDeleteMembership(ResourceContext ctx, String domainName, String roleName,
             String normalizedMember, String auditRef, String caller) {
@@ -7995,6 +8038,113 @@ public class DBService implements RolesProvider {
             return domainList;
         }
     }
+
+    void executeDeleteExpiredMembership(ResourceContext ctx, ObjectStoreConnection con, String domainName, String roleName,
+                                        String normalizedMember, String auditRef, String caller) {
+        try {
+            final String principal = getPrincipalName(ctx);
+
+            // process our delete role member operation
+
+            if (!con.deleteRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
+                throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
+                        normalizedMember + " from role: " + roleName, caller);
+            }
+
+            return;
+
+        } catch (ResourceException ex) {
+            throw ex;
+        }
+    }
+
+    public void executeDeleteAllExpiredRoleMemberships(ResourceContext ctx, String auditRef, String caller) {
+        final int maxDbCallsPerRun = purgeMembersMaxDbCallsPerRun.get();
+        final int limitPerCall = purgeMembersLimitPerCall.get();
+        int offset = 0;
+        List<PurgeMember> allExpiredRoleMembers = new ArrayList<>();
+        List<PurgeMember> changedList = new ArrayList<>();
+        try (ObjectStoreConnection con = store.getConnection(false, false)) {
+            // get all expired members from all roles
+            for (int i = 0; i < maxDbCallsPerRun; ++i) {
+                List<PurgeMember> expiredRoleMembers = con.getAllExpiredRoleMembers(limitPerCall, offset);
+                if (expiredRoleMembers == null || expiredRoleMembers.isEmpty()) {
+                    break;
+                }
+                allExpiredRoleMembers.addAll(expiredRoleMembers);
+                if (expiredRoleMembers.size() < limitPerCall) {
+                    break;
+                }
+                offset += limitPerCall;
+            }
+            // delete all expired role members one by one (required due auditLog)
+            for (PurgeMember purgeMember: allExpiredRoleMembers) {
+                try {
+                    executeDeleteExpiredMembership(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
+                            purgeMember.getPrincipalName(), auditRef, caller);
+                    changedList.add(purgeMember);
+
+                } catch (RuntimeException e) {
+                    //TODO - write the response status to a log file
+                }
+            }
+
+            purgeTaskSaveChanges(ctx, con, changedList, auditRef, caller, DomainChangeMessage.ObjectType.ROLE);
+
+        } catch (ResourceException ex) {
+
+        }
+    }
+
+    void executeDeleteAllExpiredGroupMemberships(ResourceContext ctx, ObjectStoreConnection con, String domainName,
+                                                 String groupName, String normalizedMember, String auditRef) {
+        final String principal = getPrincipalName(ctx);
+
+        // process our delete group member operation
+        if (!con.deleteGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
+            throw ZMSUtils.notFoundError("unable to delete group member: " +
+                    normalizedMember + " from group: " + groupName, ctx.getApiName());
+        }
+    }
+
+    public void executeDeleteAllExpiredGroupMemberships(ResourceContext ctx, String auditRef, String caller) {
+        final int maxDbCallsPerRun = purgeMembersMaxDbCallsPerRun.get();
+        final int limitPerCall = purgeMembersLimitPerCall.get();
+        int offset = 0;
+        List<PurgeMember> allExpiredGroupMembers = new ArrayList<>();
+        List<PurgeMember> changedList = new ArrayList<>();
+        try (ObjectStoreConnection con = store.getConnection(false, false)){
+            // get all expired members from all groups
+            for (int i = 0; i < maxDbCallsPerRun; ++i) {
+                List<PurgeMember> expiredGroupMembers = con.getAllExpiredGroupMembers(limitPerCall, offset);
+                if (expiredGroupMembers == null || expiredGroupMembers.isEmpty()) {
+                    break;
+                }
+                allExpiredGroupMembers.addAll(expiredGroupMembers);
+                if (expiredGroupMembers.size() < limitPerCall) {
+                    break;
+                }
+                offset += limitPerCall;
+            }
+            // delete all expired group members one by one (required due auditLog)
+            for (PurgeMember purgeMember: allExpiredGroupMembers) {
+                try {
+                    executeDeleteAllExpiredGroupMemberships(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
+                            purgeMember.getPrincipalName(), auditRef);
+                    changedList.add(purgeMember);
+
+                } catch (RuntimeException e) {
+                    //TODO - write the response status to a log file
+                }
+            }
+
+            purgeTaskSaveChanges(ctx, con, changedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
+
+        } catch (ResourceException ex) {
+
+        }
+    }
+
 
     public AuthHistoryDependencies getAuthHistory(String domain) {
         if (authHistoryStore == null) {

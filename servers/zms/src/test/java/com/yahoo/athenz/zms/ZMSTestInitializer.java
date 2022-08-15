@@ -326,6 +326,21 @@ public class ZMSTestInitializer {
         return dom;
     }
 
+    public TopLevelDomain createTopLevelDomainObject(String name,
+                                                     String description, String org, String admin, int memberPurgeExpiryDays) {
+
+        TopLevelDomain dom = new TopLevelDomain();
+        dom.setName(name);
+        dom.setDescription(description);
+        dom.setOrg(org);
+        dom.setYpmId(getRandomProductId());
+        dom.setMemberPurgeExpiryDays(memberPurgeExpiryDays);
+        List<String> admins = new ArrayList<>();
+        admins.add(admin);
+        dom.setAdminUsers(admins);
+        return dom;
+    }
+
     public UserDomain createUserDomainObject(String name, String description, String org) {
 
         UserDomain dom = new UserDomain();

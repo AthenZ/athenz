@@ -21,6 +21,7 @@ import java.util.*;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.purge.PurgeMember;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,8 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+
+import static com.yahoo.athenz.zms.ZMSConsts.DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT;
 
 public class JDBCConnection implements ObjectStoreConnection {
 
@@ -619,6 +622,36 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE domain=?;";
     private static final String SQL_LIST_DOMAIN_DEPENDENCIES = "SELECT domain FROM service_domain_dependency "
             + "WHERE service=?;";
+
+    private static final String GET_ALL_EXPIRED_ROLE_MEMBERS = "SELECT D.name as domain_name, R.name as role_name, P.name as principal_name"
+            + " FROM "
+            + " domain D JOIN role R ON D.domain_id = R.domain_id JOIN"
+            + " role_member M ON R.role_id = M.role_id JOIN principal P ON M.principal_id = P.principal_id"
+            + " WHERE"
+            + " D.member_purge_expiry_days > -1"
+            + " AND"
+            + " M.expiration is not null"
+            + " AND ("
+            + " D.member_purge_expiry_days = 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL ? DAY)"
+            + " OR"
+            + " D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY)"
+            + ")"
+            + " limit ? offset ?";
+
+    private static final String GET_ALL_EXPIRED_GROUP_MEMBERS = "SELECT D.name as domain_name, G.name as group_name, P.name as principal_name"
+            + " FROM "
+            + " domain D JOIN principal_group G ON D.domain_id = G.domain_id JOIN"
+            + " principal_group_member M ON G.group_id = M.group_id JOIN principal P ON M.principal_id = P.principal_id"
+            + " WHERE"
+            + " D.member_purge_expiry_days > -1"
+            + " AND"
+            + " M.expiration is not null"
+            + " AND ("
+            + " D.member_purge_expiry_days = 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL ? DAY)"
+            + " OR"
+            + " D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY)"
+            + ")"
+            + " limit ? offset ?";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -6836,6 +6869,55 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         Collections.sort(domains);
         return domains;
+    }
+
+
+    @Override
+    public List<PurgeMember> getAllExpiredRoleMembers(int limit, int offset) {
+        final String caller = "getAllExpiredRoleMembers";
+
+        List<PurgeMember> members = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_ROLE_MEMBERS)) {
+            ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    PurgeMember purgeMember = new PurgeMember()
+                            .setDomainName(rs.getString("domain_name"))
+                            .setCollectionName(rs.getString("role_name"))
+                            .setPrincipalName(rs.getString("principal_name"));
+                    members.add(purgeMember);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return members;
+    }
+
+    @Override
+    public List<PurgeMember> getAllExpiredGroupMembers(int limit, int offset) {
+        final String caller = "getAllExpiredGroupMembers";
+
+        List<PurgeMember> members = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_GROUP_MEMBERS)) {
+            ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    PurgeMember purgeMember = new PurgeMember()
+                            .setDomainName(rs.getString("domain_name"))
+                            .setCollectionName(rs.getString("group_name"))
+                            .setPrincipalName(rs.getString("principal_name"));
+                    members.add(purgeMember);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return members;
     }
 
     @Override

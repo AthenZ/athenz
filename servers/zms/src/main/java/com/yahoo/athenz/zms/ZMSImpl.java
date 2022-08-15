@@ -685,6 +685,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // load the DomainChangePublisher
         
         loadDomainChangePublisher();
+
     }
 
     void loadDomainChangePublisher() {
