@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/square/go-jose.v2/jwt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -47,6 +48,12 @@ const (
 // ToBeRefreshed looks into /var/lib/sia/tokens folder and returns the list of tokens whose
 // age is half of their validity
 func ToBeRefreshed(opts *config.TokenOptions) ([]config.AccessToken, []error) {
+	return ToBeRefreshedBasedOnTime(opts, time.Now())
+}
+
+// ToBeRefreshedBasedOnTime looks into /var/lib/sia/tokens folder and returns the list of tokens whose
+// age is half of their validity (given the current time)
+func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) ([]config.AccessToken, []error) {
 	tokenDir := opts.TokenDir
 	tokens := opts.Tokens
 
@@ -57,7 +64,7 @@ func ToBeRefreshed(opts *config.TokenOptions) ([]config.AccessToken, []error) {
 	errs := []error{}
 	for _, t := range tokens {
 		tpath := file(t.Domain, t.FileName)
-		f, err := os.Stat(tpath)
+		_, err := os.Stat(tpath)
 		if err != nil {
 			if os.IsNotExist(err) {
 				refresh = append(refresh, t)
@@ -90,8 +97,22 @@ func ToBeRefreshed(opts *config.TokenOptions) ([]config.AccessToken, []error) {
 				errs = append(errs, fmt.Errorf("invalid token: %s, expires_in key is not found", tpath))
 				continue
 			}
+			//  Extract expiration claim from token and compare with AccessTokenResponse
+			claims, err := GetClaimsFromAccessTokenUnverified(atr)
+			if err != nil {
+				errs = append(errs, fmt.Errorf("token: %s exists, but failed to extract claims, err: %v", tpath, err))
+				continue
+			}
+
+			validityDuration, validityDurationRemaining, err := CheckExpiry(claims, currentTime)
+			if err != nil {
+				// token expired - refreh immediately
+				refresh = append(refresh, t)
+				continue
+			}
+
 			// If the token age is more than half of token's total validity, refresh the token
-			if time.Now().After(f.ModTime().Add(time.Duration(*atr.Expires_in/2) * time.Second)) {
+			if (validityDurationRemaining * 2) < validityDuration {
 				refresh = append(refresh, t)
 			}
 		}
@@ -245,4 +266,47 @@ func toServiceNames(services []options.Service) []string {
 	}
 
 	return serviceNames
+}
+
+// GetClaimsFromAccessTokenUnverified extract the token claims.
+// The claims will not be verified (as the public key isn't provided)
+func GetClaimsFromAccessTokenUnverified(accessTokenResponse zts.AccessTokenResponse) (map[string]interface{}, error) {
+	tok, err := jwt.ParseSigned(accessTokenResponse.Access_token)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to validate access token: %v\n", err)
+	}
+
+	var claims map[string]interface{}
+	if err := tok.UnsafeClaimsWithoutVerification(&claims); err != nil {
+		return nil, fmt.Errorf("Unable to validate access token: %v\n", err)
+	}
+
+	return claims, nil
+}
+
+func CheckExpiry(claims map[string]interface{}, now time.Time) (float64, float64, error) {
+	expiry := claims["exp"]
+	issue := claims["iat"]
+	tokenExpiry := dateClaimToTime(expiry)
+	tokenIssue := dateClaimToTime(issue)
+	validityDuration := tokenExpiry.Sub(tokenIssue).Minutes()
+	validityDurationRemaining := tokenExpiry.Sub(now).Minutes()
+
+	if validityDurationRemaining < 0 {
+		return 0, 0, fmt.Errorf("Access token expired: %v, CurrentTime: %v", tokenExpiry, now)
+	}
+
+	return validityDuration, validityDurationRemaining, nil
+}
+
+func dateClaimToTime(timeClaim interface{}) time.Time {
+	var timeVal time.Time
+	switch iat := timeClaim.(type) {
+	case float64:
+		timeVal = time.Unix(int64(iat), 0)
+	case json.Number:
+		v, _ := iat.Int64()
+		timeVal = time.Unix(v, 0)
+	}
+	return timeVal
 }
