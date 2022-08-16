@@ -17,10 +17,7 @@
 package com.yahoo.athenz.common.server.msd;
 
 import com.yahoo.athenz.common.server.msd.net.InetWorkload;
-import com.yahoo.athenz.msd.DynamicWorkload;
-import com.yahoo.athenz.msd.TransportPolicyValidationResponseList;
-import com.yahoo.athenz.msd.WorkloadOptions;
-import com.yahoo.athenz.msd.Workloads;
+import com.yahoo.athenz.msd.*;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
@@ -72,5 +69,8 @@ public class MsdStoreConnectionTest {
         assertNotNull(inetWorkload);
         assertNotNull(inetWorkload.getDynamicIps());
         assertNotNull(inetWorkload.getStaticIps());
+
+        msdStoreConnection.deleteDynamicWorkload("athenz", "api", "1234-rsaq-422dcz");
+        msdStoreConnection.deleteStaticWorkload("athenz", "api", "1234-rsaq-422dcz");
     }
 }

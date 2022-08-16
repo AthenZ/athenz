@@ -14,124 +14,82 @@ var _ = rdl.Version
 var _ = json.Marshal
 var _ = fmt.Printf
 
-//
 // SimpleName - Copyright 2016 Yahoo Inc. Licensed under the terms of the
 // Apache version 2.0 license. See LICENSE file for terms. Common name types
 // used by several API definitions A simple identifier, an element of compound
 // name.
-//
 type SimpleName string
 
-//
 // CompoundName - A compound name. Most names in this API are compound names.
-//
 type CompoundName string
 
-//
 // DomainName - A domain name is the general qualifier prefix, as its
 // uniqueness is managed.
-//
 type DomainName string
 
-//
 // EntityName - An entity name is a short form of a resource name, including
 // only the domain and entity.
-//
 type EntityName string
 
-//
 // ServiceName - A service name will generally be a unique subdomain.
-//
 type ServiceName string
 
-//
 // LocationName - A location name is not yet defined, but will be a dotted name
 // like everything else.
-//
 type LocationName string
 
-//
 // ActionName - An action (operation) name.
-//
 type ActionName string
 
-//
 // ResourceName - A resource name Note that the EntityName part is optional,
 // that is, a domain name followed by a colon is valid resource name.
-//
 type ResourceName string
 
-//
 // ResourceNames - A comma separated list of resource names
-//
 type ResourceNames string
 
-//
 // YBase64 - The Y-specific URL-safe Base64 variant.
-//
 type YBase64 string
 
-//
 // YEncoded - YEncoded includes ybase64 chars, as well as = and %. This can
 // represent a user cookie and URL-encoded values.
-//
 type YEncoded string
 
-//
 // AuthorityName - Used as the prefix in a signed assertion. This uniquely
 // identifies a signing authority.
-//
 type AuthorityName string
 
-//
 // SignedToken - A signed assertion if identity. i.e. the user cookie value.
 // This token will only make sense to the authority that generated it, so it is
 // beneficial to have something in the value that is cheaply recognized to
 // quickly reject if it belongs to another authority. In addition to the
 // YEncoded set our token includes ; to separate components and , to separate
 // roles and : for IPv6 addresses
-//
 type SignedToken string
 
-//
 // GroupName - A group name
-//
 type GroupName string
 
-//
 // GroupMemberName - A group member name
-//
 type GroupMemberName string
 
-//
 // MemberName - Role Member name - could be one of four values: *, DomainName.*
 // or ServiceName[*], or GroupNames
-//
 type MemberName string
 
-//
 // AuthorityKeyword - A comma separated list of authority keywords
-//
 type AuthorityKeyword string
 
-//
 // AuthorityKeywords -
-//
 type AuthorityKeywords string
 
-//
 // TagValue - TagValue to contain generic string patterns
-//
 type TagValue string
 
-//
 // TagCompoundValue - A compound value of TagValue
-//
 type TagCompoundValue string
 
-//
 // TagValueList -
-//
 type TagValueList struct {
 
 	//
@@ -140,9 +98,7 @@ type TagValueList struct {
 	List []TagCompoundValue `json:"list"`
 }
 
-//
 // NewTagValueList - creates an initialized TagValueList instance, returns a pointer to it
-//
 func NewTagValueList(init ...*TagValueList) *TagValueList {
 	var o *TagValueList
 	if len(init) == 1 {
@@ -153,9 +109,7 @@ func NewTagValueList(init ...*TagValueList) *TagValueList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *TagValueList) Init() *TagValueList {
 	if self.List == nil {
 		self.List = make([]TagCompoundValue, 0)
@@ -165,9 +119,7 @@ func (self *TagValueList) Init() *TagValueList {
 
 type rawTagValueList TagValueList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TagValueList
-//
 func (self *TagValueList) UnmarshalJSON(b []byte) error {
 	var m rawTagValueList
 	err := json.Unmarshal(b, &m)
@@ -179,9 +131,7 @@ func (self *TagValueList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TagValueList) Validate() error {
 	if self.List == nil {
 		return fmt.Errorf("TagValueList: Missing required field: list")
@@ -189,30 +139,20 @@ func (self *TagValueList) Validate() error {
 	return nil
 }
 
-//
 // AssertionConditionKeyPattern -
-//
 type AssertionConditionKeyPattern string
 
-//
 // AssertionConditionKey -
-//
 type AssertionConditionKey string
 
-//
 // AssertionConditionValuePattern -
-//
 type AssertionConditionValuePattern string
 
-//
 // AssertionConditionValue -
-//
 type AssertionConditionValue string
 
-//
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
-//
 type DomainMeta struct {
 
 	//
@@ -319,9 +259,7 @@ type DomainMeta struct {
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
-//
 func NewDomainMeta(init ...*DomainMeta) *DomainMeta {
 	var o *DomainMeta
 	if len(init) == 1 {
@@ -332,9 +270,7 @@ func NewDomainMeta(init ...*DomainMeta) *DomainMeta {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainMeta) Init() *DomainMeta {
 	if self.Enabled == nil {
 		d := true
@@ -349,9 +285,7 @@ func (self *DomainMeta) Init() *DomainMeta {
 
 type rawDomainMeta DomainMeta
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainMeta
-//
 func (self *DomainMeta) UnmarshalJSON(b []byte) error {
 	var m rawDomainMeta
 	err := json.Unmarshal(b, &m)
@@ -363,9 +297,7 @@ func (self *DomainMeta) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainMeta) Validate() error {
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
@@ -424,14 +356,12 @@ func (self *DomainMeta) Validate() error {
 	return nil
 }
 
-//
 // Domain - A domain is an independent partition of users, roles, and
 // resources. Its name represents the definition of a namespace; the only way a
 // new namespace can be created, from the top, is by creating Domains.
 // Administration of a domain is governed by the parent domain (using
 // reverse-DNS namespaces). The top level domains are governed by the special
 // "sys.auth" domain.
-//
 type Domain struct {
 
 	//
@@ -553,9 +483,7 @@ type Domain struct {
 	Id *rdl.UUID `json:"id,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewDomain - creates an initialized Domain instance, returns a pointer to it
-//
 func NewDomain(init ...*Domain) *Domain {
 	var o *Domain
 	if len(init) == 1 {
@@ -566,9 +494,7 @@ func NewDomain(init ...*Domain) *Domain {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Domain) Init() *Domain {
 	if self.Enabled == nil {
 		d := true
@@ -583,9 +509,7 @@ func (self *Domain) Init() *Domain {
 
 type rawDomain Domain
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Domain
-//
 func (self *Domain) UnmarshalJSON(b []byte) error {
 	var m rawDomain
 	err := json.Unmarshal(b, &m)
@@ -597,9 +521,7 @@ func (self *Domain) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Domain) Validate() error {
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
@@ -666,9 +588,7 @@ func (self *Domain) Validate() error {
 	return nil
 }
 
-//
 // DomainMetaList - A list of domain objects with their meta attributes.
-//
 type DomainMetaList struct {
 
 	//
@@ -677,9 +597,7 @@ type DomainMetaList struct {
 	Domains []*Domain `json:"domains"`
 }
 
-//
 // NewDomainMetaList - creates an initialized DomainMetaList instance, returns a pointer to it
-//
 func NewDomainMetaList(init ...*DomainMetaList) *DomainMetaList {
 	var o *DomainMetaList
 	if len(init) == 1 {
@@ -690,9 +608,7 @@ func NewDomainMetaList(init ...*DomainMetaList) *DomainMetaList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainMetaList) Init() *DomainMetaList {
 	if self.Domains == nil {
 		self.Domains = make([]*Domain, 0)
@@ -702,9 +618,7 @@ func (self *DomainMetaList) Init() *DomainMetaList {
 
 type rawDomainMetaList DomainMetaList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainMetaList
-//
 func (self *DomainMetaList) UnmarshalJSON(b []byte) error {
 	var m rawDomainMetaList
 	err := json.Unmarshal(b, &m)
@@ -716,9 +630,7 @@ func (self *DomainMetaList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainMetaList) Validate() error {
 	if self.Domains == nil {
 		return fmt.Errorf("DomainMetaList: Missing required field: domains")
@@ -726,9 +638,7 @@ func (self *DomainMetaList) Validate() error {
 	return nil
 }
 
-//
 // DomainList - A paginated list of domains.
-//
 type DomainList struct {
 
 	//
@@ -744,9 +654,7 @@ type DomainList struct {
 	Next string `json:"next" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewDomainList - creates an initialized DomainList instance, returns a pointer to it
-//
 func NewDomainList(init ...*DomainList) *DomainList {
 	var o *DomainList
 	if len(init) == 1 {
@@ -757,9 +665,7 @@ func NewDomainList(init ...*DomainList) *DomainList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainList) Init() *DomainList {
 	if self.Names == nil {
 		self.Names = make([]DomainName, 0)
@@ -769,9 +675,7 @@ func (self *DomainList) Init() *DomainList {
 
 type rawDomainList DomainList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainList
-//
 func (self *DomainList) UnmarshalJSON(b []byte) error {
 	var m rawDomainList
 	err := json.Unmarshal(b, &m)
@@ -783,9 +687,7 @@ func (self *DomainList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("DomainList: Missing required field: names")
@@ -799,10 +701,8 @@ func (self *DomainList) Validate() error {
 	return nil
 }
 
-//
 // RoleList - The representation for an enumeration of roles in the namespace,
 // with pagination.
-//
 type RoleList struct {
 
 	//
@@ -818,9 +718,7 @@ type RoleList struct {
 	Next string `json:"next" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewRoleList - creates an initialized RoleList instance, returns a pointer to it
-//
 func NewRoleList(init ...*RoleList) *RoleList {
 	var o *RoleList
 	if len(init) == 1 {
@@ -831,9 +729,7 @@ func NewRoleList(init ...*RoleList) *RoleList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *RoleList) Init() *RoleList {
 	if self.Names == nil {
 		self.Names = make([]EntityName, 0)
@@ -843,9 +739,7 @@ func (self *RoleList) Init() *RoleList {
 
 type rawRoleList RoleList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a RoleList
-//
 func (self *RoleList) UnmarshalJSON(b []byte) error {
 	var m rawRoleList
 	err := json.Unmarshal(b, &m)
@@ -857,9 +751,7 @@ func (self *RoleList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *RoleList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("RoleList: Missing required field: names")
@@ -873,9 +765,7 @@ func (self *RoleList) Validate() error {
 	return nil
 }
 
-//
 // RoleAuditLog - An audit log entry for role membership change.
-//
 type RoleAuditLog struct {
 
 	//
@@ -904,9 +794,7 @@ type RoleAuditLog struct {
 	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewRoleAuditLog - creates an initialized RoleAuditLog instance, returns a pointer to it
-//
 func NewRoleAuditLog(init ...*RoleAuditLog) *RoleAuditLog {
 	var o *RoleAuditLog
 	if len(init) == 1 {
@@ -919,9 +807,7 @@ func NewRoleAuditLog(init ...*RoleAuditLog) *RoleAuditLog {
 
 type rawRoleAuditLog RoleAuditLog
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a RoleAuditLog
-//
 func (self *RoleAuditLog) UnmarshalJSON(b []byte) error {
 	var m rawRoleAuditLog
 	err := json.Unmarshal(b, &m)
@@ -933,9 +819,7 @@ func (self *RoleAuditLog) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *RoleAuditLog) Validate() error {
 	if self.Member == "" {
 		return fmt.Errorf("RoleAuditLog.member is missing but is a required field")
@@ -973,9 +857,7 @@ func (self *RoleAuditLog) Validate() error {
 	return nil
 }
 
-//
 // RoleMember -
-//
 type RoleMember struct {
 
 	//
@@ -1043,9 +925,7 @@ type RoleMember struct {
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewRoleMember - creates an initialized RoleMember instance, returns a pointer to it
-//
 func NewRoleMember(init ...*RoleMember) *RoleMember {
 	var o *RoleMember
 	if len(init) == 1 {
@@ -1056,9 +936,7 @@ func NewRoleMember(init ...*RoleMember) *RoleMember {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *RoleMember) Init() *RoleMember {
 	if self.Active == nil {
 		d := true
@@ -1073,9 +951,7 @@ func (self *RoleMember) Init() *RoleMember {
 
 type rawRoleMember RoleMember
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a RoleMember
-//
 func (self *RoleMember) UnmarshalJSON(b []byte) error {
 	var m rawRoleMember
 	err := json.Unmarshal(b, &m)
@@ -1087,9 +963,7 @@ func (self *RoleMember) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *RoleMember) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("RoleMember.memberName is missing but is a required field")
@@ -1114,10 +988,8 @@ func (self *RoleMember) Validate() error {
 	return nil
 }
 
-//
 // RoleMeta - Set of metadata attributes that all roles may have and can be
 // changed by domain admins.
-//
 type RoleMeta struct {
 
 	//
@@ -1204,9 +1076,7 @@ type RoleMeta struct {
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
-//
 func NewRoleMeta(init ...*RoleMeta) *RoleMeta {
 	var o *RoleMeta
 	if len(init) == 1 {
@@ -1219,9 +1089,7 @@ func NewRoleMeta(init ...*RoleMeta) *RoleMeta {
 
 type rawRoleMeta RoleMeta
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a RoleMeta
-//
 func (self *RoleMeta) UnmarshalJSON(b []byte) error {
 	var m rawRoleMeta
 	err := json.Unmarshal(b, &m)
@@ -1233,9 +1101,7 @@ func (self *RoleMeta) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *RoleMeta) Validate() error {
 	if self.SignAlgorithm != "" {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
@@ -1270,9 +1136,7 @@ func (self *RoleMeta) Validate() error {
 	return nil
 }
 
-//
 // Role - The representation for a Role with set of members.
-//
 type Role struct {
 
 	//
@@ -1401,9 +1265,7 @@ type Role struct {
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewRole - creates an initialized Role instance, returns a pointer to it
-//
 func NewRole(init ...*Role) *Role {
 	var o *Role
 	if len(init) == 1 {
@@ -1416,9 +1278,7 @@ func NewRole(init ...*Role) *Role {
 
 type rawRole Role
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Role
-//
 func (self *Role) UnmarshalJSON(b []byte) error {
 	var m rawRole
 	err := json.Unmarshal(b, &m)
@@ -1430,9 +1290,7 @@ func (self *Role) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Role) Validate() error {
 	if self.SignAlgorithm != "" {
 		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
@@ -1481,9 +1339,7 @@ func (self *Role) Validate() error {
 	return nil
 }
 
-//
 // Roles - The representation for a list of roles with full details
-//
 type Roles struct {
 
 	//
@@ -1492,9 +1348,7 @@ type Roles struct {
 	List []*Role `json:"list"`
 }
 
-//
 // NewRoles - creates an initialized Roles instance, returns a pointer to it
-//
 func NewRoles(init ...*Roles) *Roles {
 	var o *Roles
 	if len(init) == 1 {
@@ -1505,9 +1359,7 @@ func NewRoles(init ...*Roles) *Roles {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Roles) Init() *Roles {
 	if self.List == nil {
 		self.List = make([]*Role, 0)
@@ -1517,9 +1369,7 @@ func (self *Roles) Init() *Roles {
 
 type rawRoles Roles
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Roles
-//
 func (self *Roles) UnmarshalJSON(b []byte) error {
 	var m rawRoles
 	err := json.Unmarshal(b, &m)
@@ -1531,9 +1381,7 @@ func (self *Roles) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Roles) Validate() error {
 	if self.List == nil {
 		return fmt.Errorf("Roles: Missing required field: list")
@@ -1541,9 +1389,7 @@ func (self *Roles) Validate() error {
 	return nil
 }
 
-//
 // Membership - The representation for a role membership.
-//
 type Membership struct {
 
 	//
@@ -1599,9 +1445,7 @@ type Membership struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewMembership - creates an initialized Membership instance, returns a pointer to it
-//
 func NewMembership(init ...*Membership) *Membership {
 	var o *Membership
 	if len(init) == 1 {
@@ -1612,9 +1456,7 @@ func NewMembership(init ...*Membership) *Membership {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Membership) Init() *Membership {
 	if self.IsMember == nil {
 		d := true
@@ -1633,9 +1475,7 @@ func (self *Membership) Init() *Membership {
 
 type rawMembership Membership
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Membership
-//
 func (self *Membership) UnmarshalJSON(b []byte) error {
 	var m rawMembership
 	err := json.Unmarshal(b, &m)
@@ -1647,9 +1487,7 @@ func (self *Membership) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Membership) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("Membership.memberName is missing but is a required field")
@@ -1680,9 +1518,7 @@ func (self *Membership) Validate() error {
 	return nil
 }
 
-//
 // DefaultAdmins - The list of domain administrators.
-//
 type DefaultAdmins struct {
 
 	//
@@ -1691,9 +1527,7 @@ type DefaultAdmins struct {
 	Admins []ResourceName `json:"admins"`
 }
 
-//
 // NewDefaultAdmins - creates an initialized DefaultAdmins instance, returns a pointer to it
-//
 func NewDefaultAdmins(init ...*DefaultAdmins) *DefaultAdmins {
 	var o *DefaultAdmins
 	if len(init) == 1 {
@@ -1704,9 +1538,7 @@ func NewDefaultAdmins(init ...*DefaultAdmins) *DefaultAdmins {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DefaultAdmins) Init() *DefaultAdmins {
 	if self.Admins == nil {
 		self.Admins = make([]ResourceName, 0)
@@ -1716,9 +1548,7 @@ func (self *DefaultAdmins) Init() *DefaultAdmins {
 
 type rawDefaultAdmins DefaultAdmins
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DefaultAdmins
-//
 func (self *DefaultAdmins) UnmarshalJSON(b []byte) error {
 	var m rawDefaultAdmins
 	err := json.Unmarshal(b, &m)
@@ -1730,9 +1560,7 @@ func (self *DefaultAdmins) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DefaultAdmins) Validate() error {
 	if self.Admins == nil {
 		return fmt.Errorf("DefaultAdmins: Missing required field: admins")
@@ -1740,9 +1568,7 @@ func (self *DefaultAdmins) Validate() error {
 	return nil
 }
 
-//
 // MemberRole -
-//
 type MemberRole struct {
 
 	//
@@ -1796,9 +1622,7 @@ type MemberRole struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
-//
 func NewMemberRole(init ...*MemberRole) *MemberRole {
 	var o *MemberRole
 	if len(init) == 1 {
@@ -1809,9 +1633,7 @@ func NewMemberRole(init ...*MemberRole) *MemberRole {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *MemberRole) Init() *MemberRole {
 	if self.Active == nil {
 		d := true
@@ -1822,9 +1644,7 @@ func (self *MemberRole) Init() *MemberRole {
 
 type rawMemberRole MemberRole
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a MemberRole
-//
 func (self *MemberRole) UnmarshalJSON(b []byte) error {
 	var m rawMemberRole
 	err := json.Unmarshal(b, &m)
@@ -1836,9 +1656,7 @@ func (self *MemberRole) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *MemberRole) Validate() error {
 	if self.RoleName == "" {
 		return fmt.Errorf("MemberRole.roleName is missing but is a required field")
@@ -1875,9 +1693,7 @@ func (self *MemberRole) Validate() error {
 	return nil
 }
 
-//
 // DomainRoleMember -
-//
 type DomainRoleMember struct {
 
 	//
@@ -1891,9 +1707,7 @@ type DomainRoleMember struct {
 	MemberRoles []*MemberRole `json:"memberRoles"`
 }
 
-//
 // NewDomainRoleMember - creates an initialized DomainRoleMember instance, returns a pointer to it
-//
 func NewDomainRoleMember(init ...*DomainRoleMember) *DomainRoleMember {
 	var o *DomainRoleMember
 	if len(init) == 1 {
@@ -1904,9 +1718,7 @@ func NewDomainRoleMember(init ...*DomainRoleMember) *DomainRoleMember {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainRoleMember) Init() *DomainRoleMember {
 	if self.MemberRoles == nil {
 		self.MemberRoles = make([]*MemberRole, 0)
@@ -1916,9 +1728,7 @@ func (self *DomainRoleMember) Init() *DomainRoleMember {
 
 type rawDomainRoleMember DomainRoleMember
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainRoleMember
-//
 func (self *DomainRoleMember) UnmarshalJSON(b []byte) error {
 	var m rawDomainRoleMember
 	err := json.Unmarshal(b, &m)
@@ -1930,9 +1740,7 @@ func (self *DomainRoleMember) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainRoleMember) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("DomainRoleMember.memberName is missing but is a required field")
@@ -1948,9 +1756,7 @@ func (self *DomainRoleMember) Validate() error {
 	return nil
 }
 
-//
 // DomainRoleMembers -
-//
 type DomainRoleMembers struct {
 
 	//
@@ -1964,9 +1770,7 @@ type DomainRoleMembers struct {
 	Members []*DomainRoleMember `json:"members"`
 }
 
-//
 // NewDomainRoleMembers - creates an initialized DomainRoleMembers instance, returns a pointer to it
-//
 func NewDomainRoleMembers(init ...*DomainRoleMembers) *DomainRoleMembers {
 	var o *DomainRoleMembers
 	if len(init) == 1 {
@@ -1977,9 +1781,7 @@ func NewDomainRoleMembers(init ...*DomainRoleMembers) *DomainRoleMembers {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainRoleMembers) Init() *DomainRoleMembers {
 	if self.Members == nil {
 		self.Members = make([]*DomainRoleMember, 0)
@@ -1989,9 +1791,7 @@ func (self *DomainRoleMembers) Init() *DomainRoleMembers {
 
 type rawDomainRoleMembers DomainRoleMembers
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainRoleMembers
-//
 func (self *DomainRoleMembers) UnmarshalJSON(b []byte) error {
 	var m rawDomainRoleMembers
 	err := json.Unmarshal(b, &m)
@@ -2003,9 +1803,7 @@ func (self *DomainRoleMembers) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainRoleMembers) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("DomainRoleMembers.domainName is missing but is a required field")
@@ -2021,10 +1819,8 @@ func (self *DomainRoleMembers) Validate() error {
 	return nil
 }
 
-//
 // RoleSystemMeta - Set of system metadata attributes that all roles may have
 // and can be changed by system admins.
-//
 type RoleSystemMeta struct {
 
 	//
@@ -2035,9 +1831,7 @@ type RoleSystemMeta struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewRoleSystemMeta - creates an initialized RoleSystemMeta instance, returns a pointer to it
-//
 func NewRoleSystemMeta(init ...*RoleSystemMeta) *RoleSystemMeta {
 	var o *RoleSystemMeta
 	if len(init) == 1 {
@@ -2050,9 +1844,7 @@ func NewRoleSystemMeta(init ...*RoleSystemMeta) *RoleSystemMeta {
 
 type rawRoleSystemMeta RoleSystemMeta
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a RoleSystemMeta
-//
 func (self *RoleSystemMeta) UnmarshalJSON(b []byte) error {
 	var m rawRoleSystemMeta
 	err := json.Unmarshal(b, &m)
@@ -2064,21 +1856,15 @@ func (self *RoleSystemMeta) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *RoleSystemMeta) Validate() error {
 	return nil
 }
 
-//
 // AssertionEffect - Every assertion can have the effect of ALLOW or DENY.
-//
 type AssertionEffect int
 
-//
 // AssertionEffect constants
-//
 const (
 	_ AssertionEffect = iota
 	ALLOW
@@ -2090,9 +1876,7 @@ var namesAssertionEffect = []string{
 	DENY:  "DENY",
 }
 
-//
 // NewAssertionEffect - return a string representation of the enum
-//
 func NewAssertionEffect(init ...interface{}) AssertionEffect {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -2115,30 +1899,22 @@ func NewAssertionEffect(init ...interface{}) AssertionEffect {
 	return AssertionEffect(0) //default to the first enum value
 }
 
-//
 // String - return a string representation of the enum
-//
 func (e AssertionEffect) String() string {
 	return namesAssertionEffect[e]
 }
 
-//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
-//
 func (e AssertionEffect) SymbolSet() []string {
 	return namesAssertionEffect
 }
 
-//
 // MarshalJSON is defined for proper JSON encoding of a AssertionEffect
-//
 func (e AssertionEffect) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AssertionEffect
-//
 func (e *AssertionEffect) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -2155,14 +1931,10 @@ func (e *AssertionEffect) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // AssertionConditionOperator - Allowed operators for assertion conditions
-//
 type AssertionConditionOperator int
 
-//
 // AssertionConditionOperator constants
-//
 const (
 	_ AssertionConditionOperator = iota
 	EQUALS
@@ -2172,9 +1944,7 @@ var namesAssertionConditionOperator = []string{
 	EQUALS: "EQUALS",
 }
 
-//
 // NewAssertionConditionOperator - return a string representation of the enum
-//
 func NewAssertionConditionOperator(init ...interface{}) AssertionConditionOperator {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -2197,30 +1967,22 @@ func NewAssertionConditionOperator(init ...interface{}) AssertionConditionOperat
 	return AssertionConditionOperator(0) //default to the first enum value
 }
 
-//
 // String - return a string representation of the enum
-//
 func (e AssertionConditionOperator) String() string {
 	return namesAssertionConditionOperator[e]
 }
 
-//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
-//
 func (e AssertionConditionOperator) SymbolSet() []string {
 	return namesAssertionConditionOperator
 }
 
-//
 // MarshalJSON is defined for proper JSON encoding of a AssertionConditionOperator
-//
 func (e AssertionConditionOperator) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AssertionConditionOperator
-//
 func (e *AssertionConditionOperator) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -2237,10 +1999,8 @@ func (e *AssertionConditionOperator) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // AssertionConditionData - A representation of details associated with an
 // assertion condition key
-//
 type AssertionConditionData struct {
 
 	//
@@ -2254,9 +2014,7 @@ type AssertionConditionData struct {
 	Value AssertionConditionValue `json:"value"`
 }
 
-//
 // NewAssertionConditionData - creates an initialized AssertionConditionData instance, returns a pointer to it
-//
 func NewAssertionConditionData(init ...*AssertionConditionData) *AssertionConditionData {
 	var o *AssertionConditionData
 	if len(init) == 1 {
@@ -2269,9 +2027,7 @@ func NewAssertionConditionData(init ...*AssertionConditionData) *AssertionCondit
 
 type rawAssertionConditionData AssertionConditionData
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AssertionConditionData
-//
 func (self *AssertionConditionData) UnmarshalJSON(b []byte) error {
 	var m rawAssertionConditionData
 	err := json.Unmarshal(b, &m)
@@ -2283,9 +2039,7 @@ func (self *AssertionConditionData) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *AssertionConditionData) Validate() error {
 	if self.Value == "" {
 		return fmt.Errorf("AssertionConditionData.value is missing but is a required field")
@@ -2298,10 +2052,8 @@ func (self *AssertionConditionData) Validate() error {
 	return nil
 }
 
-//
 // AssertionCondition - A representation of condition associated with an
 // assertion
-//
 type AssertionCondition struct {
 
 	//
@@ -2317,9 +2069,7 @@ type AssertionCondition struct {
 	ConditionsMap map[AssertionConditionKey]*AssertionConditionData `json:"conditionsMap"`
 }
 
-//
 // NewAssertionCondition - creates an initialized AssertionCondition instance, returns a pointer to it
-//
 func NewAssertionCondition(init ...*AssertionCondition) *AssertionCondition {
 	var o *AssertionCondition
 	if len(init) == 1 {
@@ -2330,9 +2080,7 @@ func NewAssertionCondition(init ...*AssertionCondition) *AssertionCondition {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *AssertionCondition) Init() *AssertionCondition {
 	if self.ConditionsMap == nil {
 		self.ConditionsMap = make(map[AssertionConditionKey]*AssertionConditionData)
@@ -2342,9 +2090,7 @@ func (self *AssertionCondition) Init() *AssertionCondition {
 
 type rawAssertionCondition AssertionCondition
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AssertionCondition
-//
 func (self *AssertionCondition) UnmarshalJSON(b []byte) error {
 	var m rawAssertionCondition
 	err := json.Unmarshal(b, &m)
@@ -2356,9 +2102,7 @@ func (self *AssertionCondition) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *AssertionCondition) Validate() error {
 	if self.ConditionsMap == nil {
 		return fmt.Errorf("AssertionCondition: Missing required field: conditionsMap")
@@ -2366,9 +2110,7 @@ func (self *AssertionCondition) Validate() error {
 	return nil
 }
 
-//
 // AssertionConditions - The representation of list of assertion conditions
-//
 type AssertionConditions struct {
 
 	//
@@ -2377,9 +2119,7 @@ type AssertionConditions struct {
 	ConditionsList []*AssertionCondition `json:"conditionsList"`
 }
 
-//
 // NewAssertionConditions - creates an initialized AssertionConditions instance, returns a pointer to it
-//
 func NewAssertionConditions(init ...*AssertionConditions) *AssertionConditions {
 	var o *AssertionConditions
 	if len(init) == 1 {
@@ -2390,9 +2130,7 @@ func NewAssertionConditions(init ...*AssertionConditions) *AssertionConditions {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *AssertionConditions) Init() *AssertionConditions {
 	if self.ConditionsList == nil {
 		self.ConditionsList = make([]*AssertionCondition, 0)
@@ -2402,9 +2140,7 @@ func (self *AssertionConditions) Init() *AssertionConditions {
 
 type rawAssertionConditions AssertionConditions
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AssertionConditions
-//
 func (self *AssertionConditions) UnmarshalJSON(b []byte) error {
 	var m rawAssertionConditions
 	err := json.Unmarshal(b, &m)
@@ -2416,9 +2152,7 @@ func (self *AssertionConditions) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *AssertionConditions) Validate() error {
 	if self.ConditionsList == nil {
 		return fmt.Errorf("AssertionConditions: Missing required field: conditionsList")
@@ -2426,10 +2160,8 @@ func (self *AssertionConditions) Validate() error {
 	return nil
 }
 
-//
 // Assertion - A representation for the encapsulation of an action to be
 // performed on a resource by a principal.
-//
 type Assertion struct {
 
 	//
@@ -2470,9 +2202,7 @@ type Assertion struct {
 	Conditions *AssertionConditions `json:"conditions,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewAssertion - creates an initialized Assertion instance, returns a pointer to it
-//
 func NewAssertion(init ...*Assertion) *Assertion {
 	var o *Assertion
 	if len(init) == 1 {
@@ -2485,9 +2215,7 @@ func NewAssertion(init ...*Assertion) *Assertion {
 
 type rawAssertion Assertion
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Assertion
-//
 func (self *Assertion) UnmarshalJSON(b []byte) error {
 	var m rawAssertion
 	err := json.Unmarshal(b, &m)
@@ -2499,9 +2227,7 @@ func (self *Assertion) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Assertion) Validate() error {
 	if self.Role == "" {
 		return fmt.Errorf("Assertion.role is missing but is a required field")
@@ -2530,9 +2256,7 @@ func (self *Assertion) Validate() error {
 	return nil
 }
 
-//
 // Policy - The representation for a Policy with set of assertions.
-//
 type Policy struct {
 
 	//
@@ -2571,9 +2295,7 @@ type Policy struct {
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewPolicy - creates an initialized Policy instance, returns a pointer to it
-//
 func NewPolicy(init ...*Policy) *Policy {
 	var o *Policy
 	if len(init) == 1 {
@@ -2584,9 +2306,7 @@ func NewPolicy(init ...*Policy) *Policy {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Policy) Init() *Policy {
 	if self.Assertions == nil {
 		self.Assertions = make([]*Assertion, 0)
@@ -2596,9 +2316,7 @@ func (self *Policy) Init() *Policy {
 
 type rawPolicy Policy
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Policy
-//
 func (self *Policy) UnmarshalJSON(b []byte) error {
 	var m rawPolicy
 	err := json.Unmarshal(b, &m)
@@ -2610,9 +2328,7 @@ func (self *Policy) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Policy) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("Policy.name is missing but is a required field")
@@ -2640,9 +2356,7 @@ func (self *Policy) Validate() error {
 	return nil
 }
 
-//
 // Policies - The representation of list of policy objects
-//
 type Policies struct {
 
 	//
@@ -2651,9 +2365,7 @@ type Policies struct {
 	List []*Policy `json:"list"`
 }
 
-//
 // NewPolicies - creates an initialized Policies instance, returns a pointer to it
-//
 func NewPolicies(init ...*Policies) *Policies {
 	var o *Policies
 	if len(init) == 1 {
@@ -2664,9 +2376,7 @@ func NewPolicies(init ...*Policies) *Policies {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Policies) Init() *Policies {
 	if self.List == nil {
 		self.List = make([]*Policy, 0)
@@ -2676,9 +2386,7 @@ func (self *Policies) Init() *Policies {
 
 type rawPolicies Policies
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Policies
-//
 func (self *Policies) UnmarshalJSON(b []byte) error {
 	var m rawPolicies
 	err := json.Unmarshal(b, &m)
@@ -2690,9 +2398,7 @@ func (self *Policies) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Policies) Validate() error {
 	if self.List == nil {
 		return fmt.Errorf("Policies: Missing required field: list")
@@ -2700,9 +2406,7 @@ func (self *Policies) Validate() error {
 	return nil
 }
 
-//
 // PolicyOptions - Options for Policy Management Requests
-//
 type PolicyOptions struct {
 
 	//
@@ -2716,9 +2420,7 @@ type PolicyOptions struct {
 	FromVersion SimpleName `json:"fromVersion,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewPolicyOptions - creates an initialized PolicyOptions instance, returns a pointer to it
-//
 func NewPolicyOptions(init ...*PolicyOptions) *PolicyOptions {
 	var o *PolicyOptions
 	if len(init) == 1 {
@@ -2731,9 +2433,7 @@ func NewPolicyOptions(init ...*PolicyOptions) *PolicyOptions {
 
 type rawPolicyOptions PolicyOptions
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a PolicyOptions
-//
 func (self *PolicyOptions) UnmarshalJSON(b []byte) error {
 	var m rawPolicyOptions
 	err := json.Unmarshal(b, &m)
@@ -2745,9 +2445,7 @@ func (self *PolicyOptions) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *PolicyOptions) Validate() error {
 	if self.Version == "" {
 		return fmt.Errorf("PolicyOptions.version is missing but is a required field")
@@ -2766,10 +2464,8 @@ func (self *PolicyOptions) Validate() error {
 	return nil
 }
 
-//
 // PublicKeyEntry - The representation of the public key in a service identity
 // object.
-//
 type PublicKeyEntry struct {
 
 	//
@@ -2783,9 +2479,7 @@ type PublicKeyEntry struct {
 	Id string `json:"id"`
 }
 
-//
 // NewPublicKeyEntry - creates an initialized PublicKeyEntry instance, returns a pointer to it
-//
 func NewPublicKeyEntry(init ...*PublicKeyEntry) *PublicKeyEntry {
 	var o *PublicKeyEntry
 	if len(init) == 1 {
@@ -2798,9 +2492,7 @@ func NewPublicKeyEntry(init ...*PublicKeyEntry) *PublicKeyEntry {
 
 type rawPublicKeyEntry PublicKeyEntry
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a PublicKeyEntry
-//
 func (self *PublicKeyEntry) UnmarshalJSON(b []byte) error {
 	var m rawPublicKeyEntry
 	err := json.Unmarshal(b, &m)
@@ -2812,9 +2504,7 @@ func (self *PublicKeyEntry) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *PublicKeyEntry) Validate() error {
 	if self.Key == "" {
 		return fmt.Errorf("PublicKeyEntry.key is missing but is a required field")
@@ -2835,9 +2525,7 @@ func (self *PublicKeyEntry) Validate() error {
 	return nil
 }
 
-//
 // ServiceIdentity - The representation of the service identity object.
-//
 type ServiceIdentity struct {
 
 	//
@@ -2886,9 +2574,7 @@ type ServiceIdentity struct {
 	Group string `json:"group" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
-//
 func NewServiceIdentity(init ...*ServiceIdentity) *ServiceIdentity {
 	var o *ServiceIdentity
 	if len(init) == 1 {
@@ -2901,9 +2587,7 @@ func NewServiceIdentity(init ...*ServiceIdentity) *ServiceIdentity {
 
 type rawServiceIdentity ServiceIdentity
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentity
-//
 func (self *ServiceIdentity) UnmarshalJSON(b []byte) error {
 	var m rawServiceIdentity
 	err := json.Unmarshal(b, &m)
@@ -2915,9 +2599,7 @@ func (self *ServiceIdentity) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ServiceIdentity) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("ServiceIdentity.name is missing but is a required field")
@@ -2960,9 +2642,7 @@ func (self *ServiceIdentity) Validate() error {
 	return nil
 }
 
-//
 // ServiceIdentities - The representation of list of services
-//
 type ServiceIdentities struct {
 
 	//
@@ -2971,9 +2651,7 @@ type ServiceIdentities struct {
 	List []*ServiceIdentity `json:"list"`
 }
 
-//
 // NewServiceIdentities - creates an initialized ServiceIdentities instance, returns a pointer to it
-//
 func NewServiceIdentities(init ...*ServiceIdentities) *ServiceIdentities {
 	var o *ServiceIdentities
 	if len(init) == 1 {
@@ -2984,9 +2662,7 @@ func NewServiceIdentities(init ...*ServiceIdentities) *ServiceIdentities {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ServiceIdentities) Init() *ServiceIdentities {
 	if self.List == nil {
 		self.List = make([]*ServiceIdentity, 0)
@@ -2996,9 +2672,7 @@ func (self *ServiceIdentities) Init() *ServiceIdentities {
 
 type rawServiceIdentities ServiceIdentities
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentities
-//
 func (self *ServiceIdentities) UnmarshalJSON(b []byte) error {
 	var m rawServiceIdentities
 	err := json.Unmarshal(b, &m)
@@ -3010,9 +2684,7 @@ func (self *ServiceIdentities) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ServiceIdentities) Validate() error {
 	if self.List == nil {
 		return fmt.Errorf("ServiceIdentities: Missing required field: list")
@@ -3020,10 +2692,8 @@ func (self *ServiceIdentities) Validate() error {
 	return nil
 }
 
-//
 // ServiceIdentityList - The representation for an enumeration of services in
 // the namespace, with pagination.
-//
 type ServiceIdentityList struct {
 
 	//
@@ -3039,9 +2709,7 @@ type ServiceIdentityList struct {
 	Next string `json:"next" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewServiceIdentityList - creates an initialized ServiceIdentityList instance, returns a pointer to it
-//
 func NewServiceIdentityList(init ...*ServiceIdentityList) *ServiceIdentityList {
 	var o *ServiceIdentityList
 	if len(init) == 1 {
@@ -3052,9 +2720,7 @@ func NewServiceIdentityList(init ...*ServiceIdentityList) *ServiceIdentityList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ServiceIdentityList) Init() *ServiceIdentityList {
 	if self.Names == nil {
 		self.Names = make([]EntityName, 0)
@@ -3064,9 +2730,7 @@ func (self *ServiceIdentityList) Init() *ServiceIdentityList {
 
 type rawServiceIdentityList ServiceIdentityList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentityList
-//
 func (self *ServiceIdentityList) UnmarshalJSON(b []byte) error {
 	var m rawServiceIdentityList
 	err := json.Unmarshal(b, &m)
@@ -3078,9 +2742,7 @@ func (self *ServiceIdentityList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ServiceIdentityList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("ServiceIdentityList: Missing required field: names")
@@ -3094,10 +2756,8 @@ func (self *ServiceIdentityList) Validate() error {
 	return nil
 }
 
-//
 // ServiceIdentitySystemMeta - Set of system metadata attributes that all
 // services may have and can be changed by system admins.
-//
 type ServiceIdentitySystemMeta struct {
 
 	//
@@ -3106,9 +2766,7 @@ type ServiceIdentitySystemMeta struct {
 	ProviderEndpoint string `json:"providerEndpoint" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewServiceIdentitySystemMeta - creates an initialized ServiceIdentitySystemMeta instance, returns a pointer to it
-//
 func NewServiceIdentitySystemMeta(init ...*ServiceIdentitySystemMeta) *ServiceIdentitySystemMeta {
 	var o *ServiceIdentitySystemMeta
 	if len(init) == 1 {
@@ -3121,9 +2779,7 @@ func NewServiceIdentitySystemMeta(init ...*ServiceIdentitySystemMeta) *ServiceId
 
 type rawServiceIdentitySystemMeta ServiceIdentitySystemMeta
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ServiceIdentitySystemMeta
-//
 func (self *ServiceIdentitySystemMeta) UnmarshalJSON(b []byte) error {
 	var m rawServiceIdentitySystemMeta
 	err := json.Unmarshal(b, &m)
@@ -3135,9 +2791,7 @@ func (self *ServiceIdentitySystemMeta) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ServiceIdentitySystemMeta) Validate() error {
 	if self.ProviderEndpoint != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProviderEndpoint)
@@ -3148,9 +2802,7 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 	return nil
 }
 
-//
 // TemplateMetaData - MetaData for template.
-//
 type TemplateMetaData struct {
 
 	//
@@ -3190,9 +2842,7 @@ type TemplateMetaData struct {
 	AutoUpdate *bool `json:"autoUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewTemplateMetaData - creates an initialized TemplateMetaData instance, returns a pointer to it
-//
 func NewTemplateMetaData(init ...*TemplateMetaData) *TemplateMetaData {
 	var o *TemplateMetaData
 	if len(init) == 1 {
@@ -3205,9 +2855,7 @@ func NewTemplateMetaData(init ...*TemplateMetaData) *TemplateMetaData {
 
 type rawTemplateMetaData TemplateMetaData
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TemplateMetaData
-//
 func (self *TemplateMetaData) UnmarshalJSON(b []byte) error {
 	var m rawTemplateMetaData
 	err := json.Unmarshal(b, &m)
@@ -3219,9 +2867,7 @@ func (self *TemplateMetaData) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TemplateMetaData) Validate() error {
 	if self.TemplateName != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.TemplateName)
@@ -3244,9 +2890,7 @@ func (self *TemplateMetaData) Validate() error {
 	return nil
 }
 
-//
 // Template - Solution Template object defined on the server
-//
 type Template struct {
 
 	//
@@ -3270,9 +2914,7 @@ type Template struct {
 	Metadata *TemplateMetaData `json:"metadata,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewTemplate - creates an initialized Template instance, returns a pointer to it
-//
 func NewTemplate(init ...*Template) *Template {
 	var o *Template
 	if len(init) == 1 {
@@ -3283,9 +2925,7 @@ func NewTemplate(init ...*Template) *Template {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Template) Init() *Template {
 	if self.Roles == nil {
 		self.Roles = make([]*Role, 0)
@@ -3298,9 +2938,7 @@ func (self *Template) Init() *Template {
 
 type rawTemplate Template
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Template
-//
 func (self *Template) UnmarshalJSON(b []byte) error {
 	var m rawTemplate
 	err := json.Unmarshal(b, &m)
@@ -3312,9 +2950,7 @@ func (self *Template) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Template) Validate() error {
 	if self.Roles == nil {
 		return fmt.Errorf("Template: Missing required field: roles")
@@ -3325,10 +2961,8 @@ func (self *Template) Validate() error {
 	return nil
 }
 
-//
 // TemplateList - List of template names that is the base struct for server and
 // domain templates
-//
 type TemplateList struct {
 
 	//
@@ -3337,9 +2971,7 @@ type TemplateList struct {
 	TemplateNames []SimpleName `json:"templateNames"`
 }
 
-//
 // NewTemplateList - creates an initialized TemplateList instance, returns a pointer to it
-//
 func NewTemplateList(init ...*TemplateList) *TemplateList {
 	var o *TemplateList
 	if len(init) == 1 {
@@ -3350,9 +2982,7 @@ func NewTemplateList(init ...*TemplateList) *TemplateList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *TemplateList) Init() *TemplateList {
 	if self.TemplateNames == nil {
 		self.TemplateNames = make([]SimpleName, 0)
@@ -3362,9 +2992,7 @@ func (self *TemplateList) Init() *TemplateList {
 
 type rawTemplateList TemplateList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TemplateList
-//
 func (self *TemplateList) UnmarshalJSON(b []byte) error {
 	var m rawTemplateList
 	err := json.Unmarshal(b, &m)
@@ -3376,9 +3004,7 @@ func (self *TemplateList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TemplateList) Validate() error {
 	if self.TemplateNames == nil {
 		return fmt.Errorf("TemplateList: Missing required field: templateNames")
@@ -3386,9 +3012,7 @@ func (self *TemplateList) Validate() error {
 	return nil
 }
 
-//
 // TemplateParam -
-//
 type TemplateParam struct {
 
 	//
@@ -3402,9 +3026,7 @@ type TemplateParam struct {
 	Value CompoundName `json:"value"`
 }
 
-//
 // NewTemplateParam - creates an initialized TemplateParam instance, returns a pointer to it
-//
 func NewTemplateParam(init ...*TemplateParam) *TemplateParam {
 	var o *TemplateParam
 	if len(init) == 1 {
@@ -3417,9 +3039,7 @@ func NewTemplateParam(init ...*TemplateParam) *TemplateParam {
 
 type rawTemplateParam TemplateParam
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TemplateParam
-//
 func (self *TemplateParam) UnmarshalJSON(b []byte) error {
 	var m rawTemplateParam
 	err := json.Unmarshal(b, &m)
@@ -3431,9 +3051,7 @@ func (self *TemplateParam) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TemplateParam) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("TemplateParam.name is missing but is a required field")
@@ -3454,9 +3072,7 @@ func (self *TemplateParam) Validate() error {
 	return nil
 }
 
-//
 // DomainTemplate - solution template(s) to be applied to a domain
-//
 type DomainTemplate struct {
 
 	//
@@ -3470,9 +3086,7 @@ type DomainTemplate struct {
 	Params []*TemplateParam `json:"params,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewDomainTemplate - creates an initialized DomainTemplate instance, returns a pointer to it
-//
 func NewDomainTemplate(init ...*DomainTemplate) *DomainTemplate {
 	var o *DomainTemplate
 	if len(init) == 1 {
@@ -3483,9 +3097,7 @@ func NewDomainTemplate(init ...*DomainTemplate) *DomainTemplate {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainTemplate) Init() *DomainTemplate {
 	if self.TemplateNames == nil {
 		self.TemplateNames = make([]SimpleName, 0)
@@ -3495,9 +3107,7 @@ func (self *DomainTemplate) Init() *DomainTemplate {
 
 type rawDomainTemplate DomainTemplate
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainTemplate
-//
 func (self *DomainTemplate) UnmarshalJSON(b []byte) error {
 	var m rawDomainTemplate
 	err := json.Unmarshal(b, &m)
@@ -3509,9 +3119,7 @@ func (self *DomainTemplate) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainTemplate) Validate() error {
 	if self.TemplateNames == nil {
 		return fmt.Errorf("DomainTemplate: Missing required field: templateNames")
@@ -3519,9 +3127,7 @@ func (self *DomainTemplate) Validate() error {
 	return nil
 }
 
-//
 // DomainTemplateList - List of solution templates to be applied to a domain
-//
 type DomainTemplateList struct {
 
 	//
@@ -3530,9 +3136,7 @@ type DomainTemplateList struct {
 	TemplateNames []SimpleName `json:"templateNames"`
 }
 
-//
 // NewDomainTemplateList - creates an initialized DomainTemplateList instance, returns a pointer to it
-//
 func NewDomainTemplateList(init ...*DomainTemplateList) *DomainTemplateList {
 	var o *DomainTemplateList
 	if len(init) == 1 {
@@ -3543,9 +3147,7 @@ func NewDomainTemplateList(init ...*DomainTemplateList) *DomainTemplateList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainTemplateList) Init() *DomainTemplateList {
 	if self.TemplateNames == nil {
 		self.TemplateNames = make([]SimpleName, 0)
@@ -3555,9 +3157,7 @@ func (self *DomainTemplateList) Init() *DomainTemplateList {
 
 type rawDomainTemplateList DomainTemplateList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainTemplateList
-//
 func (self *DomainTemplateList) UnmarshalJSON(b []byte) error {
 	var m rawDomainTemplateList
 	err := json.Unmarshal(b, &m)
@@ -3569,9 +3169,7 @@ func (self *DomainTemplateList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainTemplateList) Validate() error {
 	if self.TemplateNames == nil {
 		return fmt.Errorf("DomainTemplateList: Missing required field: templateNames")
@@ -3579,9 +3177,7 @@ func (self *DomainTemplateList) Validate() error {
 	return nil
 }
 
-//
 // ServerTemplateList - List of solution templates available in the server
-//
 type ServerTemplateList struct {
 
 	//
@@ -3590,9 +3186,7 @@ type ServerTemplateList struct {
 	TemplateNames []SimpleName `json:"templateNames"`
 }
 
-//
 // NewServerTemplateList - creates an initialized ServerTemplateList instance, returns a pointer to it
-//
 func NewServerTemplateList(init ...*ServerTemplateList) *ServerTemplateList {
 	var o *ServerTemplateList
 	if len(init) == 1 {
@@ -3603,9 +3197,7 @@ func NewServerTemplateList(init ...*ServerTemplateList) *ServerTemplateList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ServerTemplateList) Init() *ServerTemplateList {
 	if self.TemplateNames == nil {
 		self.TemplateNames = make([]SimpleName, 0)
@@ -3615,9 +3207,7 @@ func (self *ServerTemplateList) Init() *ServerTemplateList {
 
 type rawServerTemplateList ServerTemplateList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ServerTemplateList
-//
 func (self *ServerTemplateList) UnmarshalJSON(b []byte) error {
 	var m rawServerTemplateList
 	err := json.Unmarshal(b, &m)
@@ -3629,9 +3219,7 @@ func (self *ServerTemplateList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ServerTemplateList) Validate() error {
 	if self.TemplateNames == nil {
 		return fmt.Errorf("ServerTemplateList: Missing required field: templateNames")
@@ -3639,10 +3227,8 @@ func (self *ServerTemplateList) Validate() error {
 	return nil
 }
 
-//
 // DomainTemplateDetailsList - List of templates with metadata details given a
 // domain
-//
 type DomainTemplateDetailsList struct {
 
 	//
@@ -3651,9 +3237,7 @@ type DomainTemplateDetailsList struct {
 	MetaData []*TemplateMetaData `json:"metaData"`
 }
 
-//
 // NewDomainTemplateDetailsList - creates an initialized DomainTemplateDetailsList instance, returns a pointer to it
-//
 func NewDomainTemplateDetailsList(init ...*DomainTemplateDetailsList) *DomainTemplateDetailsList {
 	var o *DomainTemplateDetailsList
 	if len(init) == 1 {
@@ -3664,9 +3248,7 @@ func NewDomainTemplateDetailsList(init ...*DomainTemplateDetailsList) *DomainTem
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainTemplateDetailsList) Init() *DomainTemplateDetailsList {
 	if self.MetaData == nil {
 		self.MetaData = make([]*TemplateMetaData, 0)
@@ -3676,9 +3258,7 @@ func (self *DomainTemplateDetailsList) Init() *DomainTemplateDetailsList {
 
 type rawDomainTemplateDetailsList DomainTemplateDetailsList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainTemplateDetailsList
-//
 func (self *DomainTemplateDetailsList) UnmarshalJSON(b []byte) error {
 	var m rawDomainTemplateDetailsList
 	err := json.Unmarshal(b, &m)
@@ -3690,9 +3270,7 @@ func (self *DomainTemplateDetailsList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainTemplateDetailsList) Validate() error {
 	if self.MetaData == nil {
 		return fmt.Errorf("DomainTemplateDetailsList: Missing required field: metaData")
@@ -3700,10 +3278,8 @@ func (self *DomainTemplateDetailsList) Validate() error {
 	return nil
 }
 
-//
 // TopLevelDomain - Top Level Domain object. The required attributes include
 // the name of the domain and list of domain administrators.
-//
 type TopLevelDomain struct {
 
 	//
@@ -3825,9 +3401,7 @@ type TopLevelDomain struct {
 	Templates *DomainTemplateList `json:"templates,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewTopLevelDomain - creates an initialized TopLevelDomain instance, returns a pointer to it
-//
 func NewTopLevelDomain(init ...*TopLevelDomain) *TopLevelDomain {
 	var o *TopLevelDomain
 	if len(init) == 1 {
@@ -3838,9 +3412,7 @@ func NewTopLevelDomain(init ...*TopLevelDomain) *TopLevelDomain {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *TopLevelDomain) Init() *TopLevelDomain {
 	if self.Enabled == nil {
 		d := true
@@ -3858,9 +3430,7 @@ func (self *TopLevelDomain) Init() *TopLevelDomain {
 
 type rawTopLevelDomain TopLevelDomain
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TopLevelDomain
-//
 func (self *TopLevelDomain) UnmarshalJSON(b []byte) error {
 	var m rawTopLevelDomain
 	err := json.Unmarshal(b, &m)
@@ -3872,9 +3442,7 @@ func (self *TopLevelDomain) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TopLevelDomain) Validate() error {
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
@@ -3944,9 +3512,7 @@ func (self *TopLevelDomain) Validate() error {
 	return nil
 }
 
-//
 // SubDomain - A Subdomain is a TopLevelDomain, except it has a parent.
-//
 type SubDomain struct {
 
 	//
@@ -4073,9 +3639,7 @@ type SubDomain struct {
 	Parent DomainName `json:"parent"`
 }
 
-//
 // NewSubDomain - creates an initialized SubDomain instance, returns a pointer to it
-//
 func NewSubDomain(init ...*SubDomain) *SubDomain {
 	var o *SubDomain
 	if len(init) == 1 {
@@ -4086,9 +3650,7 @@ func NewSubDomain(init ...*SubDomain) *SubDomain {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *SubDomain) Init() *SubDomain {
 	if self.Enabled == nil {
 		d := true
@@ -4106,9 +3668,7 @@ func (self *SubDomain) Init() *SubDomain {
 
 type rawSubDomain SubDomain
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a SubDomain
-//
 func (self *SubDomain) UnmarshalJSON(b []byte) error {
 	var m rawSubDomain
 	err := json.Unmarshal(b, &m)
@@ -4120,9 +3680,7 @@ func (self *SubDomain) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *SubDomain) Validate() error {
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
@@ -4200,10 +3758,8 @@ func (self *SubDomain) Validate() error {
 	return nil
 }
 
-//
 // UserDomain - A UserDomain is the user's own top level domain in user - e.g.
 // user.hga
-//
 type UserDomain struct {
 
 	//
@@ -4320,9 +3876,7 @@ type UserDomain struct {
 	Templates *DomainTemplateList `json:"templates,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewUserDomain - creates an initialized UserDomain instance, returns a pointer to it
-//
 func NewUserDomain(init ...*UserDomain) *UserDomain {
 	var o *UserDomain
 	if len(init) == 1 {
@@ -4333,9 +3887,7 @@ func NewUserDomain(init ...*UserDomain) *UserDomain {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *UserDomain) Init() *UserDomain {
 	if self.Enabled == nil {
 		d := true
@@ -4350,9 +3902,7 @@ func (self *UserDomain) Init() *UserDomain {
 
 type rawUserDomain UserDomain
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a UserDomain
-//
 func (self *UserDomain) UnmarshalJSON(b []byte) error {
 	var m rawUserDomain
 	err := json.Unmarshal(b, &m)
@@ -4364,9 +3914,7 @@ func (self *UserDomain) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *UserDomain) Validate() error {
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
@@ -4433,9 +3981,7 @@ func (self *UserDomain) Validate() error {
 	return nil
 }
 
-//
 // DomainMetaStoreValidValuesList - List of valid domain meta attribute values
-//
 type DomainMetaStoreValidValuesList struct {
 
 	//
@@ -4444,9 +3990,7 @@ type DomainMetaStoreValidValuesList struct {
 	ValidValues []string `json:"validValues"`
 }
 
-//
 // NewDomainMetaStoreValidValuesList - creates an initialized DomainMetaStoreValidValuesList instance, returns a pointer to it
-//
 func NewDomainMetaStoreValidValuesList(init ...*DomainMetaStoreValidValuesList) *DomainMetaStoreValidValuesList {
 	var o *DomainMetaStoreValidValuesList
 	if len(init) == 1 {
@@ -4457,9 +4001,7 @@ func NewDomainMetaStoreValidValuesList(init ...*DomainMetaStoreValidValuesList) 
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainMetaStoreValidValuesList) Init() *DomainMetaStoreValidValuesList {
 	if self.ValidValues == nil {
 		self.ValidValues = make([]string, 0)
@@ -4469,9 +4011,7 @@ func (self *DomainMetaStoreValidValuesList) Init() *DomainMetaStoreValidValuesLi
 
 type rawDomainMetaStoreValidValuesList DomainMetaStoreValidValuesList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainMetaStoreValidValuesList
-//
 func (self *DomainMetaStoreValidValuesList) UnmarshalJSON(b []byte) error {
 	var m rawDomainMetaStoreValidValuesList
 	err := json.Unmarshal(b, &m)
@@ -4483,9 +4023,7 @@ func (self *DomainMetaStoreValidValuesList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainMetaStoreValidValuesList) Validate() error {
 	if self.ValidValues == nil {
 		return fmt.Errorf("DomainMetaStoreValidValuesList: Missing required field: validValues")
@@ -4493,9 +4031,7 @@ func (self *DomainMetaStoreValidValuesList) Validate() error {
 	return nil
 }
 
-//
 // AuthHistory -
-//
 type AuthHistory struct {
 
 	//
@@ -4529,9 +4065,7 @@ type AuthHistory struct {
 	Ttl int64 `json:"ttl"`
 }
 
-//
 // NewAuthHistory - creates an initialized AuthHistory instance, returns a pointer to it
-//
 func NewAuthHistory(init ...*AuthHistory) *AuthHistory {
 	var o *AuthHistory
 	if len(init) == 1 {
@@ -4544,9 +4078,7 @@ func NewAuthHistory(init ...*AuthHistory) *AuthHistory {
 
 type rawAuthHistory AuthHistory
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AuthHistory
-//
 func (self *AuthHistory) UnmarshalJSON(b []byte) error {
 	var m rawAuthHistory
 	err := json.Unmarshal(b, &m)
@@ -4558,9 +4090,7 @@ func (self *AuthHistory) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *AuthHistory) Validate() error {
 	if self.UriDomain == "" {
 		return fmt.Errorf("AuthHistory.uriDomain is missing but is a required field")
@@ -4600,9 +4130,7 @@ func (self *AuthHistory) Validate() error {
 	return nil
 }
 
-//
 // AuthHistoryDependencies -
-//
 type AuthHistoryDependencies struct {
 
 	//
@@ -4616,9 +4144,7 @@ type AuthHistoryDependencies struct {
 	OutgoingDependencies []*AuthHistory `json:"outgoingDependencies"`
 }
 
-//
 // NewAuthHistoryDependencies - creates an initialized AuthHistoryDependencies instance, returns a pointer to it
-//
 func NewAuthHistoryDependencies(init ...*AuthHistoryDependencies) *AuthHistoryDependencies {
 	var o *AuthHistoryDependencies
 	if len(init) == 1 {
@@ -4629,9 +4155,7 @@ func NewAuthHistoryDependencies(init ...*AuthHistoryDependencies) *AuthHistoryDe
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *AuthHistoryDependencies) Init() *AuthHistoryDependencies {
 	if self.IncomingDependencies == nil {
 		self.IncomingDependencies = make([]*AuthHistory, 0)
@@ -4644,9 +4168,7 @@ func (self *AuthHistoryDependencies) Init() *AuthHistoryDependencies {
 
 type rawAuthHistoryDependencies AuthHistoryDependencies
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a AuthHistoryDependencies
-//
 func (self *AuthHistoryDependencies) UnmarshalJSON(b []byte) error {
 	var m rawAuthHistoryDependencies
 	err := json.Unmarshal(b, &m)
@@ -4658,9 +4180,7 @@ func (self *AuthHistoryDependencies) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *AuthHistoryDependencies) Validate() error {
 	if self.IncomingDependencies == nil {
 		return fmt.Errorf("AuthHistoryDependencies: Missing required field: incomingDependencies")
@@ -4671,18 +4191,14 @@ func (self *AuthHistoryDependencies) Validate() error {
 	return nil
 }
 
-//
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
-//
 type DanglingPolicy struct {
 	PolicyName EntityName `json:"policyName"`
 	RoleName   EntityName `json:"roleName"`
 }
 
-//
 // NewDanglingPolicy - creates an initialized DanglingPolicy instance, returns a pointer to it
-//
 func NewDanglingPolicy(init ...*DanglingPolicy) *DanglingPolicy {
 	var o *DanglingPolicy
 	if len(init) == 1 {
@@ -4695,9 +4211,7 @@ func NewDanglingPolicy(init ...*DanglingPolicy) *DanglingPolicy {
 
 type rawDanglingPolicy DanglingPolicy
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DanglingPolicy
-//
 func (self *DanglingPolicy) UnmarshalJSON(b []byte) error {
 	var m rawDanglingPolicy
 	err := json.Unmarshal(b, &m)
@@ -4709,9 +4223,7 @@ func (self *DanglingPolicy) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DanglingPolicy) Validate() error {
 	if self.PolicyName == "" {
 		return fmt.Errorf("DanglingPolicy.policyName is missing but is a required field")
@@ -4732,11 +4244,9 @@ func (self *DanglingPolicy) Validate() error {
 	return nil
 }
 
-//
 // DomainDataCheck - Domain data object representing the results of a check
 // operation looking for dangling roles, policies and trust relationships that
 // are set either on tenant or provider side only
-//
 type DomainDataCheck struct {
 
 	//
@@ -4781,9 +4291,7 @@ type DomainDataCheck struct {
 	TenantsWithoutAssumeRole []DomainName `json:"tenantsWithoutAssumeRole,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewDomainDataCheck - creates an initialized DomainDataCheck instance, returns a pointer to it
-//
 func NewDomainDataCheck(init ...*DomainDataCheck) *DomainDataCheck {
 	var o *DomainDataCheck
 	if len(init) == 1 {
@@ -4796,9 +4304,7 @@ func NewDomainDataCheck(init ...*DomainDataCheck) *DomainDataCheck {
 
 type rawDomainDataCheck DomainDataCheck
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainDataCheck
-//
 func (self *DomainDataCheck) UnmarshalJSON(b []byte) error {
 	var m rawDomainDataCheck
 	err := json.Unmarshal(b, &m)
@@ -4810,18 +4316,14 @@ func (self *DomainDataCheck) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainDataCheck) Validate() error {
 	return nil
 }
 
-//
 // Entity - An entity is a name and a structured value. some entity
 // names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain",
 // "service")
-//
 type Entity struct {
 
 	//
@@ -4835,9 +4337,7 @@ type Entity struct {
 	Value rdl.Struct `json:"value"`
 }
 
-//
 // NewEntity - creates an initialized Entity instance, returns a pointer to it
-//
 func NewEntity(init ...*Entity) *Entity {
 	var o *Entity
 	if len(init) == 1 {
@@ -4848,9 +4348,7 @@ func NewEntity(init ...*Entity) *Entity {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Entity) Init() *Entity {
 	if self.Value == nil {
 		self.Value = make(rdl.Struct)
@@ -4860,9 +4358,7 @@ func (self *Entity) Init() *Entity {
 
 type rawEntity Entity
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Entity
-//
 func (self *Entity) UnmarshalJSON(b []byte) error {
 	var m rawEntity
 	err := json.Unmarshal(b, &m)
@@ -4874,9 +4370,7 @@ func (self *Entity) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Entity) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("Entity.name is missing but is a required field")
@@ -4892,10 +4386,8 @@ func (self *Entity) Validate() error {
 	return nil
 }
 
-//
 // EntityList - The representation for an enumeration of entities in the
 // namespace
-//
 type EntityList struct {
 
 	//
@@ -4904,9 +4396,7 @@ type EntityList struct {
 	Names []EntityName `json:"names"`
 }
 
-//
 // NewEntityList - creates an initialized EntityList instance, returns a pointer to it
-//
 func NewEntityList(init ...*EntityList) *EntityList {
 	var o *EntityList
 	if len(init) == 1 {
@@ -4917,9 +4407,7 @@ func NewEntityList(init ...*EntityList) *EntityList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *EntityList) Init() *EntityList {
 	if self.Names == nil {
 		self.Names = make([]EntityName, 0)
@@ -4929,9 +4417,7 @@ func (self *EntityList) Init() *EntityList {
 
 type rawEntityList EntityList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a EntityList
-//
 func (self *EntityList) UnmarshalJSON(b []byte) error {
 	var m rawEntityList
 	err := json.Unmarshal(b, &m)
@@ -4943,9 +4429,7 @@ func (self *EntityList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *EntityList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("EntityList: Missing required field: names")
@@ -4953,9 +4437,7 @@ func (self *EntityList) Validate() error {
 	return nil
 }
 
-//
 // GroupAuditLog - An audit log entry for group membership change.
-//
 type GroupAuditLog struct {
 
 	//
@@ -4984,9 +4466,7 @@ type GroupAuditLog struct {
 	AuditRef string `json:"auditRef" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewGroupAuditLog - creates an initialized GroupAuditLog instance, returns a pointer to it
-//
 func NewGroupAuditLog(init ...*GroupAuditLog) *GroupAuditLog {
 	var o *GroupAuditLog
 	if len(init) == 1 {
@@ -4999,9 +4479,7 @@ func NewGroupAuditLog(init ...*GroupAuditLog) *GroupAuditLog {
 
 type rawGroupAuditLog GroupAuditLog
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a GroupAuditLog
-//
 func (self *GroupAuditLog) UnmarshalJSON(b []byte) error {
 	var m rawGroupAuditLog
 	err := json.Unmarshal(b, &m)
@@ -5013,9 +4491,7 @@ func (self *GroupAuditLog) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *GroupAuditLog) Validate() error {
 	if self.Member == "" {
 		return fmt.Errorf("GroupAuditLog.member is missing but is a required field")
@@ -5053,9 +4529,7 @@ func (self *GroupAuditLog) Validate() error {
 	return nil
 }
 
-//
 // GroupMember -
-//
 type GroupMember struct {
 
 	//
@@ -5127,9 +4601,7 @@ type GroupMember struct {
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewGroupMember - creates an initialized GroupMember instance, returns a pointer to it
-//
 func NewGroupMember(init ...*GroupMember) *GroupMember {
 	var o *GroupMember
 	if len(init) == 1 {
@@ -5140,9 +4612,7 @@ func NewGroupMember(init ...*GroupMember) *GroupMember {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *GroupMember) Init() *GroupMember {
 	if self.Active == nil {
 		d := true
@@ -5157,9 +4627,7 @@ func (self *GroupMember) Init() *GroupMember {
 
 type rawGroupMember GroupMember
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a GroupMember
-//
 func (self *GroupMember) UnmarshalJSON(b []byte) error {
 	var m rawGroupMember
 	err := json.Unmarshal(b, &m)
@@ -5171,9 +4639,7 @@ func (self *GroupMember) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *GroupMember) Validate() error {
 	if self.MemberName != "" {
 		val := rdl.Validate(ZMSSchema(), "GroupMemberName", self.MemberName)
@@ -5208,9 +4674,7 @@ func (self *GroupMember) Validate() error {
 	return nil
 }
 
-//
 // GroupMembership - The representation for a group membership.
-//
 type GroupMembership struct {
 
 	//
@@ -5261,9 +4725,7 @@ type GroupMembership struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewGroupMembership - creates an initialized GroupMembership instance, returns a pointer to it
-//
 func NewGroupMembership(init ...*GroupMembership) *GroupMembership {
 	var o *GroupMembership
 	if len(init) == 1 {
@@ -5274,9 +4736,7 @@ func NewGroupMembership(init ...*GroupMembership) *GroupMembership {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *GroupMembership) Init() *GroupMembership {
 	if self.IsMember == nil {
 		d := true
@@ -5295,9 +4755,7 @@ func (self *GroupMembership) Init() *GroupMembership {
 
 type rawGroupMembership GroupMembership
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a GroupMembership
-//
 func (self *GroupMembership) UnmarshalJSON(b []byte) error {
 	var m rawGroupMembership
 	err := json.Unmarshal(b, &m)
@@ -5309,9 +4767,7 @@ func (self *GroupMembership) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *GroupMembership) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("GroupMembership.memberName is missing but is a required field")
@@ -5342,10 +4798,8 @@ func (self *GroupMembership) Validate() error {
 	return nil
 }
 
-//
 // GroupMeta - Set of metadata attributes that all groups may have and can be
 // changed by domain admins.
-//
 type GroupMeta struct {
 
 	//
@@ -5392,9 +4846,7 @@ type GroupMeta struct {
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
-//
 func NewGroupMeta(init ...*GroupMeta) *GroupMeta {
 	var o *GroupMeta
 	if len(init) == 1 {
@@ -5407,9 +4859,7 @@ func NewGroupMeta(init ...*GroupMeta) *GroupMeta {
 
 type rawGroupMeta GroupMeta
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a GroupMeta
-//
 func (self *GroupMeta) UnmarshalJSON(b []byte) error {
 	var m rawGroupMeta
 	err := json.Unmarshal(b, &m)
@@ -5421,9 +4871,7 @@ func (self *GroupMeta) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *GroupMeta) Validate() error {
 	if self.NotifyRoles != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
@@ -5446,9 +4894,7 @@ func (self *GroupMeta) Validate() error {
 	return nil
 }
 
-//
 // Group - The representation for a Group with set of members.
-//
 type Group struct {
 
 	//
@@ -5527,9 +4973,7 @@ type Group struct {
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewGroup - creates an initialized Group instance, returns a pointer to it
-//
 func NewGroup(init ...*Group) *Group {
 	var o *Group
 	if len(init) == 1 {
@@ -5542,9 +4986,7 @@ func NewGroup(init ...*Group) *Group {
 
 type rawGroup Group
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Group
-//
 func (self *Group) UnmarshalJSON(b []byte) error {
 	var m rawGroup
 	err := json.Unmarshal(b, &m)
@@ -5556,9 +4998,7 @@ func (self *Group) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Group) Validate() error {
 	if self.NotifyRoles != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.NotifyRoles)
@@ -5589,9 +5029,7 @@ func (self *Group) Validate() error {
 	return nil
 }
 
-//
 // Groups - The representation for a list of groups with full details
-//
 type Groups struct {
 
 	//
@@ -5600,9 +5038,7 @@ type Groups struct {
 	List []*Group `json:"list"`
 }
 
-//
 // NewGroups - creates an initialized Groups instance, returns a pointer to it
-//
 func NewGroups(init ...*Groups) *Groups {
 	var o *Groups
 	if len(init) == 1 {
@@ -5613,9 +5049,7 @@ func NewGroups(init ...*Groups) *Groups {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Groups) Init() *Groups {
 	if self.List == nil {
 		self.List = make([]*Group, 0)
@@ -5625,9 +5059,7 @@ func (self *Groups) Init() *Groups {
 
 type rawGroups Groups
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Groups
-//
 func (self *Groups) UnmarshalJSON(b []byte) error {
 	var m rawGroups
 	err := json.Unmarshal(b, &m)
@@ -5639,9 +5071,7 @@ func (self *Groups) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Groups) Validate() error {
 	if self.List == nil {
 		return fmt.Errorf("Groups: Missing required field: list")
@@ -5649,9 +5079,7 @@ func (self *Groups) Validate() error {
 	return nil
 }
 
-//
 // DomainGroupMember -
-//
 type DomainGroupMember struct {
 
 	//
@@ -5665,9 +5093,7 @@ type DomainGroupMember struct {
 	MemberGroups []*GroupMember `json:"memberGroups"`
 }
 
-//
 // NewDomainGroupMember - creates an initialized DomainGroupMember instance, returns a pointer to it
-//
 func NewDomainGroupMember(init ...*DomainGroupMember) *DomainGroupMember {
 	var o *DomainGroupMember
 	if len(init) == 1 {
@@ -5678,9 +5104,7 @@ func NewDomainGroupMember(init ...*DomainGroupMember) *DomainGroupMember {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainGroupMember) Init() *DomainGroupMember {
 	if self.MemberGroups == nil {
 		self.MemberGroups = make([]*GroupMember, 0)
@@ -5690,9 +5114,7 @@ func (self *DomainGroupMember) Init() *DomainGroupMember {
 
 type rawDomainGroupMember DomainGroupMember
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMember
-//
 func (self *DomainGroupMember) UnmarshalJSON(b []byte) error {
 	var m rawDomainGroupMember
 	err := json.Unmarshal(b, &m)
@@ -5704,9 +5126,7 @@ func (self *DomainGroupMember) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainGroupMember) Validate() error {
 	if self.MemberName == "" {
 		return fmt.Errorf("DomainGroupMember.memberName is missing but is a required field")
@@ -5722,9 +5142,7 @@ func (self *DomainGroupMember) Validate() error {
 	return nil
 }
 
-//
 // DomainGroupMembers -
-//
 type DomainGroupMembers struct {
 
 	//
@@ -5738,9 +5156,7 @@ type DomainGroupMembers struct {
 	Members []*DomainGroupMember `json:"members"`
 }
 
-//
 // NewDomainGroupMembers - creates an initialized DomainGroupMembers instance, returns a pointer to it
-//
 func NewDomainGroupMembers(init ...*DomainGroupMembers) *DomainGroupMembers {
 	var o *DomainGroupMembers
 	if len(init) == 1 {
@@ -5751,9 +5167,7 @@ func NewDomainGroupMembers(init ...*DomainGroupMembers) *DomainGroupMembers {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainGroupMembers) Init() *DomainGroupMembers {
 	if self.Members == nil {
 		self.Members = make([]*DomainGroupMember, 0)
@@ -5763,9 +5177,7 @@ func (self *DomainGroupMembers) Init() *DomainGroupMembers {
 
 type rawDomainGroupMembers DomainGroupMembers
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembers
-//
 func (self *DomainGroupMembers) UnmarshalJSON(b []byte) error {
 	var m rawDomainGroupMembers
 	err := json.Unmarshal(b, &m)
@@ -5777,9 +5189,7 @@ func (self *DomainGroupMembers) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainGroupMembers) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("DomainGroupMembers.domainName is missing but is a required field")
@@ -5795,16 +5205,12 @@ func (self *DomainGroupMembers) Validate() error {
 	return nil
 }
 
-//
 // DomainGroupMembership -
-//
 type DomainGroupMembership struct {
 	DomainGroupMembersList []*DomainGroupMembers `json:"domainGroupMembersList"`
 }
 
-//
 // NewDomainGroupMembership - creates an initialized DomainGroupMembership instance, returns a pointer to it
-//
 func NewDomainGroupMembership(init ...*DomainGroupMembership) *DomainGroupMembership {
 	var o *DomainGroupMembership
 	if len(init) == 1 {
@@ -5815,9 +5221,7 @@ func NewDomainGroupMembership(init ...*DomainGroupMembership) *DomainGroupMember
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainGroupMembership) Init() *DomainGroupMembership {
 	if self.DomainGroupMembersList == nil {
 		self.DomainGroupMembersList = make([]*DomainGroupMembers, 0)
@@ -5827,9 +5231,7 @@ func (self *DomainGroupMembership) Init() *DomainGroupMembership {
 
 type rawDomainGroupMembership DomainGroupMembership
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainGroupMembership
-//
 func (self *DomainGroupMembership) UnmarshalJSON(b []byte) error {
 	var m rawDomainGroupMembership
 	err := json.Unmarshal(b, &m)
@@ -5841,9 +5243,7 @@ func (self *DomainGroupMembership) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainGroupMembership) Validate() error {
 	if self.DomainGroupMembersList == nil {
 		return fmt.Errorf("DomainGroupMembership: Missing required field: domainGroupMembersList")
@@ -5851,10 +5251,8 @@ func (self *DomainGroupMembership) Validate() error {
 	return nil
 }
 
-//
 // GroupSystemMeta - Set of system metadata attributes that all groups may have
 // and can be changed by system admins.
-//
 type GroupSystemMeta struct {
 
 	//
@@ -5865,9 +5263,7 @@ type GroupSystemMeta struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewGroupSystemMeta - creates an initialized GroupSystemMeta instance, returns a pointer to it
-//
 func NewGroupSystemMeta(init ...*GroupSystemMeta) *GroupSystemMeta {
 	var o *GroupSystemMeta
 	if len(init) == 1 {
@@ -5880,9 +5276,7 @@ func NewGroupSystemMeta(init ...*GroupSystemMeta) *GroupSystemMeta {
 
 type rawGroupSystemMeta GroupSystemMeta
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a GroupSystemMeta
-//
 func (self *GroupSystemMeta) UnmarshalJSON(b []byte) error {
 	var m rawGroupSystemMeta
 	err := json.Unmarshal(b, &m)
@@ -5894,17 +5288,13 @@ func (self *GroupSystemMeta) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *GroupSystemMeta) Validate() error {
 	return nil
 }
 
-//
 // PolicyList - The representation for an enumeration of policies in the
 // namespace, with pagination.
-//
 type PolicyList struct {
 
 	//
@@ -5920,9 +5310,7 @@ type PolicyList struct {
 	Next string `json:"next" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewPolicyList - creates an initialized PolicyList instance, returns a pointer to it
-//
 func NewPolicyList(init ...*PolicyList) *PolicyList {
 	var o *PolicyList
 	if len(init) == 1 {
@@ -5933,9 +5321,7 @@ func NewPolicyList(init ...*PolicyList) *PolicyList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *PolicyList) Init() *PolicyList {
 	if self.Names == nil {
 		self.Names = make([]EntityName, 0)
@@ -5945,9 +5331,7 @@ func (self *PolicyList) Init() *PolicyList {
 
 type rawPolicyList PolicyList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a PolicyList
-//
 func (self *PolicyList) UnmarshalJSON(b []byte) error {
 	var m rawPolicyList
 	err := json.Unmarshal(b, &m)
@@ -5959,9 +5343,7 @@ func (self *PolicyList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *PolicyList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("PolicyList: Missing required field: names")
@@ -5975,9 +5357,7 @@ func (self *PolicyList) Validate() error {
 	return nil
 }
 
-//
 // Tenancy - A representation of tenant.
-//
 type Tenancy struct {
 
 	//
@@ -6001,9 +5381,7 @@ type Tenancy struct {
 	CreateAdminRole *bool `json:"createAdminRole,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewTenancy - creates an initialized Tenancy instance, returns a pointer to it
-//
 func NewTenancy(init ...*Tenancy) *Tenancy {
 	var o *Tenancy
 	if len(init) == 1 {
@@ -6014,9 +5392,7 @@ func NewTenancy(init ...*Tenancy) *Tenancy {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *Tenancy) Init() *Tenancy {
 	if self.CreateAdminRole == nil {
 		d := true
@@ -6027,9 +5403,7 @@ func (self *Tenancy) Init() *Tenancy {
 
 type rawTenancy Tenancy
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Tenancy
-//
 func (self *Tenancy) UnmarshalJSON(b []byte) error {
 	var m rawTenancy
 	err := json.Unmarshal(b, &m)
@@ -6041,9 +5415,7 @@ func (self *Tenancy) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Tenancy) Validate() error {
 	if self.Domain == "" {
 		return fmt.Errorf("Tenancy.domain is missing but is a required field")
@@ -6064,9 +5436,7 @@ func (self *Tenancy) Validate() error {
 	return nil
 }
 
-//
 // TenantRoleAction - A representation of tenant role action.
-//
 type TenantRoleAction struct {
 
 	//
@@ -6080,9 +5450,7 @@ type TenantRoleAction struct {
 	Action string `json:"action"`
 }
 
-//
 // NewTenantRoleAction - creates an initialized TenantRoleAction instance, returns a pointer to it
-//
 func NewTenantRoleAction(init ...*TenantRoleAction) *TenantRoleAction {
 	var o *TenantRoleAction
 	if len(init) == 1 {
@@ -6095,9 +5463,7 @@ func NewTenantRoleAction(init ...*TenantRoleAction) *TenantRoleAction {
 
 type rawTenantRoleAction TenantRoleAction
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TenantRoleAction
-//
 func (self *TenantRoleAction) UnmarshalJSON(b []byte) error {
 	var m rawTenantRoleAction
 	err := json.Unmarshal(b, &m)
@@ -6109,9 +5475,7 @@ func (self *TenantRoleAction) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TenantRoleAction) Validate() error {
 	if self.Role == "" {
 		return fmt.Errorf("TenantRoleAction.role is missing but is a required field")
@@ -6132,10 +5496,8 @@ func (self *TenantRoleAction) Validate() error {
 	return nil
 }
 
-//
 // TenantResourceGroupRoles - A representation of tenant roles for resource
 // groups to be provisioned.
-//
 type TenantResourceGroupRoles struct {
 
 	//
@@ -6164,9 +5526,7 @@ type TenantResourceGroupRoles struct {
 	ResourceGroup EntityName `json:"resourceGroup"`
 }
 
-//
 // NewTenantResourceGroupRoles - creates an initialized TenantResourceGroupRoles instance, returns a pointer to it
-//
 func NewTenantResourceGroupRoles(init ...*TenantResourceGroupRoles) *TenantResourceGroupRoles {
 	var o *TenantResourceGroupRoles
 	if len(init) == 1 {
@@ -6177,9 +5537,7 @@ func NewTenantResourceGroupRoles(init ...*TenantResourceGroupRoles) *TenantResou
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *TenantResourceGroupRoles) Init() *TenantResourceGroupRoles {
 	if self.Roles == nil {
 		self.Roles = make([]*TenantRoleAction, 0)
@@ -6189,9 +5547,7 @@ func (self *TenantResourceGroupRoles) Init() *TenantResourceGroupRoles {
 
 type rawTenantResourceGroupRoles TenantResourceGroupRoles
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a TenantResourceGroupRoles
-//
 func (self *TenantResourceGroupRoles) UnmarshalJSON(b []byte) error {
 	var m rawTenantResourceGroupRoles
 	err := json.Unmarshal(b, &m)
@@ -6203,9 +5559,7 @@ func (self *TenantResourceGroupRoles) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *TenantResourceGroupRoles) Validate() error {
 	if self.Domain == "" {
 		return fmt.Errorf("TenantResourceGroupRoles.domain is missing but is a required field")
@@ -6245,10 +5599,8 @@ func (self *TenantResourceGroupRoles) Validate() error {
 	return nil
 }
 
-//
 // ProviderResourceGroupRoles - A representation of provider roles to be
 // provisioned.
-//
 type ProviderResourceGroupRoles struct {
 
 	//
@@ -6288,9 +5640,7 @@ type ProviderResourceGroupRoles struct {
 	SkipPrincipalMember *bool `json:"skipPrincipalMember,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewProviderResourceGroupRoles - creates an initialized ProviderResourceGroupRoles instance, returns a pointer to it
-//
 func NewProviderResourceGroupRoles(init ...*ProviderResourceGroupRoles) *ProviderResourceGroupRoles {
 	var o *ProviderResourceGroupRoles
 	if len(init) == 1 {
@@ -6301,9 +5651,7 @@ func NewProviderResourceGroupRoles(init ...*ProviderResourceGroupRoles) *Provide
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ProviderResourceGroupRoles) Init() *ProviderResourceGroupRoles {
 	if self.Roles == nil {
 		self.Roles = make([]*TenantRoleAction, 0)
@@ -6321,9 +5669,7 @@ func (self *ProviderResourceGroupRoles) Init() *ProviderResourceGroupRoles {
 
 type rawProviderResourceGroupRoles ProviderResourceGroupRoles
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ProviderResourceGroupRoles
-//
 func (self *ProviderResourceGroupRoles) UnmarshalJSON(b []byte) error {
 	var m rawProviderResourceGroupRoles
 	err := json.Unmarshal(b, &m)
@@ -6335,9 +5681,7 @@ func (self *ProviderResourceGroupRoles) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ProviderResourceGroupRoles) Validate() error {
 	if self.Domain == "" {
 		return fmt.Errorf("ProviderResourceGroupRoles.domain is missing but is a required field")
@@ -6377,9 +5721,7 @@ func (self *ProviderResourceGroupRoles) Validate() error {
 	return nil
 }
 
-//
 // Access - Access can be checked and returned as this resource.
-//
 type Access struct {
 
 	//
@@ -6388,9 +5730,7 @@ type Access struct {
 	Granted bool `json:"granted"`
 }
 
-//
 // NewAccess - creates an initialized Access instance, returns a pointer to it
-//
 func NewAccess(init ...*Access) *Access {
 	var o *Access
 	if len(init) == 1 {
@@ -6403,9 +5743,7 @@ func NewAccess(init ...*Access) *Access {
 
 type rawAccess Access
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Access
-//
 func (self *Access) UnmarshalJSON(b []byte) error {
 	var m rawAccess
 	err := json.Unmarshal(b, &m)
@@ -6417,24 +5755,18 @@ func (self *Access) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Access) Validate() error {
 	return nil
 }
 
-//
 // ResourceAccess -
-//
 type ResourceAccess struct {
 	Principal  ResourceName `json:"principal"`
 	Assertions []*Assertion `json:"assertions"`
 }
 
-//
 // NewResourceAccess - creates an initialized ResourceAccess instance, returns a pointer to it
-//
 func NewResourceAccess(init ...*ResourceAccess) *ResourceAccess {
 	var o *ResourceAccess
 	if len(init) == 1 {
@@ -6445,9 +5777,7 @@ func NewResourceAccess(init ...*ResourceAccess) *ResourceAccess {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ResourceAccess) Init() *ResourceAccess {
 	if self.Assertions == nil {
 		self.Assertions = make([]*Assertion, 0)
@@ -6457,9 +5787,7 @@ func (self *ResourceAccess) Init() *ResourceAccess {
 
 type rawResourceAccess ResourceAccess
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ResourceAccess
-//
 func (self *ResourceAccess) UnmarshalJSON(b []byte) error {
 	var m rawResourceAccess
 	err := json.Unmarshal(b, &m)
@@ -6471,9 +5799,7 @@ func (self *ResourceAccess) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ResourceAccess) Validate() error {
 	if self.Principal == "" {
 		return fmt.Errorf("ResourceAccess.principal is missing but is a required field")
@@ -6489,16 +5815,12 @@ func (self *ResourceAccess) Validate() error {
 	return nil
 }
 
-//
 // ResourceAccessList -
-//
 type ResourceAccessList struct {
 	Resources []*ResourceAccess `json:"resources"`
 }
 
-//
 // NewResourceAccessList - creates an initialized ResourceAccessList instance, returns a pointer to it
-//
 func NewResourceAccessList(init ...*ResourceAccessList) *ResourceAccessList {
 	var o *ResourceAccessList
 	if len(init) == 1 {
@@ -6509,9 +5831,7 @@ func NewResourceAccessList(init ...*ResourceAccessList) *ResourceAccessList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ResourceAccessList) Init() *ResourceAccessList {
 	if self.Resources == nil {
 		self.Resources = make([]*ResourceAccess, 0)
@@ -6521,9 +5841,7 @@ func (self *ResourceAccessList) Init() *ResourceAccessList {
 
 type rawResourceAccessList ResourceAccessList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ResourceAccessList
-//
 func (self *ResourceAccessList) UnmarshalJSON(b []byte) error {
 	var m rawResourceAccessList
 	err := json.Unmarshal(b, &m)
@@ -6535,9 +5853,7 @@ func (self *ResourceAccessList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ResourceAccessList) Validate() error {
 	if self.Resources == nil {
 		return fmt.Errorf("ResourceAccessList: Missing required field: resources")
@@ -6545,12 +5861,10 @@ func (self *ResourceAccessList) Validate() error {
 	return nil
 }
 
-//
 // DomainPolicies - We need to include the name of the domain in this struct
 // since this data will be passed back to ZPU through ZTS so we need to sign not
 // only the list of policies but also the corresponding domain name that the
 // policies belong to.
-//
 type DomainPolicies struct {
 
 	//
@@ -6564,9 +5878,7 @@ type DomainPolicies struct {
 	Policies []*Policy `json:"policies"`
 }
 
-//
 // NewDomainPolicies - creates an initialized DomainPolicies instance, returns a pointer to it
-//
 func NewDomainPolicies(init ...*DomainPolicies) *DomainPolicies {
 	var o *DomainPolicies
 	if len(init) == 1 {
@@ -6577,9 +5889,7 @@ func NewDomainPolicies(init ...*DomainPolicies) *DomainPolicies {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainPolicies) Init() *DomainPolicies {
 	if self.Policies == nil {
 		self.Policies = make([]*Policy, 0)
@@ -6589,9 +5899,7 @@ func (self *DomainPolicies) Init() *DomainPolicies {
 
 type rawDomainPolicies DomainPolicies
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainPolicies
-//
 func (self *DomainPolicies) UnmarshalJSON(b []byte) error {
 	var m rawDomainPolicies
 	err := json.Unmarshal(b, &m)
@@ -6603,9 +5911,7 @@ func (self *DomainPolicies) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainPolicies) Validate() error {
 	if self.Domain == "" {
 		return fmt.Errorf("DomainPolicies.domain is missing but is a required field")
@@ -6621,10 +5927,8 @@ func (self *DomainPolicies) Validate() error {
 	return nil
 }
 
-//
 // SignedPolicies - A signed bulk transfer of policies. The data is signed with
 // server's private key.
-//
 type SignedPolicies struct {
 
 	//
@@ -6643,9 +5947,7 @@ type SignedPolicies struct {
 	KeyId string `json:"keyId"`
 }
 
-//
 // NewSignedPolicies - creates an initialized SignedPolicies instance, returns a pointer to it
-//
 func NewSignedPolicies(init ...*SignedPolicies) *SignedPolicies {
 	var o *SignedPolicies
 	if len(init) == 1 {
@@ -6656,9 +5958,7 @@ func NewSignedPolicies(init ...*SignedPolicies) *SignedPolicies {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *SignedPolicies) Init() *SignedPolicies {
 	if self.Contents == nil {
 		self.Contents = NewDomainPolicies()
@@ -6668,9 +5968,7 @@ func (self *SignedPolicies) Init() *SignedPolicies {
 
 type rawSignedPolicies SignedPolicies
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a SignedPolicies
-//
 func (self *SignedPolicies) UnmarshalJSON(b []byte) error {
 	var m rawSignedPolicies
 	err := json.Unmarshal(b, &m)
@@ -6682,9 +5980,7 @@ func (self *SignedPolicies) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *SignedPolicies) Validate() error {
 	if self.Contents == nil {
 		return fmt.Errorf("SignedPolicies: Missing required field: contents")
@@ -6708,9 +6004,7 @@ func (self *SignedPolicies) Validate() error {
 	return nil
 }
 
-//
 // DomainData - A domain object that includes its roles, policies and services.
-//
 type DomainData struct {
 
 	//
@@ -6852,9 +6146,7 @@ type DomainData struct {
 	Modified rdl.Timestamp `json:"modified"`
 }
 
-//
 // NewDomainData - creates an initialized DomainData instance, returns a pointer to it
-//
 func NewDomainData(init ...*DomainData) *DomainData {
 	var o *DomainData
 	if len(init) == 1 {
@@ -6865,9 +6157,7 @@ func NewDomainData(init ...*DomainData) *DomainData {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainData) Init() *DomainData {
 	if self.Enabled == nil {
 		d := true
@@ -6897,9 +6187,7 @@ func (self *DomainData) Init() *DomainData {
 
 type rawDomainData DomainData
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainData
-//
 func (self *DomainData) UnmarshalJSON(b []byte) error {
 	var m rawDomainData
 	err := json.Unmarshal(b, &m)
@@ -6911,9 +6199,7 @@ func (self *DomainData) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainData) Validate() error {
 	if self.Description != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.Description)
@@ -6998,11 +6284,9 @@ func (self *DomainData) Validate() error {
 	return nil
 }
 
-//
 // SignedDomain - A domain object signed with server's private key. The
 // signature and keyid are optional if the metaonly flag is set to true in the
 // getSignedDomains api call
-//
 type SignedDomain struct {
 
 	//
@@ -7021,9 +6305,7 @@ type SignedDomain struct {
 	KeyId string `json:"keyId" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewSignedDomain - creates an initialized SignedDomain instance, returns a pointer to it
-//
 func NewSignedDomain(init ...*SignedDomain) *SignedDomain {
 	var o *SignedDomain
 	if len(init) == 1 {
@@ -7034,9 +6316,7 @@ func NewSignedDomain(init ...*SignedDomain) *SignedDomain {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *SignedDomain) Init() *SignedDomain {
 	if self.Domain == nil {
 		self.Domain = NewDomainData()
@@ -7046,9 +6326,7 @@ func (self *SignedDomain) Init() *SignedDomain {
 
 type rawSignedDomain SignedDomain
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a SignedDomain
-//
 func (self *SignedDomain) UnmarshalJSON(b []byte) error {
 	var m rawSignedDomain
 	err := json.Unmarshal(b, &m)
@@ -7060,9 +6338,7 @@ func (self *SignedDomain) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *SignedDomain) Validate() error {
 	if self.Domain == nil {
 		return fmt.Errorf("SignedDomain: Missing required field: domain")
@@ -7082,16 +6358,12 @@ func (self *SignedDomain) Validate() error {
 	return nil
 }
 
-//
 // SignedDomains - A list of signed domain objects
-//
 type SignedDomains struct {
 	Domains []*SignedDomain `json:"domains"`
 }
 
-//
 // NewSignedDomains - creates an initialized SignedDomains instance, returns a pointer to it
-//
 func NewSignedDomains(init ...*SignedDomains) *SignedDomains {
 	var o *SignedDomains
 	if len(init) == 1 {
@@ -7102,9 +6374,7 @@ func NewSignedDomains(init ...*SignedDomains) *SignedDomains {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *SignedDomains) Init() *SignedDomains {
 	if self.Domains == nil {
 		self.Domains = make([]*SignedDomain, 0)
@@ -7114,9 +6384,7 @@ func (self *SignedDomains) Init() *SignedDomains {
 
 type rawSignedDomains SignedDomains
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a SignedDomains
-//
 func (self *SignedDomains) UnmarshalJSON(b []byte) error {
 	var m rawSignedDomains
 	err := json.Unmarshal(b, &m)
@@ -7128,9 +6396,7 @@ func (self *SignedDomains) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *SignedDomains) Validate() error {
 	if self.Domains == nil {
 		return fmt.Errorf("SignedDomains: Missing required field: domains")
@@ -7138,10 +6404,8 @@ func (self *SignedDomains) Validate() error {
 	return nil
 }
 
-//
 // JWSDomain - SignedDomain using flattened JWS JSON Serialization syntax.
 // https://tools.ietf.org/html/rfc7515#section-7.2.2
-//
 type JWSDomain struct {
 	Payload   string            `json:"payload"`
 	Protected string            `json:"protected"`
@@ -7149,9 +6413,7 @@ type JWSDomain struct {
 	Signature string            `json:"signature"`
 }
 
-//
 // NewJWSDomain - creates an initialized JWSDomain instance, returns a pointer to it
-//
 func NewJWSDomain(init ...*JWSDomain) *JWSDomain {
 	var o *JWSDomain
 	if len(init) == 1 {
@@ -7162,9 +6424,7 @@ func NewJWSDomain(init ...*JWSDomain) *JWSDomain {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *JWSDomain) Init() *JWSDomain {
 	if self.Header == nil {
 		self.Header = make(map[string]string)
@@ -7174,9 +6434,7 @@ func (self *JWSDomain) Init() *JWSDomain {
 
 type rawJWSDomain JWSDomain
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a JWSDomain
-//
 func (self *JWSDomain) UnmarshalJSON(b []byte) error {
 	var m rawJWSDomain
 	err := json.Unmarshal(b, &m)
@@ -7188,9 +6446,7 @@ func (self *JWSDomain) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *JWSDomain) Validate() error {
 	if self.Payload == "" {
 		return fmt.Errorf("JWSDomain.payload is missing but is a required field")
@@ -7222,9 +6478,7 @@ func (self *JWSDomain) Validate() error {
 	return nil
 }
 
-//
 // UserToken - A user token generated based on user's credentials
-//
 type UserToken struct {
 
 	//
@@ -7238,9 +6492,7 @@ type UserToken struct {
 	Header string `json:"header" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewUserToken - creates an initialized UserToken instance, returns a pointer to it
-//
 func NewUserToken(init ...*UserToken) *UserToken {
 	var o *UserToken
 	if len(init) == 1 {
@@ -7253,9 +6505,7 @@ func NewUserToken(init ...*UserToken) *UserToken {
 
 type rawUserToken UserToken
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a UserToken
-//
 func (self *UserToken) UnmarshalJSON(b []byte) error {
 	var m rawUserToken
 	err := json.Unmarshal(b, &m)
@@ -7267,9 +6517,7 @@ func (self *UserToken) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *UserToken) Validate() error {
 	if self.Token == "" {
 		return fmt.Errorf("UserToken.token is missing but is a required field")
@@ -7288,9 +6536,7 @@ func (self *UserToken) Validate() error {
 	return nil
 }
 
-//
 // ServicePrincipal - A service principal object identifying a given service.
-//
 type ServicePrincipal struct {
 
 	//
@@ -7309,9 +6555,7 @@ type ServicePrincipal struct {
 	Token SignedToken `json:"token"`
 }
 
-//
 // NewServicePrincipal - creates an initialized ServicePrincipal instance, returns a pointer to it
-//
 func NewServicePrincipal(init ...*ServicePrincipal) *ServicePrincipal {
 	var o *ServicePrincipal
 	if len(init) == 1 {
@@ -7324,9 +6568,7 @@ func NewServicePrincipal(init ...*ServicePrincipal) *ServicePrincipal {
 
 type rawServicePrincipal ServicePrincipal
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ServicePrincipal
-//
 func (self *ServicePrincipal) UnmarshalJSON(b []byte) error {
 	var m rawServicePrincipal
 	err := json.Unmarshal(b, &m)
@@ -7338,9 +6580,7 @@ func (self *ServicePrincipal) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ServicePrincipal) Validate() error {
 	if self.Domain == "" {
 		return fmt.Errorf("ServicePrincipal.domain is missing but is a required field")
@@ -7369,9 +6609,7 @@ func (self *ServicePrincipal) Validate() error {
 	return nil
 }
 
-//
 // User - The representation for a user
-//
 type User struct {
 
 	//
@@ -7380,9 +6618,7 @@ type User struct {
 	Name SimpleName `json:"name"`
 }
 
-//
 // NewUser - creates an initialized User instance, returns a pointer to it
-//
 func NewUser(init ...*User) *User {
 	var o *User
 	if len(init) == 1 {
@@ -7395,9 +6631,7 @@ func NewUser(init ...*User) *User {
 
 type rawUser User
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a User
-//
 func (self *User) UnmarshalJSON(b []byte) error {
 	var m rawUser
 	err := json.Unmarshal(b, &m)
@@ -7409,9 +6643,7 @@ func (self *User) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *User) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("User.name is missing but is a required field")
@@ -7424,9 +6656,7 @@ func (self *User) Validate() error {
 	return nil
 }
 
-//
 // UserList -
-//
 type UserList struct {
 
 	//
@@ -7435,9 +6665,7 @@ type UserList struct {
 	Names []SimpleName `json:"names"`
 }
 
-//
 // NewUserList - creates an initialized UserList instance, returns a pointer to it
-//
 func NewUserList(init ...*UserList) *UserList {
 	var o *UserList
 	if len(init) == 1 {
@@ -7448,9 +6676,7 @@ func NewUserList(init ...*UserList) *UserList {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *UserList) Init() *UserList {
 	if self.Names == nil {
 		self.Names = make([]SimpleName, 0)
@@ -7460,9 +6686,7 @@ func (self *UserList) Init() *UserList {
 
 type rawUserList UserList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a UserList
-//
 func (self *UserList) UnmarshalJSON(b []byte) error {
 	var m rawUserList
 	err := json.Unmarshal(b, &m)
@@ -7474,9 +6698,7 @@ func (self *UserList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *UserList) Validate() error {
 	if self.Names == nil {
 		return fmt.Errorf("UserList: Missing required field: names")
@@ -7484,9 +6706,7 @@ func (self *UserList) Validate() error {
 	return nil
 }
 
-//
 // Quota - The representation for a quota object
-//
 type Quota struct {
 
 	//
@@ -7555,9 +6775,7 @@ type Quota struct {
 	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewQuota - creates an initialized Quota instance, returns a pointer to it
-//
 func NewQuota(init ...*Quota) *Quota {
 	var o *Quota
 	if len(init) == 1 {
@@ -7570,9 +6788,7 @@ func NewQuota(init ...*Quota) *Quota {
 
 type rawQuota Quota
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Quota
-//
 func (self *Quota) UnmarshalJSON(b []byte) error {
 	var m rawQuota
 	err := json.Unmarshal(b, &m)
@@ -7584,9 +6800,7 @@ func (self *Quota) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Quota) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("Quota.name is missing but is a required field")
@@ -7599,9 +6813,7 @@ func (self *Quota) Validate() error {
 	return nil
 }
 
-//
 // Status - The representation for a status object
-//
 type Status struct {
 
 	//
@@ -7615,9 +6827,7 @@ type Status struct {
 	Message string `json:"message"`
 }
 
-//
 // NewStatus - creates an initialized Status instance, returns a pointer to it
-//
 func NewStatus(init ...*Status) *Status {
 	var o *Status
 	if len(init) == 1 {
@@ -7630,9 +6840,7 @@ func NewStatus(init ...*Status) *Status {
 
 type rawStatus Status
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Status
-//
 func (self *Status) UnmarshalJSON(b []byte) error {
 	var m rawStatus
 	err := json.Unmarshal(b, &m)
@@ -7644,9 +6852,7 @@ func (self *Status) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Status) Validate() error {
 	if self.Message == "" {
 		return fmt.Errorf("Status.message is missing but is a required field")
@@ -7659,16 +6865,12 @@ func (self *Status) Validate() error {
 	return nil
 }
 
-//
 // DomainRoleMembership -
-//
 type DomainRoleMembership struct {
 	DomainRoleMembersList []*DomainRoleMembers `json:"domainRoleMembersList"`
 }
 
-//
 // NewDomainRoleMembership - creates an initialized DomainRoleMembership instance, returns a pointer to it
-//
 func NewDomainRoleMembership(init ...*DomainRoleMembership) *DomainRoleMembership {
 	var o *DomainRoleMembership
 	if len(init) == 1 {
@@ -7679,9 +6881,7 @@ func NewDomainRoleMembership(init ...*DomainRoleMembership) *DomainRoleMembershi
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DomainRoleMembership) Init() *DomainRoleMembership {
 	if self.DomainRoleMembersList == nil {
 		self.DomainRoleMembersList = make([]*DomainRoleMembers, 0)
@@ -7691,9 +6891,7 @@ func (self *DomainRoleMembership) Init() *DomainRoleMembership {
 
 type rawDomainRoleMembership DomainRoleMembership
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DomainRoleMembership
-//
 func (self *DomainRoleMembership) UnmarshalJSON(b []byte) error {
 	var m rawDomainRoleMembership
 	err := json.Unmarshal(b, &m)
@@ -7705,9 +6903,7 @@ func (self *DomainRoleMembership) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DomainRoleMembership) Validate() error {
 	if self.DomainRoleMembersList == nil {
 		return fmt.Errorf("DomainRoleMembership: Missing required field: domainRoleMembersList")
@@ -7715,17 +6911,13 @@ func (self *DomainRoleMembership) Validate() error {
 	return nil
 }
 
-//
 // UserAuthorityAttributes - Copyright Athenz Authors Licensed under the terms
 // of the Apache version 2.0 license. See LICENSE file for terms.
-//
 type UserAuthorityAttributes struct {
 	Values []string `json:"values"`
 }
 
-//
 // NewUserAuthorityAttributes - creates an initialized UserAuthorityAttributes instance, returns a pointer to it
-//
 func NewUserAuthorityAttributes(init ...*UserAuthorityAttributes) *UserAuthorityAttributes {
 	var o *UserAuthorityAttributes
 	if len(init) == 1 {
@@ -7736,9 +6928,7 @@ func NewUserAuthorityAttributes(init ...*UserAuthorityAttributes) *UserAuthority
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *UserAuthorityAttributes) Init() *UserAuthorityAttributes {
 	if self.Values == nil {
 		self.Values = make([]string, 0)
@@ -7748,9 +6938,7 @@ func (self *UserAuthorityAttributes) Init() *UserAuthorityAttributes {
 
 type rawUserAuthorityAttributes UserAuthorityAttributes
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a UserAuthorityAttributes
-//
 func (self *UserAuthorityAttributes) UnmarshalJSON(b []byte) error {
 	var m rawUserAuthorityAttributes
 	err := json.Unmarshal(b, &m)
@@ -7762,9 +6950,7 @@ func (self *UserAuthorityAttributes) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *UserAuthorityAttributes) Validate() error {
 	if self.Values == nil {
 		return fmt.Errorf("UserAuthorityAttributes: Missing required field: values")
@@ -7772,9 +6958,7 @@ func (self *UserAuthorityAttributes) Validate() error {
 	return nil
 }
 
-//
 // UserAuthorityAttributeMap - Map of user authority attributes
-//
 type UserAuthorityAttributeMap struct {
 
 	//
@@ -7783,9 +6967,7 @@ type UserAuthorityAttributeMap struct {
 	Attributes map[SimpleName]*UserAuthorityAttributes `json:"attributes"`
 }
 
-//
 // NewUserAuthorityAttributeMap - creates an initialized UserAuthorityAttributeMap instance, returns a pointer to it
-//
 func NewUserAuthorityAttributeMap(init ...*UserAuthorityAttributeMap) *UserAuthorityAttributeMap {
 	var o *UserAuthorityAttributeMap
 	if len(init) == 1 {
@@ -7796,9 +6978,7 @@ func NewUserAuthorityAttributeMap(init ...*UserAuthorityAttributeMap) *UserAutho
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *UserAuthorityAttributeMap) Init() *UserAuthorityAttributeMap {
 	if self.Attributes == nil {
 		self.Attributes = make(map[SimpleName]*UserAuthorityAttributes)
@@ -7808,9 +6988,7 @@ func (self *UserAuthorityAttributeMap) Init() *UserAuthorityAttributeMap {
 
 type rawUserAuthorityAttributeMap UserAuthorityAttributeMap
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a UserAuthorityAttributeMap
-//
 func (self *UserAuthorityAttributeMap) UnmarshalJSON(b []byte) error {
 	var m rawUserAuthorityAttributeMap
 	err := json.Unmarshal(b, &m)
@@ -7822,9 +7000,7 @@ func (self *UserAuthorityAttributeMap) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *UserAuthorityAttributeMap) Validate() error {
 	if self.Attributes == nil {
 		return fmt.Errorf("UserAuthorityAttributeMap: Missing required field: attributes")
@@ -7832,9 +7008,7 @@ func (self *UserAuthorityAttributeMap) Validate() error {
 	return nil
 }
 
-//
 // Stats - The representation for a stats object
-//
 type Stats struct {
 
 	//
@@ -7898,9 +7072,7 @@ type Stats struct {
 	GroupMember int32 `json:"groupMember"`
 }
 
-//
 // NewStats - creates an initialized Stats instance, returns a pointer to it
-//
 func NewStats(init ...*Stats) *Stats {
 	var o *Stats
 	if len(init) == 1 {
@@ -7913,9 +7085,7 @@ func NewStats(init ...*Stats) *Stats {
 
 type rawStats Stats
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Stats
-//
 func (self *Stats) UnmarshalJSON(b []byte) error {
 	var m rawStats
 	err := json.Unmarshal(b, &m)
@@ -7927,9 +7097,7 @@ func (self *Stats) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Stats) Validate() error {
 	if self.Name != "" {
 		val := rdl.Validate(ZMSSchema(), "DomainName", self.Name)
@@ -7940,9 +7108,7 @@ func (self *Stats) Validate() error {
 	return nil
 }
 
-//
 // DependentService - Dependent service provider details
-//
 type DependentService struct {
 
 	//
@@ -7951,9 +7117,7 @@ type DependentService struct {
 	Service ServiceName `json:"service"`
 }
 
-//
 // NewDependentService - creates an initialized DependentService instance, returns a pointer to it
-//
 func NewDependentService(init ...*DependentService) *DependentService {
 	var o *DependentService
 	if len(init) == 1 {
@@ -7966,9 +7130,7 @@ func NewDependentService(init ...*DependentService) *DependentService {
 
 type rawDependentService DependentService
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DependentService
-//
 func (self *DependentService) UnmarshalJSON(b []byte) error {
 	var m rawDependentService
 	err := json.Unmarshal(b, &m)
@@ -7980,9 +7142,7 @@ func (self *DependentService) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DependentService) Validate() error {
 	if self.Service == "" {
 		return fmt.Errorf("DependentService.service is missing but is a required field")
@@ -7995,9 +7155,7 @@ func (self *DependentService) Validate() error {
 	return nil
 }
 
-//
 // DependentServiceResourceGroup -
-//
 type DependentServiceResourceGroup struct {
 
 	//
@@ -8016,9 +7174,7 @@ type DependentServiceResourceGroup struct {
 	ResourceGroups []EntityName `json:"resourceGroups,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewDependentServiceResourceGroup - creates an initialized DependentServiceResourceGroup instance, returns a pointer to it
-//
 func NewDependentServiceResourceGroup(init ...*DependentServiceResourceGroup) *DependentServiceResourceGroup {
 	var o *DependentServiceResourceGroup
 	if len(init) == 1 {
@@ -8031,9 +7187,7 @@ func NewDependentServiceResourceGroup(init ...*DependentServiceResourceGroup) *D
 
 type rawDependentServiceResourceGroup DependentServiceResourceGroup
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DependentServiceResourceGroup
-//
 func (self *DependentServiceResourceGroup) UnmarshalJSON(b []byte) error {
 	var m rawDependentServiceResourceGroup
 	err := json.Unmarshal(b, &m)
@@ -8045,9 +7199,7 @@ func (self *DependentServiceResourceGroup) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DependentServiceResourceGroup) Validate() error {
 	if self.Service == "" {
 		return fmt.Errorf("DependentServiceResourceGroup.service is missing but is a required field")
@@ -8068,9 +7220,7 @@ func (self *DependentServiceResourceGroup) Validate() error {
 	return nil
 }
 
-//
 // DependentServiceResourceGroupList -
-//
 type DependentServiceResourceGroupList struct {
 
 	//
@@ -8079,9 +7229,7 @@ type DependentServiceResourceGroupList struct {
 	ServiceAndResourceGroups []*DependentServiceResourceGroup `json:"serviceAndResourceGroups"`
 }
 
-//
 // NewDependentServiceResourceGroupList - creates an initialized DependentServiceResourceGroupList instance, returns a pointer to it
-//
 func NewDependentServiceResourceGroupList(init ...*DependentServiceResourceGroupList) *DependentServiceResourceGroupList {
 	var o *DependentServiceResourceGroupList
 	if len(init) == 1 {
@@ -8092,9 +7240,7 @@ func NewDependentServiceResourceGroupList(init ...*DependentServiceResourceGroup
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *DependentServiceResourceGroupList) Init() *DependentServiceResourceGroupList {
 	if self.ServiceAndResourceGroups == nil {
 		self.ServiceAndResourceGroups = make([]*DependentServiceResourceGroup, 0)
@@ -8104,9 +7250,7 @@ func (self *DependentServiceResourceGroupList) Init() *DependentServiceResourceG
 
 type rawDependentServiceResourceGroupList DependentServiceResourceGroupList
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a DependentServiceResourceGroupList
-//
 func (self *DependentServiceResourceGroupList) UnmarshalJSON(b []byte) error {
 	var m rawDependentServiceResourceGroupList
 	err := json.Unmarshal(b, &m)
@@ -8118,9 +7262,7 @@ func (self *DependentServiceResourceGroupList) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *DependentServiceResourceGroupList) Validate() error {
 	if self.ServiceAndResourceGroups == nil {
 		return fmt.Errorf("DependentServiceResourceGroupList: Missing required field: serviceAndResourceGroups")
@@ -8128,11 +7270,9 @@ func (self *DependentServiceResourceGroupList) Validate() error {
 	return nil
 }
 
-//
 // Info - Copyright Athenz Authors Licensed under the terms of the Apache
 // version 2.0 license. See LICENSE file for terms. The representation for an
 // info object
-//
 type Info struct {
 
 	//
@@ -8156,9 +7296,7 @@ type Info struct {
 	ImplementationVendor string `json:"implementationVendor" rdl:"optional" yaml:",omitempty"`
 }
 
-//
 // NewInfo - creates an initialized Info instance, returns a pointer to it
-//
 func NewInfo(init ...*Info) *Info {
 	var o *Info
 	if len(init) == 1 {
@@ -8171,9 +7309,7 @@ func NewInfo(init ...*Info) *Info {
 
 type rawInfo Info
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a Info
-//
 func (self *Info) UnmarshalJSON(b []byte) error {
 	var m rawInfo
 	err := json.Unmarshal(b, &m)
@@ -8185,9 +7321,7 @@ func (self *Info) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *Info) Validate() error {
 	if self.BuildJdkSpec != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.BuildJdkSpec)

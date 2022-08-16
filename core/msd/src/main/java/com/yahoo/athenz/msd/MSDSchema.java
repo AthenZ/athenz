@@ -350,12 +350,50 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("WorkloadOptions", "DELETE", "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/dynamic")
+            .comment("Api to perform a dynamic workload DELETE operation for a domain, service, and instance")
+            .name("deleteDynamicWorkload")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
+            .auth("update", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("StaticWorkload", "PUT", "/domain/{domainName}/service/{serviceName}/workload/static")
             .comment("Api to perform a static workload PUT operation for a domain and service")
             .name("putStaticWorkload")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .input("staticWorkload", "StaticWorkload", "Struct representing static workload entered by the user")
+            .auth("update", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("StaticWorkload", "DELETE", "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/static")
+            .comment("Api to perform a static workload DELETE operation for a domain, service, and instance")
+            .name("deleteStaticWorkload")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
