@@ -57,6 +57,7 @@ import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
+import com.yahoo.athenz.zms.purge.PurgeResourcesEnum;
 import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
@@ -2680,6 +2681,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
 
         return dbService.getAuthHistory(domainName);
+    }
+
+    @Override
+    public void deleteExpiredMembers(ResourceContext ctx, Integer purgeResources) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+
+        EnumSet<PurgeResourcesEnum> purgeResourcesEnumSet = PurgeResourcesEnum.getPurgeResourcesState(purgeResources);
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("deleteExpiredMembers: purgeResources: {}", purgeResourcesEnumSet);
+        }
+
+        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.ROLES)){
+            dbService.executeDeleteAllExpiredRoleMemberships(ctx, "TODO", caller);
+        }
+
+        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.GROUPS)){
+            dbService.executeDeleteAllExpiredGroupMemberships(ctx, "TODO", caller);
+        }
+
+
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,

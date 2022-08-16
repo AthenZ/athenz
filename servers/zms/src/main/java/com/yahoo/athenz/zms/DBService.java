@@ -8096,7 +8096,7 @@ public class DBService implements RolesProvider {
         }
     }
 
-    void executeDeleteAllExpiredGroupMemberships(ResourceContext ctx, ObjectStoreConnection con, String domainName,
+    void executeDeleteExpiredGroupMembership(ResourceContext ctx, ObjectStoreConnection con, String domainName,
                                                  String groupName, String normalizedMember, String auditRef) {
         final String principal = getPrincipalName(ctx);
 
@@ -8129,7 +8129,7 @@ public class DBService implements RolesProvider {
             // delete all expired group members one by one (required due auditLog)
             for (PurgeMember purgeMember: allExpiredGroupMembers) {
                 try {
-                    executeDeleteAllExpiredGroupMemberships(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
+                    executeDeleteExpiredGroupMembership(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
                             purgeMember.getPrincipalName(), auditRef);
                     changedList.add(purgeMember);
 

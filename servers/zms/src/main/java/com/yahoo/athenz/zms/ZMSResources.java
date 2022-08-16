@@ -608,6 +608,37 @@ public class ZMSResources {
         }
     }
 
+    @DELETE
+    @Path("/domain/expired-members")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete expired principals")
+    public void deleteExpiredMembers(
+        @Parameter(description = "the flag controls which resources are purged", required = false) @QueryParam("purgeResources") @DefaultValue("0") Integer purgeResources) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteExpiredMembers");
+            context.authorize("purge", "sys.auth:domain", null);
+            this.delegate.deleteExpiredMembers(context, purgeResources);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteExpiredMembers");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @GET
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)

@@ -90,7 +90,8 @@ public class PurgeExpiredMembersTest {
         int memberPurgeExpiryDays = 100;
         insertRoleMembersToDB(zms, ctx, memberPurgeExpiryDays, auditRef);
 
-        zms.dbService.executeDeleteAllExpiredRoleMemberships(ctx, auditRef, "test");
+        zms.deleteExpiredMembers(ctx, 1);
+//        zms.dbService.executeDeleteAllExpiredRoleMemberships(ctx, auditRef, "test");
 
         Role role;
         long DaysSinceExpiry;
