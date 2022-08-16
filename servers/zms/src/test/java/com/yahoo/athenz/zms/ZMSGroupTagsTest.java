@@ -60,19 +60,19 @@ public class ZMSGroupTagsTest {
         List<String> tagValues = Arrays.asList("val1", "val2");
         Group group = zmsTestInitializer.createGroupObject(domainName, groupWithTags, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupWithTags, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupWithTags, zmsTestInitializer.getAuditRef(), false, group);
 
         // put group with single tags
         final String groupSingleTag = "groupSingleTag";
         List<String> singleTagValue = Collections.singletonList("val1");
         group = zmsTestInitializer.createGroupObject(domainName, groupSingleTag, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupSingleTag, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupSingleTag, zmsTestInitializer.getAuditRef(), false, group);
 
         //put group without tags
         final String noTagsGroup = "noTagsGroup";
         group = zmsTestInitializer.createGroupObject(domainName, noTagsGroup, null);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
 
         // get groups without tags query - both tags should be presented
         Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
@@ -116,7 +116,7 @@ public class ZMSGroupTagsTest {
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
-            zmsTest.putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), group);
+            zmsTest.putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), false, group);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -143,7 +143,7 @@ public class ZMSGroupTagsTest {
         //put group without tags
         final String noTagsGroup = "noTagsGroup";
         Group group = zmsTestInitializer.createGroupObject(domainName, noTagsGroup, null);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
 
         // assert there are no tags
         Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
@@ -152,7 +152,7 @@ public class ZMSGroupTagsTest {
         // update tag list
         List<String> tagValues = Arrays.asList("val1", "val2", "val3");
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
 
         // 2 tags should be presented
         groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
@@ -176,7 +176,7 @@ public class ZMSGroupTagsTest {
         tagsMap.put(tagKey, new TagValueList().setList(modifiedTagValues));
         tagsMap.put(newTagKey, new TagValueList().setList(newTagValues));
         group.setTags(tagsMap);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
 
         // 1 tags should be presented
         groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
@@ -211,7 +211,7 @@ public class ZMSGroupTagsTest {
         // put group without tags
         final String groupName = "groupTagsUpdateMeta";
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), false, group);
 
         // no tags should be presented
         Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, updateGroupMetaTag, null);
@@ -247,7 +247,7 @@ public class ZMSGroupTagsTest {
         List<String> singleTagValue = Collections.singletonList("val1");
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), group);
+        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), false, group);
 
         // tag tagKey should be presented
         Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, null);

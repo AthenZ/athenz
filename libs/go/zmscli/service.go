@@ -54,7 +54,10 @@ func (cli Zms) ShowService(dn string, sn string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	return cli.ShowUpdatedService(service)
+}
 
+func (cli Zms) ShowUpdatedService(service *zms.ServiceIdentity) (*string, error) {
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("service:\n")
@@ -92,7 +95,8 @@ func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*
 		User:             "",
 		Group:            "",
 	}
-	err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &detail)
+	returnObject := true
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, &detail)
 	if err != nil {
 		return nil, err
 	}
@@ -100,15 +104,7 @@ func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowService(dn, shortName)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowService(dn, shortName)
-	}
-	return output, err
+	return cli.ShowUpdatedService(updatedService)
 }
 
 func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
@@ -134,7 +130,8 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 		User:             "",
 		Group:            "",
 	}
-	err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &detail)
+	returnObject := false
+	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, &detail)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +153,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	role.Name = zms.ResourceName(fullResourceName)
 	role.Members = make([]zms.MemberName, 0)
 	role.Members = append(role.Members, zms.MemberName(longName))
-	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &role)
+	_, err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, &role)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +187,7 @@ func (cli Zms) AddProviderService(dn string, sn string, keyID string, pubKey *st
 	}
 	tmp := [1]*zms.Assertion{newAssertion}
 	policy.Assertions = tmp[:]
-	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
+	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, &policy)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +223,8 @@ func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.Public
 		User:             "",
 		Group:            "",
 	}
-	err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &detail)
+	returnObject := true
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, &detail)
 	if err != nil {
 		return nil, err
 	}
@@ -234,15 +232,7 @@ func (cli Zms) AddServiceWithKeys(dn string, sn string, publicKeys []*zms.Public
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowService(dn, shortName)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowService(dn, shortName)
-	}
-	return output, err
+	return cli.ShowUpdatedService(updatedService)
 }
 
 func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*string, error) {
@@ -272,7 +262,8 @@ func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, grou
 	service.Executable = exe
 	service.User = user
 	service.Group = group
-	err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, service)
+	returnObject := true
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, service)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +271,7 @@ func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, grou
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	return cli.ShowUpdatedService(updatedService)
 }
 
 func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, error) {
@@ -298,7 +289,8 @@ func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, er
 			}
 		}
 	}
-	err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, service)
+	returnObject := true
+	updatedService, err := cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, service)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +298,7 @@ func (cli Zms) AddServiceHost(dn string, sn string, hosts []string) (*string, er
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowService(dn, shortName)
+	return cli.ShowUpdatedService(updatedService)
 }
 
 func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string, error) {
@@ -317,7 +309,8 @@ func (cli Zms) DeleteServiceHost(dn string, sn string, hosts []string) (*string,
 	}
 	if service.Hosts != nil {
 		service.Hosts = cli.RemoveAll(service.Hosts, hosts)
-		err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, service)
+		returnObject := false
+		_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName), cli.AuditRef, &returnObject, service)
 		if err != nil {
 			return nil, err
 		}

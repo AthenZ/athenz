@@ -6,12 +6,10 @@ package zmscli
 import (
 	"bytes"
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
+	"strconv"
+	"strings"
 )
 
 func (cli Zms) policyNames(dn string) ([]string, error) {
@@ -72,12 +70,7 @@ func (cli Zms) ListPolicyVersions(dn string, policy string) (*string, error) {
 	return cli.dumpByFormat(policyVersions, oldYamlConverter)
 }
 
-func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
-	policy, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(name))
-	if err != nil {
-		return nil, err
-	}
-
+func (cli Zms) ShowUpdatedPolicy(policy *zms.Policy) (*string, error) {
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("policy:\n")
@@ -87,6 +80,14 @@ func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
 	}
 
 	return cli.dumpByFormat(policy, oldYamlConverter)
+}
+
+func (cli Zms) ShowPolicy(dn string, name string) (*string, error) {
+	policy, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(name))
+	if err != nil {
+		return nil, err
+	}
+	return cli.ShowUpdatedPolicy(policy)
 }
 
 func (cli Zms) ShowPolicyVersion(dn string, policy string, version string) (*string, error) {
@@ -169,7 +170,8 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 		Modified:   nil,
 		Assertions: assertions,
 	}
-	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
+	returnObject := true
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, &policy)
 	if err != nil {
 		return nil, err
 	}
@@ -177,15 +179,7 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowPolicy(dn, pn)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowPolicy(dn, pn)
-	}
-	return output, err
+	return cli.ShowUpdatedPolicy(updatedPolicy)
 }
 
 func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, error) {
@@ -213,7 +207,8 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		policy.Assertions = tmp[:]
 		policy.CaseSensitive = newAssertion.CaseSensitive
 	}
-	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &policy)
+	returnObject := true
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, &policy)
 	if err != nil {
 		return nil, err
 	}
@@ -221,15 +216,7 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowPolicy(dn, pn)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowPolicy(dn, pn)
-	}
-	return output, err
+	return cli.ShowUpdatedPolicy(updatedPolicy)
 }
 
 func (cli Zms) AddPolicyVersion(dn string, pn string, source_version string, version string) (*string, error) {
@@ -247,7 +234,8 @@ func (cli Zms) AddPolicyVersion(dn string, pn string, source_version string, ver
 	var policyOptions zms.PolicyOptions
 	policyOptions.Version = zms.SimpleName(version)
 	policyOptions.FromVersion = zms.SimpleName(source_version)
-	err = cli.Zms.PutPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef)
+	returnObject := true
+	updatedPolicy, err := cli.Zms.PutPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), &policyOptions, cli.AuditRef, &returnObject)
 	if err != nil {
 		return nil, err
 	}
@@ -255,15 +243,7 @@ func (cli Zms) AddPolicyVersion(dn string, pn string, source_version string, ver
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowPolicyVersion(dn, pn, version)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowPolicyVersion(dn, pn, version)
-	}
-	return output, err
+	return cli.ShowUpdatedPolicy(updatedPolicy)
 }
 
 func (cli Zms) AddAssertion(dn string, pn string, assertion []string) (*string, error) {
@@ -350,7 +330,8 @@ func (cli Zms) DeleteAssertion(dn string, pn string, assertion []string) (*strin
 	if err != nil {
 		return nil, err
 	}
-	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, policy)
+	returnObject := true
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, policy)
 	if err != nil {
 		return nil, err
 	}
@@ -358,7 +339,7 @@ func (cli Zms) DeleteAssertion(dn string, pn string, assertion []string) (*strin
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowPolicy(dn, pn)
+	return cli.ShowUpdatedPolicy(updatedPolicy)
 }
 
 func (cli Zms) DeleteAssertionPolicyVersion(dn string, pn string, version string, assertion []string) (*string, error) {
@@ -374,7 +355,8 @@ func (cli Zms) DeleteAssertionPolicyVersion(dn string, pn string, version string
 	if err != nil {
 		return nil, err
 	}
-	err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, policy)
+	returnObject := true
+	updatedPolicy, err := cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObject, policy)
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +364,7 @@ func (cli Zms) DeleteAssertionPolicyVersion(dn string, pn string, version string
 		s := ""
 		return &s, nil
 	}
-	return cli.ShowPolicyVersion(dn, pn, version)
+	return cli.ShowUpdatedPolicy(updatedPolicy)
 }
 
 func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {

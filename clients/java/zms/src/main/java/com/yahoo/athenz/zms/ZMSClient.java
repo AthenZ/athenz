@@ -1064,18 +1064,34 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param roleName   name of the role
      * @param auditRef   string containing audit specification or ticket number
+     * @param returnObj Boolean returns the updated object from the database if true
      * @param role       role object to be added to the domain
      * @throws ZMSClientException in case of failure
      */
-    public void putRole(String domainName, String roleName, String auditRef, Role role) {
+    public Role putRole(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
         updatePrincipal();
         try {
-            client.putRole(domainName, roleName, auditRef, role);
+           return client.putRole(domainName, roleName, auditRef, returnObj, role);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Create/Update a new role in the specified domain. If updating a role
+     * the provided object must contain all attributes as it will replace
+     * the full role object configured on the server (not just some of the attributes).
+     *
+     * @param domainName name of the domain
+     * @param roleName   name of the role
+     * @param auditRef   string containing audit specification or ticket number
+     * @param role       role object to be added to the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public void putRole(String domainName, String roleName, String auditRef, Role role) {
+     putRole(domainName, roleName, auditRef, false, role);
     }
 
     /**
@@ -1178,6 +1194,34 @@ public class ZMSClient implements Closeable {
         putMembershipWithReview(domainName, roleName, memberName, expiration, null, auditRef);
     }
 
+
+    /**
+     * Add a member in the specified role with optional expiration and optional review
+     *
+     * @param domainName name of the domain
+     * @param roleName   name of the role
+     * @param memberName name of the member to be added
+     * @param expiration timestamp when this membership will expire (optional)
+     * @param review timestamp when this membership will require review (optional)
+     * @param auditRef   string containing audit specification or ticket number
+     * @param returnObj Boolean returns the updated object from the database if true
+     * @throws ZMSClientException in case of failure
+     */
+    public Membership putMembershipWithReview(String domainName, String roleName, String memberName,
+                                        Timestamp expiration, Timestamp review, String auditRef, Boolean returnObj) {
+        Membership mbr = new Membership().setRoleName(roleName)
+                .setMemberName(memberName).setExpiration(expiration).setReviewReminder(review)
+                .setIsMember(true);
+        updatePrincipal();
+        try {
+            return client.putMembership(domainName, roleName, memberName, auditRef, returnObj, mbr);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     /**
      * Add a member in the specified role with optional expiration and optional review
      *
@@ -1191,17 +1235,7 @@ public class ZMSClient implements Closeable {
      */
     public void putMembershipWithReview(String domainName, String roleName, String memberName,
                               Timestamp expiration, Timestamp review, String auditRef) {
-        Membership mbr = new Membership().setRoleName(roleName)
-                .setMemberName(memberName).setExpiration(expiration).setReviewReminder(review)
-                .setIsMember(true);
-        updatePrincipal();
-        try {
-            client.putMembership(domainName, roleName, memberName, auditRef, mbr);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
-        }
+      putMembershipWithReview(domainName, roleName, memberName, expiration, review, auditRef, false);
     }
 
     /**
@@ -1540,18 +1574,36 @@ public class ZMSClient implements Closeable {
      * @param policyName name of the policy
      * @param auditRef   string containing audit specification or ticket number
      * @param policy     Policy object with details
+     * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
+    public Policy putPolicy(String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy) {
         updatePrincipal();
         try {
-            client.putPolicy(domainName, policyName, auditRef, policy);
+            return client.putPolicy(domainName, policyName, auditRef, returnObj, policy);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Create/Update a new policy in the specified domain. If updating a policy
+     * the provided object must contain all attributes as it will replace the
+     * full policy object configured on the server (not just some of the attributes).
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param auditRef   string containing audit specification or ticket number
+     * @param policy     Policy object with details
+     * @throws ZMSClientException in case of failure
+     */
+    public void putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
+       putPolicy(domainName, policyName, auditRef, false, policy);
+    }
+
+
 
     /**
      * Create a new policy version in the specified domain.
@@ -1563,7 +1615,22 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public void putPolicyVersion(String domainName, String policyName, String version, String auditRef) {
-        putPolicyVersionImpl(domainName, policyName, version, null, auditRef);
+        putPolicyVersionImpl(domainName, policyName, version, null, auditRef, false);
+    }
+
+    /**
+     * Create a new policy version in the specified domain.
+     *
+     * @param domainName name of the domain
+     * @param policyName name of the policy
+     * @param version    name of the policy version
+     * @param fromVersion    name of the policy version to copy assertions from
+     * @param auditRef   string containing audit specification or ticket number
+     * @param returnObj Boolean returns the updated object from the database if true
+     * @throws ZMSClientException in case of failure
+     */
+    public void putPolicyVersion(String domainName, String policyName, String version, String fromVersion, String auditRef, Boolean returnObj) {
+        putPolicyVersionImpl(domainName, policyName, version, fromVersion, auditRef, returnObj);
     }
 
     /**
@@ -1577,11 +1644,10 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public void putPolicyVersion(String domainName, String policyName, String version, String fromVersion, String auditRef) {
-        putPolicyVersionImpl(domainName, policyName, version, fromVersion, auditRef);
+        putPolicyVersionImpl(domainName, policyName, version, fromVersion, auditRef, false);
     }
 
-
-    private void putPolicyVersionImpl(String domainName, String policyName, String version, String fromVersion, String auditRef) {
+    private Policy putPolicyVersionImpl(String domainName, String policyName, String version, String fromVersion, String auditRef, Boolean returnObj) {
         updatePrincipal();
         try {
             PolicyOptions policyOptions = new PolicyOptions();
@@ -1589,7 +1655,7 @@ public class ZMSClient implements Closeable {
             if (fromVersion != null) {
                 policyOptions.setFromVersion(fromVersion);
             }
-            client.putPolicyVersion(domainName, policyName, policyOptions, auditRef);
+            return client.putPolicyVersion(domainName, policyName, policyOptions, auditRef, returnObj);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1667,18 +1733,35 @@ public class ZMSClient implements Closeable {
      * @param serviceName name of the service
      * @param auditRef    string containing audit specification or ticket number
      * @param service     ServiceIdentity object with all service details
+     * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putServiceIdentity(String domainName, String serviceName,
-                                   String auditRef, ServiceIdentity service) {
+    public ServiceIdentity putServiceIdentity(String domainName, String serviceName,
+                                   String auditRef, Boolean returnObj, ServiceIdentity service) {
         updatePrincipal();
         try {
-            client.putServiceIdentity(domainName, serviceName, auditRef, service);
+            return client.putServiceIdentity(domainName, serviceName, auditRef, returnObj, service);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Create/Update a new service in the specified domain.  If updating a service
+     * the provided object must contain all attributes as it will replace the
+     * full service object configured on the server (not just some of the attributes).
+     *
+     * @param domainName  name of the domain
+     * @param serviceName name of the service
+     * @param auditRef    string containing audit specification or ticket number
+     * @param service     ServiceIdentity object with all service details
+     * @throws ZMSClientException in case of failure
+     */
+    public void putServiceIdentity(String domainName, String serviceName,
+                                   String auditRef, ServiceIdentity service) {
+        putServiceIdentity(domainName, serviceName, auditRef, false, service);
     }
 
     /**
@@ -2947,18 +3030,32 @@ public class ZMSClient implements Closeable {
      * @param domainName  name of the domain
      * @param roleName    name of the role
      * @param auditRef    string containing audit specification or ticket number
+     * @param returnObj Boolean returns the updated object from the database if true
      * @param role        Role object containing updated and/or deleted members
      * @throws ZMSClientException in case of failure
      */
-    public void putRoleReview(String domainName, String roleName, String auditRef, Role role) {
+    public Role putRoleReview(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
         updatePrincipal();
         try {
-            client.putRoleReview(domainName, roleName, auditRef, role);
+            return client.putRoleReview(domainName, roleName, auditRef, returnObj, role);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Review role membership to extend and/or delete role members
+     *
+     * @param domainName  name of the domain
+     * @param roleName    name of the role
+     * @param auditRef    string containing audit specification or ticket number
+     * @param role        Role object containing updated and/or deleted members
+     * @throws ZMSClientException in case of failure
+     */
+    public void putRoleReview(String domainName, String roleName, String auditRef, Role role) {
+      putRoleReview(domainName, roleName, auditRef, false, role);
     }
 
     /**
@@ -3180,17 +3277,31 @@ public class ZMSClient implements Closeable {
      * @param groupName   name of the group
      * @param auditRef    string containing audit specification or ticket number
      * @param group       Group object containing updated and/or deleted members
+     * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putGroupReview(String domainName, String groupName, String auditRef, Group group) {
+    public Group putGroupReview(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
         updatePrincipal();
         try {
-            client.putGroupReview(domainName, groupName, auditRef, group);
+            return client.putGroupReview(domainName, groupName, auditRef, returnObj, group);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Review group membership to extend and/or delete group members
+     *
+     * @param domainName  name of the domain
+     * @param groupName   name of the group
+     * @param auditRef    string containing audit specification or ticket number
+     * @param group       Group object containing updated and/or deleted members
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroupReview(String domainName, String groupName, String auditRef, Group group) {
+       putGroupReview(domainName, groupName, auditRef, false, group);
     }
 
     /**
@@ -3224,17 +3335,33 @@ public class ZMSClient implements Closeable {
      * @param groupName  name of the group
      * @param auditRef   string containing audit specification or ticket number
      * @param group      group object to be added to the domain
+     * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putGroup(String domainName, String groupName, String auditRef, Group group) {
+    public Group putGroup(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) {
         updatePrincipal();
         try {
-            client.putGroup(domainName, groupName, auditRef, group);
+            return client.putGroup(domainName, groupName, auditRef, returnObj, group);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Create/Update a new group in the specified domain. If updating a group
+     * the provided object must contain all attributes as it will replace
+     * the full group object configured on the server (not just some of the attributes).
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param auditRef   string containing audit specification or ticket number
+     * @param group      group object to be added to the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroup(String domainName, String groupName, String auditRef, Group group) {
+       putGroup(domainName, groupName, auditRef, false, group);
     }
 
     /**
@@ -3279,19 +3406,33 @@ public class ZMSClient implements Closeable {
      * @param groupName  name of the group
      * @param memberName name of the member to be added
      * @param auditRef   string containing audit specification or ticket number
+     * @param returnObj Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public void putGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, Boolean returnObj) {
         GroupMembership mbr = new GroupMembership().setGroupName(groupName)
                 .setMemberName(memberName).setIsMember(true);
         updatePrincipal();
         try {
-            client.putGroupMembership(domainName, groupName, memberName, auditRef, mbr);
+            return client.putGroupMembership(domainName, groupName, memberName, auditRef, returnObj, mbr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * Add a member in the specified group
+     *
+     * @param domainName name of the domain
+     * @param groupName  name of the group
+     * @param memberName name of the member to be added
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void putGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+      putGroupMembership(domainName, groupName, memberName, auditRef, false);
     }
 
     /**

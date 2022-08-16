@@ -261,7 +261,7 @@ public class ZMSTestInitializer {
         ServiceIdentity service = createServiceObject("sys.auth", "zms",
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
 
-        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, service);
+        zmsObj.putServiceIdentity(mockDomRsrcCtx, "sys.auth", "zms", auditRef, false, service);
         return zmsObj;
     }
 
@@ -580,14 +580,14 @@ public class ZMSTestInitializer {
                 providerDomain, providerService, providerEndpoint,
                 "/usr/bin/java", "root", "users", "localhost");
 
-        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, service);
+        zms.putServiceIdentity(mockDomRsrcCtx, providerDomain, providerService, auditRef, false, service);
     }
 
     public void setupPrincipalSystemMetaDelete(ZMSImpl zms, final String principal,
                                                 final String domainName, final String ...attributeNames) {
 
         Role role = createRoleObject("sys.auth", "metaadmin", null, principal, null);
-        zms.putRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, role);
+        zms.putRole(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, false, role);
 
         Policy policy = new Policy();
         policy.setName("metaadmin");
@@ -606,7 +606,7 @@ public class ZMSTestInitializer {
 
         policy.setAssertions(assertList);
 
-        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, policy);
+        zms.putPolicy(mockDomRsrcCtx, "sys.auth", "metaadmin", auditRef, false, policy);
     }
 
     public void cleanupPrincipalSystemMetaDelete(ZMSImpl zms) {
@@ -749,7 +749,7 @@ public class ZMSTestInitializer {
 
         Membership membership = new Membership();
         membership.setMemberName(admindomain + "." + serviceprincipal);
-        getZms().putMembership(sysAdminCtx, "sys.auth", "admin", admindomain + "." + serviceprincipal, getAuditRef(), membership);
+        getZms().putMembership(sysAdminCtx, "sys.auth", "admin", admindomain + "." + serviceprincipal, getAuditRef(), false, membership);
         return contextWithMockPrincipal(caller, admindomain, serviceprincipal);
     }
 }

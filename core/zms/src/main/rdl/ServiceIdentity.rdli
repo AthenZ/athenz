@@ -8,9 +8,10 @@ resource ServiceIdentity PUT "/domain/{domain}/service/{service}" {
     DomainName domain; //name of the domain
     SimpleName service; //name of the service
     String      auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     ServiceIdentity detail; //ServiceIdentity object to be added/updated in the domain
     authorize ("update", "{domain}:service.{service}");
-    expected NO_CONTENT;
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError NOT_FOUND;
         ResourceError BAD_REQUEST;

@@ -280,7 +280,11 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 			q += "\n        }"
 		} else if in.Header != "" {
 			h += "\n        if (" + iname + " != null) {"
-			h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", " + iname + ");"
+			if (in.Type == "String") {
+				h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", " + iname + ");"
+			} else {
+				h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", String.valueOf(" + iname + "));"
+			}
 			h += "\n        }"
 		} else { //the entity
 			entityName = iname

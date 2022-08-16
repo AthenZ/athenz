@@ -570,7 +570,11 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 		httpArg = "url, headers"
 		s += "\theaders := map[string]string{\n"
 		for k, v := range headers {
-			s += fmt.Sprintf("\t\t%q: %s,\n", k, v)
+			if k == "Athenz-Return-Object" {
+				s += fmt.Sprintf("\t\t%q: strconv.FormatBool(*%s),\n", k, v)
+			} else {
+				s += fmt.Sprintf("\t\t%q: %s,\n", k, v)
+			}
 		}
 		s += "\t}\n"
 	}

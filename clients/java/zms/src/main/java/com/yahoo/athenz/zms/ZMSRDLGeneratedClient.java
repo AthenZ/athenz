@@ -919,7 +919,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role putRole(String domainName, String roleName, String auditRef, Role role) throws URISyntaxException, IOException {
+    public Role putRole(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -935,13 +935,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Role.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1107,7 +1114,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Membership membership) throws URISyntaxException, IOException {
+    public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Boolean returnObj, Membership membership) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName)
@@ -1124,13 +1131,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Membership.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1345,7 +1359,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Role putRoleReview(String domainName, String roleName, String auditRef, Role role) throws URISyntaxException, IOException {
+    public Role putRoleReview(String domainName, String roleName, String auditRef, Boolean returnObj, Role role) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/review")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("roleName", roleName);
@@ -1361,13 +1375,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Role.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1451,7 +1472,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Group putGroup(String domainName, String groupName, String auditRef, Group group) throws URISyntaxException, IOException {
+    public Group putGroup(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName);
@@ -1467,13 +1488,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Group.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1583,7 +1611,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, GroupMembership membership) throws URISyntaxException, IOException {
+    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef, Boolean returnObj, GroupMembership membership) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName)
@@ -1600,13 +1628,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), GroupMembership.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1788,7 +1823,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Group putGroupReview(String domainName, String groupName, String auditRef, Group group) throws URISyntaxException, IOException {
+    public Group putGroupReview(String domainName, String groupName, String auditRef, Boolean returnObj, Group group) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/group/{groupName}/review")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("groupName", groupName);
@@ -1804,13 +1839,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Group.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -1952,7 +1994,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy putPolicy(String domainName, String policyName, String auditRef, Policy policy) throws URISyntaxException, IOException {
+    public Policy putPolicy(String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -1968,13 +2010,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Policy.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -2380,7 +2429,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policy putPolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef) throws URISyntaxException, IOException {
+    public Policy putPolicyVersion(String domainName, String policyName, PolicyOptions policyOptions, String auditRef, Boolean returnObj) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}/version/create")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
@@ -2396,13 +2445,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), Policy.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
@@ -2481,7 +2537,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public ServiceIdentity putServiceIdentity(String domain, String service, String auditRef, ServiceIdentity detail) throws URISyntaxException, IOException {
+    public ServiceIdentity putServiceIdentity(String domain, String service, String auditRef, Boolean returnObj, ServiceIdentity detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}")
             .resolveTemplate("domain", domain)
             .resolveTemplate("service", service);
@@ -2497,13 +2553,20 @@ public class ZMSRDLGeneratedClient {
         if (auditRef != null) {
             httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ServiceIdentity.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())
