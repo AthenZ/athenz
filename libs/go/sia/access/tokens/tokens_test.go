@@ -412,6 +412,8 @@ func TestAccessTokensRerun(t *testing.T) {
 	before, err = os.Stat(tpath)
 	assert.NoErrorf(t, err, "unable to stat, err: %v", err)
 
+	time.Sleep(1 * time.Second)
+
 	errs = Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
 	assertAccessTokens(t, opts, true)
