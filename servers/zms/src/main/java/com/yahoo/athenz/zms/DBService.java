@@ -3388,7 +3388,10 @@ public class DBService implements RolesProvider {
                 updateDomainMembersUserAuthorityFilter(ctx, con, domain, updatedDomain, auditRef, caller);
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+
+                return;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {

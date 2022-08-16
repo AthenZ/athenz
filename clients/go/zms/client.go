@@ -1766,8 +1766,8 @@ func (client ZMSClient) GetPrincipalGroups(principal EntityName, domainName Doma
 func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string, returnObj *bool, membership *GroupMembership) (*GroupMembership, error) {
 	var data *GroupMembership
 	headers := map[string]string{
-		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
 		"Y-Audit-Ref":          auditRef,
+		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName)
 	contentBytes, err := json.Marshal(membership)

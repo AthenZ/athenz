@@ -7,12 +7,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
-	"strings"
-	"time"
-
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
+	"log"
+	"strings"
 )
 
 func providerRoleName(provider, group, action string) string {
@@ -73,7 +71,10 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 	if err != nil {
 		return nil, err
 	}
+	return cli.ShowUpdatedRole(role, auditLog)
+}
 
+func (cli Zms) ShowUpdatedRole(role *zms.Role, auditLog bool) (*string, error) {
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("role:\n")
@@ -103,7 +104,8 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	var role zms.Role
 	role.Name = zms.ResourceName(fullResourceName)
 	role.Trust = zms.DomainName(trusted)
-	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &role)
+	returnObject := true
+	updatedRole, err := cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, &role)
 	if err != nil {
 		return nil, err
 	}
@@ -111,15 +113,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowRole(dn, rn, false, false, false)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowRole(dn, rn, false, false, false)
-	}
-	return output, err
+	return cli.ShowUpdatedRole(updatedRole, false)
 }
 
 func (cli Zms) AddRegularRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
@@ -141,7 +135,8 @@ func (cli Zms) AddRegularRole(dn string, rn string, roleMembers []*zms.RoleMembe
 	role.Name = zms.ResourceName(fullResourceName)
 	role.RoleMembers = roleMembers
 	cli.validateRoleMembers(role.RoleMembers)
-	err = cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &role)
+	returnObject := true
+	updatedRole, err := cli.Zms.PutRole(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &returnObject, &role)
 	if err != nil {
 		return nil, err
 	}
@@ -149,15 +144,7 @@ func (cli Zms) AddRegularRole(dn string, rn string, roleMembers []*zms.RoleMembe
 		s := ""
 		return &s, nil
 	}
-	output, err := cli.ShowRole(dn, rn, false, false, false)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		output, err = cli.ShowRole(dn, rn, false, false, false)
-	}
-	return output, err
+	return cli.ShowUpdatedRole(updatedRole, false)
 }
 
 func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
@@ -201,7 +188,8 @@ func (cli Zms) AddRoleMembers(dn string, rn string, members []*zms.RoleMember) (
 		member.MemberName = mbr.MemberName
 		member.RoleName = zms.ResourceName(rn)
 		member.Expiration = mbr.Expiration
-		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), mbr.MemberName, cli.AuditRef, &member)
+		returnObject := false
+		_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), mbr.MemberName, cli.AuditRef, &returnObject, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -226,7 +214,8 @@ func (cli Zms) AddMembers(dn string, rn string, members []string) (*string, erro
 		var member zms.Membership
 		member.MemberName = zms.MemberName(m)
 		member.RoleName = zms.ResourceName(rn)
-		err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef, &member)
+		returnObject := false
+		_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(m), cli.AuditRef, &returnObject, &member)
 		if err != nil {
 			return nil, err
 		}
@@ -259,7 +248,8 @@ func (cli Zms) AddDueDateMember(dn string, rn string, member string, expiration 
 	if expiration != nil {
 		memberShip.Expiration = expiration
 	}
-	err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &memberShip)
+	returnObject := false
+	_, err := cli.Zms.PutMembership(zms.DomainName(dn), zms.EntityName(rn), zms.MemberName(validatedUser), cli.AuditRef, &returnObject, &memberShip)
 	if err != nil {
 		return nil, err
 	}

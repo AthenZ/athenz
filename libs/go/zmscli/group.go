@@ -7,12 +7,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
-	"strings"
-	"time"
-
 	"github.com/AthenZ/athenz/clients/go/zms"
 	"github.com/ardielle/ardielle-go/rdl"
+	"log"
+	"strings"
 )
 
 func (cli Zms) groupNames(dn string) ([]string, error) {
@@ -63,6 +61,11 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*zms.Gro
 		return nil, nil, err
 	}
 
+	output, err := cli.ShowUpdatedGroup(group, auditLog)
+	return group, output, err
+}
+
+func (cli Zms) ShowUpdatedGroup(group *zms.Group, auditLog bool) (*string, error) {
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
 		buf.WriteString("group:\n")
@@ -71,8 +74,7 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*zms.Gro
 		return &s, nil
 	}
 
-	output, err := cli.dumpByFormat(group, oldYamlConverter)
-	return group, output, err
+	return cli.dumpByFormat(group, oldYamlConverter)
 }
 
 func (cli Zms) SetGroupMemberExpiryDays(dn string, rn string, days int32) (*string, error) {
@@ -133,7 +135,8 @@ func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (
 	group.Name = zms.ResourceName(fullResourceName)
 	group.GroupMembers = groupMembers
 	cli.validateGroupMembers(group.GroupMembers)
-	err = cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &group)
+	returnObject := true
+	updatedGroup, err := cli.Zms.PutGroup(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &returnObject, &group)
 	if err != nil {
 		return nil, err
 	}
@@ -141,15 +144,7 @@ func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (
 		s := ""
 		return &s, nil
 	}
-	_, output, err := cli.ShowGroup(dn, gn, false, false)
-	if err != nil {
-		// due to mysql read after write issue it's possible that
-		// we'll get 404 after writing our object so in that
-		// case we're going to do a quick sleep and retry request
-		time.Sleep(500 * time.Millisecond)
-		_, output, err = cli.ShowGroup(dn, gn, false, false)
-	}
-	return output, err
+	return cli.ShowUpdatedGroup(updatedGroup, false)
 }
 
 func (cli Zms) DeleteGroup(dn string, gn string) (*string, error) {
@@ -173,7 +168,8 @@ func (cli Zms) AddGroupMembers(dn string, group string, members []string) (*stri
 		var member zms.GroupMembership
 		member.MemberName = zms.GroupMemberName(m)
 		member.GroupName = zms.ResourceName(group)
-		err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef, &member)
+		returnObject := false
+		_, err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(m), cli.AuditRef, &returnObject, &member)
 		if err != nil {
 			return nil, err
 		}
