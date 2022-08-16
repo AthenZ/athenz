@@ -122,7 +122,7 @@ public class AwsAuthHistoryFetcherTest {
         AwsAuthHistoryFetcher awsAuthHistoryFetcher = new AwsAuthHistoryFetcher(cloudWatchClientFactory);
 
         // Mocks ready, get the logs
-        Set<AuthHistoryDynamoDBRecord> logRecords = awsAuthHistoryFetcher.getLogs(startTime, endTime);
+        Set<AuthHistoryDynamoDBRecord> logRecords = awsAuthHistoryFetcher.getLogs(startTime, endTime, true);
 
         // Assert we get the expected four records
         assertEquals(4, logRecords.size());

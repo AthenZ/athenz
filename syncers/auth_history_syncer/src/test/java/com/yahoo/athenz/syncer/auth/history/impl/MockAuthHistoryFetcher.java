@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class MockAuthHistoryFetcher implements AuthHistoryFetcher {
     @Override
-    public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime) {
+    public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime, boolean useFilterPattern) {
         Long mockStartTime = 1650185529000L; // 17/Apr/2022:08:52:09
         Long mockEndTime = 1650271929000L; // 18/Apr/2022:08:52:09
         if (startTime < mockStartTime || endTime > mockEndTime) {

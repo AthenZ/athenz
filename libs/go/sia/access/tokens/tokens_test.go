@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
 	"io"
 	"io/ioutil"
 	"log"
@@ -88,7 +89,7 @@ func (t *testServer) baseUrl(version string) string {
 
 func TestToBeRefreshed(t *testing.T) {
 	tokenDir := t.TempDir()
-
+	currentUnixTime := time.Now().Unix()
 	log.Printf("temp dir: %s\n", tokenDir)
 	domain := "athenz.examples"
 	service := "httpd"
@@ -138,12 +139,12 @@ func TestToBeRefreshed(t *testing.T) {
 
 	tpath := filepath.Join(tokenDir, domain, "reader")
 	log.Printf("Creating a token at: %s\n", tpath)
-	err = ioutil.WriteFile(tpath, token(3600), 0400)
+	err = ioutil.WriteFile(tpath, token(3600, currentUnixTime), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 
 	tpath = filepath.Join(tokenDir, domain, "reader-aged")
 	log.Printf("Creating a token at: %s\n", tpath)
-	err = ioutil.WriteFile(tpath, token(3600), 0400)
+	err = ioutil.WriteFile(tpath, token(360, currentUnixTime), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-time.Minute*90))
 
@@ -165,19 +166,24 @@ func TestToBeRefreshed(t *testing.T) {
 		TokenDir: tokenDir,
 		Tokens:   tokens,
 	}
-	toRefresh, errors := ToBeRefreshed(&opts)
-	assert.True(t, len(errors) == 3, fmt.Sprintf("there shoud be errors in fetching ToBeRefreshed tokend, err: %v", err))
+	// Valid token was issued with 1 hour validity. We will set the current time to a bit less than half an hour in the future so it will still be valid
+	// (hasn't passed "half-life").
+	// "Aged" tokens (passed their "half-life" but hasn't expired) will require refresh
+	currentTime := time.Now().Add(time.Duration(28) * time.Minute)
+	toRefresh, errors := ToBeRefreshedBasedOnTime(&opts, currentTime)
+	assert.True(t, len(errors) == 3, fmt.Sprintf("there shoud be 3 errors in fetching ToBeRefreshedBasedOnTime tokend, err: %v", err))
 	log.Printf("errors so far: %+v\n", errors)
 
 	log.Printf("toRefresh: %#v\n", toRefresh)
 	assert.NotNil(t, toRefresh, "list of tokens to be refreshed should not be empty")
-	assert.True(t, len(toRefresh) == 2, "there should be one token to be refreshed")
+	assert.True(t, len(toRefresh) == 2, fmt.Sprintf("there should be 2 tokens to be refreshed not %d", len(toRefresh)))
 	assert.Equalf(t, toRefresh[0].FileName, "writer", fmt.Sprintf("first item: %+v should be %q", toRefresh[0], "writer"))
 	assert.Equalf(t, toRefresh[1].FileName, "reader-aged", fmt.Sprintf("second item: %+v should be %q", toRefresh[0], "reader-aged"))
 }
 
 func TestToBeRefreshedWithStoreOption(t *testing.T) {
 	tokenDir := t.TempDir()
+	currentUnixTime := time.Now().Unix()
 
 	log.Printf("temp dir: %s\n", tokenDir)
 	domain := "athenz.examples"
@@ -198,7 +204,7 @@ func TestToBeRefreshedWithStoreOption(t *testing.T) {
 
 	tpath := filepath.Join(tokenDir, domain, "reader-aged")
 	log.Printf("Creating a token at: %s\n", tpath)
-	err = ioutil.WriteFile(tpath, token(360000), 0400)
+	err = ioutil.WriteFile(tpath, token(360000, currentUnixTime), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-time.Minute*90))
 
@@ -206,13 +212,14 @@ func TestToBeRefreshedWithStoreOption(t *testing.T) {
 		TokenDir: tokenDir,
 		Tokens:   tokens,
 	}
-	toRefresh, _ := ToBeRefreshed(&opts)
+	currentTime := time.Now()
+	toRefresh, _ := ToBeRefreshedBasedOnTime(&opts, currentTime)
 	assert.True(t, len(toRefresh) == 0, fmt.Sprint("there should not be any tokens to refresh"))
 
 	// now set the store option
 	opts.StoreOptions = config.ACCESS_TOKEN_PROP
 
-	toRefresh, _ = ToBeRefreshed(&opts)
+	toRefresh, _ = ToBeRefreshedBasedOnTime(&opts, currentTime)
 	assert.True(t, len(toRefresh) == 1, fmt.Sprint("reader-aged token should be refreshed"))
 }
 
@@ -398,8 +405,9 @@ func TestAccessTokensRerun(t *testing.T) {
 	assert.Equalf(t, after.ModTime(), before.ModTime(), "before: %v, after: %v should be same", before, after)
 
 	// Sequence 2: Force an older time stamp, and then attempt a rerun, and the token should be refreshed
-	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
-	assert.NoErrorf(t, err, "unable to change time, err: %v", err)
+	hourAgo := time.Now().Add(-65 * time.Minute).Unix()
+	accessTokenShorterValidity := makeAccessTokenImpl(3600, hourAgo, "athenz.demo", []string{"role1"}, eckey)
+	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 
 	before, err = os.Stat(tpath)
 	assert.NoErrorf(t, err, "unable to stat, err: %v", err)
@@ -410,7 +418,7 @@ func TestAccessTokensRerun(t *testing.T) {
 
 	after, err = os.Stat(tpath)
 	assert.NoErrorf(t, err, "unable to stat, err: %v", err)
-	assert.NotEqualf(t, after.ModTime(), before.ModTime(), "before: %v, after: %v should be different", before, after)
+	assert.NotEqualf(t, after.ModTime(), before.ModTime(), "before: %s, after: %s should be different", before.ModTime().String(), after.ModTime().String())
 }
 
 // TestAccessTokensUserAgent verifies that user agent is set in client calls
@@ -463,6 +471,7 @@ func TestAccessTokensUserAgent(t *testing.T) {
 // TestAccessTokensMixedTokenErrors verifies that access tokens fetchable for the good tokens
 func TestAccessTokensMixedTokenErrors(t *testing.T) {
 	siaDir := t.TempDir()
+	currentUnixTime := time.Now().Unix()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -503,8 +512,8 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 
 	// Force an older time stamp on token1
 	tpath := filepath.Join(opts.TokenDir, opts.Tokens[0].Domain, opts.Tokens[0].FileName)
-	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
-	assert.NoErrorf(t, err, "unable to change time, err: %v", err)
+	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, eckey)
+	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 
 	errs = Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to fetch access tokens, errs: %v", errs)
@@ -520,6 +529,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 // TestAccessTokensApiErrors verifies that ZTS api errors are handled correctly
 func TestAccessTokensApiErrors(t *testing.T) {
 	siaDir := t.TempDir()
+	currentUnixTime := time.Now().Unix()
 
 	// Mock ZTS AccessTokens api
 	ztsRouter := httptreemux.New()
@@ -571,8 +581,8 @@ func TestAccessTokensApiErrors(t *testing.T) {
 
 	// Handling ZTS 500s
 	tpath := filepath.Join(opts.TokenDir, opts.Tokens[0].Domain, opts.Tokens[0].FileName)
-	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
-	assert.NoErrorf(t, err, "unable to change time, err: %v", err)
+	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, eckey)
+	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 	before, err := os.Stat(tpath)
 	assert.NoErrorf(t, err, "should be able to stat file: %s, err: %v", tpath, err)
 
@@ -695,20 +705,10 @@ func fixGidUid(tokens []config.AccessToken) {
 	}
 }
 
-func token(expiry int) []byte {
-	expiry32 := int32(expiry)
-	tokenResponse := zts.AccessTokenResponse{
-		Access_token: "signed string",
-		Expires_in:   &expiry32,
-		Token_type:   "Bearer",
-	}
-
-	bytes, err := json.Marshal(tokenResponse)
-	if err != nil {
-		panic(err)
-	}
-
-	return bytes
+func token(expiry int, issuedAt int64) []byte {
+	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	accessToken := makeAccessTokenImpl(expiry, issuedAt, "athenz.demo", []string{"role1"}, eckey)
+	return []byte(accessToken)
 }
 
 func makeSiaDirs(t *testing.T, opts *config.TokenOptions) {
@@ -776,6 +776,12 @@ func makeAccessToken(r *http.Request, key crypto.PrivateKey) string {
 		panic(err)
 	}
 
+	currentUnixTime := time.Now().Unix()
+	return makeAccessTokenImpl(expiry, currentUnixTime, audience, roles, key)
+}
+
+func makeAccessTokenImpl(expiry int, issuedAt int64, audience string, roles []string, key crypto.PrivateKey) string {
+
 	claims := &AccessTokenClaims{
 		Audience: audience,
 		Scopes:   roles,
@@ -783,7 +789,7 @@ func makeAccessToken(r *http.Request, key crypto.PrivateKey) string {
 			ExpiresAt: time.Now().Add(time.Duration(expiry) * time.Second).Unix(),
 			Issuer:    "athenz",
 			Subject:   "principal.test",
-			IssuedAt:  time.Now().Unix(),
+			IssuedAt:  issuedAt,
 		},
 	}
 
@@ -963,4 +969,28 @@ func gid(t *testing.T) int {
 		t.Fatalf("unexpected uid: %s, err: %v", g.Gid, err)
 	}
 	return id
+}
+
+func Sign(Data map[string]interface{}, jwtSecretKey string, ExpiredAt time.Duration) (string, error) {
+
+	expiredAt := time.Now().Add(time.Duration(time.Second) * ExpiredAt).Unix()
+
+	// metadata for your jwt
+	claims := jwt.MapClaims{}
+	claims["exp"] = expiredAt
+	claims["iat"] = expiredAt
+	claims["authorization"] = true
+
+	for i, v := range Data {
+		claims[i] = v
+	}
+
+	to := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	accessToken, err := to.SignedString([]byte(jwtSecretKey))
+
+	if err != nil {
+		return accessToken, err
+	}
+
+	return accessToken, nil
 }

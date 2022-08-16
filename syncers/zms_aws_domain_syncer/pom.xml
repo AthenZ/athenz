@@ -65,7 +65,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.client.version}</version>
+      <version>${slf4j.server.version}</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
