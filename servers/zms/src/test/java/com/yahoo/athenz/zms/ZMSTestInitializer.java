@@ -44,7 +44,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.zms.ZMSConsts.*;
@@ -469,6 +471,19 @@ public class ZMSTestInitializer {
         }
 
         return role;
+    }
+
+
+    public RoleMember createRoleMemberWithExpiration(String name, boolean alreadyExpired, int expiryDaysInterval) {
+        return new RoleMember()
+                .setMemberName(name)
+                .setExpiration(ZMSTestUtils.buildExpiration(alreadyExpired ?  - expiryDaysInterval : expiryDaysInterval));
+    }
+
+    public GroupMember createGroupMemberWithExpiration(String name, boolean alreadyExpired, int expiryDays) {
+        return new GroupMember()
+                .setMemberName(name)
+                .setExpiration(ZMSTestUtils.buildExpiration(alreadyExpired ?  - expiryDays : expiryDays));
     }
 
     public Policy createPolicyObject(String domainName, String policyName,

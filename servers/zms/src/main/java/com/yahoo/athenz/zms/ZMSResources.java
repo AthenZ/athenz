@@ -618,7 +618,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteExpiredMembers");
-            context.authorize("purge", "sys.auth:domain", null);
+            context.authorize("purge", "home.mshneorson:domain", null);
             this.delegate.deleteExpiredMembers(context, purgeResources);
         } catch (ResourceException e) {
             code = e.getCode();

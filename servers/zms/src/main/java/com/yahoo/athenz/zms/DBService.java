@@ -83,8 +83,8 @@ public class DBService implements RolesProvider {
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
-    private DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
-    private DynamicConfigInteger purgeMembersLimitPerCall;
+    protected DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
+    protected DynamicConfigInteger purgeMembersLimitPerCall;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
 
@@ -8064,35 +8064,44 @@ public class DBService implements RolesProvider {
         int offset = 0;
         List<PurgeMember> allExpiredRoleMembers = new ArrayList<>();
         List<PurgeMember> changedList = new ArrayList<>();
-        try (ObjectStoreConnection con = store.getConnection(false, false)) {
-            // get all expired members from all roles
-            for (int i = 0; i < maxDbCallsPerRun; ++i) {
-                List<PurgeMember> expiredRoleMembers = con.getAllExpiredRoleMembers(limitPerCall, offset);
-                if (expiredRoleMembers == null || expiredRoleMembers.isEmpty()) {
-                    break;
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+            try (ObjectStoreConnection con = store.getConnection(false, false)) {
+                // get all expired members from all roles
+                for (int i = 0; i < maxDbCallsPerRun; ++i) {
+                    List<PurgeMember> expiredRoleMembers = con.getAllExpiredRoleMembers(limitPerCall, offset);
+                    if (expiredRoleMembers == null || expiredRoleMembers.isEmpty()) {
+                        break;
+                    }
+                    allExpiredRoleMembers.addAll(expiredRoleMembers);
+                    if (expiredRoleMembers.size() < limitPerCall) {
+                        break;
+                    }
+                    offset += limitPerCall;
                 }
-                allExpiredRoleMembers.addAll(expiredRoleMembers);
-                if (expiredRoleMembers.size() < limitPerCall) {
-                    break;
+                // delete all expired role members one by one (required due auditLog)
+                for (PurgeMember purgeMember : allExpiredRoleMembers) {
+                    try {
+                        executeDeleteExpiredMembership(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
+                                purgeMember.getPrincipalName(), auditRef, caller);
+                        changedList.add(purgeMember);
+
+                    } catch (RuntimeException e) {
+                        //TODO - write the response status to a log file
+                    }
                 }
-                offset += limitPerCall;
+
+                purgeTaskSaveChanges(ctx, con, changedList, auditRef, caller, DomainChangeMessage.ObjectType.ROLE);
+                return;
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
             }
-            // delete all expired role members one by one (required due auditLog)
-            for (PurgeMember purgeMember: allExpiredRoleMembers) {
-                try {
-                    executeDeleteExpiredMembership(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
-                            purgeMember.getPrincipalName(), auditRef, caller);
-                    changedList.add(purgeMember);
-
-                } catch (RuntimeException e) {
-                    //TODO - write the response status to a log file
-                }
-            }
-
-            purgeTaskSaveChanges(ctx, con, changedList, auditRef, caller, DomainChangeMessage.ObjectType.ROLE);
-
-        } catch (ResourceException ex) {
-
         }
     }
 
@@ -8113,35 +8122,44 @@ public class DBService implements RolesProvider {
         int offset = 0;
         List<PurgeMember> allExpiredGroupMembers = new ArrayList<>();
         List<PurgeMember> changedList = new ArrayList<>();
-        try (ObjectStoreConnection con = store.getConnection(false, false)){
-            // get all expired members from all groups
-            for (int i = 0; i < maxDbCallsPerRun; ++i) {
-                List<PurgeMember> expiredGroupMembers = con.getAllExpiredGroupMembers(limitPerCall, offset);
-                if (expiredGroupMembers == null || expiredGroupMembers.isEmpty()) {
-                    break;
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+            try (ObjectStoreConnection con = store.getConnection(false, false)) {
+                // get all expired members from all groups
+                for (int i = 0; i < maxDbCallsPerRun; ++i) {
+                    List<PurgeMember> expiredGroupMembers = con.getAllExpiredGroupMembers(limitPerCall, offset);
+                    if (expiredGroupMembers == null || expiredGroupMembers.isEmpty()) {
+                        break;
+                    }
+                    allExpiredGroupMembers.addAll(expiredGroupMembers);
+                    if (expiredGroupMembers.size() < limitPerCall) {
+                        break;
+                    }
+                    offset += limitPerCall;
                 }
-                allExpiredGroupMembers.addAll(expiredGroupMembers);
-                if (expiredGroupMembers.size() < limitPerCall) {
-                    break;
+                // delete all expired group members one by one (required due auditLog)
+                for (PurgeMember purgeMember : allExpiredGroupMembers) {
+                    try {
+                        executeDeleteExpiredGroupMembership(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
+                                purgeMember.getPrincipalName(), auditRef);
+                        changedList.add(purgeMember);
+
+                    } catch (RuntimeException e) {
+                        //TODO - write the response status to a log file
+                    }
                 }
-                offset += limitPerCall;
+                purgeTaskSaveChanges(ctx, con, changedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
+                return;
+
+            } catch (ResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ex;
+                }
             }
-            // delete all expired group members one by one (required due auditLog)
-            for (PurgeMember purgeMember: allExpiredGroupMembers) {
-                try {
-                    executeDeleteExpiredGroupMembership(ctx, con, purgeMember.getDomainName(), purgeMember.getCollectionName(),
-                            purgeMember.getPrincipalName(), auditRef);
-                    changedList.add(purgeMember);
-
-                } catch (RuntimeException e) {
-                    //TODO - write the response status to a log file
-                }
-            }
-
-            purgeTaskSaveChanges(ctx, con, changedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
-
-        } catch (ResourceException ex) {
-
         }
     }
 

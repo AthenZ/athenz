@@ -2696,14 +2696,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("deleteExpiredMembers: purgeResources: {}", purgeResourcesEnumSet);
         }
 
-        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.ROLES)){
-            dbService.executeDeleteAllExpiredRoleMemberships(ctx, "TODO", caller);
+        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.ROLES)) {
+            dbService.executeDeleteAllExpiredRoleMemberships(ctx, ZMSConsts.PURGE_TASK_AUDIT_REF, caller);
         }
 
-        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.GROUPS)){
-            dbService.executeDeleteAllExpiredGroupMemberships(ctx, "TODO", caller);
+        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.GROUPS)) {
+            dbService.executeDeleteAllExpiredGroupMemberships(ctx, ZMSConsts.PURGE_TASK_AUDIT_REF, caller);
         }
-
 
     }
 
