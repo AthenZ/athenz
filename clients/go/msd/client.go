@@ -504,6 +504,33 @@ func (client MSDClient) PutDynamicWorkload(domainName DomainName, serviceName En
 	}
 }
 
+func (client MSDClient) DeleteDynamicWorkload(domainName DomainName, serviceName EntityName, instanceId PathElement) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/instanceId/" + fmt.Sprint(instanceId) + "/workload/dynamic"
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client MSDClient) PutStaticWorkload(domainName DomainName, serviceName EntityName, staticWorkload *StaticWorkload) error {
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/workload/static"
 	contentBytes, err := json.Marshal(staticWorkload)
@@ -521,6 +548,33 @@ func (client MSDClient) PutStaticWorkload(domainName DomainName, serviceName Ent
 	default:
 		var errobj rdl.ResourceError
 		contentBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client MSDClient) DeleteStaticWorkload(domainName DomainName, serviceName EntityName, instanceId PathElement) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/instanceId/" + fmt.Sprint(instanceId) + "/workload/static"
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
