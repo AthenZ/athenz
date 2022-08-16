@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.*;
-import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
@@ -57,8 +56,7 @@ public class DynamoDBAuthHistorySenderTest {
         try {
             dynamoDBAuthHistorySender.pushRecords(logs);
             fail();
-        } catch (Exception ex) {
-            assertEquals(null, ex.getMessage());
+        } catch (Exception ignored) {
         }
 
         System.clearProperty(PROP_CREATE_TABLE);
@@ -113,7 +111,7 @@ public class DynamoDBAuthHistorySenderTest {
     }
 
     @Test
-    public void testDynamoDBAuthHistorySenderNoTable() throws ExecutionException, InterruptedException {
+    public void testDynamoDBAuthHistorySenderNoTable() throws InterruptedException {
 
         LocalDynamoDbAsyncClientFactory localDynamoDbAsyncClientFactory = new LocalDynamoDbAsyncClientFactory();
         localDynamoDbAsyncClientFactory.init();
@@ -148,8 +146,9 @@ public class DynamoDBAuthHistorySenderTest {
                 .build();
 
         // Fetch pushed items, verify everything is there
-        DynamoDbTable<AuthHistoryDynamoDBRecord> nonAsynctable = dynamoDbEnhancedClient.table(DynamoDBAuthHistorySender.PROP_TABLE_NAME_DEFAULT, TableSchema.fromBean(AuthHistoryDynamoDBRecord.class));
-        return nonAsynctable;
+
+        return dynamoDbEnhancedClient.table(DynamoDBAuthHistorySender.PROP_TABLE_NAME_DEFAULT,
+                TableSchema.fromBean(AuthHistoryDynamoDBRecord.class));
     }
 
     private void verifyItemsByPrimaryKey(DynamoDbTable<AuthHistoryDynamoDBRecord> table, int numberOfRecords) {
