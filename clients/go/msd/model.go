@@ -14,63 +14,95 @@ var _ = rdl.Version
 var _ = json.Marshal
 var _ = fmt.Printf
 
+//
 // SimpleName - Copyright The Athenz Authors Licensed under the terms of the
 // Apache version 2.0 license. See LICENSE file for terms. Common name types
 // used by several API definitions A simple identifier, an element of compound
 // name.
+//
 type SimpleName string
 
+//
 // CompoundName - A compound name. Most names in this API are compound names.
+//
 type CompoundName string
 
+//
 // DomainName - A domain name is the general qualifier prefix, as its
 // uniqueness is managed.
+//
 type DomainName string
 
+//
 // EntityName - An entity name is a short form of a resource name, including
 // only the domain and entity.
+//
 type EntityName string
 
+//
 // EntityList - An Entity list is comma separated compound Names
+//
 type EntityList string
 
+//
 // ServiceName - A service name will generally be a unique subdomain.
+//
 type ServiceName string
 
+//
 // ActionName - An action (operation) name.
+//
 type ActionName string
 
+//
 // ResourceName - A resource name Note that the EntityName part is optional,
 // that is, a domain name followed by a colon is valid resource name.
+//
 type ResourceName string
 
+//
 // YBase64 - The Y-specific URL-safe Base64 variant.
+//
 type YBase64 string
 
+//
 // YEncoded - YEncoded includes ybase64 chars, as well as = and %. This can
 // represent a user cookie and URL-encoded values.
+//
 type YEncoded string
 
+//
 // AuthorityName - Used as the prefix in a signed assertion. This uniquely
 // identifies a signing authority.
+//
 type AuthorityName string
 
+//
 // PathElement - A uri-safe path element
+//
 type PathElement string
 
+//
 // TransportPolicySubjectDomainName - DomainName in TransportPolicySubject
 // should allow * to indicate ANY
+//
 type TransportPolicySubjectDomainName string
 
+//
 // TransportPolicySubjectServiceName - ServiceName in TransportPolicySubject
 // should allow * to indicate ANY
+//
 type TransportPolicySubjectServiceName string
 
+//
 // TransportPolicyEnforcementState - Types of transport policy enforcement
 // states
+//
 type TransportPolicyEnforcementState int
 
+//
 // TransportPolicyEnforcementState constants
+//
 const (
 	_ TransportPolicyEnforcementState = iota
 	ENFORCE
@@ -82,7 +114,9 @@ var namesTransportPolicyEnforcementState = []string{
 	REPORT:  "REPORT",
 }
 
+//
 // NewTransportPolicyEnforcementState - return a string representation of the enum
+//
 func NewTransportPolicyEnforcementState(init ...interface{}) TransportPolicyEnforcementState {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -105,22 +139,30 @@ func NewTransportPolicyEnforcementState(init ...interface{}) TransportPolicyEnfo
 	return TransportPolicyEnforcementState(0) //default to the first enum value
 }
 
+//
 // String - return a string representation of the enum
+//
 func (e TransportPolicyEnforcementState) String() string {
 	return namesTransportPolicyEnforcementState[e]
 }
 
+//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
 func (e TransportPolicyEnforcementState) SymbolSet() []string {
 	return namesTransportPolicyEnforcementState
 }
 
+//
 // MarshalJSON is defined for proper JSON encoding of a TransportPolicyEnforcementState
+//
 func (e TransportPolicyEnforcementState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyEnforcementState
+//
 func (e *TransportPolicyEnforcementState) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -137,10 +179,14 @@ func (e *TransportPolicyEnforcementState) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // TransportPolicyProtocol - Types of transport policy protocols
+//
 type TransportPolicyProtocol int
 
+//
 // TransportPolicyProtocol constants
+//
 const (
 	_ TransportPolicyProtocol = iota
 	TCP
@@ -152,7 +198,9 @@ var namesTransportPolicyProtocol = []string{
 	UDP: "UDP",
 }
 
+//
 // NewTransportPolicyProtocol - return a string representation of the enum
+//
 func NewTransportPolicyProtocol(init ...interface{}) TransportPolicyProtocol {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -175,22 +223,30 @@ func NewTransportPolicyProtocol(init ...interface{}) TransportPolicyProtocol {
 	return TransportPolicyProtocol(0) //default to the first enum value
 }
 
+//
 // String - return a string representation of the enum
+//
 func (e TransportPolicyProtocol) String() string {
 	return namesTransportPolicyProtocol[e]
 }
 
+//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
 func (e TransportPolicyProtocol) SymbolSet() []string {
 	return namesTransportPolicyProtocol
 }
 
+//
 // MarshalJSON is defined for proper JSON encoding of a TransportPolicyProtocol
+//
 func (e TransportPolicyProtocol) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyProtocol
+//
 func (e *TransportPolicyProtocol) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -207,11 +263,15 @@ func (e *TransportPolicyProtocol) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // TransportPolicyValidationStatus - Validation Status of transport policy vs
 // network policy
+//
 type TransportPolicyValidationStatus int
 
+//
 // TransportPolicyValidationStatus constants
+//
 const (
 	_ TransportPolicyValidationStatus = iota
 	VALID
@@ -225,7 +285,9 @@ var namesTransportPolicyValidationStatus = []string{
 	PARTIAL: "PARTIAL",
 }
 
+//
 // NewTransportPolicyValidationStatus - return a string representation of the enum
+//
 func NewTransportPolicyValidationStatus(init ...interface{}) TransportPolicyValidationStatus {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -248,22 +310,30 @@ func NewTransportPolicyValidationStatus(init ...interface{}) TransportPolicyVali
 	return TransportPolicyValidationStatus(0) //default to the first enum value
 }
 
+//
 // String - return a string representation of the enum
+//
 func (e TransportPolicyValidationStatus) String() string {
 	return namesTransportPolicyValidationStatus[e]
 }
 
+//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
 func (e TransportPolicyValidationStatus) SymbolSet() []string {
 	return namesTransportPolicyValidationStatus
 }
 
+//
 // MarshalJSON is defined for proper JSON encoding of a TransportPolicyValidationStatus
+//
 func (e TransportPolicyValidationStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationStatus
+//
 func (e *TransportPolicyValidationStatus) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -280,11 +350,15 @@ func (e *TransportPolicyValidationStatus) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // TransportPolicyTrafficDirection - Types of transport policy traffic
 // direction
+//
 type TransportPolicyTrafficDirection int
 
+//
 // TransportPolicyTrafficDirection constants
+//
 const (
 	_ TransportPolicyTrafficDirection = iota
 	INGRESS
@@ -296,7 +370,9 @@ var namesTransportPolicyTrafficDirection = []string{
 	EGRESS:  "EGRESS",
 }
 
+//
 // NewTransportPolicyTrafficDirection - return a string representation of the enum
+//
 func NewTransportPolicyTrafficDirection(init ...interface{}) TransportPolicyTrafficDirection {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -319,22 +395,30 @@ func NewTransportPolicyTrafficDirection(init ...interface{}) TransportPolicyTraf
 	return TransportPolicyTrafficDirection(0) //default to the first enum value
 }
 
+//
 // String - return a string representation of the enum
+//
 func (e TransportPolicyTrafficDirection) String() string {
 	return namesTransportPolicyTrafficDirection[e]
 }
 
+//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
 func (e TransportPolicyTrafficDirection) SymbolSet() []string {
 	return namesTransportPolicyTrafficDirection
 }
 
+//
 // MarshalJSON is defined for proper JSON encoding of a TransportPolicyTrafficDirection
+//
 func (e TransportPolicyTrafficDirection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyTrafficDirection
+//
 func (e *TransportPolicyTrafficDirection) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -351,7 +435,9 @@ func (e *TransportPolicyTrafficDirection) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // TransportPolicySubject - Subject for a transport policy
+//
 type TransportPolicySubject struct {
 
 	//
@@ -365,7 +451,9 @@ type TransportPolicySubject struct {
 	ServiceName TransportPolicySubjectServiceName `json:"serviceName"`
 }
 
+//
 // NewTransportPolicySubject - creates an initialized TransportPolicySubject instance, returns a pointer to it
+//
 func NewTransportPolicySubject(init ...*TransportPolicySubject) *TransportPolicySubject {
 	var o *TransportPolicySubject
 	if len(init) == 1 {
@@ -378,7 +466,9 @@ func NewTransportPolicySubject(init ...*TransportPolicySubject) *TransportPolicy
 
 type rawTransportPolicySubject TransportPolicySubject
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySubject
+//
 func (self *TransportPolicySubject) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicySubject
 	err := json.Unmarshal(b, &m)
@@ -390,7 +480,9 @@ func (self *TransportPolicySubject) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicySubject) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("TransportPolicySubject.domainName is missing but is a required field")
@@ -411,8 +503,10 @@ func (self *TransportPolicySubject) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyCondition - Transport policy condition. Used to specify
 // additional restrictions for the subject of a transport policy
+//
 type TransportPolicyCondition struct {
 
 	//
@@ -427,7 +521,9 @@ type TransportPolicyCondition struct {
 	Instances []string `json:"instances,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewTransportPolicyCondition - creates an initialized TransportPolicyCondition instance, returns a pointer to it
+//
 func NewTransportPolicyCondition(init ...*TransportPolicyCondition) *TransportPolicyCondition {
 	var o *TransportPolicyCondition
 	if len(init) == 1 {
@@ -440,7 +536,9 @@ func NewTransportPolicyCondition(init ...*TransportPolicyCondition) *TransportPo
 
 type rawTransportPolicyCondition TransportPolicyCondition
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyCondition
+//
 func (self *TransportPolicyCondition) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyCondition
 	err := json.Unmarshal(b, &m)
@@ -452,13 +550,17 @@ func (self *TransportPolicyCondition) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyCondition) Validate() error {
 	return nil
 }
 
+//
 // PolicyPort - generic policy port. Will be used by TransportPolicyPort and
 // NetworkPolicyPort structs
+//
 type PolicyPort struct {
 
 	//
@@ -474,7 +576,9 @@ type PolicyPort struct {
 	EndPort int32 `json:"endPort"`
 }
 
+//
 // NewPolicyPort - creates an initialized PolicyPort instance, returns a pointer to it
+//
 func NewPolicyPort(init ...*PolicyPort) *PolicyPort {
 	var o *PolicyPort
 	if len(init) == 1 {
@@ -487,7 +591,9 @@ func NewPolicyPort(init ...*PolicyPort) *PolicyPort {
 
 type rawPolicyPort PolicyPort
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a PolicyPort
+//
 func (self *PolicyPort) UnmarshalJSON(b []byte) error {
 	var m rawPolicyPort
 	err := json.Unmarshal(b, &m)
@@ -499,12 +605,16 @@ func (self *PolicyPort) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *PolicyPort) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyPort - Transport policy port
+//
 type TransportPolicyPort struct {
 
 	//
@@ -525,7 +635,9 @@ type TransportPolicyPort struct {
 	Protocol TransportPolicyProtocol `json:"protocol"`
 }
 
+//
 // NewTransportPolicyPort - creates an initialized TransportPolicyPort instance, returns a pointer to it
+//
 func NewTransportPolicyPort(init ...*TransportPolicyPort) *TransportPolicyPort {
 	var o *TransportPolicyPort
 	if len(init) == 1 {
@@ -538,7 +650,9 @@ func NewTransportPolicyPort(init ...*TransportPolicyPort) *TransportPolicyPort {
 
 type rawTransportPolicyPort TransportPolicyPort
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyPort
+//
 func (self *TransportPolicyPort) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyPort
 	err := json.Unmarshal(b, &m)
@@ -550,12 +664,16 @@ func (self *TransportPolicyPort) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyPort) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyMatch - Selector for the subject of a transport policy
+//
 type TransportPolicyMatch struct {
 
 	//
@@ -569,7 +687,9 @@ type TransportPolicyMatch struct {
 	Conditions []*TransportPolicyCondition `json:"conditions"`
 }
 
+//
 // NewTransportPolicyMatch - creates an initialized TransportPolicyMatch instance, returns a pointer to it
+//
 func NewTransportPolicyMatch(init ...*TransportPolicyMatch) *TransportPolicyMatch {
 	var o *TransportPolicyMatch
 	if len(init) == 1 {
@@ -580,7 +700,9 @@ func NewTransportPolicyMatch(init ...*TransportPolicyMatch) *TransportPolicyMatc
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyMatch) Init() *TransportPolicyMatch {
 	if self.AthenzService == nil {
 		self.AthenzService = NewTransportPolicySubject()
@@ -593,7 +715,9 @@ func (self *TransportPolicyMatch) Init() *TransportPolicyMatch {
 
 type rawTransportPolicyMatch TransportPolicyMatch
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyMatch
+//
 func (self *TransportPolicyMatch) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyMatch
 	err := json.Unmarshal(b, &m)
@@ -605,7 +729,9 @@ func (self *TransportPolicyMatch) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyMatch) Validate() error {
 	if self.AthenzService == nil {
 		return fmt.Errorf("TransportPolicyMatch: Missing required field: athenzService")
@@ -616,7 +742,9 @@ func (self *TransportPolicyMatch) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyPeer - Source or destination for a transport policy
+//
 type TransportPolicyPeer struct {
 
 	//
@@ -630,7 +758,9 @@ type TransportPolicyPeer struct {
 	Ports []*TransportPolicyPort `json:"ports"`
 }
 
+//
 // NewTransportPolicyPeer - creates an initialized TransportPolicyPeer instance, returns a pointer to it
+//
 func NewTransportPolicyPeer(init ...*TransportPolicyPeer) *TransportPolicyPeer {
 	var o *TransportPolicyPeer
 	if len(init) == 1 {
@@ -641,7 +771,9 @@ func NewTransportPolicyPeer(init ...*TransportPolicyPeer) *TransportPolicyPeer {
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyPeer) Init() *TransportPolicyPeer {
 	if self.AthenzServices == nil {
 		self.AthenzServices = make([]*TransportPolicySubject, 0)
@@ -654,7 +786,9 @@ func (self *TransportPolicyPeer) Init() *TransportPolicyPeer {
 
 type rawTransportPolicyPeer TransportPolicyPeer
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyPeer
+//
 func (self *TransportPolicyPeer) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyPeer
 	err := json.Unmarshal(b, &m)
@@ -666,7 +800,9 @@ func (self *TransportPolicyPeer) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyPeer) Validate() error {
 	if self.AthenzServices == nil {
 		return fmt.Errorf("TransportPolicyPeer: Missing required field: athenzServices")
@@ -677,8 +813,10 @@ func (self *TransportPolicyPeer) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyEntitySelector - Entity to which a transport policy applies.
 // Describes the subject and port(s) for a transport policy.
+//
 type TransportPolicyEntitySelector struct {
 
 	//
@@ -693,7 +831,9 @@ type TransportPolicyEntitySelector struct {
 	Ports []*TransportPolicyPort `json:"ports"`
 }
 
+//
 // NewTransportPolicyEntitySelector - creates an initialized TransportPolicyEntitySelector instance, returns a pointer to it
+//
 func NewTransportPolicyEntitySelector(init ...*TransportPolicyEntitySelector) *TransportPolicyEntitySelector {
 	var o *TransportPolicyEntitySelector
 	if len(init) == 1 {
@@ -704,7 +844,9 @@ func NewTransportPolicyEntitySelector(init ...*TransportPolicyEntitySelector) *T
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyEntitySelector) Init() *TransportPolicyEntitySelector {
 	if self.Match == nil {
 		self.Match = NewTransportPolicyMatch()
@@ -717,7 +859,9 @@ func (self *TransportPolicyEntitySelector) Init() *TransportPolicyEntitySelector
 
 type rawTransportPolicyEntitySelector TransportPolicyEntitySelector
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyEntitySelector
+//
 func (self *TransportPolicyEntitySelector) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyEntitySelector
 	err := json.Unmarshal(b, &m)
@@ -729,7 +873,9 @@ func (self *TransportPolicyEntitySelector) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyEntitySelector) Validate() error {
 	if self.Match == nil {
 		return fmt.Errorf("TransportPolicyEntitySelector: Missing required field: match")
@@ -740,7 +886,9 @@ func (self *TransportPolicyEntitySelector) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyIngressRule - Transport policy ingress rule
+//
 type TransportPolicyIngressRule struct {
 
 	//
@@ -764,7 +912,9 @@ type TransportPolicyIngressRule struct {
 	From *TransportPolicyPeer `json:"from,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewTransportPolicyIngressRule - creates an initialized TransportPolicyIngressRule instance, returns a pointer to it
+//
 func NewTransportPolicyIngressRule(init ...*TransportPolicyIngressRule) *TransportPolicyIngressRule {
 	var o *TransportPolicyIngressRule
 	if len(init) == 1 {
@@ -775,7 +925,9 @@ func NewTransportPolicyIngressRule(init ...*TransportPolicyIngressRule) *Transpo
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyIngressRule) Init() *TransportPolicyIngressRule {
 	if self.EntitySelector == nil {
 		self.EntitySelector = NewTransportPolicyEntitySelector()
@@ -785,7 +937,9 @@ func (self *TransportPolicyIngressRule) Init() *TransportPolicyIngressRule {
 
 type rawTransportPolicyIngressRule TransportPolicyIngressRule
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyIngressRule
+//
 func (self *TransportPolicyIngressRule) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyIngressRule
 	err := json.Unmarshal(b, &m)
@@ -797,7 +951,9 @@ func (self *TransportPolicyIngressRule) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyIngressRule) Validate() error {
 	if self.LastModified.IsZero() {
 		return fmt.Errorf("TransportPolicyIngressRule: Missing required field: lastModified")
@@ -808,7 +964,9 @@ func (self *TransportPolicyIngressRule) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyEgressRule - Transport policy egress rule
+//
 type TransportPolicyEgressRule struct {
 
 	//
@@ -832,7 +990,9 @@ type TransportPolicyEgressRule struct {
 	To *TransportPolicyPeer `json:"to,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewTransportPolicyEgressRule - creates an initialized TransportPolicyEgressRule instance, returns a pointer to it
+//
 func NewTransportPolicyEgressRule(init ...*TransportPolicyEgressRule) *TransportPolicyEgressRule {
 	var o *TransportPolicyEgressRule
 	if len(init) == 1 {
@@ -843,7 +1003,9 @@ func NewTransportPolicyEgressRule(init ...*TransportPolicyEgressRule) *Transport
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyEgressRule) Init() *TransportPolicyEgressRule {
 	if self.EntitySelector == nil {
 		self.EntitySelector = NewTransportPolicyEntitySelector()
@@ -853,7 +1015,9 @@ func (self *TransportPolicyEgressRule) Init() *TransportPolicyEgressRule {
 
 type rawTransportPolicyEgressRule TransportPolicyEgressRule
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyEgressRule
+//
 func (self *TransportPolicyEgressRule) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyEgressRule
 	err := json.Unmarshal(b, &m)
@@ -865,7 +1029,9 @@ func (self *TransportPolicyEgressRule) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyEgressRule) Validate() error {
 	if self.LastModified.IsZero() {
 		return fmt.Errorf("TransportPolicyEgressRule: Missing required field: lastModified")
@@ -876,7 +1042,9 @@ func (self *TransportPolicyEgressRule) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyRules - Transport policy containing ingress and egress rules
+//
 type TransportPolicyRules struct {
 
 	//
@@ -890,7 +1058,9 @@ type TransportPolicyRules struct {
 	Egress []*TransportPolicyEgressRule `json:"egress"`
 }
 
+//
 // NewTransportPolicyRules - creates an initialized TransportPolicyRules instance, returns a pointer to it
+//
 func NewTransportPolicyRules(init ...*TransportPolicyRules) *TransportPolicyRules {
 	var o *TransportPolicyRules
 	if len(init) == 1 {
@@ -901,7 +1071,9 @@ func NewTransportPolicyRules(init ...*TransportPolicyRules) *TransportPolicyRule
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyRules) Init() *TransportPolicyRules {
 	if self.Ingress == nil {
 		self.Ingress = make([]*TransportPolicyIngressRule, 0)
@@ -914,7 +1086,9 @@ func (self *TransportPolicyRules) Init() *TransportPolicyRules {
 
 type rawTransportPolicyRules TransportPolicyRules
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyRules
+//
 func (self *TransportPolicyRules) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyRules
 	err := json.Unmarshal(b, &m)
@@ -926,7 +1100,9 @@ func (self *TransportPolicyRules) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyRules) Validate() error {
 	if self.Ingress == nil {
 		return fmt.Errorf("TransportPolicyRules: Missing required field: ingress")
@@ -937,8 +1113,10 @@ func (self *TransportPolicyRules) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyValidationRequest - Transport policy request object to be
 // validated
+//
 type TransportPolicyValidationRequest struct {
 
 	//
@@ -958,7 +1136,9 @@ type TransportPolicyValidationRequest struct {
 	TrafficDirection TransportPolicyTrafficDirection `json:"trafficDirection"`
 }
 
+//
 // NewTransportPolicyValidationRequest - creates an initialized TransportPolicyValidationRequest instance, returns a pointer to it
+//
 func NewTransportPolicyValidationRequest(init ...*TransportPolicyValidationRequest) *TransportPolicyValidationRequest {
 	var o *TransportPolicyValidationRequest
 	if len(init) == 1 {
@@ -969,7 +1149,9 @@ func NewTransportPolicyValidationRequest(init ...*TransportPolicyValidationReque
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyValidationRequest) Init() *TransportPolicyValidationRequest {
 	if self.EntitySelector == nil {
 		self.EntitySelector = NewTransportPolicyEntitySelector()
@@ -982,7 +1164,9 @@ func (self *TransportPolicyValidationRequest) Init() *TransportPolicyValidationR
 
 type rawTransportPolicyValidationRequest TransportPolicyValidationRequest
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationRequest
+//
 func (self *TransportPolicyValidationRequest) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyValidationRequest
 	err := json.Unmarshal(b, &m)
@@ -994,7 +1178,9 @@ func (self *TransportPolicyValidationRequest) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyValidationRequest) Validate() error {
 	if self.EntitySelector == nil {
 		return fmt.Errorf("TransportPolicyValidationRequest: Missing required field: entitySelector")
@@ -1005,8 +1191,10 @@ func (self *TransportPolicyValidationRequest) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyValidationResponse - Response object of transport policy rule
 // validation
+//
 type TransportPolicyValidationResponse struct {
 	Status TransportPolicyValidationStatus `json:"status"`
 	Errors []string                        `json:"errors,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -1022,7 +1210,9 @@ type TransportPolicyValidationResponse struct {
 	Id *int64 `json:"id,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewTransportPolicyValidationResponse - creates an initialized TransportPolicyValidationResponse instance, returns a pointer to it
+//
 func NewTransportPolicyValidationResponse(init ...*TransportPolicyValidationResponse) *TransportPolicyValidationResponse {
 	var o *TransportPolicyValidationResponse
 	if len(init) == 1 {
@@ -1035,7 +1225,9 @@ func NewTransportPolicyValidationResponse(init ...*TransportPolicyValidationResp
 
 type rawTransportPolicyValidationResponse TransportPolicyValidationResponse
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationResponse
+//
 func (self *TransportPolicyValidationResponse) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyValidationResponse
 	err := json.Unmarshal(b, &m)
@@ -1047,13 +1239,17 @@ func (self *TransportPolicyValidationResponse) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyValidationResponse) Validate() error {
 	return nil
 }
 
+//
 // TransportPolicyValidationResponseList - List of
 // TransportPolicyValidationResponse
+//
 type TransportPolicyValidationResponseList struct {
 
 	//
@@ -1062,7 +1258,9 @@ type TransportPolicyValidationResponseList struct {
 	ResponseList []*TransportPolicyValidationResponse `json:"responseList"`
 }
 
+//
 // NewTransportPolicyValidationResponseList - creates an initialized TransportPolicyValidationResponseList instance, returns a pointer to it
+//
 func NewTransportPolicyValidationResponseList(init ...*TransportPolicyValidationResponseList) *TransportPolicyValidationResponseList {
 	var o *TransportPolicyValidationResponseList
 	if len(init) == 1 {
@@ -1073,7 +1271,9 @@ func NewTransportPolicyValidationResponseList(init ...*TransportPolicyValidation
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *TransportPolicyValidationResponseList) Init() *TransportPolicyValidationResponseList {
 	if self.ResponseList == nil {
 		self.ResponseList = make([]*TransportPolicyValidationResponse, 0)
@@ -1083,7 +1283,9 @@ func (self *TransportPolicyValidationResponseList) Init() *TransportPolicyValida
 
 type rawTransportPolicyValidationResponseList TransportPolicyValidationResponseList
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyValidationResponseList
+//
 func (self *TransportPolicyValidationResponseList) UnmarshalJSON(b []byte) error {
 	var m rawTransportPolicyValidationResponseList
 	err := json.Unmarshal(b, &m)
@@ -1095,7 +1297,9 @@ func (self *TransportPolicyValidationResponseList) UnmarshalJSON(b []byte) error
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *TransportPolicyValidationResponseList) Validate() error {
 	if self.ResponseList == nil {
 		return fmt.Errorf("TransportPolicyValidationResponseList: Missing required field: responseList")
@@ -1103,10 +1307,14 @@ func (self *TransportPolicyValidationResponseList) Validate() error {
 	return nil
 }
 
+//
 // StaticWorkloadType - Enum representing defined types of static workloads.
+//
 type StaticWorkloadType int
 
+//
 // StaticWorkloadType constants
+//
 const (
 	_ StaticWorkloadType = iota
 	VIP
@@ -1126,7 +1334,9 @@ var namesStaticWorkloadType = []string{
 	VIP_LB:               "VIP_LB",
 }
 
+//
 // NewStaticWorkloadType - return a string representation of the enum
+//
 func NewStaticWorkloadType(init ...interface{}) StaticWorkloadType {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -1149,22 +1359,30 @@ func NewStaticWorkloadType(init ...interface{}) StaticWorkloadType {
 	return StaticWorkloadType(0) //default to the first enum value
 }
 
+//
 // String - return a string representation of the enum
+//
 func (e StaticWorkloadType) String() string {
 	return namesStaticWorkloadType[e]
 }
 
+//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
 func (e StaticWorkloadType) SymbolSet() []string {
 	return namesStaticWorkloadType
 }
 
+//
 // MarshalJSON is defined for proper JSON encoding of a StaticWorkloadType
+//
 func (e StaticWorkloadType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a StaticWorkloadType
+//
 func (e *StaticWorkloadType) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -1181,8 +1399,10 @@ func (e *StaticWorkloadType) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // DynamicWorkload - workload type describing workload bootstrapped with an
 // identity
+//
 type DynamicWorkload struct {
 
 	//
@@ -1232,7 +1452,9 @@ type DynamicWorkload struct {
 	CertIssueTime *rdl.Timestamp `json:"certIssueTime,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewDynamicWorkload - creates an initialized DynamicWorkload instance, returns a pointer to it
+//
 func NewDynamicWorkload(init ...*DynamicWorkload) *DynamicWorkload {
 	var o *DynamicWorkload
 	if len(init) == 1 {
@@ -1243,7 +1465,9 @@ func NewDynamicWorkload(init ...*DynamicWorkload) *DynamicWorkload {
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *DynamicWorkload) Init() *DynamicWorkload {
 	if self.IpAddresses == nil {
 		self.IpAddresses = make([]string, 0)
@@ -1253,7 +1477,9 @@ func (self *DynamicWorkload) Init() *DynamicWorkload {
 
 type rawDynamicWorkload DynamicWorkload
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a DynamicWorkload
+//
 func (self *DynamicWorkload) UnmarshalJSON(b []byte) error {
 	var m rawDynamicWorkload
 	err := json.Unmarshal(b, &m)
@@ -1265,7 +1491,9 @@ func (self *DynamicWorkload) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *DynamicWorkload) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("DynamicWorkload.domainName is missing but is a required field")
@@ -1319,8 +1547,10 @@ func (self *DynamicWorkload) Validate() error {
 	return nil
 }
 
+//
 // Workload - kept for backward compatibility sake. Will be eventually
 // deprecated in favor of DynamicWorkload
+//
 type Workload struct {
 
 	//
@@ -1370,7 +1600,9 @@ type Workload struct {
 	CertIssueTime *rdl.Timestamp `json:"certIssueTime,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewWorkload - creates an initialized Workload instance, returns a pointer to it
+//
 func NewWorkload(init ...*Workload) *Workload {
 	var o *Workload
 	if len(init) == 1 {
@@ -1381,7 +1613,9 @@ func NewWorkload(init ...*Workload) *Workload {
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *Workload) Init() *Workload {
 	if self.IpAddresses == nil {
 		self.IpAddresses = make([]string, 0)
@@ -1391,7 +1625,9 @@ func (self *Workload) Init() *Workload {
 
 type rawWorkload Workload
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a Workload
+//
 func (self *Workload) UnmarshalJSON(b []byte) error {
 	var m rawWorkload
 	err := json.Unmarshal(b, &m)
@@ -1403,7 +1639,9 @@ func (self *Workload) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *Workload) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("Workload.domainName is missing but is a required field")
@@ -1457,8 +1695,10 @@ func (self *Workload) Validate() error {
 	return nil
 }
 
+//
 // StaticWorkload - workload type describing workload indirectly associated
 // with an identity ( without bootstrap )
+//
 type StaticWorkload struct {
 
 	//
@@ -1493,7 +1733,9 @@ type StaticWorkload struct {
 	UpdateTime *rdl.Timestamp `json:"updateTime,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewStaticWorkload - creates an initialized StaticWorkload instance, returns a pointer to it
+//
 func NewStaticWorkload(init ...*StaticWorkload) *StaticWorkload {
 	var o *StaticWorkload
 	if len(init) == 1 {
@@ -1506,7 +1748,9 @@ func NewStaticWorkload(init ...*StaticWorkload) *StaticWorkload {
 
 type rawStaticWorkload StaticWorkload
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a StaticWorkload
+//
 func (self *StaticWorkload) UnmarshalJSON(b []byte) error {
 	var m rawStaticWorkload
 	err := json.Unmarshal(b, &m)
@@ -1518,7 +1762,9 @@ func (self *StaticWorkload) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *StaticWorkload) Validate() error {
 	if self.DomainName == "" {
 		return fmt.Errorf("StaticWorkload.domainName is missing but is a required field")
@@ -1545,7 +1791,9 @@ func (self *StaticWorkload) Validate() error {
 	return nil
 }
 
+//
 // WorkloadOptions -
+//
 type WorkloadOptions struct {
 
 	//
@@ -1554,7 +1802,9 @@ type WorkloadOptions struct {
 	IpChanged bool `json:"ipChanged"`
 }
 
+//
 // NewWorkloadOptions - creates an initialized WorkloadOptions instance, returns a pointer to it
+//
 func NewWorkloadOptions(init ...*WorkloadOptions) *WorkloadOptions {
 	var o *WorkloadOptions
 	if len(init) == 1 {
@@ -1567,7 +1817,9 @@ func NewWorkloadOptions(init ...*WorkloadOptions) *WorkloadOptions {
 
 type rawWorkloadOptions WorkloadOptions
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a WorkloadOptions
+//
 func (self *WorkloadOptions) UnmarshalJSON(b []byte) error {
 	var m rawWorkloadOptions
 	err := json.Unmarshal(b, &m)
@@ -1579,12 +1831,16 @@ func (self *WorkloadOptions) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *WorkloadOptions) Validate() error {
 	return nil
 }
 
+//
 // Workloads - list of workloads
+//
 type Workloads struct {
 
 	//
@@ -1603,7 +1859,9 @@ type Workloads struct {
 	StaticWorkloadList []*StaticWorkload `json:"staticWorkloadList,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewWorkloads - creates an initialized Workloads instance, returns a pointer to it
+//
 func NewWorkloads(init ...*Workloads) *Workloads {
 	var o *Workloads
 	if len(init) == 1 {
@@ -1614,7 +1872,9 @@ func NewWorkloads(init ...*Workloads) *Workloads {
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *Workloads) Init() *Workloads {
 	if self.WorkloadList == nil {
 		self.WorkloadList = make([]*Workload, 0)
@@ -1624,7 +1884,9 @@ func (self *Workloads) Init() *Workloads {
 
 type rawWorkloads Workloads
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a Workloads
+//
 func (self *Workloads) UnmarshalJSON(b []byte) error {
 	var m rawWorkloads
 	err := json.Unmarshal(b, &m)
@@ -1636,7 +1898,9 @@ func (self *Workloads) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *Workloads) Validate() error {
 	if self.WorkloadList == nil {
 		return fmt.Errorf("Workloads: Missing required field: workloadList")
@@ -1644,13 +1908,17 @@ func (self *Workloads) Validate() error {
 	return nil
 }
 
+//
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
 // will interfere with workings of one or more transport policies NO_IMAPCT
 // indicates that a change in network policy will not interfere with workings of
 // any transport policy
+//
 type NetworkPolicyChangeEffect int
 
+//
 // NetworkPolicyChangeEffect constants
+//
 const (
 	_ NetworkPolicyChangeEffect = iota
 	IMPACT
@@ -1662,7 +1930,9 @@ var namesNetworkPolicyChangeEffect = []string{
 	NO_IMPACT: "NO_IMPACT",
 }
 
+//
 // NewNetworkPolicyChangeEffect - return a string representation of the enum
+//
 func NewNetworkPolicyChangeEffect(init ...interface{}) NetworkPolicyChangeEffect {
 	if len(init) == 1 {
 		switch v := init[0].(type) {
@@ -1685,22 +1955,30 @@ func NewNetworkPolicyChangeEffect(init ...interface{}) NetworkPolicyChangeEffect
 	return NetworkPolicyChangeEffect(0) //default to the first enum value
 }
 
+//
 // String - return a string representation of the enum
+//
 func (e NetworkPolicyChangeEffect) String() string {
 	return namesNetworkPolicyChangeEffect[e]
 }
 
+//
 // SymbolSet - return an array of all valid string representations (symbols) of the enum
+//
 func (e NetworkPolicyChangeEffect) SymbolSet() []string {
 	return namesNetworkPolicyChangeEffect
 }
 
+//
 // MarshalJSON is defined for proper JSON encoding of a NetworkPolicyChangeEffect
+//
 func (e NetworkPolicyChangeEffect) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.String())
 }
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeEffect
+//
 func (e *NetworkPolicyChangeEffect) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
@@ -1717,8 +1995,10 @@ func (e *NetworkPolicyChangeEffect) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // IPBlock - Struct representing ip blocks used by network policy in CIDR
 // (Classless inter-domain routing) format
+//
 type IPBlock struct {
 
 	//
@@ -1727,7 +2007,9 @@ type IPBlock struct {
 	Cidr string `json:"cidr"`
 }
 
+//
 // NewIPBlock - creates an initialized IPBlock instance, returns a pointer to it
+//
 func NewIPBlock(init ...*IPBlock) *IPBlock {
 	var o *IPBlock
 	if len(init) == 1 {
@@ -1740,7 +2022,9 @@ func NewIPBlock(init ...*IPBlock) *IPBlock {
 
 type rawIPBlock IPBlock
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a IPBlock
+//
 func (self *IPBlock) UnmarshalJSON(b []byte) error {
 	var m rawIPBlock
 	err := json.Unmarshal(b, &m)
@@ -1752,7 +2036,9 @@ func (self *IPBlock) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *IPBlock) Validate() error {
 	if self.Cidr == "" {
 		return fmt.Errorf("IPBlock.cidr is missing but is a required field")
@@ -1765,7 +2051,9 @@ func (self *IPBlock) Validate() error {
 	return nil
 }
 
+//
 // NetworkPolicyPort - network policy port.
+//
 type NetworkPolicyPort struct {
 
 	//
@@ -1786,7 +2074,9 @@ type NetworkPolicyPort struct {
 	Protocol TransportPolicyProtocol `json:"protocol"`
 }
 
+//
 // NewNetworkPolicyPort - creates an initialized NetworkPolicyPort instance, returns a pointer to it
+//
 func NewNetworkPolicyPort(init ...*NetworkPolicyPort) *NetworkPolicyPort {
 	var o *NetworkPolicyPort
 	if len(init) == 1 {
@@ -1799,7 +2089,9 @@ func NewNetworkPolicyPort(init ...*NetworkPolicyPort) *NetworkPolicyPort {
 
 type rawNetworkPolicyPort NetworkPolicyPort
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyPort
+//
 func (self *NetworkPolicyPort) UnmarshalJSON(b []byte) error {
 	var m rawNetworkPolicyPort
 	err := json.Unmarshal(b, &m)
@@ -1811,13 +2103,17 @@ func (self *NetworkPolicyPort) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *NetworkPolicyPort) Validate() error {
 	return nil
 }
 
+//
 // NetworkPolicyPorts - allows creating a unique tuple of source and
 // destination ports
+//
 type NetworkPolicyPorts struct {
 
 	//
@@ -1831,7 +2127,9 @@ type NetworkPolicyPorts struct {
 	DestinationPorts []*NetworkPolicyPort `json:"destinationPorts"`
 }
 
+//
 // NewNetworkPolicyPorts - creates an initialized NetworkPolicyPorts instance, returns a pointer to it
+//
 func NewNetworkPolicyPorts(init ...*NetworkPolicyPorts) *NetworkPolicyPorts {
 	var o *NetworkPolicyPorts
 	if len(init) == 1 {
@@ -1842,7 +2140,9 @@ func NewNetworkPolicyPorts(init ...*NetworkPolicyPorts) *NetworkPolicyPorts {
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *NetworkPolicyPorts) Init() *NetworkPolicyPorts {
 	if self.SourcePorts == nil {
 		self.SourcePorts = make([]*NetworkPolicyPort, 0)
@@ -1855,7 +2155,9 @@ func (self *NetworkPolicyPorts) Init() *NetworkPolicyPorts {
 
 type rawNetworkPolicyPorts NetworkPolicyPorts
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyPorts
+//
 func (self *NetworkPolicyPorts) UnmarshalJSON(b []byte) error {
 	var m rawNetworkPolicyPorts
 	err := json.Unmarshal(b, &m)
@@ -1867,7 +2169,9 @@ func (self *NetworkPolicyPorts) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *NetworkPolicyPorts) Validate() error {
 	if self.SourcePorts == nil {
 		return fmt.Errorf("NetworkPolicyPorts: Missing required field: sourcePorts")
@@ -1878,8 +2182,10 @@ func (self *NetworkPolicyPorts) Validate() error {
 	return nil
 }
 
+//
 // NetworkPolicyChangeImpactRequest - struct representing input details for
 // evaluating network policies change impact on transport policies
+//
 type NetworkPolicyChangeImpactRequest struct {
 
 	//
@@ -1899,7 +2205,9 @@ type NetworkPolicyChangeImpactRequest struct {
 	Ports []*NetworkPolicyPorts `json:"ports"`
 }
 
+//
 // NewNetworkPolicyChangeImpactRequest - creates an initialized NetworkPolicyChangeImpactRequest instance, returns a pointer to it
+//
 func NewNetworkPolicyChangeImpactRequest(init ...*NetworkPolicyChangeImpactRequest) *NetworkPolicyChangeImpactRequest {
 	var o *NetworkPolicyChangeImpactRequest
 	if len(init) == 1 {
@@ -1910,7 +2218,9 @@ func NewNetworkPolicyChangeImpactRequest(init ...*NetworkPolicyChangeImpactReque
 	return o.Init()
 }
 
+//
 // Init - sets up the instance according to its default field values, if any
+//
 func (self *NetworkPolicyChangeImpactRequest) Init() *NetworkPolicyChangeImpactRequest {
 	if self.From == nil {
 		self.From = make([]*IPBlock, 0)
@@ -1926,7 +2236,9 @@ func (self *NetworkPolicyChangeImpactRequest) Init() *NetworkPolicyChangeImpactR
 
 type rawNetworkPolicyChangeImpactRequest NetworkPolicyChangeImpactRequest
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeImpactRequest
+//
 func (self *NetworkPolicyChangeImpactRequest) UnmarshalJSON(b []byte) error {
 	var m rawNetworkPolicyChangeImpactRequest
 	err := json.Unmarshal(b, &m)
@@ -1938,7 +2250,9 @@ func (self *NetworkPolicyChangeImpactRequest) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *NetworkPolicyChangeImpactRequest) Validate() error {
 	if self.From == nil {
 		return fmt.Errorf("NetworkPolicyChangeImpactRequest: Missing required field: from")
@@ -1952,7 +2266,9 @@ func (self *NetworkPolicyChangeImpactRequest) Validate() error {
 	return nil
 }
 
+//
 // NetworkPolicyChangeImpactDetail -
+//
 type NetworkPolicyChangeImpactDetail struct {
 
 	//
@@ -1971,7 +2287,9 @@ type NetworkPolicyChangeImpactDetail struct {
 	TransportPolicyId int64 `json:"transportPolicyId"`
 }
 
+//
 // NewNetworkPolicyChangeImpactDetail - creates an initialized NetworkPolicyChangeImpactDetail instance, returns a pointer to it
+//
 func NewNetworkPolicyChangeImpactDetail(init ...*NetworkPolicyChangeImpactDetail) *NetworkPolicyChangeImpactDetail {
 	var o *NetworkPolicyChangeImpactDetail
 	if len(init) == 1 {
@@ -1984,7 +2302,9 @@ func NewNetworkPolicyChangeImpactDetail(init ...*NetworkPolicyChangeImpactDetail
 
 type rawNetworkPolicyChangeImpactDetail NetworkPolicyChangeImpactDetail
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeImpactDetail
+//
 func (self *NetworkPolicyChangeImpactDetail) UnmarshalJSON(b []byte) error {
 	var m rawNetworkPolicyChangeImpactDetail
 	err := json.Unmarshal(b, &m)
@@ -1996,7 +2316,9 @@ func (self *NetworkPolicyChangeImpactDetail) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *NetworkPolicyChangeImpactDetail) Validate() error {
 	if self.Domain == "" {
 		return fmt.Errorf("NetworkPolicyChangeImpactDetail.domain is missing but is a required field")
@@ -2017,8 +2339,10 @@ func (self *NetworkPolicyChangeImpactDetail) Validate() error {
 	return nil
 }
 
+//
 // NetworkPolicyChangeImpactResponse - struct representing response of
 // evaluating network policies change impact on transport policies
+//
 type NetworkPolicyChangeImpactResponse struct {
 
 	//
@@ -2034,7 +2358,9 @@ type NetworkPolicyChangeImpactResponse struct {
 	Details []*NetworkPolicyChangeImpactDetail `json:"details,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
+//
 // NewNetworkPolicyChangeImpactResponse - creates an initialized NetworkPolicyChangeImpactResponse instance, returns a pointer to it
+//
 func NewNetworkPolicyChangeImpactResponse(init ...*NetworkPolicyChangeImpactResponse) *NetworkPolicyChangeImpactResponse {
 	var o *NetworkPolicyChangeImpactResponse
 	if len(init) == 1 {
@@ -2047,7 +2373,9 @@ func NewNetworkPolicyChangeImpactResponse(init ...*NetworkPolicyChangeImpactResp
 
 type rawNetworkPolicyChangeImpactResponse NetworkPolicyChangeImpactResponse
 
+//
 // UnmarshalJSON is defined for proper JSON decoding of a NetworkPolicyChangeImpactResponse
+//
 func (self *NetworkPolicyChangeImpactResponse) UnmarshalJSON(b []byte) error {
 	var m rawNetworkPolicyChangeImpactResponse
 	err := json.Unmarshal(b, &m)
@@ -2059,7 +2387,9 @@ func (self *NetworkPolicyChangeImpactResponse) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // Validate - checks for missing required fields, etc
+//
 func (self *NetworkPolicyChangeImpactResponse) Validate() error {
 	return nil
 }
