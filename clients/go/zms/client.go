@@ -1086,8 +1086,8 @@ func (client ZMSClient) GetRole(domainName DomainName, roleName EntityName, audi
 func (client ZMSClient) PutRole(domainName DomainName, roleName EntityName, auditRef string, returnObj *bool, role *Role) (*Role, error) {
 	var data *Role
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName)
 	contentBytes, err := json.Marshal(role)
@@ -1286,8 +1286,8 @@ func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName Dom
 func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName, memberName MemberName, auditRef string, returnObj *bool, membership *Membership) (*Membership, error) {
 	var data *Membership
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/member/" + fmt.Sprint(memberName)
 	contentBytes, err := json.Marshal(membership)
@@ -1524,8 +1524,8 @@ func (client ZMSClient) PutMembershipDecision(domainName DomainName, roleName En
 func (client ZMSClient) PutRoleReview(domainName DomainName, roleName EntityName, auditRef string, returnObj *bool, role *Role) (*Role, error) {
 	var data *Role
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/review"
 	contentBytes, err := json.Marshal(role)
@@ -1630,8 +1630,8 @@ func (client ZMSClient) GetGroup(domainName DomainName, groupName EntityName, au
 func (client ZMSClient) PutGroup(domainName DomainName, groupName EntityName, auditRef string, returnObj *bool, group *Group) (*Group, error) {
 	var data *Group
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName)
 	contentBytes, err := json.Marshal(group)
@@ -1766,8 +1766,8 @@ func (client ZMSClient) GetPrincipalGroups(principal EntityName, domainName Doma
 func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName EntityName, memberName GroupMemberName, auditRef string, returnObj *bool, membership *GroupMembership) (*GroupMembership, error) {
 	var data *GroupMembership
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/member/" + fmt.Sprint(memberName)
 	contentBytes, err := json.Marshal(membership)
@@ -1970,8 +1970,8 @@ func (client ZMSClient) PutGroupMembershipDecision(domainName DomainName, groupN
 func (client ZMSClient) PutGroupReview(domainName DomainName, groupName EntityName, auditRef string, returnObj *bool, group *Group) (*Group, error) {
 	var data *Group
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/group/" + fmt.Sprint(groupName) + "/review"
 	contentBytes, err := json.Marshal(group)
@@ -2140,8 +2140,8 @@ func (client ZMSClient) GetPolicy(domainName DomainName, policyName EntityName) 
 func (client ZMSClient) PutPolicy(domainName DomainName, policyName EntityName, auditRef string, returnObj *bool, policy *Policy) (*Policy, error) {
 	var data *Policy
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName)
 	contentBytes, err := json.Marshal(policy)
@@ -2584,8 +2584,8 @@ func (client ZMSClient) GetPolicyVersion(domainName DomainName, policyName Entit
 func (client ZMSClient) PutPolicyVersion(domainName DomainName, policyName EntityName, policyOptions *PolicyOptions, auditRef string, returnObj *bool) (*Policy, error) {
 	var data *Policy
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName) + "/version/create"
 	contentBytes, err := json.Marshal(policyOptions)
@@ -2690,8 +2690,8 @@ func (client ZMSClient) DeletePolicyVersion(domainName DomainName, policyName En
 func (client ZMSClient) PutServiceIdentity(domain DomainName, service SimpleName, auditRef string, returnObj *bool, detail *ServiceIdentity) (*ServiceIdentity, error) {
 	var data *ServiceIdentity
 	headers := map[string]string{
-		"Y-Audit-Ref":          auditRef,
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domain) + "/service/" + fmt.Sprint(service)
 	contentBytes, err := json.Marshal(detail)

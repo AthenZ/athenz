@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -554,10 +555,10 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 		dataReturn = dret
 		errorReturn = eret
 	}
-	headers := map[string]rdl.Identifier{}
+	headers := map[string]*rdl.ResourceInput{}
 	for _, in := range r.Inputs {
 		if in.Header != "" {
-			headers[in.Header] = in.Name
+			headers[in.Header] = in
 		}
 	}
 	s := ""
@@ -566,14 +567,20 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 	}
 	httpArg := "url, nil"
 	if len(headers) > 0 {
-		//not optimal: when the headers are empty ("") they are still included
+		//sort the header names so we have a defined order every time
+		headerNames := make([]string, 0, len(headers))
+		for headerName := range headers {
+			headerNames = append(headerNames, headerName)
+		}
+		sort.Strings(headerNames)
 		httpArg = "url, headers"
 		s += "\theaders := map[string]string{\n"
-		for k, v := range headers {
-			if k == "Athenz-Return-Object" {
-				s += fmt.Sprintf("\t\t%q: strconv.FormatBool(*%s),\n", k, v)
+		for _, k := range headerNames {
+			v := headers[k]
+			if v.Type == "Bool" {
+				s += fmt.Sprintf("\t\t%q: strconv.FormatBool(*%s),\n", k, v.Name)
 			} else {
-				s += fmt.Sprintf("\t\t%q: %s,\n", k, v)
+				s += fmt.Sprintf("\t\t%q: %s,\n", k, v.Name)
 			}
 		}
 		s += "\t}\n"
