@@ -404,6 +404,10 @@ public class ZMSSchema {
             .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
             .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
 
+        sb.structType("ExpiredMembers")
+            .arrayField("expiredRoleMembers", "MemberName", false, "list of deleted expired role members names")
+            .arrayField("expiredGroupMembers", "GroupMemberName", false, "list of deleted expired groups members names");
+
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
             .field("policyName", "EntityName", false, "")
@@ -955,6 +959,17 @@ public class ZMSSchema {
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ExpiredMembers", "DELETE", "/expired-members")
+            .comment("Delete expired principals")
+            .queryParam("purgeResources", "purgeResources", "Int32", null, "defining which resources will be purged. by default all resources will be purged")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

@@ -609,16 +609,15 @@ public class ZMSResources {
     }
 
     @DELETE
-    @Path("/domain/expired-members")
+    @Path("/expired-members")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Delete expired principals")
     public void deleteExpiredMembers(
-        @Parameter(description = "the flag controls which resources are purged", required = false) @QueryParam("purgeResources") @DefaultValue("0") Integer purgeResources) {
+        @Parameter(description = "defining which resources will be purged. by default all resources will be purged", required = false) @QueryParam("purgeResources") Integer purgeResources) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteExpiredMembers");
-            context.authorize("purge", "home.mshneorson:domain", null);
             this.delegate.deleteExpiredMembers(context, purgeResources);
         } catch (ResourceException e) {
             code = e.getCode();

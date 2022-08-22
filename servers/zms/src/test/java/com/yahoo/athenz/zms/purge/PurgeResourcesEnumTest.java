@@ -36,12 +36,5 @@ public class PurgeResourcesEnumTest {
         assertEquals(enumSet.size(), 2);
         assertTrue(enumSet.containsAll(Arrays.asList(PurgeResourcesEnum.ROLES, PurgeResourcesEnum.GROUPS)));
 
-        // Out of range - None will be purged
-        mask = 4;
-        enumSet = PurgeResourcesEnum.getPurgeResourcesState(mask);
-        assertTrue(enumSet.isEmpty());
-        mask = -1;
-        enumSet = PurgeResourcesEnum.getPurgeResourcesState(mask);
-        assertTrue(enumSet.isEmpty());
     }
 }

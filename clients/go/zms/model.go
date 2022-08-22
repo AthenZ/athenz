@@ -4189,6 +4189,78 @@ func (self *AuthHistoryDependencies) Validate() error {
 	return nil
 }
 
+//
+// ExpiredMembers -
+//
+type ExpiredMembers struct {
+
+	//
+	// list of deleted expired role members names
+	//
+	ExpiredRoleMembers []MemberName `json:"expiredRoleMembers"`
+
+	//
+	// list of deleted expired groups members names
+	//
+	ExpiredGroupMembers []GroupMemberName `json:"expiredGroupMembers"`
+}
+
+//
+// NewExpiredMembers - creates an initialized ExpiredMembers instance, returns a pointer to it
+//
+func NewExpiredMembers(init ...*ExpiredMembers) *ExpiredMembers {
+	var o *ExpiredMembers
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExpiredMembers)
+	}
+	return o.Init()
+}
+
+//
+// Init - sets up the instance according to its default field values, if any
+//
+func (self *ExpiredMembers) Init() *ExpiredMembers {
+	if self.ExpiredRoleMembers == nil {
+		self.ExpiredRoleMembers = make([]MemberName, 0)
+	}
+	if self.ExpiredGroupMembers == nil {
+		self.ExpiredGroupMembers = make([]GroupMemberName, 0)
+	}
+	return self
+}
+
+type rawExpiredMembers ExpiredMembers
+
+//
+// UnmarshalJSON is defined for proper JSON decoding of a ExpiredMembers
+//
+func (self *ExpiredMembers) UnmarshalJSON(b []byte) error {
+	var m rawExpiredMembers
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExpiredMembers(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+//
+// Validate - checks for missing required fields, etc
+//
+func (self *ExpiredMembers) Validate() error {
+	if self.ExpiredRoleMembers == nil {
+		return fmt.Errorf("ExpiredMembers: Missing required field: expiredRoleMembers")
+	}
+	if self.ExpiredGroupMembers == nil {
+		return fmt.Errorf("ExpiredMembers: Missing required field: expiredGroupMembers")
+	}
+	return nil
+}
+
+//
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 type DanglingPolicy struct {

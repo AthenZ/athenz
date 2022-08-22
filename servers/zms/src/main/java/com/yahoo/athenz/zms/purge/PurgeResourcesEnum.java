@@ -11,9 +11,6 @@ public enum PurgeResourcesEnum {
         }
 
         public static EnumSet<PurgeResourcesEnum> getPurgeResourcesState(long value) {
-            if (value > 3 || value <= 0) {
-                return PurgeResourcesEnum.getEnumSet(0);
-            }
             return PurgeResourcesEnum.getEnumSet(value);
         }
 }

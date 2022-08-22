@@ -3594,4 +3594,22 @@ public class ZMSClient implements Closeable {
         }
     }
 
+    /**
+     * Delete expired members from roles and groups.
+     *
+     * @param purgeResources indicates which resource will be purged
+
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteExpiredMembers(Integer purgeResources) {
+        updatePrincipal();
+        try {
+            client.deleteExpiredMembers(purgeResources);
+        } catch (ResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
 }

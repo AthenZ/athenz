@@ -471,6 +471,11 @@ func init() {
 	tAuthHistoryDependencies.ArrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
 	sb.AddType(tAuthHistoryDependencies.Build())
 
+	tExpiredMembers := rdl.NewStructTypeBuilder("Struct", "ExpiredMembers")
+	tExpiredMembers.ArrayField("expiredRoleMembers", "MemberName", false, "list of deleted expired role members names")
+	tExpiredMembers.ArrayField("expiredGroupMembers", "GroupMemberName", false, "list of deleted expired groups members names")
+	sb.AddType(tExpiredMembers.Build())
+
 	tDanglingPolicy := rdl.NewStructTypeBuilder("Struct", "DanglingPolicy")
 	tDanglingPolicy.Comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
 	tDanglingPolicy.Field("policyName", "EntityName", false, nil, "")
@@ -996,6 +1001,15 @@ func init() {
 	mGetAuthHistoryDependencies.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetAuthHistoryDependencies.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetAuthHistoryDependencies.Build())
+
+	mDeleteExpiredMembers := rdl.NewResourceBuilder("ExpiredMembers", "DELETE", "/expired-members")
+	mDeleteExpiredMembers.Comment("Delete expired principals")
+	mDeleteExpiredMembers.Input("purgeResources", "Int32", false, "purgeResources", "", true, nil, "defining which resources will be purged. by default all resources will be purged")
+	mDeleteExpiredMembers.Expected("NO_CONTENT")
+	mDeleteExpiredMembers.Exception("BAD_REQUEST", "ResourceError", "")
+	mDeleteExpiredMembers.Exception("FORBIDDEN", "ResourceError", "")
+	mDeleteExpiredMembers.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mDeleteExpiredMembers.Build())
 
 	mGetDomainDataCheck := rdl.NewResourceBuilder("DomainDataCheck", "GET", "/domain/{domainName}/check")
 	mGetDomainDataCheck.Comment("Carry out data check operation for the specified domain.")

@@ -477,13 +477,13 @@ public class ZMSTestInitializer {
     public RoleMember createRoleMemberWithExpiration(String name, boolean alreadyExpired, int expiryDaysInterval) {
         return new RoleMember()
                 .setMemberName(name)
-                .setExpiration(ZMSTestUtils.buildExpiration(alreadyExpired ?  - expiryDaysInterval : expiryDaysInterval));
+                .setExpiration(ZMSTestUtils.buildExpiration(expiryDaysInterval, alreadyExpired));
     }
 
-    public GroupMember createGroupMemberWithExpiration(String name, boolean alreadyExpired, int expiryDays) {
+    public GroupMember createGroupMemberWithExpiration(String name, boolean alreadyExpired, int expiryDaysInterval) {
         return new GroupMember()
                 .setMemberName(name)
-                .setExpiration(ZMSTestUtils.buildExpiration(alreadyExpired ?  - expiryDays : expiryDays));
+                .setExpiration(ZMSTestUtils.buildExpiration(expiryDaysInterval, alreadyExpired));
     }
 
     public Policy createPolicyObject(String domainName, String policyName,

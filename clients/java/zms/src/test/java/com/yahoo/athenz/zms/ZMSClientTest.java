@@ -4744,4 +4744,35 @@ public class ZMSClientTest {
         Mockito.when(c.getDependentDomainList(service + "2")).thenReturn(new DomainList());
         client.getDependentDomainList(service + "2");
     }
+
+    @Test
+    public void testDeleteExpiredMembers() throws URISyntaxException, IOException {
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        ExpiredMembers expiredMembers = Mockito.mock(ExpiredMembers.class);
+
+        Mockito.when(c.deleteExpiredMembers(null)).thenReturn(expiredMembers);
+        client.deleteExpiredMembers(null);
+
+        Mockito.when(c.deleteExpiredMembers(3))
+                .thenReturn(expiredMembers)
+                .thenThrow(new NullPointerException())
+                .thenThrow(new ResourceException(401));
+
+        client.deleteExpiredMembers(3);
+        try {
+            client.deleteExpiredMembers(3);
+            fail();
+        } catch  (ResourceException ex) {
+            assertTrue(true);
+        }
+        try {
+            client.deleteExpiredMembers(3);
+            fail();
+        } catch (Exception ex) {
+        }
+
+    }
 }

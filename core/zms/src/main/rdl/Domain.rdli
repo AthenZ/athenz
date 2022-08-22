@@ -327,10 +327,10 @@ type ExpiredMembers Struct {
 }
 
 // Delete expired principals
-resource ExpiredMembers DELETE "/domain/expired-members?purgeResources={purgeResources}" {
-    Int32 purgeResources (optional, default=0); //the flag controls which resources are purged
+resource ExpiredMembers DELETE "/expired-members?purgeResources={purgeResources}" {
+    Int32 purgeResources (optional); //defining which resources will be purged. by default all resources will be purged
     expected NO_CONTENT;
-        exceptions {
+    exceptions {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;

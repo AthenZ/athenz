@@ -2687,14 +2687,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public void deleteExpiredMembers(ResourceContext ctx, Integer purgeResources) {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
-
         validateRequest(ctx.request(), caller);
 
-        EnumSet<PurgeResourcesEnum> purgeResourcesEnumSet = PurgeResourcesEnum.getPurgeResourcesState(purgeResources);
+        LOG.info("deleteExpiredMembers: purgeResources value: {}", purgeResources);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("deleteExpiredMembers: purgeResources: {}", purgeResourcesEnumSet);
+        if (purgeResources == null) {
+            // it is not provided, all resources will be purged
+            purgeResources = 3;
         }
+
+        if (!List.of(0, 1, 2, 3).contains(purgeResources)) {
+            throw ZMSUtils.requestError("Invalid purgeResources value, error: should be a number in [0-3]", caller);
+        }
+
+        EnumSet<PurgeResourcesEnum>  purgeResourcesEnumSet = PurgeResourcesEnum.getPurgeResourcesState(purgeResources);
+
+        LOG.info("deleteExpiredMembers: purgeResources: {}", purgeResourcesEnumSet);
 
         if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.ROLES)) {
             dbService.executeDeleteAllExpiredRoleMemberships(ctx, ZMSConsts.PURGE_TASK_AUDIT_REF, caller);

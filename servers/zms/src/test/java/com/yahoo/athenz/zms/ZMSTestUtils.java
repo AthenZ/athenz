@@ -157,8 +157,8 @@ public class ZMSTestUtils {
         return (millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
     }
 
-    public static Timestamp buildExpiration(int daysInterval) {
-        return Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(daysInterval, TimeUnit.DAYS));
+    public static Timestamp buildExpiration(int daysInterval, boolean alreadyExpired) {
+        return Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(alreadyExpired ? -daysInterval : daysInterval , TimeUnit.DAYS));
     }
 
     public static long getDaysSinceExpiry(Timestamp expiry) {

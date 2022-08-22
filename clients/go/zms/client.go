@@ -827,6 +827,33 @@ func (client ZMSClient) GetAuthHistoryDependencies(domainName DomainName) (*Auth
 	}
 }
 
+func (client ZMSClient) DeleteExpiredMembers(purgeResources *int32) error {
+	url := client.URL + "/expired-members" + encodeParams(encodeOptionalInt32Param("purgeResources", purgeResources))
+	resp, err := client.httpDelete(url, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) GetDomainDataCheck(domainName DomainName) (*DomainDataCheck, error) {
 	var data *DomainDataCheck
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/check"
