@@ -3791,6 +3791,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     ServiceIdentity service = new ServiceIdentity()
                             .setName(ResourceUtils.serviceResourceName(domainName, serviceName))
                             .setProviderEndpoint(saveValue(rs.getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT)))
+                            .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
                             .setExecutable(saveValue(rs.getString(ZMSConsts.DB_COLUMN_EXECUTABLE)))
                             .setUser(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_USER)))
                             .setGroup(saveValue(rs.getString(ZMSConsts.DB_COLUMN_SVC_GROUP)))

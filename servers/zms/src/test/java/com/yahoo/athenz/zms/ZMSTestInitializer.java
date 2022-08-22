@@ -532,7 +532,7 @@ public class ZMSTestInitializer {
         publicKeyEntry2.setId("2");
         publicKeyList.add(publicKeyEntry2);
         service.setPublicKeys(publicKeyList);
-
+        service.setDescription("hhh");
         service.setUser(user);
         service.setGroup(group);
 
