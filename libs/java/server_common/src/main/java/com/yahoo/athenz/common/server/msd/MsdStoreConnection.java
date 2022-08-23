@@ -36,11 +36,29 @@ public interface MsdStoreConnection extends Closeable {
     };
 
     /**
+     * deleteStaticWorkload deletes the Workload from the underlying storage that can be an RDMS or NoSQL
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param instanceId instance id
+     */
+    default void deleteStaticWorkload(String domainName, String serviceName, String instanceId) {
+    };
+
+    /**
      * putDynamicWorkLoad stores the Workload value into the underlying storage that can be an RDMS or NoSQL
      * @param workload workload to be stored in the underlying storage
      * @param options workload options to be passed to the api
      */
     default void putDynamicWorkload(DynamicWorkload workload, WorkloadOptions options) {
+    };
+
+    /**
+     * deleteDynamicWorkLoad delete the Workload from the underlying storage that can be an RDMS or NoSQL
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param instanceId instance id
+     */
+    default void deleteDynamicWorkload(String domainName, String serviceName, String instanceId) {
     };
 
     /**
