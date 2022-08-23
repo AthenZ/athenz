@@ -17333,11 +17333,12 @@ public class ZMSImplTest {
         ServiceIdentity service1 = zmsTestInitializer.createServiceObject(domainName,
                 "service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
-        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "service1", zmsTestInitializer.getAuditRef(), false, service1);
+        Response myService = zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "service1", zmsTestInitializer.getAuditRef(), true, service1);
 
         ServiceIdentity service2 = zmsTestInitializer.createServiceObject(domainName,
                 "service2", "http://localhost", "/usr/bin/java", "yahoo",
                 "users", "host2");
+
         zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "service2", zmsTestInitializer.getAuditRef(), false, service2);
 
         ServiceIdentities serviceList = zmsTestInitializer.getZms().getServiceIdentities(zmsTestInitializer.getMockDomRsrcCtx(), domainName,
@@ -17364,6 +17365,7 @@ public class ZMSImplTest {
                     assertEquals(service.getPublicKeys().size(), 2);
                     assertEquals(service.getHosts().size(), 1);
                     assertEquals(service.getHosts().get(0), "host2");
+                    assertEquals(service.getDescription(), "test");
                     service2Check = true;
                     break;
             }

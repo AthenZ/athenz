@@ -1401,7 +1401,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, false) : null;
+                return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, true) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -1658,7 +1658,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, principal, 0, false) : null;
+                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, roleMember.getMemberName(), 0, false) : null;
 
             } catch (ResourceException ex) {
 
@@ -1724,7 +1724,7 @@ public class DBService implements RolesProvider {
 
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                return returnObj == Boolean.TRUE ? con.getGroupMember(domainName, groupName, principal, 0, false) : null;
+                return returnObj == Boolean.TRUE ? con.getGroupMember(domainName, groupName, groupMember.getMemberName(), 0, false) : null;
 
             } catch (ResourceException ex) {
 
@@ -6996,7 +6996,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, false) : null;
+                return returnObj == Boolean.TRUE ? getGroup(con, domainName, groupName, true, true) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
