@@ -1,3 +1,18 @@
+Athenz v1.11.6 Release / Aug 16, 2022
+-------------------------------------
+
+#1928 allow management of domain memberPurgeExpiryDays setting value
+#1929 use auto-generated redirect uri for oidc requests
+#1932 Fixes for auth history
+#1936 Update log4j version in zms_syncer
+#1937 Add delete MSD workload interface
+#1938 update swagger-ui to 4.x
+#1939 For sia access tokens - check expiry in claims
+#1940 zts-rolecert: fix error message to include role key path
+#1942 provide header option to return updated object in response
+#1943 updated package dependencies
+#1944 sort rdl headers for go client generation for defined order
+
 Athenz v1.11.5 Release / Jul 19, 2022
 -------------------------------------
 
