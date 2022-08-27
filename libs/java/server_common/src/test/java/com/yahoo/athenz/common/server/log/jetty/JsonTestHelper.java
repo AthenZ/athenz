@@ -27,9 +27,6 @@ import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
 import java.io.UncheckedIOException;
 
-import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
-
-
 public class JsonTestHelper {
 
     private static final ObjectMapper mapper = new ObjectMapper();

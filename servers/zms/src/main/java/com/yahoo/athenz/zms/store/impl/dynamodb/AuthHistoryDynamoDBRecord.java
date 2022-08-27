@@ -36,17 +36,6 @@ public class AuthHistoryDynamoDBRecord {
     private long ttl;
 
     public AuthHistoryDynamoDBRecord() {
-
-    }
-
-    public AuthHistoryDynamoDBRecord(String primaryKey, String uriDomain, String principalDomain, String principalName, String endpoint, String timestamp, long ttl) {
-        this.primaryKey = primaryKey;
-        this.uriDomain = uriDomain;
-        this.principalDomain = principalDomain;
-        this.principalName = principalName;
-        this.endpoint = endpoint;
-        this.timestamp = timestamp;
-        this.ttl = ttl;
     }
 
     @DynamoDbPartitionKey
@@ -113,11 +102,7 @@ public class AuthHistoryDynamoDBRecord {
         }
 
         AuthHistoryDynamoDBRecord record = (AuthHistoryDynamoDBRecord) o;
-        if (getPrimaryKey() == null ? record.getPrimaryKey() != null : !getPrimaryKey().equals(record.getPrimaryKey())) {
-            return false;
-        }
-
-        return true;
+        return getPrimaryKey() == null ? record.getPrimaryKey() == null : getPrimaryKey().equals(record.getPrimaryKey());
     }
 
     @Override
