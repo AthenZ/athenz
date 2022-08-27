@@ -232,7 +232,7 @@ func (client {{client}}) httpPostWithContentType(url string, headers map[string]
 }
 
 func (client {{client}}) httpPost(url string, headers map[string]string, body []byte) (*http.Response, error) {
-	return client.httpPostWithContentType(url, headers, body, "application/json")	
+	return client.httpPostWithContentType(url, headers, body, "application/json")
 }
 
 func (client {{client}}) httpPatch(url string, headers map[string]string, body []byte) (*http.Response, error) {

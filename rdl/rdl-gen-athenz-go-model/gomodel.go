@@ -481,9 +481,9 @@ func (gen *modelGenerator) emitUnion(t *rdl.Type) {
 	tName, _, _ := rdl.TypeInfo(t)
 	ut := t.UnionTypeDef
 	uName := capitalize(string(tName))
-	gen.emit(fmt.Sprintf("//\n// %sVariantTag - generated to support %s\n//\n", uName, uName))
+	gen.emit(fmt.Sprintf("// %sVariantTag - generated to support %s\n", uName, uName))
 	gen.emit(fmt.Sprintf("type %sVariantTag int\n\n", uName))
-	gen.emit("//\n// Supporting constants\n//\n")
+	gen.emit("// Supporting constants\n")
 	gen.emit("const (\n")
 	gen.emit(fmt.Sprintf("\t_ %sVariantTag = iota\n", uName))
 	for _, v := range ut.Variants {
@@ -526,7 +526,7 @@ func (gen *modelGenerator) emitUnion(t *rdl.Type) {
 	gen.emit(fmt.Sprintf("\t\treturn \"<%s uninitialized>\"\n", uName))
 	gen.emit("\t}\n")
 	gen.emit("}\n\n")
-	gen.emit(fmt.Sprintf("//\n// Validate for %s\n//\n", uName))
+	gen.emit(fmt.Sprintf("// Validate for %s\n", uName))
 	gen.emit(fmt.Sprintf("func (p *%s) Validate() error {\n", uName))
 	gen.emit("\t")
 	for _, v := range ut.Variants {
@@ -540,7 +540,7 @@ func (gen *modelGenerator) emitUnion(t *rdl.Type) {
 		gen.emitUntaggedUnionSerializer(ut, tName)
 	} else {
 		gen.emit(fmt.Sprintf("\ntype raw%s %s\n\n", uName, uName))
-		gen.emit(fmt.Sprintf("//\n// UnmarshalJSON for %s\n//\n", uName))
+		gen.emit(fmt.Sprintf("// UnmarshalJSON for %s\n", uName))
 		gen.emit(fmt.Sprintf("func (p *%s) UnmarshalJSON(b []byte) error {\n", uName))
 		gen.emit(fmt.Sprintf("\tvar tmp raw%s\n", uName))
 		gen.emit("\tif err := json.Unmarshal(b, &tmp); err != nil {\n")
@@ -608,7 +608,7 @@ func (gen *modelGenerator) emitUntaggedUnionSerializer(ut *rdl.UnionTypeDef, uNa
 		}
 	}
 
-	gen.emit(fmt.Sprintf("//\n// UnmarshalJSON for %s\n//\n", uName))
+	gen.emit(fmt.Sprintf("// UnmarshalJSON for %s\n", uName))
 	gen.emit(fmt.Sprintf("func (u *%s) UnmarshalJSON(b []byte) error {\n", uName))
 	gen.emit("\tvar tmp interface{}\n")
 	gen.emit("\tif err := json.Unmarshal(b, &tmp); err != nil {\n")
@@ -626,7 +626,7 @@ func (gen *modelGenerator) emitUntaggedUnionSerializer(ut *rdl.UnionTypeDef, uNa
 	gen.emit(fmt.Sprintf("\treturn fmt.Errorf(\"Cannot unmarshal JSON to union type %s\")\n", uName))
 	gen.emit("}\n")
 
-	gen.emit(fmt.Sprintf("\n//\n// MarshalJSON for %s\n//\n", uName))
+	gen.emit(fmt.Sprintf("\n// MarshalJSON for %s\n", uName))
 	gen.emit(fmt.Sprintf("func (p %s) MarshalJSON() ([]byte, error) {\n", uName))
 	gen.emit("\tswitch p.Variant {\n")
 	for _, v := range ut.Variants {
@@ -703,7 +703,7 @@ func (gen *modelGenerator) emitStruct(t *rdl.Type) {
 			gen.emitTypeComment(t)
 			gen.emitStructFields(flattened, st.Name)
 			init := gen.structHasFieldDefault(st)
-			gen.emit(fmt.Sprintf("\n//\n// New%s - creates an initialized %s instance, returns a pointer to it\n//\n", st.Name, st.Name))
+			gen.emit(fmt.Sprintf("\n// New%s - creates an initialized %s instance, returns a pointer to it\n", st.Name, st.Name))
 			gen.emit(fmt.Sprintf("func New%s(init ...*%s) *%s {\n", st.Name, st.Name, st.Name))
 			gen.emit(fmt.Sprintf("\tvar o *%s\n", st.Name))
 			gen.emit("\tif len(init) == 1 {\n")
@@ -732,7 +732,7 @@ func (gen *modelGenerator) emitStruct(t *rdl.Type) {
 }
 
 func (gen *modelGenerator) emitStructValidator(st *rdl.StructTypeDef, flattened []*rdl.StructFieldDef) {
-	gen.emit("\n//\n// Validate - checks for missing required fields, etc\n//\n")
+	gen.emit("\n// Validate - checks for missing required fields, etc\n")
 	gen.emit(fmt.Sprintf("func (self *%s) Validate() error {\n", st.Name))
 	rdlPrefix := "rdl."
 	if gen.rdl {
@@ -776,7 +776,7 @@ func (gen *modelGenerator) emitStructValidator(st *rdl.StructTypeDef, flattened 
 }
 
 func (gen *modelGenerator) emitStructInitializer(st *rdl.StructTypeDef, flattened []*rdl.StructFieldDef) {
-	gen.emit("\n//\n// Init - sets up the instance according to its default field values, if any\n//\n")
+	gen.emit("\n// Init - sets up the instance according to its default field values, if any\n")
 	gen.emit(fmt.Sprintf("func (self *%s) Init() *%s {\n", st.Name, st.Name))
 	for _, f := range flattened {
 		fname := capitalize(string(f.Name))
@@ -857,7 +857,7 @@ func (gen *modelGenerator) emitStructInitializer(st *rdl.StructTypeDef, flattene
 func (gen *modelGenerator) emitStructUnmarshaller(st *rdl.StructTypeDef, init bool) {
 	name := capitalize(string(st.Name))
 	gen.emit(fmt.Sprintf("\ntype raw%s %s\n\n", name, name))
-	gen.emit(fmt.Sprintf("//\n// UnmarshalJSON is defined for proper JSON decoding of a %s\n//\n", name))
+	gen.emit(fmt.Sprintf("// UnmarshalJSON is defined for proper JSON decoding of a %s\n", name))
 	gen.emit(fmt.Sprintf("func (self *%s) UnmarshalJSON(b []byte) error {\n", name))
 	gen.emit(fmt.Sprintf("\tvar m raw%s\n", name))
 	gen.emit("\terr := json.Unmarshal(b, &m)\n")
@@ -881,7 +881,7 @@ func (gen *modelGenerator) emitEnum(t *rdl.Type) {
 	et := t.EnumTypeDef
 	name := capitalize(string(et.Name))
 	gen.emit(fmt.Sprintf("type %s int\n\n", name))
-	gen.emit(fmt.Sprintf("//\n// %s constants\n//\n", name))
+	gen.emit(fmt.Sprintf("// %s constants\n", name))
 	gen.emit("const (\n")
 	gen.emit(fmt.Sprintf("\t_ %s = iota\n", name))
 	maxKeyLen := 0
@@ -909,7 +909,7 @@ func (gen *modelGenerator) emitEnum(t *rdl.Type) {
 		gen.emit(fmt.Sprintf("\t%s %q,\n", s, symName))
 	}
 	gen.emit("}\n\n")
-	gen.emit(fmt.Sprintf("//\n// New%s - return a string representation of the enum\n//\n", name))
+	gen.emit(fmt.Sprintf("// New%s - return a string representation of the enum\n", name))
 	gen.emit(fmt.Sprintf("func New%s(init ...interface{}) %s {\n", name, name))
 	gen.emit("\tif len(init) == 1 {\n")
 	gen.emit("\t\tswitch v := init[0].(type) {\n")
@@ -931,19 +931,19 @@ func (gen *modelGenerator) emitEnum(t *rdl.Type) {
 	gen.emit("\t}\n")
 	gen.emit(fmt.Sprintf("\treturn %s(0) //default to the first enum value\n", name))
 	gen.emit("}\n\n")
-	gen.emit("//\n// String - return a string representation of the enum\n//\n")
+	gen.emit("// String - return a string representation of the enum\n")
 	gen.emit(fmt.Sprintf("func (e %s) String() string {\n", name))
 	gen.emit(fmt.Sprintf("\treturn names%s[e]\n", name))
 	gen.emit("}\n\n")
-	gen.emit("//\n// SymbolSet - return an array of all valid string representations (symbols) of the enum\n//\n")
+	gen.emit("// SymbolSet - return an array of all valid string representations (symbols) of the enum\n")
 	gen.emit(fmt.Sprintf("func (e %s) SymbolSet() []string {\n", name))
 	gen.emit(fmt.Sprintf("\treturn names%s\n", name))
 	gen.emit("}\n\n")
-	gen.emit(fmt.Sprintf("//\n// MarshalJSON is defined for proper JSON encoding of a %s\n//\n", name))
+	gen.emit(fmt.Sprintf("// MarshalJSON is defined for proper JSON encoding of a %s\n", name))
 	gen.emit(fmt.Sprintf("func (e %s) MarshalJSON() ([]byte, error) {\n", name))
 	gen.emit("\treturn json.Marshal(e.String())\n")
 	gen.emit("}\n\n")
-	gen.emit(fmt.Sprintf("//\n// UnmarshalJSON is defined for proper JSON decoding of a %s\n//\n", name))
+	gen.emit(fmt.Sprintf("// UnmarshalJSON is defined for proper JSON decoding of a %s\n", name))
 	gen.emit(fmt.Sprintf("func (e *%s) UnmarshalJSON(b []byte) error {\n", name))
 	gen.emit("\tvar j string\n")
 	gen.emit("\terr := json.Unmarshal(b, &j)\n")
@@ -1044,7 +1044,7 @@ func goFmt(filename string) error {
 func GenerationHeader(banner string) string {
 	// Matches the auto-generated code header structure defined at
 	// https://github.com/golang/go/issues/13560#issuecomment-288457920
-	return fmt.Sprintf("//\n// Code generated by %s DO NOT EDIT.\n//", banner)
+	return fmt.Sprintf("// Code generated by %s DO NOT EDIT.\n", banner)
 }
 
 func GenerationPackage(schema *rdl.Schema, ns string) string {
