@@ -659,7 +659,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public ExpiredMembers deleteExpiredMembers(Integer purgeResources) throws URISyntaxException, IOException {
+    public ExpiredMembers deleteExpiredMembers(Integer purgeResources, Boolean returnObj) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/expired-members");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (purgeResources != null) {
@@ -668,13 +668,23 @@ public class ZMSRDLGeneratedClient {
         HttpUriRequest httpUriRequest = RequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 204:
-                return null;
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ExpiredMembers.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

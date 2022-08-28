@@ -404,9 +404,15 @@ public class ZMSSchema {
             .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
             .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
 
+        sb.structType("ExpiryMember")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("collectionName", "EntityName", false, "name of the collection")
+            .field("principalName", "ResourceName", false, "name of the principal")
+            .field("expiration", "Timestamp", false, "the expiration timestamp");
+
         sb.structType("ExpiredMembers")
-            .arrayField("expiredRoleMembers", "MemberName", false, "list of deleted expired role members names")
-            .arrayField("expiredGroupMembers", "GroupMemberName", false, "list of deleted expired groups members names");
+            .arrayField("expiredRoleMembers", "ExpiryMember", false, "list of deleted expired role members")
+            .arrayField("expiredGroupMembers", "ExpiryMember", false, "list of deleted expired groups members");
 
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
@@ -966,6 +972,8 @@ public class ZMSSchema {
         sb.resource("ExpiredMembers", "DELETE", "/expired-members")
             .comment("Delete expired principals")
             .queryParam("purgeResources", "purgeResources", "Int32", null, "defining which resources will be purged. by default all resources will be purged")
+            .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .auth("purge", "sys.auth:role.purge_expired_members")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

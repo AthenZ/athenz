@@ -12,82 +12,124 @@ var _ = rdl.Version
 var _ = json.Marshal
 var _ = fmt.Printf
 
+//
 // SimpleName - Copyright 2016 Yahoo Inc. Licensed under the terms of the
 // Apache version 2.0 license. See LICENSE file for terms. Common name types
 // used by several API definitions A simple identifier, an element of compound
 // name.
+//
 type SimpleName string
 
+//
 // CompoundName - A compound name. Most names in this API are compound names.
+//
 type CompoundName string
 
+//
 // DomainName - A domain name is the general qualifier prefix, as its
 // uniqueness is managed.
+//
 type DomainName string
 
+//
 // EntityName - An entity name is a short form of a resource name, including
 // only the domain and entity.
+//
 type EntityName string
 
+//
 // ServiceName - A service name will generally be a unique subdomain.
+//
 type ServiceName string
 
+//
 // LocationName - A location name is not yet defined, but will be a dotted name
 // like everything else.
+//
 type LocationName string
 
+//
 // ActionName - An action (operation) name.
+//
 type ActionName string
 
+//
 // ResourceName - A resource name Note that the EntityName part is optional,
 // that is, a domain name followed by a colon is valid resource name.
+//
 type ResourceName string
 
+//
 // ResourceNames - A comma separated list of resource names
+//
 type ResourceNames string
 
+//
 // YBase64 - The Y-specific URL-safe Base64 variant.
+//
 type YBase64 string
 
+//
 // YEncoded - YEncoded includes ybase64 chars, as well as = and %. This can
 // represent a user cookie and URL-encoded values.
+//
 type YEncoded string
 
+//
 // AuthorityName - Used as the prefix in a signed assertion. This uniquely
 // identifies a signing authority.
+//
 type AuthorityName string
 
+//
 // SignedToken - A signed assertion if identity. i.e. the user cookie value.
 // This token will only make sense to the authority that generated it, so it is
 // beneficial to have something in the value that is cheaply recognized to
 // quickly reject if it belongs to another authority. In addition to the
 // YEncoded set our token includes ; to separate components and , to separate
 // roles and : for IPv6 addresses
+//
 type SignedToken string
 
+//
 // GroupName - A group name
+//
 type GroupName string
 
+//
 // GroupMemberName - A group member name
+//
 type GroupMemberName string
 
+//
 // MemberName - Role Member name - could be one of four values: *, DomainName.*
 // or ServiceName[*], or GroupNames
+//
 type MemberName string
 
+//
 // AuthorityKeyword - A comma separated list of authority keywords
+//
 type AuthorityKeyword string
 
+//
 // AuthorityKeywords -
+//
 type AuthorityKeywords string
 
+//
 // TagValue - TagValue to contain generic string patterns
+//
 type TagValue string
 
+//
 // TagCompoundValue - A compound value of TagValue
+//
 type TagCompoundValue string
 
+//
 // TagValueList -
+//
 type TagValueList struct {
 
 	//
@@ -137,20 +179,30 @@ func (self *TagValueList) Validate() error {
 	return nil
 }
 
+//
 // AssertionConditionKeyPattern -
+//
 type AssertionConditionKeyPattern string
 
+//
 // AssertionConditionKey -
+//
 type AssertionConditionKey string
 
+//
 // AssertionConditionValuePattern -
+//
 type AssertionConditionValuePattern string
 
+//
 // AssertionConditionValue -
+//
 type AssertionConditionValue string
 
+//
 // DomainMeta - Set of metadata attributes that all domains may have and can be
 // changed.
+//
 type DomainMeta struct {
 
 	//
@@ -354,12 +406,14 @@ func (self *DomainMeta) Validate() error {
 	return nil
 }
 
+//
 // Domain - A domain is an independent partition of users, roles, and
 // resources. Its name represents the definition of a namespace; the only way a
 // new namespace can be created, from the top, is by creating Domains.
 // Administration of a domain is governed by the parent domain (using
 // reverse-DNS namespaces). The top level domains are governed by the special
 // "sys.auth" domain.
+//
 type Domain struct {
 
 	//
@@ -586,7 +640,9 @@ func (self *Domain) Validate() error {
 	return nil
 }
 
+//
 // DomainMetaList - A list of domain objects with their meta attributes.
+//
 type DomainMetaList struct {
 
 	//
@@ -636,7 +692,9 @@ func (self *DomainMetaList) Validate() error {
 	return nil
 }
 
+//
 // DomainList - A paginated list of domains.
+//
 type DomainList struct {
 
 	//
@@ -699,8 +757,10 @@ func (self *DomainList) Validate() error {
 	return nil
 }
 
+//
 // RoleList - The representation for an enumeration of roles in the namespace,
 // with pagination.
+//
 type RoleList struct {
 
 	//
@@ -763,7 +823,9 @@ func (self *RoleList) Validate() error {
 	return nil
 }
 
+//
 // RoleAuditLog - An audit log entry for role membership change.
+//
 type RoleAuditLog struct {
 
 	//
@@ -855,7 +917,9 @@ func (self *RoleAuditLog) Validate() error {
 	return nil
 }
 
+//
 // RoleMember -
+//
 type RoleMember struct {
 
 	//
@@ -986,8 +1050,10 @@ func (self *RoleMember) Validate() error {
 	return nil
 }
 
+//
 // RoleMeta - Set of metadata attributes that all roles may have and can be
 // changed by domain admins.
+//
 type RoleMeta struct {
 
 	//
@@ -1134,7 +1200,9 @@ func (self *RoleMeta) Validate() error {
 	return nil
 }
 
+//
 // Role - The representation for a Role with set of members.
+//
 type Role struct {
 
 	//
@@ -1337,7 +1405,9 @@ func (self *Role) Validate() error {
 	return nil
 }
 
+//
 // Roles - The representation for a list of roles with full details
+//
 type Roles struct {
 
 	//
@@ -1387,7 +1457,9 @@ func (self *Roles) Validate() error {
 	return nil
 }
 
+//
 // Membership - The representation for a role membership.
+//
 type Membership struct {
 
 	//
@@ -1516,7 +1588,9 @@ func (self *Membership) Validate() error {
 	return nil
 }
 
+//
 // DefaultAdmins - The list of domain administrators.
+//
 type DefaultAdmins struct {
 
 	//
@@ -1566,7 +1640,9 @@ func (self *DefaultAdmins) Validate() error {
 	return nil
 }
 
+//
 // MemberRole -
+//
 type MemberRole struct {
 
 	//
@@ -1691,7 +1767,9 @@ func (self *MemberRole) Validate() error {
 	return nil
 }
 
+//
 // DomainRoleMember -
+//
 type DomainRoleMember struct {
 
 	//
@@ -1754,7 +1832,9 @@ func (self *DomainRoleMember) Validate() error {
 	return nil
 }
 
+//
 // DomainRoleMembers -
+//
 type DomainRoleMembers struct {
 
 	//
@@ -1817,8 +1897,10 @@ func (self *DomainRoleMembers) Validate() error {
 	return nil
 }
 
+//
 // RoleSystemMeta - Set of system metadata attributes that all roles may have
 // and can be changed by system admins.
+//
 type RoleSystemMeta struct {
 
 	//
@@ -1859,7 +1941,9 @@ func (self *RoleSystemMeta) Validate() error {
 	return nil
 }
 
+//
 // AssertionEffect - Every assertion can have the effect of ALLOW or DENY.
+//
 type AssertionEffect int
 
 // AssertionEffect constants
@@ -1929,7 +2013,9 @@ func (e *AssertionEffect) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // AssertionConditionOperator - Allowed operators for assertion conditions
+//
 type AssertionConditionOperator int
 
 // AssertionConditionOperator constants
@@ -1997,8 +2083,10 @@ func (e *AssertionConditionOperator) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+//
 // AssertionConditionData - A representation of details associated with an
 // assertion condition key
+//
 type AssertionConditionData struct {
 
 	//
@@ -2050,8 +2138,10 @@ func (self *AssertionConditionData) Validate() error {
 	return nil
 }
 
+//
 // AssertionCondition - A representation of condition associated with an
 // assertion
+//
 type AssertionCondition struct {
 
 	//
@@ -2108,7 +2198,9 @@ func (self *AssertionCondition) Validate() error {
 	return nil
 }
 
+//
 // AssertionConditions - The representation of list of assertion conditions
+//
 type AssertionConditions struct {
 
 	//
@@ -2158,8 +2250,10 @@ func (self *AssertionConditions) Validate() error {
 	return nil
 }
 
+//
 // Assertion - A representation for the encapsulation of an action to be
 // performed on a resource by a principal.
+//
 type Assertion struct {
 
 	//
@@ -2254,7 +2348,9 @@ func (self *Assertion) Validate() error {
 	return nil
 }
 
+//
 // Policy - The representation for a Policy with set of assertions.
+//
 type Policy struct {
 
 	//
@@ -2354,7 +2450,9 @@ func (self *Policy) Validate() error {
 	return nil
 }
 
+//
 // Policies - The representation of list of policy objects
+//
 type Policies struct {
 
 	//
@@ -2404,7 +2502,9 @@ func (self *Policies) Validate() error {
 	return nil
 }
 
+//
 // PolicyOptions - Options for Policy Management Requests
+//
 type PolicyOptions struct {
 
 	//
@@ -2462,8 +2562,10 @@ func (self *PolicyOptions) Validate() error {
 	return nil
 }
 
+//
 // PublicKeyEntry - The representation of the public key in a service identity
 // object.
+//
 type PublicKeyEntry struct {
 
 	//
@@ -2523,7 +2625,9 @@ func (self *PublicKeyEntry) Validate() error {
 	return nil
 }
 
+//
 // ServiceIdentity - The representation of the service identity object.
+//
 type ServiceIdentity struct {
 
 	//
@@ -2640,7 +2744,9 @@ func (self *ServiceIdentity) Validate() error {
 	return nil
 }
 
+//
 // ServiceIdentities - The representation of list of services
+//
 type ServiceIdentities struct {
 
 	//
@@ -2690,8 +2796,10 @@ func (self *ServiceIdentities) Validate() error {
 	return nil
 }
 
+//
 // ServiceIdentityList - The representation for an enumeration of services in
 // the namespace, with pagination.
+//
 type ServiceIdentityList struct {
 
 	//
@@ -2754,8 +2862,10 @@ func (self *ServiceIdentityList) Validate() error {
 	return nil
 }
 
+//
 // ServiceIdentitySystemMeta - Set of system metadata attributes that all
 // services may have and can be changed by system admins.
+//
 type ServiceIdentitySystemMeta struct {
 
 	//
@@ -2800,7 +2910,9 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 	return nil
 }
 
+//
 // TemplateMetaData - MetaData for template.
+//
 type TemplateMetaData struct {
 
 	//
@@ -2888,7 +3000,9 @@ func (self *TemplateMetaData) Validate() error {
 	return nil
 }
 
+//
 // Template - Solution Template object defined on the server
+//
 type Template struct {
 
 	//
@@ -2959,8 +3073,10 @@ func (self *Template) Validate() error {
 	return nil
 }
 
+//
 // TemplateList - List of template names that is the base struct for server and
 // domain templates
+//
 type TemplateList struct {
 
 	//
@@ -3010,7 +3126,9 @@ func (self *TemplateList) Validate() error {
 	return nil
 }
 
+//
 // TemplateParam -
+//
 type TemplateParam struct {
 
 	//
@@ -3070,7 +3188,9 @@ func (self *TemplateParam) Validate() error {
 	return nil
 }
 
+//
 // DomainTemplate - solution template(s) to be applied to a domain
+//
 type DomainTemplate struct {
 
 	//
@@ -3125,7 +3245,9 @@ func (self *DomainTemplate) Validate() error {
 	return nil
 }
 
+//
 // DomainTemplateList - List of solution templates to be applied to a domain
+//
 type DomainTemplateList struct {
 
 	//
@@ -3175,7 +3297,9 @@ func (self *DomainTemplateList) Validate() error {
 	return nil
 }
 
+//
 // ServerTemplateList - List of solution templates available in the server
+//
 type ServerTemplateList struct {
 
 	//
@@ -3225,8 +3349,10 @@ func (self *ServerTemplateList) Validate() error {
 	return nil
 }
 
+//
 // DomainTemplateDetailsList - List of templates with metadata details given a
 // domain
+//
 type DomainTemplateDetailsList struct {
 
 	//
@@ -3276,8 +3402,10 @@ func (self *DomainTemplateDetailsList) Validate() error {
 	return nil
 }
 
+//
 // TopLevelDomain - Top Level Domain object. The required attributes include
 // the name of the domain and list of domain administrators.
+//
 type TopLevelDomain struct {
 
 	//
@@ -3510,7 +3638,9 @@ func (self *TopLevelDomain) Validate() error {
 	return nil
 }
 
+//
 // SubDomain - A Subdomain is a TopLevelDomain, except it has a parent.
+//
 type SubDomain struct {
 
 	//
@@ -3756,8 +3886,10 @@ func (self *SubDomain) Validate() error {
 	return nil
 }
 
+//
 // UserDomain - A UserDomain is the user's own top level domain in user - e.g.
 // user.hga
+//
 type UserDomain struct {
 
 	//
@@ -3979,7 +4111,9 @@ func (self *UserDomain) Validate() error {
 	return nil
 }
 
+//
 // DomainMetaStoreValidValuesList - List of valid domain meta attribute values
+//
 type DomainMetaStoreValidValuesList struct {
 
 	//
@@ -4029,7 +4163,9 @@ func (self *DomainMetaStoreValidValuesList) Validate() error {
 	return nil
 }
 
+//
 // AuthHistory -
+//
 type AuthHistory struct {
 
 	//
@@ -4128,7 +4264,9 @@ func (self *AuthHistory) Validate() error {
 	return nil
 }
 
+//
 // AuthHistoryDependencies -
+//
 type AuthHistoryDependencies struct {
 
 	//
@@ -4190,24 +4328,105 @@ func (self *AuthHistoryDependencies) Validate() error {
 }
 
 //
+// ExpiryMember -
+//
+type ExpiryMember struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the collection
+	//
+	CollectionName EntityName `json:"collectionName"`
+
+	//
+	// name of the principal
+	//
+	PrincipalName ResourceName `json:"principalName"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration rdl.Timestamp `json:"expiration"`
+}
+
+// NewExpiryMember - creates an initialized ExpiryMember instance, returns a pointer to it
+func NewExpiryMember(init ...*ExpiryMember) *ExpiryMember {
+	var o *ExpiryMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExpiryMember)
+	}
+	return o
+}
+
+type rawExpiryMember ExpiryMember
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExpiryMember
+func (self *ExpiryMember) UnmarshalJSON(b []byte) error {
+	var m rawExpiryMember
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExpiryMember(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExpiryMember) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("ExpiryMember.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("ExpiryMember.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.CollectionName == "" {
+		return fmt.Errorf("ExpiryMember.collectionName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "EntityName", self.CollectionName)
+		if !val.Valid {
+			return fmt.Errorf("ExpiryMember.collectionName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.PrincipalName == "" {
+		return fmt.Errorf("ExpiryMember.principalName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.PrincipalName)
+		if !val.Valid {
+			return fmt.Errorf("ExpiryMember.principalName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.Expiration.IsZero() {
+		return fmt.Errorf("ExpiryMember: Missing required field: expiration")
+	}
+	return nil
+}
+
+//
 // ExpiredMembers -
 //
 type ExpiredMembers struct {
 
 	//
-	// list of deleted expired role members names
+	// list of deleted expired role members
 	//
-	ExpiredRoleMembers []MemberName `json:"expiredRoleMembers"`
+	ExpiredRoleMembers []*ExpiryMember `json:"expiredRoleMembers"`
 
 	//
-	// list of deleted expired groups members names
+	// list of deleted expired groups members
 	//
-	ExpiredGroupMembers []GroupMemberName `json:"expiredGroupMembers"`
+	ExpiredGroupMembers []*ExpiryMember `json:"expiredGroupMembers"`
 }
 
-//
 // NewExpiredMembers - creates an initialized ExpiredMembers instance, returns a pointer to it
-//
 func NewExpiredMembers(init ...*ExpiredMembers) *ExpiredMembers {
 	var o *ExpiredMembers
 	if len(init) == 1 {
@@ -4218,24 +4437,20 @@ func NewExpiredMembers(init ...*ExpiredMembers) *ExpiredMembers {
 	return o.Init()
 }
 
-//
 // Init - sets up the instance according to its default field values, if any
-//
 func (self *ExpiredMembers) Init() *ExpiredMembers {
 	if self.ExpiredRoleMembers == nil {
-		self.ExpiredRoleMembers = make([]MemberName, 0)
+		self.ExpiredRoleMembers = make([]*ExpiryMember, 0)
 	}
 	if self.ExpiredGroupMembers == nil {
-		self.ExpiredGroupMembers = make([]GroupMemberName, 0)
+		self.ExpiredGroupMembers = make([]*ExpiryMember, 0)
 	}
 	return self
 }
 
 type rawExpiredMembers ExpiredMembers
 
-//
 // UnmarshalJSON is defined for proper JSON decoding of a ExpiredMembers
-//
 func (self *ExpiredMembers) UnmarshalJSON(b []byte) error {
 	var m rawExpiredMembers
 	err := json.Unmarshal(b, &m)
@@ -4247,9 +4462,7 @@ func (self *ExpiredMembers) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//
 // Validate - checks for missing required fields, etc
-//
 func (self *ExpiredMembers) Validate() error {
 	if self.ExpiredRoleMembers == nil {
 		return fmt.Errorf("ExpiredMembers: Missing required field: expiredRoleMembers")
@@ -4263,6 +4476,7 @@ func (self *ExpiredMembers) Validate() error {
 //
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
+//
 type DanglingPolicy struct {
 	PolicyName EntityName `json:"policyName"`
 	RoleName   EntityName `json:"roleName"`
@@ -4314,9 +4528,11 @@ func (self *DanglingPolicy) Validate() error {
 	return nil
 }
 
+//
 // DomainDataCheck - Domain data object representing the results of a check
 // operation looking for dangling roles, policies and trust relationships that
 // are set either on tenant or provider side only
+//
 type DomainDataCheck struct {
 
 	//
@@ -4391,9 +4607,11 @@ func (self *DomainDataCheck) Validate() error {
 	return nil
 }
 
+//
 // Entity - An entity is a name and a structured value. some entity
 // names/prefixes are reserved (i.e. "role",  "policy", "meta", "domain",
 // "service")
+//
 type Entity struct {
 
 	//
@@ -4456,8 +4674,10 @@ func (self *Entity) Validate() error {
 	return nil
 }
 
+//
 // EntityList - The representation for an enumeration of entities in the
 // namespace
+//
 type EntityList struct {
 
 	//
@@ -4507,7 +4727,9 @@ func (self *EntityList) Validate() error {
 	return nil
 }
 
+//
 // GroupAuditLog - An audit log entry for group membership change.
+//
 type GroupAuditLog struct {
 
 	//
@@ -4599,7 +4821,9 @@ func (self *GroupAuditLog) Validate() error {
 	return nil
 }
 
+//
 // GroupMember -
+//
 type GroupMember struct {
 
 	//
@@ -4744,7 +4968,9 @@ func (self *GroupMember) Validate() error {
 	return nil
 }
 
+//
 // GroupMembership - The representation for a group membership.
+//
 type GroupMembership struct {
 
 	//
@@ -4868,8 +5094,10 @@ func (self *GroupMembership) Validate() error {
 	return nil
 }
 
+//
 // GroupMeta - Set of metadata attributes that all groups may have and can be
 // changed by domain admins.
+//
 type GroupMeta struct {
 
 	//
@@ -4964,7 +5192,9 @@ func (self *GroupMeta) Validate() error {
 	return nil
 }
 
+//
 // Group - The representation for a Group with set of members.
+//
 type Group struct {
 
 	//
@@ -5099,7 +5329,9 @@ func (self *Group) Validate() error {
 	return nil
 }
 
+//
 // Groups - The representation for a list of groups with full details
+//
 type Groups struct {
 
 	//
@@ -5149,7 +5381,9 @@ func (self *Groups) Validate() error {
 	return nil
 }
 
+//
 // DomainGroupMember -
+//
 type DomainGroupMember struct {
 
 	//
@@ -5212,7 +5446,9 @@ func (self *DomainGroupMember) Validate() error {
 	return nil
 }
 
+//
 // DomainGroupMembers -
+//
 type DomainGroupMembers struct {
 
 	//
@@ -5275,7 +5511,9 @@ func (self *DomainGroupMembers) Validate() error {
 	return nil
 }
 
+//
 // DomainGroupMembership -
+//
 type DomainGroupMembership struct {
 	DomainGroupMembersList []*DomainGroupMembers `json:"domainGroupMembersList"`
 }
@@ -5321,8 +5559,10 @@ func (self *DomainGroupMembership) Validate() error {
 	return nil
 }
 
+//
 // GroupSystemMeta - Set of system metadata attributes that all groups may have
 // and can be changed by system admins.
+//
 type GroupSystemMeta struct {
 
 	//
@@ -5363,8 +5603,10 @@ func (self *GroupSystemMeta) Validate() error {
 	return nil
 }
 
+//
 // PolicyList - The representation for an enumeration of policies in the
 // namespace, with pagination.
+//
 type PolicyList struct {
 
 	//
@@ -5427,7 +5669,9 @@ func (self *PolicyList) Validate() error {
 	return nil
 }
 
+//
 // Tenancy - A representation of tenant.
+//
 type Tenancy struct {
 
 	//
@@ -5506,7 +5750,9 @@ func (self *Tenancy) Validate() error {
 	return nil
 }
 
+//
 // TenantRoleAction - A representation of tenant role action.
+//
 type TenantRoleAction struct {
 
 	//
@@ -5566,8 +5812,10 @@ func (self *TenantRoleAction) Validate() error {
 	return nil
 }
 
+//
 // TenantResourceGroupRoles - A representation of tenant roles for resource
 // groups to be provisioned.
+//
 type TenantResourceGroupRoles struct {
 
 	//
@@ -5669,8 +5917,10 @@ func (self *TenantResourceGroupRoles) Validate() error {
 	return nil
 }
 
+//
 // ProviderResourceGroupRoles - A representation of provider roles to be
 // provisioned.
+//
 type ProviderResourceGroupRoles struct {
 
 	//
@@ -5791,7 +6041,9 @@ func (self *ProviderResourceGroupRoles) Validate() error {
 	return nil
 }
 
+//
 // Access - Access can be checked and returned as this resource.
+//
 type Access struct {
 
 	//
@@ -5830,7 +6082,9 @@ func (self *Access) Validate() error {
 	return nil
 }
 
+//
 // ResourceAccess -
+//
 type ResourceAccess struct {
 	Principal  ResourceName `json:"principal"`
 	Assertions []*Assertion `json:"assertions"`
@@ -5885,7 +6139,9 @@ func (self *ResourceAccess) Validate() error {
 	return nil
 }
 
+//
 // ResourceAccessList -
+//
 type ResourceAccessList struct {
 	Resources []*ResourceAccess `json:"resources"`
 }
@@ -5931,10 +6187,12 @@ func (self *ResourceAccessList) Validate() error {
 	return nil
 }
 
+//
 // DomainPolicies - We need to include the name of the domain in this struct
 // since this data will be passed back to ZPU through ZTS so we need to sign not
 // only the list of policies but also the corresponding domain name that the
 // policies belong to.
+//
 type DomainPolicies struct {
 
 	//
@@ -5997,8 +6255,10 @@ func (self *DomainPolicies) Validate() error {
 	return nil
 }
 
+//
 // SignedPolicies - A signed bulk transfer of policies. The data is signed with
 // server's private key.
+//
 type SignedPolicies struct {
 
 	//
@@ -6074,7 +6334,9 @@ func (self *SignedPolicies) Validate() error {
 	return nil
 }
 
+//
 // DomainData - A domain object that includes its roles, policies and services.
+//
 type DomainData struct {
 
 	//
@@ -6354,9 +6616,11 @@ func (self *DomainData) Validate() error {
 	return nil
 }
 
+//
 // SignedDomain - A domain object signed with server's private key. The
 // signature and keyid are optional if the metaonly flag is set to true in the
 // getSignedDomains api call
+//
 type SignedDomain struct {
 
 	//
@@ -6428,7 +6692,9 @@ func (self *SignedDomain) Validate() error {
 	return nil
 }
 
+//
 // SignedDomains - A list of signed domain objects
+//
 type SignedDomains struct {
 	Domains []*SignedDomain `json:"domains"`
 }
@@ -6474,8 +6740,10 @@ func (self *SignedDomains) Validate() error {
 	return nil
 }
 
+//
 // JWSDomain - SignedDomain using flattened JWS JSON Serialization syntax.
 // https://tools.ietf.org/html/rfc7515#section-7.2.2
+//
 type JWSDomain struct {
 	Payload   string            `json:"payload"`
 	Protected string            `json:"protected"`
@@ -6548,7 +6816,9 @@ func (self *JWSDomain) Validate() error {
 	return nil
 }
 
+//
 // UserToken - A user token generated based on user's credentials
+//
 type UserToken struct {
 
 	//
@@ -6606,7 +6876,9 @@ func (self *UserToken) Validate() error {
 	return nil
 }
 
+//
 // ServicePrincipal - A service principal object identifying a given service.
+//
 type ServicePrincipal struct {
 
 	//
@@ -6679,7 +6951,9 @@ func (self *ServicePrincipal) Validate() error {
 	return nil
 }
 
+//
 // User - The representation for a user
+//
 type User struct {
 
 	//
@@ -6726,7 +7000,9 @@ func (self *User) Validate() error {
 	return nil
 }
 
+//
 // UserList -
+//
 type UserList struct {
 
 	//
@@ -6776,7 +7052,9 @@ func (self *UserList) Validate() error {
 	return nil
 }
 
+//
 // Quota - The representation for a quota object
+//
 type Quota struct {
 
 	//
@@ -6883,7 +7161,9 @@ func (self *Quota) Validate() error {
 	return nil
 }
 
+//
 // Status - The representation for a status object
+//
 type Status struct {
 
 	//
@@ -6935,7 +7215,9 @@ func (self *Status) Validate() error {
 	return nil
 }
 
+//
 // DomainRoleMembership -
+//
 type DomainRoleMembership struct {
 	DomainRoleMembersList []*DomainRoleMembers `json:"domainRoleMembersList"`
 }
@@ -6981,8 +7263,10 @@ func (self *DomainRoleMembership) Validate() error {
 	return nil
 }
 
+//
 // UserAuthorityAttributes - Copyright Athenz Authors Licensed under the terms
 // of the Apache version 2.0 license. See LICENSE file for terms.
+//
 type UserAuthorityAttributes struct {
 	Values []string `json:"values"`
 }
@@ -7028,7 +7312,9 @@ func (self *UserAuthorityAttributes) Validate() error {
 	return nil
 }
 
+//
 // UserAuthorityAttributeMap - Map of user authority attributes
+//
 type UserAuthorityAttributeMap struct {
 
 	//
@@ -7078,7 +7364,9 @@ func (self *UserAuthorityAttributeMap) Validate() error {
 	return nil
 }
 
+//
 // Stats - The representation for a stats object
+//
 type Stats struct {
 
 	//
@@ -7178,7 +7466,9 @@ func (self *Stats) Validate() error {
 	return nil
 }
 
+//
 // DependentService - Dependent service provider details
+//
 type DependentService struct {
 
 	//
@@ -7225,7 +7515,9 @@ func (self *DependentService) Validate() error {
 	return nil
 }
 
+//
 // DependentServiceResourceGroup -
+//
 type DependentServiceResourceGroup struct {
 
 	//
@@ -7290,7 +7582,9 @@ func (self *DependentServiceResourceGroup) Validate() error {
 	return nil
 }
 
+//
 // DependentServiceResourceGroupList -
+//
 type DependentServiceResourceGroupList struct {
 
 	//
@@ -7340,9 +7634,11 @@ func (self *DependentServiceResourceGroupList) Validate() error {
 	return nil
 }
 
+//
 // Info - Copyright Athenz Authors Licensed under the terms of the Apache
 // version 2.0 license. See LICENSE file for terms. The representation for an
 // info object
+//
 type Info struct {
 
 	//

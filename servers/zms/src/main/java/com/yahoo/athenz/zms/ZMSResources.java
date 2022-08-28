@@ -612,13 +612,15 @@ public class ZMSResources {
     @Path("/expired-members")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Delete expired principals")
-    public void deleteExpiredMembers(
-        @Parameter(description = "defining which resources will be purged. by default all resources will be purged", required = false) @QueryParam("purgeResources") Integer purgeResources) {
+    public Response deleteExpiredMembers(
+        @Parameter(description = "defining which resources will be purged. by default all resources will be purged", required = false) @QueryParam("purgeResources") Integer purgeResources,
+        @Parameter(description = "Return object param updated object back.", required = false) @HeaderParam("Athenz-Return-Object") Boolean returnObj) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteExpiredMembers");
-            this.delegate.deleteExpiredMembers(context, purgeResources);
+            context.authorize("purge", "sys.auth:role.purge_expired_members", null);
+            return this.delegate.deleteExpiredMembers(context, purgeResources, returnObj);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

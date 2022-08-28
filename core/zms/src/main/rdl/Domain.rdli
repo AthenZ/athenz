@@ -321,15 +321,24 @@ resource AuthHistoryDependencies GET "/domain/{domainName}/history/auth" {
     }
 }
 
+type ExpiryMember Struct {
+    DomainName domainName; //name of the domain
+    EntityName collectionName; //name of the collection
+     ResourceName principalName; //name of the principal
+    Timestamp expiration; //the expiration timestamp
+}
+
 type ExpiredMembers Struct {
-    Array<MemberName> expiredRoleMembers; //list of deleted expired role members names
-    Array<GroupMemberName> expiredGroupMembers; //list of deleted expired groups members names
+    Array<ExpiryMember> expiredRoleMembers; //list of deleted expired role members
+    Array<ExpiryMember> expiredGroupMembers; //list of deleted expired groups members
 }
 
 // Delete expired principals
 resource ExpiredMembers DELETE "/expired-members?purgeResources={purgeResources}" {
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     Int32 purgeResources (optional); //defining which resources will be purged. by default all resources will be purged
-    expected NO_CONTENT;
+    authorize ("purge", "sys.auth:role.purge_expired_members");
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;

@@ -1,7 +1,9 @@
 package com.yahoo.athenz.zms;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
@@ -11,13 +13,17 @@ public class ExpiredMembersTest {
     @Test
     public void testExpiredMembers() {
 
+        Timestamp expiration = Timestamp.fromCurrentTime();
+        List <ExpiryMember> expiredMembers = new ArrayList<>();
+        expiredMembers.add(new ExpiryMember().setDomainName("dom").setCollectionName("test").setPrincipalName("user.joe").setExpiration(expiration));
+        expiredMembers.add(new ExpiryMember().setDomainName("dom").setCollectionName("test").setPrincipalName("user.dan").setExpiration(expiration));
         ExpiredMembers expiredMembers1 = new ExpiredMembers();
-        expiredMembers1.setExpiredGroupMembers(List.of("user.joe", "user.dan"));
-        expiredMembers1.setExpiredRoleMembers(List.of("user.joe", "user.dan"));
+        expiredMembers1.setExpiredGroupMembers(expiredMembers);
+        expiredMembers1.setExpiredRoleMembers(expiredMembers);
 
         ExpiredMembers expiredMembers2 = new ExpiredMembers();
-        expiredMembers2.setExpiredGroupMembers(List.of("user.joe", "user.dan"));
-        expiredMembers2.setExpiredRoleMembers(List.of("user.joe", "user.dan"));
+        expiredMembers2.setExpiredGroupMembers(expiredMembers);
+        expiredMembers2.setExpiredRoleMembers(expiredMembers);
 
         assertEquals(expiredMembers1, expiredMembers2);
         assertEquals(expiredMembers1, expiredMembers1);
@@ -25,24 +31,33 @@ public class ExpiredMembersTest {
         assertNotEquals("expiredMembers", expiredMembers2);
 
         //getters
-        assertEquals(expiredMembers1.getExpiredGroupMembers(), List.of("user.joe", "user.dan"));
-        assertEquals(expiredMembers1.getExpiredRoleMembers(), List.of("user.joe", "user.dan"));
+        List <ExpiryMember> expectedExpiredMembers = new ArrayList<>();
+        expectedExpiredMembers.add(new ExpiryMember().setDomainName("dom").setCollectionName("test").setPrincipalName("user.joe").setExpiration(expiration));
+        expectedExpiredMembers.add(new ExpiryMember().setDomainName("dom").setCollectionName("test").setPrincipalName("user.dan").setExpiration(expiration));
 
-        assertEquals(expiredMembers2.getExpiredGroupMembers(), List.of("user.joe", "user.dan"));
-        assertEquals(expiredMembers2.getExpiredRoleMembers(), List.of("user.joe", "user.dan"));
+        assertEquals(expiredMembers1.getExpiredGroupMembers(), expectedExpiredMembers);
+        assertEquals(expiredMembers1.getExpiredRoleMembers(), expectedExpiredMembers);
 
-        expiredMembers2.setExpiredRoleMembers(List.of("user.avi", "user.messi"));
+        assertEquals(expiredMembers2.getExpiredGroupMembers(), expectedExpiredMembers);
+        assertEquals(expiredMembers2.getExpiredRoleMembers(),expectedExpiredMembers);
+
+        //setters
+        List <ExpiryMember> newExpiredMembers = new ArrayList<>();
+        newExpiredMembers.add(new ExpiryMember().setDomainName("dom").setCollectionName("test").setPrincipalName("user.avi").setExpiration(expiration));
+        newExpiredMembers.add(new ExpiryMember().setDomainName("dom").setCollectionName("test").setPrincipalName("user.avi").setExpiration(expiration));
+
+        expiredMembers2.setExpiredRoleMembers(newExpiredMembers);
         assertNotEquals(expiredMembers1, expiredMembers2);
         expiredMembers2.setExpiredRoleMembers(null);
         assertNotEquals(expiredMembers1, expiredMembers2);
-        expiredMembers2.setExpiredRoleMembers(List.of("user.joe", "user.dan"));
+        expiredMembers2.setExpiredRoleMembers(expiredMembers);
         assertEquals(expiredMembers1, expiredMembers1);
 
-        expiredMembers2.setExpiredGroupMembers(List.of("user.avi", "user.messi"));
+        expiredMembers2.setExpiredGroupMembers(newExpiredMembers);
         assertNotEquals(expiredMembers1, expiredMembers2);
         expiredMembers2.setExpiredRoleMembers(null);
         assertNotEquals(expiredMembers1, expiredMembers2);
-        expiredMembers2.setExpiredGroupMembers(List.of("user.joe", "user.dan"));
+        expiredMembers2.setExpiredGroupMembers(expiredMembers);
         assertEquals(expiredMembers1, expiredMembers1);
     }
 }

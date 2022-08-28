@@ -30211,7 +30211,7 @@ public class ZMSImplTest {
         String auditRef = zmsTestInitializer.getAuditRef();
 
         insertExpiredMembersToDB(zms, ctx, auditRef);
-        zms.deleteExpiredMembers(ctx, null);
+        zms.deleteExpiredMembers(ctx, null, false);
 
         Role role1 = zms.getRole(ctx, "test-domain1", "role1", null, null, null);
         Group group1 = zms.getGroup(ctx, "test-domain1", "group1", null, null);
@@ -30240,7 +30240,7 @@ public class ZMSImplTest {
         String auditRef = zmsTestInitializer.getAuditRef();
 
         insertExpiredMembersToDB(zms, ctx, auditRef);
-        zms.deleteExpiredMembers(ctx, 1);
+        zms.deleteExpiredMembers(ctx, 1, false);
 
         Role role1 = zms.getRole(ctx, "test-domain1", "role1", null, null, null);
         Group group1 = zms.getGroup(ctx, "test-domain1", "group1", null, null);
@@ -30269,7 +30269,7 @@ public class ZMSImplTest {
         String auditRef = zmsTestInitializer.getAuditRef();
 
         insertExpiredMembersToDB(zms, ctx, auditRef);
-        zms.deleteExpiredMembers(ctx, 2);
+        zms.deleteExpiredMembers(ctx, 2, false);
 
         Role role1 = zms.getRole(ctx, "test-domain1", "role1", null, null, null);
         Group group1 = zms.getGroup(ctx, "test-domain1", "group1", null, null);

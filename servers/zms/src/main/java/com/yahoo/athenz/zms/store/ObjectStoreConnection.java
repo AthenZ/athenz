@@ -15,13 +15,13 @@
  */
 package com.yahoo.athenz.zms.store;
 
+import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Timestamp;
+
 import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zms.purge.PurgeMember;
 
 public interface ObjectStoreConnection extends Closeable {
 
@@ -84,6 +84,7 @@ public interface ObjectStoreConnection extends Closeable {
     Membership getRoleMember(String domainName, String roleName, String member, long expiration, boolean pending);
     boolean insertRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
     boolean deleteRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
+    boolean deleteExpiredRoleMember(String domainName, String roleName, String member, String principal, Timestamp expiration, String auditRef);
     boolean updateRoleMemberDisabledState(String domainName, String roleName, String member, String principal, int disabledState, String auditRef);
     boolean deletePendingRoleMember(String domainName, String roleName, String member, String principal, String auditRef);
     boolean confirmRoleMember(String domainName, String roleName, RoleMember roleMember, String principal, String auditRef);
@@ -108,6 +109,8 @@ public interface ObjectStoreConnection extends Closeable {
     GroupMembership getGroupMember(String domainName, String groupName, String member, long expiration, boolean pending);
     boolean insertGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef);
     boolean deleteGroupMember(String domainName, String groupName, String member, String principal, String auditRef);
+    boolean deleteExpiredGroupMember(String domainName, String groupName, String member, String principal, Timestamp expiration, String auditRef);
+
     boolean updateGroupMemberDisabledState(String domainName, String groupName, String member, String principal, int disabledState, String auditRef);
     boolean deletePendingGroupMember(String domainName, String groupName, String member, String principal, String auditRef);
     boolean confirmGroupMember(String domainName, String groupName, GroupMember groupMember, String principal, String auditRef);
@@ -231,7 +234,7 @@ public interface ObjectStoreConnection extends Closeable {
 
     // purge commands
 
-    List<PurgeMember> getAllExpiredRoleMembers(int limit, int offset);
-    List<PurgeMember> getAllExpiredGroupMembers(int limit, int offset);
+    List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset);
+    List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset);
 
 }

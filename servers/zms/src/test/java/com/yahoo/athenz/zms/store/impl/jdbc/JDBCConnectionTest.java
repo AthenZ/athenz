@@ -812,6 +812,118 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testGetAllExpiredRoleMembers() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                .thenReturn("dom1")
+                .thenReturn("dom2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_ROLE_NAME))
+                .thenReturn("role1")
+                .thenReturn("role2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_PRINCIPAL_NAME))
+                .thenReturn("user.test1")
+                .thenReturn("user.test2");
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(123456))
+                .thenReturn(new java.sql.Timestamp(654321));
+
+        List<ExpiryMember> expectedMembers = jdbcConn.getAllExpiredRoleMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+
+        ExpiryMember expectedMember1 = new ExpiryMember()
+                .setDomainName("dom1")
+                .setCollectionName("role1")
+                .setPrincipalName("user.test1").setExpiration(Timestamp.fromMillis(123456));
+        ExpiryMember expectedMember2 = new ExpiryMember()
+                .setDomainName("dom2")
+                .setCollectionName("role2")
+                .setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(654321));
+
+        assertEquals(2, expectedMembers.size());
+        assertEquals(expectedMembers.get(0), expectedMember1);
+        assertEquals(expectedMembers.get(1), expectedMember2);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetAllExpiredRoleMembersException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getAllExpiredRoleMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetAllExpiredGroupMembers() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_DOMAIN_NAME))
+                .thenReturn("dom1")
+                .thenReturn("dom2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_GROUP_NAME))
+                .thenReturn("group1")
+                .thenReturn("group2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_PRINCIPAL_NAME))
+                .thenReturn("user.test1")
+                .thenReturn("user.test2");
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(123456))
+                .thenReturn(new java.sql.Timestamp(654321));
+
+        List<ExpiryMember> expectedMembers = jdbcConn.getAllExpiredGroupMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+
+        ExpiryMember expectedMember1 = new ExpiryMember()
+                .setDomainName("dom1")
+                .setCollectionName("group1")
+                .setPrincipalName("user.test1").setExpiration(Timestamp.fromMillis(123456));
+        ExpiryMember expectedMember2 = new ExpiryMember()
+                .setDomainName("dom2")
+                .setCollectionName("group2")
+                .setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(654321));
+
+        assertEquals(2, expectedMembers.size());
+        assertEquals(expectedMembers.get(0), expectedMember1);
+        assertEquals(expectedMembers.get(1), expectedMember2);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetAllExpiredGroupMembersException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getAllExpiredGroupMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
     public void testGetDomainModTimestampSuccess() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -2456,7 +2568,7 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
     }
-
+    
     @Test
     public void testDeleteRoleMemberInvalidDomain()  throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -2515,6 +2627,116 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteRoleMember("my-domain", "role1", "user.user1",
                     "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredRoleMember()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // principal id
+                .thenReturn(true); // this for expiration
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.deleteExpiredRoleMember("my-domain", "role1", "user.user1",
+                "user.admin", Timestamp.fromMillis(10000), "audit-ref");
+        assertTrue(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        // we need additional operation for the audit log
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, new java.sql.Timestamp(10000));
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "DELETE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredRoleMemberInvalidDomain()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteExpiredRoleMember("my-domain", "role1", "user.user1",
+                    "user.admin", Timestamp.fromMillis(10000), "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredRoleMemberInvalidRole()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for role id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteExpiredRoleMember("my-domain", "role1", "user.user1",
+                    "user.admin", Timestamp.fromMillis(10000), "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredRoleMemberInvalidPrincipalId()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(false); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteExpiredRoleMember("my-domain", "role1", "user.user1",
+                    "user.admin", Timestamp.fromMillis(10000), "audit-ref");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -10813,6 +11035,115 @@ public class JDBCConnectionTest {
         try {
             jdbcConn.deleteGroupMember("my-domain", "group1", "user.user1",
                     "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredGroupMember()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // group id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(true) // principal id
+                .thenReturn(true); // expiration
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.deleteExpiredGroupMember("my-domain", "group1", "user.user1",
+                "user.admin", Timestamp.fromMillis(10000), "audit-ref");
+        assertTrue(requestSuccess);
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "group1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
+
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, new java.sql.Timestamp(10000));
+
+        // we need additional operation for the audit log
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
+
+        // the rest of the audit log details
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.admin");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.user1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "DELETE");
+        Mockito.verify(mockPrepStmt, times(1)).setString(5, "audit-ref");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredGroupMemberInvalidDomain()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteExpiredGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", Timestamp.fromMillis(10000), "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredGroupMemberInvalidGroup()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteExpiredGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", Timestamp.fromMillis(10000), "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteExpiredGroupMemberInvalidPrincipalId()  throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // group id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for group id
+                .thenReturn(false); // principal id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteExpiredGroupMember("my-domain", "group1", "user.user1",
+                    "user.admin", Timestamp.fromMillis(10000), "audit-ref");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);

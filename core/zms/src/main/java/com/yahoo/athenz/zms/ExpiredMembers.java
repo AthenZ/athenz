@@ -12,21 +12,21 @@ import com.yahoo.rdl.*;
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExpiredMembers {
-    public List<String> expiredRoleMembers;
-    public List<String> expiredGroupMembers;
+    public List<ExpiryMember> expiredRoleMembers;
+    public List<ExpiryMember> expiredGroupMembers;
 
-    public ExpiredMembers setExpiredRoleMembers(List<String> expiredRoleMembers) {
+    public ExpiredMembers setExpiredRoleMembers(List<ExpiryMember> expiredRoleMembers) {
         this.expiredRoleMembers = expiredRoleMembers;
         return this;
     }
-    public List<String> getExpiredRoleMembers() {
+    public List<ExpiryMember> getExpiredRoleMembers() {
         return expiredRoleMembers;
     }
-    public ExpiredMembers setExpiredGroupMembers(List<String> expiredGroupMembers) {
+    public ExpiredMembers setExpiredGroupMembers(List<ExpiryMember> expiredGroupMembers) {
         this.expiredGroupMembers = expiredGroupMembers;
         return this;
     }
-    public List<String> getExpiredGroupMembers() {
+    public List<ExpiryMember> getExpiredGroupMembers() {
         return expiredGroupMembers;
     }
 

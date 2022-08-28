@@ -471,9 +471,16 @@ func init() {
 	tAuthHistoryDependencies.ArrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
 	sb.AddType(tAuthHistoryDependencies.Build())
 
+	tExpiryMember := rdl.NewStructTypeBuilder("Struct", "ExpiryMember")
+	tExpiryMember.Field("domainName", "DomainName", false, nil, "name of the domain")
+	tExpiryMember.Field("collectionName", "EntityName", false, nil, "name of the collection")
+	tExpiryMember.Field("principalName", "ResourceName", false, nil, "name of the principal")
+	tExpiryMember.Field("expiration", "Timestamp", false, nil, "the expiration timestamp")
+	sb.AddType(tExpiryMember.Build())
+
 	tExpiredMembers := rdl.NewStructTypeBuilder("Struct", "ExpiredMembers")
-	tExpiredMembers.ArrayField("expiredRoleMembers", "MemberName", false, "list of deleted expired role members names")
-	tExpiredMembers.ArrayField("expiredGroupMembers", "GroupMemberName", false, "list of deleted expired groups members names")
+	tExpiredMembers.ArrayField("expiredRoleMembers", "ExpiryMember", false, "list of deleted expired role members")
+	tExpiredMembers.ArrayField("expiredGroupMembers", "ExpiryMember", false, "list of deleted expired groups members")
 	sb.AddType(tExpiredMembers.Build())
 
 	tDanglingPolicy := rdl.NewStructTypeBuilder("Struct", "DanglingPolicy")
@@ -1005,6 +1012,8 @@ func init() {
 	mDeleteExpiredMembers := rdl.NewResourceBuilder("ExpiredMembers", "DELETE", "/expired-members")
 	mDeleteExpiredMembers.Comment("Delete expired principals")
 	mDeleteExpiredMembers.Input("purgeResources", "Int32", false, "purgeResources", "", true, nil, "defining which resources will be purged. by default all resources will be purged")
+	mDeleteExpiredMembers.Input("returnObj", "Bool", false, "", "Athenz-Return-Object", true, false, "Return object param updated object back.")
+	mDeleteExpiredMembers.Auth("purge", "sys.auth:role.purge_expired_members", false, "")
 	mDeleteExpiredMembers.Expected("NO_CONTENT")
 	mDeleteExpiredMembers.Exception("BAD_REQUEST", "ResourceError", "")
 	mDeleteExpiredMembers.Exception("FORBIDDEN", "ResourceError", "")
