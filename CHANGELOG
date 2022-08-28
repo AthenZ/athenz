@@ -1,3 +1,11 @@
+Athenz v1.11.7 Release / Aug 28, 2022
+-------------------------------------
+
+#1945 fix returning role/group objects when requested by ui
+#1946 update aws sdk + slf4j
+#1947 remove unused dependencies/imports + constructor
+#1948 update model generation for go 1.19
+
 Athenz v1.11.6 Release / Aug 16, 2022
 -------------------------------------
 
