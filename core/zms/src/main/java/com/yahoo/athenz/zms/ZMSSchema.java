@@ -973,7 +973,7 @@ public class ZMSSchema {
             .comment("Delete expired principals")
             .queryParam("purgeResources", "purgeResources", "Int32", null, "defining which resources will be purged. by default all resources will be purged")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
-            .auth("purge", "sys.auth:role.purge_expired_members")
+            .auth("delete", "sys.auth:expired_members")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

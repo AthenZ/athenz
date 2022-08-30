@@ -8042,25 +8042,27 @@ public class DBService implements RolesProvider {
 
     List<ExpiryMember> executeDeleteDomainExpiredRoleMemberships(ResourceContext ctx, String domainName, List<ExpiryMember> members, String auditRef, String caller) {
         List<ExpiryMember> removedList = new ArrayList<>();
-        for (int retryCount = defaultRetryCount; ; retryCount--) {
-            try (ObjectStoreConnection con = store.getConnection(false, false)) {
+        try (ObjectStoreConnection con = store.getConnection(false, false)) {
 
-                // delete all expired domain group members one by one (required due auditLog)
-                for (ExpiryMember member : members) {
-                    try {
-                        executeDeleteExpiredMembership(ctx, con, domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), auditRef, caller);
-                        removedList.add(member);
-                    } catch (Exception e) {
-                        LOG.error("failed to delete expired role member. domain={} role={} member={} expiration={}: {}", domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), e.getMessage());
-                    }
-                }
-                purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
-                return removedList;
-            } catch (ResourceException ex) {
-                if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+            // delete all expired domain group members one by one (required due auditLog)
+            for (ExpiryMember member : members) {
+                try {
+                    executeDeleteExpiredMembership(ctx, con, domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), auditRef, caller);
+                    removedList.add(member);
+                } catch (Exception e) {
+                    LOG.error("failed to delete expired role member. domain={} role={} member={} expiration={}: ", domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), e);
                 }
             }
+            purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
+            return removedList;
+        } catch (Exception ex) {
+            LOG.error("failed to delete expired role member of domain={} ({}): ",
+                    domainName,
+                    members.stream()
+                            .map(member -> "role=" + member.getCollectionName() + " member=" + member.getPrincipalName())
+                            .collect(Collectors.joining(", ")),
+                    ex);
+            return null;
         }
     }
 
@@ -8099,11 +8101,13 @@ public class DBService implements RolesProvider {
         // delete all expired role members. for blocking only one domain at a time, for each domain, its expired members will be deleted in a separate transaction.
         for (Map.Entry<String, List<ExpiryMember>> entry: allExpiredRoleMembersMap.entrySet()) {
             List<ExpiryMember> removedDomainList = executeDeleteDomainExpiredRoleMemberships(ctx, entry.getKey(), entry.getValue(), auditRef, caller);
-            removedList.addAll(removedDomainList);
+            if (removedDomainList != null) {
+                removedList.addAll(removedDomainList);
+            }
         }
 
         if (numOfExpiredMembersRetrieved == removedList.size()) {
-        LOG.info("delete all expired role members done successfully: {} expired role members were deleted", removedList.size());
+            LOG.info("delete all expired role members done successfully: {} expired role members were deleted", removedList.size());
         } else {
             LOG.info("delete all expired role members done with errors: {} out of {} expired role members were deleted", removedList.size(), numOfExpiredMembersRetrieved);
         }
@@ -8123,25 +8127,27 @@ public class DBService implements RolesProvider {
 
     List<ExpiryMember> executeDeleteDomainExpiredGroupMemberships(ResourceContext ctx, String domainName, List<ExpiryMember> members, String auditRef, String caller) {
         List<ExpiryMember> removedList = new ArrayList<>();
-        for (int retryCount = defaultRetryCount; ; retryCount--) {
-            try (ObjectStoreConnection con = store.getConnection(false, false)) {
+        try (ObjectStoreConnection con = store.getConnection(false, false)) {
 
-                // delete all expired domain group members one by one (required due auditLog)
-                for (ExpiryMember member : members) {
-                        try {
-                            executeDeleteExpiredGroupMembership(ctx, con, domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), auditRef);
-                            removedList.add(member);
-                        } catch (Exception e) {
-                            LOG.error("failed to delete expired group member. domain={} role={} member={} expiration={}: {}", domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), e.getMessage());
-                        }
-                    }
-                purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
-                return removedList;
-            } catch (ResourceException ex) {
-                if (!shouldRetryOperation(ex, retryCount)) {
-                    throw ex;
+            // delete all expired domain group members one by one (required due auditLog)
+            for (ExpiryMember member : members) {
+                try {
+                    executeDeleteExpiredGroupMembership(ctx, con, domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), auditRef);
+                    removedList.add(member);
+                } catch (Exception e) {
+                    LOG.error("failed to delete expired group member. domain={} role={} member={} expiration={}: ", domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), e);
                 }
             }
+            purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
+            return removedList;
+        } catch (Exception ex) {
+            LOG.error("failed to delete expired group member of domain={} ({}): ",
+                    domainName,
+                    members.stream()
+                            .map(member -> "group=" + member.getCollectionName() + " member=" + member.getPrincipalName())
+                            .collect(Collectors.joining(", ")),
+                    ex);
+            return null;
         }
     }
 
@@ -8180,7 +8186,9 @@ public class DBService implements RolesProvider {
         // delete all expired group members. for blocking only one domain at a time, for each domain, its expired members will be deleted in a separate transaction.
         for (Map.Entry<String, List<ExpiryMember>> entry: allExpiredGroupMembersMap.entrySet()) {
             List<ExpiryMember> removedDomainList = executeDeleteDomainExpiredGroupMemberships(ctx, entry.getKey(), entry.getValue(), auditRef, caller);
-            removedList.addAll(removedDomainList);
+            if (removedDomainList != null) {
+                removedList.addAll(removedDomainList);
+            }
         }
 
         if (numOfExpiredMembersRetrieved == removedList.size()) {

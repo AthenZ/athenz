@@ -337,7 +337,7 @@ type ExpiredMembers Struct {
 resource ExpiredMembers DELETE "/expired-members?purgeResources={purgeResources}" {
     Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
     Int32 purgeResources (optional); //defining which resources will be purged. by default all resources will be purged
-    authorize ("purge", "sys.auth:role.purge_expired_members");
+    authorize("delete", "sys.auth:expired_members");
     expected NO_CONTENT, OK;
     exceptions {
         ResourceError BAD_REQUEST;

@@ -245,7 +245,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_AS_DOMAIN_NAME     = "domain_name";
     public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
     public static final String DB_COLUMN_AS_GROUP_NAME      = "group_name";
-    public static final String DB_COLUMN_AS_PRINCIPAL_NAME     = "principal_name";
+    public static final String DB_COLUMN_AS_PRINCIPAL_NAME  = "principal_name";
     public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
     public static final String DB_COLUMN_AZURE_SUBSCRIPTION = "azure_subscription";
     public static final String DB_COLUMN_BUSINESS_SERVICE   = "business_service";

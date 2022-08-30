@@ -1013,7 +1013,7 @@ func init() {
 	mDeleteExpiredMembers.Comment("Delete expired principals")
 	mDeleteExpiredMembers.Input("purgeResources", "Int32", false, "purgeResources", "", true, nil, "defining which resources will be purged. by default all resources will be purged")
 	mDeleteExpiredMembers.Input("returnObj", "Bool", false, "", "Athenz-Return-Object", true, false, "Return object param updated object back.")
-	mDeleteExpiredMembers.Auth("purge", "sys.auth:role.purge_expired_members", false, "")
+	mDeleteExpiredMembers.Auth("delete", "sys.auth:expired_members", false, "")
 	mDeleteExpiredMembers.Expected("NO_CONTENT")
 	mDeleteExpiredMembers.Exception("BAD_REQUEST", "ResourceError", "")
 	mDeleteExpiredMembers.Exception("FORBIDDEN", "ResourceError", "")

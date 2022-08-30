@@ -151,7 +151,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_PENDING_ROLE_MEMBER = "INSERT INTO pending_role_member "
             + "(role_id, principal_id, expiration, review_reminder, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
-    private static final String SQL_DELETE_EXPIRED_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND ? >= expiration;";
+    private static final String SQL_DELETE_EXPIRED_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND ? = expiration;";
     private static final String SQL_DELETE_PENDING_ROLE_MEMBER = "DELETE FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member "
             + "SET expiration=?, review_reminder=?, active=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
@@ -477,7 +477,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_PENDING_GROUP_MEMBER = "INSERT INTO pending_principal_group_member "
             + "(group_id, principal_id, expiration, audit_ref, req_principal) VALUES (?,?,?,?,?);";
     private static final String SQL_DELETE_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=?;";
-    private static final String SQL_DELETE_EXPIRED_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=? AND ? >= expiration;";
+    private static final String SQL_DELETE_EXPIRED_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=? AND ? = expiration;";
     private static final String SQL_DELETE_PENDING_GROUP_MEMBER = "DELETE FROM pending_principal_group_member WHERE group_id=? AND principal_id=?;";
     private static final String SQL_INSERT_GROUP_AUDIT_LOG = "INSERT INTO principal_group_audit_log "
             + "(group_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
@@ -6955,7 +6955,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     @Override
     public List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset) {
         final String caller = "getAllExpiredRoleMembers";
-
         List<ExpiryMember> members = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_ROLE_MEMBERS)) {
             ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
@@ -6980,8 +6979,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     @Override
     public List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset) {
         final String caller = "getAllExpiredGroupMembers";
-
-//        List<ExpiryMember> members = new ArrayList<>();
         List<ExpiryMember> members = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_GROUP_MEMBERS)) {
             ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
