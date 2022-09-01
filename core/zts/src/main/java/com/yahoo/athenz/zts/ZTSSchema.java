@@ -247,7 +247,8 @@ public class ZTSSchema {
         sb.structType("SSHCertRequest")
             .field("certRequestData", "SSHCertRequestData", false, "ssh certificate request data")
             .field("certRequestMeta", "SSHCertRequestMeta", false, "ssh certificate request meta")
-            .field("csr", "String", true, "free-form csr if not using data/meta fields.");
+            .field("csr", "String", true, "free-form csr if not using data/meta fields.")
+            .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.");
 
         sb.structType("SSHCertificate")
             .field("certificate", "String", false, "the SSH certificate, signed by the CA")

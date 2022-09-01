@@ -262,17 +262,27 @@ public class SSHCertificateTest {
         req1.setCertRequestData(new SSHCertRequestData());
         req1.setCertRequestMeta(new SSHCertRequestMeta());
         req1.setCsr("csr");
+        req1.setAttestationData("data");
 
         req2.setCertRequestData(new SSHCertRequestData());
         req2.setCertRequestMeta(new SSHCertRequestMeta());
         req2.setCsr("csr");
+        req2.setAttestationData("data");
 
         assertEquals(req1.getCertRequestData(), new SSHCertRequestData());
         assertEquals(req1.getCertRequestMeta(), new SSHCertRequestMeta());
         assertEquals(req1.getCsr(), "csr");
+        assertEquals(req1.getAttestationData(), "data");
 
         assertEquals(req1, req2);
         assertEquals(req1, req1);
+
+        req1.setAttestationData("data2");
+        assertNotEquals(req2, req1);
+        req1.setAttestationData(null);
+        assertNotEquals(req2, req1);
+        req1.setAttestationData("data");
+        assertEquals(req2, req1);
 
         req1.setCsr("csr2");
         assertNotEquals(req2, req1);
