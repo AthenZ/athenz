@@ -57,7 +57,6 @@ public class InstanceAWSProviderTest {
     public void testInitializeDefaults() {
         InstanceAWSProvider provider = new InstanceAWSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
-        assertNull(provider.awsPublicKey);
         assertEquals(provider.getTimeOffsetInMilli(), 300000);
         provider.close();
     }
@@ -66,13 +65,12 @@ public class InstanceAWSProviderTest {
     public void testInitialize() {
         
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         System.setProperty(InstanceAWSProvider.AWS_PROP_BOOT_TIME_OFFSET, "60");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
-        assertNotNull(provider.awsPublicKey);
         assertEquals(provider.getTimeOffsetInMilli(), 60000);
         provider.close();
-        System.clearProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT);
+        System.clearProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT);
         System.clearProperty(InstanceAWSProvider.AWS_PROP_BOOT_TIME_OFFSET);
     }
 
@@ -116,28 +114,6 @@ public class InstanceAWSProviderTest {
         assertTrue(provider.validateAWSAccount("1234", "1234", errMsg));
         assertFalse(provider.validateAWSAccount("1235", "1234", errMsg));
     }
-
-    @Test
-    public void testValidateAWSSignatureFailure() {
-        
-        StringBuilder errMsg = new StringBuilder(256);
-
-        InstanceAWSProvider provider = new InstanceAWSProvider();
-        assertFalse(provider.validateAWSSignature("document", null, errMsg));
-        assertFalse(provider.validateAWSSignature("document", "", errMsg));
-        
-        // aws public key is null
-        assertFalse(provider.validateAWSSignature("document", "signature", errMsg));
-        
-        provider = new InstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
-        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
-        
-        assertFalse(provider.validateAWSSignature("document", "invalid-signature", errMsg));
-
-        provider.close();
-        System.clearProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT);
-    }
     
     @Test
     public void testValidateAWSDocumentInvalidSignature() {
@@ -146,7 +122,7 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         AWSAttestationData data = new AWSAttestationData();
@@ -160,7 +136,7 @@ public class InstanceAWSProviderTest {
     public void testConfirmInstanceInvalidDocument() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -182,7 +158,7 @@ public class InstanceAWSProviderTest {
     public void testConfirmInstanceInvalidHostnames() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -203,7 +179,7 @@ public class InstanceAWSProviderTest {
     public void testConfirmInstanceNoAccountId() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -221,7 +197,7 @@ public class InstanceAWSProviderTest {
     public void testConfirmInstanceServiceMismatch() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -245,7 +221,7 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         AWSAttestationData data = new AWSAttestationData();
@@ -262,7 +238,7 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         AWSAttestationData data = new AWSAttestationData();
@@ -279,7 +255,7 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
        
         AWSAttestationData data = new AWSAttestationData();
@@ -296,7 +272,7 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
@@ -315,7 +291,7 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
@@ -331,7 +307,7 @@ public class InstanceAWSProviderTest {
     public void testConfirmInstanceInvalidVerifyIdentity() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         provider.setIdentityResult(false);
         
@@ -358,7 +334,7 @@ public class InstanceAWSProviderTest {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
@@ -389,7 +365,7 @@ public class InstanceAWSProviderTest {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
 
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
 
@@ -420,7 +396,7 @@ public class InstanceAWSProviderTest {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz1.cloud,athenz2.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
 
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
 
@@ -452,7 +428,7 @@ public class InstanceAWSProviderTest {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -477,7 +453,7 @@ public class InstanceAWSProviderTest {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -544,7 +520,8 @@ public class InstanceAWSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
         // no signature
         
         AWSAttestationData data = new AWSAttestationData();
@@ -675,7 +652,7 @@ public class InstanceAWSProviderTest {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
@@ -701,11 +678,10 @@ public class InstanceAWSProviderTest {
     public void testRefreshInstanceInvalidSignature() {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
-        provider.setSignatureResult(false);
-
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+        provider.setSignatureResult(false);
 
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -732,11 +708,11 @@ public class InstanceAWSProviderTest {
     public void testRefreshInstanceNoDocument() {
 
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
-        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
-        provider.setSignatureResult(false);
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
 
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+        provider.setSignatureResult(false);
 
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setAttestationData("{\"role\": \"athenz.service\"}")
@@ -757,7 +733,7 @@ public class InstanceAWSProviderTest {
     public void testRefreshInstanceNoAccountId() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -776,7 +752,7 @@ public class InstanceAWSProviderTest {
     public void testRefreshInstanceServiceMismatch() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         
         InstanceConfirmation confirmation = new InstanceConfirmation()
@@ -799,7 +775,7 @@ public class InstanceAWSProviderTest {
     public void testRefreshInstanceMissingInstanceId() {
 
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
 
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
@@ -825,7 +801,7 @@ public class InstanceAWSProviderTest {
     public void testRefreshInstanceInvalidVerifyIdentity() {
         
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
         provider.setIdentityResult(false);
         

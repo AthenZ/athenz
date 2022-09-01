@@ -45,7 +45,6 @@ public class InstanceAWSECSProviderTest {
     public void testInitializeDefaults() {
         InstanceAWSECSProvider provider = new InstanceAWSECSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
-        assertNull(provider.awsPublicKey);
         assertEquals((long)provider.bootTimeOffsetSeconds.get(), 0);
         provider.close();
     }
@@ -57,7 +56,7 @@ public class InstanceAWSECSProviderTest {
         StringBuilder privateIp = new StringBuilder(64);
 
         MockInstanceAWSECSProvider provider = new MockInstanceAWSECSProvider();
-        System.setProperty(InstanceAWSProvider.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
         provider.initialize("athenz.aws-ecs.us-west-2", "com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", null, null);
         
         String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 1000000).toString();
