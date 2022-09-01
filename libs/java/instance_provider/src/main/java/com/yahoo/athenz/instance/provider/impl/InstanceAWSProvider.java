@@ -15,9 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import java.io.File;
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -34,8 +31,6 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.yahoo.athenz.auth.KeyStore;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
@@ -57,19 +52,18 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String ATTR_INSTANCE_ID  = "instanceId";
     static final String ATTR_PRIVATE_IP   = "privateIp";
 
-    static final String AWS_PROP_PUBLIC_CERT      = "athenz.zts.aws_public_cert";
     static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
     static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
     static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
 
     static final String AWS_PROP_CERT_VALIDITY_STS_ONLY = "athenz.zts.aws_cert_validity_sts_only";
 
-    PublicKey awsPublicKey = null;           // AWS public key for validating instance documents
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     long certValidityTime;                   // cert validity for STS creds only case
     boolean supportRefresh = false;
     String awsRegion;
     Set<String> dnsSuffixes = null;
+    InstanceAWSUtils awsUtils = null;
 
     public long getTimeOffsetInMilli() {
         return bootTimeOffsetSeconds.get() * 1000;
@@ -83,17 +77,11 @@ public class InstanceAWSProvider implements InstanceProvider {
     @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext,
             KeyStore keyStore) {
-        
-        String awsCertFileName = System.getProperty(AWS_PROP_PUBLIC_CERT, "");
-        if (!awsCertFileName.isEmpty()) {
-            File awsCertFile = new File(awsCertFileName);
-            X509Certificate awsCert = Crypto.loadX509Certificate(awsCertFile);
-            awsPublicKey = awsCert.getPublicKey();
-        }
-        
-        if (awsPublicKey == null) {
-            LOGGER.error("AWS Public Key not specified - no instance requests will be authorized");
-        }
+
+        // create our helper object to validate aws documents
+
+        awsUtils = new InstanceAWSUtils();
+
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
 
@@ -173,36 +161,13 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         return true;
     }
-    
-    boolean validateAWSSignature(final String document, final String signature, StringBuilder errMsg) {
-        
-        if (signature == null || signature.isEmpty()) {
-            errMsg.append("AWS instance document signature is empty");
-            return false;
-        }
-        
-        if (awsPublicKey == null) {
-            errMsg.append("AWS Public key is not available");
-            return false;
-        }
-        
-        boolean valid = false;
-        try {
-            valid = Crypto.validatePKCS7Signature(document, signature, awsPublicKey);
-        } catch (CryptoException ex) {
-            errMsg.append("verifyInstanceDocument: unable to verify AWS instance document: ");
-            errMsg.append(ex.getMessage());
-        }
-        
-        return valid;
-    }
-    
+
     protected boolean validateAWSDocument(final String provider, AWSAttestationData info,
             final String awsAccount, final String instanceId, boolean checkTime,
             StringBuilder privateIp, StringBuilder errMsg) {
         
         final String document = info.getDocument();
-        if (!validateAWSSignature(document, info.getSignature(), errMsg)) {
+        if (!awsUtils.validateAWSSignature(document, info.getSignature(), errMsg)) {
             return false;
         }
         
