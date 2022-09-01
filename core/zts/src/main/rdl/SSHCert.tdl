@@ -31,6 +31,7 @@ type SSHCertRequest Struct {
     SSHCertRequestData certRequestData; //ssh certificate request data
     SSHCertRequestMeta certRequestMeta; //ssh certificate request meta
     String csr (optional); //free-form csr if not using data/meta fields.
+    String attestationData (optional); //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
 }
 
 type SSHCertificate Struct {

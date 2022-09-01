@@ -290,6 +290,7 @@ func init() {
 	tSSHCertRequest.Field("certRequestData", "SSHCertRequestData", false, nil, "ssh certificate request data")
 	tSSHCertRequest.Field("certRequestMeta", "SSHCertRequestMeta", false, nil, "ssh certificate request meta")
 	tSSHCertRequest.Field("csr", "String", true, nil, "free-form csr if not using data/meta fields.")
+	tSSHCertRequest.Field("attestationData", "String", true, nil, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
 	sb.AddType(tSSHCertRequest.Build())
 
 	tSSHCertificate := rdl.NewStructTypeBuilder("Struct", "SSHCertificate")

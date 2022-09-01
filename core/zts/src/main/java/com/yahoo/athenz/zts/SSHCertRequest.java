@@ -17,6 +17,9 @@ public class SSHCertRequest {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String csr;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String attestationData;
 
     public SSHCertRequest setCertRequestData(SSHCertRequestData certRequestData) {
         this.certRequestData = certRequestData;
@@ -39,6 +42,13 @@ public class SSHCertRequest {
     public String getCsr() {
         return csr;
     }
+    public SSHCertRequest setAttestationData(String attestationData) {
+        this.attestationData = attestationData;
+        return this;
+    }
+    public String getAttestationData() {
+        return attestationData;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -54,6 +64,9 @@ public class SSHCertRequest {
                 return false;
             }
             if (csr == null ? a.csr != null : !csr.equals(a.csr)) {
+                return false;
+            }
+            if (attestationData == null ? a.attestationData != null : !attestationData.equals(a.attestationData)) {
                 return false;
             }
         }

@@ -1869,6 +1869,12 @@ type SSHCertRequest struct {
 	// free-form csr if not using data/meta fields.
 	//
 	Csr string `json:"csr,omitempty" rdl:"optional"`
+
+	//
+	// identity attestation data including document with its signature containing
+	// attributes like IP address, instance-id, account#, etc.
+	//
+	AttestationData string `json:"attestationData,omitempty" rdl:"optional"`
 }
 
 // NewSSHCertRequest - creates an initialized SSHCertRequest instance, returns a pointer to it
@@ -1919,6 +1925,12 @@ func (self *SSHCertRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
 		if !val.Valid {
 			return fmt.Errorf("SSHCertRequest.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AttestationData != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("SSHCertRequest.attestationData does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
