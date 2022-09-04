@@ -659,7 +659,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public ExpiredMembers deleteExpiredMembers(Integer purgeResources, Boolean returnObj) throws URISyntaxException, IOException {
+    public ExpiredMembers deleteExpiredMembers(Integer purgeResources, String auditRef, Boolean returnObj) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/expired-members");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (purgeResources != null) {
@@ -670,6 +670,9 @@ public class ZMSRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
         if (returnObj != null) {
             httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));

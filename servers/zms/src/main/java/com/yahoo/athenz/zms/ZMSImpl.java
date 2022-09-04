@@ -2684,7 +2684,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response deleteExpiredMembers(ResourceContext ctx, Integer purgeResources, Boolean returnObj) {
+    public Response deleteExpiredMembers(ResourceContext ctx, Integer purgeResources, String auditRef, Boolean returnObj) {
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
         validateRequest(ctx.request(), caller);
@@ -2705,12 +2705,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ExpiredMembers expiredMembers = new ExpiredMembers();
 
         if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.ROLES)) {
-            List<ExpiryMember> expiredRoleMembers = dbService.executeDeleteAllExpiredRoleMemberships(ctx, ZMSConsts.PURGE_TASK_AUDIT_REF, caller);
+            List<ExpiryMember> expiredRoleMembers = dbService.executeDeleteAllExpiredRoleMemberships(ctx, auditRef, caller);
             expiredMembers.setExpiredRoleMembers(expiredRoleMembers);
         }
 
         if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.GROUPS)) {
-            List<ExpiryMember> expiredGroupMembers = dbService.executeDeleteAllExpiredGroupMemberships(ctx, ZMSConsts.PURGE_TASK_AUDIT_REF, caller);
+            List<ExpiryMember> expiredGroupMembers = dbService.executeDeleteAllExpiredGroupMemberships(ctx, auditRef, caller);
             expiredMembers.setExpiredGroupMembers(expiredGroupMembers);
         }
 

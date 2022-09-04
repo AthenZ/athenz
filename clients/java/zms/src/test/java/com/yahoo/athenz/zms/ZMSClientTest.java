@@ -4753,23 +4753,23 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         ExpiredMembers expiredMembers = Mockito.mock(ExpiredMembers.class);
 
-        Mockito.when(c.deleteExpiredMembers(null, false)).thenReturn(expiredMembers);
-        client.deleteExpiredMembers(null, false);
+        Mockito.when(c.deleteExpiredMembers(null, AUDIT_REF, false)).thenReturn(expiredMembers);
+        client.deleteExpiredMembers(null, AUDIT_REF, false);
 
-        Mockito.when(c.deleteExpiredMembers(3, false))
+        Mockito.when(c.deleteExpiredMembers(3, AUDIT_REF, false))
                 .thenReturn(expiredMembers)
                 .thenThrow(new NullPointerException())
                 .thenThrow(new ResourceException(401));
 
-        client.deleteExpiredMembers(3, false);
+        client.deleteExpiredMembers(3, AUDIT_REF, false);
         try {
-            client.deleteExpiredMembers(3, false);
+            client.deleteExpiredMembers(3, AUDIT_REF, false);
             fail();
         } catch  (ResourceException ex) {
             assertTrue(true);
         }
         try {
-            client.deleteExpiredMembers(3, false);
+            client.deleteExpiredMembers(3, AUDIT_REF, false);
             fail();
         } catch (Exception ex) {
         }

@@ -970,8 +970,9 @@ public class ZMSSchema {
 ;
 
         sb.resource("ExpiredMembers", "DELETE", "/expired-members")
-            .comment("Delete expired principals")
+            .comment("Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged")
             .queryParam("purgeResources", "purgeResources", "Int32", null, "defining which resources will be purged. by default all resources will be purged")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit reference")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
             .auth("delete", "sys.auth:expired_members")
             .expected("NO_CONTENT")

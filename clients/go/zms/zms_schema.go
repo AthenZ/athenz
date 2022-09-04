@@ -1010,8 +1010,9 @@ func init() {
 	sb.AddResource(mGetAuthHistoryDependencies.Build())
 
 	mDeleteExpiredMembers := rdl.NewResourceBuilder("ExpiredMembers", "DELETE", "/expired-members")
-	mDeleteExpiredMembers.Comment("Delete expired principals")
+	mDeleteExpiredMembers.Comment("Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged")
 	mDeleteExpiredMembers.Input("purgeResources", "Int32", false, "purgeResources", "", true, nil, "defining which resources will be purged. by default all resources will be purged")
+	mDeleteExpiredMembers.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit reference")
 	mDeleteExpiredMembers.Input("returnObj", "Bool", false, "", "Athenz-Return-Object", true, false, "Return object param updated object back.")
 	mDeleteExpiredMembers.Auth("delete", "sys.auth:expired_members", false, "")
 	mDeleteExpiredMembers.Expected("NO_CONTENT")

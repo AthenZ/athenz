@@ -827,10 +827,11 @@ func (client ZMSClient) GetAuthHistoryDependencies(domainName DomainName) (*Auth
 	}
 }
 
-func (client ZMSClient) DeleteExpiredMembers(purgeResources *int32, returnObj *bool) (*ExpiredMembers, error) {
+func (client ZMSClient) DeleteExpiredMembers(purgeResources *int32, auditRef string, returnObj *bool) (*ExpiredMembers, error) {
 	var data *ExpiredMembers
 	headers := map[string]string{
 		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
 	}
 	url := client.URL + "/expired-members" + encodeParams(encodeOptionalInt32Param("purgeResources", purgeResources))
 	resp, err := client.httpDelete(url, headers)

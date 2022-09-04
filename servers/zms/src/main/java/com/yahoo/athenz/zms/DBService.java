@@ -1823,11 +1823,6 @@ public class DBService implements RolesProvider {
         }
     }
 
-//    void executeDeleteMembership(ResourceContext ctx, String domainName, String roleName,
-//                                 String normalizedMember, String auditRef, String caller) {
-//        executeDeleteMembership( ctx,  null, domainName, roleName, normalizedMember, auditRef, caller);
-//    }
-
     void executeDeleteMembership(ResourceContext ctx, String domainName, String roleName,
             String normalizedMember, String auditRef, String caller) {
 
