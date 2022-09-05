@@ -30152,4 +30152,143 @@ public class ZMSImplTest {
         assertNull(info.getImplementationTitle());
         assertNull(info.getImplementationVendor());
     }
+
+    private void insertExpiredMembersToDB (ZMSImpl zms, ResourceContext ctx, String auditRef) {
+
+        int memberPurgeExpiryDays = DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT + 150;
+
+        List <RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test1", true, memberPurgeExpiryDays));
+        roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test2", true, memberPurgeExpiryDays - 10));
+        roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test3", true, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT - 1));
+        roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test4", false, memberPurgeExpiryDays));
+        roleMembers.add(new RoleMember().setMemberName("user.test5"));
+
+        List <GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test1", true, memberPurgeExpiryDays));
+        groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test2", true, memberPurgeExpiryDays - 10));
+        groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test3", true, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT - 1));
+        groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test4", false, memberPurgeExpiryDays));
+        groupMembers.add(new GroupMember().setMemberName("user.test5"));
+
+        // domain with configured member purge expiry days
+        TopLevelDomain purgeExpiryDaysDom = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), memberPurgeExpiryDays);
+        zms.postTopLevelDomain(ctx, auditRef, purgeExpiryDaysDom);
+
+        Role role1 = zmsTestInitializer.createRoleObject("test-domain1", "role1", null, roleMembers);
+        zms.putRole(ctx,"test-domain1", "role1", auditRef, false,  role1);
+
+        Group group1 = zmsTestInitializer.createGroupObject("test-domain1", "group1", groupMembers);
+        zms.putGroup(ctx,"test-domain1", "group1", auditRef, false,  group1);
+
+        // domain with default member purge expiry days
+        TopLevelDomain defaultPurgeExpiryDaysDom = zmsTestInitializer.createTopLevelDomainObject("test-domain2",
+                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
+        zms.postTopLevelDomain(ctx, auditRef, defaultPurgeExpiryDaysDom);
+
+        Role role2 = zmsTestInitializer.createRoleObject("test-domain2", "role2", null, roleMembers);
+        zms.putRole(ctx,"test-domain2", "role2", auditRef, false,  role2);
+
+        Group group2 = zmsTestInitializer.createGroupObject("test-domain2", "group2", groupMembers);
+        zms.putGroup(ctx,"test-domain2", "group2", auditRef, false,  group2);
+
+        // domain disabled member purge expiry days
+        TopLevelDomain disabledPurgeExpiryDaysDom = zmsTestInitializer.createTopLevelDomainObject("test-domain3",
+                "Test Domain3", "testOrg", zmsTestInitializer.getAdminUser(), -1);
+        zms.postTopLevelDomain(ctx, auditRef, disabledPurgeExpiryDaysDom);
+        Role role3 = zmsTestInitializer.createRoleObject("test-domain3", "role3", null, roleMembers);
+        zms.putRole(ctx,"test-domain3", "role3", auditRef, false,  role3);
+
+        Group group3 = zmsTestInitializer.createGroupObject("test-domain3", "group3", groupMembers);
+        zms.putGroup(ctx,"test-domain3", "group3", auditRef, false,  group3);
+    }
+
+    @Test
+    public void testDeleteExpiredMembers() {
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        ResourceContext ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+
+        insertExpiredMembersToDB(zms, ctx, auditRef);
+        zms.deleteExpiredMembers(ctx, null, auditRef, false);
+
+        Role role1 = zms.getRole(ctx, "test-domain1", "role1", null, null, null);
+        Group group1 = zms.getGroup(ctx, "test-domain1", "group1", null, null);
+        assertEquals(role1.getRoleMembers().size(), 4);
+        assertEquals(group1.getGroupMembers().size(), 4);
+
+        Role role2 = zms.getRole(ctx, "test-domain2", "role2", null, null, null);
+        Group group2 = zms.getGroup(ctx, "test-domain2", "group2", null, null);
+        assertEquals(role2.getRoleMembers().size(), 3);
+        assertEquals(group2.getGroupMembers().size(), 3);
+
+        Role role3 = zms.getRole(ctx, "test-domain3", "role3", null, null, null);
+        Group group3 = zms.getGroup(ctx, "test-domain3", "group3", null, null);
+        assertEquals(role3.getRoleMembers().size(), 5);
+        assertEquals(group3.getGroupMembers().size(), 5);
+
+        zms.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
+        zms.deleteTopLevelDomain(ctx, "test-domain2", auditRef);
+        zms.deleteTopLevelDomain(ctx, "test-domain3", auditRef);
+    }
+
+    @Test
+    public void testDeleteExpiredMembersRolesOnly() {
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        ResourceContext ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+
+        insertExpiredMembersToDB(zms, ctx, auditRef);
+        zms.deleteExpiredMembers(ctx, 1, auditRef, false);
+
+        Role role1 = zms.getRole(ctx, "test-domain1", "role1", null, null, null);
+        Group group1 = zms.getGroup(ctx, "test-domain1", "group1", null, null);
+        assertEquals(role1.getRoleMembers().size(), 4);
+        assertEquals(group1.getGroupMembers().size(), 5);
+
+        Role role2 = zms.getRole(ctx, "test-domain2", "role2", null, null, null);
+        Group group2 = zms.getGroup(ctx, "test-domain2", "group2", null, null);
+        assertEquals(role2.getRoleMembers().size(), 3);
+        assertEquals(group2.getGroupMembers().size(), 5);
+
+        Role role3 = zms.getRole(ctx, "test-domain3", "role3", null, null, null);
+        Group group3 = zms.getGroup(ctx, "test-domain3", "group3", null, null);
+        assertEquals(role3.getRoleMembers().size(), 5);
+        assertEquals(group3.getGroupMembers().size(), 5);
+
+        zms.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
+        zms.deleteTopLevelDomain(ctx, "test-domain2", auditRef);
+        zms.deleteTopLevelDomain(ctx, "test-domain3", auditRef);
+    }
+
+    @Test
+    public void testDeleteExpiredMembersGroupsOnly() {
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        ResourceContext ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+
+        insertExpiredMembersToDB(zms, ctx, auditRef);
+        zms.deleteExpiredMembers(ctx, 2, auditRef, false);
+
+        Role role1 = zms.getRole(ctx, "test-domain1", "role1", null, null, null);
+        Group group1 = zms.getGroup(ctx, "test-domain1", "group1", null, null);
+        assertEquals(role1.getRoleMembers().size(), 5);
+        assertEquals(group1.getGroupMembers().size(), 4);
+
+        Role role2 = zms.getRole(ctx, "test-domain2", "role2", null, null, null);
+        Group group2 = zms.getGroup(ctx, "test-domain2", "group2", null, null);
+        assertEquals(role2.getRoleMembers().size(), 5);
+        assertEquals(group2.getGroupMembers().size(), 3);
+
+        Role role3 = zms.getRole(ctx, "test-domain3", "role3", null, null, null);
+        Group group3 = zms.getGroup(ctx, "test-domain3", "group3", null, null);
+        assertEquals(role3.getRoleMembers().size(), 5);
+        assertEquals(group3.getGroupMembers().size(), 5);
+
+        zms.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
+        zms.deleteTopLevelDomain(ctx, "test-domain2", auditRef);
+        zms.deleteTopLevelDomain(ctx, "test-domain3", auditRef);
+    }
+
 }

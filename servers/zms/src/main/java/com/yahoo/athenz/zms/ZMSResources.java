@@ -608,6 +608,39 @@ public class ZMSResources {
         }
     }
 
+    @DELETE
+    @Path("/expired-members")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged")
+    public Response deleteExpiredMembers(
+        @Parameter(description = "defining which resources will be purged. by default all resources will be purged", required = false) @QueryParam("purgeResources") Integer purgeResources,
+        @Parameter(description = "Audit reference", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Return object param updated object back.", required = false) @HeaderParam("Athenz-Return-Object") Boolean returnObj) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteExpiredMembers");
+            context.authorize("delete", "sys.auth:expired_members", null);
+            return this.delegate.deleteExpiredMembers(context, purgeResources, auditRef, returnObj);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteExpiredMembers");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @GET
     @Path("/domain/{domainName}/check")
     @Produces(MediaType.APPLICATION_JSON)

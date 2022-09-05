@@ -404,6 +404,16 @@ public class ZMSSchema {
             .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
             .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
 
+        sb.structType("ExpiryMember")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("collectionName", "EntityName", false, "name of the collection")
+            .field("principalName", "ResourceName", false, "name of the principal")
+            .field("expiration", "Timestamp", false, "the expiration timestamp");
+
+        sb.structType("ExpiredMembers")
+            .arrayField("expiredRoleMembers", "ExpiryMember", false, "list of deleted expired role members")
+            .arrayField("expiredGroupMembers", "ExpiryMember", false, "list of deleted expired groups members");
+
         sb.structType("DanglingPolicy")
             .comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
             .field("policyName", "EntityName", false, "")
@@ -955,6 +965,20 @@ public class ZMSSchema {
             .exception("NOT_FOUND", "ResourceError", "")
 
             .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ExpiredMembers", "DELETE", "/expired-members")
+            .comment("Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged")
+            .queryParam("purgeResources", "purgeResources", "Int32", null, "defining which resources will be purged. by default all resources will be purged")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit reference")
+            .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .auth("delete", "sys.auth:expired_members")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

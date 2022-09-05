@@ -57,6 +57,7 @@ import com.yahoo.athenz.zms.notification.ZMSNotificationTaskFactory;
 import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
+import com.yahoo.athenz.zms.purge.PurgeResourcesEnum;
 import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
@@ -685,6 +686,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // load the DomainChangePublisher
         
         loadDomainChangePublisher();
+
     }
 
     void loadDomainChangePublisher() {
@@ -2679,6 +2681,40 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
 
         return dbService.getAuthHistory(domainName);
+    }
+
+    @Override
+    public Response deleteExpiredMembers(ResourceContext ctx, Integer purgeResources, String auditRef, Boolean returnObj) {
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+        validateRequest(ctx.request(), caller);
+
+        if (purgeResources == null) {
+            // it is not provided, all resources will be purged
+            purgeResources = 3;
+        }
+
+        if (!List.of(0, 1, 2, 3).contains(purgeResources)) {
+            throw ZMSUtils.requestError("Invalid purgeResources value, error: should be a number in [0-3]", caller);
+        }
+
+        EnumSet<PurgeResourcesEnum>  purgeResourcesEnumSet = PurgeResourcesEnum.getPurgeResourcesState(purgeResources);
+
+        LOG.info("deleteExpiredMembers: purgeResources: {}", purgeResourcesEnumSet);
+
+        ExpiredMembers expiredMembers = new ExpiredMembers();
+
+        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.ROLES)) {
+            List<ExpiryMember> expiredRoleMembers = dbService.executeDeleteAllExpiredRoleMemberships(ctx, auditRef, caller);
+            expiredMembers.setExpiredRoleMembers(expiredRoleMembers);
+        }
+
+        if (purgeResourcesEnumSet.contains(PurgeResourcesEnum.GROUPS)) {
+            List<ExpiryMember> expiredGroupMembers = dbService.executeDeleteAllExpiredGroupMemberships(ctx, auditRef, caller);
+            expiredMembers.setExpiredGroupMembers(expiredGroupMembers);
+        }
+
+        return ZMSUtils.returnPutResponse(returnObj, expiredMembers);
     }
 
     boolean validateRoleBasedAccessCheck(List<String> roles, final String trustDomain, final String domainName,

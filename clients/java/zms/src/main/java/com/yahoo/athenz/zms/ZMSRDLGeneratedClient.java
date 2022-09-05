@@ -659,6 +659,46 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public ExpiredMembers deleteExpiredMembers(Integer purgeResources, String auditRef, Boolean returnObj) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/expired-members");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (purgeResources != null) {
+            uriBuilder.setParameter("purgeResources", String.valueOf(purgeResources));
+        }
+        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ExpiredMembers.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public DomainDataCheck getDomainDataCheck(String domainName) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/check")
             .resolveTemplate("domainName", domainName);

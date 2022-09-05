@@ -4189,6 +4189,148 @@ func (self *AuthHistoryDependencies) Validate() error {
 	return nil
 }
 
+// ExpiryMember -
+type ExpiryMember struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the collection
+	//
+	CollectionName EntityName `json:"collectionName"`
+
+	//
+	// name of the principal
+	//
+	PrincipalName ResourceName `json:"principalName"`
+
+	//
+	// the expiration timestamp
+	//
+	Expiration rdl.Timestamp `json:"expiration"`
+}
+
+// NewExpiryMember - creates an initialized ExpiryMember instance, returns a pointer to it
+func NewExpiryMember(init ...*ExpiryMember) *ExpiryMember {
+	var o *ExpiryMember
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExpiryMember)
+	}
+	return o
+}
+
+type rawExpiryMember ExpiryMember
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExpiryMember
+func (self *ExpiryMember) UnmarshalJSON(b []byte) error {
+	var m rawExpiryMember
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExpiryMember(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExpiryMember) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("ExpiryMember.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("ExpiryMember.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.CollectionName == "" {
+		return fmt.Errorf("ExpiryMember.collectionName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "EntityName", self.CollectionName)
+		if !val.Valid {
+			return fmt.Errorf("ExpiryMember.collectionName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.PrincipalName == "" {
+		return fmt.Errorf("ExpiryMember.principalName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.PrincipalName)
+		if !val.Valid {
+			return fmt.Errorf("ExpiryMember.principalName does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.Expiration.IsZero() {
+		return fmt.Errorf("ExpiryMember: Missing required field: expiration")
+	}
+	return nil
+}
+
+// ExpiredMembers -
+type ExpiredMembers struct {
+
+	//
+	// list of deleted expired role members
+	//
+	ExpiredRoleMembers []*ExpiryMember `json:"expiredRoleMembers"`
+
+	//
+	// list of deleted expired groups members
+	//
+	ExpiredGroupMembers []*ExpiryMember `json:"expiredGroupMembers"`
+}
+
+// NewExpiredMembers - creates an initialized ExpiredMembers instance, returns a pointer to it
+func NewExpiredMembers(init ...*ExpiredMembers) *ExpiredMembers {
+	var o *ExpiredMembers
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExpiredMembers)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *ExpiredMembers) Init() *ExpiredMembers {
+	if self.ExpiredRoleMembers == nil {
+		self.ExpiredRoleMembers = make([]*ExpiryMember, 0)
+	}
+	if self.ExpiredGroupMembers == nil {
+		self.ExpiredGroupMembers = make([]*ExpiryMember, 0)
+	}
+	return self
+}
+
+type rawExpiredMembers ExpiredMembers
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExpiredMembers
+func (self *ExpiredMembers) UnmarshalJSON(b []byte) error {
+	var m rawExpiredMembers
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExpiredMembers(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExpiredMembers) Validate() error {
+	if self.ExpiredRoleMembers == nil {
+		return fmt.Errorf("ExpiredMembers: Missing required field: expiredRoleMembers")
+	}
+	if self.ExpiredGroupMembers == nil {
+		return fmt.Errorf("ExpiredMembers: Missing required field: expiredGroupMembers")
+	}
+	return nil
+}
+
 // DanglingPolicy - A dangling policy where the assertion is referencing a role
 // name that doesn't exist in the domain
 type DanglingPolicy struct {

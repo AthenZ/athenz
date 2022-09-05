@@ -22,6 +22,7 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -154,5 +155,16 @@ public class ZMSTestUtils {
 
     public static boolean validateDueDate(long millis, long extMillis) {
         return (millis > System.currentTimeMillis() + extMillis - 5000 && millis < System.currentTimeMillis() + extMillis + 5000);
+    }
+
+    public static Timestamp buildExpiration(int daysInterval, boolean alreadyExpired) {
+        return Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(alreadyExpired ? -daysInterval : daysInterval , TimeUnit.DAYS));
+    }
+
+    public static long getDaysSinceExpiry(Timestamp expiry) {
+        Date expirationDate = new Date(expiry.millis());
+        Date date = new Date();
+        long diffInMillis = date.getTime() - expirationDate.getTime();
+        return TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS);
     }
 }

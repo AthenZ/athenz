@@ -320,3 +320,34 @@ resource AuthHistoryDependencies GET "/domain/{domainName}/history/auth" {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+type ExpiryMember Struct {
+    DomainName domainName; //name of the domain
+    EntityName collectionName; //name of the collection
+    ResourceName principalName; //name of the principal
+    Timestamp expiration; //the expiration timestamp
+}
+
+type ExpiredMembers Struct {
+    Array<ExpiryMember> expiredRoleMembers; //list of deleted expired role members
+    Array<ExpiryMember> expiredGroupMembers; //list of deleted expired groups members
+}
+
+// Delete expired principals
+// This command will purge expired members of the following resources based on the purgeResources value
+// 0 - none of them will be purged
+// 1 - only roles will be purged
+// 2 - only groups will be purged
+// default/3 - both of them will be purged
+resource ExpiredMembers DELETE "/expired-members?purgeResources={purgeResources}" {
+    String auditRef (header="Y-Audit-Ref"); //Audit reference
+    Bool returnObj (optional, default=false, header="Athenz-Return-Object"); //Return object param updated object back.
+    Int32 purgeResources (optional); //defining which resources will be purged. by default all resources will be purged
+    authorize("delete", "sys.auth:expired_members");
+    expected NO_CONTENT, OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+    }
+}

@@ -44,7 +44,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.zms.ZMSConsts.*;
@@ -326,6 +328,21 @@ public class ZMSTestInitializer {
         return dom;
     }
 
+    public TopLevelDomain createTopLevelDomainObject(String name,
+                                                     String description, String org, String admin, int memberPurgeExpiryDays) {
+
+        TopLevelDomain dom = new TopLevelDomain();
+        dom.setName(name);
+        dom.setDescription(description);
+        dom.setOrg(org);
+        dom.setYpmId(getRandomProductId());
+        dom.setMemberPurgeExpiryDays(memberPurgeExpiryDays);
+        List<String> admins = new ArrayList<>();
+        admins.add(admin);
+        dom.setAdminUsers(admins);
+        return dom;
+    }
+
     public UserDomain createUserDomainObject(String name, String description, String org) {
 
         UserDomain dom = new UserDomain();
@@ -454,6 +471,19 @@ public class ZMSTestInitializer {
         }
 
         return role;
+    }
+
+
+    public RoleMember createRoleMemberWithExpiration(String name, boolean alreadyExpired, int expiryDaysInterval) {
+        return new RoleMember()
+                .setMemberName(name)
+                .setExpiration(ZMSTestUtils.buildExpiration(expiryDaysInterval, alreadyExpired));
+    }
+
+    public GroupMember createGroupMemberWithExpiration(String name, boolean alreadyExpired, int expiryDaysInterval) {
+        return new GroupMember()
+                .setMemberName(name)
+                .setExpiration(ZMSTestUtils.buildExpiration(expiryDaysInterval, alreadyExpired));
     }
 
     public Policy createPolicyObject(String domainName, String policyName,

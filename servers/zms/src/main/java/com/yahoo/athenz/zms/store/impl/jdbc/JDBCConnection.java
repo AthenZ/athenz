@@ -15,24 +15,24 @@
  */
 package com.yahoo.athenz.zms.store.impl.jdbc;
 
-import java.sql.*;
-import java.util.*;
-
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
-import org.eclipse.jetty.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
-import com.yahoo.athenz.zms.ZMSConsts;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.*;
+import java.util.*;
+
+import static com.yahoo.athenz.zms.ZMSConsts.*;
 
 public class JDBCConnection implements ObjectStoreConnection {
 
@@ -151,6 +151,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_PENDING_ROLE_MEMBER = "INSERT INTO pending_role_member "
             + "(role_id, principal_id, expiration, review_reminder, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
+    private static final String SQL_DELETE_EXPIRED_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND expiration=?;";
     private static final String SQL_DELETE_PENDING_ROLE_MEMBER = "DELETE FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_ROLE_MEMBER = "UPDATE role_member "
             + "SET expiration=?, review_reminder=?, active=?, audit_ref=?, req_principal=? WHERE role_id=? AND principal_id=?;";
@@ -476,6 +477,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_PENDING_GROUP_MEMBER = "INSERT INTO pending_principal_group_member "
             + "(group_id, principal_id, expiration, audit_ref, req_principal) VALUES (?,?,?,?,?);";
     private static final String SQL_DELETE_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=?;";
+    private static final String SQL_DELETE_EXPIRED_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=? AND expiration=?;";
     private static final String SQL_DELETE_PENDING_GROUP_MEMBER = "DELETE FROM pending_principal_group_member WHERE group_id=? AND principal_id=?;";
     private static final String SQL_INSERT_GROUP_AUDIT_LOG = "INSERT INTO principal_group_audit_log "
             + "(group_id, admin, member, action, audit_ref) VALUES (?,?,?,?,?);";
@@ -619,6 +621,36 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE domain=?;";
     private static final String SQL_LIST_DOMAIN_DEPENDENCIES = "SELECT domain FROM service_domain_dependency "
             + "WHERE service=?;";
+
+    private static final String GET_ALL_EXPIRED_ROLE_MEMBERS = "SELECT D.name as domain_name, R.name as role_name, M.expiration, P.name as principal_name"
+            + " FROM "
+            + " domain D JOIN role R ON D.domain_id = R.domain_id JOIN"
+            + " role_member M ON R.role_id = M.role_id JOIN principal P ON M.principal_id = P.principal_id"
+            + " WHERE"
+            + " D.member_purge_expiry_days > -1"
+            + " AND"
+            + " M.expiration is not null"
+            + " AND ("
+            + " D.member_purge_expiry_days = 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL ? DAY)"
+            + " OR"
+            + " D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY)"
+            + ")"
+            + " limit ? offset ?";
+
+    private static final String GET_ALL_EXPIRED_GROUP_MEMBERS = "SELECT D.name as domain_name, G.name as group_name, M.expiration, P.name as principal_name"
+            + " FROM "
+            + " domain D JOIN principal_group G ON D.domain_id = G.domain_id JOIN"
+            + " principal_group_member M ON G.group_id = M.group_id JOIN principal P ON M.principal_id = P.principal_id"
+            + " WHERE"
+            + " D.member_purge_expiry_days > -1"
+            + " AND"
+            + " M.expiration is not null"
+            + " AND ("
+            + " D.member_purge_expiry_days = 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL ? DAY)"
+            + " OR"
+            + " D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY)"
+            + ")"
+            + " limit ? offset ?";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -2520,6 +2552,48 @@ public class JDBCConnection implements ObjectStoreConnection {
         try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_ROLE_MEMBER)) {
             ps.setInt(1, roleId);
             ps.setInt(2, principalId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        boolean result = (affectedRows > 0);
+
+        // add audit log entry for this change if the delete was successful
+        // add return the result of the audit log insert operation
+
+        if (result) {
+            result = insertRoleAuditLog(roleId, admin, principal, "DELETE", auditRef);
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean deleteExpiredRoleMember(String domainName, String roleName, String principal,
+                                           String admin, Timestamp expiration, String auditRef) {
+        final String caller = "deleteRoleMember";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int roleId = getRoleId(domainId, roleName);
+        if (roleId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ResourceUtils.roleResourceName(domainName, roleName));
+        }
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
+        java.sql.Timestamp ts = new java.sql.Timestamp(expiration.millis());
+
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_ROLE_MEMBER)) {
+            ps.setInt(1, roleId);
+            ps.setInt(2, principalId);
+            ps.setTimestamp(3, ts);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5262,7 +5336,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(2, server);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    final String memberName = rs.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_NAME);
+                    final String memberName = rs.getString(DB_COLUMN_PRINCIPAL_NAME);
                     java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
 
                     DomainGroupMember domainGroupMember = memberMap.get(memberName);
@@ -5335,7 +5409,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(2, server);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
-                    final String memberName = rs.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_NAME);
+                    final String memberName = rs.getString(DB_COLUMN_PRINCIPAL_NAME);
                     java.sql.Timestamp expiration = rs.getTimestamp(ZMSConsts.DB_COLUMN_EXPIRATION);
                     java.sql.Timestamp reviewReminder = rs.getTimestamp(ZMSConsts.DB_COLUMN_REVIEW_REMINDER);
 
@@ -6035,6 +6109,45 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         return result;
     }
+
+    @Override
+    public boolean deleteExpiredGroupMember(String domainName, String groupName, String principal, String admin, Timestamp expiration, String auditRef) {
+
+        final String caller = "deleteGroupMember";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int groupId = getGroupId(domainId, groupName);
+        if (groupId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_GROUP, ResourceUtils.groupResourceName(domainName, groupName));
+        }
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+        java.sql.Timestamp ts = new java.sql.Timestamp(expiration.millis());
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_EXPIRED_GROUP_MEMBER)) {
+            ps.setInt(1, groupId);
+            ps.setInt(2, principalId);
+            ps.setTimestamp(3, ts);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        boolean result = (affectedRows > 0);
+
+        // add audit log entry for this change if the delete was successful
+        // add return the result of the audit log insert operation
+
+        if (result) {
+            result = insertGroupAuditLog(groupId, admin, principal, "DELETE", auditRef);
+        }
+
+        return result;    }
 
     @Override
     public boolean updateGroupMemberDisabledState(String domainName, String groupName, String principal, String admin,
@@ -6836,6 +6949,56 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         Collections.sort(domains);
         return domains;
+    }
+
+
+    @Override
+    public List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset) {
+        final String caller = "getAllExpiredRoleMembers";
+        List<ExpiryMember> members = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_ROLE_MEMBERS)) {
+            ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    ExpiryMember expiryMember = new ExpiryMember()
+                            .setDomainName(rs.getString(DB_COLUMN_AS_DOMAIN_NAME))
+                            .setCollectionName(rs.getString(DB_COLUMN_AS_ROLE_NAME))
+                            .setPrincipalName(rs.getString(DB_COLUMN_AS_PRINCIPAL_NAME))
+                            .setExpiration(Timestamp.fromMillis(rs.getTimestamp(DB_COLUMN_EXPIRATION).getTime()));
+                    members.add(expiryMember);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return members;
+    }
+
+    @Override
+    public List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset) {
+        final String caller = "getAllExpiredGroupMembers";
+        List<ExpiryMember> members = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_GROUP_MEMBERS)) {
+            ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
+            ps.setInt(2, limit);
+            ps.setInt(3, offset);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String domainName = rs.getString(DB_COLUMN_AS_DOMAIN_NAME);
+                    ExpiryMember member = new ExpiryMember()
+                            .setDomainName(domainName)
+                            .setCollectionName(rs.getString(DB_COLUMN_AS_GROUP_NAME))
+                            .setPrincipalName(rs.getString(DB_COLUMN_AS_PRINCIPAL_NAME))
+                            .setExpiration(Timestamp.fromMillis(rs.getTimestamp(DB_COLUMN_EXPIRATION).getTime()));
+                    members.add(member);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return members;
     }
 
     @Override

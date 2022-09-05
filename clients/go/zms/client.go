@@ -827,6 +827,44 @@ func (client ZMSClient) GetAuthHistoryDependencies(domainName DomainName) (*Auth
 	}
 }
 
+func (client ZMSClient) DeleteExpiredMembers(purgeResources *int32, auditRef string, returnObj *bool) (*ExpiredMembers, error) {
+	var data *ExpiredMembers
+	headers := map[string]string{
+		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
+	}
+	url := client.URL + "/expired-members" + encodeParams(encodeOptionalInt32Param("purgeResources", purgeResources))
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204, 200:
+		if 204 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return data, err
+			}
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) GetDomainDataCheck(domainName DomainName) (*DomainDataCheck, error) {
 	var data *DomainDataCheck
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/check"

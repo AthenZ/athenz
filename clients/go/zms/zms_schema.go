@@ -471,6 +471,18 @@ func init() {
 	tAuthHistoryDependencies.ArrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
 	sb.AddType(tAuthHistoryDependencies.Build())
 
+	tExpiryMember := rdl.NewStructTypeBuilder("Struct", "ExpiryMember")
+	tExpiryMember.Field("domainName", "DomainName", false, nil, "name of the domain")
+	tExpiryMember.Field("collectionName", "EntityName", false, nil, "name of the collection")
+	tExpiryMember.Field("principalName", "ResourceName", false, nil, "name of the principal")
+	tExpiryMember.Field("expiration", "Timestamp", false, nil, "the expiration timestamp")
+	sb.AddType(tExpiryMember.Build())
+
+	tExpiredMembers := rdl.NewStructTypeBuilder("Struct", "ExpiredMembers")
+	tExpiredMembers.ArrayField("expiredRoleMembers", "ExpiryMember", false, "list of deleted expired role members")
+	tExpiredMembers.ArrayField("expiredGroupMembers", "ExpiryMember", false, "list of deleted expired groups members")
+	sb.AddType(tExpiredMembers.Build())
+
 	tDanglingPolicy := rdl.NewStructTypeBuilder("Struct", "DanglingPolicy")
 	tDanglingPolicy.Comment("A dangling policy where the assertion is referencing a role name that doesn't exist in the domain")
 	tDanglingPolicy.Field("policyName", "EntityName", false, nil, "")
@@ -996,6 +1008,18 @@ func init() {
 	mGetAuthHistoryDependencies.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetAuthHistoryDependencies.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetAuthHistoryDependencies.Build())
+
+	mDeleteExpiredMembers := rdl.NewResourceBuilder("ExpiredMembers", "DELETE", "/expired-members")
+	mDeleteExpiredMembers.Comment("Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged")
+	mDeleteExpiredMembers.Input("purgeResources", "Int32", false, "purgeResources", "", true, nil, "defining which resources will be purged. by default all resources will be purged")
+	mDeleteExpiredMembers.Input("auditRef", "String", false, "", "Y-Audit-Ref", false, nil, "Audit reference")
+	mDeleteExpiredMembers.Input("returnObj", "Bool", false, "", "Athenz-Return-Object", true, false, "Return object param updated object back.")
+	mDeleteExpiredMembers.Auth("delete", "sys.auth:expired_members", false, "")
+	mDeleteExpiredMembers.Expected("NO_CONTENT")
+	mDeleteExpiredMembers.Exception("BAD_REQUEST", "ResourceError", "")
+	mDeleteExpiredMembers.Exception("FORBIDDEN", "ResourceError", "")
+	mDeleteExpiredMembers.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mDeleteExpiredMembers.Build())
 
 	mGetDomainDataCheck := rdl.NewResourceBuilder("DomainDataCheck", "GET", "/domain/{domainName}/check")
 	mGetDomainDataCheck.Comment("Carry out data check operation for the specified domain.")
