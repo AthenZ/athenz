@@ -1,3 +1,11 @@
+Athenz v1.11.8 Release / Sep 5, 2022
+------------------------------------
+
+#1941 auto purge expired role/group members based on server/domain config
+#1950 include optional attestation data string for ssh cert requests
+#1951 move aws document validation into a utils class
+#1952 In athenz-auth-core skip tests for arm architecture
+
 Athenz v1.11.7 Release / Aug 28, 2022
 -------------------------------------
 
