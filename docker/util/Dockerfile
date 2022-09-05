@@ -16,7 +16,7 @@ LABEL org.label-schema.vcs-ref=$VCS_REF
 RUN apk add --no-cache --virtual .build-deps bash gcc musl-dev openssl make git
 
 # get latest go from its own image, since its not available in apk
-COPY --from=golang:1.18.4-alpine /usr/local/go/ /usr/local/go/
+COPY --from=golang:1.19-alpine /usr/local/go/ /usr/local/go/
 
 ENV GOPATH="/root/go"
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz
@@ -31,7 +31,7 @@ RUN mkdir -p "${GOPATH}/bin"
 ENV PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 
 # fix to have rdl binary available to be used by client generators.
-RUN go get -d github.com/ardielle/ardielle-tools/... && go install github.com/ardielle/ardielle-tools/... \
+RUN GO111MODULE=off go get -u github.com/ardielle/ardielle-tools/... \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin
@@ -80,5 +80,6 @@ COPY --from=mvn /root/go/src/github.com/AthenZ/athenz/utils/zms-cli/target/linux
 COPY --from=mvn /root/go/src/github.com/AthenZ/athenz/utils/zts-accesstoken/target/linux/zts-accesstoken /usr/bin/zts-accesstoken
 COPY --from=mvn /root/go/src/github.com/AthenZ/athenz/utils/zts-svccert/target/linux/zts-svccert /usr/bin/zts-svccert
 COPY --from=mvn /root/go/src/github.com/AthenZ/athenz/utils/zts-rolecert/target/linux/zts-rolecert /usr/bin/zts-rolecert
+COPY --from=mvn /root/go/src/github.com/AthenZ/athenz/utils/athenz-conf/target/linux/athenz-conf /usr/bin/athenz-conf
 USER ${APP_NAME}:${APP_NAME}
 ENTRYPOINT ["/usr/bin/zms-cli"]

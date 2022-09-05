@@ -1,6 +1,6 @@
 FROM athenz-builder AS builder
 
-FROM adoptopenjdk/openjdk8:alpine-jre
+FROM eclipse-temurin:11-jre-alpine
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
 ARG BUILD_DATE
 # git rev-parse --short HEAD

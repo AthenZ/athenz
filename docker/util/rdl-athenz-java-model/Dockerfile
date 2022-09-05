@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
 ENV APP_NAME rdl-gen-athenz-java-model
 
@@ -7,8 +7,8 @@ RUN set -eux \
 
 WORKDIR ${GOPATH}/src/github.com/AthenZ/athenz/rdl/rdl-gen-athenz-java-model
 
-RUN go get -u github.com/ardielle/ardielle-go/... \
-    && go get -u github.com/ardielle/ardielle-tools/... \
+RUN GO111MODULE=off go get -u github.com/ardielle/ardielle-go/... \
+    && GO111MODULE=off go get -u github.com/ardielle/ardielle-tools/... \
     && mv ${GOPATH}/bin/rdl /usr/bin/rdl
 
 COPY . .
@@ -19,6 +19,7 @@ RUN CGO_ENABLED=1 \
     CGO_LDFLAGS="-g -Ofast -march=native" \
     GOOS=$(go env GOOS) \
     GOARCH=$(go env GOARCH) \
+    GO111MODULE=off \
     go build --ldflags '-s -w -linkmode "external" -extldflags "-static -fPIC -m64 -pthread -std=c++11 -lstdc++"' -a -tags "cgo netgo" -installsuffix "cgo netgo" -o "${APP_NAME}" \
     && upx -9 -o "/usr/bin/${APP_NAME}" "${APP_NAME}"
 
