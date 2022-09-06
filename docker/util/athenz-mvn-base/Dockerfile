@@ -8,7 +8,7 @@ FROM rdl-athenz-go-model AS rdl-go-model
 
 FROM rdl-athenz-java-client AS rdl-java-client
 
-FROM maven:3.6-alpine AS mvn
+FROM maven:3.8.6-eclipse-temurin-11-alpine AS mvn
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
 ARG BUILD_DATE
 # git rev-parse --short HEAD
@@ -45,11 +45,12 @@ COPY ./core/zts/pom.xml ./core/zts/pom.xml
 COPY ./libs/java/auth_core/pom.xml ./libs/java/auth_core/pom.xml
 COPY ./libs/java/client_common/pom.xml ./libs/java/client_common/pom.xml
 COPY ./libs/java/server_common/pom.xml ./libs/java/server_common/pom.xml
+COPY ./libs/java/syncer_common/pom.xml ./libs/java/syncer_common/pom.xml
+COPY ./libs/java/dynamodb_client_factory/pom.xml ./libs/java/dynamodb_client_factory/pom.xml
 COPY ./libs/java/instance_provider/pom.xml ./libs/java/instance_provider/pom.xml
 COPY ./libs/java/cert_refresher/pom.xml ./libs/java/cert_refresher/pom.xml
 COPY ./clients/java/zms/pom.xml ./clients/java/zms/pom.xml
-COPY ./clients/java/zts/core/pom.xml ./clients/java/zts/core/pom.xml
-COPY ./clients/java/zts/shade/pom.xml ./clients/java/zts/shade/pom.xml
+COPY ./clients/java/zts/pom.xml ./clients/java/zts/pom.xml
 COPY ./clients/java/zpe/pom.xml ./clients/java/zpe/pom.xml
 COPY ./servers/zms/pom.xml ./servers/zms/pom.xml
 COPY ./servers/zts/pom.xml ./servers/zts/pom.xml
