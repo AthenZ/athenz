@@ -1090,8 +1090,8 @@ public class ZMSClient implements Closeable {
      * @param role       role object to be added to the domain
      * @throws ZMSClientException in case of failure
      */
-    public Role putRole(String domainName, String roleName, String auditRef, Role role) {
-        return  putRole(domainName, roleName, auditRef, false, role);
+    public void putRole(String domainName, String roleName, String auditRef, Role role) {
+     putRole(domainName, roleName, auditRef, false, role);
     }
 
     /**
@@ -1175,8 +1175,8 @@ public class ZMSClient implements Closeable {
      * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
-    public Membership putMembership(String domainName, String roleName, String memberName, String auditRef) {
-        return putMembershipWithReview(domainName, roleName, memberName, null, null, auditRef);
+    public void putMembership(String domainName, String roleName, String memberName, String auditRef) {
+        putMembershipWithReview(domainName, roleName, memberName, null, null, auditRef);
     }
 
 
@@ -1203,9 +1203,9 @@ public class ZMSClient implements Closeable {
      * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
-    public Membership putMembership(String domainName, String roleName, String memberName,
+    public void putMembership(String domainName, String roleName, String memberName,
                               Timestamp expiration, String auditRef) {
-        return putMembershipWithReview(domainName, roleName, memberName, expiration, null, auditRef);
+        putMembershipWithReview(domainName, roleName, memberName, expiration, null, auditRef);
     }
 
 
@@ -1262,9 +1262,9 @@ public class ZMSClient implements Closeable {
      * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
-    public Membership putMembershipWithReview(String domainName, String roleName, String memberName,
+    public void putMembershipWithReview(String domainName, String roleName, String memberName,
                               Timestamp expiration, Timestamp review, String auditRef) {
-      return putMembershipWithReview(domainName, roleName, memberName, expiration, review, auditRef, false);
+      putMembershipWithReview(domainName, roleName, memberName, expiration, review, auditRef, false);
     }
 
     /**
@@ -1628,8 +1628,8 @@ public class ZMSClient implements Closeable {
      * @param policy     Policy object with details
      * @throws ZMSClientException in case of failure
      */
-    public Policy putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
-        return putPolicy(domainName, policyName, auditRef, false, policy);
+    public void putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
+       putPolicy(domainName, policyName, auditRef, false, policy);
     }
 
 
@@ -1643,8 +1643,8 @@ public class ZMSClient implements Closeable {
      * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
-    public Policy putPolicyVersion(String domainName, String policyName, String version, String auditRef) {
-        return putPolicyVersionImpl(domainName, policyName, version, null, auditRef, false);
+    public void putPolicyVersion(String domainName, String policyName, String version, String auditRef) {
+        putPolicyVersionImpl(domainName, policyName, version, null, auditRef, false);
     }
 
     /**
@@ -1788,9 +1788,9 @@ public class ZMSClient implements Closeable {
      * @param service     ServiceIdentity object with all service details
      * @throws ZMSClientException in case of failure
      */
-    public ServiceIdentity putServiceIdentity(String domainName, String serviceName,
+    public void putServiceIdentity(String domainName, String serviceName,
                                    String auditRef, ServiceIdentity service) {
-        return putServiceIdentity(domainName, serviceName, auditRef, false, service);
+        putServiceIdentity(domainName, serviceName, auditRef, false, service);
     }
 
     /**
@@ -3083,8 +3083,8 @@ public class ZMSClient implements Closeable {
      * @param role        Role object containing updated and/or deleted members
      * @throws ZMSClientException in case of failure
      */
-    public Role putRoleReview(String domainName, String roleName, String auditRef, Role role) {
-        return putRoleReview(domainName, roleName, auditRef, false, role);
+    public void putRoleReview(String domainName, String roleName, String auditRef, Role role) {
+      putRoleReview(domainName, roleName, auditRef, false, role);
     }
 
     /**
@@ -3329,8 +3329,8 @@ public class ZMSClient implements Closeable {
      * @param group       Group object containing updated and/or deleted members
      * @throws ZMSClientException in case of failure
      */
-    public Group putGroupReview(String domainName, String groupName, String auditRef, Group group) {
-        return putGroupReview(domainName, groupName, auditRef, false, group);
+    public void putGroupReview(String domainName, String groupName, String auditRef, Group group) {
+       putGroupReview(domainName, groupName, auditRef, false, group);
     }
 
     /**
@@ -3389,8 +3389,8 @@ public class ZMSClient implements Closeable {
      * @param group      group object to be added to the domain
      * @throws ZMSClientException in case of failure
      */
-    public Group putGroup(String domainName, String groupName, String auditRef, Group group) {
-       return putGroup(domainName, groupName, auditRef, false, group);
+    public void putGroup(String domainName, String groupName, String auditRef, Group group) {
+       putGroup(domainName, groupName, auditRef, false, group);
     }
 
     /**
@@ -3460,8 +3460,8 @@ public class ZMSClient implements Closeable {
      * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
-    public GroupMembership putGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
-        return putGroupMembership(domainName, groupName, memberName, auditRef, false);
+    public void putGroupMembership(String domainName, String groupName, String memberName, String auditRef) {
+      putGroupMembership(domainName, groupName, memberName, auditRef, false);
     }
 
     /**
