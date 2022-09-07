@@ -259,7 +259,7 @@ func TestTokenWithStoreOption(t *testing.T) {
 	makeSiaDirs(t, opts)
 	makeIdentity(t, opts)
 
-	errs := Fetch(opts)
+	_, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokenPropOnly(t, opts, true)
 }
@@ -332,8 +332,9 @@ func TestAccessTokensSuccess(t *testing.T) {
 	makeIdentity(t, opts)
 
 	// 1) Normal Fetch Tokens
-	errs := Fetch(opts)
+	refreshed, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
+	assert.Lenf(t, refreshed, 5, "expected 5 refreshed access tokens but the number was %v: %v", len(refreshed), refreshed)
 	assertAccessTokens(t, opts, true)
 
 	// 2) Write token errors
@@ -342,7 +343,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
 	assert.NoErrorf(t, err, "unable to change time on: %s, err: %v", tpath, err)
 
-	errs = Fetch(opts)
+	_, errs = Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to fetch access tokens, errs: %v", errs)
 	log.Printf("tokens error: %v\n", errs)
 }
@@ -383,7 +384,7 @@ func TestAccessTokensRerun(t *testing.T) {
 	makeIdentity(t, opts)
 
 	// 1) Normal Fetch Tokens
-	errs := Fetch(opts)
+	_, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts, true)
 
@@ -395,7 +396,7 @@ func TestAccessTokensRerun(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	// Fetch tokens, after 1 second, this should result in no real execution
-	errs = Fetch(opts)
+	_, errs = Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
 	assertAccessTokens(t, opts, true)
 
@@ -414,7 +415,7 @@ func TestAccessTokensRerun(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	errs = Fetch(opts)
+	_, errs = Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", err)
 	assertAccessTokens(t, opts, true)
 
@@ -465,7 +466,7 @@ func TestAccessTokensUserAgent(t *testing.T) {
 	makeIdentity(t, opts)
 
 	// Normal Fetch Tokens
-	errs := Fetch(opts)
+	_, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts, true)
 }
@@ -508,7 +509,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 	makeIdentity(t, opts)
 
 	// Fetch tokens, there should be no errors here
-	errs := Fetch(opts)
+	_, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts, true)
 
@@ -517,7 +518,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, eckey)
 	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 
-	errs = Fetch(opts)
+	_, errs = Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to fetch access tokens, errs: %v", errs)
 	log.Printf("tokens error: %v\n", errs)
 
@@ -577,7 +578,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	makeIdentity(t, opts)
 
 	// Fetch tokens, there should be no errors here
-	errs := Fetch(opts)
+	_, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, opts, true)
 
@@ -588,7 +589,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	before, err := os.Stat(tpath)
 	assert.NoErrorf(t, err, "should be able to stat file: %s, err: %v", tpath, err)
 
-	errs = Fetch(opts)
+	_, errs = Fetch(opts)
 	assert.Lenf(t, errs, 1, "should be one error related to token1, err: %v", errs)
 	log.Printf("tokens error: %v\n", err)
 
@@ -598,7 +599,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	assert.Equalf(t, before.ModTime(), after.ModTime(), "token1 should not be updated when ZTS gives an error, before: %v, after: %v", before, after)
 
 	// Handling ZTS returning bad content
-	errs = Fetch(opts)
+	_, errs = Fetch(opts)
 	assert.Lenf(t, errs, 1, "should be one error related to token1, err: %v", errs)
 	log.Printf("tokens error: %v\n", err)
 
@@ -610,7 +611,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 
 // TestAccessTokensEmpty verifies that no execution is done if no access tokens are configured
 func TestAccessTokensEmpty(t *testing.T) {
-	errs := Fetch(&config.TokenOptions{})
+	_, errs := Fetch(&config.TokenOptions{})
 	assert.Lenf(t, errs, 0, "when there are not access tokens, there should be no error, err: %v", errs)
 }
 
@@ -635,7 +636,7 @@ func TestAccessTokensBadCerts(t *testing.T) {
 	makeSiaDirs(t, opts)
 
 	// Fetch Tokens should return errors, since identity svc certs are not present
-	errs := Fetch(opts)
+	_, errs := Fetch(opts)
 	assert.Lenf(t, errs, 3, "there should be 2 errors, errs: %+v", errs)
 	log.Printf("Errors: %+v\n", errs)
 }
@@ -675,7 +676,7 @@ func TestNewTokenOptions(t *testing.T) {
 
 	makeIdentity(t, tokenOpts)
 
-	errs := Fetch(tokenOpts)
+	_, errs := Fetch(tokenOpts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assertAccessTokens(t, tokenOpts, false)
 }

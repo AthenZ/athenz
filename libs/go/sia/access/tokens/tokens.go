@@ -120,8 +120,9 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 	return refresh, errs
 }
 
-func Fetch(opts *config.TokenOptions) []error {
+func Fetch(opts *config.TokenOptions) ([]string, []error) {
 	errs := []error{}
+	refreshed := []string{}
 	tlsConfigs, e := loadSvcCerts(opts)
 	if len(e) != 0 {
 		errs = append(errs, e...)
@@ -173,10 +174,12 @@ func Fetch(opts *config.TokenOptions) []error {
 		if err != nil {
 			errs = append(errs, fmt.Errorf("unable to write to file: %q for access token request for domain: %q, roles: %v, err: %v", fileName, t.Domain, t.Roles, err))
 			continue
+		} else {
+			refreshed = append(refreshed, fileName)
 		}
 	}
 
-	return errs
+	return refreshed, errs
 }
 
 // loadSvcCerts goes through the services found on the host, and loads the corresponding cert/key into map of tls.Config and returns the map

@@ -692,7 +692,7 @@ func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, e
 
 func fetchAccessToken(tokenOpts *config.TokenOptions) error {
 
-	errs := tokens.Fetch(tokenOpts)
+	_, errs := tokens.Fetch(tokenOpts)
 	log.Printf("Fetch access token completed successfully with [%d] errors", len(errs))
 
 	switch len(errs) {
