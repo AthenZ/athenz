@@ -394,7 +394,7 @@ func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options)
 }
 
 func restartSshdService() error {
-	return exec.Command("systemctl", "restart", "sshd").Run()
+	return exec.Command(util.GetUtilPath("systemctl"), "restart", "sshd").Run()
 }
 
 func updateSSH(sshCertFile, sshConfigFile, hostCert string) error {

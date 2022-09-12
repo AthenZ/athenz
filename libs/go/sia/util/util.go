@@ -41,6 +41,7 @@ import (
 	"github.com/ardielle/ardielle-go/rdl"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/futil"
 )
 
 type CertReqDetails struct {
@@ -722,7 +723,7 @@ func Nonce() (string, error) {
 }
 
 func ExecIdCommand(arg string) int {
-	out, err := exec.Command("id", arg).Output()
+	out, err := exec.Command(GetUtilPath("id"), arg).Output()
 	if err != nil {
 		log.Fatalf("Cannot exec 'id %s': %v", arg, err)
 	}
@@ -776,4 +777,17 @@ func ReadAthenzJwkConf(jwkConfFile string, jwkConfObj *zts.AthenzJWKConfig) erro
 		return fmt.Errorf("failed to unmarshal athenz.conf: [%s], err: %v", jwkConfFile, err.Error())
 	}
 	return nil
+}
+
+func GetUtilPath(command string) string {
+	path := "/usr/bin/" + command
+	if futil.Exists(path) {
+		return path
+	}
+	path = "/bin/" + command
+	if futil.Exists(path) {
+		return path
+	} else {
+		return command
+	}
 }
