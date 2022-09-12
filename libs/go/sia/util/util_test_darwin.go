@@ -26,7 +26,7 @@ import (
 func TestGidForGroupCommand(t *testing.T) {
 
 	// Get current group name.
-	grp, err := exec.Command("id", "-gn").Output()
+	grp, err := exec.Command(GetUtilPath("id"), "-gn").Output()
 	if err != nil {
 		t.Errorf("Cannot exec 'id -gn': %v", err)
 		return
@@ -34,7 +34,7 @@ func TestGidForGroupCommand(t *testing.T) {
 	group := strings.Trim(string(grp), "\n\r ")
 
 	// Get current group id.
-	gidBytes, err := exec.Command("id", "-g").Output()
+	gidBytes, err := exec.Command(GetUtilPath("id"), "-g").Output()
 	if err != nil {
 		t.Errorf("Cannot exec 'id -gn': %v", err)
 		return
@@ -65,7 +65,7 @@ func TestGidForInvalidGroupCommand(t *testing.T) {
 func TestUidGidForUserGroupCommand(t *testing.T) {
 
 	// Get current user id
-	usr, err := exec.Command("id", "-un").Output()
+	usr, err := exec.Command(GetUtilPath("id"), "-un").Output()
 	if err != nil {
 		t.Errorf("Cannot exec 'id -un': %v", err)
 		return
@@ -73,7 +73,7 @@ func TestUidGidForUserGroupCommand(t *testing.T) {
 	user := strings.Trim(string(usr), "\n\r ")
 
 	// Get current user id.
-	uidBytes, err := exec.Command("id", "-u").Output()
+	uidBytes, err := exec.Command(GetUtilPath("id"), "-u").Output()
 	if err != nil {
 		t.Errorf("Cannot exec 'id -un': %v", err)
 		return
@@ -84,7 +84,7 @@ func TestUidGidForUserGroupCommand(t *testing.T) {
 	}
 
 	// Get current group id.
-	gidBytes, err := exec.Command("id", "-g").Output()
+	gidBytes, err := exec.Command(GetUtilPath("id"), "-g").Output()
 	if err != nil {
 		t.Errorf("Cannot exec 'id -gn': %v", err)
 		return

@@ -32,6 +32,7 @@ import (
 	"testing"
 
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 
 	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/assert"
@@ -365,7 +366,7 @@ func assertToken(tokens []config.AccessToken, token config.AccessToken) bool {
 }
 
 func idCommandId(arg string) int {
-	out, err := exec.Command("id", arg).Output()
+	out, err := exec.Command(util.GetUtilPath("id"), arg).Output()
 	if err != nil {
 		log.Fatalf("Cannot exec 'id %s': %v\n", arg, err)
 	}

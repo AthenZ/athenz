@@ -139,9 +139,9 @@ func gidForGroup(groupname string) int {
 	//requires cgo, which doesn't cross-compile. we can use getent group
 	//command but instead we opted for a simple grep for /etc/group
 	cmdStr := fmt.Sprintf("^%s:", groupname)
-	out, err := exec.Command("/bin/grep", cmdStr, "/etc/group").Output()
+	out, err := exec.Command(GetUtilPath("grep"), cmdStr, "/etc/group").Output()
 	if err != nil {
-		log.Printf("Cannot exec '/bin/grep %s /etc/group': %v\n", groupname, err)
+		log.Printf("Cannot exec '%s %s /etc/group': %v\n", GetUtilPath("grep"), groupname, err)
 		return -1
 	}
 	s := strings.Trim(string(out), "\n\r ")
@@ -166,9 +166,9 @@ func idCommand(username, arg string) int {
 	var out []byte
 	var err error
 	if username == "" {
-		out, err = exec.Command("id", arg).Output()
+		out, err = exec.Command(GetUtilPath("id"), arg).Output()
 	} else {
-		out, err = exec.Command("id", arg, username).Output()
+		out, err = exec.Command(GetUtilPath("id"), arg, username).Output()
 	}
 	if err != nil {
 		log.Fatalf("Cannot exec 'id %s %s': %v\n", arg, username, err)
