@@ -258,7 +258,7 @@ public class ZMSClient implements Closeable {
 
     /**
      * Clear the principal identity set for the client. Unless a new principal is set
-     * using the addCredentials method, the client can only be used to requests data
+     * using the addCredentials method, the client can only be used to request data
      * from the ZMS Server that doesn't require any authentication.
      *
      * @return self ZMSClient object
@@ -1014,7 +1014,6 @@ public class ZMSClient implements Closeable {
         return getRole(domainName, roleName, auditLog, false, false);
     }
 
-
     /**
      * Retrieve the specified role
      *
@@ -1064,7 +1063,7 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param roleName   name of the role
      * @param auditRef   string containing audit specification or ticket number
-     * @param returnObj Boolean returns the updated object from the database if true
+     * @param returnObj  Boolean returns the updated object from the database if true
      * @param role       role object to be added to the domain
      * @throws ZMSClientException in case of failure
      */
@@ -1091,7 +1090,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public void putRole(String domainName, String roleName, String auditRef, Role role) {
-     putRole(domainName, roleName, auditRef, false, role);
+        putRole(domainName, roleName, auditRef, false, role);
     }
 
     /**
@@ -1179,7 +1178,6 @@ public class ZMSClient implements Closeable {
         putMembershipWithReview(domainName, roleName, memberName, null, null, auditRef);
     }
 
-
     /**
      * Add a new member in the specified role.
      *
@@ -1187,9 +1185,11 @@ public class ZMSClient implements Closeable {
      * @param roleName   name of the role
      * @param memberName name of the member to be added
      * @param auditRef   string containing audit specification or ticket number
+     * @param returnObj  boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public Membership putMembership(String domainName, String roleName, String memberName, String auditRef, Boolean returnObj) {
+    public Membership putMembership(String domainName, String roleName, String memberName,
+                                    String auditRef, Boolean returnObj) {
         return putMembershipWithReview(domainName, roleName, memberName, null, null, auditRef, returnObj);
     }
 
@@ -1208,7 +1208,6 @@ public class ZMSClient implements Closeable {
         putMembershipWithReview(domainName, roleName, memberName, expiration, null, auditRef);
     }
 
-
     /**
      * Add a new member in the specified role.
      *
@@ -1216,13 +1215,13 @@ public class ZMSClient implements Closeable {
      * @param roleName   name of the role
      * @param memberName name of the member to be added
      * @param auditRef   string containing audit specification or ticket number
+     * @param returnObj  boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
-    public Membership putMembership(String domainName, String roleName, String memberName, Timestamp expiration, String auditRef, Boolean returnObj) {
+    public Membership putMembership(String domainName, String roleName, String memberName, Timestamp expiration,
+                                    String auditRef, Boolean returnObj) {
         return putMembershipWithReview(domainName, roleName, memberName, expiration, null, auditRef, returnObj);
     }
-
-
 
     /**
      * Add a member in the specified role with optional expiration and optional review
@@ -1231,9 +1230,9 @@ public class ZMSClient implements Closeable {
      * @param roleName   name of the role
      * @param memberName name of the member to be added
      * @param expiration timestamp when this membership will expire (optional)
-     * @param review timestamp when this membership will require review (optional)
+     * @param review     timestamp when this membership will require review (optional)
      * @param auditRef   string containing audit specification or ticket number
-     * @param returnObj Boolean returns the updated object from the database if true
+     * @param returnObj  Boolean returns the updated object from the database if true
      * @throws ZMSClientException in case of failure
      */
     public Membership putMembershipWithReview(String domainName, String roleName, String memberName,
@@ -1258,7 +1257,7 @@ public class ZMSClient implements Closeable {
      * @param roleName   name of the role
      * @param memberName name of the member to be added
      * @param expiration timestamp when this membership will expire (optional)
-     * @param review timestamp when this membership will require review (optional)
+     * @param review     timestamp when this membership will require review (optional)
      * @param auditRef   string containing audit specification or ticket number
      * @throws ZMSClientException in case of failure
      */
@@ -1631,8 +1630,6 @@ public class ZMSClient implements Closeable {
     public void putPolicy(String domainName, String policyName, String auditRef, Policy policy) {
        putPolicy(domainName, policyName, auditRef, false, policy);
     }
-
-
 
     /**
      * Create a new policy version in the specified domain.
@@ -2384,7 +2381,8 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public SignedDomains getSignedDomains(String domainName, String metaOnly, String metaAttr,
-                                          boolean masterCopy, boolean conditions, String matchingTag, Map<String, List<String>> responseHeaders) {
+                                          boolean masterCopy, boolean conditions, String matchingTag,
+                                          Map<String, List<String>> responseHeaders) {
         updatePrincipal();
         try {
             return client.getSignedDomains(domainName, metaOnly, metaAttr, masterCopy, conditions, matchingTag, responseHeaders);
@@ -2427,6 +2425,7 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
+
     /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations. The client internally
@@ -2639,8 +2638,8 @@ public class ZMSClient implements Closeable {
      * @return list of provider roles
      * @throws ZMSClientException in case of failure
      */
-    public ProviderResourceGroupRoles getProviderResourceGroupRoles(String tenantDomain,
-                                                                    String providerDomain, String providerServiceName, String resourceGroup) {
+    public ProviderResourceGroupRoles getProviderResourceGroupRoles(String tenantDomain, String providerDomain,
+                                                                    String providerServiceName, String resourceGroup) {
         updatePrincipal();
         try {
             return client.getProviderResourceGroupRoles(tenantDomain, providerDomain, providerServiceName,
@@ -2671,7 +2670,7 @@ public class ZMSClient implements Closeable {
     }
 
     /**
-     * Retrieve the the specified solution template provisioned on the ZMS Server.
+     * Retrieve the specified solution template provisioned on the ZMS Server.
      * The template object will include the list of roles and policies that will
      * be provisioned in the domain when the template is applied.
      *
@@ -3084,7 +3083,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public void putRoleReview(String domainName, String roleName, String auditRef, Role role) {
-      putRoleReview(domainName, roleName, auditRef, false, role);
+        putRoleReview(domainName, roleName, auditRef, false, role);
     }
 
     /**
@@ -3420,7 +3419,7 @@ public class ZMSClient implements Closeable {
      * will contain their attributes and, if specified, the list of members.
      *
      * @param domainName name of the domain
-     * @param members    include all members for group groups as well
+     * @param members    include all members for groups as well
      * @return list of groups
      * @throws ZMSClientException in case of failure
      */
