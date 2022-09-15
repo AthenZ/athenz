@@ -21,7 +21,7 @@ func (fetcher *FargateFetcher) Fetch(host MsdHost, accountId string) (ServicesDa
 		log.Fatalf("Unable to formulate config, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, SIA_DIR, "", false, "")
+	opts, err := options.NewOptions(config, configAccount, nil, SIA_DIR, "", false, "")
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

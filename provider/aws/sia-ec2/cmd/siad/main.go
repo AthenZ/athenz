@@ -19,14 +19,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
-	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/athenz/provider/aws/sia-ec2"
 )
 
 // Following can be set by the build script using LDFLAGS
@@ -49,6 +49,7 @@ func main() {
 	displayVersion := flag.Bool("version", false, "Display version information")
 	udsPath := flag.String("uds", "", "uds path")
 	noSysLog := flag.Bool("nosyslog", false, "turn off syslog, log to stdout")
+	accessProfileConf := flag.String("profileconfig", "/etc/sia/profile_config", "The access profile config file")
 
 	flag.Parse()
 
@@ -89,12 +90,12 @@ func main() {
 		log.Fatalf("Unable to extract document details: %v\n", err)
 	}
 
-	config, configAccount, err := sia.GetEC2Config(*pConf, *ec2MetaEndPoint, *useRegionalSTS, region, account)
+	config, configAccount, accessProfileConfig, err := sia.GetEC2Config(*pConf, *accessProfileConf, *ec2MetaEndPoint, *useRegionalSTS, region, account)
 	if err != nil {
 		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region)
+	opts, err := options.NewOptions(config, configAccount, accessProfileConfig, siaMainDir, Version, *useRegionalSTS, region)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

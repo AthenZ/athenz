@@ -646,7 +646,7 @@ func TestNewTokenOptions(t *testing.T) {
 	cfg.KeepPrivileges = true
 	siaDir := "/tmp"
 
-	opts, err := options.NewOptions(cfg, configAccount, siaDir, "1.0.0", false, "us-west-2")
+	opts, err := options.NewOptions(cfg, configAccount, nil, siaDir, "1.0.0", false, "us-west-2")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 
 	// when nobody or other account is not presented, 'id -u nobody' returns 4294967294
@@ -686,7 +686,7 @@ func TestTokenRefreshOption(t *testing.T) {
 	cfg, configAccount, _ := options.InitFileConfig("data/sia_config.with-access-tokens", "http://localhost:80", false, "us-west-2", "")
 	siaDir := "/tmp"
 
-	opts, err := options.NewOptions(cfg, configAccount, siaDir, "1.0.0", false, "us-west-2")
+	opts, err := options.NewOptions(cfg, configAccount, nil, siaDir, "1.0.0", false, "us-west-2")
 	tokenOpts, err := NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	dur, _ := time.ParseDuration(DEFAULT_REFRESH_DURATION)

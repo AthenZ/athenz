@@ -18,7 +18,6 @@ package signature
 
 // SignatureInfo - SignatureInfo object includes host document signature and
 // the keyid keyid is the cluster id where the host document was signed
-//
 type SignatureInfo struct {
 	Signature string `json:"signature"`
 	Keyid     string `json:"keyid"`

@@ -41,17 +41,17 @@ func New(useRegionalSTS bool, region string) (*session.Session, error) {
 	}
 }
 
-func GetMetaDetailsFromCreds(serviceSuffix string, useRegionalSTS bool, region string) (string, string, string, error) {
+func GetMetaDetailsFromCreds(serviceSuffix, accessProfileSeparator string, useRegionalSTS bool, region string) (string, string, string, string, error) {
 	stsSession, err := New(useRegionalSTS, region)
 	if err != nil {
-		return "", "", "", fmt.Errorf("unable to create new session: %v", err)
+		return "", "", "", "", fmt.Errorf("unable to create new session: %v", err)
 	}
 	stsService := sts.New(stsSession)
 	input := &sts.GetCallerIdentityInput{}
 
 	result, err := stsService.GetCallerIdentity(input)
 	if err != nil {
-		return "", "", "", err
+		return "", "", "", "", err
 	}
-	return util.ParseAssumedRoleArn(*result.Arn, serviceSuffix)
+	return util.ParseAssumedRoleArn(*result.Arn, serviceSuffix, accessProfileSeparator)
 }

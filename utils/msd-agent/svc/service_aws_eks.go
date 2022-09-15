@@ -22,7 +22,7 @@ func (fetcher *EKSFetcher) Fetch(host MsdHost, accountId string) (ServicesData, 
 		log.Fatalf("Unable to formulate config, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, SIA_DIR, "", false, "")
+	opts, err := options.NewOptions(config, configAccount, nil, SIA_DIR, "", false, "")
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
@@ -34,7 +34,7 @@ func (fetcher *EKSFetcher) Fetch(host MsdHost, accountId string) (ServicesData, 
 }
 
 func (fetcher *EKSFetcher) GetAccountId() (string, error) {
-	accountId, _, _, err := stssession.GetMetaDetailsFromCreds("-service", false, "")
+	accountId, _, _, _, err := stssession.GetMetaDetailsFromCreds("-service", "", false, "")
 	if err != nil {
 		log.Fatalf("Unable to get account id from available credentials, error: %v", err)
 	}
