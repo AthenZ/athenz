@@ -43,11 +43,11 @@ func GetEKSConfig(configFile, metaEndpoint string, useRegionalSTS bool, region s
 			// if we do not have settings in our environment, we're going
 			// to use fallback to <domain>.<service>-service naming structure
 			log.Println("Trying to determine service name security credentials...")
-			configAccount, err = options.InitCredsConfig("-service", useRegionalSTS, region)
+			configAccount, _, err = options.InitCredsConfig("-service", "@", useRegionalSTS, region)
 			if err != nil {
 				log.Printf("Unable to process security credentials: %v\n", err)
 				log.Println("Trying to determine service name from profile arn...")
-				configAccount, err = options.InitProfileConfig(metaEndpoint, "-service")
+				configAccount, _, err = options.InitProfileConfig(metaEndpoint, "-service", "@")
 				if err != nil {
 					log.Printf("Unable to determine service name: %v\n", err)
 					return config, nil, err

@@ -80,7 +80,7 @@ func main() {
 		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, siaMainDir, Version, *useRegionalSTS, region)
+	opts, err := options.NewOptions(config, configAccount, nil, siaMainDir, Version, *useRegionalSTS, region)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

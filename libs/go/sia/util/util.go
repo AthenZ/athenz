@@ -485,50 +485,61 @@ func UpdateKey(keyFile string, uid, gid int) {
 	}
 }
 
-func ParseAssumedRoleArn(roleArn, serviceSuffix string) (string, string, string, error) {
-	//arn:aws:sts::123456789012:assumed-role/athenz.zts-service/i-0662a0226f2d9dc2b
+func ParseAssumedRoleArn(roleArn, serviceSuffix, accessProfileSeparator string) (string, string, string, string, error) {
+	//arn:aws:sts::123456789012:assumed-role/athenz.zts-service@sia-profile/i-0662a0226f2d9dc2b
 	if !strings.HasPrefix(roleArn, "arn:aws:sts:") {
-		return "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
+		return "", "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
 	}
 	arn := strings.Split(roleArn, ":")
 	// make sure we have correct number of components
 	if len(arn) < 6 {
-		return "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
+		return "", "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
 	}
 	// our role part as 3 components separated by /
 	roleComps := strings.Split(arn[5], "/")
 	if len(roleComps) != 3 {
-		return "", "", "", fmt.Errorf("unable to parse role arn (role components): %s", roleArn)
+		return "", "", "", "", fmt.Errorf("unable to parse role arn (role components): %s", roleArn)
 	}
 	// the first component must be assumed-role
 	if roleComps[0] != "assumed-role" {
-		return "", "", "", fmt.Errorf("unable to parse role arn (assumed-role): %s", roleArn)
+		return "", "", "", "", fmt.Errorf("unable to parse role arn (assumed-role): %s", roleArn)
 	}
 	// second component is our athenz service name with the requested service suffix
 	// if the service suffix is empty then we don't need any parsing of the requested
 	// domain/service values and we'll just parse the values as is
-	var domain, service string
+	var domain, service, profile string
 	if serviceSuffix == "" {
 		roleName := roleComps[1]
+		if accessProfileSeparator != "" && strings.Contains(roleName, accessProfileSeparator) {
+			roleData := strings.Split(roleName, accessProfileSeparator)
+			profile = roleData[1]
+			roleName = roleData[0]
+		}
 		idx := strings.LastIndex(roleName, ".")
 		if idx > 0 {
 			domain = roleName[:idx]
 			service = roleName[idx+1:]
 		}
 	} else {
-		if !strings.HasSuffix(roleComps[1], serviceSuffix) {
-			return "", "", "", fmt.Errorf("service name does not have '%s' suffix: %s", serviceSuffix, roleArn)
+		serviceData := roleComps[1]
+		if accessProfileSeparator != "" && strings.Contains(roleComps[1], accessProfileSeparator) {
+			roleData := strings.Split(roleComps[1], accessProfileSeparator)
+			profile = roleData[1]
+			serviceData = roleData[0]
 		}
-		roleName := roleComps[1][0 : len(roleComps[1])-len(serviceSuffix)]
+		if !strings.HasSuffix(serviceData, serviceSuffix) {
+			return "", "", "", "", fmt.Errorf("service name does not have '%s' suffix: %s", serviceSuffix, roleArn)
+		}
+		roleName := serviceData[0 : len(serviceData)-len(serviceSuffix)]
 		idx := strings.LastIndex(roleName, ".")
 		if idx < 0 {
-			return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+			return "", "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
 		}
 		domain = roleName[:idx]
 		service = roleName[idx+1:]
 	}
 	account := arn[4]
-	return account, domain, service, nil
+	return account, domain, service, profile, nil
 }
 
 func ParseTaskArn(taskArn string) (string, string, string, error) {
@@ -558,33 +569,53 @@ func ParseTaskArn(taskArn string) (string, string, string, error) {
 	return account, taskId, region, nil
 }
 
-func ParseRoleArn(roleArn, rolePrefix, roleSuffix string) (string, string, string, error) {
+func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string) (string, string, string, string, error) {
 	//arn:aws:iam::123456789012:role/athenz.zts
 	//arn:aws:iam::123456789012:instance-profile/athenz.zts
+	//arn:aws:iam::123456789012:instance-profile/athenz.zts@access-profile
+
 	if !strings.HasPrefix(roleArn, "arn:aws:iam:") {
-		return "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
+		return "", "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
 	}
 	arn := strings.Split(roleArn, ":")
 	// make sure we have correct number of components
 	if len(arn) != 6 {
-		return "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
+		return "", "", "", "", fmt.Errorf("unable to parse role arn (number of components): %s", roleArn)
 	}
 	// our role part must start with role/
 	if !strings.HasPrefix(arn[5], rolePrefix) {
-		return "", "", "", fmt.Errorf("role name does not have '%s' prefix: %s", rolePrefix, roleArn)
+		return "", "", "", "", fmt.Errorf("role name does not have '%s' prefix: %s", rolePrefix, roleArn)
 	}
-	if roleSuffix != "" && !strings.HasSuffix(arn[5][len(rolePrefix):], roleSuffix) {
-		return "", "", "", fmt.Errorf("role name does not have '%s' suffix: %s", roleSuffix, roleArn)
+
+	roleName := arn[5][len(rolePrefix):]
+	profile := ""
+	serviceRole := roleName
+
+	if profileSeparator != "" && strings.Contains(arn[5], profileSeparator) {
+		data := strings.Split(roleName, profileSeparator)
+
+		serviceRole = data[0]
+		profile = data[1]
+
+		if profile == "" {
+			return "", "", "", "", fmt.Errorf("cannot determine profile from arn: %s", roleArn)
+		}
 	}
-	roleName := arn[5][len(rolePrefix) : len(arn[5])-len(roleSuffix)]
-	idx := strings.LastIndex(roleName, ".")
+
+	if roleSuffix != "" && !strings.HasSuffix(serviceRole, roleSuffix) {
+		return "", "", "", "", fmt.Errorf("role name does not have '%s' suffix: %s", roleSuffix, roleArn)
+	}
+
+	// get service details without suffix
+	serviceData := serviceRole[:len(serviceRole)-len(roleSuffix)]
+	idx := strings.LastIndex(serviceData, ".")
 	if idx < 0 {
-		return "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+		return "", "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
 	}
-	domain := roleName[:idx]
-	service := roleName[idx+1:]
+	domain := serviceData[:idx]
+	service := serviceData[idx+1:]
 	account := arn[4]
-	return account, domain, service, nil
+	return account, domain, service, profile, nil
 }
 
 func ParseEnvBooleanFlag(varName string) bool {

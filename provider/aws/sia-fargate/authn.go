@@ -62,7 +62,7 @@ func initTaskConfig(config *options.Config, metaEndpoint string) (*options.Confi
 	if err != nil {
 		return nil, nil, err
 	}
-	account, domain, service, err := util.ParseRoleArn(roleArn, "role/", "-service")
+	account, domain, service, _, err := util.ParseRoleArn(roleArn, "role/", "-service", "")
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to parse athenz role arn: %v", err)
 	}

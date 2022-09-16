@@ -90,6 +90,10 @@ type Config struct {
 	AccessTokens    map[string]ac.Role       `json:"access_tokens,omitempty"`     // map of role name to token attributes
 }
 
+type AccessProfileConfig struct {
+	Profile string `json:"profile,omitempty"` // map of role name to token attributes
+}
+
 // Role contains role details. Attributes are set based on the config values
 type Role struct {
 	Name     string
@@ -163,6 +167,7 @@ type Options struct {
 	KeepPrivileges     bool                  //Keep privileges as root instead of dropping to configured user
 	TokenDir           string                //Access tokens directory
 	AccessTokens       []ac.AccessToken      //Access tokens object
+	Profile            string                //Access profile name
 }
 
 const (
@@ -172,7 +177,7 @@ const (
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
 	// first try to get the account from our creds and if
 	// fails we'll fall back to identity document
-	configAccount, err := InitCredsConfig("", useRegionalSTS, region)
+	configAccount, _, err := InitCredsConfig("", "@", useRegionalSTS, region)
 	if err == nil {
 		return configAccount.Account, nil
 	}
@@ -183,39 +188,43 @@ func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (stri
 	return doc.GetDocumentEntry(document, "accountId")
 }
 
-func InitCredsConfig(roleSuffix string, useRegionalSTS bool, region string) (*ConfigAccount, error) {
-	account, domain, service, err := stssession.GetMetaDetailsFromCreds(roleSuffix, useRegionalSTS, region)
+func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS bool, region string) (*ConfigAccount, *AccessProfileConfig, error) {
+	account, domain, service, profile, err := stssession.GetMetaDetailsFromCreds(roleSuffix, accessProfileSeparator, useRegionalSTS, region)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse role arn: %v", err)
+		return nil, nil, fmt.Errorf("unable to parse role arn: %v", err)
 	}
 	return &ConfigAccount{
-		Domain:  domain,
-		Service: service,
-		Account: account,
-		Name:    fmt.Sprintf("%s.%s", domain, service),
-	}, nil
+			Domain:  domain,
+			Service: service,
+			Account: account,
+			Name:    fmt.Sprintf("%s.%s", domain, service),
+		}, &AccessProfileConfig{
+			Profile: profile,
+		}, nil
 }
 
-func InitProfileConfig(metaEndPoint, roleSuffix string) (*ConfigAccount, error) {
+func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) (*ConfigAccount, *AccessProfileConfig, error) {
 	info, err := meta.GetData(metaEndPoint, "/latest/meta-data/iam/info")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	arn, err := doc.GetDocumentEntry(info, "InstanceProfileArn")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	account, domain, service, err := util.ParseRoleArn(arn, "instance-profile/", roleSuffix)
+	account, domain, service, profile, err := util.ParseRoleArn(arn, "instance-profile/", roleSuffix, accessProfileSeparator)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return &ConfigAccount{
-		Domain:  domain,
-		Service: service,
-		Account: account,
-		Name:    fmt.Sprintf("%s.%s", domain, service),
-	}, nil
+			Domain:  domain,
+			Service: service,
+			Account: account,
+			Name:    fmt.Sprintf("%s.%s", domain, service),
+		}, &AccessProfileConfig{
+			Profile: profile,
+		}, nil
 }
 
 func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string) (*Config, *ConfigAccount, error) {
@@ -250,6 +259,28 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, 
 		}
 	}
 	return nil, nil, fmt.Errorf("missing account %s details from config file", account)
+}
+
+func InitAccessProfileFileConfig(fileName string) (*AccessProfileConfig, error) {
+	confBytes, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+	if len(confBytes) == 0 {
+		return nil, errors.New("empty config bytes")
+	}
+	var config AccessProfileConfig
+	err = json.Unmarshal(confBytes, &config)
+	if err != nil {
+		return nil, err
+	}
+	if config.Profile == "" {
+		return nil, fmt.Errorf("missing required Profile field from the config file")
+	}
+
+	return &AccessProfileConfig{
+		Profile: config.Profile,
+	}, nil
 }
 
 func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
@@ -309,13 +340,14 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if roleArn == "" {
 		return config, nil, fmt.Errorf("athenz role arn env variable not configured")
 	}
-	account, domain, service, err := util.ParseRoleArn(roleArn, "role/", "")
+	account, domain, service, _, err := util.ParseRoleArn(roleArn, "role/", "", "")
 	if err != nil {
 		return config, nil, fmt.Errorf("unable to parse athenz role arn: %v", err)
 	}
 	if account == "" || domain == "" || service == "" {
 		return config, nil, fmt.Errorf("invalid role arn - missing components: %s", roleArn)
 	}
+
 	return config, &ConfigAccount{
 		Account: account,
 		Domain:  domain,
@@ -324,9 +356,21 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	}, nil
 }
 
+func InitAccessProfileEnvConfig() (*AccessProfileConfig, error) {
+
+	accessProfile := os.Getenv("ATHENZ_SIA_ACCESS_PROFILE")
+	if accessProfile == "" {
+		return nil, fmt.Errorf("athenz accessProfile variable not configured")
+	}
+
+	return &AccessProfileConfig{
+		Profile: accessProfile,
+	}, nil
+}
+
 // setOptions takes in sia_config objects and returns a pointer to Options after parsing and initializing the defaults
 // It uses profile arn for defaults when sia_config is empty or non-parsable. It populates "services" array
-func setOptions(config *Config, account *ConfigAccount, siaDir, version string) (*Options, error) {
+func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessProfileConfig, siaDir, version string) (*Options, error) {
 
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
@@ -339,6 +383,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 	refreshInterval := 24 * 60
 	ztsRegion := ""
 	keepPrivileges := false
+	profile := ""
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -459,6 +504,10 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		}
 	}
 
+	if profileConfig != nil {
+		profile = profileConfig.Profile
+	}
+
 	return &Options{
 		Name:             account.Name,
 		User:             account.User,
@@ -484,6 +533,7 @@ func setOptions(config *Config, account *ConfigAccount, siaDir, version string) 
 		ZTSRegion:        ztsRegion,
 		KeepPrivileges:   keepPrivileges,
 		AccessTokens:     accessTokens,
+		Profile:          profile,
 	}, nil
 }
 
@@ -601,9 +651,9 @@ func GetRunsAsUidGid(opts *Options) (int, int) {
 	return uid, gid
 }
 
-func NewOptions(config *Config, configAccount *ConfigAccount, siaDir, siaVersion string, useRegionalSTS bool, region string) (*Options, error) {
+func NewOptions(config *Config, configAccount *ConfigAccount, profileConfig *AccessProfileConfig, siaDir, siaVersion string, useRegionalSTS bool, region string) (*Options, error) {
 
-	opts, err := setOptions(config, configAccount, siaDir, siaVersion)
+	opts, err := setOptions(config, configAccount, profileConfig, siaDir, siaVersion)
 	if err != nil {
 		log.Printf("Unable to formulate options, error: %v\n", err)
 		return nil, err
