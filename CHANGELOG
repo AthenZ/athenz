@@ -1,3 +1,13 @@
+Athenz v1.11.9 Release / Sep 15, 2022
+-------------------------------------
+
+#1953 docker build upkeep
+#1954 In tokens lib - return successfully refreshed tokens
+#1956 use full path for id/system commands in service identity agents
+#1957 fix put policy zms client api with return object argument
+#1958 update dependency packages to their latest releases
+#1960 Update sia-libs to fetch access profile information for EC2
+
 Athenz v1.11.8 Release / Sep 5, 2022
 ------------------------------------
 
