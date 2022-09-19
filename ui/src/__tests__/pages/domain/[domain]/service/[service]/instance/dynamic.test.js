@@ -85,7 +85,8 @@ describe('DynamicInstancePage', () => {
                 domain='dom'
                 domainResult={[]}
                 headerDetails={headerDetails}
-                instanceDetails={instanceDetails}
+                workLoadMeta={instanceDetails.workLoadMeta}
+                workLoadData={instanceDetails.workLoadData}
                 serviceHeaderDetails={serviceHeaderDetails}
             />
         );
@@ -140,7 +141,8 @@ describe('DynamicInstancePage', () => {
                 domainResult={[]}
                 headerDetails={headerDetails}
                 categoryType='Dynamic'
-                instanceDetails={instanceDetails}
+                workLoadMeta={instanceDetails.workLoadMeta}
+                workLoadData={instanceDetails.workLoadData}
                 serviceHeaderDetails={serviceHeaderDetails}
             />
         );

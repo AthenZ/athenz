@@ -17,7 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import SearchInput from '../denali/SearchInput';
-import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import InstanceTable from './InstanceTable';
 import AddStaticInstances from '../microsegmentation/AddStaticInstances';
@@ -61,7 +60,6 @@ export default class InstanceList extends React.Component {
         this.api = props.api;
         this.state = {
             showAddInstance: false,
-            instances: props.instances || [],
             errorMessage: null,
             error: false,
             placeholder: 'Search',
@@ -74,7 +72,6 @@ export default class InstanceList extends React.Component {
             searchText: this.props.searchText || '',
         };
         this.toggleAddInstance = this.toggleAddInstance.bind(this);
-        this.closeModal = this.closeModal.bind(this);
         this.reloadInstances = this.reloadInstances.bind(this);
         this.optionChanged = this.optionChanged.bind(this);
     }
@@ -91,7 +88,6 @@ export default class InstanceList extends React.Component {
             prevProps.domain !== this.props.domain
         ) {
             this.setState({
-                instances: this.props.instances || [],
                 showAddInstance: false,
                 errorMessage: null,
                 searchText: '',
@@ -99,7 +95,7 @@ export default class InstanceList extends React.Component {
         }
     };
 
-    reloadInstances() {
+    reloadInstances(successMessage, showSuccess = true) {
         this.api
             .getInstances(
                 this.props.domain,
@@ -107,21 +103,17 @@ export default class InstanceList extends React.Component {
                 this.props.category
             )
             .then((instances) => {
-                this.setState({
-                    instances: instances.workLoadData,
-                    showAddInstance: false,
-                    errorMessage: null,
-                });
+                this.props.onInstancesUpdated(
+                    instances,
+                    successMessage,
+                    showSuccess
+                );
             })
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                 });
             });
-    }
-
-    closeModal() {
-        this.setState({ showSuccess: null });
     }
 
     optionChanged(chosen) {
@@ -133,11 +125,11 @@ export default class InstanceList extends React.Component {
     }
 
     render() {
-        let instances = this.state.instances;
+        let instances = this.props.instances;
         if (this.state.searchText.trim() !== '') {
             switch (this.state.selected) {
                 case 'Instance':
-                    instances = this.state.instances.filter((instance) => {
+                    instances = this.props.instances.filter((instance) => {
                         let temp = instance.ipAddresses.filter((ipAddress) => {
                             return ipAddress.includes(
                                 this.state.searchText.trim()
@@ -147,7 +139,7 @@ export default class InstanceList extends React.Component {
                     });
                     break;
                 case 'Hostname':
-                    instances = this.state.instances.filter((instance) => {
+                    instances = this.props.instances.filter((instance) => {
                         return instance.hostname
                             .toLowerCase()
                             .includes(
@@ -156,7 +148,7 @@ export default class InstanceList extends React.Component {
                     });
                     break;
                 case 'Provider':
-                    instances = this.state.instances.filter((instance) => {
+                    instances = this.props.instances.filter((instance) => {
                         return instance.provider
                             .toLowerCase()
                             .includes(
@@ -182,7 +174,7 @@ export default class InstanceList extends React.Component {
         );
 
         let searchInput;
-        if (this.state.instances.length > 0) {
+        if (this.props.instances.length > 0) {
             if (this.props.category !== 'static') {
                 searchInput = (
                     <SearchDiv>
@@ -240,7 +232,6 @@ export default class InstanceList extends React.Component {
         } else {
             searchInput = 'No instances found';
         }
-
         return (
             <InstanceSectionDiv data-testid='instancelist'>
                 <AddContainerDiv>
@@ -254,7 +245,7 @@ export default class InstanceList extends React.Component {
                         </div>
                     )}
                 </AddContainerDiv>
-                {this.state.instances.length > 0 && (
+                {this.props.instances.length > 0 && (
                     <InstanceTable
                         instances={instances}
                         api={this.api}
@@ -262,16 +253,9 @@ export default class InstanceList extends React.Component {
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadInstances}
                         category={this.props.category}
+                        service={this.props.service}
                     />
                 )}
-                {this.state.showSuccess ? (
-                    <Alert
-                        isOpen={this.state.showSuccess}
-                        title={this.state.successMessage}
-                        onClose={this.closeModal}
-                        type='success'
-                    />
-                ) : null}
             </InstanceSectionDiv>
         );
     }

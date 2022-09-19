@@ -51,6 +51,86 @@ const responseHandler = function (err, data) {
     }
 };
 
+const deleteInstanceZts = (
+    provider,
+    domainName,
+    service,
+    instanceId,
+    auditRef,
+    req
+) => {
+    return new Promise((resolve, reject) => {
+        req.clients.zts.deleteInstanceIdentity(
+            {
+                provider: provider,
+                domain: domainName,
+                service: service,
+                instanceId: instanceId,
+                auditRef: auditRef,
+            },
+            (err, json) => {
+                if (err) {
+                    if (err.status === 404) {
+                        resolve();
+                    } else {
+                        reject(errorHandler.fetcherError(err, 'ZTS'));
+                    }
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+};
+
+const deleteInstanceUms = (domainName, service, instanceId, auditRef, req) => {
+    return new Promise((resolve, reject) => {
+        req.clients.ums.deleteInstance(
+            {
+                domainName: domainName,
+                serviceName: service,
+                instanceId: instanceId,
+                auditRef: auditRef,
+            },
+            (err, json) => {
+                if (err) {
+                    if (err.status === 404) {
+                        resolve();
+                    } else {
+                        reject(errorHandler.fetcherError(err, 'UMS'));
+                    }
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+};
+
+const deleteInstanceMsd = (domainName, service, instanceId, auditRef, req) => {
+    return new Promise((resolve, reject) => {
+        req.clients.msd.deleteDynamicWorkload(
+            {
+                domainName: domainName,
+                serviceName: service,
+                instanceId: instanceId,
+                auditRef: auditRef,
+            },
+            (err, json) => {
+                if (err) {
+                    if (err.status === 404) {
+                        resolve();
+                    } else {
+                        reject(errorHandler.fetcherError(err, 'MSD'));
+                    }
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+};
+
 const deleteAssertion = (
     domainName,
     policyName,
@@ -2661,6 +2741,51 @@ Fetchr.registerService({
                 }
             }
         );
+    },
+    delete(req, resource, params, config, callback) {
+        let provider = params.provider;
+        let domainName = params.domainName;
+        let service = params.service;
+        let instanceId = params.instanceId;
+        let auditRef = params.auditRef;
+        deleteInstanceZts(
+            provider,
+            domainName,
+            service,
+            instanceId,
+            auditRef,
+            req
+        )
+            .then(() => {
+                deleteInstanceUms(
+                    domainName,
+                    service,
+                    instanceId,
+                    auditRef,
+                    req
+                )
+                    .then(() => {
+                        deleteInstanceMsd(
+                            domainName,
+                            service,
+                            instanceId,
+                            auditRef,
+                            req
+                        )
+                            .then(() => {
+                                callback(null, []);
+                            })
+                            .catch((err) => {
+                                callback(err);
+                            });
+                    })
+                    .catch((err) => {
+                        callback(err);
+                    });
+            })
+            .catch((err) => {
+                callback(err);
+            });
     },
 });
 

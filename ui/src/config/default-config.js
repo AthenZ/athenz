@@ -25,6 +25,8 @@ const config = {
         zmsConnectSrcUrl:
             process.env.ZMS_CONNECT_SRC_URL || 'https://localhost:4443',
         msd: process.env.MSD_LOGIN_URL || 'https://localhost:4443/msd/v1/',
+        zts: process.env.ZTS_LOGIN_URL || 'https://localhost:4443/zts/v1/',
+        ums: process.env.UMS_LOGIN_URL || 'https://localhost:4443/ums/v1/',
         authHeader: 'Athenz-Principal-Auth',
         strictSSL: false,
         user: 'ui-server',

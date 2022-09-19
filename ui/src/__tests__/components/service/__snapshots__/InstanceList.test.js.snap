@@ -201,10 +201,9 @@ exports[`InstanceList should render for dynamic 1`] = `
   vertical-align: top;
   text-transform: uppercase;
   padding: 5px 0 5px 25px;
-  word-break: break-all;
 }
 
-.emotion-29 {
+.emotion-33 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -216,11 +215,33 @@ exports[`InstanceList should render for dynamic 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-31 {
+.emotion-35 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
-  word-break: break-all;
+}
+
+.emotion-37 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+
+.emotion-49 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+}
+
+.emotion-51 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
 }
 
 <div
@@ -336,19 +357,25 @@ exports[`InstanceList should render for dynamic 1`] = `
   >
     <colgroup>
       <col
-        style="width: 20%;"
+        style="width: 14%;"
       />
       <col
         style="width: 20%;"
       />
       <col
-        style="width: 20%;"
+        style="width: 14%;"
       />
       <col
         style="width: 20%;"
       />
       <col
-        style="width: 20%;"
+        style="width: 14%;"
+      />
+      <col
+        style="width: 14%;"
+      />
+      <col
+        style="width: 4%;"
       />
     </colgroup>
     <thead>
@@ -371,6 +398,11 @@ exports[`InstanceList should render for dynamic 1`] = `
         <th
           class="emotion-19 emotion-20"
         >
+          ID
+        </th>
+        <th
+          class="emotion-19 emotion-20"
+        >
           Expires On
         </th>
         <th
@@ -378,42 +410,81 @@ exports[`InstanceList should render for dynamic 1`] = `
         >
           Last Certificate Refresh
         </th>
+        <th
+          class="emotion-19 emotion-20"
+        >
+          Delete
+        </th>
       </tr>
     </thead>
     <tbody>
       <tr
-        class="emotion-29 emotion-30"
+        class="emotion-33 emotion-34"
         data-testid="instance-row"
       >
         <td
-          class="emotion-31 emotion-32"
+          class="emotion-35 emotion-36"
           color=""
         >
-          74.6.35.54
+          <div
+            class="emotion-37 emotion-38"
+          >
+            74.6.35.54
+          </div>
         </td>
         <td
-          class="emotion-31 emotion-32"
+          class="emotion-35 emotion-36"
           color=""
         >
           NA
         </td>
         <td
-          class="emotion-31 emotion-32"
+          class="emotion-35 emotion-36"
           color=""
         >
           sys.openstack.openstack-classic
         </td>
         <td
-          class="emotion-31 emotion-32"
+          class="emotion-35 emotion-36"
+          color=""
+        >
+          zms3
+        </td>
+        <td
+          class="emotion-35 emotion-36"
           color=""
         >
           1970-01-01 00:00 UTC
         </td>
         <td
-          class="emotion-31 emotion-32"
+          class="emotion-35 emotion-36"
           color=""
         >
           2021-04-09 19:32 UTC
+        </td>
+        <td
+          class="emotion-49 emotion-36"
+          color=""
+        >
+          <span>
+            <svg
+              class="emotion-51"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                trash
+              </title>
+              <path
+                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+              />
+              <path
+                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+              />
+            </svg>
+          </span>
         </td>
       </tr>
     </tbody>

@@ -35,6 +35,8 @@ describe('clients test', () => {
             userFilePath: 'data',
             userFileName: 'users.json',
             msd: 'test',
+            ums: 'test',
+            zts: 'test',
         };
 
         clients.load(config, {}).catch((err) => {

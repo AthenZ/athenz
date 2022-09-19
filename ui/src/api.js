@@ -1871,7 +1871,10 @@ const Api = (req) => {
                                 totalHealthyDynamic: 0,
                             };
                             let totalHealthyDynamicCount = 0;
-                            if (workloadList != null) {
+                            if (
+                                workloadList != null &&
+                                Object.keys(workloadList).length > 0
+                            ) {
                                 workLoadMeta.totalRecords = workloadList.length;
                                 if (category === SERVICE_TYPE_STATIC) {
                                     workloadList.forEach((workload) => {
@@ -1901,7 +1904,47 @@ const Api = (req) => {
                                     result.workLoadMeta = workLoadMeta;
                                     resolve(result);
                                 }
+                            } else {
+                                workLoadMeta.totalRecords = 0;
+                                workLoadMeta.totalStatic = 0;
+                                workLoadMeta.totalRecords = 0;
+                                workLoadMeta.totalHealthyDynamic = 0;
+                                result.workLoadMeta = workLoadMeta;
+                                resolve(result);
                             }
+                        }
+                    });
+            });
+        },
+
+        deleteInstance(
+            provider,
+            domainName,
+            service,
+            instanceId,
+            auditRef,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+                fetchr
+                    .delete('instances')
+                    .params({
+                        provider,
+                        domainName,
+                        service,
+                        instanceId,
+                        auditRef,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
                         }
                     });
             });

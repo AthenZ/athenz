@@ -28,8 +28,12 @@ import ServiceTabs from '../../../../../../components/header/ServiceTabs';
 import ServiceNameHeader from '../../../../../../components/header/ServiceNameHeader';
 import InstanceList from '../../../../../../components/service/InstanceList';
 import ServiceInstanceDetails from '../../../../../../components/header/ServiceInstanceDetails';
-import { SERVICE_TYPE_DYNAMIC } from '../../../../../../components/constants/constants';
+import {
+    MODAL_TIME_OUT,
+    SERVICE_TYPE_DYNAMIC,
+} from '../../../../../../components/constants/constants';
 import JsonUtils from '../../../../../../components/utils/JsonUtils';
+import Alert from '../../../../../../components/denali/Alert';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -84,6 +88,9 @@ export async function getServerSideProps(context) {
         error = response.error;
         return [{}, {}, {}, {}, {}, {}, {}];
     });
+    let instanceDetails = JsonUtils.omitUndefined(data[3]);
+    let workLoadMeta = instanceDetails.workLoadMeta;
+    let workLoadData = instanceDetails.workLoadData;
     return {
         props: {
             reload,
@@ -94,7 +101,8 @@ export async function getServerSideProps(context) {
             headerDetails: data[1],
             domainDetails: data[2],
             auditEnabled: data[2].auditEnabled,
-            instanceDetails: JsonUtils.omitUndefined(data[3]),
+            workLoadMeta: workLoadMeta,
+            workLoadData: workLoadData,
             domain: context.query.domain,
             pending: data[4],
             _csrf: data[5],
@@ -108,21 +116,44 @@ export default class DynamicInstancePage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
+        this.onInstancesUpdated = this.onInstancesUpdated.bind(this);
+        this.closeModal = this.closeModal.bind(this);
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            workLoadMeta: this.props.workLoadMeta,
+            workLoadData: this.props.workLoadData,
+            showSuccess: false,
+            successMessage: '',
+        };
+    }
+
+    onInstancesUpdated(details, successMessage, showSuccess = true) {
+        this.setState({
+            workLoadMeta: details.workLoadMeta,
+            workLoadData: details.workLoadData,
+            showSuccess: showSuccess,
+            successMessage: successMessage,
+        });
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                    successMessage: '',
+                }),
+            MODAL_TIME_OUT
+        );
+    }
+
+    closeModal() {
+        this.setState({ showSuccess: null });
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            instanceDetails,
-            service,
-            isDomainAuditEnabled,
-            _csrf,
-        } = this.props;
+        const { domain, reload, service, isDomainAuditEnabled, _csrf } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -156,8 +187,7 @@ export default class DynamicInstancePage extends React.Component {
 
                                         <ServiceInstanceDetails
                                             instanceDetailsMeta={
-                                                this.props.instanceDetails
-                                                    .workLoadMeta
+                                                this.state.workLoadMeta
                                             }
                                             categoryType={SERVICE_TYPE_DYNAMIC}
                                         />
@@ -173,9 +203,24 @@ export default class DynamicInstancePage extends React.Component {
                                         api={this.api}
                                         domain={domain}
                                         _csrf={_csrf}
-                                        instances={instanceDetails.workLoadData}
+                                        instances={this.state.workLoadData}
+                                        showSuccess={this.state.showSuccess}
+                                        successMessage={
+                                            this.state.successMessage
+                                        }
+                                        onInstancesUpdated={
+                                            this.onInstancesUpdated
+                                        }
                                         service={this.props.service}
                                     />
+                                    {this.state.showSuccess ? (
+                                        <Alert
+                                            isOpen={this.state.showSuccess}
+                                            title={this.state.successMessage}
+                                            onClose={this.closeModal}
+                                            type='success'
+                                        />
+                                    ) : null}
                                 </ServiceContentDiv>
                             </ServiceContainerDiv>
                             <UserDomains
