@@ -19,17 +19,24 @@ const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const csrf = require('csurf');
 const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = function (expressApp, config, secrets) {
     expressApp.use((req, res, next) => {
-        const scriptSrc = [`'self'`];
+        res.locals.nonce = Buffer.from(uuidv4()).toString('base64');
+        next();
+    });
+    const scriptSrc = [
+        (req, res) => `'nonce-${res.locals.nonce}'`,
+        `'strict-dynamic'`,
+        `'self'`,
+    ];
+    expressApp.use((req, res, next) => {
         const connectSrc = [`'self'`];
         // locally allow 'unsafe-inline', so HMR doesn't trigger the CSP
         if (process.env.NODE_ENV !== 'production') {
             scriptSrc.push(`'unsafe-inline'`);
             scriptSrc.push(`'unsafe-eval'`);
-        } else {
-            scriptSrc.push(`'nonce-${req.headers.rid}'`);
         }
         // to be used by local ZMS for ntoken based auth
         if (config.env === 'local') {
@@ -103,9 +110,4 @@ module.exports = function (expressApp, config, secrets) {
         error.message = 'Failed Input validation. Please refresh the page';
         return res.status(403).send(error);
     });
-    expressApp.use(
-        helmet.referrerPolicy({
-            policy: 'strict-origin-when-cross-origin',
-        })
-    );
 };

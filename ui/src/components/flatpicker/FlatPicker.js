@@ -27,7 +27,6 @@ const DateClearAnchor = styled.a`
 export default class FlatPicker extends React.Component {
     constructor(props) {
         super(props);
-        this.datePicker = React.createRef();
         this.clearDate = React.createRef();
         this.dateUtils = new DateUtils();
         this.onChange = this.onChange.bind(this);
@@ -60,7 +59,7 @@ export default class FlatPicker extends React.Component {
 
     onClose(selectedDates, dateStr, instance) {
         this.onCloseDate = dateStr;
-        if (this.onChangeDate === this.onCloseDate) {
+        if (this.onChangeDate === this.onCloseDate || !this.clearDate.current) {
             if (dateStr !== '') {
                 this.props.onChange(selectedDates);
             }
@@ -73,7 +72,8 @@ export default class FlatPicker extends React.Component {
         if (
             prevProps.clear !== '' &&
             this.props.clear === '' &&
-            !this.props.shouldNotClear
+            !this.props.shouldNotClear &&
+            this.clearDate.current
         ) {
             this.clearDate.current.click();
         }
@@ -99,7 +99,6 @@ export default class FlatPicker extends React.Component {
             <div className={fpClass}>
                 <input
                     type='date'
-                    ref={this.datePicker}
                     data-testid='flatPicker'
                     placeholder={this.state.placeholder}
                     defaultValue={this.state.value}

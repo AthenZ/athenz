@@ -21,6 +21,10 @@ import { colors } from '../denali/styles';
 import Button from '../denali/Button';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectServices } from '../../redux/selectors/services';
+import { addKey, deleteService } from '../../redux/thunks/services';
+import { connect } from 'react-redux';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -45,10 +49,9 @@ const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
 
-export default class AddKey extends React.Component {
+class AddKey extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.state = {};
@@ -69,7 +72,7 @@ export default class AddKey extends React.Component {
             return;
         }
 
-        this.api
+        this.props
             .addKey(
                 this.props.domain,
                 this.props.service,
@@ -100,7 +103,6 @@ export default class AddKey extends React.Component {
         return (
             <SectionsDiv autoComplete={'off'} data-testid='add-key'>
                 <AddKeyForm
-                    api={this.api}
                     domain={this.props.domain}
                     onChange={this.onChange}
                 />
@@ -123,3 +125,36 @@ export default class AddKey extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        services: selectServices(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addKey: (
+        domainName,
+        serviceName,
+        keyId,
+        keyValue,
+        _csrf,
+        onSuccess,
+        onFail
+    ) =>
+        dispatch(
+            addKey(
+                domainName,
+                serviceName,
+                keyId,
+                keyValue,
+                _csrf,
+                onSuccess,
+                onFail
+            )
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddKey);

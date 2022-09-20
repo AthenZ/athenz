@@ -16,13 +16,19 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import AddKey from '../../../components/service/AddKey';
+import { buildServicesForState, getStateWithServices, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
+
+afterEach(() => {
+   MockApi.cleanMockApi();
+});
 
 describe('AddKey', () => {
     it('should render', () => {
         const cancel = function () {};
         const domain = 'domain';
         const api = {};
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddKey cancel={cancel} domain={domain} api={api} />
         );
         const addKey = getByTestId('add-key');
@@ -37,10 +43,11 @@ describe('AddKey', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const cancel = function () {};
         const domain = 'domain';
-        const { getByText, getByTestId, getByTitle } = render(
-            <AddKey cancel={cancel} domain={domain} api={api} />
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
+            <AddKey cancel={cancel} domain={domain} />
         );
         fireEvent.click(getByText('Cancel'));
         expect(await waitFor(() => getByTestId('add-key'))).toMatchSnapshot();
@@ -54,10 +61,11 @@ describe('AddKey', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const cancel = function () {};
         const domain = 'domain';
-        const { getByText, getByTestId, getByTitle } = render(
-            <AddKey cancel={cancel} domain={domain} api={api} />
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
+            <AddKey cancel={cancel} domain={domain} />
         );
         fireEvent.click(getByText('Submit'));
         expect(
@@ -73,10 +81,11 @@ describe('AddKey', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const cancel = function () {};
         const domain = 'domain';
-        const { getByText, getByTestId, getByTitle } = render(
-            <AddKey cancel={cancel} domain={domain} api={api} />
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
+            <AddKey cancel={cancel} domain={domain} />
         );
         fireEvent.change(getByTestId('input-node'), {
             target: {
@@ -100,10 +109,12 @@ describe('AddKey', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const cancel = function () {};
         const domain = 'domain';
-        const { getByText, getByTestId, getByTitle } = render(
-            <AddKey cancel={cancel} domain={domain} api={api} />
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
+            <AddKey cancel={cancel} domain={domain} service={'service'} />,
+            getStateWithServices(buildServicesForState({services: {}}, domain))
         );
         fireEvent.change(getByTestId('input-node'), {
             target: {
@@ -136,10 +147,12 @@ describe('AddKey', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const cancel = function () {};
         const domain = 'domain';
-        const { getByText, getByTestId, getByTitle } = render(
-            <AddKey cancel={cancel} domain={domain} api={api} />
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
+            <AddKey cancel={cancel} domain={domain} service={'service'} />,
+            getStateWithServices(buildServicesForState({services: {}}, domain))
         );
         fireEvent.change(getByTestId('input-node'), {
             target: {
@@ -167,19 +180,23 @@ describe('AddKey', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         let test = 1;
         const submit = function () {
             test = 2;
         };
         const cancel = function () {};
         const domain = 'domain';
-        const { getByText, getByTestId, getByTitle } = render(
+        const service = 'service';
+        const services = buildServicesForState({[`${domain}.${service}`]: {publicKeys: {}}}, domain);
+        const { getByText, getByTestId, getByTitle } = await renderWithRedux(
             <AddKey
                 cancel={cancel}
                 domain={domain}
-                api={api}
+                service={service}
                 onSubmit={submit}
-            />
+            />,
+            getStateWithServices(services)
         );
         fireEvent.change(getByTestId('input-node'), {
             target: {

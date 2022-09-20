@@ -1,21 +1,20 @@
-/*
- * Copyright 2020 Verizon Media
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 const api = require('./api');
+const AuthStrategy = require('./AuthStrategy');
+const awsSSO = require('../aws-sso/aws');
 
 module.exports.route = function (expressApp, config, secrets) {
     // client and api routes
     api.route(expressApp);
+
+    // AWS SSO Routes
+    expressApp.get('/aws/sso/metadata', awsSSO.getMetadata);
+    expressApp.get('/aws/sso/dev/:accountNumber/:roleName', awsSSO.awsLogin);
+    expressApp.get('/aws/sso/dev/:accountNumber', awsSSO.awsLogin);
+    expressApp.get('/aws/sso/dev', awsSSO.awsLogin);
+
+    // We want the admin endpoint asking for PWDs frequently
+    const okta = AuthStrategy.okta(config, secrets, 120);
+    expressApp.get('/aws/sso/admin', okta.protect(), awsSSO.awsLogin);
+    expressApp.get('/aws/sso/admin/:accountNumber/:roleName', awsSSO.awsLogin);
+    expressApp.get('/aws/sso/admin/:accountNumber', awsSSO.awsLogin);
 };

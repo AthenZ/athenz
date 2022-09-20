@@ -62,7 +62,6 @@ const StyledTd = styled.td`
 class GroupMemberList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.viewGroup = this.viewGroup.bind(this);
         this.localDate = new DateUtils();
     }

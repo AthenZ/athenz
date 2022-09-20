@@ -24,6 +24,13 @@ import Alert from '../denali/Alert';
 import Menu from '../denali/Menu/Menu';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
+import { connect } from 'react-redux';
+import { selectRoles } from '../../redux/selectors/roles';
+import { getDomainHistory } from '../../redux/thunks/domain';
+import { selectHistoryRows } from '../../redux/selectors/domainData';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { ReduxPageLoader } from '../denali/ReduxPageLoader';
+
 const HistorySectionDiv = styled.div`
     margin: 20px;
 `;
@@ -106,14 +113,11 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class HistoryList extends React.Component {
+class HistoryList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
-            list: props.historyrows || [],
             selectedRole: { name: 'ALL', value: 'ALL' },
-            roles: props.roles || [],
             startDate: this.getDefaultStartDate(props.startDate),
             endDate: props.endDate ? new Date(props.endDate) : new Date(),
             showSuccess: false,
@@ -137,7 +141,7 @@ export default class HistoryList extends React.Component {
             'ACTION,ENTITY,EXECUTED BY,MODIFIED DATE,DETAILS,AUDIT REFERENCE';
         result += lineDelimiter;
 
-        this.state.list.forEach((item) => {
+        this.props.historyrows.forEach((item) => {
             result +=
                 item.action +
                 columnDelimiter +
@@ -212,13 +216,13 @@ export default class HistoryList extends React.Component {
             );
             return;
         }
-        this.api
+        this.props
             .getHistory(
                 this.props.domain,
-                this.state.selectedRole.value,
                 this.state.startDate,
                 this.state.endDate,
-                this.props._csrf
+                this.props._csrf,
+                this.state.selectedRole.value
             )
             .then((data) => {
                 let successMsg = `Filtered history records for role ${this.state.selectedRole.value} below. `;
@@ -254,7 +258,7 @@ export default class HistoryList extends React.Component {
 
     render() {
         const left = 'left';
-        const rows = this.state.list.map((item, i) => {
+        const rows = this.props.historyrows.map((item, i) => {
             let color = '';
             if (i % 2 === 0) {
                 color = colors.row;
@@ -291,12 +295,14 @@ export default class HistoryList extends React.Component {
                 </tr>
             );
         });
-        const rolesOptions = this.state.roles.map((item, i) => {
+        const rolesOptions = this.props.roles.map((item, i) => {
             let roleName = NameUtils.getShortName(':role.', item.name);
             return { name: roleName, value: roleName };
         });
         rolesOptions.push({ name: 'ALL', value: 'ALL' });
-        return (
+        return this.props.isLoading.length !== 0 ? (
+            <ReduxPageLoader message={'Loading history'} />
+        ) : (
             <HistorySectionDiv data-testid='history-list'>
                 <HistoryFilterDiv>
                     <div />
@@ -395,3 +401,19 @@ export default class HistoryList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        roles: selectRoles(state),
+        historyrows: selectHistoryRows(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getHistory: (domainName, startDate, endDate, roleName) =>
+        dispatch(getDomainHistory(domainName, startDate, endDate, roleName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(HistoryList);

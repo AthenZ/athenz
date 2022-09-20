@@ -330,6 +330,12 @@
                         "type": "String",
                         "optional": true,
                         "comment": "associated business service with domain"
+                    },
+                    {
+                        "name": "memberPurgeExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "purge role/group members with expiry date configured days in the past"
                     }
                 ],
                 "closed": false
@@ -648,6 +654,12 @@
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "TagValueList",
                         "keys": "CompoundName"
+                    },
+                    {
+                        "name": "description",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "a description of the role"
                     }
                 ],
                 "closed": false
@@ -1138,6 +1150,12 @@
                         "type": "Bool",
                         "optional": true,
                         "comment": "if multi-version policy then indicates active version"
+                    },
+                    {
+                        "name": "description",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "a description of the policy"
                     }
                 ],
                 "closed": false
@@ -4373,6 +4391,16 @@
                     "flag": false
                 },
                 {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
+                },
+                {
                     "name": "role",
                     "type": "Role",
                     "comment": "Role object to be added/updated in the domain",
@@ -4690,6 +4718,16 @@
                     "header": "Y-Audit-Ref",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
                 },
                 {
                     "name": "membership",
@@ -5158,6 +5196,16 @@
                     "flag": false
                 },
                 {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
+                },
+                {
                     "name": "role",
                     "type": "Role",
                     "comment": "Role object with updated and/or deleted members",
@@ -5351,6 +5399,16 @@
                     "header": "Y-Audit-Ref",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
                 },
                 {
                     "name": "group",
@@ -5595,6 +5653,16 @@
                     "header": "Y-Audit-Ref",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
                 },
                 {
                     "name": "membership",
@@ -6011,6 +6079,16 @@
                     "flag": false
                 },
                 {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
+                },
+                {
                     "name": "group",
                     "type": "Group",
                     "comment": "Group object with updated and/or deleted members",
@@ -6279,6 +6357,16 @@
                     "header": "Y-Audit-Ref",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
                 },
                 {
                     "name": "policy",
@@ -7144,6 +7232,16 @@
                     "header": "Y-Audit-Ref",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
                 }
             ],
             "auth": {
@@ -7340,6 +7438,16 @@
                     "header": "Y-Audit-Ref",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "returnObj",
+                    "type": "Bool",
+                    "comment": "Return object param updated object back.",
+                    "pathParam": false,
+                    "header": "Athenz-Return-Object",
+                    "optional": true,
+                    "flag": false,
+                    "default": false
                 },
                 {
                     "name": "detail",

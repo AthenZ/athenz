@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import MemberTable from '../../../components/member/MemberTable';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('MemberTable', () => {
     it('should render member table', () => {
@@ -44,9 +45,8 @@ describe('MemberTable', () => {
         members.push(user3);
         members.push(user4);
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <MemberTable
-                api={API()}
                 domain={domain}
                 role={role}
                 members={members}

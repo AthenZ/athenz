@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import MemberRow from '../../../components/member/MemberRow';
 import { colors } from '../../../components/denali/styles';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('MemberRow', () => {
     it('should render', () => {
@@ -27,7 +28,7 @@ describe('MemberRow', () => {
         let role = 'roleName';
         let color = colors.row;
         let idx = '50';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <MemberRow

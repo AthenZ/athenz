@@ -19,16 +19,24 @@ import UserDomains from '../../components/domain/UserDomains';
 import API from '../../api.js';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import PendingApprovalTable from '../../components/pending-approval/PendingApprovalTable';
 import RequestUtils from '../../components/utils/RequestUtils';
 import Error from '../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import PendingApprovalTabs from '../../components/pending-approval/PendingApprovalTabs';
 import InputDropdown from '../../components/denali/InputDropdown';
 import { withRouter } from 'next/router';
 import { WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER } from '../../components/constants/constants';
 import PageUtils from '../../components/utils/PageUtils';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { connect } from 'react-redux';
+import {
+    getAllDomainsList,
+    getPendingDomainMembersListByDomain,
+} from '../../redux/thunks/domains';
+import { selectAllDomainsList } from '../../redux/selectors/domains';
+import PendingApprovalTable from '../../components/pending-approval/PendingApprovalTable';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -84,28 +92,19 @@ export async function getServerSideProps(context) {
     let reload = false;
     let error = null;
     let requestedDomain = context.req.query.domain || null;
-    const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getForm(),
-        api.getPendingDomainMembersListByDomain(requestedDomain),
-        api.listAllDomains(),
-    ]).catch((err) => {
+    const domains = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            pendingData: domains[3],
-            _csrf: domains[2],
+            userName: context.req.session.shortId,
+            _csrf: domains[0],
             nonce: context.req && context.req.headers.rid,
-            allDomainList: domains[4],
             selectedDomain: requestedDomain,
         },
     };
@@ -114,7 +113,6 @@ export async function getServerSideProps(context) {
 class WorkflowDomain extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
         this.changeDomain = this.changeDomain.bind(this);
         this.loadPendingMembers = this.loadPendingMembers.bind(this);
         this.state = {
@@ -122,7 +120,6 @@ class WorkflowDomain extends React.Component {
                 this.props.selectedDomain === 'ALL'
                     ? null
                     : this.props.selectedDomain,
-            pendingData: this.props.pendingData,
             error: this.props.error,
         };
         this.cache = createCache({
@@ -143,6 +140,12 @@ class WorkflowDomain extends React.Component {
         }
     }
 
+    componentDidMount() {
+        const { getAllDomainsList } = this.props;
+        getAllDomainsList();
+        this.loadPendingMembers();
+    }
+
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (prevState.selectedDomain !== this.state.selectedDomain) {
             this.props.router.replace(
@@ -158,11 +161,10 @@ class WorkflowDomain extends React.Component {
     }
 
     loadPendingMembers() {
-        this.api
+        this.props
             .getPendingDomainMembersListByDomain(this.state.selectedDomain)
-            .then((pendingData) => {
+            .then(() => {
                 this.setState({
-                    pendingData: pendingData,
                     error: null,
                 });
             })
@@ -181,17 +183,15 @@ class WorkflowDomain extends React.Component {
         if (this.state.error !== null) {
             return <Error err={this.state.error} />;
         }
-        return (
+        return this.props.isLoading.length > 0 ? (
+            <ReduxPageLoader message={'Loading data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='domain-pending-approval'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pendingData}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <HomeContainerDiv>
@@ -202,8 +202,6 @@ class WorkflowDomain extends React.Component {
                                                 Pending Items for Approval
                                             </TitleDiv>
                                             <PendingApprovalTabs
-                                                api={this.api}
-                                                domain={this.props.domain}
                                                 selectedName={'domain'}
                                             />
                                         </PageHeaderDiv>
@@ -229,14 +227,13 @@ class WorkflowDomain extends React.Component {
                                                 />
                                             </StyledSearchInputDiv>
                                             <PendingApprovalTable
-                                                api={this.api}
-                                                principal={
-                                                    'user.' +
-                                                    this.props.headerDetails
-                                                        .userId
+                                                // we send , because it is illegal domain, and we don't want to enter the undefined case in the selector
+                                                domainName={
+                                                    this.state.selectedDomain ||
+                                                    ','
                                                 }
-                                                pendingData={
-                                                    this.state.pendingData
+                                                loadList={
+                                                    this.loadPendingMembers
                                                 }
                                                 _csrf={this.props._csrf}
                                                 view={'domain'}
@@ -245,11 +242,7 @@ class WorkflowDomain extends React.Component {
                                     </div>
                                 </WorkFlowDiv>
                             </HomeContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                hideDomains={true}
-                            />
+                            <UserDomains hideDomains={true} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -257,5 +250,21 @@ class WorkflowDomain extends React.Component {
         );
     }
 }
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        allDomainList: selectAllDomainsList(state),
+        isLoading: selectIsLoading(state),
+    };
+};
 
-export default withRouter(WorkflowDomain);
+const mapDispatchToProps = (dispatch) => ({
+    getAllDomainsList: () => dispatch(getAllDomainsList()),
+    getPendingDomainMembersListByDomain: (domainName) =>
+        dispatch(getPendingDomainMembersListByDomain(domainName)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(WorkflowDomain));

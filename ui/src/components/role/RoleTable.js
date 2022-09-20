@@ -68,10 +68,7 @@ const TableHeadStyledRoleName = styled.th`
 export default class RoleTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
-
-        let subRows = [];
-
+        let subRows = props.roles;
         if (props.prefixes) {
             props.prefixes.map((prefix) => {
                 let rows = props.roles.filter((item) =>
@@ -80,19 +77,13 @@ export default class RoleTable extends React.Component {
                 subRows[prefix.name] = rows;
             });
         }
-
         this.state = {
-            roles: props.roles || [],
             rows: subRows,
         };
     }
 
     componentDidUpdate = (prevProps) => {
-        if (prevProps.domain !== this.props.domain) {
-            this.setState({
-                rows: {},
-            });
-        } else if (prevProps.roles !== this.props.roles) {
+        if (prevProps.roles !== this.props.roles) {
             let subRows = [];
             if (this.props.prefixes) {
                 this.props.prefixes.map((prefix) => {
@@ -102,9 +93,7 @@ export default class RoleTable extends React.Component {
                     subRows[prefix.name] = rows;
                 });
             }
-
             this.setState({
-                roles: this.props.roles || [],
                 rows: subRows,
             });
         }
@@ -116,9 +105,8 @@ export default class RoleTable extends React.Component {
         const { domain } = this.props;
         const adminRole = domain + ':role.admin';
         let rows = [];
-
-        if (this.state.roles && this.state.roles.length > 0) {
-            let remainingRows = this.state.roles.filter((item) => {
+        if (this.props.roles && this.props.roles.length > 0) {
+            let remainingRows = this.props.roles.filter((item) => {
                 if (item.name === adminRole) {
                     return false;
                 }
@@ -139,7 +127,7 @@ export default class RoleTable extends React.Component {
             });
 
             // put admin role at first place
-            let adminRow = this.state.roles
+            let adminRow = this.props.roles
                 .filter((item) => {
                     return item.name == adminRole;
                 })
@@ -149,14 +137,9 @@ export default class RoleTable extends React.Component {
                             details={item}
                             idx={i}
                             domain={domain}
-                            api={this.api}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
-                            justificationRequired={
-                                this.props.justificationRequired
-                            }
-                            userProfileLink={this.props.userProfileLink}
                         />
                     );
                 });
@@ -165,11 +148,9 @@ export default class RoleTable extends React.Component {
 
             if (this.state.rows) {
                 for (let name in this.state.rows) {
-                    // group rows
                     let roleGroup = (
                         <RoleGroup
                             key={'group:' + name}
-                            api={this.api}
                             domain={domain}
                             name={name}
                             roles={this.state.rows[name]}
@@ -193,14 +174,9 @@ export default class RoleTable extends React.Component {
                             details={item}
                             idx={i}
                             domain={domain}
-                            api={this.api}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
-                            justificationRequired={
-                                this.props.justificationRequired
-                            }
-                            userProfileLink={this.props.userProfileLink}
                             newRole={this.props.newRole}
                         />
                     );

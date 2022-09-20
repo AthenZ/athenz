@@ -1340,6 +1340,7 @@ exports[`GroupSettingPage should render 1`] = `
               :
               group
               .
+              groupName
             </div>
             <div
               class="emotion-32 emotion-33"
@@ -1527,7 +1528,7 @@ exports[`GroupSettingPage should render 1`] = `
                           id="setting-memberExpiryDays"
                           pattern="[0-9]*"
                           placeholder="Days"
-                          value="60"
+                          value=""
                         />
                         <div
                           class="message"
@@ -1570,7 +1571,7 @@ exports[`GroupSettingPage should render 1`] = `
                           id="setting-serviceExpiryDays"
                           pattern="[0-9]*"
                           placeholder="Days"
-                          value="50"
+                          value=""
                         />
                         <div
                           class="message"
@@ -1606,7 +1607,7 @@ exports[`GroupSettingPage should render 1`] = `
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
-                        aria-labelledby="downshift-0-label"
+                        aria-labelledby="downshift-2-label"
                         class="emotion-111 denali-input-dropdown emotion-112 emotion-113"
                         data-testid="input-dropdown"
                         role="combobox"
@@ -1617,11 +1618,11 @@ exports[`GroupSettingPage should render 1`] = `
                         >
                           <input
                             aria-autocomplete="list"
-                            aria-labelledby="downshift-0-label"
+                            aria-labelledby="downshift-2-label"
                             autocomplete="off"
                             autocorrect="off"
                             data-testid="input-node"
-                            id="downshift-0-input"
+                            id="downshift-2-input"
                             name="setting-userAuthorityFilter"
                             placeholder="User Authority Filter"
                             spellcheck="false"
@@ -1681,7 +1682,7 @@ exports[`GroupSettingPage should render 1`] = `
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
-                        aria-labelledby="downshift-1-label"
+                        aria-labelledby="downshift-3-label"
                         class="emotion-111 denali-input-dropdown emotion-112 emotion-113"
                         data-testid="input-dropdown"
                         role="combobox"
@@ -1692,11 +1693,11 @@ exports[`GroupSettingPage should render 1`] = `
                         >
                           <input
                             aria-autocomplete="list"
-                            aria-labelledby="downshift-1-label"
+                            aria-labelledby="downshift-3-label"
                             autocomplete="off"
                             autocorrect="off"
                             data-testid="input-node"
-                            id="downshift-1-input"
+                            id="downshift-3-input"
                             name="setting-userAuthorityExpiration"
                             placeholder="User Authority Expiration"
                             spellcheck="false"

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import ManageDomainsPage from '../../../pages/domain/manage';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('PageManageDomains', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -60,9 +65,22 @@ describe('PageManageDomains', () => {
             ],
         };
 
-        const { getByTestId } = render(
+        const mockApi = {
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getMeta: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <ManageDomainsPage
-                domains={domains}
                 req='req'
                 userId={userId}
                 reload={false}

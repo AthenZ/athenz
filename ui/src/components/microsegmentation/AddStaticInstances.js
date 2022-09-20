@@ -23,6 +23,8 @@ import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import { StaticWorkloadType } from '../constants/constants';
 import RegexUtils from '../utils/RegexUtils';
+import { addServiceHost } from '../../redux/thunks/services';
+import { connect } from 'react-redux';
 
 const SectionDiv = styled.div`
     align-items: center;
@@ -54,10 +56,9 @@ const SectionsDiv = styled.div`
     background-color: ${colors.white};
 `;
 
-export default class AddStaticInstances extends React.Component {
+class AddStaticInstances extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.resourceTypeChanged = this.resourceTypeChanged.bind(this);
         this.inputChanged = this.inputChanged.bind(this);
@@ -116,7 +117,8 @@ export default class AddStaticInstances extends React.Component {
             type: this.state.resourceType,
             name: this.state.resourceValue,
         };
-        this.api
+
+        this.props
             .addServiceHost(
                 this.props.domain,
                 this.props.service,
@@ -124,11 +126,6 @@ export default class AddStaticInstances extends React.Component {
                 auditRef,
                 this.props._csrf
             )
-            .then(() => {
-                if (!this.state.errorMessage) {
-                    this.props.onSubmit();
-                }
-            })
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
@@ -178,3 +175,12 @@ export default class AddStaticInstances extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    addServiceHost: (domainName, serviceName, details, auditRef, _csrf) =>
+        dispatch(
+            addServiceHost(domainName, serviceName, details, auditRef, _csrf)
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(AddStaticInstances);

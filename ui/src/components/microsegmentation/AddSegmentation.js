@@ -36,6 +36,18 @@ import RadioButtonGroup from '../denali/RadioButtonGroup';
 import CheckBox from '../denali/CheckBox';
 import MicrosegmentationValidationModal from '../modal/MicrosegmentationValidationModal';
 import RegexUtils from '../utils/RegexUtils';
+import { selectServices } from '../../redux/selectors/services';
+import { addRole, deleteRole, getRole } from '../../redux/thunks/roles';
+import {
+    addAssertion,
+    addAssertionConditions,
+    addPolicy,
+    getAssertionId,
+    getPolicy,
+} from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
+import { editMicrosegmentation } from '../../redux/thunks/microsegmentation';
+import AppUtils from '../utils/AppUtils';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -137,7 +149,7 @@ const StyledInputDropdown = styled(InputDropdown)`
 
 const StyledCheckBox = styled(CheckBox)``;
 
-export default class AddSegmentation extends React.Component {
+class AddSegmentation extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -315,9 +327,8 @@ export default class AddSegmentation extends React.Component {
     createPolicy(policyName, roleName, resource, action) {
         //Validating ACL policy and adding/updating assertion. if get policy threw a 404 then create a new policy
         var foundAssertionMatch = false;
-
         return new Promise((resolve, reject) => {
-            this.api
+            this.props
                 .getPolicy(this.props.domain, policyName)
                 .then((data) => {
                     data.assertions.forEach((element) => {
@@ -326,9 +337,8 @@ export default class AddSegmentation extends React.Component {
                         }
                     });
                     if (foundAssertionMatch) {
-                        this.api
+                        this.props
                             .deleteRole(
-                                this.props.domain,
                                 roleName,
                                 'deleted using Microsegmentation UI because of same assertion',
                                 this.props._csrf
@@ -342,8 +352,8 @@ export default class AddSegmentation extends React.Component {
                                 reject(RequestUtils.xhrErrorCheckHelper(err));
                             });
                     } else {
-                        this.api
-                            .addAssertion(
+                        this.props
+                            .addAssertionProp(
                                 this.props.domain,
                                 policyName,
                                 roleName,
@@ -354,7 +364,7 @@ export default class AddSegmentation extends React.Component {
                                 this.props._csrf
                             )
                             .then((data) => {
-                                this.api
+                                this.props
                                     .addAssertionConditions(
                                         this.props.domain,
                                         policyName,
@@ -383,7 +393,7 @@ export default class AddSegmentation extends React.Component {
                 })
                 .catch((err) => {
                     if (err && err.statusCode === 404) {
-                        this.api
+                        this.props
                             .addPolicy(
                                 this.props.domain,
                                 policyName,
@@ -395,7 +405,7 @@ export default class AddSegmentation extends React.Component {
                                 this.props._csrf
                             )
                             .then(() => {
-                                this.api
+                                this.props
                                     .getAssertionId(
                                         this.props.domain,
                                         policyName,
@@ -405,7 +415,7 @@ export default class AddSegmentation extends React.Component {
                                         'ALLOW'
                                     )
                                     .then((assertionId) => {
-                                        this.api
+                                        this.props
                                             .addAssertionConditions(
                                                 this.props.domain,
                                                 policyName,
@@ -416,7 +426,7 @@ export default class AddSegmentation extends React.Component {
                                                     : 'Microsegmentaion Assertion Condition using Athenz UI',
                                                 this.props._csrf
                                             )
-                                            .then((conditionData) => {
+                                            .then(() => {
                                                 this.props.onSubmit();
                                             })
                                             .catch((err) => {
@@ -695,18 +705,17 @@ export default class AddSegmentation extends React.Component {
 
     createRole(role) {
         return new Promise((resolve, reject) => {
-            this.api
+            this.props
                 .getRole(this.props.domain, role.name)
-                .then((existingRole) => {
+                .then(() => {
                     reject(
                         'The identifier is already being used for this service. Please use a new identifier.'
                     );
                 })
                 .catch((err) => {
                     if (err && err.statusCode === 404) {
-                        this.api
+                        this.props
                             .addRole(
-                                this.props.domain,
                                 role.name,
                                 role,
                                 this.state.justification
@@ -714,7 +723,7 @@ export default class AddSegmentation extends React.Component {
                                     : 'Microsegmentaion Role creation',
                                 this.props._csrf
                             )
-                            .then((data) => {
+                            .then(() => {
                                 resolve();
                             })
                             .catch((err) => {
@@ -830,7 +839,7 @@ export default class AddSegmentation extends React.Component {
             .then(() => {
                 return this.createPolicy(
                     policyName,
-                    role.name,
+                    roleName,
                     resource,
                     action
                 );
@@ -975,7 +984,7 @@ export default class AddSegmentation extends React.Component {
                     assertionChanged ||
                     assertionConditionChanged
                 ) {
-                    this.api
+                    this.props
                         .editMicrosegmentation(
                             this.props.domain,
                             roleChanged,
@@ -1016,32 +1025,30 @@ export default class AddSegmentation extends React.Component {
     }
 
     loadServices() {
-        this.api
-            .getServices(this.props.domain)
-            .then((data) => {
-                for (var i = 0; i < data.length; i++) {
-                    let name = NameUtils.getShortName('.', data[i]['name']);
-                    data[i]['name'] = name;
-                    data[i]['value'] = name;
-                    delete data[i]['modified'];
-                }
+        const services = AppUtils.deepClone(this.props.services);
+        for (let i = 0; i < services.length; i++) {
+            let name = NameUtils.getShortName('.', services[i]['name']);
+            services[i]['name'] = name;
+            services[i]['value'] = name;
+            delete services[i]['modified'];
+        }
+        this.setState({
+            destinationServiceList: services,
+        });
+        setTimeout(
+            () =>
                 this.setState({
-                    destinationServiceList: data,
-                });
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
-                    saving: 'todo',
-                });
-            });
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
+        // })
+        // .catch((err) => {
+        //     this.setState({
+        //         errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
+        //         saving: 'todo',
+        //     });
+        // });
     }
 
     changeService(chosen, key) {
@@ -1111,12 +1118,13 @@ export default class AddSegmentation extends React.Component {
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
                   // dummy place holder so that it can be be used in the form
-                  item.approved = true;
+                  const newItem = { ...item };
+                  newItem.approved = true;
                   let remove = this.deleteMember.bind(this, idx);
                   return (
                       <Member
                           key={idx}
-                          item={item}
+                          item={newItem}
                           onClickRemove={remove}
                           noanim
                       />
@@ -1455,3 +1463,113 @@ export default class AddSegmentation extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        services: selectServices(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addRole: (roleName, role, auditRef, _csrf) =>
+        dispatch(addRole(roleName, auditRef, role, _csrf)),
+    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName)),
+    deleteRole: (roleName, auditRef, _csrf) =>
+        dispatch(deleteRole(roleName, auditRef, _csrf)),
+    getPolicy: (domainName, policyName) =>
+        dispatch(getPolicy(domainName, policyName)),
+    addPolicy: (
+        domain,
+        policyName,
+        roleName,
+        resource,
+        action,
+        effect,
+        caseSensitive,
+        _csrf
+    ) =>
+        dispatch(
+            addPolicy(
+                domain,
+                policyName,
+                roleName,
+                resource,
+                action,
+                effect,
+                caseSensitive,
+                _csrf
+            )
+        ),
+    addAssertionProp: (
+        domain,
+        policyName,
+        roleName,
+        resource,
+        action,
+        effect,
+        caseSensitive,
+        _csrf
+    ) =>
+        dispatch(
+            addAssertion(
+                domain,
+                policyName,
+                roleName,
+                resource,
+                action,
+                effect,
+                caseSensitive,
+                _csrf
+            )
+        ),
+    addAssertionConditions: (
+        domain,
+        policyName,
+        assertionId,
+        assertionConditions,
+        auditRef,
+        _csrf
+    ) =>
+        dispatch(
+            addAssertionConditions(
+                domain,
+                policyName,
+                assertionId,
+                assertionConditions,
+                auditRef,
+                _csrf
+            )
+        ),
+    editMicrosegmentation: (
+        domain,
+        roleChanged,
+        assertionChanged,
+        assertionConditionChanged,
+        updatedData,
+        _csrf
+    ) =>
+        dispatch(
+            editMicrosegmentation(
+                domain,
+                roleChanged,
+                assertionChanged,
+                assertionConditionChanged,
+                updatedData,
+                _csrf
+            )
+        ),
+    getAssertionId: (domain, policyName, roleName, resource, action, effect) =>
+        dispatch(
+            getAssertionId(
+                domain,
+                policyName,
+                roleName,
+                resource,
+                action,
+                effect
+            )
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddSegmentation);

@@ -20,12 +20,12 @@ import API from '../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 
-import CreateDomain from '../../components/domain/CreateDomain';
 import RequestUtils from '../../components/utils/RequestUtils';
 import Error from '../_error';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import JsonUtils from '../../components/utils/JsonUtils';
+import CreateDomain from '../../components/domain/CreateDomain';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -67,25 +67,22 @@ export async function getServerSideProps(context) {
     let notFound = false;
     let error = null;
     const domains = await Promise.all([
-        api.listUserDomains(),
         api.getHeaderDetails(),
         api.getForm(),
-        api.getPendingDomainMembersList(),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}];
+        return [{}, {}, {}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
+            headerDetails: domains[0],
             domain: JsonUtils.omitUndefined(context.query.domain),
-            _csrf: domains[2],
+            _csrf: domains[1],
             nonce: context.req.headers.rid,
         },
     };
@@ -116,11 +113,7 @@ export default class CreateDomainPage extends React.Component {
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={false}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={false} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <CreateDomainContainerDiv>
@@ -139,10 +132,7 @@ export default class CreateDomainPage extends React.Component {
                                     />
                                 </CreateDomainContentDiv>
                             </CreateDomainContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                            />
+                            <UserDomains />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>

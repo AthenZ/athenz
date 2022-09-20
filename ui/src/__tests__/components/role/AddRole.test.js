@@ -17,15 +17,15 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import AddRole from '../../../components/role/AddRole';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('AddRole', () => {
     it('should render', () => {
         let domain = 'domain';
         const onCancelMock = jest.fn();
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddRole
-                api={API()}
                 domain={domain}
                 justificationRequired={true}
                 showAddRole={true}

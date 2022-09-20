@@ -24,6 +24,11 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import BusinessServiceModal from '../modal/BusinessServiceModal';
 import { css, keyframes } from '@emotion/react';
+import { deleteSubDomain } from '../../redux/thunks/domains';
+import { connect } from 'react-redux';
+import { withRouter } from 'next/router';
+import { selectBusinessServices } from '../../redux/selectors/domainData';
+import { selectBusinessServicesAll } from '../../redux/selectors/domains';
 
 const ManageDomainSectionDiv = styled.div`
     margin: 20px;
@@ -99,7 +104,7 @@ const colorTransition = keyframes`
         }
 `;
 
-export default class ManageDomains extends React.Component {
+class ManageDomains extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -205,7 +210,7 @@ export default class ManageDomains extends React.Component {
         const splittedDomain = domainName.split('.');
         const domain = splittedDomain.pop();
         const parent = splittedDomain.join('.');
-        this.api
+        this.props
             .deleteSubDomain(
                 parent,
                 domain,
@@ -480,3 +485,21 @@ export default class ManageDomains extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        validBusinessServices: selectBusinessServices(state),
+        validBusinessServicesAll: selectBusinessServicesAll(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteSubDomain: (parentDomain, domain, auditRef, _csrf) =>
+        dispatch(deleteSubDomain(parentDomain, domain, auditRef, _csrf)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(ManageDomains));

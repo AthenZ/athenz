@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import RoleTable from '../../../components/role/RoleTable';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleTable', () => {
     it('should render', () => {
@@ -35,8 +36,8 @@ describe('RoleTable', () => {
         };
         roles.push(role1);
         roles.push(role2);
-        const { getByTestId } = render(
-            <RoleTable roles={roles} api={API()} domain={domains} />
+        const { getByTestId } = renderWithRedux(
+            <RoleTable roles={roles} domain={domains} />
         );
         const roletable = getByTestId('roletable');
 

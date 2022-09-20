@@ -18,11 +18,13 @@ import AddModal from '../modal/AddModal';
 import AddServiceForm from './AddServiceForm';
 import ServiceKeyUtils from '../utils/ServiceKeyUtils';
 import RequestUtils from '../utils/RequestUtils';
+import { connect } from 'react-redux';
+import { addService } from '../../redux/thunks/services';
+import { selectServices } from '../../redux/selectors/services';
 
-export default class AddService extends React.Component {
+class AddService extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.state = {
@@ -45,42 +47,23 @@ export default class AddService extends React.Component {
                 ServiceKeyUtils.trimKey(keyValue)
             );
         }
-
-        this.api
-            .getService(this.props.domain, this.state.name)
+        let service = {
+            name: this.state.name,
+            description: this.state.description,
+            providerEndpoint: this.state.providerEndpoint,
+            keyId: this.state.keyId,
+            keyValue,
+        };
+        this.props
+            .addService(this.props.domain, service, this.props._csrf)
             .then(() => {
-                this.setState({
-                    errorMessage:
-                        'Service ' + this.state.name + ' already exists.',
-                });
+                this.setState({ showModal: false });
+                this.props.onSubmit(`${this.state.name}`, false);
             })
             .catch((err) => {
-                if (err.statusCode === 404) {
-                    this.api
-                        .addService(
-                            this.props.domain,
-                            this.state.name,
-                            this.state.description,
-                            this.state.providerEndpoint,
-                            this.state.keyId,
-                            keyValue,
-                            this.props._csrf
-                        )
-                        .then(() => {
-                            this.setState({ showModal: false });
-                            this.props.onSubmit(`${this.state.name}`, false);
-                        })
-                        .catch((err) => {
-                            this.setState({
-                                errorMessage:
-                                    RequestUtils.xhrErrorCheckHelper(err),
-                            });
-                        });
-                } else {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                }
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
             });
     }
 
@@ -98,7 +81,6 @@ export default class AddService extends React.Component {
                 errorMessage={this.state.errorMessage}
                 sections={
                     <AddServiceForm
-                        api={this.api}
                         domain={this.props.domain}
                         onChange={this.onChange}
                         pageConfig={this.props.pageConfig}
@@ -108,3 +90,17 @@ export default class AddService extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        services: selectServices(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    addService: (domainName, service, _csrf) =>
+        dispatch(addService(domainName, service, _csrf)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddService);

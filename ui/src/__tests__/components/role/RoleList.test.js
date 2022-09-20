@@ -16,10 +16,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import RoleList from '../../../components/role/RoleList';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleList', () => {
     it('should render', () => {
-        const { getByTestId } = render(<RoleList />);
+        const { getByTestId } = renderWithRedux(<RoleList />);
         const rolelist = getByTestId('rolelist');
 
         expect(rolelist).toMatchSnapshot();

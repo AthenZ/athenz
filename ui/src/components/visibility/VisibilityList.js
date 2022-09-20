@@ -15,9 +15,12 @@
  */
 import React from 'react';
 import styled from '@emotion/styled';
-import AuthHistory from './AuthHistory';
-import ServiceDependenciesTable from './ServiceDependenciesTable';
 import ButtonGroup from '../denali/ButtonGroup';
+import ServiceDependenciesTable from './ServiceDependenciesTable';
+import AuthHistory from './AuthHistory';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { connect } from 'react-redux';
+import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const VisibilitySectionDiv = styled.div`
     margin: 20px;
@@ -27,7 +30,7 @@ const SliderDiv = styled.div`
     vertical-align: middle;
 `;
 
-export default class VisibilityList extends React.Component {
+class VisibilityList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -54,7 +57,9 @@ export default class VisibilityList extends React.Component {
             { id: 'dependencies', name: 'dependencies', label: 'Dependencies' },
             { id: 'auth', name: 'auth', label: 'Access History' },
         ];
-        return (
+        return this.props.isLoading.length !== 0 ? (
+            <ReduxPageLoader message={'Loading visibility'} />
+        ) : (
             <VisibilitySectionDiv data-testid='visibilitySection'>
                 <SliderDiv>
                     <ButtonGroup
@@ -85,3 +90,12 @@ export default class VisibilityList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+    };
+};
+
+export default connect(mapStateToProps)(VisibilityList);

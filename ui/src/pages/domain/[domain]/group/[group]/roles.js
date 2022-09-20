@@ -1,4 +1,3 @@
-// getDomainRoleMember
 /*
  * Copyright 2020 Verizon Media
  *
@@ -23,14 +22,27 @@ import Head from 'next/head';
 
 import CollectionDetails from '../../../../../components/header/CollectionDetails';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
 import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
 import GroupRoleTable from '../../../../../components/group/GroupRoleTable';
 import SearchInput from '../../../../../components/denali/SearchInput';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import {
+    getDomainRoleMembers,
+    getGroup,
+} from '../../../../../redux/thunks/groups';
+import { connect } from 'react-redux';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
+import {
+    selectGroup,
+    selectGroupRoleMembers,
+} from '../../../../../redux/selectors/group';
+import { selectDomainData } from '../../../../../redux/selectors/domainData';
+import Alert from '../../../../../components/denali/Alert';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
+import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -85,43 +97,26 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const details = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getDomainRoleMembers(
-            context.query.domain + ':group.' + context.query.group
-        ),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-        api.getGroup(context.query.domain, context.query.group),
-    ]).catch((err) => {
+    const details = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: details[0],
-            group: context.query.group,
-            headerDetails: details[1],
-            domainDetails: details[2],
-            groupDetails: JsonUtils.omitUndefined(details[6]),
-            roles: JsonUtils.omitUndefined(details[3].memberRoles),
-            prefix: details[3].prefix,
-            domain: context.query.domain,
-            pending: details[4],
-            _csrf: details[5],
+            groupName: context.query.group,
+            domainName: context.query.domain,
+            _csrf: details[0],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class GroupRolesPage extends React.Component {
+class GroupRolesPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -131,49 +126,73 @@ export default class GroupRolesPage extends React.Component {
         });
         this.state = {
             searchText: '',
-            roles: props.roles || [],
+            error: null,
+            reload: false,
         };
+    }
+
+    componentDidMount() {
+        const { domainName, userName, groupName, getDomainData, getGroup } =
+            this.props;
+        Promise.all([
+            getDomainData(domainName, userName),
+            getGroup(domainName, groupName),
+        ]).catch((err) => {
+            let response = RequestUtils.errorCheckHelper(err);
+            this.setState({
+                error: response.error,
+                reload: response.reload,
+            });
+        });
     }
 
     componentDidUpdate = (prevProps) => {
         if (prevProps.domain !== this.props.domain) {
             this.setState({
-                roles: this.props.roles,
                 searchText: '',
             });
         }
     };
 
     render() {
-        const { domain, reload, groupDetails, group, prefix, _csrf } =
-            this.props;
-        if (reload) {
+        const {
+            domainName,
+            domainData,
+            roleMembers,
+            reload,
+            groupDetails,
+            groupName,
+            _csrf,
+            isLoading,
+        } = this.props;
+
+        if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        const err = this.props.error || this.state.error;
+        if (err) {
+            return <Error err={err} />;
         }
 
-        let roles = this.state.roles;
-
+        const memberRoles = roleMembers ? roleMembers.memberRoles : [];
+        let roles = memberRoles;
         if (this.state.searchText.trim() !== '') {
-            roles = this.state.roles.filter((role) => {
+            roles = memberRoles.filter((role) => {
                 return role.roleName.includes(this.state.searchText.trim());
             });
         }
-        let displayData = this.state.roles && this.state.roles.length > 0;
-        return (
+        let displayData = roles && roles.length > 0;
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='group-role'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <RolesContainerDiv>
@@ -181,71 +200,63 @@ export default class GroupRolesPage extends React.Component {
                                     <PageHeaderDiv>
                                         <NameHeader
                                             category={'group'}
-                                            domain={domain}
-                                            collection={group}
-                                            collectionDetails={groupDetails}
-                                        />
-                                        <CollectionDetails
-                                            collectionDetails={groupDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
+                                            domain={domainName}
+                                            collection={groupName}
+                                            collectionDetails={
+                                                groupDetails ? groupDetails : {}
                                             }
                                         />
+                                        <CollectionDetails
+                                            collectionDetails={
+                                                groupDetails ? groupDetails : {}
+                                            }
+                                            _csrf={_csrf}
+                                        />
                                         <GroupTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            group={group}
+                                            domain={domainName}
+                                            group={groupName}
                                             selectedName={'roles'}
                                         />
                                     </PageHeaderDiv>
-                                    {displayData && (
-                                        <ContainerDiv>
-                                            <StyledSearchInputDiv>
-                                                <SearchInput
-                                                    dark={false}
-                                                    name='search'
-                                                    fluid={true}
-                                                    value={
-                                                        this.state.searchText
-                                                    }
-                                                    placeholder={
-                                                        this.state.showuser
-                                                            ? 'Enter user name'
-                                                            : 'Enter role name'
-                                                    }
-                                                    error={this.state.error}
-                                                    onChange={(event) =>
-                                                        this.setState({
-                                                            searchText:
-                                                                event.target
-                                                                    .value,
-                                                            error: false,
-                                                        })
-                                                    }
-                                                />
-                                            </StyledSearchInputDiv>
-                                        </ContainerDiv>
-                                    )}
+                                    <ContainerDiv>
+                                        <StyledSearchInputDiv>
+                                            <SearchInput
+                                                dark={false}
+                                                name='search'
+                                                fluid={true}
+                                                value={this.state.searchText}
+                                                placeholder={
+                                                    this.state.showuser
+                                                        ? 'Enter user name'
+                                                        : 'Enter role name'
+                                                }
+                                                error={this.state.error}
+                                                onChange={(event) =>
+                                                    this.setState({
+                                                        searchText:
+                                                            event.target.value,
+                                                        error: false,
+                                                    })
+                                                }
+                                            />
+                                        </StyledSearchInputDiv>
+                                    </ContainerDiv>
                                     <TableDiv>
                                         <GroupRoleTable
-                                            api={this.api}
-                                            domain={this.domain}
+                                            domain={domainName}
                                             roles={roles}
-                                            prefixes={prefix}
+                                            prefixes={
+                                                roleMembers
+                                                    ? roleMembers.prefix
+                                                    : ''
+                                            }
                                             searchText={this.state.searchText}
                                             displayTable={displayData}
                                         />
                                     </TableDiv>
                                 </RolesContentDiv>
                             </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -253,3 +264,25 @@ export default class GroupRolesPage extends React.Component {
         );
     }
 }
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        domainData: selectDomainData(state),
+        isLoading: selectIsLoading(state),
+        groupDetails: selectGroup(state, props.domainName, props.groupName),
+        roleMembers: selectGroupRoleMembers(
+            state,
+            props.domainName,
+            props.groupName
+        ),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroup: (domainName, groupName) =>
+        dispatch(getGroup(domainName, groupName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupRolesPage);

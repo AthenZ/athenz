@@ -18,6 +18,7 @@ import { render } from '@testing-library/react';
 import MemberTable from '../../../components/member/MemberTable';
 import API from '../../../api';
 import RuleTable from '../../../components/microsegmentation/RuleTable';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RuleTable', () => {
     it('should render rule table', () => {
@@ -32,11 +33,10 @@ describe('RuleTable', () => {
             },
         ];
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <RuleTable
                 category={'inbound'}
                 domain={domain}
-                api={API()}
                 _csrf={'_csrf'}
                 data={data}
                 caption='Inbound'

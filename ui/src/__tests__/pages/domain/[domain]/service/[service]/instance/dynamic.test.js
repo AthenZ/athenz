@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import MockApi from '../../../../../../../mock/MockApi';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../../../../tests_utils/ComponentsTestUtils';
 import DynamicInstancePage from '../../../../../../../pages/domain/[domain]/service/[service]/instance/dynamic';
 
 const testInstancedetails = {
@@ -39,7 +44,8 @@ const testInstancedetails = {
 };
 
 describe('DynamicInstancePage', () => {
-    it('should render', () => {
+    afterEach(() => MockApi.cleanMockApi());
+    it('should render', async () => {
         let domains = [];
         let instanceDetails = testInstancedetails;
         domains.push({ name: 'athens' });
@@ -73,76 +79,37 @@ describe('DynamicInstancePage', () => {
             url: '',
             target: '_blank',
         };
-
-        const { getByTestId } = render(
+        const api = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest
+                .fn()
+                .mockReturnValue(Promise.resolve([])),
+            listUserDomains: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(domains)),
+            getServices: jest
+                .fn()
+                .mockReturnValue(Promise.resolve([{ name: 'dom.serv' }])),
+            getInstances: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(instanceDetails)),
+            getServiceHeaderDetails: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(serviceHeaderDetails)),
+        };
+        MockApi.setMockApi(api);
+        const { getByTestId } = renderWithRedux(
             <DynamicInstancePage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
-                instanceDetails={instanceDetails}
-                serviceHeaderDetails={serviceHeaderDetails}
+                domainName='dom'
+                serviceName='serv'
             />
         );
-        const dynamicInstancePage = getByTestId('dynamic-instance');
-        expect(dynamicInstancePage).toMatchSnapshot();
-    });
-
-    it('should render with category type', () => {
-        let domains = [];
-        let instanceDetails = testInstancedetails;
-        domains.push({ name: 'athens' });
-        domains.push({ name: 'athens.ci' });
-        let query = {
-            domain: 'dom',
-            service: 'serv',
-        };
-        let domainDetails = {
-            modified: '2020-02-12T21:44:37.792Z',
-        };
-        let headerDetails = {
-            headerLinks: [
-                {
-                    title: 'Website',
-                    url: 'http://www.athenz.io',
-                    target: '_blank',
-                },
-            ],
-            userData: {
-                userLink: {
-                    title: 'User Link',
-                    url: '',
-                    target: '_blank',
-                },
-            },
-        };
-        let serviceHeaderDetails = {
-            description:
-                'Here you can add / see instances which can not obtain Athenz identity because of limitations, but would be associated with your service.',
-            url: '',
-            target: '_blank',
-        };
-
-        const { getByTestId } = render(
-            <DynamicInstancePage
-                domains={domains}
-                req='req'
-                userId='userid'
-                query={query}
-                reload={false}
-                domainDetails={domainDetails}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
-                categoryType='Dynamic'
-                instanceDetails={instanceDetails}
-                serviceHeaderDetails={serviceHeaderDetails}
-            />
+        await waitFor(() =>
+            expect(getByTestId('dynamic-instance')).toBeInTheDocument()
         );
         const dynamicInstancePage = getByTestId('dynamic-instance');
         expect(dynamicInstancePage).toMatchSnapshot();

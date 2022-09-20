@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import HistoryList from '../../../components/history/HistoryList';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('HistoryList', () => {
     it('should render', () => {
         const startDate = '2022-01-20 07:51';
         const endDate = '2022-01-20 07:55';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <HistoryList startDate={startDate} endDate={endDate} />
         );
         const historyList = getByTestId('history-list');

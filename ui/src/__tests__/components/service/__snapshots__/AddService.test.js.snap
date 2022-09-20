@@ -462,6 +462,6 @@ exports[`AddService should render error when service already exists 1`] = `
   name="red600"
   style="color: rgb(208, 17, 17); display: inline-block;"
 >
-  Service test-name already exists.
+  Status: 409. Message: Service test-name already exists
 </div>
 `;

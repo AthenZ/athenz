@@ -14,11 +14,30 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import SettingPage from '../../../../../../pages/domain/[domain]/role/[role]/settings';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../../../mock/MockApi';
+
+const selectorsRoles = require('../../../../../../redux/selectors/roles');
+const selectorsDomainData = require('../../../../../../redux/selectors/domainData');
+const selectorsDomains = require('../../../../../../redux/selectors/domains');
+const selectorsLoading = require('../../../../../../redux/selectors/loading');
+const thunkRoles = require('../../../../../../redux/thunks/roles');
+const thunkDomainData = require('../../../../../../redux/thunks/domain');
+const thunkDomains = require('../../../../../../redux/thunks/domains');
+const thunkUser = require('../../../../../../redux/thunks/user');
 
 describe('SettingPage', () => {
-    it('should render', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+    it('should render', async () => {
+        let domainName = 'dom';
         let role = 'roleName';
         let domains = [];
         domains.push({ name: 'athens' });
@@ -26,10 +45,8 @@ describe('SettingPage', () => {
         let query = {
             domain: 'dom',
         };
-        let domainDetails = {
-            modified: '2020-02-12T21:44:37.792Z',
-        };
         let roleDetails = {
+            name: domainName + ':role.' + role,
             modified: '2020-02-12T21:44:37.792Z',
         };
         let headerDetails = {
@@ -48,22 +65,108 @@ describe('SettingPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+        jest.spyOn(thunkDomainData, 'getDomainData').mockReturnValue({
+            type: 'mock',
+        });
+        jest.spyOn(thunkRoles, 'getRole').mockReturnValue({ type: 'mock' });
+        jest.spyOn(thunkUser, 'getUserPendingMembers').mockReturnValue({
+            type: 'mock',
+        });
+        jest.spyOn(thunkDomains, 'getUserDomainsList').mockReturnValue({
+            type: 'mock',
+        });
+
+        jest.spyOn(selectorsRoles, 'selectRole').mockReturnValue(roleDetails);
+        jest.spyOn(selectorsLoading, 'selectIsLoading').mockReturnValue([]);
+        jest.spyOn(selectorsDomains, 'selectHeaderDetails').mockReturnValue(
+            headerDetails
+        );
+        jest.spyOn(
+            selectorsDomainData,
+            'selectDomainAuditEnabled'
+        ).mockReturnValue(undefined);
+        jest.spyOn(selectorsDomains, 'selectUserDomains').mockReturnValue(
+            domains
+        );
+
+        const { getByTestId } = renderWithRedux(
             <SettingPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                roleDetails={roleDetails}
-                role={role}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
+                roleName={role}
+                domainName={domainName}
             />
         );
         const settingPage = getByTestId('setting');
         expect(settingPage).toMatchSnapshot();
     });
 });
+
+// describe('SettingPage integration', () => {
+//     afterEach(() => {
+//         MockApi.cleanMockApi();
+//     })
+//     it('should render', async () => {
+//         let domainName = 'dom';
+//         let role = 'roleName';
+//         let domains = [];
+//         domains.push({ name: 'athens' });
+//         domains.push({ name: 'athens.ci' });
+//         let query = {
+//             domain: 'dom',
+//         };
+//         let domainDetails = {
+//             modified: '2020-02-12T21:44:37.792Z',
+//         };
+//         let roleDetails = {
+//             name: domainName + ':role.' + role,
+//             modified: '2020-02-12T21:44:37.792Z',
+//         };
+//         let headerDetails = {
+//             headerLinks: [
+//                 {
+//                     title: 'Website',
+//                     url: 'http://www.athenz.io',
+//                     target: '_blank',
+//                 },
+//             ],
+//             userData: {
+//                 userLink: {
+//                     title: 'User Link',
+//                     url: '',
+//                     target: '_blank',
+//                 },
+//             },
+//         };
+//         const mockApi = {
+//             ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+//             ...mockRolesApiCalls(),
+//             getPendingDomainMembersList: jest.fn().mockReturnValue(
+//                 new Promise((resolve, reject) => {
+//                     resolve([]);
+//                 })
+//             ),
+//             getRole: jest.fn().mockReturnValue(Promise.resolve(roleDetails)),
+//             listUserDomains: jest.fn().mockReturnValue(
+//                 Promise.resolve(domains)
+//             ),
+//         }
+//         MockApi.setMockApi(mockApi);
+//
+//         const { getByTestId } = renderWithRedux(
+//             <SettingPage
+//                 req='req'
+//                 userId='userid'
+//                 query={query}
+//                 reload={false}
+//                 roleName={role}
+//                 domainName={domainName}
+//             />
+//         );
+//         await waitFor(() => expect(getByTestId('setting')).toBeInTheDocument());
+//         const settingPage = getByTestId('setting');
+//         expect(settingPage).toMatchSnapshot();
+//     });
+// });

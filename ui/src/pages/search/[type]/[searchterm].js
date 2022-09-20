@@ -16,18 +16,26 @@
 import React from 'react';
 import Head from 'next/head';
 import { withRouter } from 'next/router';
-import API from '../../../api';
 import Header from '../../../components/header/Header';
 import UserDomains from '../../../components/domain/UserDomains';
 import styled from '@emotion/styled';
 import { colors } from '../../../components/denali/styles';
 import Icon from '../../../components/denali/icons/Icon';
-import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import Link from 'next/link';
 import PageUtils from '../../../components/utils/PageUtils';
+import {
+    selectAllDomainsList,
+    selectUserDomains,
+} from '../../../redux/selectors/domains';
+import {
+    getAllDomainsList,
+    getUserDomainsList,
+} from '../../../redux/thunks/domains';
+import { connect } from 'react-redux';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import RequestUtils from '../../../components/utils/RequestUtils';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -98,33 +106,14 @@ const LineSeparator = styled.div`
 `;
 
 export async function getServerSideProps(context) {
-    let api = API(context.req);
-    let promises = [];
-    promises.push(api.listUserDomains());
     let type = context.query.type;
     let reload = false;
     let error = null;
-    if (type === 'domain') {
-        promises.push(api.searchDomains(context.query.searchterm));
-    }
-    promises.push(api.getHeaderDetails());
-    const values = await Promise.all(promises).catch((err) => {
-        let response = RequestUtils.errorCheckHelper(err);
-        reload = response.reload;
-        error = response.error;
-        return [{}, {}, {}];
-    });
-    let domainResults = [];
-    if (type === 'domain') {
-        domainResults = values[1];
-    }
     return {
         props: {
             domain: context.query.searchterm,
-            domains: values[0],
-            domainResults,
+            domainResults: [],
             type: type,
-            headerDetails: values[2],
             error,
             reload,
             nonce: context.req && context.req.headers.rid,
@@ -135,52 +124,67 @@ export async function getServerSideProps(context) {
 class PageSearchDetails extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
-        this.state = {
-            domains: props.domains,
-            domainResults: props.domainResults,
-            type: props.type,
-            domain: props.domain,
-        };
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            domainResults: props.domainResults,
+            type: props.type,
+            domain: props.domain,
+        };
+        this.makeDomainResults = this.makeDomainResults.bind(this);
+    }
+
+    componentDidMount() {
+        const { getDomainList, getAllDomainsList } = this.props;
+        Promise.all([getDomainList(), getAllDomainsList()]).catch((err) => {
+            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+        });
+    }
+
+    makeDomainResults(searchTerm) {
+        const { allDomainList, userDomains } = this.props;
+        let domainResults = [];
+        if (allDomainList.length > 0 || userDomains.length > 0) {
+            domainResults = allDomainList.filter((domain) => {
+                return domain.name
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase());
+            });
+            domainResults = domainResults.map((domain) => {
+                let isUserDomain = false;
+                let isAdminDomain = false;
+                for (let userDomain of userDomains) {
+                    if (userDomain.name === domain.name) {
+                        isUserDomain = true;
+                        if (userDomain.adminDomain) {
+                            isAdminDomain = true;
+                        }
+                        break;
+                    }
+                }
+                return {
+                    name: domain.name,
+                    userDomain: isUserDomain,
+                    adminDomain: isAdminDomain,
+                };
+            });
+        }
+        return domainResults;
     }
 
     componentDidUpdate = (prevProps) => {
-        if (
-            this.props.router.query.searchterm !==
-                prevProps.router.query.searchterm ||
-            this.props.router.query.type !== prevProps.router.query.type
-        ) {
-            let promises = [];
-            promises.push(this.api.listUserDomains());
-            let type = this.props.router.query.type;
-            if (type === 'domain') {
-                promises.push(
-                    this.api.searchDomains(this.props.router.query.searchterm)
-                );
-            }
-            Promise.all(promises)
-                .then((values) => {
-                    let domainResults = [];
-                    if (type === 'domain') {
-                        domainResults = values[1];
-                        this.setState({
-                            domainResults: domainResults,
-                            type: type,
-                        });
-                    }
-                })
-                .catch((err) => {});
+        if (this.props.router.query.type !== prevProps.router.query.type) {
+            this.setState({
+                type: this.props.router.query.type,
+            });
         }
     };
 
-    displayDomainResults() {
+    displayDomainResults(domainResults) {
         let items = [];
-        let self = this;
-        this.state.domainResults.forEach(function (currentDomain) {
+        domainResults.forEach(function (currentDomain) {
             let domain = currentDomain.name;
             let showIcon =
                 currentDomain.adminDomain || currentDomain.userDomain;
@@ -214,7 +218,7 @@ class PageSearchDetails extends React.Component {
                     <PageHeaderDiv>
                         <TitleDiv>Search Results</TitleDiv>
                         <ResultsCountDiv>
-                            {this.state.domainResults.length} Results
+                            {items.length} Results
                         </ResultsCountDiv>
                         <LineSeparator />
                     </PageHeaderDiv>
@@ -233,9 +237,12 @@ class PageSearchDetails extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
+        let domainResult = this.makeDomainResults(
+            this.props.router.query.searchterm
+        );
         let displayDomainResults = '';
         if (this.state.type === 'domain') {
-            displayDomainResults = this.displayDomainResults();
+            displayDomainResults = this.displayDomainResults(domainResult);
         }
         return (
             <CacheProvider value={this.cache}>
@@ -243,18 +250,11 @@ class PageSearchDetails extends React.Component {
                     <Head>
                         <title>{this.state.domain} - Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        searchData={this.props.domain}
-                    />
+                    <Header showSearch={true} searchData={this.props.domain} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             {displayDomainResults}
-                            <UserDomains
-                                domains={this.state.domains}
-                                api={this.api}
-                            />
+                            <UserDomains />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -263,4 +263,20 @@ class PageSearchDetails extends React.Component {
     }
 }
 
-export default withRouter(PageSearchDetails);
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        allDomainList: selectAllDomainsList(state),
+        userDomains: selectUserDomains(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getAllDomainsList: () => dispatch(getAllDomainsList()),
+    getDomainList: () => dispatch(getUserDomainsList()),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(PageSearchDetails));

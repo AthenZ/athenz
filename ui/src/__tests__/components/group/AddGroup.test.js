@@ -24,18 +24,26 @@ import {
 import AddGroup from '../../../components/group/AddGroup';
 import API from '../../../api';
 import { GROUP_MEMBER_PLACEHOLDER } from '../../../components/constants/constants';
+import {
+    buildGroupsForState,
+    buildServicesForState,
+    getStateWithGroups,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
+import { singleApiGroup } from '../../redux/config/group.test';
 
 describe('AddGroup', () => {
     afterEach(() => {
+        MockApi.cleanMockApi();
         cleanup();
     });
 
     it('should render', () => {
         let domain = 'domain';
         const onClose = jest.fn();
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddGroup
-                api={API()}
                 domain={domain}
                 justificationRequired={true}
                 showAddGroup={true}
@@ -51,12 +59,10 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
 
-        const { getByText } = render(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
@@ -92,12 +98,10 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
 
-        const { getByText } = render(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
@@ -134,12 +138,10 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
 
-        const { getByText } = render(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
@@ -176,21 +178,22 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
-        api = {
-            listGroups: jest.fn(() => Promise.resolve([])),
-            addGroup: jest.fn(() => Promise.resolve()),
+        const api = {
+            addGroup: jest.fn(() => Promise.resolve(singleApiGroup)),
         };
-        const { getByText } = render(
+        MockApi.setMockApi(api);
+        const groups = buildGroupsForState({}, domain);
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+                groupNames={'group1'}
+            />,
+            getStateWithGroups(groups)
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -217,12 +220,10 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
 
-        const { getByText } = render(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
@@ -262,12 +263,10 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
 
-        const { getByText } = render(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
@@ -307,12 +306,10 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
 
-        const { getByText } = render(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
@@ -352,21 +349,21 @@ describe('AddGroup', () => {
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
-        let api = API();
-        api = {
-            listGroups: jest.fn(() => Promise.resolve([])),
-            addGroup: jest.fn(() => Promise.resolve()),
+        const api = {
+            addGroup: jest.fn(() => Promise.resolve({ name: 'group.test' })),
         };
-        const { getByText } = render(
+        const groups = buildGroupsForState({}, domain);
+        MockApi.setMockApi(api);
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
-                api={api}
                 onSubmit={onSubmit}
                 domain={domain}
                 justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithGroups(groups)
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')

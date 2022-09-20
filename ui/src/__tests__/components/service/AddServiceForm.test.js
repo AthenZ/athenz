@@ -30,12 +30,10 @@ describe('AddServiceForm', () => {
     it('should render', () => {
         const cancel = function () {};
         const domain = 'domain';
-        const api = {};
         const { getByTestId } = render(
             <AddServiceForm
                 cancel={cancel}
                 domain={domain}
-                api={api}
                 pageConfig={pageConfig}
             />
         );
@@ -45,7 +43,6 @@ describe('AddServiceForm', () => {
 
     it('should render input for service name', async () => {
         const domain = 'domain';
-        const api = {};
         let test = 1;
         const onChange = function () {
             test = test + 1;
@@ -53,7 +50,6 @@ describe('AddServiceForm', () => {
         const { getByTestId, getAllByTestId } = render(
             <AddServiceForm
                 domain={domain}
-                api={api}
                 onChange={onChange}
                 pageConfig={pageConfig}
             />
@@ -73,7 +69,6 @@ describe('AddServiceForm', () => {
 
     it('should render input for service description', async () => {
         const domain = 'domain';
-        const api = {};
         let test = 1;
         const onChange = function () {
             test = test + 1;
@@ -81,7 +76,6 @@ describe('AddServiceForm', () => {
         const { getByTestId, getAllByTestId } = render(
             <AddServiceForm
                 domain={domain}
-                api={api}
                 onChange={onChange}
                 pageConfig={pageConfig}
             />
@@ -100,7 +94,6 @@ describe('AddServiceForm', () => {
     });
     it('should render addKeyForm', async () => {
         const domain = 'domain';
-        const api = {};
         let test = 1;
         const onChange = function () {
             test = test + 1;
@@ -108,7 +101,6 @@ describe('AddServiceForm', () => {
         const { getByTestId, getAllByTestId } = render(
             <AddServiceForm
                 domain={domain}
-                api={api}
                 onChange={onChange}
                 pageConfig={pageConfig}
             />

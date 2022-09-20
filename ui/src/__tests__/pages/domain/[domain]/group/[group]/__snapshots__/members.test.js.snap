@@ -1036,6 +1036,7 @@ exports[`GroupMemberPage should render 1`] = `
               :
               group
               .
+              group1
             </div>
             <div
               class="emotion-32 emotion-33"
