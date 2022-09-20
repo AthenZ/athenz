@@ -100,7 +100,24 @@ func GetIps() ([]net.IP, error) {
 		}
 	}
 
-	return ips, nil
+	return UniqIps(ips), nil
+}
+
+// UniqIps returns a uniq list of IPs from the input, as the name implies
+func UniqIps(ips []net.IP) []net.IP {
+	m := map[string]net.IP{}
+
+	for _, i := range ips {
+		m[i.String()] = i
+	}
+
+	result := []net.IP{}
+
+	for _, v := range m {
+		result = append(result, v)
+	}
+
+	return result
 }
 
 // GetExcludeOpts parses exclude_ip file at /var/lib/sia, and returns exclude ip options

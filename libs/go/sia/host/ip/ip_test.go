@@ -241,3 +241,27 @@ func TestFixCidr(t *testing.T) {
 		assert.Equalf(t, tt.Result, r, "unexpected result for test: %s, expected: %s, actual: %s", tt.Name, tt.Result, r)
 	}
 }
+
+func TestUniqIps(t *testing.T) {
+	ips := []string{
+		"10.0.1.2/32",
+		"10.0.1.3/32",
+		"10.0.1.2/32",
+		"2001:db8:a0b:12f0::1/32",
+	}
+
+	input := []net.IP{}
+
+	for _, i := range ips {
+		addr, _, e := net.ParseCIDR(i)
+		assert.Nilf(t, e, "unexpected error: %v", e)
+		input = append(input, addr)
+	}
+
+	result := UniqIps(input)
+	assert.Lenf(t, result, 3, "unexpected result: %+v", result)
+	resultStr := fmt.Sprintf("%v", result)
+	assert.Truef(t, strings.Contains(resultStr, "10.0.1.2"), "unexpected result: %+v", result)
+	assert.Truef(t, strings.Contains(resultStr, "10.0.1.3"), "unexpected result: %+v", result)
+	assert.Truef(t, strings.Contains(resultStr, "2001:db8:a0b:12f0::1"), "unexpected result: %+v", result)
+}
