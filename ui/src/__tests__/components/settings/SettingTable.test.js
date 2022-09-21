@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import SettingTable from '../../../components/settings/SettingTable';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('SettingTable', () => {
     it('should render setting table', () => {
@@ -31,9 +32,8 @@ describe('SettingTable', () => {
             certExpiryMins: 15,
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <SettingTable
-                api={API()}
                 category={'role'}
                 domain={domain}
                 collection={role}

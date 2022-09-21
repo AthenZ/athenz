@@ -20,6 +20,8 @@ import Button from '../denali/Button';
 import { colors } from '../denali/styles';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import { addAssertion } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
 
 const StyledDiv = styled.div`
     background-color: ${colors.white};
@@ -38,10 +40,9 @@ const ErrorDiv = styled.div`
     margin-left: 155px;
 `;
 
-export default class AddAssertionForRole extends React.Component {
+class AddAssertionForRole extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.state = {
@@ -68,7 +69,7 @@ export default class AddAssertionForRole extends React.Component {
             return;
         }
 
-        this.api
+        this.props
             .addAssertion(
                 this.props.domain,
                 this.props.name,
@@ -79,7 +80,7 @@ export default class AddAssertionForRole extends React.Component {
                 this.state.case,
                 this.props._csrf
             )
-            .then((data) => {
+            .then(() => {
                 this.props.submit(
                     `${this.props.name}-${this.props.role}-${this.state.resource}-${this.state.action}`,
                     false
@@ -97,7 +98,6 @@ export default class AddAssertionForRole extends React.Component {
             <StyledDiv data-testid='add-assertion-for-role'>
                 <AddRuleFormForRole
                     id={this.props.id}
-                    api={this.api}
                     onChange={this.onChange}
                     domain={this.props.domain}
                 />
@@ -118,3 +118,30 @@ export default class AddAssertionForRole extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    addAssertion: (
+        domainName,
+        name,
+        roleName,
+        resource,
+        action,
+        effect,
+        caseSensitive,
+        _csrf
+    ) =>
+        dispatch(
+            addAssertion(
+                domainName,
+                name,
+                roleName,
+                resource,
+                action,
+                effect,
+                caseSensitive,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(AddAssertionForRole);

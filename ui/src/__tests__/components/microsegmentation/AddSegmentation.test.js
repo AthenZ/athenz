@@ -14,37 +14,34 @@
  * limitations under the License.
  */
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react';
+import {
+    buildServicesForState, getStateWithServices,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 import AddSegmentation from '../../../components/microsegmentation/AddSegmentation';
-import API from '../../../api';
 
 describe('AddSegmentation', () => {
     const pageFeatureFlag = {
         policyValidation: true,
     };
-    const api = {
-        getServices(domain) {
-            return new Promise((resolve, reject) => {
-                resolve([
-                    {
-                        name: 'user.test1',
-                    },
-                    {
-                        name: 'user.test2',
-                    },
-                ]);
-            });
+
+    const services = buildServicesForState([
+        {
+            name: 'user.test1',
         },
-    };
+        {
+            name: 'user.test2',
+        },
+    ]);
+
     it('should render', () => {
         let domain = 'domain';
         const showAddSegmentation = true;
         const cancel = function () {};
         const submit = function () {};
         let _csrf = 'csrf';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddSegmentation
-                api={api}
                 domain={domain}
                 onSubmit={submit}
                 onCancel={cancel}
@@ -52,7 +49,8 @@ describe('AddSegmentation', () => {
                 showAddSegment={showAddSegmentation}
                 justificationRequired={false}
                 pageFeatureFlag={pageFeatureFlag}
-            />
+            />,
+            getStateWithServices(services)
         );
         const addsegment = getByTestId('add-segment');
         expect(addsegment).toMatchSnapshot();
@@ -65,9 +63,8 @@ describe('AddSegmentation', () => {
         let role = 'roleName';
         const submit = function () {};
         let _csrf = 'csrf';
-        const { getByTestId, getByText } = render(
+        const { getByTestId, getByText } = renderWithRedux(
             <AddSegmentation
-                api={api}
                 domain={domain}
                 onSubmit={submit}
                 onCancel={cancel}

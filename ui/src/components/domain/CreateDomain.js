@@ -23,6 +23,9 @@ import Button from '../denali/Button';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
+import { connect } from 'react-redux';
+import { createSubDomain, createUserDomain } from '../../redux/thunks/domains';
+import { selectPersonalDomain } from '../../redux/selectors/domains';
 
 const TABS = [
     {
@@ -89,7 +92,6 @@ const LineSeparatorDiv = styled.div`
 class CreateDomain extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             selected: 'top-level',
             domain: '',
@@ -100,42 +102,24 @@ class CreateDomain extends React.Component {
     }
 
     tabClicked(tab) {
-        let self = this;
         let pdom = 'home.' + this.props.userId;
         switch (tab.name) {
             case 'personal':
-                self.api
-                    .getDomain('home.' + self.props.userId)
-                    .then((data) => {
-                        self.props.router.push(`/domain/${pdom}/role`);
-                    })
-                    .catch((err) => {
-                        if (err.statusCode === 404) {
-                            self.api
-                                .createUserDomain(
-                                    self.props.userId,
-                                    self.props._csrf
-                                )
-                                .then(() => {
-                                    self.props.router.push(
-                                        `/domain/${pdom}/role`
-                                    );
-                                })
-                                .catch((err) => {
-                                    self.setState({
-                                        errorMessage:
-                                            RequestUtils.xhrErrorCheckHelper(
-                                                err
-                                            ),
-                                    });
-                                });
-                        } else {
-                            if (err.statusCode === 0) {
-                                // this happens when there is okta timeout and we need to reload the page for okta login
-                                window.location.reload();
-                            }
-                        }
-                    });
+                if (this.props.personalDomain) {
+                    this.props.router.push(`/domain/${pdom}/role`);
+                } else {
+                    this.props
+                        .createUserDomain(this.props.userId, this.props._csrf)
+                        .then(() => {
+                            this.props.router.push(`/domain/${pdom}/role`);
+                        })
+                        .catch((err) => {
+                            this.setState({
+                                errorMessage:
+                                    RequestUtils.xhrErrorCheckHelper(err),
+                            });
+                        });
+                }
                 break;
             case 'sub-domain':
                 this.setState({
@@ -158,7 +142,7 @@ class CreateDomain extends React.Component {
     }
 
     onSubmit() {
-        this.api
+        this.props
             .createSubDomain(
                 this.state.domain,
                 this.state.subDomain,
@@ -331,4 +315,21 @@ class CreateDomain extends React.Component {
         );
     }
 }
-export default withRouter(CreateDomain);
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        personalDomain: selectPersonalDomain(state, 'home.' + props.userId),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    createSubDomain: (parentDomain, domain, adminUser, _csrf) =>
+        dispatch(createSubDomain(parentDomain, domain, adminUser, _csrf)),
+    createUserDomain: (userId, _csrf) =>
+        dispatch(createUserDomain(userId, _csrf)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(CreateDomain));

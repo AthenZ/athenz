@@ -16,27 +16,47 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import UserDomains from '../../../components/domain/UserDomains';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
+afterEach(() => {
+   MockApi.cleanMockApi();
+});
 describe('UserDomains', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
-        let api = {};
-        const { getByTestId } = render(
-            <UserDomains domains={domains} domainResult={[]} api={api} />
+        let api = {
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                }),
+            )
+        };
+        MockApi.setMockApi(api);
+
+        const { getByTestId } = await renderWithRedux(
+            <UserDomains domainResult={[]} />
         );
         const userDomains = getByTestId('user-domains');
         expect(userDomains).toMatchSnapshot();
     });
 
-    it('should hide domains on click of arrow', () => {
+    it('should hide domains on click of arrow',  () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
-        let api = {};
-        const { getByTestId } = render(
-            <UserDomains domains={domains} domainResult={[]} api={api} />
+        let api = {
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                }),
+            )
+        };
+        MockApi.setMockApi(api);
+        const { getByTestId } = renderWithRedux(
+            <UserDomains domainResult={[]}/>
         );
         fireEvent.click(getByTestId('toggle-domain'));
         const userDomains = getByTestId('user-domains');

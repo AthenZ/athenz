@@ -16,25 +16,18 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import AddAssertionForRole from '../../../components/role-policy/AddAssertionForRole';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('AddAssertionForRole', () => {
     it('should render', () => {
         const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddAssertionForRole
                 cancel={cancel}
                 domain={domain}
                 role={role}
-                api={api}
             />
         );
         const addPolicy = getByTestId('add-assertion-for-role');
@@ -45,19 +38,11 @@ describe('AddAssertionForRole', () => {
         const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId, getByText } = render(
+        const { getByTestId, getByText } = renderWithRedux(
             <AddAssertionForRole
                 cancel={cancel}
                 domain={domain}
                 role={role}
-                api={api}
             />
         );
         const addPolicy = getByTestId('add-assertion-for-role');

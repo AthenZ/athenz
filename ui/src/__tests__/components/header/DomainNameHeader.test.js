@@ -17,24 +17,33 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import NameHeader from '../../../components/header/NameHeader';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import {
+    getStateWithDomainData,
+    buildDomainDataForState,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 
 describe('Header', () => {
     it('should render with outline notification icon', () => {
         let domain = 'home.craman';
-        let pendingCount = 0;
-
-        const { getByTestId } = render(
-            <DomainNameHeader domainName={domain} pendingCount={pendingCount} />
+        const domainMetadata = {
+            pendingMembersList: [],
+        };
+        const { getByTestId } = renderWithRedux(
+            <DomainNameHeader domainName={domain} />,
+            getStateWithDomainData(buildDomainDataForState(domainMetadata, domain))
         );
         const header = getByTestId('domain-name-header');
         expect(header).toMatchSnapshot();
     });
     it('should render with solid notification icon', () => {
         let domain = 'home.craman';
-        let pendingCount = 1;
-
-        const { getByTestId } = render(
-            <DomainNameHeader domainName={domain} pendingCount={pendingCount} />
+        const domainMetadata = {
+            pendingMembersList: ['pending_member'],
+        };
+        const { getByTestId } = renderWithRedux(
+            <DomainNameHeader domainName={domain} />,
+            getStateWithDomainData(buildDomainDataForState(domainMetadata, domain))
         );
         const header = getByTestId('domain-name-header');
         expect(header).toMatchSnapshot();

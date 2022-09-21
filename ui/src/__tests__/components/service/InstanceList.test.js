@@ -17,19 +17,23 @@ import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import InstanceList from '../../../components/service/InstanceList';
 import API from '../../../api';
+import {
+    buildServicesForState,
+    getStateWithServices,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import { serviceDelimiter } from '../../../redux/config';
 
 describe('InstanceList', () => {
     it('should render for static', () => {
-        let api = API();
         let domain = 'athenz';
         let _csrf = '_csrfToken';
         let instanceDetails = [];
         let service = 'testService';
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <InstanceList
                 category={'static'}
-                api={api}
                 domain={domain}
                 _csrf={_csrf}
                 instances={instanceDetails}
@@ -42,8 +46,8 @@ describe('InstanceList', () => {
     });
 
     it('should render for dynamic', () => {
-        let api = API();
         let domain = 'athenz';
+        let service = 'testService';
         let _csrf = '_csrfToken';
         let instanceDetails = [
             {
@@ -57,17 +61,23 @@ describe('InstanceList', () => {
                 certExpiryTime: '1970-01-01T00:00:00.000z',
             },
         ];
-        let service = 'testService';
 
-        const { getByTestId } = render(
+        let serviceFullName = `${domain}${serviceDelimiter}${service.toLowerCase()}`;
+        const servicesForState = buildServicesForState({
+            [serviceFullName]: {
+                name: serviceFullName,
+                dynamicInstances: { workLoadData: instanceDetails },
+            },
+        });
+        const { getByTestId } = renderWithRedux(
             <InstanceList
                 category={'dynamic'}
-                api={api}
                 domain={domain}
                 _csrf={_csrf}
                 instances={instanceDetails}
                 service={service}
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         const instanceList = getByTestId('instancelist');
 

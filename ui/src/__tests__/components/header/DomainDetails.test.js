@@ -14,8 +14,31 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import DomainDetails from '../../../components/header/DomainDetails';
+import {
+    getStateWithDomainData,
+    buildDomainDataForState,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import { getExpiryTime } from '../../../redux/utils';
+import MockApi from '../../../mock/MockApi';
+
+const mockApi = {
+    getMeta: jest.fn().mockReturnValue(
+        new Promise((resolve, reject) => {
+                resolve([])
+            }
+        )
+    ),
+}
+
+beforeEach(() => {
+    MockApi.setMockApi(mockApi);
+})
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+})
 
 describe('DomainDetails', () => {
     it('should render', () => {
@@ -23,14 +46,16 @@ describe('DomainDetails', () => {
             modified: '2020-02-12T21:44:37.792Z',
             auditEnabled: false,
         };
-
-        const { getByTestId } = render(
-            <DomainDetails domainDetails={domainMetadata} />
+        const domainData = buildDomainDataForState(domainMetadata);
+        const { getByTestId } = renderWithRedux(
+            <DomainDetails />,
+            getStateWithDomainData(domainData)
         );
         const domainDetails = getByTestId('domain-details');
         expect(domainDetails).toMatchSnapshot();
     });
     it('should render with mock data', () => {
+
         const domainMetadata = {
             modified: '2020-02-12T21:44:37.792Z',
             ypmId: 'test',
@@ -38,9 +63,10 @@ describe('DomainDetails', () => {
             auditEnabled: true,
             account: 'test',
         };
-
-        const { getByTestId } = render(
-            <DomainDetails domainDetails={domainMetadata} />
+        const domainData = buildDomainDataForState(domainMetadata);
+        const { getByTestId } = renderWithRedux(
+            <DomainDetails />,
+            getStateWithDomainData(domainData)
         );
         const domainDetails = getByTestId('domain-details');
         expect(domainDetails).toMatchSnapshot();

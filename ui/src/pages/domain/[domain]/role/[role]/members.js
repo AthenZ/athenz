@@ -21,14 +21,23 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 
 import CollectionDetails from '../../../../../components/header/CollectionDetails';
-import MemberList from '../../../../../components/member/MemberList';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import RoleTabs from '../../../../../components/header/RoleTabs';
 import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
+import { selectDomainAuditEnabled } from '../../../../../redux/selectors/domainData';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import {
+    selectRole,
+    selectRoleMembers,
+} from '../../../../../redux/selectors/roles';
+import { getRole } from '../../../../../redux/thunks/roles';
+import MemberList from '../../../../../components/member/MemberList';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
+import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -65,83 +74,82 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const roles = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getRole(
-            context.query.domain,
-            context.query.role,
-            true,
-            false,
-            true
-        ),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-    ]).catch((err) => {
+    const roles = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: roles[0],
-            role: context.query.role,
-            members: JsonUtils.omitUndefined(roles[3].roleMembers),
-            headerDetails: roles[1],
-            domainDeails: roles[2],
-            isDomainAuditEnabled: roles[2].auditEnabled,
-            roleDetails: JsonUtils.omitUndefined(roles[3]),
-            domain: context.query.domain,
-            pending: roles[4],
-            _csrf: roles[5],
+            roleName: context.query.role,
+            userName: context.req.session.shortId,
+            domainName: context.query.domain,
+            _csrf: roles[0],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class MemberPage extends React.Component {
+class MemberPage extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
+        });
+        this.state = {
+            error: null,
+            reload: false,
+        };
+    }
+
+    componentDidMount() {
+        const { getRole, getDomainData, domainName, roleName, userName } =
+            this.props;
+        Promise.all([
+            getDomainData(domainName, userName),
+            getRole(domainName, roleName),
+        ]).catch((err) => {
+            let response = RequestUtils.errorCheckHelper(err);
+            this.setState({
+                error: response.error,
+                reload: response.reload,
+            });
         });
     }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
             members,
-            role,
+            roleName,
             roleDetails,
             isDomainAuditEnabled,
             _csrf,
+            isLoading,
         } = this.props;
-        if (reload) {
+        if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        const err = this.props.error || this.state.error;
+        if (err) {
+            return <Error err={err} />;
         }
-        return (
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='member'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <RolesContainerDiv>
@@ -149,49 +157,34 @@ export default class MemberPage extends React.Component {
                                     <PageHeaderDiv>
                                         <NameHeader
                                             category={'role'}
-                                            domain={domain}
-                                            collection={role}
+                                            domain={domainName}
+                                            collection={roleName}
                                             collectionDetails={roleDetails}
                                         />
                                         <CollectionDetails
                                             collectionDetails={roleDetails}
-                                            api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
                                         />
                                         <RoleTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            role={role}
+                                            domain={domainName}
+                                            role={roleName}
                                             selectedName={'members'}
                                         />
                                     </PageHeaderDiv>
                                     <MemberList
                                         category={'role'}
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={role}
+                                        domain={domainName}
+                                        collection={roleName}
                                         collectionDetails={roleDetails}
                                         members={members}
                                         _csrf={_csrf}
                                         isDomainAuditEnabled={
                                             isDomainAuditEnabled
                                         }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -199,3 +192,21 @@ export default class MemberPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        isDomainAuditEnabled: selectDomainAuditEnabled(state),
+        roleDetails: selectRole(state, props.domainName, props.roleName),
+        members: selectRoleMembers(state, props.domainName, props.roleName),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MemberPage);

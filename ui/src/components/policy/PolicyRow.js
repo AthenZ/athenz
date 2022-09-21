@@ -28,6 +28,12 @@ import AddModal from '../modal/AddModal';
 import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RadioButton from '../denali/RadioButton';
+import {
+    deletePolicyVersion,
+    getPolicyVersion,
+    setActivePolicyVersion,
+} from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
 
 const TdStyled = styled.td`
     text-align: ${(props) => props.align};
@@ -133,12 +139,10 @@ const TableHeadStyled = styled.th`
     word-break: break-all;
 `;
 
-export default class PolicyRow extends React.Component {
+export class PolicyRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.toggleAssertions = this.toggleAssertions.bind(this);
-
         this.onSubmitDeletePolicyVersion =
             this.onSubmitDeletePolicyVersion.bind(this);
         this.onCancelDeletePolicyVersion =
@@ -178,15 +182,15 @@ export default class PolicyRow extends React.Component {
         if (this.state.assertions) {
             this.setState({ assertions: null });
         } else {
-            this.api
+            this.props
                 .getPolicyVersion(
                     this.props.domain,
                     this.props.name,
                     this.state.version
                 )
-                .then((assertions) => {
+                .then((policyVersion) => {
                     this.setState({
-                        assertions: assertions.assertions,
+                        assertions: policyVersion.assertions,
                         errorMessage: null,
                     });
                 })
@@ -199,7 +203,7 @@ export default class PolicyRow extends React.Component {
     }
 
     onSetActive() {
-        this.api
+        this.props
             .setActivePolicyVersion(
                 this.props.domain,
                 this.props.name,
@@ -237,80 +241,69 @@ export default class PolicyRow extends React.Component {
     }
 
     reLoadPolicyVersions(type, showSuccess, successMessage, closeModalsFunc) {
-        this.api
-            .getPolicies(this.props.domain, false, true)
-            .then((data) => {
-                // Get policy versions
-                const fullPolicyName =
-                    this.props.domain + ':policy.' + this.props.name;
-                let policyVersions = data.filter(function (policyVersion) {
-                    return policyVersion.name == fullPolicyName;
-                });
-                // Get active version
-                let activeVersion = policyVersions.find((x) => x.active);
-                // If new active version was set -> only show the new active version and highlight the row
-                let expanded =
-                    policyVersions.length > 1 &&
-                    type !== 'setActivePolicyVersion';
-                let newPolicy = type === 'setActivePolicyVersion';
-                let assertions =
-                    type === 'setActivePolicyVersion'
-                        ? null
-                        : this.state.assertions;
-                let rowInVersionGroup = this.state.rowInVersionGroup;
-                // If expanded and there are more than one version, shadows should be in "first row of group" mode
-                if (expanded && policyVersions.length > 1) {
-                    rowInVersionGroup = 'first';
-                } else if (!expanded) {
-                    // If not expanded, shadows should be in "closed version group" mode
-                    rowInVersionGroup = 'single';
-                }
-                let enableDelete = !expanded;
-                const maxPolicyVersions = 3;
-                let enableDuplicate = policyVersions.length < maxPolicyVersions;
-                let newState = {
-                    policyVersions: policyVersions,
-                    showSuccess,
-                    successMessage,
-                    showDelete: false,
-                    showDuplicatePolicyVersion: false,
-                    expanded: expanded,
-                    isActive: activeVersion.active,
-                    version: activeVersion.version,
-                    modified: activeVersion.modified,
-                    newPolicy,
-                    rowInVersionGroup,
-                    enableDelete,
-                    assertions,
-                    enableDuplicate,
-                };
+        // Get policy versions
+        const fullPolicyName = this.props.domain + ':policy.' + this.props.name;
+        let policyVersions = this.props.policies.filter(function (
+            policyVersion
+        ) {
+            return policyVersion.name === fullPolicyName;
+        });
+        // Get active version
+        let activeVersion = policyVersions.find((x) => x.active);
+        // If new active version was set -> only show the new active version and highlight the row
+        let expanded =
+            policyVersions.length > 1 && type !== 'setActivePolicyVersion';
+        let newPolicy = type === 'setActivePolicyVersion';
+        let assertions =
+            type === 'setActivePolicyVersion' ? null : this.state.assertions;
+        let rowInVersionGroup = this.state.rowInVersionGroup;
+        // If expanded and there are more than one version, shadows should be in "first row of group" mode
+        if (expanded && policyVersions.length > 1) {
+            rowInVersionGroup = 'first';
+        } else if (!expanded) {
+            // If not expanded, shadows should be in "closed version group" mode
+            rowInVersionGroup = 'single';
+        }
+        let enableDelete = !expanded;
+        const maxPolicyVersions = 3;
+        let enableDuplicate = policyVersions.length < maxPolicyVersions;
+        let newState = {
+            policyVersions: policyVersions,
+            showSuccess,
+            successMessage,
+            showDelete: false,
+            showDuplicatePolicyVersion: false,
+            expanded: expanded,
+            isActive: activeVersion.active,
+            version: activeVersion.version,
+            modified: activeVersion.modified,
+            newPolicy,
+            rowInVersionGroup,
+            enableDelete,
+            assertions,
+            enableDuplicate,
+        };
 
-                if (closeModalsFunc) {
-                    this.setState(
-                        newState,
-                        closeModalsFunc(showSuccess, successMessage)
-                    );
-                } else {
-                    this.setState(newState);
-                    // this is to close the success alert
-                    setTimeout(
-                        () =>
-                            this.setState({
-                                showSuccess: false,
-                            }),
-                        MODAL_TIME_OUT
-                    );
-                }
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
+        if (closeModalsFunc) {
+            this.setState(
+                newState,
+                closeModalsFunc(showSuccess, successMessage)
+            );
+        } else {
+            this.setState(newState);
+            // this is to close the success alert
+            setTimeout(
+                () =>
+                    this.setState({
+                        showSuccess: false,
+                    }),
+                MODAL_TIME_OUT
+            );
+        }
     }
 
     onSubmitDeletePolicyVersion() {
-        this.api
+        this.props
             .deletePolicyVersion(
                 this.props.domain,
                 this.state.deletePolicyName,
@@ -334,7 +327,7 @@ export default class PolicyRow extends React.Component {
     }
 
     onSubmitDuplicatePolicyVersion() {
-        this.api
+        this.props
             .duplicatePolicyVersion(
                 this.props.domain,
                 this.state.duplicatePolicyName,
@@ -631,7 +624,6 @@ export default class PolicyRow extends React.Component {
                         assertions={this.state.assertions}
                         name={this.props.name}
                         version={this.state.version}
-                        api={this.api}
                         domain={this.props.domain}
                         _csrf={this.props._csrf}
                     />
@@ -665,10 +657,10 @@ export default class PolicyRow extends React.Component {
                     <PolicyRow
                         name={this.props.name}
                         version={item.version}
+                        policies={this.props.policies}
                         isActive={false}
                         domain={this.props.domain}
                         modified={item.modified}
-                        api={this.api}
                         key={this.props.name + '-' + item.version}
                         _csrf={this.props._csrf}
                         onClickDeletePolicy={onClickDeletePolicyVersion}
@@ -677,6 +669,10 @@ export default class PolicyRow extends React.Component {
                         }
                         newPolicy={newPolicy}
                         reloadPolicyVersionsFunc={this.reLoadPolicyVersions}
+                        getPolicyVersion={this.props.getPolicyVersion}
+                        setActivePolicyVersion={
+                            this.props.setActivePolicyVersion
+                        }
                         rowInVersionGroup={rowInVersionGroup}
                         enableDelete={true}
                         enableDuplicate={this.state.enableDuplicate}
@@ -707,3 +703,27 @@ export default class PolicyRow extends React.Component {
         return rows;
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    setActivePolicyVersion: (domain, name, version, _csrf) =>
+        dispatch(setActivePolicyVersion(domain, name, version, _csrf)),
+    deletePolicyVersion: (domain, deletePolicyName, deleteVersionName, _csrf) =>
+        dispatch(
+            deletePolicyVersion(
+                domain,
+                deletePolicyName,
+                deleteVersionName,
+                _csrf
+            )
+        ),
+    getPolicyVersion: (domain, policy, version) =>
+        dispatch(getPolicyVersion(domain, policy, version)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(PolicyRow);

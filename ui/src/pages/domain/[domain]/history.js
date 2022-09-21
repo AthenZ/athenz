@@ -19,16 +19,20 @@ import UserDomains from '../../../components/domain/UserDomains';
 import API from '../../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-
-import DomainDetails from '../../../components/header/DomainDetails';
 import HistoryList from '../../../components/history/HistoryList';
 import Tabs from '../../../components/header/Tabs';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
 import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
-import JsonUtils from '../../../components/utils/JsonUtils';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { getRoles } from '../../../redux/thunks/roles';
+import { getDomainData, getDomainHistory } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import DomainDetails from '../../../components/header/DomainDetails';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import Alert from '../../../components/denali/Alert';
+import { CacheProvider } from '@emotion/react';
+import { ReduxPageLoader } from '../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -70,91 +74,24 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
-    const historyData = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getHistory(context.query.domain, 'ALL', null, null),
-        api.getRoles(context.query.domain),
-        api.getForm(),
-        api.getPendingDomainMembersList(),
-        api.isAWSTemplateApplied(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
-    ]).catch((err) => {
+    const historyData = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}];
     });
-    let businessServiceOptions = [];
-    if (historyData[9] && historyData[9].validValues) {
-        historyData[9].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (historyData[10] && historyData[10].validValues) {
-        historyData[10].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = historyData[2];
-    domainDetails.isAWSTemplateApplied = !!historyData[7];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: historyData[0],
-            headerDetails: historyData[1],
             domain: context.query.domain,
-            domainDetails: domainDetails,
-            historyrows: JsonUtils.omitUndefined(historyData[3]),
-            roles: historyData[4],
-            _csrf: historyData[5],
-            pending: historyData[6],
+            _csrf: historyData[0],
             nonce: context.req.headers.rid,
-            featureFlag: historyData[8],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: historyData[11],
         },
     };
 }
-
-export default class HistoryPage extends React.Component {
+class HistoryPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -162,11 +99,34 @@ export default class HistoryPage extends React.Component {
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            errorMessage: '',
+            showError: false,
+        };
+        this.showError = this.showError.bind(this);
+    }
+
+    componentDidMount() {
+        const { getRoles, domain, getDomainData, userName, getHistory } =
+            this.props;
+        Promise.all([
+            getHistory(domain, this.props._csrf),
+            getRoles(domain),
+            getDomainData(domain, userName),
+        ]).catch((err) => {
+            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+        });
+    }
+
+    showError(errorMessage) {
+        this.setState({
+            showError: true,
+            errorMessage: errorMessage,
+        });
     }
 
     render() {
-        const { domain, reload, domainDetails, historyrows, roles, _csrf } =
-            this.props;
+        const { domain, isLoading, reload, _csrf } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -175,66 +135,48 @@ export default class HistoryPage extends React.Component {
             return <Error err={this.props.error} />;
         }
 
-        return (
+        if (this.state.showError) {
+            return (
+                <Alert
+                    isOpen={this.state.showError}
+                    title={this.state.errorMessage}
+                    onClose={() => {}}
+                    type='danger'
+                />
+            );
+        }
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='history'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <HistoryContainerDiv>
                                 <HistoryContentDiv>
                                     <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
+                                        <DomainNameHeader domainName={domain} />
                                         <DomainDetails
-                                            domainDetails={domainDetails}
                                             api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
                                         />
                                         <Tabs
-                                            api={this.api}
                                             domain={domain}
                                             selectedName={'history'}
-                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <HistoryList
-                                        api={this.api}
                                         domain={domain}
-                                        roles={roles}
-                                        historyrows={historyrows}
                                         _csrf={_csrf}
                                     />
                                 </HistoryContentDiv>
                             </HistoryContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domain} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -242,3 +184,20 @@ export default class HistoryPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getHistory: (domainName, _csrf) =>
+        dispatch(getDomainHistory(domainName, null, null, _csrf)),
+    getRoles: (domainName) => dispatch(getRoles(domainName)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(HistoryPage);

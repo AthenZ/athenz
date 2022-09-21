@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import MemberList from '../../../components/member/MemberList';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('MemberList', () => {
     it('should render', () => {
@@ -27,6 +28,7 @@ describe('MemberList', () => {
             trust: null,
             reviewEnabled: true,
             selfServe: true,
+            isDomainAuditEnabled: true,
         };
         let user1 = {
             memberName: 'user1',
@@ -49,14 +51,12 @@ describe('MemberList', () => {
         members.push(user3);
         members.push(user4);
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <MemberList
-                api={API()}
                 domain={domain}
                 collection={role}
                 collectionDetails={roleDetails}
                 members={members}
-                isDomainAuditEnabled={true}
             />
         );
         const memberlist = getByTestId('member-list');
@@ -71,6 +71,7 @@ describe('MemberList', () => {
             trust: 'domain.delegated',
             reviewEnabled: false,
             selfServe: true,
+            isDomainAuditEnabled: true,
         };
         let user1 = {
             memberName: 'user1',
@@ -93,14 +94,12 @@ describe('MemberList', () => {
         members.push(user3);
         members.push(user4);
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <MemberList
-                api={API()}
                 domain={domain}
                 collection={role}
                 collectionDetails={roleDetails}
                 members={members}
-                isDomainAuditEnabled={true}
             />
         );
         const memberlist = getByTestId('member-list');

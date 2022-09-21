@@ -1095,11 +1095,12 @@ exports[`Groups Tag Page should render 1`] = `
               <a
                 class="emotion-30 emotion-31"
               >
-                home.test
+                dom
               </a>
               :
               group
               .
+              expiration
             </div>
             <div
               class="emotion-32 emotion-33"
@@ -1114,7 +1115,7 @@ exports[`Groups Tag Page should render 1`] = `
                   <div
                     class="emotion-38 emotion-39"
                   >
-                    2020-02-12 21:44 UTC
+                    2022-10-02 14:37 UTC
                   </div>
                   <div
                     class="emotion-40 emotion-41"
@@ -1232,7 +1233,7 @@ exports[`Groups Tag Page should render 1`] = `
                     class="emotion-72 emotion-73"
                     color="#3570f40D"
                   >
-                    tag-name
+                    tag
                   </td>
                   <td
                     class="emotion-72 emotion-73"
@@ -1247,7 +1248,7 @@ exports[`Groups Tag Page should render 1`] = `
                         style="color: rgb(53, 112, 244);"
                       >
                          
-                        first
+                        tag1
                          
                       </a>
                       <div
@@ -1278,7 +1279,7 @@ exports[`Groups Tag Page should render 1`] = `
                         style="color: rgb(53, 112, 244);"
                       >
                          
-                        second
+                        tag2
                          
                       </a>
                       <div

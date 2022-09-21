@@ -16,6 +16,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import AddPolicyToRole from '../../../components/policy/AddPolicyToRole';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('AddPolicyToRole', () => {
     it('should render', () => {
@@ -23,20 +24,12 @@ describe('AddPolicyToRole', () => {
         const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddPolicyToRole
                 showAddPolicy={showAddPolicy}
                 onCancel={cancel}
                 domain={domain}
                 role={role}
-                api={api}
             />
         );
         const addPolicy = getByTestId('add-modal-message');
@@ -48,20 +41,12 @@ describe('AddPolicyToRole', () => {
         const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId, getByText } = render(
+        const { getByTestId, getByText } = renderWithRedux(
             <AddPolicyToRole
                 showAddPolicy={showAddPolicy}
                 onCancel={cancel}
                 domain={domain}
                 role={role}
-                api={api}
             />
         );
         const addPolicy = getByTestId('add-modal-message');
@@ -77,22 +62,15 @@ describe('AddPolicyToRole', () => {
         const cancel = function () {};
         const domain = 'domain';
         const role = 'roleName';
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId, getByText, getByPlaceholderText } = render(
-            <AddPolicyToRole
-                showAddPolicy={showAddPolicy}
-                onCancel={cancel}
-                domain={domain}
-                role={role}
-                api={api}
-            />
-        );
+        const { getByTestId, getByText, getByPlaceholderText } =
+            renderWithRedux(
+                <AddPolicyToRole
+                    showAddPolicy={showAddPolicy}
+                    onCancel={cancel}
+                    domain={domain}
+                    role={role}
+                />
+            );
         const addPolicy = getByTestId('add-modal-message');
         expect(addPolicy).toMatchSnapshot();
 

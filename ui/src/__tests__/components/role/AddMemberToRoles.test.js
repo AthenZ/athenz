@@ -17,8 +17,13 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import AddMemberToRoles from '../../../components/role/AddMemberToRoles';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
 describe('AddMemberToRoles', () => {
+    afterEach(() => {
+      MockApi.cleanMockApi();
+    })
     it('should render', () => {
         let domain = 'domain';
         let roles = [];
@@ -44,15 +49,60 @@ describe('AddMemberToRoles', () => {
             memberReviewDays: 30,
             serviceReviewDays: null,
         };
+        let roleMembers = [];
+        let roleMember1 = {
+            "memberName": "user.test1",
+            "memberRoles": [
+                {
+                    "roleName": "role1",
+                }
+            ],
+            "memberFullName": null
+        };
+        roleMembers.push(roleMember1);
+        let roleMember2 = {
+            "memberName": "user.test2",
+            "memberRoles": [
+                {
+                    "roleName": "role1",
+                }
+            ],
+            "memberFullName": null
+        };
+        roleMembers.push(roleMember2);
+        let roleMember3 = {
+            "memberName": "user.test3",
+            "memberRoles": [
+                {
+                    "roleName": "role2",
+                }
+            ],
+            "memberFullName": null
+        };
+        roleMembers.push(roleMember3);
+        let roleMember4 = {
+            "memberName": "user.test4",
+            "memberRoles": [
+                {
+                    "roleName": "role2",
+                }
+            ],
+            "memberFullName": null
+        };
+        roleMembers.push(roleMember4);
+
+        MockApi.setMockApi({
+            getRoles: jest.fn().mockReturnValue(Promise.resolve(roles)),
+            getRoleMembers: jest.fn().mockReturnValue(Promise.resolve(roleMembers))
+        })
         const onCancelMock = jest.fn();
         roles.push(role1);
         roles.push(role2);
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddMemberToRoles
-                api={API()}
                 domain={domain}
-                roles={roles}
+                // roles={roles}
                 justificationRequired={true}
                 onCancel={onCancelMock}
             />

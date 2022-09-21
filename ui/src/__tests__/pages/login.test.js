@@ -19,24 +19,8 @@ import PageLogin from '../../pages/login';
 
 describe('Login', () => {
     it('should render', () => {
-        let domains = [];
-        domains.push({ name: 'dom1' });
-        domains.push({ name: 'dom2' });
-        let headerDetails = {
-            headerLinks: [
-                {
-                    title: 'Website',
-                    url: 'http://www.athenz.io',
-                    target: '_blank',
-                },
-            ],
-        };
         const { getByTestId } = render(
-            <PageLogin
-                domains={domains}
-                userId='test'
-                headerDetails={headerDetails}
-            />
+            <PageLogin />
         );
         const login = getByTestId('login');
         expect(login).toMatchSnapshot();

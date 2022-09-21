@@ -19,15 +19,23 @@ import UserDomains from '../../../components/domain/UserDomains';
 import API from '../../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-
-import DomainDetails from '../../../components/header/DomainDetails';
 import Tabs from '../../../components/header/Tabs';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { connect } from 'react-redux';
+import { getDomainData } from '../../../redux/thunks/domain';
+import TagList from '../../../components/tag/TagList';
+import {
+    selectDomainData,
+    selectDomainTags,
+} from '../../../redux/selectors/domainData';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import DomainDetails from '../../../components/header/DomainDetails';
+import Alert from '../../../components/denali/Alert';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import TagList from '../../../components/tag/TagList';
-import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { ReduxPageLoader } from '../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -69,82 +77,26 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
-    const tagsData = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getForm(),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
-    ]).catch((err) => {
+    const tagsData = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}];
     });
-    let businessServiceOptions = [];
-    if (tagsData[5] && tagsData[5].validValues) {
-        tagsData[5].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (tagsData[6] && tagsData[6].validValues) {
-        tagsData[6].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: tagsData[0],
-            headerDetails: tagsData[1],
-            domainDetails: tagsData[2],
-            _csrf: tagsData[3],
-            domain: context.query.domain,
+            _csrf: tagsData[0],
+            domainName: context.query.domain,
+            userName: context.req.session.shortId,
             nonce: context.req.headers.rid,
-            featureFlag: tagsData[4],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            domainPendingMemberCount: tagsData[7],
         },
     };
 }
 
-export default class TagsPage extends React.Component {
+class TagsPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -152,10 +104,30 @@ export default class TagsPage extends React.Component {
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            errorMessage: '',
+            showError: false,
+        };
+        this.showError = this.showError.bind(this);
+    }
+
+    componentDidMount() {
+        const { getDomainData, domainName, userName } = this.props;
+        Promise.all([getDomainData(domainName, userName)]).catch((err) => {
+            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+        });
+    }
+
+    showError(errorMessage) {
+        this.setState({
+            showError: true,
+            errorMessage: errorMessage,
+        });
     }
 
     render() {
-        const { domain, reload, domainDetails, _csrf } = this.props;
+        const { domainName, reload, domainData, domainTags, _csrf, isLoading } =
+            this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -164,67 +136,54 @@ export default class TagsPage extends React.Component {
             return <Error err={this.props.error} />;
         }
 
-        return (
+        if (this.state.showError) {
+            return (
+                <Alert
+                    isOpen={this.state.showError}
+                    title={this.state.errorMessage}
+                    onClose={() => {}}
+                    type='danger'
+                />
+            );
+        }
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='tags'>
                     <Head>
                         <title>Athenz Domain Tags</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <TagsContainerDiv>
                                 <TagsContentDiv>
                                     <PageHeaderDiv>
                                         <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
+                                            domainName={domainName}
                                         />
                                         <DomainDetails
-                                            domainDetails={domainDetails}
                                             api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
                                         />
                                         <Tabs
-                                            api={this.api}
-                                            domain={domain}
+                                            domain={domainName}
                                             selectedName={'tags'}
-                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <TagList
-                                        api={this.api}
-                                        domain={domain}
-                                        domainObj={domainDetails}
-                                        tags={domainDetails.tags}
+                                        domain={domainName}
+                                        collectionDetails={domainData}
+                                        collectionName={domainName}
+                                        tags={domainTags}
                                         category={'domain'}
-                                        _csrf={this.props._csrf}
+                                        _csrf={_csrf}
                                     />
                                 </TagsContentDiv>
                             </TagsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -232,3 +191,19 @@ export default class TagsPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+        domainTags: selectDomainTags(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(TagsPage);

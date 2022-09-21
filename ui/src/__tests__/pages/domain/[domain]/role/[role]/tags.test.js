@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import RoleTagsPage from '../../../../../../pages/domain/[domain]/role/[role]/tags';
+import MockApi from '../../../../../../mock/MockApi';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../../../tests_utils/ComponentsTestUtils';
+import {
+    configStoreRoles,
+    singleStoreRole,
+} from '../../../../../redux/config/role.test';
 
 describe('Roles Tag Page', () => {
-    it('should render', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -48,6 +61,7 @@ describe('Roles Tag Page', () => {
             ],
         };
         let roleDetails = {
+            roleName: 'role1',
             modified: '2020-02-12T21:44:37.792Z',
             tags: {
                 'tag-name': {
@@ -55,19 +69,48 @@ describe('Roles Tag Page', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            ...mockRolesApiCalls(),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            getRole: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(singleStoreRole)),
+            getRoles: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(configStoreRoles)),
+            getRoleMembers: jest.fn().mockReturnValue(Promise.resolve([])),
+            listUserDomains: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(domains)),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = renderWithRedux(
             <RoleTagsPage
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                roleDetails={roleDetails}
-                domain={domain}
-                domainResult={[]}
-                headerDetails={headerDetails}
-            />
+                domainName={'dom'}
+                roleName='singlerole'
+            />,
+            {
+                roles: {
+                    roles: {
+                        'dom:role.singlerole': {
+                            tags: { tag: { list: ['tag1'] } },
+                        },
+                    },
+                },
+            }
+        );
+        await waitFor(() =>
+            expect(getByTestId('tag-list')).toBeInTheDocument()
         );
         const roleTagsPage = getByTestId('role-tags');
         expect(roleTagsPage).toMatchSnapshot();

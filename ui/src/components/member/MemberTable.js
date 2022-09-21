@@ -98,7 +98,6 @@ const LeftMarginSpan = styled.span`
 export default class MemberTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
 
         this.state = {
             expanded: true,
@@ -140,14 +139,12 @@ export default class MemberTable extends React.Component {
                             details={item}
                             idx={i}
                             color={color}
-                            api={this.api}
                             key={item.memberName}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
                             justificationRequired={
                                 this.props.justificationRequired
                             }
-                            userProfileLink={this.props.userProfileLink}
                             newMember={this.props.newMember}
                         />
                     );

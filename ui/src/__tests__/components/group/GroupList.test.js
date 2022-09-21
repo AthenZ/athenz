@@ -17,35 +17,22 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import GroupList from '../../../components/group/GroupList';
 import API from '../../../api';
+import { buildDomainDataForState, getStateWithDomainData, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('GroupList', () => {
     it('should render', () => {
-        let api = API();
         let domain = 'athenz';
         let _csrf = '_csrfToken';
-        let users = [];
-        let groups = [];
-
-        let headerDetails = {
-            userData: {
-                userLink: {
-                    title: 'User Link',
-                    url: '',
-                    target: '_blank',
-                },
-            },
+        const domainMetadata = {
+            auditEnabled: true,
         };
-
-        const { getByTestId } = render(
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const { getByTestId } = renderWithRedux(
             <GroupList
-                api={api}
                 domain={domain}
-                groups={groups}
-                users={users}
                 _csrf={_csrf}
-                isDomainAuditEnabled={true}
-                userProfileLink={headerDetails.userData.userLink}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         const grouplist = getByTestId('grouplist');
 

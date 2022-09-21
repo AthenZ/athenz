@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import Home from '../../pages';
+import { renderWithRedux } from '../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../mock/MockApi';
+
+afterEach(() => {
+   MockApi.cleanMockApi();
+});
 
 describe('Home', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'dom1' });
         domains.push({ name: 'dom2' });
@@ -31,7 +36,13 @@ describe('Home', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+        MockApi.setMockApi({
+            listUserDomains: jest.fn().mockReturnValue(
+                Promise.resolve(domains)
+            ),
+        })
+
+        const { getByTestId } = await renderWithRedux(
             <Home
                 domains={domains}
                 userId='test'

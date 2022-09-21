@@ -1036,6 +1036,7 @@ exports[`MemberPage should render 1`] = `
               :
               role
               .
+              redux-role1
             </div>
             <div
               class="emotion-32 emotion-33"

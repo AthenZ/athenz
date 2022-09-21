@@ -104,7 +104,6 @@ const StyledAnchorActiveInline = { color: colors.linkActive };
 export default class AddTagForm extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         AppUtils.bindClassMethods(this);
         if (props.editedTagKey && props.editedTagValues) {
             this.state = {

@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from '@emotion/styled';
 import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
 import { useRouter } from 'next/router';
 import PageUtils from '../utils/PageUtils';
+import { connect } from 'react-redux';
+import { getUserPendingMembers } from '../../redux/thunks/user';
+import {
+    selectHeaderDetails,
+    selectPendingMembersList,
+} from '../../redux/selectors/domains';
 
 const HeaderMenuDiv = styled.div`
     display: flex;
@@ -84,6 +90,9 @@ const HeaderMenuUserDiv = styled.div`
 const HeaderMenu = (props) => {
     let icon = 'notification';
     const router = useRouter();
+    useEffect(() => {
+        props.getUserPendingMembers();
+    });
     if (props.pending) {
         if (Object.keys(props.pending).length !== 0) {
             icon = 'notification-solid';
@@ -91,6 +100,7 @@ const HeaderMenu = (props) => {
     }
     let menuItems =
         props.headerDetails &&
+        props.headerDetails.headerLinks &&
         props.headerDetails.headerLinks.map((headerLink, idx) => {
             return (
                 <MenuItemDiv key={idx}>
@@ -187,4 +197,16 @@ const HeaderMenu = (props) => {
     );
 };
 
-export default HeaderMenu;
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        headerDetails: selectHeaderDetails(state),
+        pending: selectPendingMembersList(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getUserPendingMembers: () => dispatch(getUserPendingMembers()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(HeaderMenu);

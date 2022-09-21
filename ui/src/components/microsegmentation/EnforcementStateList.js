@@ -65,7 +65,6 @@ const MenuDiv = styled.div`
 class EnforcementStateList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.localDate = new DateUtils();
     }
 

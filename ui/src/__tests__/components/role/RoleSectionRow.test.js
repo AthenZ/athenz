@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import RoleSectionRow from '../../../components/role/RoleSectionRow';
 import { colors } from '../../../components/denali/styles';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleRow', () => {
     it('should render', () => {
@@ -26,7 +26,7 @@ describe('RoleRow', () => {
         };
         let domain = 'domain';
         let color = colors.row;
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <RoleSectionRow

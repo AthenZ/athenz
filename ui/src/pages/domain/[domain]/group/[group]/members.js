@@ -21,14 +21,23 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 
 import CollectionDetails from '../../../../../components/header/CollectionDetails';
-import MemberList from '../../../../../components/member/MemberList';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import NameHeader from '../../../../../components/header/NameHeader';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
+import { getGroup } from '../../../../../redux/thunks/groups';
+import { connect } from 'react-redux';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import MemberList from '../../../../../components/member/MemberList';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
+import { selectDomainAuditEnabled } from '../../../../../redux/selectors/domainData';
+import {
+    selectGroup,
+    selectGroupMembers,
+} from '../../../../../redux/selectors/group';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
+import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -65,77 +74,81 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const groups = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getGroup(context.query.domain, context.query.group),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-    ]).catch((err) => {
+    const groups = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: groups[0],
-            group: context.query.group,
-            members: JsonUtils.omitUndefined(groups[3].groupMembers),
-            headerDetails: groups[1],
-            domainDetails: groups[2],
-            isDomainAuditEnabled: groups[2].auditEnabled,
-            groupDetails: JsonUtils.omitUndefined(groups[3]),
-            domain: context.query.domain,
-            pending: groups[4],
-            _csrf: groups[5],
+            groupName: context.query.group,
+            domainName: context.query.domain,
+            userName: context.req.session.shortId,
+            _csrf: groups[0],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class GroupMemberPage extends React.Component {
+class GroupMemberPage extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
+        });
+        this.state = {
+            error: null,
+            reload: false,
+        };
+    }
+
+    componentDidMount() {
+        const { domainName, userName, getDomainData, groupName, getGroup } =
+            this.props;
+        Promise.all([
+            getDomainData(domainName, userName),
+            getGroup(domainName, groupName),
+        ]).catch((err) => {
+            let response = RequestUtils.errorCheckHelper(err);
+            this.setState({
+                error: response.error,
+                reload: response.reload,
+            });
         });
     }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
-            groupDetails,
-            group,
-            members,
-            isDomainAuditEnabled,
+            groupName,
             _csrf,
+            groupDetails,
+            isLoading,
         } = this.props;
-        if (reload) {
+        if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        const err = this.props.error || this.state.error;
+        if (err) {
+            return <Error err={err} />;
         }
-        return (
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='group-members'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <GroupsContainerDiv>
@@ -143,49 +156,38 @@ export default class GroupMemberPage extends React.Component {
                                     <PageHeaderDiv>
                                         <NameHeader
                                             category={'group'}
-                                            domain={domain}
-                                            collection={group}
-                                            collectionDetails={groupDetails}
-                                        />
-                                        <CollectionDetails
-                                            collectionDetails={groupDetails}
-                                            api={this.api}
-                                            _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
+                                            domain={domainName}
+                                            collection={groupName}
+                                            collectionDetails={
+                                                groupDetails ? groupDetails : {}
                                             }
                                         />
+                                        <CollectionDetails
+                                            collectionDetails={
+                                                groupDetails ? groupDetails : {}
+                                            }
+                                            _csrf={_csrf}
+                                        />
                                         <GroupTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            group={group}
+                                            domain={domainName}
+                                            group={groupName}
                                             selectedName={'members'}
                                         />
                                     </PageHeaderDiv>
                                     <MemberList
                                         category={'group'}
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={group}
+                                        domain={domainName}
+                                        collection={groupName}
                                         collectionDetails={groupDetails}
-                                        members={members}
+                                        members={this.props.members}
                                         _csrf={_csrf}
                                         isDomainAuditEnabled={
-                                            isDomainAuditEnabled
-                                        }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
+                                            this.props.auditEnabled
                                         }
                                     />
                                 </GroupsContentDiv>
                             </GroupsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -193,3 +195,22 @@ export default class GroupMemberPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        auditEnabled: selectDomainAuditEnabled(state),
+        groupDetails: selectGroup(state, props.domainName, props.groupName),
+        members: selectGroupMembers(state, props.domainName, props.groupName),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroup: (domainName, groupName) =>
+        dispatch(getGroup(domainName, groupName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupMemberPage);

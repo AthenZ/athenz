@@ -27,6 +27,11 @@ class NameUtils {
         return resource.includes(':') ? resource : `${domainId}:${resource}`;
     }
 
+    static getRoleAssertionName(role, domainId) {
+        role = role.trim();
+        return role.includes(':role.') ? role : `${domainId}:role.${role}`;
+    }
+
     static getFlatPickrKey(key) {
         return key.replace(/\./g, '_').replace(/\W/g, '_');
     }

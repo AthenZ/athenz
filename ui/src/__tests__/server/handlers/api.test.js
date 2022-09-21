@@ -99,7 +99,9 @@ describe('Fetchr Server API Test', () => {
                         putMembership: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
-                                : callback(undefined, { success: 'true' }),
+                                : callback(undefined, {
+                                      success: 'true',
+                                  }),
                         deleteMembership: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -513,7 +515,10 @@ describe('Fetchr Server API Test', () => {
                 .set('Accept', 'application/json')
                 .set('Content-Type', 'application/json')
                 .then((res) => {
-                    expect(res.body.g0.data).toEqual({ success: 'true' });
+                    expect(res.body.g0.data).toEqual({
+                        success: 'true',
+                        memberFullName: null,
+                    });
                 });
         });
         it('deleteMembership test success', async () => {

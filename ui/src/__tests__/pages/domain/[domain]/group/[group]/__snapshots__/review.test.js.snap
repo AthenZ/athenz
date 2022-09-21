@@ -898,6 +898,7 @@ exports[`GroupReviewPage should render 1`] = `
               :
               group
               .
+              group1
             </div>
             <div
               class="emotion-32 emotion-33"
@@ -986,6 +987,7 @@ exports[`GroupReviewPage should render 1`] = `
               class="emotion-57 emotion-58"
             >
               There is no members to review for group: 
+              group1
               .
             </div>
           </div>

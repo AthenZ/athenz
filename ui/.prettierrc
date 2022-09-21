@@ -1,7 +1,6 @@
 arrowParens: always
 bracketSpacing: true
 endOfLine: lf
-jsxBracketSameLine: false
 jsxSingleQuote: true
 semi: true
 singleQuote: true

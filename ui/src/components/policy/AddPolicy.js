@@ -21,7 +21,6 @@ import RequestUtils from '../utils/RequestUtils';
 export default class AddPolicy extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.onChange = this.onChange.bind(this);
         this.state = {
@@ -59,8 +58,8 @@ export default class AddPolicy extends React.Component {
             return;
         }
 
-        this.api
-            .addPolicy(
+        this.props
+            .onSubmit(
                 this.props.domain,
                 this.state.name,
                 this.state.role,
@@ -69,11 +68,13 @@ export default class AddPolicy extends React.Component {
                 this.state.effect,
                 this.state.case,
                 this.props._csrf
+                // () => this.setState({ showModal: false }),
+                // (err) =>
+                //     this.setState({
+                //         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                //     })
             )
-            .then((data) => {
-                this.setState({ showModal: false });
-                this.props.onSubmit(`${this.state.name}`, false);
-            })
+            .then(() => this.setState({ showModal: false }))
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
@@ -95,7 +96,6 @@ export default class AddPolicy extends React.Component {
                 errorMessage={this.state.errorMessage}
                 sections={
                     <AddRuleForm
-                        api={this.api}
                         domain={this.props.domain}
                         onChange={this.onChange}
                         isPolicy={true}

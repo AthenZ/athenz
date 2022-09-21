@@ -17,25 +17,18 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import PolicyRow from '../../../components/policy/PolicyRow';
 import { colors } from '../../../components/denali/styles';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('PolicyRow', () => {
     it('should render', () => {
         const color = colors.row;
         const name = 'sections';
-        const api = {
-            getPolicy(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <PolicyRow
                         name={name}
                         color={color}
-                        api={api}
                         isActive={true}
                     />
                 </tbody>

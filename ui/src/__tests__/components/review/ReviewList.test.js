@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import ReviewList from '../../../components/review/ReviewList';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('ReviewList', () => {
     it('should render', () => {
@@ -49,9 +50,8 @@ describe('ReviewList', () => {
         members.push(user3);
         members.push(user4);
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <ReviewList
-                api={API()}
                 domain={domain}
                 role={role}
                 roleDetails={roleDetails}
@@ -93,9 +93,8 @@ describe('ReviewList', () => {
         members.push(user3);
         members.push(user4);
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <ReviewList
-                api={API()}
                 domain={domain}
                 role={role}
                 roleDetails={roleDetails}

@@ -43,7 +43,6 @@ const LabelDiv = styled.div`
 export default class CollectionDetails extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
     }
 
     render() {

@@ -18,11 +18,18 @@ import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
-import RuleTable from './RuleTable';
-import AddSegmentation from './AddSegmentation';
 import { DnToggle } from '@denali-design/react';
-import GroupTable from './GroupTable';
 import 'denali-css/css/denali.css';
+import { connect } from 'react-redux';
+import { selectInboundOutboundList } from '../../redux/selectors/microsegmentation';
+import AddSegmentation from './AddSegmentation';
+import RuleTable from './RuleTable';
+import { getInboundOutbound } from '../../redux/thunks/microsegmentation';
+import GroupTable from './GroupTable';
+import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectFeatureFlag } from '../../redux/selectors/domains';
+import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const MembersSectionDiv = styled.div`
     margin: 20px;
@@ -41,12 +48,11 @@ const StyledToggleDiv = styled.div`
     margin-right: 10px;
 `;
 
-export default class RulesList extends React.Component {
+class RulesList extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
         this.state = {
-            segmentationData: props.data,
             errorMessage: null,
             showAddSegmentation: false,
             tabularView: true,
@@ -82,11 +88,11 @@ export default class RulesList extends React.Component {
     }
 
     reloadData() {
-        this.api
+        this.props
             .getInboundOutbound(this.props.domain)
-            .then((data) => {
+            .then(() => {
                 this.setState({
-                    segmentationData: data,
+                    // segmentationData: this.props.data,
                     showAddSegmentation: false,
                     showAddStaticInstances: false,
                 });
@@ -163,15 +169,17 @@ export default class RulesList extends React.Component {
         );
 
         let showInbound =
-            this.state.segmentationData &&
-            this.state.segmentationData.inbound.length > 0 &&
+            this.props.data &&
+            this.props.data.inbound?.length > 0 &&
             this.state.tabularView;
         let showOutbound =
-            this.state.segmentationData &&
-            this.state.segmentationData.outbound.length > 0 &&
+            this.props.data &&
+            this.props.data.outbound?.length > 0 &&
             this.state.tabularView;
 
-        return (
+        return this.props.isLoading.length !== 0 ? (
+            <ReduxPageLoader message={'Loading microsegmentation data'} />
+        ) : (
             <MembersSectionDiv data-testid='segmentation-data-list'>
                 {addSegmentationButton}
 
@@ -179,12 +187,10 @@ export default class RulesList extends React.Component {
                     <RuleTable
                         category={'inbound'}
                         domain={domain}
-                        api={this.api}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadData}
-                        data={this.state.segmentationData.inbound}
+                        data={this.props.data.inbound}
                         caption='Inbound'
-                        justificationRequired={this.props.isDomainAuditEnabled}
                         pageFeatureFlag={this.props.pageFeatureFlag}
                     />
                 ) : null}
@@ -193,12 +199,10 @@ export default class RulesList extends React.Component {
                     <RuleTable
                         category={'outbound'}
                         domain={domain}
-                        api={this.api}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadData}
-                        data={this.state.segmentationData.outbound}
+                        data={this.props.data.outbound}
                         caption='Outbound'
-                        justificationRequired={this.props.isDomainAuditEnabled}
                         pageFeatureFlag={this.props.pageFeatureFlag}
                     />
                 ) : null}
@@ -214,11 +218,26 @@ export default class RulesList extends React.Component {
                         api={this.api}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadData}
-                        data={this.state.segmentationData}
-                        justificationRequired={this.props.isDomainAuditEnabled}
+                        data={this.props.data}
                     />
                 )}
             </MembersSectionDiv>
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        data: selectInboundOutboundList(state),
+        isDomainAuditEnabled: selectDomainAuditEnabled(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getInboundOutbound: (domainName) =>
+        dispatch(getInboundOutbound(domainName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RulesList);

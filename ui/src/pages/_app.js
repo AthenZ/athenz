@@ -15,8 +15,9 @@
  */
 import '../../static/pure-min.css';
 import 'flatpickr/dist/themes/light.css';
+import { wrapper } from '../redux/store';
 
 function MyApp({ Component, pageProps }) {
     return <Component {...pageProps} />;
 }
-export default MyApp;
+export default wrapper.withRedux(MyApp);

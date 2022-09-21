@@ -16,6 +16,12 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import ManageDomains from '../../../components/domain/ManageDomains';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('ManageDomains', () => {
     it('should render', () => {
@@ -52,7 +58,9 @@ describe('ManageDomains', () => {
                 });
             },
         };
-        const { getByTestId } = render(
+        MockApi.setMockApi(api);
+
+        const { getByTestId } = renderWithRedux(
             <ManageDomains domains={domains} api={api} />
         );
         const managedomains = getByTestId('manage-domains');
@@ -94,7 +102,9 @@ describe('ManageDomains', () => {
                 });
             },
         };
-        const { getByTestId } = render(
+        MockApi.setMockApi(api);
+
+        const { getByTestId } = renderWithRedux(
             <ManageDomains domains={domains} api={api} />
         );
         const managedomains = getByTestId('manage-domains');
@@ -136,7 +146,9 @@ describe('ManageDomains', () => {
                 });
             },
         };
-        const { getByTestId } = render(
+        MockApi.setMockApi(api);
+
+        const { getByTestId } = renderWithRedux(
             <ManageDomains domains={domains} api={api} />
         );
         const managedomains = getByTestId('manage-domains');
@@ -178,7 +190,9 @@ describe('ManageDomains', () => {
                 });
             },
         };
-        const { getByTestId } = render(
+        MockApi.setMockApi(api);
+
+        const { getByTestId } = renderWithRedux(
             <ManageDomains domains={domains} api={api} />
         );
         const managedomains = getByTestId('manage-domains');

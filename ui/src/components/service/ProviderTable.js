@@ -20,6 +20,12 @@ import Icon from '../denali/icons/Icon';
 import Button from '../denali/Button';
 import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import {
+    selectAllProviders,
+    selectProvider,
+} from '../../redux/selectors/services';
+import { allowProviderTemplate } from '../../redux/thunks/services';
+import { connect } from 'react-redux';
 
 const ProvideTable = styled.table`
     display: table;
@@ -88,29 +94,22 @@ const AllowDiv = styled.div`
     margin-left: 30px;
 `;
 
-export default class ProviderTable extends React.Component {
+class ProviderTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.state = {
-            provider: this.props.provider.provider,
-            errorMessage: this.props.provider.errorMessage,
+            errorMessage: null,
         };
     }
 
     onAllow(provider) {
-        this.api
+        this.props
             .allowProviderTemplate(
                 this.props.domain,
                 this.props.service,
                 provider,
                 this.props._csrf
             )
-            .then(() => {
-                let currentProvider = this.state.provider;
-                currentProvider[provider] = 'allow';
-                this.setState({ provider: currentProvider });
-            })
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
@@ -130,11 +129,12 @@ export default class ProviderTable extends React.Component {
             );
         } else {
             providerContent = this.props.allProviders.map((provider) => {
-                if (this.state.provider[provider.id] === 'allow') {
-                    return (
-                        <tr key={provider.id}>
-                            <ProviderTd>{provider.name}</ProviderTd>
-                            <AllowTd colSpan={5}>
+                // if (this.props.provider[provider.id] === 'allow') {
+                return (
+                    <tr key={provider.id}>
+                        <ProviderTd>{provider.name}</ProviderTd>
+                        <AllowTd colSpan={5}>
+                            {this.props.provider[provider.id] === 'allow' ? (
                                 <AllowDiv>
                                     <Icon
                                         icon={'checkmark'}
@@ -143,20 +143,29 @@ export default class ProviderTable extends React.Component {
                                         verticalAlign={'text-bottom'}
                                     />
                                 </AllowDiv>
-                            </AllowTd>
-                        </tr>
-                    );
-                } else if (this.state.provider[provider.id] === 'not') {
-                    let onAllow = this.onAllow.bind(this, provider.id);
-                    return (
-                        <tr key={provider.id}>
-                            <ProviderTd>{provider.name}</ProviderTd>
-                            <AllowTd colSpan={5}>
-                                <Button onClick={onAllow}>Allow</Button>
-                            </AllowTd>
-                        </tr>
-                    );
-                }
+                            ) : (
+                                <Button
+                                    onClick={this.onAllow.bind(
+                                        this,
+                                        provider.id
+                                    )}
+                                >
+                                    Allow
+                                </Button>
+                            )}
+                        </AllowTd>
+                    </tr>
+                );
+                //     } else if (this.props.provider[provider.id] === 'not') {
+                //         let onAllow = this.onAllow.bind(this, provider.id);
+                //         return (
+                //             <tr key={provider.id}>
+                //                 <ProviderTd>{provider.name}</ProviderTd>
+                //                 <AllowTd colSpan={5}></AllowTd>
+                //             </tr>
+                //         );
+                //     }
+                // });
             });
         }
 
@@ -184,3 +193,20 @@ export default class ProviderTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        provider: selectProvider(state, props.domain, props.service),
+        allProviders: selectAllProviders(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    allowProviderTemplate: (domainName, serviceName, providerId, _csrf) =>
+        dispatch(
+            allowProviderTemplate(domainName, serviceName, providerId, _csrf)
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProviderTable);

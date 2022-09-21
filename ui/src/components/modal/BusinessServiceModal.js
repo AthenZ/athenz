@@ -95,7 +95,6 @@ export default class BusinessServiceModal extends React.Component {
                 : '',
             errorMessage: this.props.errorMessage,
         };
-        this.api = props.api;
     }
 
     onJustification(evt) {

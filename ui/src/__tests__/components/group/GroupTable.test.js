@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import GroupTable from '../../../components/group/GroupTable';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('GroupTable', () => {
     it('should render', () => {
@@ -35,8 +36,8 @@ describe('GroupTable', () => {
         };
         groups.push(group1);
         groups.push(group2);
-        const { getByTestId } = render(
-            <GroupTable groups={groups} api={API()} domain={domains} />
+        const { getByTestId } = renderWithRedux(
+            <GroupTable groups={groups} domain={domains} />
         );
         const grouptable = getByTestId('grouptable');
 

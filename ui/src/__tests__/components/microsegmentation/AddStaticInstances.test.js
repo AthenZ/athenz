@@ -17,6 +17,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import AddStaticinstances from '../../../components/microsegmentation/AddStaticInstances';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('AddStaticInstances', () => {
     it('should render', () => {
@@ -26,10 +27,9 @@ describe('AddStaticInstances', () => {
         const submit = function () {};
         let _csrf = 'csrf';
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddStaticinstances
-                api={API()}
-                domain={domain}
+                domainName={domain}
                 onSubmit={submit}
                 onCancel={cancel}
                 _csrf={_csrf}
@@ -48,10 +48,9 @@ describe('AddStaticInstances', () => {
         let role = 'roleName';
         const submit = function () {};
         let _csrf = 'csrf';
-        const { getByTestId, getByText } = render(
+        const { getByTestId, getByText } = renderWithRedux(
             <AddStaticinstances
-                api={API()}
-                domain={domain}
+                domainName={domain}
                 onSubmit={submit}
                 onCancel={cancel}
                 _csrf={_csrf}
