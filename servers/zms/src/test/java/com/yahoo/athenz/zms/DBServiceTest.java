@@ -11684,7 +11684,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, false)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
         Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
 
         List<ExpiryMember> purgeMemberList;
@@ -11761,7 +11761,7 @@ public class DBServiceTest {
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3);
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, false)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
         Mockito.when(conn.getAllExpiredRoleMembers(PURGE_TASK_LIMIT_PER_CALL_DEF, 0)).thenReturn(purgeMemberList);
         Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
 
@@ -11826,7 +11826,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, false)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
         Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
 
         ExpiryMember member1 = new ExpiryMember()
@@ -11938,7 +11938,7 @@ public class DBServiceTest {
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3);
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, false)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
         Mockito.when(conn.getAllExpiredGroupMembers(PURGE_TASK_LIMIT_PER_CALL_DEF, 0)).thenReturn(purgeMemberList);
         Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),  eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
 
