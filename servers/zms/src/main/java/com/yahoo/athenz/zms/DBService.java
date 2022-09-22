@@ -8037,7 +8037,7 @@ public class DBService implements RolesProvider {
 
     List<ExpiryMember> executeDeleteDomainExpiredRoleMemberships(ResourceContext ctx, String domainName, List<ExpiryMember> members, String auditRef, String caller) {
         List<ExpiryMember> removedList = new ArrayList<>();
-        try (ObjectStoreConnection con = store.getConnection(false, false)) {
+        try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
             // delete all expired domain group members one by one (required due auditLog)
             for (ExpiryMember member : members) {
@@ -8122,7 +8122,7 @@ public class DBService implements RolesProvider {
 
     List<ExpiryMember> executeDeleteDomainExpiredGroupMemberships(ResourceContext ctx, String domainName, List<ExpiryMember> members, String auditRef, String caller) {
         List<ExpiryMember> removedList = new ArrayList<>();
-        try (ObjectStoreConnection con = store.getConnection(false, false)) {
+        try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
             // delete all expired domain group members one by one (required due auditLog)
             for (ExpiryMember member : members) {
