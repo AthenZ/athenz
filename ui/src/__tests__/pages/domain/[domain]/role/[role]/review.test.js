@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import ReviewPage from '../../../../../../pages/domain/[domain]/role/[role]/review';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../../../mock/MockApi';
 
 describe('ReviewPage', () => {
-    it('should render', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -29,6 +38,7 @@ describe('ReviewPage', () => {
             modified: '2020-02-12T21:44:37.792Z',
         };
         let roleDetails = {
+            roleName: 'role1',
             modified: '2020-02-12T21:44:37.792Z',
         };
         let headerDetails = {
@@ -47,20 +57,31 @@ describe('ReviewPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            ...mockRolesApiCalls(),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            getRole: jest.fn().mockReturnValue(Promise.resolve(roleDetails)),
+            listUserDomains: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(domains)),
+        };
+        MockApi.setMockApi(mockApi);
+        const { getByTestId } = renderWithRedux(
             <ReviewPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                roleDetails={roleDetails}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName='dom'
+                roleName={'role1'}
             />
         );
+        await waitFor(() => expect(getByTestId('review')).toBeInTheDocument());
         const reviewPage = getByTestId('review');
         expect(reviewPage).toMatchSnapshot();
     });

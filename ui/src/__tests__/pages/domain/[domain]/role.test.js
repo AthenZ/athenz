@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import RolePage from '../../../../pages/domain/[domain]/role';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('RolePage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -44,19 +54,43 @@ describe('RolePage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            ...mockRolesApiCalls(),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            getServiceDependencies: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <RolePage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain='dom'
+                domainName='dom'
                 domainResult={[]}
-                headerDetails={headerDetails}
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('role')).toBeInTheDocument();
+        });
+
         const rolePage = getByTestId('role');
         expect(rolePage).toMatchSnapshot();
     });

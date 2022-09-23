@@ -54,24 +54,7 @@ const TableHeadStyledGroupName = styled.th`
 export default class InstanceTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
-
-        this.state = {
-            instances: props.instances || [],
-        };
     }
-
-    componentDidUpdate = (prevProps) => {
-        if (prevProps.domain !== this.props.domain) {
-            this.setState({
-                rows: {},
-            });
-        } else if (prevProps.instances !== this.props.instances) {
-            this.setState({
-                instances: this.props.instances || [],
-            });
-        }
-    };
 
     render() {
         const { domain } = this.props;
@@ -86,7 +69,6 @@ export default class InstanceTable extends React.Component {
                         idx={i}
                         domain={domain}
                         color={color}
-                        api={this.api}
                         key={item.uuid}
                         onUpdateSuccess={this.props.onSubmit}
                         _csrf={this.props._csrf}

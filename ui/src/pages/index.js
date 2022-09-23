@@ -16,13 +16,13 @@
 import React from 'react';
 import Header from '../components/header/Header';
 import UserDomains from '../components/domain/UserDomains';
-import API from '../api.js';
 import styled from '@emotion/styled';
 import Head from 'next/head';
 
 import Search from '../components/search/Search';
-import RequestUtils from '../components/utils/RequestUtils';
 import Error from './_error';
+import { connect } from 'react-redux';
+import { getHeaderDetails } from '../redux/thunks/domains';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 
@@ -86,39 +86,29 @@ const StyledAnchor = styled.a`
 `;
 
 export async function getServerSideProps(context) {
-    let api = API(context.req);
     let reload = false;
     let error = null;
-    const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getPendingDomainMembersList(),
-    ]).catch((err) => {
-        let response = RequestUtils.errorCheckHelper(err);
-        reload = response.reload;
-        error = response.error;
-        return [{}, {}, {}];
-    });
     return {
         props: {
             reload,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            pending: domains[2],
+            userName: context.req.session.shortId,
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class PageHome extends React.Component {
+class PageHome extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
         });
+    }
+
+    componentDidMount() {
+        this.props.getHeaderDetails();
     }
 
     render() {
@@ -135,11 +125,7 @@ export default class PageHome extends React.Component {
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={false}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={false} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <HomeContainerDiv>
@@ -171,10 +157,7 @@ export default class PageHome extends React.Component {
                                     </SearchContainerDiv>
                                 </HomeContentDiv>
                             </HomeContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                            />
+                            <UserDomains />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -182,3 +165,9 @@ export default class PageHome extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    getHeaderDetails: () => dispatch(getHeaderDetails()),
+});
+
+export default connect(null, mapDispatchToProps)(PageHome);

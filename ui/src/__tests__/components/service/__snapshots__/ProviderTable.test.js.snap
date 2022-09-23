@@ -152,13 +152,3 @@ exports[`ProviderTable should render error if allow api throws error 1`] = `
   Failed to fetch template details.
 </div>
 `;
-
-exports[`ProviderTable should render error if there is error in providers 1`] = `
-<div
-  data-testid="error-message"
-  name="red600"
-  style="color: rgb(208, 17, 17); display: inline-block;"
->
-  Failed to fetch template details.
-</div>
-`;

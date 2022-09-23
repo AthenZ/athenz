@@ -75,7 +75,6 @@ describe('RoleGroup', () => {
         let name = 'AWS';
         let domain = 'domain';
         let roles = [];
-        const assertions = [];
         const { getByTestId } = render(
             <table>
                 <tbody>

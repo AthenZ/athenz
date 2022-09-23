@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import MicrosegmentationPage from '../../../../pages/domain/[domain]/microsegmentation';
+import {
+    mockAllDomainDataApiCalls,
+    mockRolesApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('MicrosegmentationPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -44,19 +54,47 @@ describe('MicrosegmentationPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            ...mockRolesApiCalls(),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+            getPolicies: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            getServices: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+        };
+
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <MicrosegmentationPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
                 domain='dom'
                 domainResult={[]}
-                headerDetails={headerDetails}
             />
         );
+        await waitFor(() => {
+            expect(getByTestId('microsegmentation')).toBeInTheDocument();
+        });
         const microsegmentationPage = getByTestId('microsegmentation');
         expect(microsegmentationPage).toMatchSnapshot();
     });

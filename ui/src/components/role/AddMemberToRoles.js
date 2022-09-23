@@ -25,6 +25,11 @@ import DateUtils from '../utils/DateUtils';
 import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
 import SearchInput from '../denali/SearchInput';
+import { selectRoles } from '../../redux/selectors/roles';
+import { addMemberToRoles, getRoles } from '../../redux/thunks/roles';
+import { getDomainData } from '../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 
 const SectionsDiv = styled.div`
     width: 800px;
@@ -111,10 +116,9 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
-export default class AddMemberToRoles extends React.Component {
+class AddMemberToRoles extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmit = this.onSubmit.bind(this);
         this.state = {
             showModal: !!this.props.showAddMemberToRoles,
@@ -170,11 +174,10 @@ export default class AddMemberToRoles extends React.Component {
                     : '',
         };
         // send api call and then reload existing members component
-        this.api
+        this.props
             .addMemberToRoles(
                 this.props.domain,
                 this.state.checkedRoles,
-                this.state.memberName,
                 member,
                 this.state.justification
                     ? this.state.justification
@@ -334,3 +337,22 @@ export default class AddMemberToRoles extends React.Component {
         );
     }
 }
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        roles: selectRoles(state),
+        justificationRequired: selectDomainAuditEnabled(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getRoles: (domainName) => dispatch(getRoles(domainName)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    addMemberToRoles: (domainName, roles, member, justification, _csrf) =>
+        dispatch(
+            addMemberToRoles(domainName, roles, member, justification, _csrf)
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddMemberToRoles);

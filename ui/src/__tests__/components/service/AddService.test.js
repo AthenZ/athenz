@@ -21,6 +21,12 @@ import {
     waitForElement,
 } from '@testing-library/react';
 import AddService from '../../../components/service/AddService';
+import {
+    buildServicesForState,
+    getStateWithServices,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 const pageConfig = {
     servicePageConfig: {
         keyCreationLink: {
@@ -32,15 +38,16 @@ const pageConfig = {
     },
 };
 describe('AddService', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
     it('should render', () => {
         const cancel = function () {};
         const domain = 'domain';
-        const api = {};
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <AddService
                 onCancel={cancel}
                 domain={domain}
-                api={api}
                 showAddService={true}
                 pageConfig={pageConfig}
             />
@@ -68,23 +75,15 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function (domainName, serviceName) {
-                return new Promise((resolve, reject) => {
-                    reject({
-                        statusCode: 404,
-                        body: {
-                            message: 'test-error',
-                        },
-                    });
-                });
-            },
+            getServices: jest.fn().mockReturnValue(Promise.resolve([])),
         };
+        MockApi.setMockApi(api);
+
         const { getByTestId, querySelector, getByText, getAllByTestId } =
-            render(
+            renderWithRedux(
                 <AddService
                     onCancel={cancel}
                     domain={domain}
-                    api={api}
                     showAddService={true}
                     pageConfig={pageConfig}
                 />
@@ -130,23 +129,15 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function (domainName, serviceName) {
-                return new Promise((resolve, reject) => {
-                    reject({
-                        statusCode: 404,
-                        body: {
-                            message: 'test-error',
-                        },
-                    });
-                });
-            },
+            getServices: jest.fn().mockReturnValue(Promise.resolve([])),
         };
+        MockApi.setMockApi(api);
+
         const { getByTestId, querySelector, getByText, getAllByTestId } =
-            render(
+            renderWithRedux(
                 <AddService
                     onCancel={cancel}
                     domain={domain}
-                    api={api}
                     showAddService={true}
                     pageConfig={pageConfig}
                 />
@@ -178,36 +169,18 @@ describe('AddService', () => {
             test = test + 1;
         };
         const api = {
-            addService: function (
-                domainName,
-                serviceName,
-                description,
-                endpoint,
-                keyId,
-                keyValue,
-                _csrf
-            ) {
-                return new Promise((resolve, reject) => {
-                    resolve();
-                });
-            },
-            getService: function (domainName, serviceName) {
-                return new Promise((resolve, reject) => {
-                    reject({
-                        statusCode: 404,
-                        body: {
-                            message: 'test-error',
-                        },
-                    });
-                });
-            },
+            getServices: jest.fn().mockReturnValue(Promise.resolve([])),
+            addService: jest
+                .fn()
+                .mockReturnValue(Promise.resolve({ name: 'test-name' })),
         };
+        MockApi.setMockApi(api);
+
         const { getByTestId, querySelector, getByText, getAllByTestId } =
-            render(
+            renderWithRedux(
                 <AddService
                     onCancel={cancel}
                     domain={domain}
-                    api={api}
                     showAddService={true}
                     onSubmit={onSubmit}
                     pageConfig={pageConfig}
@@ -234,27 +207,15 @@ describe('AddService', () => {
         const cancel = function () {};
         const domain = 'domain';
         const api = {
-            addService: function (
-                domainName,
-                serviceName,
-                description,
-                endpoint,
-                keyId,
-                keyValue,
-                _csrf
-            ) {
-                return new Promise((resolve, reject) => {
-                    resolve();
-                });
-            },
+            getServices: jest.fn().mockReturnValue(Promise.resolve([])),
+            addService: jest.fn().mockReturnValue(Promise.resolve()),
         };
-
+        MockApi.setMockApi(api);
         const { getByTestId, querySelector, getByText, getAllByTestId } =
-            render(
+            renderWithRedux(
                 <AddService
                     onCancel={cancel}
                     domain={domain}
-                    api={api}
                     showAddService={true}
                     pageConfig={pageConfig}
                 />
@@ -268,7 +229,13 @@ describe('AddService', () => {
     it('should render error when service already exists', async () => {
         const cancel = function () {};
         const domain = 'domain';
+        // const service = 'test';
         const api = {
+            getServices: jest
+                .fn()
+                .mockReturnValue(
+                    Promise.resolve([{ name: domain + '.' + 'test-name' }])
+                ),
             addService: function (
                 domainName,
                 serviceName,
@@ -293,12 +260,12 @@ describe('AddService', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const { getByTestId, querySelector, getByText, getAllByTestId } =
-            render(
+            renderWithRedux(
                 <AddService
                     onCancel={cancel}
                     domain={domain}
-                    api={api}
                     showAddService={true}
                     pageConfig={pageConfig}
                 />
@@ -344,7 +311,7 @@ describe('AddService', () => {
                     });
                 });
             },
-            getService: function (domainName, serviceName) {
+            getServices: function (domainName, serviceName) {
                 return new Promise((resolve, reject) => {
                     reject({
                         statusCode: 0,
@@ -352,12 +319,12 @@ describe('AddService', () => {
                 });
             },
         };
+        MockApi.setMockApi(api);
         const { getByTestId, querySelector, getByText, getAllByTestId } =
-            render(
+            renderWithRedux(
                 <AddService
                     onCancel={cancel}
                     domain={domain}
-                    api={api}
                     showAddService={true}
                     pageConfig={pageConfig}
                 />

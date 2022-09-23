@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
-import API from '../../../api';
+import { waitFor } from '@testing-library/react';
+import {
+    buildMicrosegmentationForState,
+    getStateWithMicrosegmentation,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 import RulesList from '../../../components/microsegmentation/RulesList';
 
 describe('RulesList', () => {
@@ -41,15 +46,18 @@ describe('RulesList', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+
+        const { getByTestId } = renderWithRedux(
             <RulesList
-                api={API()}
                 domain={domain}
                 _csrf={'_csrf'}
                 isDomainAuditEnabled={true}
-                data={segmentationData}
-            />
+            />,
+            getStateWithMicrosegmentation(
+                buildMicrosegmentationForState(segmentationData, domain)
+            )
         );
+
         const rulesList = getByTestId('segmentation-data-list');
 
         expect(rulesList).toMatchSnapshot();

@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import DomainSettingsPage from '../../../../pages/domain/[domain]/domain-settings';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
+import { waitFor } from '@testing-library/react';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('DomainSettingsPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -44,19 +53,36 @@ describe('DomainSettingsPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = renderWithRedux(
             <DomainSettingsPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain='dom'
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName='dom'
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('domain-settings')).toBeInTheDocument();
+        });
+
         const domainSettingsPage = getByTestId('domain-settings');
         expect(domainSettingsPage).toMatchSnapshot();
     });

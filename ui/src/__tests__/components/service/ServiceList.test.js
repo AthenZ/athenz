@@ -16,6 +16,8 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import ServiceList from '../../../components/service/ServiceList';
+import { buildServicesForState, getStateWithServices, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 const pageConfig = {
     servicePageConfig: {
         keyCreationLink: {
@@ -26,23 +28,34 @@ const pageConfig = {
         keyCreationMessage: 'Test Message',
     },
 };
+const domain = 'home.test';
+const service = 'openhouse';
+const fullServiceName = domain + '.' + service;
+const servicesForState = buildServicesForState({
+        [fullServiceName]: {
+            name: fullServiceName,
+            modified: '2020-02-08T00:02:49.477Z',
+        }
+    }, 'home.test'
+);
+
 describe('ServiceList', () => {
+
+    afterEach(() => {
+       MockApi.cleanMockApi();
+    });
+
     it('should render without services', () => {
-        const { getByTestId } = render(<ServiceList pageConfig={pageConfig} />);
+        const { getByTestId } = renderWithRedux(<ServiceList pageConfig={pageConfig} />);
         const servicelist = getByTestId('service-list');
 
         expect(servicelist).toMatchSnapshot();
     });
 
     it('should render with services', () => {
-        const services = [
-            {
-                name: 'home.test.openhouse',
-                modified: '2020-02-08T00:02:49.477Z',
-            },
-        ];
-        const { getByTestId } = render(
-            <ServiceList services={services} pageConfig={pageConfig} />
+        const { getByTestId } = renderWithRedux(
+            <ServiceList pageConfig={pageConfig} />,
+            getStateWithServices(servicesForState)
         );
         const servicelist = getByTestId('service-list');
 
@@ -50,14 +63,9 @@ describe('ServiceList', () => {
     });
 
     it('should render add service modal after click', async () => {
-        const services = [
-            {
-                name: 'home.test.openhouse',
-                modified: '2020-02-08T00:02:49.477Z',
-            },
-        ];
-        const { getByText, getByTestId } = render(
-            <ServiceList services={services} pageConfig={pageConfig} />
+        const { getByText, getByTestId } = renderWithRedux(
+            <ServiceList pageConfig={pageConfig} />,
+            getStateWithServices(servicesForState)
         );
         fireEvent.click(getByText('Add Service'));
         expect(
@@ -66,12 +74,6 @@ describe('ServiceList', () => {
     });
 
     it('should render delete service modal error(refresh) after click', async () => {
-        const services = [
-            {
-                name: 'home.test1.openhouse',
-                modified: '2020-02-08T00:02:49.477Z',
-            },
-        ];
         const api = {
             deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
@@ -81,12 +83,14 @@ describe('ServiceList', () => {
                 });
             },
         };
-        const { getByText, getByTestId, getByTitle } = render(
+        MockApi.setMockApi(api);
+
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <ServiceList
-                services={services}
-                api={api}
+                domain={domain}
                 pageConfig={pageConfig}
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
 
@@ -99,12 +103,6 @@ describe('ServiceList', () => {
     });
 
     it('should render delete service modal error(other) after click', async () => {
-        const services = [
-            {
-                name: 'home.test1.openhouse',
-                modified: '2020-02-08T00:02:49.477Z',
-            },
-        ];
         const api = {
             deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
@@ -117,12 +115,14 @@ describe('ServiceList', () => {
                 });
             },
         };
-        const { getByText, getByTestId, getByTitle } = render(
+        MockApi.setMockApi(api);
+
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <ServiceList
-                services={services}
-                api={api}
+                domain={domain}
                 pageConfig={pageConfig}
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
 
@@ -138,31 +138,21 @@ describe('ServiceList', () => {
     });
 
     it('should render serviceList again after confirm delete', async () => {
-        const services = [
-            {
-                name: 'home.test1.openhouse',
-                modified: '2020-02-08T00:02:49.477Z',
-            },
-        ];
         const api = {
             deleteService: function (domain, deleteServiceName, _csrf) {
                 return new Promise((resolve, reject) => {
                     resolve();
                 });
             },
-            getServices: function (domain) {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
         };
+        MockApi.setMockApi(api);
 
-        const { getByText, getByTestId, getByTitle } = render(
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <ServiceList
-                services={services}
-                api={api}
+                domain={domain}
                 pageConfig={pageConfig}
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
 
@@ -188,19 +178,15 @@ describe('ServiceList', () => {
                     resolve();
                 });
             },
-            getServices: function (domain) {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
         };
+        MockApi.setMockApi(api);
 
-        const { getByText, getByTestId, getByTitle } = render(
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <ServiceList
-                services={services}
-                api={api}
+                domain={domain}
                 pageConfig={pageConfig}
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
 

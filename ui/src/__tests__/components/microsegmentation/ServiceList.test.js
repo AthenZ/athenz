@@ -27,7 +27,7 @@ describe('ServiceList', () => {
         const { getByTestId } = render(
             <table>
                 <tbody>
-                    <ServiceList list={details} api={API()} domain={domain} />
+                    <ServiceList list={details} domain={domain} />
                 </tbody>
             </table>
         );

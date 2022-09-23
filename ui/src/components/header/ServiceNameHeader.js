@@ -20,6 +20,8 @@ import PageUtils from '../utils/PageUtils';
 import Menu from '../denali/Menu/Menu';
 import Icon from '../denali/icons/Icon';
 import { colors } from '../denali/styles';
+import { selectDynamicServiceHeaderDetails } from '../../redux/selectors/services';
+import { connect } from 'react-redux';
 
 const StyledAnchor = styled.a`
     color: #3570f4;

@@ -22,6 +22,9 @@ import InputLabel from '../denali/InputLabel';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
+import { connect } from 'react-redux';
+import { reviewRole } from '../../redux/thunks/roles';
+import produce from 'immer';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -94,9 +97,7 @@ const StyledJustification = styled(Input)`
 class ReviewTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.submitReview = this.submitReview.bind(this);
-        this.submitRoleMetaExpiry = this.submitRoleMetaExpiry.bind(this);
         this.onClickSettings = this.onClickSettings.bind(this);
         this.cancelRoleMetaUpdate = this.cancelRoleMetaUpdate.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
@@ -111,102 +112,12 @@ class ReviewTable extends React.Component {
         };
     }
 
-    loadRole() {
-        if (this.props.roleDetails.trust) {
-            this.props.api
-                .getRole(this.props.domain, this.props.role, false, true, false)
-                .then((role) => {
-                    if (role.trust != null) {
-                        this.setState({
-                            showTrustError: true,
-                            errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
-                        });
-                    } else {
-                        let members =
-                            role.roleMembers &&
-                            role.roleMembers.map((m) => m.memberName);
-                        this.setState({
-                            roleObj: role,
-                            list: role.roleMembers || [],
-                            extendedMembers: new Set(members),
-                            deletedMembers: new Set(),
-                            submittedReview: false,
-                        });
-                    }
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
-        } else {
-            this.props.api
-                .getRole(
-                    this.props.domain,
-                    this.props.role,
-                    false,
-                    false,
-                    false
-                )
-                .then((role) => {
-                    if (role.trust != null) {
-                        this.setState({
-                            showTrustError: true,
-                            errorMessage: `This is a delegated role. It needs to be reviewed in ${role.trust} domain.`,
-                        });
-                    } else {
-                        let members =
-                            role.roleMembers &&
-                            role.roleMembers.map((m) => m.memberName);
-                        this.setState({
-                            roleObj: role,
-                            list: role.roleMembers || [],
-                            extendedMembers: new Set(members),
-                            deletedMembers: new Set(),
-                            submittedReview: false,
-                        });
-                    }
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
-        }
-    }
-
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
     }
 
-    submitRoleMetaExpiry() {
-        let roleMeta = {
-            selfServe: this.state.roleObj.selfServe,
-            reviewEnabled: this.state.roleObj.reviewEnabled,
-        };
-        this.props.api
-            .putRoleMeta(
-                this.props.domain,
-                this.props.role,
-                roleMeta,
-                'Added using Athenz UI',
-                this.props._csrf
-            )
-            .then(() => {
-                this.loadRole();
-            })
-            .catch((err) => {
-                this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                });
-            });
-    }
-
     submitReview() {
-        if (
-            this.state.roleObj.roleMembers &&
-            this.state.roleObj.roleMembers.length > 0
-        ) {
+        if (this.props.members && this.props.members.length > 0) {
             if (
                 this.state.justification === undefined ||
                 this.state.justification.trim() === ''
@@ -222,14 +133,15 @@ class ReviewTable extends React.Component {
             let role = {
                 name: this.props.role,
             };
-            role.roleMembers = this.state.roleObj.roleMembers;
-            role.roleMembers.forEach((m) => {
-                if (this.state.deletedMembers.has(m.memberName)) {
-                    m.active = false;
-                }
-                m.expiration = null;
-                m.reviewReminder = null;
-                delete m.memberFullName; // memberFullName is not a valid property on the server
+            role.roleMembers = produce(this.props.members, (draft) => {
+                draft.forEach((m) => {
+                    if (this.state.deletedMembers.has(m.memberName)) {
+                        m.active = false;
+                    }
+                    m.expiration = null;
+                    m.reviewReminder = null;
+                    delete m.memberFullName; // memberFullName is not a valid property on the server
+                });
             });
             role.roleMembers = role.roleMembers.filter((m) => {
                 if (
@@ -239,10 +151,9 @@ class ReviewTable extends React.Component {
                     return m;
                 }
             });
-            this.props.api
+            this.props
                 .reviewRole(
                     this.props.domain,
-                    this.props.role,
                     role,
                     this.state.justification,
                     this.props._csrf
@@ -255,15 +166,12 @@ class ReviewTable extends React.Component {
                     this.props.onUpdateSuccess(
                         `Successfully submitted the review for role ${this.props.role}`
                     );
-                    this.loadRole();
                 })
                 .catch((err) => {
                     this.setState({
                         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
                     });
                 });
-        } else {
-            this.props.onUpdateSuccess('There is nothing to review.');
         }
     }
 
@@ -296,51 +204,57 @@ class ReviewTable extends React.Component {
     getDefaultExpiryText() {
         let text = 'Current default settings are - ';
         let noDaysConfigured = true;
-        if (this.state.roleObj && this.state.roleObj.memberExpiryDays) {
+        if (this.props.roleDetails && this.props.roleDetails.memberExpiryDays) {
             text =
                 text +
                 'Member Expiry: ' +
-                this.state.roleObj.memberExpiryDays +
+                this.props.roleDetails.memberExpiryDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.serviceExpiryDays) {
+        if (
+            this.props.roleDetails &&
+            this.props.roleDetails.serviceExpiryDays
+        ) {
             text =
                 text +
                 'Service Expiry: ' +
-                this.state.roleObj.serviceExpiryDays +
+                this.props.roleDetails.serviceExpiryDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.groupExpiryDays) {
+        if (this.props.roleDetails && this.props.roleDetails.groupExpiryDays) {
             text =
                 text +
                 'Group Expiry: ' +
-                this.state.roleObj.groupExpiryDays +
+                this.props.roleDetails.groupExpiryDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.memberReviewDays) {
+        if (this.props.roleDetails && this.props.roleDetails.memberReviewDays) {
             text =
                 text +
                 'Member Review: ' +
-                this.state.roleObj.memberReviewDays +
+                this.props.roleDetails.memberReviewDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.serviceReviewDays) {
+        if (
+            this.props.roleDetails &&
+            this.props.roleDetails.serviceReviewDays
+        ) {
             text =
                 text +
                 'Service Review: ' +
-                this.state.roleObj.serviceReviewDays +
+                this.props.roleDetails.serviceReviewDays +
                 ' days. ';
             noDaysConfigured = false;
         }
-        if (this.state.roleObj && this.state.roleObj.groupReviewDays) {
+        if (this.props.roleDetails && this.props.roleDetails.groupReviewDays) {
             text =
                 text +
                 'Group Review: ' +
-                this.state.roleObj.groupReviewDays +
+                this.props.roleDetails.groupReviewDays +
                 ' days. ';
             noDaysConfigured = false;
         }
@@ -367,8 +281,8 @@ class ReviewTable extends React.Component {
         const left = 'left';
         let center = 'center';
         const rows =
-            this.state.list && this.state.list.length > 0
-                ? this.state.list
+            this.props.members && this.props.members.length > 0
+                ? this.props.members
                       .sort((a, b) => {
                           return a.memberName.localeCompare(b.memberName);
                       })
@@ -402,8 +316,7 @@ class ReviewTable extends React.Component {
                 </ReviewMembersContainerDiv>
             );
         }
-
-        if (!this.state.list || this.state.list.length === 0) {
+        if (!this.props.members || this.props.members.length === 0) {
             return (
                 <ReviewMembersContainerDiv>
                     There is no members to review for role: {this.props.role}.
@@ -491,4 +404,10 @@ class ReviewTable extends React.Component {
         );
     }
 }
-export default withRouter(ReviewTable);
+
+const mapDispatchToProps = (dispatch) => ({
+    reviewRole: (groupName, role, justification, _csrf) =>
+        dispatch(reviewRole(groupName, role, justification, _csrf)),
+});
+
+export default connect(null, mapDispatchToProps)(withRouter(ReviewTable));

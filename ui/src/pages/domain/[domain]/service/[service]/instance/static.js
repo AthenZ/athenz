@@ -22,14 +22,21 @@ import Head from 'next/head';
 
 import RequestUtils from '../../../../../../components/utils/RequestUtils';
 import Error from '../../../../../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import ServiceTabs from '../../../../../../components/header/ServiceTabs';
 import ServiceNameHeader from '../../../../../../components/header/ServiceNameHeader';
-import InstanceList from '../../../../../../components/service/InstanceList';
 import ServiceInstanceDetails from '../../../../../../components/header/ServiceInstanceDetails';
 import { SERVICE_TYPE_STATIC } from '../../../../../../components/constants/constants';
-import JsonUtils from '../../../../../../components/utils/JsonUtils';
+import { connect } from 'react-redux';
+import {
+    selectInstancesWorkLoadMeta,
+    selectStaticServiceHeaderDetails,
+} from '../../../../../../redux/selectors/services';
+import { getServiceHeaderAndInstances } from '../../../../../../redux/thunks/services';
+import InstanceList from '../../../../../../components/service/InstanceList';
+import { selectIsLoading } from '../../../../../../redux/selectors/loading';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import { ReduxPageLoader } from '../../../../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -66,118 +73,117 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const data = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getInstances(context.query.domain, context.query.service, 'static'),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-        api.getServiceHeaderDetails(),
-    ]).catch((err) => {
+    const data = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: data[0],
-            service: context.query.service,
-            headerDetails: data[1],
-            domainDetails: data[2],
-            auditEnabled: data[2].auditEnabled,
-            instanceDetails: JsonUtils.omitUndefined(data[3]),
-            domain: context.query.domain,
-            pending: data[4],
-            _csrf: data[5],
+            serviceName: context.query.service,
+            userName: context.req.session.shortId,
+            domainName: context.query.domain,
+            _csrf: data[0],
             nonce: context.req.headers.rid,
-            serviceHeaderDetails: data[6].static,
         },
     };
 }
 
-export default class StaticInstancePage extends React.Component {
+class StaticInstancePage extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
+        });
+        this.state = {
+            error: null,
+            reload: false,
+        };
+    }
+
+    componentDidMount() {
+        const { domainName, serviceName } = this.props;
+        Promise.all([
+            this.props.getServiceHeaderAndInstances(
+                domainName,
+                serviceName,
+                SERVICE_TYPE_STATIC
+            ),
+        ]).catch((err) => {
+            let response = RequestUtils.errorCheckHelper(err);
+            this.setState({
+                error: response.error,
+                reload: response.reload,
+            });
         });
     }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
-            instanceDetails,
-            service,
-            isDomainAuditEnabled,
+            serviceName,
             _csrf,
+            instanceWorkLoadMeta,
+            serviceHeaderDetails,
+            isLoading,
         } = this.props;
-        if (reload) {
+        if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        const err = this.props.error || this.state.error;
+        if (err) {
+            return <Error err={err} />;
         }
-        return (
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='static-instance'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} domainName={domainName} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <ServiceContainerDiv>
                                 <ServiceContentDiv>
                                     <PageHeaderDiv>
                                         <ServiceNameHeader
-                                            domain={domain}
-                                            service={service}
+                                            domain={domainName}
+                                            service={serviceName}
                                             serviceHeaderDetails={
-                                                this.props.serviceHeaderDetails
+                                                serviceHeaderDetails
                                             }
                                         />
                                         <ServiceInstanceDetails
                                             instanceDetailsMeta={
-                                                this.props.instanceDetails
-                                                    .workLoadMeta
+                                                instanceWorkLoadMeta
                                             }
                                             categoryType={SERVICE_TYPE_STATIC}
                                         />
                                         <ServiceTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            service={service}
+                                            domain={domainName}
+                                            service={serviceName}
                                             selectedName={'static'}
                                         />
                                     </PageHeaderDiv>
                                     <InstanceList
                                         category={'static'}
-                                        api={this.api}
-                                        domain={domain}
+                                        domain={domainName}
                                         _csrf={_csrf}
-                                        instances={instanceDetails.workLoadData}
-                                        service={this.props.service}
+                                        service={serviceName}
                                     />
                                 </ServiceContentDiv>
                             </ServiceContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -185,3 +191,30 @@ export default class StaticInstancePage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        instanceWorkLoadMeta: selectInstancesWorkLoadMeta(
+            state,
+            props.domainName,
+            props.serviceName,
+            SERVICE_TYPE_STATIC
+        ),
+        serviceHeaderDetails: selectStaticServiceHeaderDetails(
+            state,
+            props.domain,
+            props.service
+        ),
+        isLoading: selectIsLoading(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getServiceHeaderAndInstances: (domainName, serviceName, category) =>
+        dispatch(
+            getServiceHeaderAndInstances(domainName, serviceName, category)
+        ),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(StaticInstancePage);

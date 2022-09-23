@@ -24,6 +24,9 @@ import DateUtils from '../utils/DateUtils';
 import RequestUtils from '../utils/RequestUtils';
 import { withRouter } from 'next/router';
 import { css, keyframes } from '@emotion/react';
+import { deleteRole } from '../../redux/thunks/roles';
+import { connect } from 'react-redux';
+import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 
 const TDStyledName = styled.div`
     background-color: ${(props) => props.color};
@@ -93,7 +96,6 @@ const LeftSpan = styled.span`
 class RoleRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.onSubmitDelete = this.onSubmitDelete.bind(this);
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
@@ -131,17 +133,12 @@ class RoleRow extends React.Component {
             });
             return;
         }
-
-        this.api
-            .deleteRole(
-                domain,
-                roleName,
-                this.state.deleteJustification
-                    ? this.state.deleteJustification
-                    : 'deleted using Athenz UI',
-                this.props._csrf
-            )
-            .then(() => {
+        let auditRef = this.state.deleteJustification
+            ? this.state.deleteJustification
+            : 'deleted using Athenz UI';
+        this.props
+            .deleteRole(roleName, auditRef, this.props._csrf)
+            .then((thenRoleName) => {
                 this.setState({
                     showDelete: false,
                     deleteName: null,
@@ -441,4 +438,20 @@ class RoleRow extends React.Component {
         return rows;
     }
 }
-export default withRouter(RoleRow);
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        justificationRequired: selectDomainAuditEnabled(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteRole: (roleName, auditRef, _csrf) =>
+        dispatch(deleteRole(roleName, auditRef, _csrf)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(RoleRow));

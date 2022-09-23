@@ -22,6 +22,10 @@ import Menu from '../denali/Menu/Menu';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { connect } from 'react-redux';
+import { ReduxPageLoader } from '../denali/ReduxPageLoader';
+
 const HistorySectionDiv = styled.div`
     margin: 20px;
 `;
@@ -100,10 +104,10 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-export default class CollectionHistoryList extends React.Component {
+// this component is not supposed to connect into the store because it has multiple place which use it and it will be easier to use the father's props.
+class CollectionHistoryList extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         this.state = {
             list: props.historyrows || [],
             collection: props.collection,
@@ -119,6 +123,14 @@ export default class CollectionHistoryList extends React.Component {
 
     closeModal() {
         this.setState({ showSuccess: null });
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.historyrows !== this.props.historyrows) {
+            this.setState({
+                list: this.props.historyrows,
+            });
+        }
     }
 
     exportToCSV() {
@@ -209,47 +221,39 @@ export default class CollectionHistoryList extends React.Component {
             );
             return;
         }
-        this.api
-            .getCollection(
-                this.props.domain,
-                this.props.collection,
-                this.props.category
-            )
-            .then((data) => {
-                let successMsg = `Filtered history records for ${this.props.category} ${this.props.collection} below. `;
-                let alertType = 'success';
-                if (data.length === 0) {
-                    successMsg = `No history records for ${this.props.category} ${this.props.collection} found. `;
-                    alertType = 'warning';
-                }
-                let historyRows = data.auditLog
-                    ? data.auditLog.filter(
-                          (item) =>
-                              item.created >=
-                                  this.dateUtils.uxDatetimeToRDLTimestamp(
-                                      this.state.startDate
-                                  ) &&
-                              item.created <=
-                                  this.dateUtils.uxDatetimeToRDLTimestamp(
-                                      this.state.endDate
-                                  )
-                      )
-                    : [];
+        let successMsg = `Filtered history records for ${this.props.category} ${this.props.collection} below. `;
+        let alertType = 'success';
+        if (this.props.historyrows === 0) {
+            successMsg = `No history records for ${this.props.category} ${this.props.collection} found. `;
+            alertType = 'warning';
+        }
+        let historyRows = this.props.historyrows
+            ? this.props.historyrows.filter(
+                  (item) =>
+                      item.created >=
+                          this.dateUtils.uxDatetimeToRDLTimestamp(
+                              this.state.startDate
+                          ) &&
+                      item.created <=
+                          this.dateUtils.uxDatetimeToRDLTimestamp(
+                              this.state.endDate
+                          )
+              )
+            : [];
+        this.setState({
+            list: historyRows,
+            showSuccess: true,
+            successMessage: successMsg,
+            alertType: alertType,
+        });
+        // this is to close the success alert
+        setTimeout(
+            () =>
                 this.setState({
-                    list: historyRows,
-                    showSuccess: true,
-                    successMessage: successMsg,
-                    alertType: alertType,
-                });
-                // this is to close the success alert
-                setTimeout(
-                    () =>
-                        this.setState({
-                            showSuccess: false,
-                        }),
-                    MODAL_TIME_OUT
-                );
-            });
+                    showSuccess: false,
+                }),
+            MODAL_TIME_OUT
+        );
     }
 
     render() {
@@ -308,7 +312,9 @@ export default class CollectionHistoryList extends React.Component {
             );
         });
 
-        return (
+        return this.props.isLoading.length !== 0 ? (
+            <ReduxPageLoader message={'Loading history data'} />
+        ) : (
             <HistorySectionDiv data-testid='collection-history-list'>
                 <HistoryFilterDiv>
                     <div />
@@ -390,3 +396,12 @@ export default class CollectionHistoryList extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+    };
+};
+
+export default connect(mapStateToProps)(CollectionHistoryList);

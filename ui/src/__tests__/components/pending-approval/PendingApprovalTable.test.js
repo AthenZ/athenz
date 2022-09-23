@@ -16,26 +16,21 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import PendingApprovalTable from '../../../components/pending-approval/PendingApprovalTable';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('PendingApprovalTable', () => {
     it('should render', () => {
         const query = {
             domain: 'dom',
         };
-        const domains = ['athens', 'athens.ci'];
         const userId = 'pgote';
         const domain = 'home.pgote';
-        const api = {};
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <PendingApprovalTable
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
-                domain={domain}
                 pendingData={undefined}
-                domainResult={[]}
-                api={api}
             />
         );
 

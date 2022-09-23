@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import CreateDomainPage from '../../../pages/domain/create';
+import {
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('CreateDomainPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
@@ -38,9 +45,17 @@ describe('CreateDomainPage', () => {
             createDomainMessage: 'create for testing',
         };
 
-        const { getByTestId } = render(
+        const mockApi = {
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <CreateDomainPage
-                domains={domains}
                 req='req'
                 userId={userId}
                 reload={false}

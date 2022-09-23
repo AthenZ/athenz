@@ -28,6 +28,11 @@ import {
 import RequestUtils from '../utils/RequestUtils';
 import { css, keyframes } from '@emotion/react';
 import NameUtils from '../utils/NameUtils';
+import {
+    deleteAssertionPolicyVersion,
+    getPolicyVersion,
+} from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -119,7 +124,7 @@ const colorTransition = keyframes`
         }
 `;
 
-export default class PolicyRuleTable extends React.Component {
+class PolicyRuleTable extends React.Component {
     constructor(props) {
         super(props);
         this.toggleAddAssertion = this.toggleAddAssertion.bind(this);
@@ -127,7 +132,6 @@ export default class PolicyRuleTable extends React.Component {
         this.onSubmitDeleteAssertion = this.onSubmitDeleteAssertion.bind(this);
         this.onCancelDeleteAssertion = this.onCancelDeleteAssertion.bind(this);
         this.closeModal = this.closeModal.bind(this);
-        this.api = this.props.api;
         this.state = {
             addAssertion: false,
             assertions: this.props.assertions ? this.props.assertions : [],
@@ -140,15 +144,15 @@ export default class PolicyRuleTable extends React.Component {
     }
 
     reLoadAssertions(successMessage, showSuccess) {
-        this.api
+        this.props
             .getPolicyVersion(
                 this.props.domain,
                 this.props.name,
                 this.props.version
             )
-            .then((assertions) => {
+            .then((policy) => {
                 this.setState({
-                    assertions: assertions.assertions,
+                    assertions: policy.assertions,
                     addAssertion: false,
                     successMessage,
                     showDelete: false,
@@ -185,13 +189,12 @@ export default class PolicyRuleTable extends React.Component {
     }
 
     onSubmitDeleteAssertion() {
-        this.api
+        this.props
             .deleteAssertionPolicyVersion(
                 this.props.domain,
                 this.props.name,
                 this.props.version,
                 this.state.deleteAssertionId,
-                DELETE_AUDIT_REFERENCE,
                 this.props._csrf
             )
             .then(() => {
@@ -279,7 +282,6 @@ export default class PolicyRuleTable extends React.Component {
         if (this.state.addAssertion) {
             addAssertion = (
                 <AddAssertion
-                    api={this.api}
                     domain={this.props.domain}
                     cancel={this.toggleAddAssertion}
                     submit={this.reLoadAssertions}
@@ -371,3 +373,27 @@ export default class PolicyRuleTable extends React.Component {
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    getPolicyVersion: (domain, policy, version) =>
+        dispatch(getPolicyVersion(domain, policy, version)),
+    deleteAssertionPolicyVersion: (
+        domain,
+        policyName,
+        policyVersion,
+        deleteAssertionId,
+        _csrf
+    ) =>
+        dispatch(
+            deleteAssertionPolicyVersion(
+                domain,
+                policyName,
+                policyVersion,
+                deleteAssertionId,
+                DELETE_AUDIT_REFERENCE,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(PolicyRuleTable);

@@ -14,34 +14,17 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import AddRuleForm from '../../../components/policy/AddRuleForm';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('AddRuleForm', () => {
     it('should render', () => {
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    resolve(['a, b']);
-                });
-            },
-        };
-        const { getByTestId } = render(<AddRuleForm api={api} />);
+        const { getByTestId } = renderWithRedux(<AddRuleForm />);
         const addRuleForm = getByTestId('add-rule-form');
         expect(addRuleForm).toMatchSnapshot();
     });
     it('should render failed to load roles', () => {
-        const api = {
-            listRoles(domain) {
-                return new Promise((resolve, reject) => {
-                    reject({
-                        statusCode: 404,
-                        body: { message: 'Got Error from Api' },
-                    });
-                });
-            },
-        };
-        const { getByTestId } = render(<AddRuleForm api={api} />);
+        const { getByTestId } = renderWithRedux(<AddRuleForm />);
         const addRuleForm = getByTestId('add-rule-form');
         expect(addRuleForm).toMatchSnapshot();
     });

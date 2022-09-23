@@ -26,9 +26,17 @@ import NameHeader from '../../../../../components/header/NameHeader';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import { getGroup } from '../../../../../redux/thunks/groups';
+import { connect } from 'react-redux';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
+import {
+    selectGroup,
+    selectGroupHistory,
+} from '../../../../../redux/selectors/group';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
+import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -65,76 +73,83 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const historyData = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getGroup(context.query.domain, context.query.group),
-        api.getPendingDomainMembersList(),
-        api.getForm(),
-    ]).catch((err) => {
+    const historyData = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}];
+        return [{}];
     });
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: historyData[0],
-            domain: context.query.domain,
-            collection: context.query.group,
-            headerDetails: historyData[1],
-            domainDeails: historyData[2],
-            auditEnabled: historyData[2].auditEnabled,
-            collectionDetails: JsonUtils.omitUndefined(historyData[3]),
-            historyrows: JsonUtils.omitUndefined(historyData[3].auditLog),
-            pending: historyData[4],
-            _csrf: historyData[5],
+            domainName: context.query.domain,
+            groupName: context.query.group,
+            userName: context.req.session.shortId,
+            _csrf: historyData[0],
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class GroupHistoryPage extends React.Component {
+class GroupHistoryPage extends React.Component {
     constructor(props) {
         super(props);
-        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
+        });
+        this.state = {
+            error: null,
+            reload: false,
+        };
+    }
+
+    componentDidMount() {
+        const { domainName, userName, getDomainData, groupName, getGroup } =
+            this.props;
+        Promise.all([
+            getDomainData(domainName, userName),
+            getGroup(domainName, groupName),
+        ]).catch((err) => {
+            let response = RequestUtils.errorCheckHelper(err);
+            this.setState({
+                error: response.error,
+                reload: response.reload,
+            });
         });
     }
 
     render() {
         const {
-            domain,
+            domainName,
             reload,
+            groupName,
+            isLoading,
             collectionDetails,
-            collection,
             historyrows,
             _csrf,
         } = this.props;
-        if (reload) {
+
+        if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        const err = this.props.error || this.state.error;
+        if (err) {
+            return <Error err={err} />;
         }
-        return (
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='member'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <GroupsContainerDiv>
@@ -142,45 +157,38 @@ export default class GroupHistoryPage extends React.Component {
                                     <PageHeaderDiv>
                                         <NameHeader
                                             category={'group'}
-                                            domain={domain}
-                                            collection={collection}
+                                            domain={domainName}
+                                            collection={groupName}
                                             collectionDetails={
                                                 collectionDetails
+                                                    ? collectionDetails
+                                                    : {}
                                             }
                                         />
                                         <CollectionDetails
                                             collectionDetails={
                                                 collectionDetails
+                                                    ? collectionDetails
+                                                    : {}
                                             }
-                                            api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
                                         />
                                         <GroupTabs
-                                            api={this.api}
-                                            domain={domain}
-                                            group={collection}
+                                            domain={domainName}
+                                            group={groupName}
                                             selectedName={'history'}
                                         />
                                     </PageHeaderDiv>
                                     <CollectionHistoryList
-                                        api={this.api}
-                                        domain={domain}
-                                        collection={collection}
+                                        domain={domainName}
+                                        collection={groupName}
                                         historyrows={historyrows}
                                         _csrf={_csrf}
                                         category={'group'}
                                     />
                                 </GroupsContentDiv>
                             </GroupsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -188,3 +196,29 @@ export default class GroupHistoryPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        collectionDetails: selectGroup(
+            state,
+            props.domainName,
+            props.groupName
+        ),
+        historyrows: selectGroupHistory(
+            state,
+            props.domainName,
+            props.groupName
+        ),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getGroup: (domainName, groupName) =>
+        dispatch(getGroup(domainName, groupName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(GroupHistoryPage);

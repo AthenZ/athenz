@@ -21,13 +21,21 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 import RequestUtils from '../../../../../components/utils/RequestUtils';
 import Error from '../../../../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
-import TagList from '../../../../../components/tag/TagList';
 import NameHeader from '../../../../../components/header/NameHeader';
 import CollectionDetails from '../../../../../components/header/CollectionDetails';
 import RoleTabs from '../../../../../components/header/RoleTabs';
-import JsonUtils from '../../../../../components/utils/JsonUtils';
+import { selectIsLoading } from '../../../../../redux/selectors/loading';
+import { getDomainData } from '../../../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import {
+    selectRole,
+    selectRoleTags,
+} from '../../../../../redux/selectors/roles';
+import { getRole } from '../../../../../redux/thunks/roles';
+import TagList from '../../../../../components/tag/TagList';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
+import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -64,17 +72,11 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const tagsData = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getRole(context.query.domain, context.query.role, true, true, true),
-        api.getForm(),
-    ]).catch((err) => {
+    const tagsData = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}];
+        return [{}];
     });
 
     return {
@@ -83,18 +85,15 @@ export async function getServerSideProps(context) {
             notFound,
             error,
             roleName: context.query.role,
-            domains: tagsData[0],
-            headerDetails: tagsData[1],
-            domainDetails: tagsData[2],
-            roleDetails: JsonUtils.omitUndefined(tagsData[3]),
-            _csrf: tagsData[4],
-            domain: context.query.domain,
+            userName: context.req.session.shortId,
+            _csrf: tagsData[0],
+            domainName: context.query.domain,
             nonce: context.req.headers.rid,
         },
     };
 }
 
-export default class RoleTagsPage extends React.Component {
+class RoleTagsPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -102,29 +101,54 @@ export default class RoleTagsPage extends React.Component {
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            error: null,
+            reload: false,
+        };
+    }
+
+    componentDidMount() {
+        const { domainName, userName, getDomainData, roleName, getRole } =
+            this.props;
+        Promise.all([
+            getDomainData(domainName, userName),
+            getRole(domainName, roleName),
+        ]).catch((err) => {
+            let response = RequestUtils.errorCheckHelper(err);
+            this.setState({
+                error: response.error,
+                reload: response.reload,
+            });
+        });
     }
 
     render() {
-        const { domain, reload, roleName, roleDetails, _csrf } = this.props;
-        if (reload) {
+        const {
+            domainName,
+            reload,
+            roleName,
+            roleDetails,
+            roleTags,
+            _csrf,
+            isLoading,
+        } = this.props;
+        if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        const err = this.props.error || this.state.error;
+        if (err) {
+            return <Error err={err} />;
         }
-
-        return (
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='role-tags'>
                     <Head>
                         <title>Athenz Role Tags</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <TagsContainerDiv>
@@ -132,42 +156,31 @@ export default class RoleTagsPage extends React.Component {
                                     <PageHeaderDiv>
                                         <NameHeader
                                             category={'role'}
-                                            domain={domain}
+                                            domain={domainName}
                                             collection={roleName}
                                             collectionDetails={roleDetails}
                                         />
                                         <CollectionDetails
                                             collectionDetails={roleDetails}
-                                            api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
                                         />
                                         <RoleTabs
-                                            api={this.api}
-                                            domain={domain}
+                                            domain={domainName}
                                             role={roleName}
                                             selectedName={'tags'}
                                         />
                                     </PageHeaderDiv>
                                     <TagList
-                                        api={this.api}
-                                        domain={domain}
-                                        role={roleName}
-                                        roleObj={roleDetails}
-                                        tags={roleDetails.tags}
+                                        domain={domainName}
+                                        collectionName={roleName}
+                                        collectionDetails={roleDetails}
+                                        tags={roleTags}
                                         category={'role'}
                                         _csrf={this.props._csrf}
                                     />
                                 </TagsContentDiv>
                             </TagsContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -175,3 +188,21 @@ export default class RoleTagsPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        roleDetails: selectRole(state, props.domainName, props.roleName),
+        roleTags: selectRoleTags(state, props.domainName, props.roleName),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getRole: (domainName, groupName) =>
+        dispatch(getRole(domainName, groupName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RoleTagsPage);

@@ -17,6 +17,9 @@ import React from 'react';
 import styled from '@emotion/styled';
 import RoleGroup from '../role/RoleGroup';
 import { GROUP_ROLES_CATEGORY } from '../constants/constants';
+import { selectIsLoading } from '../../redux/selectors/loading';
+import { connect } from 'react-redux';
+import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -46,10 +49,9 @@ const TableHeadStyledLabel = styled.div`
     width: ${(props) => props.width};
 `;
 
-export default class GroupRoleTable extends React.Component {
+class GroupRoleTable extends React.Component {
     constructor(props) {
         super(props);
-        this.api = props.api;
         let subRows = [];
 
         if (props.prefixes) {
@@ -104,7 +106,6 @@ export default class GroupRoleTable extends React.Component {
                         <RoleGroup
                             category={GROUP_ROLES_CATEGORY}
                             key={'group-role:' + name}
-                            api={this.api}
                             domain={name}
                             name={name}
                             roles={this.state.rows[name]}
@@ -125,7 +126,9 @@ export default class GroupRoleTable extends React.Component {
             );
         }
 
-        return (
+        return this.props.isLoading.length !== 0 ? (
+            <ReduxPageLoader message={'Loading group data'} />
+        ) : (
             <StyleTable key='role-table' data-testid='roletable'>
                 <TableHeadStyled>
                     <TableHeadStyledLabel align={left} width={'50%'}>
@@ -143,3 +146,12 @@ export default class GroupRoleTable extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+    };
+};
+
+export default connect(mapStateToProps)(GroupRoleTable);

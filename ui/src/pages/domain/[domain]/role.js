@@ -19,14 +19,22 @@ import UserDomains from '../../../components/domain/UserDomains';
 import API from '../../../api';
 import styled from '@emotion/styled';
 import Head from 'next/head';
-import DomainDetails from '../../../components/header/DomainDetails';
-import RoleList from '../../../components/role/RoleList';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Tabs from '../../../components/header/Tabs';
 import Error from '../../_error';
+import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { connect } from 'react-redux';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { getRoles } from '../../../redux/thunks/roles';
+import RoleList from '../../../components/role/RoleList';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import DomainDetails from '../../../components/header/DomainDetails';
+import { selectDomainData } from '../../../redux/selectors/domainData';
+import Alert from '../../../components/denali/Alert';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import Loader from '../../../components/denali/Loader';
+import { ReduxPageLoader } from '../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -63,94 +71,30 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
     const domains = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getRoles(context.query.domain),
-        api.getPendingDomainMembersList(),
         api.getForm(),
-        api.isAWSTemplateApplied(context.query.domain),
         api.getRolePrefix(),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
-        api.getAuthorityAttributes(),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}];
     });
-    let businessServiceOptions = [];
-    if (domains[9] && domains[9].validValues) {
-        domains[9].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (domains[10] && domains[10].validValues) {
-        domains[10].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = domains[2];
-    domainDetails.isAWSTemplateApplied = !!domains[6];
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: domains[0],
-            headerDetails: domains[1],
-            domain: domains[2].name,
-            domainDetails,
-            roles: domains[3],
-            users: domains[1],
-            pending: domains[4],
-            _csrf: domains[5],
-            prefixes: domains[7].allPrefixes,
+            userName: context.req.session.shortId,
+            domainName: context.query.domain,
+            _csrf: domains[0],
+            prefixes: domains[1].allPrefixes,
             nonce: context.req.headers.rid,
-            featureFlag: domains[8],
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            userAuthorityAttributes: domains[11],
-            domainPendingMemberCount: domains[12],
         },
     };
 }
 
-export default class RolePage extends React.Component {
+class RolePage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -158,11 +102,53 @@ export default class RolePage extends React.Component {
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            showUser: false,
+            errorMessage: '',
+            showError: false,
+        };
+        this.showUserToggle = this.showUserToggle.bind(this);
+        this.showError = this.showError.bind(this);
+    }
+
+    componentDidMount() {
+        const { getRoles, domainName, getDomainData, userName } = this.props;
+        Promise.all([
+            getDomainData(domainName, userName),
+            getRoles(domainName),
+        ]).catch((err) => {
+            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+        });
+    }
+
+    componentDidUpdate = (prevProps) => {
+        const { getRoles, domainName, getDomainData, userName } = this.props;
+        if (prevProps && prevProps.domainName !== domainName) {
+            Promise.all([
+                getDomainData(domainName, userName),
+                getRoles(domainName),
+            ]).catch((err) => {
+                this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+            });
+        }
+    };
+
+    showError(errorMessage) {
+        this.setState({
+            showError: true,
+            errorMessage: errorMessage,
+        });
+    }
+
+    showUserToggle() {
+        this.setState({
+            showUser: !this.state.showUser,
+        });
     }
 
     render() {
-        const { domain, reload, domainDetails, roles, users, prefixes, _csrf } =
-            this.props;
+        const { domainName, reload, prefixes, isLoading, _csrf } = this.props;
+
         if (reload) {
             window.location.reload();
             return <div />;
@@ -171,77 +157,54 @@ export default class RolePage extends React.Component {
             return <Error err={this.props.error} />;
         }
 
-        return (
+        if (this.state.showError) {
+            return (
+                <Alert
+                    isOpen={this.state.showError}
+                    title={this.state.errorMessage}
+                    onClose={() => {}}
+                    type='danger'
+                />
+            );
+        }
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='role'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <RolesContainerDiv>
                                 <RolesContentDiv>
                                     <PageHeaderDiv>
                                         <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
+                                            domainName={domainName}
                                         />
                                         <DomainDetails
-                                            domainDetails={domainDetails}
                                             api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
                                         />
                                         <Tabs
-                                            api={this.api}
-                                            domain={domain}
+                                            domain={domainName}
                                             selectedName={'roles'}
-                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <RoleList
                                         api={this.api}
-                                        domain={domain}
-                                        roles={roles}
-                                        users={users}
+                                        domainName={domainName}
                                         _csrf={_csrf}
                                         prefixes={prefixes}
-                                        isDomainAuditEnabled={
-                                            domainDetails.auditEnabled
-                                        }
-                                        userProfileLink={
-                                            this.props.headerDetails.userData
-                                                .userLink
-                                        }
-                                        userAuthorityAttributes={
-                                            this.props.userAuthorityAttributes
-                                        }
+                                        showUser={this.state.showUser}
+                                        showUserToggle={this.showUserToggle}
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domainName} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -249,3 +212,19 @@ export default class RolePage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getRoles: (domainName) => dispatch(getRoles(domainName)),
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RolePage);

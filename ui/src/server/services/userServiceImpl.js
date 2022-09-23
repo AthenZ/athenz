@@ -15,6 +15,10 @@
  */
 'use strict';
 const debug = require('debug')('AthenzUI:server:userServiceImpl');
+
+// Babilon doesn't allow us to require('fs') - probably because it suspects that the code might be executed in the browser.
+// So this method returns the string 'fs' in a very confusing way. Babilon stands no chance...
+const confuseBalilonFS = () => 'fs';
 const fs = require('fs');
 
 function checkUsersUpdate(directory, fileName) {

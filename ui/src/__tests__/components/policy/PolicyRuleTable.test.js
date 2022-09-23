@@ -16,6 +16,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import PolicyRuleTable from '../../../components/policy/PolicyRuleTable';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('PolicyRuleTable', () => {
     it('should render', () => {
@@ -28,7 +29,7 @@ describe('PolicyRuleTable', () => {
                 id: 11921,
             },
         ];
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <tr>
@@ -48,7 +49,8 @@ describe('PolicyRuleTable', () => {
 
     it('should render empty', () => {
         const assertions = [];
-        const { getByTestId } = render(
+
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <tr>
@@ -76,7 +78,7 @@ describe('PolicyRuleTable', () => {
                 id: 11921,
             },
         ];
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
                     <tr>

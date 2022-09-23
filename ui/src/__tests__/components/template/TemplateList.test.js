@@ -16,10 +16,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import TemplateList from '../../../components/template/TemplateList';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('TemplateList', () => {
     it('should render', () => {
-        const { getByTestId } = render(<TemplateList />);
+        const { getByTestId } = renderWithRedux(<TemplateList />);
         const templatelist = getByTestId('template-list');
 
         expect(templatelist).toMatchSnapshot();
@@ -47,7 +48,7 @@ describe('TemplateList', () => {
             },
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <TemplateList
                 left={left}
                 center={center}

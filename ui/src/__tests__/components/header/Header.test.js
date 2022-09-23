@@ -16,6 +16,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import Header from '../../../components/header/Header';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('Header', () => {
     it('should render', () => {
@@ -28,7 +29,7 @@ describe('Header', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <Header showSearch={false} headerDetails={headerDetails} />
         );
         const header = getByTestId('header');
@@ -44,7 +45,7 @@ describe('Header', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <Header showSearch={true} headerDetails={headerDetails} />
         );
         const header = getByTestId('header');

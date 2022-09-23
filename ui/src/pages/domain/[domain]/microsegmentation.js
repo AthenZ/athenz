@@ -21,12 +21,19 @@ import styled from '@emotion/styled';
 import Head from 'next/head';
 import RequestUtils from '../../../components/utils/RequestUtils';
 import Error from '../../_error';
-import createCache from '@emotion/cache';
-import { CacheProvider } from '@emotion/react';
 import DomainDetails from '../../../components/header/DomainDetails';
 import Tabs from '../../../components/header/Tabs';
-import RulesList from '../../../components/microsegmentation/RulesList';
 import DomainNameHeader from '../../../components/header/DomainNameHeader';
+import { selectIsLoading } from '../../../redux/selectors/loading';
+import { selectDomainData } from '../../../redux/selectors/domainData';
+import { getDomainData } from '../../../redux/thunks/domain';
+import { connect } from 'react-redux';
+import { getInboundOutbound } from '../../../redux/thunks/microsegmentation';
+import RulesList from '../../../components/microsegmentation/RulesList';
+import Alert from '../../../components/denali/Alert';
+import { CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
+import { ReduxPageLoader } from '../../../components/denali/ReduxPageLoader';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -69,93 +76,32 @@ export async function getServerSideProps(context) {
     let notFound = false;
     let error = null;
 
-    var bServicesParams = {
-        category: 'domain',
-        attributeName: 'businessService',
-        userName: context.req.session.shortId,
-    };
-    var bServicesParamsAll = {
-        category: 'domain',
-        attributeName: 'businessService',
-    };
     const data = await Promise.all([
-        api.listUserDomains(),
-        api.getHeaderDetails(),
-        api.getDomain(context.query.domain),
-        api.getInboundOutbound(context.query.domain),
-        api.getPendingDomainMembersList(),
         api.getForm(),
-        api.isAWSTemplateApplied(context.query.domain),
-        api.getDomain(context.query.domain),
-        api.getFeatureFlag(),
-        api.getMeta(bServicesParams),
-        api.getMeta(bServicesParamsAll),
         api.getPageFeatureFlag('microsegmentation'),
-        api.getPendingDomainMembersCountByDomain(context.query.domain),
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
-        return [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+        return [{}, {}];
     });
-    let businessServiceOptions = [];
-    if (data[9] && data[9].validValues) {
-        data[9].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptions.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let businessServiceOptionsAll = [];
-    if (data[10] && data[10].validValues) {
-        data[10].validValues.forEach((businessService) => {
-            let bServiceOnlyId = businessService.substring(
-                0,
-                businessService.indexOf(':')
-            );
-            let bServiceOnlyName = businessService.substring(
-                businessService.indexOf(':') + 1
-            );
-            businessServiceOptionsAll.push({
-                value: bServiceOnlyId,
-                name: bServiceOnlyName,
-            });
-        });
-    }
-    let domainDetails = data[7];
-    domainDetails.isAWSTemplateApplied = !!data[6];
+
     return {
         props: {
             reload,
             notFound,
             error,
-            domains: data[0],
-            headerDetails: data[1],
-            domainDetails,
-            auditEnabled: data[2].auditEnabled,
+            userName: context.req.session.shortId,
             domain: context.query.domain,
-            pending: data[4],
-            _csrf: data[5],
+            _csrf: data[0],
             nonce: context.req.headers.rid,
-            segmentationData: data[3],
             featureFlag: true,
-            validBusinessServices: businessServiceOptions,
-            validBusinessServicesAll: businessServiceOptionsAll,
-            pageFeatureFlag: data[11],
-            domainPendingMemberCount: data[12],
+            pageFeatureFlag: data[1],
         },
     };
 }
 
-export default class MicrosegmentationPage extends React.Component {
+export class MicrosegmentationPage extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -163,17 +109,32 @@ export default class MicrosegmentationPage extends React.Component {
             key: 'athenz',
             nonce: this.props.nonce,
         });
+        this.state = {
+            errorMessage: '',
+            showError: false,
+        };
+        this.showError = this.showError.bind(this);
+    }
+    componentDidMount() {
+        const { domain, getDomainData, userName, getInboundOutbound } =
+            this.props;
+        Promise.all([
+            getDomainData(domain, userName),
+            getInboundOutbound(domain),
+        ]).catch((err) => {
+            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+        });
+    }
+
+    showError(errorMessage) {
+        this.setState({
+            showError: true,
+            errorMessage: errorMessage,
+        });
     }
 
     render() {
-        const {
-            domain,
-            reload,
-            domainDetails,
-            auditEnabled,
-            _csrf,
-            segmentationData,
-        } = this.props;
+        const { domain, reload, _csrf, isLoading, domainData } = this.props;
         if (reload) {
             window.location.reload();
             return <div />;
@@ -181,69 +142,53 @@ export default class MicrosegmentationPage extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
+
+        if (this.state.showError) {
+            return (
+                <Alert
+                    isOpen={this.state.showError}
+                    title={this.state.errorMessage}
+                    onClose={() => {}}
+                    type='danger'
+                />
+            );
+        }
+
+        return isLoading.includes('getDomainData') ? (
+            <ReduxPageLoader message={'Loading domain data'} />
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='microsegmentation'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
-                    <Header
-                        showSearch={true}
-                        headerDetails={this.props.headerDetails}
-                        pending={this.props.pending}
-                    />
+                    <Header showSearch={true} />
                     <MainContentDiv>
                         <AppContainerDiv>
                             <RolesContainerDiv>
                                 <RolesContentDiv>
                                     <PageHeaderDiv>
-                                        <DomainNameHeader
-                                            domainName={this.props.domain}
-                                            pendingCount={
-                                                this.props
-                                                    .domainPendingMemberCount
-                                            }
-                                        />
+                                        <DomainNameHeader domainName={domain} />
                                         <DomainDetails
-                                            domainDetails={domainDetails}
                                             api={this.api}
                                             _csrf={_csrf}
-                                            productMasterLink={
-                                                this.props.headerDetails
-                                                    .productMasterLink
-                                            }
-                                            validBusinessServices={
-                                                this.props.validBusinessServices
-                                            }
-                                            validBusinessServicesAll={
-                                                this.props
-                                                    .validBusinessServicesAll
-                                            }
                                         />
                                         <Tabs
-                                            api={this.api}
                                             domain={domain}
                                             selectedName={'microsegmentation'}
-                                            featureFlag={this.props.featureFlag}
                                         />
                                     </PageHeaderDiv>
                                     <RulesList
                                         api={this.api}
                                         domain={domain}
                                         _csrf={_csrf}
-                                        isDomainAuditEnabled={auditEnabled}
-                                        data={segmentationData}
                                         pageFeatureFlag={
                                             this.props.pageFeatureFlag
                                         }
                                     />
                                 </RolesContentDiv>
                             </RolesContainerDiv>
-                            <UserDomains
-                                domains={this.props.domains}
-                                api={this.api}
-                                domain={domain}
-                            />
+                            <UserDomains domain={domain} />
                         </AppContainerDiv>
                     </MainContentDiv>
                 </div>
@@ -251,3 +196,23 @@ export default class MicrosegmentationPage extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isLoading: selectIsLoading(state),
+        domainData: selectDomainData(state),
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    getDomainData: (domainName, userName) =>
+        dispatch(getDomainData(domainName, userName)),
+    getInboundOutbound: (domainName) =>
+        dispatch(getInboundOutbound(domainName)),
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(MicrosegmentationPage);

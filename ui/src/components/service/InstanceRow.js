@@ -56,7 +56,6 @@ const colorTransition = keyframes`
 class InstanceRow extends React.Component {
     constructor(props) {
         super(props);
-        this.api = this.props.api;
         this.state = {
             key: this.props.details.uuid + this.props.details.ipAddresses[0],
         };
@@ -76,48 +75,77 @@ class InstanceRow extends React.Component {
                     <TDStyled color={color} align={left}>
                         {ipAddress}
                     </TDStyled>
-                    {this.props.category === 'dynamic' && (
-                        <TDStyled color={color} align={left}>
-                            {details.hostname}
-                        </TDStyled>
-                    )}
-                    {this.props.category === 'dynamic' && (
-                        <TDStyled color={color} align={left}>
-                            {details.provider}
-                        </TDStyled>
-                    )}
-                    {this.props.category === 'dynamic' && (
-                        <TDStyled color={color} align={left}>
-                            {this.localDate.getLocalDate(
-                                details.certExpiryTime,
-                                'UTC',
-                                'UTC'
-                            )}
-                        </TDStyled>
-                    )}
-                    {this.props.category === 'dynamic' && (
-                        <TDStyled color={color} align={left}>
-                            {this.localDate.getLocalDate(
-                                details.updateTime,
-                                'UTC',
-                                'UTC'
-                            )}
-                        </TDStyled>
-                    )}
-                    {this.props.category === 'static' && (
-                        <TDStyled color={color} align={center}>
-                            {'ips'}
-                        </TDStyled>
-                    )}
-                    {this.props.category === 'static' && (
-                        <TDStyled color={color} align={center}>
-                            {this.localDate.getLocalDate(
-                                details.updateTime,
-                                'UTC',
-                                'UTC'
-                            )}
-                        </TDStyled>
-                    )}
+                    {this.props.category === 'dynamic'
+                        ? [
+                              <TDStyled
+                                  color={color}
+                                  align={left}
+                                  key={'hostName'}
+                              >
+                                  {details.hostname}
+                              </TDStyled>,
+                              <TDStyled
+                                  color={color}
+                                  align={left}
+                                  key={'provider'}
+                              >
+                                  {details.provider}
+                              </TDStyled>,
+                              <TDStyled
+                                  color={color}
+                                  align={left}
+                                  key={'certExpiryTime'}
+                              >
+                                  {this.localDate.getLocalDate(
+                                      details.certExpiryTime,
+                                      'UTC',
+                                      'UTC'
+                                  )}
+                              </TDStyled>,
+                              <TDStyled
+                                  color={color}
+                                  align={left}
+                                  key={'updateTime'}
+                              >
+                                  {this.localDate.getLocalDate(
+                                      details.updateTime,
+                                      'UTC',
+                                      'UTC'
+                                  )}
+                              </TDStyled>,
+                          ]
+                        : null}
+                    {this.props.category === 'static'
+                        ? [
+                              <TDStyled
+                                  color={color}
+                                  align={center}
+                                  key={'ips'}
+                              >
+                                  {'ips'}
+                              </TDStyled>,
+                              <TDStyled
+                                  color={color}
+                                  align={center}
+                                  key={'staticUpdateTime'}
+                              >
+                                  {this.localDate.getLocalDate(
+                                      details.updateTime,
+                                      'UTC',
+                                      'UTC'
+                                  )}
+                              </TDStyled>,
+                          ]
+                        : null}
+                    {/*{this.props.category === 'static' && (*/}
+                    {/*    <TDStyled color={color} align={center}>*/}
+                    {/*        {this.localDate.getLocalDate(*/}
+                    {/*            details.updateTime,*/}
+                    {/*            'UTC',*/}
+                    {/*            'UTC'*/}
+                    {/*        )}*/}
+                    {/*    </TDStyled>*/}
+                    {/*)}*/}
                 </TrStyled>
             );
         });

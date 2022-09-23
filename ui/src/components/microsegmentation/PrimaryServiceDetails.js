@@ -28,6 +28,8 @@ import {
     PROTOCOL_LABEL,
     SOURCE_PORTS_LABEL,
 } from '../constants/constants';
+import { deleteAssertionCondition } from '../../redux/thunks/policies';
+import { connect } from 'react-redux';
 
 const StyledDiv = styled.div`
     display: flex;
@@ -66,7 +68,7 @@ const StyledDataDiv = styled.div`
     font-size: small;
 `;
 
-export default class PrimaryServiceDetails extends React.Component {
+class PrimaryServiceDetails extends React.Component {
     constructor(props) {
         super(props);
         this.api = props.api;
@@ -107,7 +109,7 @@ export default class PrimaryServiceDetails extends React.Component {
             });
             return;
         }
-        this.api
+        this.props
             .deleteAssertionCondition(
                 this.props.domain,
                 this.state.policyName,
@@ -204,3 +206,26 @@ export default class PrimaryServiceDetails extends React.Component {
         return rows;
     }
 }
+
+const mapDispatchToProps = (dispatch) => ({
+    deleteAssertionCondition: (
+        domain,
+        policyName,
+        assertionId,
+        conditionId,
+        auditRef,
+        _csrf
+    ) =>
+        dispatch(
+            deleteAssertionCondition(
+                domain,
+                policyName,
+                assertionId,
+                conditionId,
+                auditRef,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(PrimaryServiceDetails);

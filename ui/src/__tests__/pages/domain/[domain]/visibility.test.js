@@ -14,20 +14,30 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
-import MicrosegmentationPage from '../../../../pages/domain/[domain]/microsegmentation';
 import VisibilityPage from '../../../../pages/domain/[domain]/visibility';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
+import { waitFor } from '@testing-library/react';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('VisibilityPage', () => {
-    it('should render', () => {
+    it('should render', async () => {
         let domains = [];
+        const domainName = 'dom';
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
         let query = {
-            domain: 'dom',
+            domain: domainName,
         };
         let domainDetails = {
             modified: '2020-02-12T21:44:37.792Z',
+            auditEnabled: '',
         };
         let headerDetails = {
             headerLinks: [
@@ -45,19 +55,42 @@ describe('VisibilityPage', () => {
                 },
             },
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            getServiceDependencies: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <VisibilityPage
-                domains={domains}
                 req='req'
                 userId='userid'
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain='dom'
+                domain={domainName}
                 domainResult={[]}
-                headerDetails={headerDetails}
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('visibility')).toBeInTheDocument();
+        });
+
         const visibilityPage = getByTestId('visibility');
         expect(visibilityPage).toMatchSnapshot();
     });

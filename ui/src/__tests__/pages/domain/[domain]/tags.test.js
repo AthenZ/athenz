@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import {
+    mockAllDomainDataApiCalls,
+    renderWithRedux,
+} from '../../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../../mock/MockApi';
 import TagsPage from '../../../../pages/domain/[domain]/tags';
 
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
+
 describe('Tag Page', () => {
-    it('should render', () => {
+    it('should render', async () => {
         const query = {
             domain: 'dom',
         };
@@ -47,19 +56,36 @@ describe('Tag Page', () => {
                 },
             ],
         };
-        const { getByTestId } = render(
+
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
+            listUserDomains: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve(domains);
+                })
+            ),
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId } = await renderWithRedux(
             <TagsPage
-                domains={domains}
                 req='req'
                 userId={userId}
                 query={query}
                 reload={false}
-                domainDetails={domainDetails}
-                domain={domain}
-                domainResult={[]}
-                headerDetails={headerDetails}
+                domainName={domain}
             />
         );
+
+        await waitFor(() => {
+            expect(getByTestId('tags')).toBeInTheDocument();
+        });
+
         const tagsPage = getByTestId('tags');
         expect(tagsPage).toMatchSnapshot();
     });
