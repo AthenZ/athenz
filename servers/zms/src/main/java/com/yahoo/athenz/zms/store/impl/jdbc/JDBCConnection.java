@@ -237,19 +237,16 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.domain_id=?;";
-
     private static final String SQL_GET_PRINCIPAL_ROLES = "SELECT role.name, domain.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE role_member.principal_id=?;";
-
     private static final String SQL_GET_PRINCIPAL_ROLES_DOMAIN = "SELECT role.name, domain.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE role_member.principal_id=? AND domain.domain_id=?;";
-
     private static final String SQL_GET_REVIEW_OVERDUE_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
@@ -307,7 +304,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN assertion ON assertion.resource=CONCAT(\"*:role.\", role.name) "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE assertion.action='assume_role';";
-
     private static final String SQL_GET_QUOTA = "SELECT * FROM quota WHERE domain_id=?;";
     private static final String SQL_INSERT_QUOTA = "INSERT INTO quota (domain_id, role, role_member, "
             + "policy, assertion, service, service_host, public_key, entity, subdomain, principal_group, principal_group_member) "
@@ -316,7 +312,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "policy=?, assertion=?, service=?, service_host=?, public_key=?, entity=?, "
             + "subdomain=?, principal_group=?, principal_group_member=?  WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
-
     private static final String SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
             + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
             + "FROM principal JOIN pending_role_member rmo "
@@ -351,70 +346,60 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE (ro.self_serve=true OR ro.review_enabled=true OR ro.audit_enabled=true)"
             + "order by do.name, ro.name, principal.name;";
-
     private static final String SQL_AUDIT_ENABLED_PENDING_MEMBERSHIP_REMINDER_ENTRIES =
-            "SELECT distinct d.org, d.name FROM pending_role_member rm " +
-            "JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id " +
-            "WHERE r.audit_enabled=true AND rm.last_notified_time=? AND rm.server=?;";
-
+              "SELECT distinct d.org, d.name FROM pending_role_member rm "
+            + "JOIN role r ON r.role_id=rm.role_id JOIN domain d ON r.domain_id=d.domain_id "
+            + "WHERE r.audit_enabled=true AND rm.last_notified_time=? AND rm.server=?;";
     private static final String SQL_ADMIN_PENDING_MEMBERSHIP_REMINDER_DOMAINS =
-            "SELECT distinct d.name FROM pending_role_member rm " +
-            "JOIN role r ON r.role_id=rm.role_id " +
-            "JOIN domain d ON r.domain_id=d.domain_id WHERE (r.self_serve=true OR r.review_enabled=true) AND rm.last_notified_time=? AND rm.server=?;";
-
-    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.review_reminder, prm.audit_ref, prm.req_time, prm.req_principal " +
-            "FROM principal p JOIN pending_role_member prm " +
-            "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id " +
-            "WHERE prm.req_time < (CURRENT_TIME - INTERVAL ? DAY);";
-
-    private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notified_time=?, server=? " +
-            "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
-
+              "SELECT distinct d.name FROM pending_role_member rm "
+            + "JOIN role r ON r.role_id=rm.role_id "
+            + "JOIN domain d ON r.domain_id=d.domain_id WHERE (r.self_serve=true OR r.review_enabled=true) AND rm.last_notified_time=? AND rm.server=?;";
+    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.review_reminder, prm.audit_ref, prm.req_time, prm.req_principal "
+            + "FROM principal p JOIN pending_role_member prm "
+            + "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id "
+            + "WHERE prm.req_time < (CURRENT_TIME - INTERVAL ? DAY);";
+    private static final String SQL_UPDATE_PENDING_ROLE_MEMBERS_NOTIFICATION_TIMESTAMP = "UPDATE pending_role_member SET last_notified_time=?, server=? "
+            + "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
     private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP =
-            "UPDATE role_member SET last_notified_time=?, server=? " +
-            "WHERE (" +
-                    // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
-                    "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28)) OR" +
-                    // Expiration and Review both set and review is before expiration - start sending from review date
-                    "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28))" +
-                    ") AND " +
-                    "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
-
+              "UPDATE role_member SET last_notified_time=?, server=? "
+            + "WHERE ("
+              // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
+            + "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28)) OR"
+              // Expiration and Review both set and review is before expiration - start sending from review date
+            + "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28))"
+            + ") AND "
+            + "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
     public static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_METRIC_NOTIFICATION_TIMESTAMP =
-            "UPDATE role_member SET last_notified_time=?, server=? " +
-                    "WHERE (" +
-                    // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
-                    "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) < 28 AND DATEDIFF(expiration, CURRENT_TIME) NOT IN (0,1,7,14,21,28)) OR" +
-                    // Expiration and Review both set and review is before expiration - start sending from review date
-                    "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) < 28 AND DATEDIFF(expiration, CURRENT_TIME) NOT IN (0,1,7,14,21,28))" +
-                    ") AND " +
-                    "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
-
-    private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
-            "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member " +
-            "JOIN role ON role.role_id=role_member.role_id " +
-            "JOIN principal ON principal.principal_id=role_member.principal_id " +
-            "JOIN domain ON domain.domain_id=role.domain_id " +
-            "WHERE role_member.last_notified_time=? AND role_member.server=?;";
-
+              "UPDATE role_member SET last_notified_time=?, server=? "
+            + "WHERE ("
+               // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
+            + "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) < 28 AND DATEDIFF(expiration, CURRENT_TIME) NOT IN (0,1,7,14,21,28)) OR"
+               // Expiration and Review both set and review is before expiration - start sending from review date
+            + "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) < 28 AND DATEDIFF(expiration, CURRENT_TIME) NOT IN (0,1,7,14,21,28))"
+            + ") AND "
+            + "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
+    private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member "
+            + "JOIN role ON role.role_id=role_member.role_id "
+            + "JOIN principal ON principal.principal_id=role_member.principal_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.last_notified_time=? AND role_member.server=?;";
     private static final String SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP =
-            "UPDATE role_member SET review_last_notified_time=?, review_server=? " +
-            "WHERE (" +
-                    "review_reminder > CURRENT_TIME AND (expiration is NULL) AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,7,14,21,28) AND " +
-                    "(review_last_notified_time IS NULL || review_last_notified_time < (CURRENT_TIME - INTERVAL ? DAY)));";
-    private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, " +
-            "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member " +
-            "JOIN role ON role.role_id=role_member.role_id " +
-            "JOIN principal ON principal.principal_id=role_member.principal_id " +
-            "JOIN domain ON domain.domain_id=role.domain_id " +
-            "WHERE role_member.review_last_notified_time=? AND role_member.review_server=?;";
-
+              "UPDATE role_member SET review_last_notified_time=?, review_server=? "
+            + "WHERE ("
+            + "review_reminder > CURRENT_TIME AND (expiration is NULL) AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,7,14,21,28) AND "
+            + "(review_last_notified_time IS NULL || review_last_notified_time < (CURRENT_TIME - INTERVAL ? DAY)));";
+    private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
+            + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member "
+            + "JOIN role ON role.role_id=role_member.role_id "
+            + "JOIN principal ON principal.principal_id=role_member.principal_id "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE role_member.review_last_notified_time=? AND role_member.review_server=?;";
     private static final String SQL_UPDATE_ROLE_REVIEW_TIMESTAMP = "UPDATE role SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
     private static final String SQL_LIST_ROLES_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, "
             + "role.name as role_name, domain.user_authority_filter as domain_user_authority_filter FROM role "
             + "JOIN domain ON role.domain_id=domain.domain_id WHERE role.user_authority_filter!='' "
             + "OR role.user_authority_expiration!='' OR domain.user_authority_filter!='';";
-
     private static final String SQL_GET_GROUP = "SELECT * FROM principal_group "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE domain.name=? AND principal_group.name=?;";
@@ -564,18 +549,16 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_ROLE_TAGS = "SELECT r.name, rt.key, rt.value FROM role_tags rt "
             + "JOIN role r ON rt.role_id = r.role_id JOIN domain ON domain.domain_id=r.domain_id "
             + "WHERE domain.name=?";
-
     private static final String SQL_INSERT_DOMAIN_TAG = "INSERT INTO domain_tags"
-        + "(domain_id, domain_tags.key, domain_tags.value) VALUES (?,?,?);";
+            + "(domain_id, domain_tags.key, domain_tags.value) VALUES (?,?,?);";
     private static final String SQL_DOMAIN_TAG_COUNT = "SELECT COUNT(*) FROM domain_tags WHERE domain_id=?";
     private static final String SQL_DELETE_DOMAIN_TAG = "DELETE FROM domain_tags WHERE domain_id=? AND domain_tags.key=?;";
     private static final String SQL_GET_DOMAIN_TAGS = "SELECT dt.key, dt.value FROM domain_tags dt "
-        + "JOIN domain d ON dt.domain_id = d.domain_id WHERE d.name=?";
+            + "JOIN domain d ON dt.domain_id = d.domain_id WHERE d.name=?";
     private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY = "SELECT d.name FROM domain d "
-        + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=?";
+            + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=?";
     private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY_VAL = "SELECT d.name FROM domain d "
-        + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=? AND dt.value=?";
-
+            + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=? AND dt.value=?";
     private static final String SQL_INSERT_GROUP_TAG = "INSERT INTO group_tags"
             + "(group_id, group_tags.key, group_tags.value) VALUES (?,?,?);";
     private static final String SQL_GROUP_TAG_COUNT = "SELECT COUNT(*) FROM group_tags WHERE group_id=?";
@@ -586,7 +569,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_GROUP_TAGS = "SELECT g.name, gt.key, gt.value FROM group_tags gt "
             + "JOIN principal_group g ON gt.group_id = g.group_id JOIN domain ON domain.domain_id=g.domain_id "
             + "WHERE domain.name=?";
-
     private static final String SQL_GET_ASSERTION_CONDITIONS = "SELECT assertion_condition.condition_id, "
             + "assertion_condition.key, assertion_condition.operator, assertion_condition.value "
             + "FROM assertion_condition WHERE assertion_condition.assertion_id=? ORDER BY assertion_condition.condition_id;";
@@ -602,7 +584,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "FROM assertion_condition JOIN assertion ON assertion_condition.assertion_id=assertion.assertion_id "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
-
     private static final String SQL_GET_OBJECT_SYSTEM_COUNT = "SELECT COUNT(*) FROM ";
     private static final String SQL_GET_OBJECT_DOMAIN_COUNT = "SELECT COUNT(*) FROM ";
     private static final String SQL_GET_OBJECT_DOMAIN_COUNT_QUERY = " WHERE domain_id=?";
@@ -612,7 +593,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_SERVICE_HOST_COUNT = "SELECT COUNT(*) from service_host JOIN service on service_host.service_id=service.service_id WHERE service.domain_id=?;";
     private static final String SQL_GET_DOMAIN_SERVICE_PUBLIC_KEY_COUNT = "SELECT COUNT(*) from public_key JOIN service on public_key.service_id=service.service_id WHERE service.domain_id=?;";
     private static final String SQL_GET_DOMAIN_PREFIX_COUNT = "SELECT COUNT(*) FROM domain WHERE name>=? AND name<?;";
-
     private static final String SQL_INSERT_DOMAIN_DEPENDENCY = "INSERT INTO service_domain_dependency (domain, service)"
             + "VALUES (?,?);";
     private static final String SQL_DELETE_DOMAIN_DEPENDENCY = "DELETE FROM service_domain_dependency "
@@ -621,7 +601,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE domain=?;";
     private static final String SQL_LIST_DOMAIN_DEPENDENCIES = "SELECT domain FROM service_domain_dependency "
             + "WHERE service=?;";
-
     private static final String GET_ALL_EXPIRED_ROLE_MEMBERS = "SELECT D.name as domain_name, R.name as role_name, M.expiration, P.name as principal_name"
             + " FROM "
             + " domain D JOIN role R ON D.domain_id = R.domain_id JOIN"
@@ -636,7 +615,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY)"
             + ")"
             + " limit ? offset ?";
-
     private static final String GET_ALL_EXPIRED_GROUP_MEMBERS = "SELECT D.name as domain_name, G.name as group_name, M.expiration, P.name as principal_name"
             + " FROM "
             + " domain D JOIN principal_group G ON D.domain_id = G.domain_id JOIN"
