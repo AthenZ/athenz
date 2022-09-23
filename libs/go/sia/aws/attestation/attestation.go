@@ -108,7 +108,7 @@ func GetECSTaskId() string {
 	return taskId
 }
 
-//GetAttestationData fetches attestation data for all the services mentioned in the config file
+// GetAttestationData fetches attestation data for all the services mentioned in the config file
 func GetAttestationData(opts *options.Options) ([]*AttestationData, error) {
 	data := []*AttestationData{}
 	for _, svc := range opts.Services {

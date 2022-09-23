@@ -12,6 +12,6 @@ $ zts-idtoken -svc-key-file <private-key-file> -svc-cert-file <service-cert-file
 
 ## License
 
-Copyright Athenz Authors
+Copyright The Athenz Authors
 
 Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

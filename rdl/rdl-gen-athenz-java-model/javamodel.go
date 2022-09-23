@@ -1,5 +1,5 @@
-// Copyright 2015 Yahoo Inc.
-//           2020 Verizon Media Modified to generate java client code for Athenz Clients
+// Copyright The Athenz Authors
+// Modified to generate java client code for Athenz Clients
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 package main
@@ -654,10 +654,10 @@ func (gen *javaModelGenerator) emitStructFields(fields []*rdl.StructFieldDef, na
 			if optional {
 				gen.emit("    @RdlOptional\n")
 				if gen.jackson {
-				    if f.Annotations["x_allowempty"] == "true" {
-				        gen.emit("    @JsonInclude(JsonInclude.Include.NON_NULL)\n")
-				    } else {
-					    gen.emit("    @JsonInclude(JsonInclude.Include.NON_EMPTY)\n")
+					if f.Annotations["x_allowempty"] == "true" {
+						gen.emit("    @JsonInclude(JsonInclude.Include.NON_NULL)\n")
+					} else {
+						gen.emit("    @JsonInclude(JsonInclude.Include.NON_EMPTY)\n")
 					}
 				}
 			}

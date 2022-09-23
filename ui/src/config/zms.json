@@ -2,13 +2,13 @@
     "namespace": "com.yahoo.athenz.zms",
     "name": "ZMS",
     "version": 1,
-    "comment": "Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZMS) Classes",
+    "comment": "Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZMS) Classes",
     "types": [
         {
             "StringTypeDef": {
                 "type": "String",
                 "name": "SimpleName",
-                "comment": "Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
+                "comment": "Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
                 "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
             }
         },
@@ -2812,7 +2812,7 @@
             "StructTypeDef": {
                 "type": "Struct",
                 "name": "UserAuthorityAttributes",
-                "comment": "Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.",
+                "comment": "Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.",
                 "fields": [
                     {
                         "name": "values",
@@ -2988,7 +2988,7 @@
             "StructTypeDef": {
                 "type": "Struct",
                 "name": "Info",
-                "comment": "Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object",
+                "comment": "Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object",
                 "fields": [
                     {
                         "name": "buildJdkSpec",

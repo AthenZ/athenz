@@ -35,5 +35,5 @@ RDL_ZMS_FILE=src/main/rdl/ZMS.rdl
 echo "Generating model classes..."
 rdl -s generate -o src/main/java athenz-java-model $RDL_ZMS_FILE
 
-# Copyright 2016 Yahoo Inc.
+# Copyright The Athenz Authors
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.

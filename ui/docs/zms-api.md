@@ -1,4 +1,4 @@
-# Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZMS) Classes
+# Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZMS) Classes
 
 ## API Methods
 
@@ -1552,14 +1552,14 @@ Map of type to attribute values for the user authority
 
 ### SimpleName `<String>`
 
-Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.
+Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.
 
 
 ```
 {
     "type": "String",
     "name": "SimpleName",
-    "comment": "Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
+    "comment": "Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
     "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
 }
 ```
@@ -4810,14 +4810,14 @@ The representation for a status object
 
 ### UserAuthorityAttributes `<Struct>`
 
-Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 
 ```
 {
     "type": "Struct",
     "name": "UserAuthorityAttributes",
-    "comment": "Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.",
+    "comment": "Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.",
     "fields": [
         {
             "name": "values",

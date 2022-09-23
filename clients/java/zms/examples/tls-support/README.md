@@ -34,6 +34,6 @@ directory path and `<java-home>` with your java home directory path.
 java -cp <cwd>/target/example-zms-tls-java-client-1.0.jar:<cwd>/target/dependency/* com.yahoo.athenz.example.zms.tls.client.ZMSTLSClient -k <cwd>/key.pem -c <cwd>/cert.pem -t <java-home>/jre/lib/security/cacerts -p changeit -a "read" -u "user.john" -r "sports.api:hockey" -z https://<athenz-zms-server-host>:4443/zms/v1
 ```
 
-Copyright 2017 Yahoo Holdings, Inc.
+Copyright The Athenz Authors
 
 Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

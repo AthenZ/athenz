@@ -16,10 +16,10 @@ func init() {
 	sb := rdl.NewSchemaBuilder("ZTS")
 	sb.Version(1)
 	sb.Namespace("com.yahoo.athenz.zts")
-	sb.Comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Token Service (ZTS) API")
+	sb.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Token Service (ZTS) API")
 
 	tSimpleName := rdl.NewStringTypeBuilder("SimpleName")
-	tSimpleName.Comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
+	tSimpleName.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
 	tSimpleName.Pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tSimpleName.Build())
 
@@ -185,7 +185,7 @@ func init() {
 	sb.AddType(tSignedPolicyRequest.Build())
 
 	tRoleCertificate := rdl.NewStructTypeBuilder("Struct", "RoleCertificate")
-	tRoleCertificate.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
+	tRoleCertificate.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
 	tRoleCertificate.Field("x509Certificate", "String", false, nil, "")
 	sb.AddType(tRoleCertificate.Build())
 
@@ -491,7 +491,7 @@ func init() {
 	sb.AddType(tTransportRules.Build())
 
 	tInfo := rdl.NewStructTypeBuilder("Struct", "Info")
-	tInfo.Comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+	tInfo.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
 	tInfo.Field("buildJdkSpec", "String", true, nil, "jdk build version")
 	tInfo.Field("implementationTitle", "String", true, nil, "implementation title - e.g. athenz-zms-server")
 	tInfo.Field("implementationVersion", "String", true, nil, "implementation version - e.g. 1.11.1")

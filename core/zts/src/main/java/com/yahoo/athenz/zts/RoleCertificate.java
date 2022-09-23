@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
-// RoleCertificate - Copyright Athenz Authors Licensed under the terms of the
-// Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a
-// role certificate
+// RoleCertificate - Copyright The Athenz Authors Licensed under the terms of
+// the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate -
+// a role certificate
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleCertificate {

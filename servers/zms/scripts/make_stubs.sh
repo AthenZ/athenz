@@ -34,5 +34,5 @@ RDL_ZMS_FILE=src/main/rdl/ZMS.rdl
 echo "Generate the server stubs"
 rdl -s generate -b="/v1" -o="src/main/java" athenz-server $RDL_ZMS_FILE
 
-# Copyright 2016 Yahoo Inc.
+# Copyright The Athenz Authors
 # Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.

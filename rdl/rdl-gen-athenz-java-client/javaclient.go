@@ -1,5 +1,5 @@
-// Copyright 2015 Yahoo Inc.
-//           2021 Athenz Authors Modified to generate java client code for Athenz Clients
+// Copyright The Athenz Authors
+// Modified to generate java client code for Athenz Clients
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 package main
@@ -280,7 +280,7 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 			q += "\n        }"
 		} else if in.Header != "" {
 			h += "\n        if (" + iname + " != null) {"
-			if (in.Type == "String") {
+			if in.Type == "String" {
 				h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", " + iname + ");"
 			} else {
 				h += "\n            httpUriRequest.addHeader(\"" + in.Header + "\", String.valueOf(" + iname + "));"
