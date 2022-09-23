@@ -4,6 +4,6 @@ Athenz UI is a browser based interface that users and admins can use to view and
 
 ## License
 
-Copyright 2020 Verizon Media
+Copyright The Athenz Authors
 
 Licensed under the Apache License, Version 2.0: [http://www.apache.org/licenses/LICENSE-2.0]()

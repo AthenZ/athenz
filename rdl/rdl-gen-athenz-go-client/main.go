@@ -1,5 +1,5 @@
-// Copyright 2015 Yahoo Inc. https://github.com/ardielle
-//           2019 Oath Holdings Inc. Modified to generate go client code for Athenz Clients
+// Copyright The Athenz Authors
+// https://github.com/ardielle modified to generate go client code for Athenz Clients
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 package main

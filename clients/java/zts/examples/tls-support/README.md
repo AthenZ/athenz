@@ -116,6 +116,6 @@ api service. The service token was generated using the zms-svctoken utility.
 java -cp <cwd>/target/example-zts-tls-java-client-1.0.jar:<cwd>/target/dependency/* com.yahoo.athenz.example.zts.tls.client.ZTSInstanceRegister -d sports -s api -k <cwd>/key.pem -n "ou=Athenz" -m zts.athenz.cloud -t "v=S1,d=sports,..." -z https://<athenz-zts-server-host>:4443/zts/v1
 ```
 
-Copyright 2017 Yahoo Holdings, Inc.
+Copyright The Athenz Authors
 
 Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

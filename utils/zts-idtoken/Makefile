@@ -2,7 +2,7 @@
 # Makefile to build ZTS OIDC ID Token utility
 # Prerequisite: Go development environment
 #
-# Copyright Athenz Authors
+# Copyright The Athenz Authors
 # Licensed under the Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 #
 

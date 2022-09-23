@@ -27,6 +27,6 @@ directory path and `<java-home>` with your java home directory path.
 java -cp <cwd>/target/example-http-tls-java-client-1.0.jar:<cwd>/target/dependency/* com.yahoo.athenz.example.http.tls.client.HttpTLSClient -k <cwd>/key.pem -c <cwd>/cert.pem -t <java-home>/jre/lib/security/cacerts -p changeit -u <url>
 ```
 
-Copyright 2017 Yahoo Holdings, Inc.
+Copyright The Athenz Authors
 
 Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

@@ -14,7 +14,7 @@ var _ = rdl.Version
 var _ = json.Marshal
 var _ = fmt.Printf
 
-// SimpleName - Copyright 2016 Yahoo Inc. Licensed under the terms of the
+// SimpleName - Copyright The Athenz Authors Licensed under the terms of the
 // Apache version 2.0 license. See LICENSE file for terms. Common name types
 // used by several API definitions A simple identifier, an element of compound
 // name.
@@ -1063,9 +1063,9 @@ func (self *SignedPolicyRequest) Validate() error {
 	return nil
 }
 
-// RoleCertificate - Copyright Athenz Authors Licensed under the terms of the
-// Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a
-// role certificate
+// RoleCertificate - Copyright The Athenz Authors Licensed under the terms of
+// the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate -
+// a role certificate
 type RoleCertificate struct {
 	X509Certificate string `json:"x509Certificate"`
 }
@@ -3901,7 +3901,7 @@ func (self *TransportRules) Validate() error {
 	return nil
 }
 
-// Info - Copyright Athenz Authors Licensed under the terms of the Apache
+// Info - Copyright The Athenz Authors Licensed under the terms of the Apache
 // version 2.0 license. See LICENSE file for terms. The representation for an
 // info object
 type Info struct {

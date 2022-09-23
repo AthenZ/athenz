@@ -1,4 +1,4 @@
-// Copyright 2017 Yahoo Holdings, Inc.
+// Copyright The Athenz Authors
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 // Get-access is a demo program to query if the current principal has

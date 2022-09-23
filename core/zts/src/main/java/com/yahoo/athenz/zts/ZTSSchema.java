@@ -16,10 +16,10 @@ public class ZTSSchema {
         SchemaBuilder sb = new SchemaBuilder("ZTS");
         sb.version(1);
         sb.namespace("com.yahoo.athenz.zts");
-        sb.comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Token Service (ZTS) API");
+        sb.comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Token Service (ZTS) API");
 
         sb.stringType("SimpleName")
-            .comment("Copyright 2016 Yahoo Inc. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
             .pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
         sb.stringType("CompoundName")
@@ -158,7 +158,7 @@ public class ZTSSchema {
             .field("signatureP1363Format", "Bool", false, "true if signature must be in P1363 format instead of ASN.1 DER");
 
         sb.structType("RoleCertificate")
-            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
             .field("x509Certificate", "String", false, "");
 
         sb.structType("RoleCertificateRequest")
@@ -424,7 +424,7 @@ public class ZTSSchema {
             .arrayField("egressRules", "TransportRule", false, "");
 
         sb.structType("Info")
-            .comment("Copyright Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
             .field("buildJdkSpec", "String", true, "jdk build version")
             .field("implementationTitle", "String", true, "implementation title - e.g. athenz-zms-server")
             .field("implementationVersion", "String", true, "implementation version - e.g. 1.11.1")

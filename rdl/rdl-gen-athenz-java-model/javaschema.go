@@ -1,5 +1,5 @@
-// Copyright 2015 Yahoo Inc.
-//           2020 Verizon Media Modified to generate java client code for Athenz Clients
+// Copyright The Athenz Authors
+// Modified to generate java client code for Athenz Clients
 // Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
 
 package main
