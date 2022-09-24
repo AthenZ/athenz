@@ -234,7 +234,7 @@ public interface ObjectStoreConnection extends Closeable {
 
     // purge commands
 
-    List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset);
-    List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset);
+    List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset, int serverPurgeExpiryDays);
+    List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset, int serverPurgeExpiryDays);
 
 }

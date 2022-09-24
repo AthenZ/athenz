@@ -84,6 +84,7 @@ public class DBService implements RolesProvider {
     private ScheduledExecutorService userAuthorityFilterExecutor;
     protected DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
     protected DynamicConfigInteger purgeMembersLimitPerCall;
+    protected DynamicConfigInteger purgeMemberExpiryDays;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
 
@@ -133,12 +134,16 @@ public class DBService implements RolesProvider {
         // start our thread to process user authority changes daily
 
         userAuthorityFilterExecutor = Executors.newScheduledThreadPool(1);
-        userAuthorityFilterExecutor.scheduleAtFixedRate(
-                new UserAuthorityFilterEnforcer(), 0, 1, TimeUnit.DAYS);
+        userAuthorityFilterExecutor.scheduleAtFixedRate(new UserAuthorityFilterEnforcer(), 0, 1, TimeUnit.DAYS);
 
-        maxPolicyVersions = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT));
-        purgeMembersMaxDbCallsPerRun = new DynamicConfigInteger(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_PURGE_TASK_MAX_DB_CALLS_PER_RUN, ZMSConsts.PURGE_TASK_MAX_DB_CALLS_PER_RUN_DEF);
-        purgeMembersLimitPerCall = new DynamicConfigInteger(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_PURGE_TASK_LIMIT_PER_CALL, ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF);
+        maxPolicyVersions = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS,
+                ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT));
+        purgeMembersMaxDbCallsPerRun = new DynamicConfigInteger(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_PURGE_TASK_MAX_DB_CALLS_PER_RUN, ZMSConsts.ZMS_PURGE_TASK_MAX_DB_CALLS_PER_RUN_DEF);
+        purgeMembersLimitPerCall = new DynamicConfigInteger(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_PURGE_TASK_LIMIT_PER_CALL, ZMSConsts.ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF);
+        purgeMemberExpiryDays = new DynamicConfigInteger(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_PURGE_MEMBER_EXPIRY_DAYS, ZMSConsts.ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF);
     }
 
     void setAuditRefObjectBits() {
@@ -1081,7 +1086,8 @@ public class DBService implements RolesProvider {
                 List<String> policyVersions = con.listPolicyVersions(domainName, policyName);
                 if (policyVersions.size() >= maxPolicyVersions) {
                     con.rollbackChanges();
-                    throw ZMSUtils.quotaLimitError("unable to put policy: " + policyName + ", version: " + version + ", max number of versions reached (" + maxPolicyVersions + ")", caller);
+                    throw ZMSUtils.quotaLimitError("unable to put policy: " + policyName + ", version: " + version
+                            + ", max number of versions reached (" + maxPolicyVersions + ")", caller);
                 }
 
                 // retrieve our source policy version
@@ -1103,7 +1109,8 @@ public class DBService implements RolesProvider {
                 originalPolicy.setActive(false);
                 if (!con.insertPolicy(domainName, originalPolicy)) {
                     con.rollbackChanges();
-                    throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version, caller);
+                    throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName()
+                            + ", version: " + version, caller);
                 }
 
                 // open our audit record
@@ -1128,7 +1135,8 @@ public class DBService implements RolesProvider {
 
                         if (!con.insertAssertion(domainName, policyName, version, assertion)) {
                             con.rollbackChanges();
-                            throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version + ", fail inserting assertion", caller);
+                            throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
+                                    ", version: " + version + ", fail inserting assertion", caller);
                         }
 
                         // copy assertion conditions for new assertion id
@@ -1136,7 +1144,8 @@ public class DBService implements RolesProvider {
                         if (assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
                             if (!con.insertAssertionConditions(assertion.getId(), assertionConditions)) {
                                 con.rollbackChanges();
-                                throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() + ", version: " + version + ", fail inserting assertion conditions", caller);
+                                throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
+                                        ", version: " + version + ", fail inserting assertion conditions", caller);
                             }
                         }
                     }
@@ -1146,7 +1155,8 @@ public class DBService implements RolesProvider {
                     auditLogAssertions(auditDetails, "copied-assertions", newAssertions);
                     for (Assertion assertion : newAssertions) {
                         if (assertion.getId() != null) {
-                            auditLogAssertionConditions(auditDetails, con.getAssertionConditions(assertion.getId()), "copied-assertion-conditions");
+                            auditLogAssertionConditions(auditDetails, con.getAssertionConditions(assertion.getId()),
+                                    "copied-assertion-conditions");
                         }
                     }
                 }
@@ -8023,7 +8033,7 @@ public class DBService implements RolesProvider {
     }
 
     void executeDeleteExpiredMembership(ResourceContext ctx, ObjectStoreConnection con, String domainName, String roleName,
-                                        String normalizedMember, Timestamp expiration, String auditRef, String caller) {
+            String normalizedMember, Timestamp expiration, String auditRef, String caller) {
 
         final String principal = getPrincipalName(ctx);
 
@@ -8031,21 +8041,27 @@ public class DBService implements RolesProvider {
 
         if (!con.deleteExpiredRoleMember(domainName, roleName, normalizedMember, principal, expiration, auditRef)) {
             throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
-                    normalizedMember + " from role: " + roleName + ". this happened either because the member was deleted already or his expiration was updated very recently", caller);
+                    normalizedMember + " from role: " + roleName + ". this happened either because the" +
+                    " member was deleted already or his expiration was updated very recently", caller);
         }
     }
 
-    List<ExpiryMember> executeDeleteDomainExpiredRoleMemberships(ResourceContext ctx, String domainName, List<ExpiryMember> members, String auditRef, String caller) {
+    List<ExpiryMember> executeDeleteDomainExpiredRoleMemberships(ResourceContext ctx, String domainName,
+            List<ExpiryMember> members, String auditRef, String caller) {
+
         List<ExpiryMember> removedList = new ArrayList<>();
         try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
             // delete all expired domain group members one by one (required due auditLog)
             for (ExpiryMember member : members) {
                 try {
-                    executeDeleteExpiredMembership(ctx, con, domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), auditRef, caller);
+                    executeDeleteExpiredMembership(ctx, con, domainName, member.getCollectionName(),
+                            member.getPrincipalName(), member.getExpiration(), auditRef, caller);
                     removedList.add(member);
-                } catch (Exception e) {
-                    LOG.error("failed to delete expired role member. domain={} role={} member={} expiration={}: ", domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), e);
+                } catch (Exception ex) {
+                    LOG.error("failed to delete expired role member. domain={} role={} member={} expiration={}",
+                            domainName, member.getCollectionName(), member.getPrincipalName(),
+                            member.getExpiration(), ex);
                 }
             }
             purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
@@ -8062,6 +8078,15 @@ public class DBService implements RolesProvider {
     }
 
     public List<ExpiryMember> executeDeleteAllExpiredRoleMemberships(ResourceContext ctx, String auditRef, String caller) {
+
+        // if our the member expiry days is set to 0, then we'll skip
+        // this request and return an empty list
+
+        final int expiryDays = purgeMemberExpiryDays.get();
+        if (expiryDays <= 0) {
+            return Collections.emptyList();
+        }
+
         final int maxDbCallsPerRun = purgeMembersMaxDbCallsPerRun.get();
         final int limitPerCall = purgeMembersLimitPerCall.get();
         int offset = 0;
@@ -8070,9 +8095,11 @@ public class DBService implements RolesProvider {
         List<ExpiryMember> removedList = new ArrayList<>();
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
+
             // get all expired members from all roles and separate them per domain
+
             for (int i = 0; i < maxDbCallsPerRun; ++i) {
-                List<ExpiryMember> expiredRoleMembers = con.getAllExpiredRoleMembers(limitPerCall, offset);
+                List<ExpiryMember> expiredRoleMembers = con.getAllExpiredRoleMembers(limitPerCall, offset, expiryDays);
                 if (expiredRoleMembers == null || expiredRoleMembers.isEmpty()) {
                     break;
                 }
@@ -8091,20 +8118,22 @@ public class DBService implements RolesProvider {
             }
         }
 
-        LOG.info("delete all expired role members started");
+        // delete all expired role members. for blocking only one domain at a time, for each domain,
+        // its expired members will be deleted in a separate transaction.
 
-        // delete all expired role members. for blocking only one domain at a time, for each domain, its expired members will be deleted in a separate transaction.
         for (Map.Entry<String, List<ExpiryMember>> entry: allExpiredRoleMembersMap.entrySet()) {
-            List<ExpiryMember> removedDomainList = executeDeleteDomainExpiredRoleMemberships(ctx, entry.getKey(), entry.getValue(), auditRef, caller);
+            List<ExpiryMember> removedDomainList = executeDeleteDomainExpiredRoleMemberships(ctx, entry.getKey(),
+                    entry.getValue(), auditRef, caller);
             if (removedDomainList != null) {
                 removedList.addAll(removedDomainList);
             }
         }
 
         if (numOfExpiredMembersRetrieved == removedList.size()) {
-            LOG.info("delete all expired role members done successfully: {} expired role members were deleted", removedList.size());
+            LOG.info("delete all expired role members done successfully: {} members were deleted", removedList.size());
         } else {
-            LOG.info("delete all expired role members done with errors: {} out of {} expired role members were deleted", removedList.size(), numOfExpiredMembersRetrieved);
+            LOG.info("delete all expired role members done with errors: {} out of {} members were deleted",
+                    removedList.size(), numOfExpiredMembersRetrieved);
         }
 
         return removedList;
@@ -8116,21 +8145,27 @@ public class DBService implements RolesProvider {
         // process our delete expired group member operation
         if (!con.deleteExpiredGroupMember(domainName, groupName, normalizedMember, principal, expiration, auditRef)) {
             throw ZMSUtils.notFoundError("unable to delete group member: " +
-                    normalizedMember + " from group: " + groupName + ". this happened either because the member was deleted already or his expiration was updated very recently", ctx.getApiName());
+                    normalizedMember + " from group: " + groupName + ". this happened either because the " +
+                    "member was deleted already or his expiration was updated very recently", ctx.getApiName());
         }
     }
 
-    List<ExpiryMember> executeDeleteDomainExpiredGroupMemberships(ResourceContext ctx, String domainName, List<ExpiryMember> members, String auditRef, String caller) {
+    List<ExpiryMember> executeDeleteDomainExpiredGroupMemberships(ResourceContext ctx, String domainName,
+            List<ExpiryMember> members, String auditRef, String caller) {
+
         List<ExpiryMember> removedList = new ArrayList<>();
         try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
             // delete all expired domain group members one by one (required due auditLog)
             for (ExpiryMember member : members) {
                 try {
-                    executeDeleteExpiredGroupMembership(ctx, con, domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), auditRef);
+                    executeDeleteExpiredGroupMembership(ctx, con, domainName, member.getCollectionName(),
+                            member.getPrincipalName(), member.getExpiration(), auditRef);
                     removedList.add(member);
-                } catch (Exception e) {
-                    LOG.error("failed to delete expired group member. domain={} role={} member={} expiration={}: ", domainName, member.getCollectionName(), member.getPrincipalName(), member.getExpiration(), e);
+                } catch (Exception ex) {
+                    LOG.error("failed to delete expired group member. domain={} role={} member={} expiration={}",
+                            domainName, member.getCollectionName(), member.getPrincipalName(),
+                            member.getExpiration(), ex);
                 }
             }
             purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
@@ -8147,6 +8182,15 @@ public class DBService implements RolesProvider {
     }
 
     public List<ExpiryMember> executeDeleteAllExpiredGroupMemberships(ResourceContext ctx, String auditRef, String caller) {
+
+        // if our the member expiry days is set to 0, then we'll skip
+        // this request and return an empty list
+
+        final int expiryDays = purgeMemberExpiryDays.get();
+        if (expiryDays <= 0) {
+            return Collections.emptyList();
+        }
+
         final int maxDbCallsPerRun = purgeMembersMaxDbCallsPerRun.get();
         final int limitPerCall = purgeMembersLimitPerCall.get();
         int offset = 0;
@@ -8155,9 +8199,11 @@ public class DBService implements RolesProvider {
         List<ExpiryMember> removedList = new ArrayList<>();
 
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
+
             // get all expired members from all groups and separate them per domain
+
             for (int i = 0; i < maxDbCallsPerRun; ++i) {
-                List<ExpiryMember> expiredGroupMembers = con.getAllExpiredGroupMembers(limitPerCall, offset);
+                List<ExpiryMember> expiredGroupMembers = con.getAllExpiredGroupMembers(limitPerCall, offset, expiryDays);
                 if (expiredGroupMembers == null || expiredGroupMembers.isEmpty()) {
                     break;
                 }
@@ -8176,20 +8222,22 @@ public class DBService implements RolesProvider {
             }
         }
 
-        LOG.info("delete all expired group members started");
+        // delete all expired group members. for blocking only one domain at a time, for each domain,
+        // its expired members will be deleted in a separate transaction.
 
-        // delete all expired group members. for blocking only one domain at a time, for each domain, its expired members will be deleted in a separate transaction.
         for (Map.Entry<String, List<ExpiryMember>> entry: allExpiredGroupMembersMap.entrySet()) {
-            List<ExpiryMember> removedDomainList = executeDeleteDomainExpiredGroupMemberships(ctx, entry.getKey(), entry.getValue(), auditRef, caller);
+            List<ExpiryMember> removedDomainList = executeDeleteDomainExpiredGroupMemberships(ctx, entry.getKey(),
+                    entry.getValue(), auditRef, caller);
             if (removedDomainList != null) {
                 removedList.addAll(removedDomainList);
             }
         }
 
         if (numOfExpiredMembersRetrieved == removedList.size()) {
-            LOG.info("delete all expired group members done successfully: {} expired group members were deleted", removedList.size());
+            LOG.info("delete all expired group members done successfully: {} members were deleted", removedList.size());
         } else {
-            LOG.info("delete all expired group members done with errors: {} out of {} expired group members were deleted", removedList.size(), numOfExpiredMembersRetrieved);
+            LOG.info("delete all expired group members done with errors: {} out of {} members were deleted",
+                    removedList.size(), numOfExpiredMembersRetrieved);
         }
 
         return removedList;

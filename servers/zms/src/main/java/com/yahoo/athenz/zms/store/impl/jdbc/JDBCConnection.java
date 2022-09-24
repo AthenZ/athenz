@@ -6931,11 +6931,11 @@ public class JDBCConnection implements ObjectStoreConnection {
 
 
     @Override
-    public List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset) {
+    public List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset, int serverPurgeExpiryDays) {
         final String caller = "getAllExpiredRoleMembers";
         List<ExpiryMember> members = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_ROLE_MEMBERS)) {
-            ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
+            ps.setInt(1, serverPurgeExpiryDays);
             ps.setInt(2, limit);
             ps.setInt(3, offset);
             try (ResultSet rs = executeQuery(ps, caller)) {
@@ -6955,11 +6955,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset) {
+    public List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset, int serverPurgeExpiryDays) {
         final String caller = "getAllExpiredGroupMembers";
         List<ExpiryMember> members = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(GET_ALL_EXPIRED_GROUP_MEMBERS)) {
-            ps.setInt(1, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT);
+            ps.setInt(1, serverPurgeExpiryDays);
             ps.setInt(2, limit);
             ps.setInt(3, offset);
             try (ResultSet rs = executeQuery(ps, caller)) {

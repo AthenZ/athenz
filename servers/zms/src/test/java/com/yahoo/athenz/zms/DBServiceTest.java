@@ -7677,7 +7677,7 @@ public class DBServiceTest {
         MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), new Role().setMemberExpiryDays(10), MemberDueDays.Type.EXPIRY);
         MemberDueDays reminderDueDays = new MemberDueDays(new Domain(), new Role(), MemberDueDays.Type.REMINDER);
 
-        Role testRole = zms.dbService.executePutRoleReview(mockDomRsrcCtx, domainName, "role1", incomingRole,
+        zms.dbService.executePutRoleReview(mockDomRsrcCtx, domainName, "role1", incomingRole,
                 expiryDueDays, reminderDueDays, "review test", "putRoleReview", true);
 
         Role resRole = zms.dbService.getRole(domainName, "role1", false, false, false);
@@ -11645,34 +11645,6 @@ public class DBServiceTest {
         zms.dbService.store = savedStore;
     }
 
-    private List<RoleMember> createExpiredRoleMembers() {
-        List<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember()
-                .setMemberName("user.test1")
-                .setExpiration(ZMSTestUtils.buildExpiration(DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT, true)));
-        roleMembers.add(new RoleMember()
-                .setMemberName("user.test2")
-                .setExpiration(ZMSTestUtils.buildExpiration(DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT + 5, true)));
-        roleMembers.add(new RoleMember()
-                .setMemberName("user.test3")
-                .setExpiration(ZMSTestUtils.buildExpiration(DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT + 10, true)));
-        return roleMembers;
-    }
-
-    private List<GroupMember> createExpiredGroupMembers() {
-        List<GroupMember> groupMembers = new ArrayList<>();
-        groupMembers.add(new GroupMember()
-                .setMemberName("user.test1")
-                .setExpiration(ZMSTestUtils.buildExpiration(DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT, true)));
-        groupMembers.add(new GroupMember()
-                .setMemberName("user.test2")
-                .setExpiration(ZMSTestUtils.buildExpiration(DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT + 5, true)));
-        groupMembers.add(new GroupMember()
-                .setMemberName("user.test3")
-                .setExpiration(ZMSTestUtils.buildExpiration(DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT + 10, true)));
-        return groupMembers;
-    }
-
     @Test
     public void testExecuteDeleteAllExpiredRoleMemberships() {
 
@@ -11685,21 +11657,29 @@ public class DBServiceTest {
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
-        Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
+        Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
 
         List<ExpiryMember> purgeMemberList;
-        ExpiryMember member1 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1").setPrincipalName("user.test1").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member2 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1").setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member3 = new ExpiryMember().setDomainName("dom1").setCollectionName("role2").setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member4 = new ExpiryMember().setDomainName("dom2").setCollectionName("role3").setPrincipalName("user.test4").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member5 = new ExpiryMember().setDomainName("dom2").setCollectionName("role1").setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member6 = new ExpiryMember().setDomainName("dom3").setCollectionName("role4").setPrincipalName("user.test5").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member1 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1")
+                .setPrincipalName("user.test1").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member2 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1")
+                .setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member3 = new ExpiryMember().setDomainName("dom1").setCollectionName("role2")
+                .setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member4 = new ExpiryMember().setDomainName("dom2").setCollectionName("role3")
+                .setPrincipalName("user.test4").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member5 = new ExpiryMember().setDomainName("dom2").setCollectionName("role1")
+                .setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member6 = new ExpiryMember().setDomainName("dom3").setCollectionName("role4")
+                .setPrincipalName("user.test5").setExpiration(Timestamp.fromMillis(100));
 
         purgeMemberList = List.of(member1, member2, member3, member4, member5, member6);
-        Mockito.when(conn.getAllExpiredRoleMembers(PURGE_TASK_LIMIT_PER_CALL_DEF,0)).thenReturn(purgeMemberList);
+        Mockito.when(conn.getAllExpiredRoleMembers(ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180)).thenReturn(purgeMemberList);
         zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(1)).getAllExpiredRoleMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(6)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(1)).getAllExpiredRoleMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(6)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         // needs more than one call for delete all expired group members
 
@@ -11707,24 +11687,26 @@ public class DBServiceTest {
 
         zms.dbService.purgeMembersLimitPerCall = new DynamicConfigInteger(4);
 
-        Mockito.when(conn.getAllExpiredRoleMembers(4,0)).thenReturn(List.of(member1, member2, member3, member4));
-        Mockito.when(conn.getAllExpiredRoleMembers(4,4)).thenReturn(List.of(member5, member6));
+        Mockito.when(conn.getAllExpiredRoleMembers(4, 0, 180)).thenReturn(List.of(member1, member2, member3, member4));
+        Mockito.when(conn.getAllExpiredRoleMembers(4, 4, 180)).thenReturn(List.of(member5, member6));
 
         zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(2)).getAllExpiredRoleMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(6)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(2)).getAllExpiredRoleMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(6)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         Mockito.clearInvocations(conn);
 
         zms.dbService.purgeMembersLimitPerCall = new DynamicConfigInteger(3);
 
-        Mockito.when(conn.getAllExpiredRoleMembers(3,0)).thenReturn(List.of(member1, member2, member3));
-        Mockito.when(conn.getAllExpiredRoleMembers(3,3)).thenReturn(List.of(member4, member5, member6));
-        Mockito.when(conn.getAllExpiredRoleMembers(3,6)).thenReturn(List.of());
+        Mockito.when(conn.getAllExpiredRoleMembers(3, 0, 180)).thenReturn(List.of(member1, member2, member3));
+        Mockito.when(conn.getAllExpiredRoleMembers(3, 3, 180)).thenReturn(List.of(member4, member5, member6));
+        Mockito.when(conn.getAllExpiredRoleMembers(3, 6, 180)).thenReturn(List.of());
 
         zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(3)).getAllExpiredRoleMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(6)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(3)).getAllExpiredRoleMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(6)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         // not delete all because expired_members > num_of_db_call * limit_per_call
 
@@ -11733,14 +11715,15 @@ public class DBServiceTest {
         zms.dbService.purgeMembersMaxDbCallsPerRun = new DynamicConfigInteger(2);
         zms.dbService.purgeMembersLimitPerCall = new DynamicConfigInteger(2);
 
-        Mockito.when(conn.getAllExpiredRoleMembers(2,0)).thenReturn(List.of(member1, member2));
-        Mockito.when(conn.getAllExpiredRoleMembers(2,2)).thenReturn(List.of(member3, member4));
+        Mockito.when(conn.getAllExpiredRoleMembers(2, 0, 180)).thenReturn(List.of(member1, member2));
+        Mockito.when(conn.getAllExpiredRoleMembers(2, 2, 180)).thenReturn(List.of(member3, member4));
         // third iteration - should not happen
-        Mockito.when(conn.getAllExpiredRoleMembers(2,4)).thenReturn(List.of(member5, member6));
+        Mockito.when(conn.getAllExpiredRoleMembers(2, 4, 180)).thenReturn(List.of(member5, member6));
 
         zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(2)).getAllExpiredRoleMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(4)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(2)).getAllExpiredRoleMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(4)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         zms.dbService.purgeMembersMaxDbCallsPerRun = savedMaxDbCallConfig;
         zms.dbService.purgeMembersLimitPerCall = savedLimitConfig;
@@ -11755,15 +11738,19 @@ public class DBServiceTest {
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        ExpiryMember member1 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1").setPrincipalName("user.test1").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member2 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1").setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(100));
-        ExpiryMember member3 = new ExpiryMember().setDomainName("dom1").setCollectionName("role2").setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member1 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1")
+                .setPrincipalName("user.test1").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member2 = new ExpiryMember().setDomainName("dom1").setCollectionName("role1")
+                .setPrincipalName("user.test2").setExpiration(Timestamp.fromMillis(100));
+        ExpiryMember member3 = new ExpiryMember().setDomainName("dom1").setCollectionName("role2")
+                .setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3);
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
-        Mockito.when(conn.getAllExpiredRoleMembers(PURGE_TASK_LIMIT_PER_CALL_DEF, 0)).thenReturn(purgeMemberList);
-        Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
+        Mockito.when(conn.getAllExpiredRoleMembers(ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180)).thenReturn(purgeMemberList);
+        Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
 
         /*  Added an appender to the db service logger, so when deleting expired role members,
          this appender allows seeing whether an error was recorded in the log file. */
@@ -11785,7 +11772,8 @@ public class DBServiceTest {
         dbServiceLogger.addAppender(testAppender);
 
         zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(3)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(3)).deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
         assertEquals(deleteFailureCount[0], 1);
 
         testAppender.stop();
@@ -11827,7 +11815,8 @@ public class DBServiceTest {
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
-        Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
+        Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
 
         ExpiryMember member1 = new ExpiryMember()
                 .setDomainName("dom1")
@@ -11861,10 +11850,11 @@ public class DBServiceTest {
                 .setExpiration(Timestamp.fromMillis(100));
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3, member4, member5, member6);
 
-        Mockito.when(conn.getAllExpiredGroupMembers(PURGE_TASK_LIMIT_PER_CALL_DEF,0)).thenReturn(purgeMemberList);
+        Mockito.when(conn.getAllExpiredGroupMembers(ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180)).thenReturn(purgeMemberList);
         zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(1)).getAllExpiredGroupMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(6)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(1)).getAllExpiredGroupMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(6)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         // needs more than one call for delete all expired group members
 
@@ -11872,25 +11862,26 @@ public class DBServiceTest {
 
         zms.dbService.purgeMembersLimitPerCall = new DynamicConfigInteger(4);
 
-        Mockito.when(conn.getAllExpiredGroupMembers(4,0)).thenReturn(List.of(member1, member2, member3, member4));
-        Mockito.when(conn.getAllExpiredGroupMembers(4,4)).thenReturn(List.of(member5, member6));
+        Mockito.when(conn.getAllExpiredGroupMembers(4, 0, 180)).thenReturn(List.of(member1, member2, member3, member4));
+        Mockito.when(conn.getAllExpiredGroupMembers(4, 4, 180)).thenReturn(List.of(member5, member6));
 
         zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(2)).getAllExpiredGroupMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(6)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
-
+        Mockito.verify(conn, times(2)).getAllExpiredGroupMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(6)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         Mockito.clearInvocations(conn);
 
         zms.dbService.purgeMembersLimitPerCall = new DynamicConfigInteger(3);
 
-        Mockito.when(conn.getAllExpiredGroupMembers(3,0)).thenReturn(List.of(member1, member2, member3));
-        Mockito.when(conn.getAllExpiredGroupMembers(3,3)).thenReturn(List.of(member4, member5, member6));
-        Mockito.when(conn.getAllExpiredGroupMembers(3,6)).thenReturn(List.of());
+        Mockito.when(conn.getAllExpiredGroupMembers(3, 0, 180)).thenReturn(List.of(member1, member2, member3));
+        Mockito.when(conn.getAllExpiredGroupMembers(3, 3, 180)).thenReturn(List.of(member4, member5, member6));
+        Mockito.when(conn.getAllExpiredGroupMembers(3, 6, 180)).thenReturn(List.of());
 
         zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(3)).getAllExpiredGroupMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(6)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(3)).getAllExpiredGroupMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(6)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         // not delete all because expired_members > num_of_db_call * limit_per_call
 
@@ -11899,18 +11890,34 @@ public class DBServiceTest {
         zms.dbService.purgeMembersMaxDbCallsPerRun = new DynamicConfigInteger(2);
         zms.dbService.purgeMembersLimitPerCall = new DynamicConfigInteger(2);
 
-        Mockito.when(conn.getAllExpiredGroupMembers(2,0)).thenReturn(List.of(member1, member2));
-        Mockito.when(conn.getAllExpiredGroupMembers(2,2)).thenReturn(List.of(member3, member4));
+        Mockito.when(conn.getAllExpiredGroupMembers(2, 0, 180)).thenReturn(List.of(member1, member2));
+        Mockito.when(conn.getAllExpiredGroupMembers(2, 2, 180)).thenReturn(List.of(member3, member4));
         // third iteration - should not happen
-        Mockito.when(conn.getAllExpiredGroupMembers(2,4)).thenReturn(List.of(member5, member6));
+        Mockito.when(conn.getAllExpiredGroupMembers(2, 4, 180)).thenReturn(List.of(member5, member6));
 
         zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(2)).getAllExpiredGroupMembers(anyInt(), anyInt());
-        Mockito.verify(conn, times(4)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(2)).getAllExpiredGroupMembers(anyInt(), anyInt(), anyInt());
+        Mockito.verify(conn, times(4)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
 
         zms.dbService.purgeMembersMaxDbCallsPerRun = savedMaxDbCallConfig;
         zms.dbService.purgeMembersLimitPerCall = savedLimitConfig;
         zms.dbService.store = savedStore;
+    }
+
+    @Test
+    public void testExecuteDeleteAllExpiredMembershipsEmptySet() {
+        DynamicConfigInteger savedExpiryDays = zms.dbService.purgeMemberExpiryDays;
+        zms.dbService.purgeMemberExpiryDays = new DynamicConfigInteger(0);
+
+        List<ExpiryMember> members = zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx,
+                auditRef, "deleteExpiredMembers");
+        assertTrue(members.isEmpty());
+
+        members = zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx,
+                auditRef, "deleteExpiredMembers");
+        assertTrue(members.isEmpty());
+        zms.dbService.purgeMemberExpiryDays = savedExpiryDays;
     }
 
     @Test
@@ -11924,23 +11931,24 @@ public class DBServiceTest {
                 .setDomainName("dom1")
                 .setCollectionName("group1")
                 .setPrincipalName("user.test1")
-                .setExpiration(Timestamp.fromMillis(100));;
+                .setExpiration(Timestamp.fromMillis(100));
         ExpiryMember member2 = new ExpiryMember()
                 .setDomainName("dom1")
                 .setCollectionName("group1")
                 .setPrincipalName("user.test2")
-                .setExpiration(Timestamp.fromMillis(100));;
+                .setExpiration(Timestamp.fromMillis(100));
         ExpiryMember member3 = new ExpiryMember()
                 .setDomainName("dom1")
                 .setCollectionName("group2")
                 .setPrincipalName("user.test3")
-                .setExpiration(Timestamp.fromMillis(100));;
+                .setExpiration(Timestamp.fromMillis(100));
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3);
 
         Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
-        Mockito.when(conn.getAllExpiredGroupMembers(PURGE_TASK_LIMIT_PER_CALL_DEF, 0)).thenReturn(purgeMemberList);
-        Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),  eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
+        Mockito.when(conn.getAllExpiredGroupMembers(ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180)).thenReturn(purgeMemberList);
+        Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
 
         /*  Added an appender to the db service logger, so when deleting expired group members,
          this appender allows seeing whether an error was recorded in the log file. */
@@ -11962,7 +11970,8 @@ public class DBServiceTest {
         dbServiceLogger.addAppender(testAppender);
 
         zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
-        Mockito.verify(conn, times(3)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(), eq(Timestamp.fromMillis(100)), eq(auditRef));
+        Mockito.verify(conn, times(3)).deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
+                eq(Timestamp.fromMillis(100)), eq(auditRef));
         assertEquals(deleteFailureCount[0], 1);
 
         testAppender.stop();

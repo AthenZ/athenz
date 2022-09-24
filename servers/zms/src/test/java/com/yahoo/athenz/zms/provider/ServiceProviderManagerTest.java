@@ -23,8 +23,11 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.notification.MockNotificationService;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -44,6 +47,8 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class ServiceProviderManagerTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceProviderManagerTest.class);
 
     @BeforeMethod
     public void setup() throws NoSuchFieldException, IllegalAccessException {
@@ -144,7 +149,7 @@ public class ServiceProviderManagerTest {
 
         @Override
         public Boolean call() {
-            System.out.println("Starting thread " + threadNumber);
+            LOGGER.info("Starting thread {}", threadNumber);
             try {
                 // Assert initial fetch from DB is correct
                 assertFalse(serviceProviderManager.isServiceProvider(null));
@@ -188,10 +193,10 @@ public class ServiceProviderManagerTest {
                 serviceProvidersWithEndpoints = serviceProviderManager.getServiceProvidersWithEndpoints();
                 assertEquals(serviceProvidersWithEndpoints.size(), 2);
 
-                System.out.println("Finished successfully - thread " + threadNumber);
+                LOGGER.info("Finished successfully - thread {}", threadNumber);
                 return true;
             } catch (AssertionError error) {
-                System.out.println("Failed - thread " + threadNumber);
+                LOGGER.info("Failed - thread {}", threadNumber);
                 return false;
             }
         }

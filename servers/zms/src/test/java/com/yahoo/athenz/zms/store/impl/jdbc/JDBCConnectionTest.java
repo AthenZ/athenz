@@ -834,7 +834,7 @@ public class JDBCConnectionTest {
                 .thenReturn(new java.sql.Timestamp(123456))
                 .thenReturn(new java.sql.Timestamp(654321));
 
-        List<ExpiryMember> expectedMembers = jdbcConn.getAllExpiredRoleMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+        List<ExpiryMember> expectedMembers = jdbcConn.getAllExpiredRoleMembers(ZMSConsts.ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180);
 
         ExpiryMember expectedMember1 = new ExpiryMember()
                 .setDomainName("dom1")
@@ -859,7 +859,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
-            jdbcConn.getAllExpiredRoleMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+            jdbcConn.getAllExpiredRoleMembers(ZMSConsts.ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -890,7 +890,7 @@ public class JDBCConnectionTest {
                 .thenReturn(new java.sql.Timestamp(123456))
                 .thenReturn(new java.sql.Timestamp(654321));
 
-        List<ExpiryMember> expectedMembers = jdbcConn.getAllExpiredGroupMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+        List<ExpiryMember> expectedMembers = jdbcConn.getAllExpiredGroupMembers(ZMSConsts.ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180);
 
         ExpiryMember expectedMember1 = new ExpiryMember()
                 .setDomainName("dom1")
@@ -915,7 +915,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
-            jdbcConn.getAllExpiredGroupMembers(ZMSConsts.PURGE_TASK_LIMIT_PER_CALL_DEF, 0);
+            jdbcConn.getAllExpiredGroupMembers(ZMSConsts.ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
