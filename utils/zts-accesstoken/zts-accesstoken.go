@@ -45,7 +45,7 @@ func printVersion() {
 func main() {
 	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris string
 	var expireTime int
-	var proxy, validate, claims, showVersion bool
+	var proxy, validate, claims, tokenOnly, showVersion bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&service, "service", "", "name of provider service")
 	flag.StringVar(&roles, "roles", "", "comma separated list of provider roles")
@@ -64,6 +64,7 @@ func main() {
 	flag.StringVar(&authzDetails, "authorization-details", "", "Authorization Details (json document)")
 	flag.StringVar(&proxyPrincipalSpiffeUris, "proxy-principal-spiffe-uris", "", "comm separated list of proxy principal spiffe uris")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
+	flag.BoolVar(&tokenOnly, "token-only", false, "Display the access token only")
 	flag.Parse()
 
 	if showVersion {
@@ -74,7 +75,7 @@ func main() {
 	if validate {
 		validateAccessToken(accessToken, conf, claims)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, proxy, expireTime)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, proxy, expireTime, tokenOnly)
 	}
 }
 
@@ -119,9 +120,26 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris string, proxy bool, expireTime int) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris string, proxy bool, expireTime int, tokenOnly bool) {
+
+	defaultConfig, _ := athenzutils.ReadDefaultConfig()
+	// check to see if we need to use zts url from our default config file
+	if ztsURL == "" && defaultConfig != nil {
+		ztsURL = defaultConfig.Zts
+	}
+
 	if domain == "" || ztsURL == "" {
 		usage()
+	}
+
+	// check to see if we need to use our key/cert from our default config file
+	if ntokenFile == "" && defaultConfig != nil {
+		if svcKeyFile == "" {
+			svcKeyFile = defaultConfig.PrivateKey
+		}
+		if svcCertFile == "" {
+			svcCertFile = defaultConfig.PublicCert
+		}
 	}
 
 	certCredentials := false
@@ -149,6 +167,12 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	// check if we're asked only to return the access token
+	if tokenOnly {
+		fmt.Print(accessTokenResponse.Access_token)
+		return
 	}
 
 	data, err := json.Marshal(accessTokenResponse)

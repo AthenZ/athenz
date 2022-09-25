@@ -115,6 +115,11 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 
 func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool) {
 
+	defaultConfig, _ := athenzutils.ReadDefaultConfig()
+	// check to see if we need to use zts url from our default config file
+	if ztsURL == "" && defaultConfig != nil {
+		ztsURL = defaultConfig.Zts
+	}
 	if ztsURL == "" {
 		usage()
 	}

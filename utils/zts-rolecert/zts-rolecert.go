@@ -81,6 +81,12 @@ func main() {
 		return
 	}
 
+	defaultConfig, _ := athenzutils.ReadDefaultConfig()
+	// check to see if we need to use zts url from our default config file
+	if ztsURL == "" && defaultConfig != nil {
+		ztsURL = defaultConfig.Zts
+	}
+
 	if svcKeyFile == "" || svcCertFile == "" || roleDomain == "" || roleName == "" ||
 		ztsURL == "" || dnsDomain == "" {
 		log.Fatalln("Error: missing required attributes. Run with -help for command line arguments")

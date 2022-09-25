@@ -129,6 +129,13 @@ func main() {
 	var err error
 
 	if getInstanceRegisterToken || useInstanceRegisterToken {
+
+		defaultConfig, _ := athenzutils.ReadDefaultConfig()
+		// check to see if we need to use zts url from our default config file
+		if ztsURL == "" && defaultConfig != nil {
+			ztsURL = defaultConfig.Zts
+		}
+
 		if ztsURL == "" || domain == "" || service == "" || provider == "" || instance == "" || svcKeyFile == "" || svcCertFile == "" {
 			log.Println("Error: missing required attributes. Run with -help for command line arguments")
 			usage()
