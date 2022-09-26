@@ -1,0 +1,4 @@
+svc-key-file: /athenz/key
+svc-cert-file: /athenz/cert
+zms: https://zms.athenz.io/zms/v1
+zts: https://zts.athenz.io/zts/v1

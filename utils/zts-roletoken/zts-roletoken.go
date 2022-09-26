@@ -77,8 +77,25 @@ func main() {
 }
 
 func fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntoken, ntokenFile, hdr string, proxy bool, expireTime int) {
+
+	defaultConfig, _ := athenzutils.ReadDefaultConfig()
+	// check to see if we need to use zts url from our default config file
+	if ztsURL == "" && defaultConfig != nil {
+		ztsURL = defaultConfig.Zts
+	}
+
 	if domain == "" || ztsURL == "" {
 		usage()
+	}
+
+	// check to see if we need to use our key/cert from our default config file
+	if ntoken == "" && ntokenFile == "" && defaultConfig != nil {
+		if svcKeyFile == "" {
+			svcKeyFile = defaultConfig.PrivateKey
+		}
+		if svcCertFile == "" {
+			svcCertFile = defaultConfig.PublicCert
+		}
 	}
 
 	certCredentials := false

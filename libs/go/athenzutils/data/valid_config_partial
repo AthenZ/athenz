@@ -1,0 +1,2 @@
+svc-key-file: /athenz/key
+zts: https://zts.athenz.io/zts/v1
