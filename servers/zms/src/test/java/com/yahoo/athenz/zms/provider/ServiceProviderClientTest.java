@@ -50,12 +50,12 @@ public class ServiceProviderClientTest {
     private final ObjectMapper jsonMapper = new ObjectMapper();
 
     @Test
-    public void testServiceProviderClient() throws KeyRefresherException, IOException, InterruptedException {
+    public void testServiceProviderClient() throws IOException {
         serviceProviderClientWithInstance(false);
     }
 
     @Test
-    public void testServiceProviderClientInstanceProvider() throws KeyRefresherException, IOException, InterruptedException {
+    public void testServiceProviderClientInstanceProvider() throws IOException {
         serviceProviderClientWithInstance(true);
     }
 
@@ -102,7 +102,7 @@ public class ServiceProviderClientTest {
     }
 
     @Test
-    public void testServiceProviderClientHomeDomain() throws KeyRefresherException, IOException, InterruptedException {
+    public void testServiceProviderClientHomeDomain() {
         String provider = "provider-test";
         String providerEndpoint = "https://provider-endpoint:12345";
         ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, providerEndpoint, false);
@@ -116,7 +116,7 @@ public class ServiceProviderClientTest {
     }
 
     @Test
-    public void testServiceProviderClientNoEndpoint() throws KeyRefresherException, IOException, InterruptedException {
+    public void testServiceProviderClientNoEndpoint() {
         String provider = "provider-test";
         ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, null, false);
         String domain = "test.domain";
@@ -129,7 +129,7 @@ public class ServiceProviderClientTest {
     }
 
     @Test
-    public void testServiceProviderClientException() throws KeyRefresherException, IOException, InterruptedException {
+    public void testServiceProviderClientException() throws IOException {
         String provider = "provider-test";
         String providerEndpoint = "https://provider-endpoint:12345";
         ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, providerEndpoint, false);
@@ -160,7 +160,7 @@ public class ServiceProviderClientTest {
         ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, providerEndpoint, false);
         DomainDependencyProviderResponse dependencyStatus = serviceProviderClient.getDependencyStatus(domainDependencyProvider, domain, principal);
         assertEquals(dependencyStatus.getStatus(), ZMSConsts.PROVIDER_RESPONSE_DENY);
-        assertEquals(dependencyStatus.getMessage(), "Invalid dependency status request to service povider 'test.domain.provider-test' with endpoint 'https://provider-endpoint:12345', Received error code 404");
+        assertEquals(dependencyStatus.getMessage(), "Invalid dependency status request to service provider 'test.domain.provider-test' with endpoint 'https://provider-endpoint:12345', Received error code 404");
     }
 
     @Test

@@ -371,10 +371,10 @@ public final class ZMSConsts {
     public static final String ZMS_DYNAMODB_PRINCIPAL_DOMAIN_INDEX_NAME = "principalDomain-index";
 
     // purge task
-    public static final String PURGE_TASK_AUDIT_REF = "Expired member purged automatically";
-    public static final String ZMS_PROP_PURGE_TASK_MAX_DB_CALLS_PER_RUN = "purge_task_max_db_calls_per_run";
-    public static final Integer PURGE_TASK_MAX_DB_CALLS_PER_RUN_DEF = 20;
-    public static final String ZMS_PROP_PURGE_TASK_LIMIT_PER_CALL = "purge_task_limit_per_call";
-    public static final Integer PURGE_TASK_LIMIT_PER_CALL_DEF = 500;
-    public static final int DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT = 180;
+    public static final String ZMS_PROP_PURGE_TASK_MAX_DB_CALLS_PER_RUN = "athenz.zms.purge_task_max_db_calls_per_run";
+    public static final Integer ZMS_PURGE_TASK_MAX_DB_CALLS_PER_RUN_DEF = 20;
+    public static final String ZMS_PROP_PURGE_TASK_LIMIT_PER_CALL = "athenz.zms.purge_task_limit_per_call";
+    public static final Integer ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF = 500;
+    public static final String ZMS_PROP_PURGE_MEMBER_EXPIRY_DAYS = "athenz.zms.purge_member_expiry_days";
+    public static final Integer ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF = 180;
 }

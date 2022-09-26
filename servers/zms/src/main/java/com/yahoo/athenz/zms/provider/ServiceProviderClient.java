@@ -159,7 +159,7 @@ public class ServiceProviderClient {
             domainDependencyProviderResponse.setStatus(PROVIDER_RESPONSE_DENY);
             domainDependencyProviderResponse.setMessage("Http Status: " + httpResponse.getStatusCode() + ", error: " + httpResponse.getMessage());
         } else if (httpResponse.getStatusCode() >= 400 && httpResponse.getStatusCode() <= 499) {
-            String errorMessage = String.format("Invalid dependency status request to service povider '%s' with endpoint '%s', Received error code %d", domainDependencyProvider.getProvider(), url, httpResponse.getStatusCode());
+            String errorMessage = String.format("Invalid dependency status request to service provider '%s' with endpoint '%s', Received error code %d", domainDependencyProvider.getProvider(), url, httpResponse.getStatusCode());
             LOG.error(errorMessage);
             domainDependencyProviderResponse.setStatus(PROVIDER_RESPONSE_DENY);
             domainDependencyProviderResponse.setMessage(errorMessage);

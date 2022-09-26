@@ -17333,16 +17333,18 @@ public class ZMSImplTest {
         ServiceIdentity service1 = zmsTestInitializer.createServiceObject(domainName,
                 "service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
-        Response myService = zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "service1", zmsTestInitializer.getAuditRef(), true, service1);
+        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(),
+                domainName, "service1", zmsTestInitializer.getAuditRef(), true, service1);
 
         ServiceIdentity service2 = zmsTestInitializer.createServiceObject(domainName,
                 "service2", "http://localhost", "/usr/bin/java", "yahoo",
                 "users", "host2");
 
-        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "service2", zmsTestInitializer.getAuditRef(), false, service2);
+        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "service2",
+                zmsTestInitializer.getAuditRef(), false, service2);
 
-        ServiceIdentities serviceList = zmsTestInitializer.getZms().getServiceIdentities(zmsTestInitializer.getMockDomRsrcCtx(), domainName,
-                Boolean.TRUE, Boolean.TRUE);
+        ServiceIdentities serviceList = zmsTestInitializer.getZms().getServiceIdentities(zmsTestInitializer.getMockDomRsrcCtx(),
+                domainName, Boolean.TRUE, Boolean.TRUE);
         List<ServiceIdentity> services = serviceList.getList();
         assertEquals(2, services.size());
 
@@ -25611,7 +25613,6 @@ public class ZMSImplTest {
 
         final String domainName = "put-group-mbr-ex";
         final String groupName = "group1";
-        final String groupName2 = "group2";
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -30155,19 +30156,19 @@ public class ZMSImplTest {
 
     private void insertExpiredMembersToDB (ZMSImpl zms, ResourceContext ctx, String auditRef) {
 
-        int memberPurgeExpiryDays = DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT + 150;
+        int memberPurgeExpiryDays = ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF + 150;
 
         List <RoleMember> roleMembers = new ArrayList<>();
         roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test1", true, memberPurgeExpiryDays));
         roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test2", true, memberPurgeExpiryDays - 10));
-        roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test3", true, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT - 1));
+        roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test3", true, ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF - 1));
         roleMembers.add(zmsTestInitializer.createRoleMemberWithExpiration("user.test4", false, memberPurgeExpiryDays));
         roleMembers.add(new RoleMember().setMemberName("user.test5"));
 
         List <GroupMember> groupMembers = new ArrayList<>();
         groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test1", true, memberPurgeExpiryDays));
         groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test2", true, memberPurgeExpiryDays - 10));
-        groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test3", true, DELAY_PURGE_EXPIRED_MEMBERS_DAYS_DEFAULT - 1));
+        groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test3", true, ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF - 1));
         groupMembers.add(zmsTestInitializer.createGroupMemberWithExpiration("user.test4", false, memberPurgeExpiryDays));
         groupMembers.add(new GroupMember().setMemberName("user.test5"));
 
