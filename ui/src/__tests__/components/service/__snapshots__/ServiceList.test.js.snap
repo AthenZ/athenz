@@ -427,7 +427,6 @@ exports[`ServiceList should render delete service modal error(other) after click
       >
         Add Service
       </button>
-      
     </div>
   </div>
   <table
@@ -707,7 +706,6 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
       >
         Add Service
       </button>
-      
     </div>
   </div>
   <table
@@ -987,7 +985,6 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
       >
         Add Service
       </button>
-      
     </div>
   </div>
   <table
@@ -1245,7 +1242,6 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
       >
         Add Service
       </button>
-      
     </div>
   </div>
   <table
@@ -1428,7 +1424,6 @@ exports[`ServiceList should render with services 1`] = `
       >
         Add Service
       </button>
-      
     </div>
   </div>
   <table
@@ -1686,7 +1681,6 @@ exports[`ServiceList should render without services 1`] = `
       >
         Add Service
       </button>
-      
     </div>
   </div>
   <table

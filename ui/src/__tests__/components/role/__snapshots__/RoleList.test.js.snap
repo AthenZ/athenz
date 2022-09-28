@@ -400,13 +400,11 @@ exports[`RoleList should render 1`] = `
       >
         Add Role
       </button>
-      
       <button
         class="emotion-13 denali-button"
       >
         Add Member
       </button>
-      
     </div>
   </div>
   <div

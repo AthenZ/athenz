@@ -200,7 +200,7 @@ describe('AddService', () => {
             },
         });
         fireEvent.click(await waitFor(() => getByText('Submit')));
-        expect(await waitForElement(() => test)).toEqual(1);
+        await waitFor(() => expect(test).toEqual(1));
     });
 
     it('should render error if no key name specified', async () => {

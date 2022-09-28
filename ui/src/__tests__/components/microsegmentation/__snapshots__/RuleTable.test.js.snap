@@ -297,7 +297,6 @@ exports[`RuleTable should render rule table 1`] = `
           </svg>
         </span>
       </td>
-      
       <td
         class="emotion-43 emotion-28"
         color="#3570f40D"

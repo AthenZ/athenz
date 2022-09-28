@@ -41,7 +41,15 @@ const LeftMarginSpan = styled.span`
     vertical-align: bottom;
 `;
 
-const StyleTable = styled.div`
+const StyleDiv = styled.div`
+    width: 100%;
+    border-spacing: 0 15px;
+    display: table;
+    border-collapse: separate;
+    border-color: grey;
+`;
+
+const StyleTable = styled.table`
     width: 100%;
     border-spacing: 0 15px;
     display: table;
@@ -146,7 +154,7 @@ export default class AuthHistory extends React.Component {
         }
     }
 
-    addNodeEdgeElement(record, type, index, elementsArr) {
+    addNodeEdgeElement(record, type, index, nodesArr, edgesArr) {
         const position = { x: 0, y: 0 };
         let category,
             edgeSource,
@@ -193,18 +201,19 @@ export default class AuthHistory extends React.Component {
             type: 'smoothstep',
         };
 
-        elementsArr.push(node);
-        elementsArr.push(edge);
+        nodesArr.push(node);
+        edgesArr.push(edge);
     }
 
     createElementsList(dependencies, type) {
         const position = { x: 0, y: 0 };
-        let newElements = [];
+        let nodes = [];
+        let edges = [];
         for (let i = 0; i < dependencies.length; i++) {
             let record = dependencies[i];
-            this.addNodeEdgeElement(record, type, i, newElements);
+            this.addNodeEdgeElement(record, type, i, nodes, edges);
         }
-        newElements.push({
+        nodes.push({
             id: '0',
             type: 'primaryNode',
             data: {
@@ -215,13 +224,16 @@ export default class AuthHistory extends React.Component {
             position,
         });
 
-        return newElements;
+        return { nodes, edges };
     }
 
     visualizeConnections(nodeTypes, dependencies, type) {
         if (dependencies.length < 50) {
-            let elementsList = this.createElementsList(dependencies, type);
-            return this.buildReactFlow(nodeTypes, elementsList);
+            const { nodes, edges } = this.createElementsList(
+                dependencies,
+                type
+            );
+            return this.buildReactFlow(nodeTypes, nodes, edges);
         }
         return this.buildTable(dependencies, type);
     }
@@ -252,24 +264,25 @@ export default class AuthHistory extends React.Component {
             );
         }
         return (
-            <StyleTable key='auth-history-table' data-testid='authhistorytable'>
+            <StyleDiv key='auth-history-table' data-testid='authhistorytable'>
                 <TableHeadStyled>
                     <StyledNameCol align={left}>Principal</StyledNameCol>
                     <StyledNameCol align={left}>Destination</StyledNameCol>
                     <StyledTimeCol align={left}>Timestamp</StyledTimeCol>
                 </TableHeadStyled>
-                <tbody>{rows}</tbody>
-            </StyleTable>
+                {rows}
+            </StyleDiv>
         );
     }
 
-    buildReactFlow(nodeTypes, elementsList) {
+    buildReactFlow(nodeTypes, nodeList, edgeList) {
         return (
             <StyledDiv>
                 <ReactFlowProvider>
                     <ReactFlowRenderer
                         nodeTypes={nodeTypes}
-                        elements={elementsList}
+                        nodes={nodeList}
+                        edges={edgeList}
                         api={this.api}
                         domain={this.props.domain}
                         _csrf={this.props._csrf}

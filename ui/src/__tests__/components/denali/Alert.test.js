@@ -17,6 +17,7 @@
 import React from 'react';
 import { fireEvent, queryByText, render } from '@testing-library/react';
 import Alert from '../../../components/denali/Alert';
+import { act } from 'react-test-renderer';
 
 jest.useFakeTimers();
 
@@ -26,6 +27,13 @@ describe('Alert', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.clearAllTimers();
+        jest.spyOn(global, 'setTimeout');
+        jest.spyOn(global, 'clearTimeout');
+    });
+
+    afterEach(() => {
+        global.setTimeout.mockRestore();
+        global.clearTimeout.mockRestore();
     });
 
     it('should render nothing in closed state', () => {
@@ -59,20 +67,15 @@ describe('Alert', () => {
 
         // Ensure alert does not close on timer
 
-        jest.runAllTimers();
+        act(() => jest.runAllTimers());
 
-        // Need to forward one tick so setTimeout() completely processes callback
-        // before we run assertions
-        setImmediate(() => {
-            try {
-                expect(
-                    queryByText(baseElement, 'An Alert')
-                ).toBeInTheDocument();
-                done();
-            } catch (error) {
-                done.fail(error);
-            }
-        });
+        try {
+            expect(queryByText(baseElement, 'An Alert')).toBeInTheDocument();
+            done();
+        } catch (error) {
+            done.fail(error);
+        }
+        // });
     });
 
     it('should render all alert types', () => {
@@ -188,18 +191,10 @@ describe('Alert', () => {
         expect(setTimeout).toHaveBeenCalledTimes(1);
         expect(onClose).not.toHaveBeenCalled();
 
-        jest.runAllTimers();
+        act(() => jest.runAllTimers());
 
-        // Need to forward one tick so setTimeout() completely processes callback
-        // before we run assertions
-        setImmediate(() => {
-            try {
-                expect(onClose).toHaveBeenCalledTimes(1);
-                done();
-            } catch (error) {
-                done.fail(error);
-            }
-        });
+        expect(onClose).toHaveBeenCalledTimes(1);
+        done();
     });
 
     it('should set timer after Alert initially closed', (done) => {
@@ -229,18 +224,14 @@ describe('Alert', () => {
 
         expect(setTimeout).toHaveBeenCalledTimes(1);
 
-        jest.runAllTimers();
+        act(() => jest.runAllTimers());
 
-        // Need to forward one tick so setTimeout() completely processes callback
-        // before we run assertions
-        setImmediate(() => {
-            try {
-                expect(onClose).toHaveBeenCalledTimes(1);
-                done();
-            } catch (error) {
-                done.fail(error);
-            }
-        });
+        try {
+            expect(onClose).toHaveBeenCalledTimes(1);
+            done();
+        } catch (error) {
+            done.fail(error);
+        }
     });
 
     it('should handle closing Alert before timer expires', (done) => {
@@ -269,18 +260,15 @@ describe('Alert', () => {
 
         expect(clearTimeout).toHaveBeenCalled();
 
-        jest.runAllTimers();
+        act(() => jest.runAllTimers());
 
-        // Need to forward one tick so setTimeout() completely processes callback
-        // before we run assertions
-        setImmediate(() => {
-            try {
-                expect(onClose).not.toHaveBeenCalled();
-                done();
-            } catch (error) {
-                done.fail(error);
-            }
-        });
+        try {
+            expect(onClose).not.toHaveBeenCalled();
+            done();
+        } catch (error) {
+            done.fail(error);
+        }
+        // });
     });
 
     it('should handle unmounting with timer', (done) => {
@@ -304,20 +292,18 @@ describe('Alert', () => {
 
         unmount();
 
-        jest.runAllTimers();
+        act(() => jest.runAllTimers());
 
-        setImmediate(() => {
-            try {
-                // NOTE: For some reason, clearTimeout() actually gets called twice, but I
-                // haven't been able to figure out why. Even if clearTimeout() is commented
-                // out, it's still called. So just check if it was called, not how many
-                // times it was called
-                expect(clearTimeout).toHaveBeenCalled();
-                expect(onClose).not.toHaveBeenCalled();
-                done();
-            } catch (error) {
-                done.fail(error);
-            }
-        });
+        try {
+            // NOTE: For some reason, clearTimeout() actually gets called twice, but I
+            // haven't been able to figure out why. Even if clearTimeout() is commented
+            // out, it's still called. So just check if it was called, not how many
+            // times it was called
+            expect(clearTimeout).toHaveBeenCalled();
+            expect(onClose).not.toHaveBeenCalled();
+            done();
+        } catch (error) {
+            done.fail(error);
+        }
     });
 });

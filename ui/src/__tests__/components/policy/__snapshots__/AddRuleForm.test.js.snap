@@ -513,7 +513,6 @@ exports[`AddRuleForm should render 1`] = `
   class="emotion-0 emotion-1"
   data-testid="add-rule-form"
 >
-  
   <div
     class="emotion-2 emotion-3"
   >
@@ -636,7 +635,6 @@ exports[`AddRuleForm should render 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-35"
               data-testid="icon"
@@ -1231,7 +1229,6 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   class="emotion-0 emotion-1"
   data-testid="add-rule-form"
 >
-  
   <div
     class="emotion-2 emotion-3"
   >
@@ -1354,7 +1351,6 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-35"
               data-testid="icon"

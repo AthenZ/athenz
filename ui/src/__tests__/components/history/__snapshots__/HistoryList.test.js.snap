@@ -348,7 +348,6 @@ exports[`HistoryList should render 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-15"
               data-testid="icon"

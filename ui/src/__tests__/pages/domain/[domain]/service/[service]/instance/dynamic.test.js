@@ -99,7 +99,7 @@ describe('DynamicInstancePage', () => {
                 .mockReturnValue(Promise.resolve(domains)),
         };
         MockApi.setMockApi(api);
-        const { getByTestId } = renderWithRedux(
+        const { getByTestId } = await renderWithRedux(
             <DynamicInstancePage
                 req='req'
                 userId='userid'

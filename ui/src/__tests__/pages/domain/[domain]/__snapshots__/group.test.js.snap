@@ -1299,7 +1299,6 @@ exports[`GroupPage should render 1`] = `
                 >
                   Add Group
                 </button>
-                
               </div>
             </div>
           </div>

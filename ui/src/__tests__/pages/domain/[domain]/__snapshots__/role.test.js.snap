@@ -1603,13 +1603,11 @@ exports[`RolePage should render 1`] = `
                 >
                   Add Role
                 </button>
-                
                 <button
                   class="emotion-99 denali-button"
                 >
                   Add Member
                 </button>
-                
               </div>
             </div>
             <div

@@ -1326,7 +1326,6 @@ exports[`MicrosegmentationPage should render 1`] = `
                 >
                   Add ACL Policy
                 </button>
-                
               </div>
             </div>
             <br />

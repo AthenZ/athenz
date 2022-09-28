@@ -160,7 +160,6 @@ exports[`InputDropdown opens the dropdown 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -340,7 +339,6 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -522,7 +520,6 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -703,7 +700,6 @@ exports[`InputDropdown renders initial (closed) state 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -876,9 +872,7 @@ exports[`InputDropdown renders searchable input 1`] = `
     />
     <div
       class="input-icon"
-    >
-      
-    </div>
+    />
     <div
       class="message"
       data-testid="message"

@@ -321,7 +321,6 @@ exports[`AddStaticInstances should render 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-11"
               data-testid="icon"
@@ -684,7 +683,6 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-11"
               data-testid="icon"

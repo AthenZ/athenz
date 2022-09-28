@@ -224,7 +224,6 @@ exports[`TagList should add new role tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -607,7 +606,6 @@ exports[`TagList should add new tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -990,7 +988,6 @@ exports[`TagList should delete role tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -1373,7 +1370,6 @@ exports[`TagList should delete tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -1614,7 +1610,6 @@ exports[`TagList should display add tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   Click on Add Tag to create a new tag
@@ -1845,7 +1840,6 @@ exports[`TagList should display delete tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -2228,7 +2222,6 @@ exports[`TagList should display delete tag single value 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -2580,7 +2573,6 @@ exports[`TagList should display delete tag value 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -2963,7 +2955,6 @@ exports[`TagList should display edit tag 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   <table
@@ -3204,7 +3195,6 @@ exports[`TagList should render 1`] = `
       >
         Add Tag
       </button>
-      
     </div>
   </div>
   Click on Add Tag to create a new tag

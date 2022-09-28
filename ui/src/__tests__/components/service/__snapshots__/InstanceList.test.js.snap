@@ -511,7 +511,6 @@ exports[`InstanceList should render for static 1`] = `
       >
         Add Static Instance
       </button>
-      
     </div>
   </div>
 </div>

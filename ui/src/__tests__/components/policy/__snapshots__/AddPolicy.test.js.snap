@@ -679,7 +679,6 @@ exports[`AddPolicy should render 1`] = `
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-47"
                 data-testid="icon"
@@ -1441,7 +1440,6 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-47"
                 data-testid="icon"
@@ -2203,7 +2201,6 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-47"
                 data-testid="icon"
@@ -2965,7 +2962,6 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-47"
                 data-testid="icon"

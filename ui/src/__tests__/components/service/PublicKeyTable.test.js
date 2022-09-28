@@ -306,7 +306,7 @@ describe('PublicKeyTable', () => {
         };
         MockApi.setMockApi(api);
 
-        const { getByText, getByTestId, getByTitle } = renderWithRedux(
+        const { getByText, getByTestId, getByTitle } = await renderWithRedux(
             <table>
                 <tbody>
                     <tr>
@@ -320,13 +320,17 @@ describe('PublicKeyTable', () => {
             </table>,
             getStateWithServices(services)
         );
-        fireEvent.click(getByTitle('trash'));
-        fireEvent.click(
-            await waitFor(() => getByTestId('delete-modal-delete'))
+        await waitFor(() => fireEvent.click(getByTitle('trash')));
+        await waitFor(() =>
+            expect(getByTestId('delete-modal-delete')).toBeInTheDocument()
         );
-        expect(
-            await waitFor(() => getByTestId('public-key-table'))
-        ).toMatchSnapshot();
+        await waitFor(() =>
+            fireEvent.click(getByTestId('delete-modal-delete'))
+        );
+        await waitFor(() =>
+            expect(getByTestId('public-key-table')).toBeInTheDocument()
+        );
+        expect(getByTestId('public-key-table')).toMatchSnapshot();
     });
 
     it('should render error if getService throws error', async () => {

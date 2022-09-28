@@ -90,7 +90,6 @@ exports[`RolePolicyList should render 1`] = `
       >
         Add Policy
       </button>
-      
     </div>
   </div>
   <table

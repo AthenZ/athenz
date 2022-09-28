@@ -32,7 +32,9 @@ module.exports = {
         '@testing-library/jest-dom/extend-expect',
         '<rootDir>/src/setup-jest-test-framework.js',
     ],
-    testURL: 'http://localhost',
+    testEnvironmentOptions: {
+        url: 'http://localhost/',
+    },
     testPathIgnorePatterns: [
         './.next/',
         './node_modules/',

@@ -231,7 +231,6 @@ exports[`RulesList should render 1`] = `
       >
         Add ACL Policy
       </button>
-      
     </div>
   </div>
   <table
@@ -416,7 +415,6 @@ exports[`RulesList should render 1`] = `
             </svg>
           </span>
         </td>
-        
         <td
           class="emotion-50 emotion-35"
           color="#3570f40D"
@@ -620,7 +618,6 @@ exports[`RulesList should render 1`] = `
             </svg>
           </span>
         </td>
-        
         <td
           class="emotion-50 emotion-35"
           color="#3570f40D"

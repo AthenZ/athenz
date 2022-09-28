@@ -190,7 +190,6 @@ exports[`MemberList should render 1`] = `
       >
         Add Member
       </button>
-      
     </div>
   </div>
   <table
@@ -709,7 +708,6 @@ exports[`MemberList should render delegated role 1`] = `
       >
         Add Member
       </button>
-      
     </div>
   </div>
   <table

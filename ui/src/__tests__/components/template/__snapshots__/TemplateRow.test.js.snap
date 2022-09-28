@@ -131,7 +131,6 @@ exports[`TemplateRow should render templateRow 1`] = `
     >
       Update
     </button>
-    
   </td>
 </tr>
 `;
@@ -266,7 +265,6 @@ exports[`TemplateRow should render templaterow with pop up 1`] = `
     >
       Update
     </button>
-    
   </td>
 </tr>
 `;
@@ -399,7 +397,6 @@ exports[`TemplateRow should render with description 1`] = `
     >
       Update
     </button>
-    
   </td>
 </tr>
 `;
@@ -532,7 +529,6 @@ exports[`TemplateRow should render without pop up 1`] = `
     >
       Update
     </button>
-    
   </td>
 </tr>
 `;

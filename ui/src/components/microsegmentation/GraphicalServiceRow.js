@@ -107,7 +107,7 @@ export default class GraphicalServiceRow extends React.Component {
         });
     }
 
-    addNodeEdgeElement(policyRule, type, index, elementsArr) {
+    addNodeEdgeElement(policyRule, type, index, nodesArr, edgesArr) {
         const position = { x: 0, y: 0 };
         let nodeDataName,
             nodeDataSourcePort,
@@ -159,14 +159,15 @@ export default class GraphicalServiceRow extends React.Component {
             type: 'smoothstep',
         };
 
-        elementsArr.push(node);
-        elementsArr.push(edge);
+        nodesArr.push(node);
+        edgesArr.push(edge);
     }
 
     createElementsList() {
         const position = { x: 0, y: 0 };
-        let newElements = [];
-        newElements.push({
+        let newNodes = [];
+        let newEdges = [];
+        newNodes.push({
             id: '0',
             type: 'primaryNode',
             data: {
@@ -183,20 +184,32 @@ export default class GraphicalServiceRow extends React.Component {
             let rule = this.props.data[i];
             if (rule['category'] == 'inbound') {
                 for (let j = 0; j < rule['source_services'].length; j++) {
-                    this.addNodeEdgeElement(rule, 'inbound', j, newElements);
+                    this.addNodeEdgeElement(
+                        rule,
+                        'inbound',
+                        j,
+                        newNodes,
+                        newEdges
+                    );
                 }
             } else if (rule['category'] == 'outbound') {
                 for (let j = 0; j < rule['destination_services'].length; j++) {
-                    this.addNodeEdgeElement(rule, 'outbound', j, newElements);
+                    this.addNodeEdgeElement(
+                        rule,
+                        'outbound',
+                        j,
+                        newNodes,
+                        newEdges
+                    );
                 }
             }
         }
 
-        return newElements;
+        return { nodesList: newNodes, edgesList: newEdges };
     }
 
     render() {
-        let elementsList = this.createElementsList();
+        const { nodesList, edgesList } = this.createElementsList();
         let rows = [];
         let left = 'left';
         const arrowup = 'arrowhead-up-circle-solid';
@@ -229,7 +242,8 @@ export default class GraphicalServiceRow extends React.Component {
                             <ReactFlowProvider>
                                 <ReactFlowRenderer
                                     nodeTypes={nodeTypes}
-                                    elements={elementsList}
+                                    nodes={nodesList}
+                                    edges={edgesList}
                                     name={this.state.name}
                                     api={this.api}
                                     domain={this.props.domain}

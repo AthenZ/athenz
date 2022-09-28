@@ -118,7 +118,6 @@ exports[`PolicyList should render 1`] = `
       >
         Add Policy
       </button>
-      
     </div>
   </div>
   <table

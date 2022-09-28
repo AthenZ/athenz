@@ -1308,7 +1308,6 @@ exports[`StaticInstancePage should render 1`] = `
                 >
                   Add Static Instance
                 </button>
-                
               </div>
             </div>
             <table

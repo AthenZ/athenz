@@ -16,11 +16,15 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import AddKey from '../../../components/service/AddKey';
-import { buildServicesForState, getStateWithServices, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import {
+    buildServicesForState,
+    getStateWithServices,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 
 afterEach(() => {
-   MockApi.cleanMockApi();
+    MockApi.cleanMockApi();
 });
 
 describe('AddKey', () => {
@@ -114,7 +118,9 @@ describe('AddKey', () => {
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <AddKey cancel={cancel} domain={domain} service={'service'} />,
-            getStateWithServices(buildServicesForState({services: {}}, domain))
+            getStateWithServices(
+                buildServicesForState({ services: {} }, domain)
+            )
         );
         fireEvent.change(getByTestId('input-node'), {
             target: {
@@ -152,7 +158,9 @@ describe('AddKey', () => {
         const domain = 'domain';
         const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <AddKey cancel={cancel} domain={domain} service={'service'} />,
-            getStateWithServices(buildServicesForState({services: {}}, domain))
+            getStateWithServices(
+                buildServicesForState({ services: {} }, domain)
+            )
         );
         fireEvent.change(getByTestId('input-node'), {
             target: {
@@ -188,7 +196,10 @@ describe('AddKey', () => {
         const cancel = function () {};
         const domain = 'domain';
         const service = 'service';
-        const services = buildServicesForState({[`${domain}.${service}`]: {publicKeys: {}}}, domain);
+        const services = buildServicesForState(
+            { [`${domain}.${service}`]: { publicKeys: {} } },
+            domain
+        );
         const { getByText, getByTestId, getByTitle } = await renderWithRedux(
             <AddKey
                 cancel={cancel}
@@ -211,6 +222,6 @@ describe('AddKey', () => {
         });
 
         await waitFor(() => fireEvent.click(getByText('Submit')));
-        expect(await waitFor(() => test)).toEqual(2);
+        await waitFor(() => expect(test).toEqual(2));
     });
 });

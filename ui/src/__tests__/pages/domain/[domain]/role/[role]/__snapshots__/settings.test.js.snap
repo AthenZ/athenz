@@ -1330,8 +1330,6 @@ exports[`SettingPage should render 1`] = `
               class="emotion-28 emotion-29"
               data-testid="collection-name-header"
             >
-              
-              
               <a
                 class="emotion-30 emotion-31"
               >
@@ -1889,7 +1887,6 @@ exports[`SettingPage should render 1`] = `
                           <div
                             class="input-icon"
                           >
-                            
                             <svg
                               class="emotion-193"
                               data-testid="icon"
@@ -1964,7 +1961,6 @@ exports[`SettingPage should render 1`] = `
                           <div
                             class="input-icon"
                           >
-                            
                             <svg
                               class="emotion-193"
                               data-testid="icon"
@@ -2007,7 +2003,6 @@ exports[`SettingPage should render 1`] = `
                 >
                   Submit
                 </button>
-                
                 <button
                   class="emotion-213 denali-button"
                 >

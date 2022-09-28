@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import {
-    fireEvent,
-    render,
-    wait,
-    waitForElement,
-} from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import InputDropdown from '../../../components/denali/InputDropdown';
 
 import _ from 'lodash';
@@ -186,7 +181,7 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
 
@@ -210,7 +205,7 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        const dropdownOptionsWrapper = await waitForElement(() =>
+        const dropdownOptionsWrapper = await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
 
@@ -227,7 +222,7 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
         const dropdownOptions = baseElement.querySelectorAll('.dropdown-item');
@@ -242,7 +237,7 @@ describe('InputDropdown', () => {
             name: 'Bugatti Chiron',
         });
 
-        await wait(() =>
+        await waitFor(() =>
             expect(
                 baseElement.querySelector('.denali-input-dropdown-options')
             ).not.toBeInTheDocument()
@@ -283,14 +278,14 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
 
         // Close dropdown by hitting Esc
         fireEvent.keyDown(inputNode, { keyCode: 27 });
 
-        await wait(() =>
+        await waitFor(() =>
             expect(
                 baseElement.querySelector('.denali-input-dropdown-options')
             ).not.toBeInTheDocument()
@@ -319,7 +314,7 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
 
@@ -345,7 +340,7 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
 
@@ -409,11 +404,13 @@ describe('InputDropdown', () => {
         // Enter search term that yields no results
         fireEvent.change(inputNode, { target: { value: 'meh' } });
 
-        await waitForElement(() => queryByText('Loading...'));
+        await waitFor(() => queryByText('Loading...'));
         expect(asyncSearchFunc).toHaveBeenLastCalledWith('meh');
 
         expect(baseElement.querySelectorAll('.dropdown-item').length).toBe(0);
-        expect(baseElement.querySelector('.no-items.empty')).not.toBeNull();
+        await waitFor(() =>
+            expect(baseElement.querySelector('.no-items.empty')).not.toBeNull()
+        );
 
         // Enter search term that yields two results
         fireEvent.change(inputNode, { target: { value: 'bug' } });
@@ -421,7 +418,7 @@ describe('InputDropdown', () => {
         expect(baseElement.querySelector('.no-items.loading')).not.toBeNull();
         expect(asyncSearchFunc).toHaveBeenLastCalledWith('bug');
 
-        await wait(() =>
+        await waitFor(() =>
             expect(baseElement.querySelectorAll('.dropdown-item').length).toBe(
                 2
             )
@@ -445,11 +442,12 @@ describe('InputDropdown', () => {
 
         fireEvent.change(inputNode, { target: { value: 'bug' } });
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
-
-        expect(baseElement.querySelector('.no-items.error')).not.toBeNull();
+        await waitFor(() =>
+            expect(baseElement.querySelector('.no-items.error')).not.toBeNull()
+        );
     });
 
     it('handles null from search (cancellation)', async () => {
@@ -467,7 +465,7 @@ describe('InputDropdown', () => {
 
         expect(baseElement.querySelector('.no-items.loading')).not.toBeNull();
 
-        await wait(() =>
+        await waitFor(() =>
             expect(
                 baseElement.querySelector('.no-items.loading')
             ).toBeInTheDocument()
@@ -487,7 +485,7 @@ describe('InputDropdown', () => {
 
         fireEvent.click(inputNode);
 
-        await waitForElement(() =>
+        await waitFor(() =>
             baseElement.querySelector('.denali-input-dropdown-options')
         );
         expect(
