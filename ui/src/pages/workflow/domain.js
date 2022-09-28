@@ -45,9 +45,10 @@ const StyledSearchInputDiv = styled.div`
     width: 460px;
 `;
 const WorkFlowSectionDiv = styled.div`
-    width: calc(100vw - 23em);
+    width: calc(100vw - 25em);
     overflow-x: scroll;
     overflow-y: visible;
+    box-sizing: content-box !important;
 `;
 
 const TitleDiv = styled.div`

@@ -18,6 +18,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react';
 import InputDropdown from '../../../components/denali/InputDropdown';
 
 import _ from 'lodash';
+import { resetIdCounter } from 'downshift';
 
 jest.unmock('lodash');
 
@@ -39,6 +40,9 @@ _.debounce = jest.fn((fn) => fn);
 // });
 
 describe('InputDropdown', () => {
+    beforeEach(() => {
+        resetIdCounter();
+    });
     const onChange = jest.fn();
     const options = [
         { value: 'astonmartin', name: 'Aston Martin DBS Superleggera' },

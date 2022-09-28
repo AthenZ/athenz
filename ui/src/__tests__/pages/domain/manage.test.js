@@ -17,7 +17,7 @@ import React from 'react';
 import ManageDomainsPage from '../../../pages/domain/manage';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
-import { waitFor } from '@testing-library/react';
+import { getByText, waitFor } from '@testing-library/react';
 
 afterEach(() => {
     MockApi.cleanMockApi();

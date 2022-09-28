@@ -39,6 +39,8 @@ describe('AddSegmentation', () => {
         },
     ]);
 
+    beforeEach(() => resetIdCounter());
+
     it('should render', () => {
         let domain = 'domain';
         const showAddSegmentation = true;

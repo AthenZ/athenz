@@ -16,6 +16,7 @@
 
 'use strict';
 
+// import 'setimmediate';
 const api = require('../../../server/handlers/api');
 const sinon = require('sinon');
 const CLIENTS = require('../../../server/clients');

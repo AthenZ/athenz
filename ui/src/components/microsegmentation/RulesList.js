@@ -19,7 +19,7 @@ import Button from '../denali/Button';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
 import { DnToggle } from '@denali-design/react';
-import 'denali-css/css/denali.css';
+// import 'denali-css/css/denali.css';
 import { connect } from 'react-redux';
 import { selectInboundOutboundList } from '../../redux/selectors/microsegmentation';
 import AddSegmentation from './AddSegmentation';

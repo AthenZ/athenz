@@ -68,7 +68,6 @@ exports[`RoleHistoryList should render 1`] = `
   background-color: rgba(53, 112, 244, 0.05);
   box-shadow: none;
   color: rgb(48, 48, 48);
-  height: 16px;
   min-width: 50px;
   text-align: left;
   border-width: 2px;
@@ -88,7 +87,14 @@ exports[`RoleHistoryList should render 1`] = `
   width: 80%;
 }
 
-.emotion-13 {
+.emotion-11 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-17 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -114,25 +120,25 @@ exports[`RoleHistoryList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-13:first-of-type {
+.emotion-17:first-of-type {
   margin-left: 0;
 }
 
-.emotion-13:disabled {
+.emotion-17:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-13:disabled {
+.emotion-17:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-13:hover:not(:disabled) {
+.emotion-17:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-14 {
+.emotion-18 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -142,12 +148,11 @@ exports[`RoleHistoryList should render 1`] = `
   padding-top: 20px;
 }
 
-.emotion-16 {
+.emotion-20 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -185,7 +190,7 @@ exports[`RoleHistoryList should render 1`] = `
       class="emotion-9 emotion-10"
     >
       <div
-        class="fp-startDate"
+        class="fp-startDate emotion-11 emotion-12"
       >
         <input
           class="flatpickr-input"
@@ -208,7 +213,7 @@ exports[`RoleHistoryList should render 1`] = `
       class="emotion-9 emotion-10"
     >
       <div
-        class="fp-endDate"
+        class="fp-endDate emotion-11 emotion-12"
       >
         <input
           class="flatpickr-input"
@@ -229,39 +234,39 @@ exports[`RoleHistoryList should render 1`] = `
     </div>
     <div>
       <button
-        class="emotion-13 denali-button"
+        class="emotion-17 denali-button"
       >
         Submit
       </button>
     </div>
   </div>
   <table
-    class="emotion-14 emotion-15"
+    class="emotion-18 emotion-19"
   >
     <thead>
       <tr>
         <th
-          class="emotion-16 emotion-17"
+          class="emotion-20 emotion-21"
         >
           ACTION
         </th>
         <th
-          class="emotion-16 emotion-17"
+          class="emotion-20 emotion-21"
         >
           EXECUTED BY
         </th>
         <th
-          class="emotion-16 emotion-17"
+          class="emotion-20 emotion-21"
         >
           MODIFIED DATE
         </th>
         <th
-          class="emotion-16 emotion-17"
+          class="emotion-20 emotion-21"
         >
           MEMBERS
         </th>
         <th
-          class="emotion-16 emotion-17"
+          class="emotion-20 emotion-21"
         >
           AUDIT REFERENCE
         </th>

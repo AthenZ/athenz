@@ -43,7 +43,7 @@ const RuleHeadStyled = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.2rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -56,7 +56,6 @@ const IconHeadStyled = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
-    font-size: 0.8rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;

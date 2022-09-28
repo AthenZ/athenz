@@ -62,51 +62,53 @@ exports[`ServiceList should render 1`] = `
         </th>
       </tr>
     </thead>
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <td
-        class="emotion-10 emotion-11"
+    <tbody>
+      <tr
+        class="emotion-4 emotion-5"
       >
-        <a
-          class="emotion-12 emotion-13"
+        <td
+          class="emotion-10 emotion-11"
         >
-           
-          serviceB
-           
-        </a>
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <td
-        class="emotion-10 emotion-11"
+          <a
+            class="emotion-12 emotion-13"
+          >
+             
+            serviceB
+             
+          </a>
+        </td>
+      </tr>
+      <tr
+        class="emotion-4 emotion-5"
       >
-        <a
-          class="emotion-12 emotion-13"
+        <td
+          class="emotion-10 emotion-11"
         >
-           
-          serviceC
-           
-        </a>
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <td
-        class="emotion-10 emotion-11"
+          <a
+            class="emotion-12 emotion-13"
+          >
+             
+            serviceC
+             
+          </a>
+        </td>
+      </tr>
+      <tr
+        class="emotion-4 emotion-5"
       >
-        <a
-          class="emotion-12 emotion-13"
+        <td
+          class="emotion-10 emotion-11"
         >
-           
-          serviceD
-           
-        </a>
-      </td>
-    </tr>
+          <a
+            class="emotion-12 emotion-13"
+          >
+             
+            serviceD
+             
+          </a>
+        </td>
+      </tr>
+    </tbody>
   </table>
 </div>
 `;

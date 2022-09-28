@@ -91,7 +91,7 @@ const ApproveTd = styled.td`
     word-break: break-all;
     text-align: center;
     position: absolute;
-    width: 11em;
+    width: 12em;
     right: 11em;
     height: 96px;
     background-color: ${(props) => props.color};

@@ -25,6 +25,7 @@ import { connect } from 'react-redux';
 import { getHeaderDetails } from '../redux/thunks/domains';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
+import { selectIsLoading } from '../redux/selectors/loading';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -119,7 +120,9 @@ class PageHome extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
-        return (
+        return this.props.isLoading.length ? (
+            <h1>Is loading...</h1>
+        ) : (
             <CacheProvider value={this.cache}>
                 <div data-testid='home'>
                     <Head>
@@ -166,8 +169,12 @@ class PageHome extends React.Component {
     }
 }
 
+const mapStateToProps = (state, props) => ({
+    ...props,
+    isLoading: selectIsLoading(state),
+});
 const mapDispatchToProps = (dispatch) => ({
     getHeaderDetails: () => dispatch(getHeaderDetails()),
 });
 
-export default connect(null, mapDispatchToProps)(PageHome);
+export default connect(mapStateToProps, mapDispatchToProps)(PageHome);

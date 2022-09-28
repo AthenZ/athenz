@@ -200,7 +200,7 @@ describe('AddKey', () => {
             { [`${domain}.${service}`]: { publicKeys: {} } },
             domain
         );
-        const { getByText, getByTestId, getByTitle } = await renderWithRedux(
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <AddKey
                 cancel={cancel}
                 domain={domain}

@@ -82,7 +82,6 @@ exports[`TagList should add new role tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -95,7 +94,6 @@ exports[`TagList should add new role tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -464,7 +462,6 @@ exports[`TagList should add new tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -477,7 +474,6 @@ exports[`TagList should add new tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -846,7 +842,6 @@ exports[`TagList should delete role tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -859,7 +854,6 @@ exports[`TagList should delete role tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1228,7 +1222,6 @@ exports[`TagList should delete tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1241,7 +1234,6 @@ exports[`TagList should delete tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1698,7 +1690,6 @@ exports[`TagList should display delete tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1711,7 +1702,6 @@ exports[`TagList should display delete tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -2080,7 +2070,6 @@ exports[`TagList should display delete tag single value 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -2093,7 +2082,6 @@ exports[`TagList should display delete tag single value 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -2431,7 +2419,6 @@ exports[`TagList should display delete tag value 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -2444,7 +2431,6 @@ exports[`TagList should display delete tag value 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -2813,7 +2799,6 @@ exports[`TagList should display edit tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -2826,7 +2811,6 @@ exports[`TagList should display edit tag 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;

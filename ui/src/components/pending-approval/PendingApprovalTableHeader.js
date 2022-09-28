@@ -72,7 +72,7 @@ const SelectAllApproveTableHeader = styled.th`
     text-transform: uppercase;
     text-align: center;
     position: absolute;
-    width: 11em;
+    width: 12em;
     right: 11em;
     z-index: 1;
     height: 42px;
@@ -112,7 +112,7 @@ const TableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.2rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -125,7 +125,7 @@ const TableHeaderSelectAll = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.2rem;
     padding-bottom: 5px;
     vertical-align: middle;
     text-transform: uppercase;
@@ -136,7 +136,7 @@ const TableHeaderSelectAll = styled.th`
 const SelectAllBoxTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.2rem;
     padding-bottom: 5px;
     vertical-align: bottom;
     padding: 5px 0 5px 15px;

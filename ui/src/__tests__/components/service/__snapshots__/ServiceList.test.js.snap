@@ -82,7 +82,6 @@ exports[`ServiceList should render add service modal after click 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -95,7 +94,6 @@ exports[`ServiceList should render add service modal after click 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -371,7 +369,6 @@ exports[`ServiceList should render delete service modal error(other) after click
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -384,7 +381,6 @@ exports[`ServiceList should render delete service modal error(other) after click
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -650,7 +646,6 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -663,7 +658,6 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -929,7 +923,6 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -942,7 +935,6 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1208,7 +1200,6 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1221,7 +1212,6 @@ exports[`ServiceList should render serviceList again after confirm delete 1`] = 
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1368,7 +1358,6 @@ exports[`ServiceList should render with services 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1381,7 +1370,6 @@ exports[`ServiceList should render with services 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1647,7 +1635,6 @@ exports[`ServiceList should render without services 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -1660,7 +1647,6 @@ exports[`ServiceList should render without services 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;

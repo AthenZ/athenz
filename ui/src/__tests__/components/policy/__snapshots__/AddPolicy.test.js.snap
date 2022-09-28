@@ -1416,7 +1416,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
-          aria-labelledby="downshift-1-label"
+          aria-labelledby="downshift-0-label"
           class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
           data-testid="input-dropdown"
           role="combobox"
@@ -1427,11 +1427,11 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
           >
             <input
               aria-autocomplete="list"
-              aria-labelledby="downshift-1-label"
+              aria-labelledby="downshift-0-label"
               autocomplete="off"
               autocorrect="off"
               data-testid="input-node"
-              id="downshift-1-input"
+              id="downshift-0-input"
               name="rule-role"
               placeholder="Select Role"
               spellcheck="false"
@@ -2177,7 +2177,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
-          aria-labelledby="downshift-2-label"
+          aria-labelledby="downshift-0-label"
           class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
           data-testid="input-dropdown"
           role="combobox"
@@ -2188,11 +2188,11 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
           >
             <input
               aria-autocomplete="list"
-              aria-labelledby="downshift-2-label"
+              aria-labelledby="downshift-0-label"
               autocomplete="off"
               autocorrect="off"
               data-testid="input-node"
-              id="downshift-2-input"
+              id="downshift-0-input"
               name="rule-role"
               placeholder="Select Role"
               spellcheck="false"
@@ -2938,7 +2938,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
         <div
           aria-expanded="false"
           aria-haspopup="listbox"
-          aria-labelledby="downshift-3-label"
+          aria-labelledby="downshift-0-label"
           class="emotion-43 denali-input-dropdown emotion-44 emotion-45"
           data-testid="input-dropdown"
           role="combobox"
@@ -2949,11 +2949,11 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
           >
             <input
               aria-autocomplete="list"
-              aria-labelledby="downshift-3-label"
+              aria-labelledby="downshift-0-label"
               autocomplete="off"
               autocorrect="off"
               data-testid="input-node"
-              id="downshift-3-input"
+              id="downshift-0-input"
               name="rule-role"
               placeholder="Select Role"
               spellcheck="false"

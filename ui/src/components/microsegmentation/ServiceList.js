@@ -126,7 +126,7 @@ class ServiceList extends React.Component {
                             <StyledTh> Services </StyledTh>
                         </StyledTr>
                     </thead>
-                    {rows}
+                    <tbody>{rows}</tbody>
                 </StyleTable>
             </StyledDiv>
         );

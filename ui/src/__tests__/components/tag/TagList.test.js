@@ -309,7 +309,7 @@ describe('TagList', () => {
             },
         };
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <TagList
                 domain={domain}
                 collectionName={role}

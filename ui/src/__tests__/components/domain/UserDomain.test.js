@@ -14,33 +14,37 @@
  * limitations under the License.
  */
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import UserDomains from '../../../components/domain/UserDomains';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 describe('UserDomains', () => {
     it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
 
-        const { getByTestId } = await renderWithRedux(<UserDomains />, {
+        const { getByTestId } = renderWithRedux(<UserDomains />, {
             domains: { domainsList: domains },
         });
-        const userDomains = getByTestId('user-domains');
-        expect(userDomains).toMatchSnapshot();
+
+        await waitFor(() =>
+            expect(getByTestId('user-domains')).toMatchSnapshot()
+        );
     });
 
     it('should hide domains on click of arrow', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
-        const { getByTestId } = await renderWithRedux(<UserDomains />, {
+        const { getByTestId } = renderWithRedux(<UserDomains />, {
             domains: { domainsList: domains },
         });
-        fireEvent.click(getByTestId('toggle-domain'));
-        const userDomains = getByTestId('user-domains');
-        expect(userDomains).toMatchSnapshot();
+        await waitFor(() => fireEvent.click(getByTestId('toggle-domain')));
+        expect(getByTestId('user-domains')).toMatchSnapshot();
     });
 });

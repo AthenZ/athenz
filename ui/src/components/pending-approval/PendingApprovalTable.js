@@ -35,7 +35,7 @@ const TableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.1rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -48,7 +48,7 @@ const TableHeaderDomain = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.1rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -60,13 +60,13 @@ const ApproveTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.1rem;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
     position: absolute;
-    width: 15em;
-    right: 13em;
+    width: 15.5em;
+    right: 13.5em;
     z-index: 1;
     height: 15px;
     padding-bottom: 5px;
@@ -78,7 +78,7 @@ const RejectTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 1.1rem;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;

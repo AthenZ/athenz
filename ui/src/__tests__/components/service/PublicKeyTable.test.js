@@ -152,7 +152,7 @@ describe('PublicKeyTable', () => {
         const color = '';
 
         const { getByText, getByTestId, getByTitle, queryByText } =
-            await renderWithRedux(
+            renderWithRedux(
                 <table>
                     <tbody>
                         <tr>
@@ -306,7 +306,7 @@ describe('PublicKeyTable', () => {
         };
         MockApi.setMockApi(api);
 
-        const { getByText, getByTestId, getByTitle } = await renderWithRedux(
+        const { getByText, getByTestId, getByTitle } = renderWithRedux(
             <table>
                 <tbody>
                     <tr>

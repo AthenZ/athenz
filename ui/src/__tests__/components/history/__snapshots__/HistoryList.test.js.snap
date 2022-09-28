@@ -222,7 +222,14 @@ exports[`HistoryList should render 1`] = `
   width: 80%;
 }
 
-.emotion-20 {
+.emotion-18 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-24 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -248,25 +255,25 @@ exports[`HistoryList should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-20:first-of-type {
+.emotion-24:first-of-type {
   margin-left: 0;
 }
 
-.emotion-20:disabled {
+.emotion-24:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-20:disabled {
+.emotion-24:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-20:hover:not(:disabled) {
+.emotion-24:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-21 {
+.emotion-25 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -276,12 +283,11 @@ exports[`HistoryList should render 1`] = `
   padding-top: 20px;
 }
 
-.emotion-23 {
+.emotion-27 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -374,7 +380,7 @@ exports[`HistoryList should render 1`] = `
       class="emotion-16 emotion-17"
     >
       <div
-        class="fp-startDate"
+        class="fp-startDate emotion-18 emotion-19"
       >
         <input
           class="flatpickr-input"
@@ -397,7 +403,7 @@ exports[`HistoryList should render 1`] = `
       class="emotion-16 emotion-17"
     >
       <div
-        class="fp-endDate"
+        class="fp-endDate emotion-18 emotion-19"
       >
         <input
           class="flatpickr-input"
@@ -418,44 +424,44 @@ exports[`HistoryList should render 1`] = `
     </div>
     <div>
       <button
-        class="emotion-20 denali-button"
+        class="emotion-24 denali-button"
       >
         Submit
       </button>
     </div>
   </div>
   <table
-    class="emotion-21 emotion-22"
+    class="emotion-25 emotion-26"
   >
     <thead>
       <tr>
         <th
-          class="emotion-23 emotion-24"
+          class="emotion-27 emotion-28"
         >
           ACTION
         </th>
         <th
-          class="emotion-23 emotion-24"
+          class="emotion-27 emotion-28"
         >
           ENTITY
         </th>
         <th
-          class="emotion-23 emotion-24"
+          class="emotion-27 emotion-28"
         >
           EXECUTED BY
         </th>
         <th
-          class="emotion-23 emotion-24"
+          class="emotion-27 emotion-28"
         >
           MODIFIED DATE
         </th>
         <th
-          class="emotion-23 emotion-24"
+          class="emotion-27 emotion-28"
         >
           DETAILS
         </th>
         <th
-          class="emotion-23 emotion-24"
+          class="emotion-27 emotion-28"
         >
           JUSTIFICATION
         </th>
