@@ -1,3 +1,16 @@
+Athenz v1.11.10 Release / Sep 26, 2022
+--------------------------------------
+
+#1949 UI: Bump moment-timezone from 0.5.34 to 0.5.35 in /ui
+#1961 Returning uniq ips from network interfaces found on the host
+#1964 enable readWrite db connection for delete expired members
+#1965 UI: redux support
+#1966 consistent formatting of mysql commands
+#1967 consistent use of The Athenz Authors copyright in all files
+#1968 make server purge expiry member day configurable
+#1969 update jetty and other deps to their latest release
+#1970 support fetching zts/zms/key/cert values form ~/.athenz/config file
+
 Athenz v1.11.9 Release / Sep 15, 2022
 -------------------------------------
 
