@@ -381,11 +381,11 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public StaticWorkload deleteStaticWorkload(String domainName, String serviceName, String instanceId) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/static")
+    public StaticWorkload deleteStaticWorkload(String domainName, String serviceName, String name) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/name/{name}/workload/static")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
-            .resolveTemplate("instanceId", instanceId);
+            .resolveTemplate("name", name);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpUriRequest httpUriRequest = RequestBuilder.delete()
             .setUri(uriBuilder.build())

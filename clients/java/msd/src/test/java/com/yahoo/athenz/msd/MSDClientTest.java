@@ -185,6 +185,33 @@ public class MSDClientTest {
     }
 
     @Test
+    public void testDeleteDynamicWorkload() throws Exception {
+        MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = msdrdlClientMock;
+        String instanceId = "123-123-123-123";
+        try {
+            msdClient.deleteDynamicWorkload("mydomain", "myservice", instanceId);
+        } catch (Exception ignored) {
+            fail();
+        }
+
+        try {
+            msdClient.deleteDynamicWorkload("bad-domain", "api", instanceId);
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        try {
+            msdClient.deleteDynamicWorkload("mydomain", null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("bad request"));
+        }
+        msdClient.close();
+    }
+
+    @Test
     public void testPutStaticWorkload() throws Exception {
         MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
         MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
@@ -212,6 +239,34 @@ public class MSDClientTest {
         msdClient.close();
 
     }
+
+    @Test
+    public void testDeleteStaticWorkload() throws Exception {
+        MSDRDLClientMock msdrdlClientMock = new MSDRDLClientMock();
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = msdrdlClientMock;
+        String name = "123.123.123.123";
+        try {
+            msdClient.deleteStaticWorkload("mydomain", "myservice", name);
+        } catch (Exception ignored) {
+            fail();
+        }
+
+        try {
+            msdClient.deleteStaticWorkload("bad-domain", "api", name);
+            fail();
+        } catch (ResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        try {
+            msdClient.deleteStaticWorkload("mydomain", null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("bad request"));
+        }
+        msdClient.close();
+    }
+
 
     private SSLContext createDummySslContext() throws Exception {
         return SSLContextBuilder.create()
