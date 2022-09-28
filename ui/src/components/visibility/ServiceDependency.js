@@ -54,7 +54,7 @@ const StyleTable = styled.table`
     height: 50px;
 `;
 
-const TableCaptionStyled = styled.caption`
+const TableThStyled = styled.th`
     height: 25px;
     margin-left: 10px;
     margin-top: 10px;
@@ -62,6 +62,7 @@ const TableCaptionStyled = styled.caption`
     padding: 5px 0 5px 15px;
     vertical-align: middle;
     word-break: break-all;
+    font-weight: lighter;
     display: block;
 `;
 
@@ -136,29 +137,31 @@ export default class ServiceDependency extends React.Component {
             return (
                 <StyleTable data-testid='dependency-sgroup-table'>
                     <thead>
-                        <TableCaptionStyled>
-                            <LeftMarginSpan>
-                                <Icon
-                                    icon={
-                                        this.state.expanded
-                                            ? arrowup
-                                            : arrowdown
-                                    }
-                                    onClick={this.expandResourceGroups}
-                                    color={
-                                        this.state.disabled
-                                            ? colors.grey500
-                                            : colors.icons
-                                    }
-                                    isLink
-                                    size={'1.25em'}
-                                    verticalAlign={'text-bottom'}
-                                />
-                            </LeftMarginSpan>
-                            {this.state.disabled
-                                ? `${service}`
-                                : `${service} (${length})`}
-                        </TableCaptionStyled>
+                        <tr>
+                            <TableThStyled>
+                                <LeftMarginSpan>
+                                    <Icon
+                                        icon={
+                                            this.state.expanded
+                                                ? arrowup
+                                                : arrowdown
+                                        }
+                                        onClick={this.expandResourceGroups}
+                                        color={
+                                            this.state.disabled
+                                                ? colors.grey500
+                                                : colors.icons
+                                        }
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </LeftMarginSpan>
+                                {this.state.disabled
+                                    ? `${service}`
+                                    : `${service} (${length})`}
+                            </TableThStyled>
+                        </tr>
                     </thead>
                 </StyleTable>
             );
@@ -170,19 +173,25 @@ export default class ServiceDependency extends React.Component {
                 data-testid='dependencySgroupTable'
             >
                 <thead>
-                    <TableCaptionStyled>
-                        <LeftMarginSpan>
-                            <Icon
-                                icon={this.state.expanded ? arrowup : arrowdown}
-                                onClick={this.expandResourceGroups}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </LeftMarginSpan>
-                        {`${service} (${length})`}
-                    </TableCaptionStyled>
+                    <tr>
+                        <TableThStyled>
+                            <LeftMarginSpan>
+                                <Icon
+                                    icon={
+                                        this.state.expanded
+                                            ? arrowup
+                                            : arrowdown
+                                    }
+                                    onClick={this.expandResourceGroups}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </LeftMarginSpan>
+                            {`${service} (${length})`}
+                        </TableThStyled>
+                    </tr>
                     <tr>
                         <TableHeadStyledRsGroupName align={left}>
                             Resource Group

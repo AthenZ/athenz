@@ -1668,7 +1668,6 @@ exports[`RolePage should render 1`] = `
                   Delete
                 </div>
               </div>
-              <tbody />
             </div>
           </div>
         </div>

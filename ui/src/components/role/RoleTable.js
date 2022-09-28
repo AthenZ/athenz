@@ -199,7 +199,7 @@ export default class RoleTable extends React.Component {
                     <StyledIconCol align={center}>History</StyledIconCol>
                     <StyledIconCol align={center}>Delete</StyledIconCol>
                 </TableHeadStyled>
-                <tbody>{rows}</tbody>
+                {rows}
             </StyleTable>
         );
     }

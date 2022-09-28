@@ -259,7 +259,9 @@ class TemplateList extends React.Component {
                         </tr>
                     </thead>
                     <tbody>{rows}</tbody>
-                    <TitleDiv>Server Templates</TitleDiv>
+                </TemplateTable>
+                <TitleDiv>Server Templates</TitleDiv>
+                <TemplateTable>
                     <thead>
                         <tr>
                             <TableHeadStyled align={left}>

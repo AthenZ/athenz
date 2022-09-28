@@ -121,7 +121,6 @@
         "babel-jest": "29.0.3",
         "chromedriver": "105.0.0",
         "dotenv": "16.0.2",
-        "enzyme": "3.11.0",
         "expect": "29.0.3",
         "expect-webdriverio": "3.4.0",
         "follow-redirects": "1.15.1",

@@ -465,7 +465,6 @@ exports[`RoleList should render 1`] = `
         Delete
       </div>
     </div>
-    <tbody />
   </div>
 </div>
 `;

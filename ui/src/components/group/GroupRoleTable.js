@@ -141,7 +141,7 @@ class GroupRoleTable extends React.Component {
                         Members
                     </TableHeadStyledLabel>
                 </TableHeadStyled>
-                <tbody>{rows}</tbody>
+                <GroupRoleDiv>{rows}</GroupRoleDiv>
             </StyleTable>
         );
     }

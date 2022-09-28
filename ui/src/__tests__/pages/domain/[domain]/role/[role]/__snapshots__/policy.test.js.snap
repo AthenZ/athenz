@@ -1064,7 +1064,11 @@ exports[`RolePolicyPage should render 1`] = `
               class="emotion-60 emotion-61"
             >
               <tbody>
-                There is no policy related to this role
+                <tr>
+                  <td>
+                    There is no policy related to this role
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
