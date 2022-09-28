@@ -51,7 +51,7 @@ describe('RoleToken impl', function() {
   it('should test RoleToken: null: result error', function() {
     expect(function() {
       new RoleToken(null);
-    }).to.throw(Error, 'Cannot read property');
+    }).to.throw(Error, 'Cannot read properties');
   });
 
   it('should test RoleToken: using signedToken', function() {
