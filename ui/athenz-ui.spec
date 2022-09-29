@@ -17,6 +17,7 @@ mkdir -p %{buildroot}/opt/%{name}/src/components
 mkdir -p %{buildroot}/opt/%{name}/src/config
 mkdir -p %{buildroot}/opt/%{name}/src/pages
 mkdir -p %{buildroot}/opt/%{name}/src/server
+mkdir -p %{buildroot}/opt/%{name}/src/redux
 
 cp -r %{SOURCE_DIR}/.next %{buildroot}/opt/%{name}/
 cp -r %{SOURCE_DIR}/node_modules %{buildroot}/opt/%{name}/
@@ -24,6 +25,7 @@ cp -r %{SOURCE_DIR}/src/components %{buildroot}/opt/%{name}/src/
 cp -r %{SOURCE_DIR}/src/config %{buildroot}/opt/%{name}/src/
 cp -r %{SOURCE_DIR}/src/pages %{buildroot}/opt/%{name}/src/
 cp -r %{SOURCE_DIR}/src/server %{buildroot}/opt/%{name}/src/
+cp -r %{SOURCE_DIR}/src/redux %{buildroot}/opt/%{name}/src/
 cp -r %{SOURCE_DIR}/src/api.js %{buildroot}/opt/%{name}/src/
 cp -r %{SOURCE_DIR}/src/routes.js %{buildroot}/opt/%{name}/src/
 cp -r %{SOURCE_DIR}/static %{buildroot}/opt/%{name}/
