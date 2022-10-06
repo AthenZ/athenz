@@ -5908,6 +5908,50 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutServiceIdentitySamePubKeyIdDifferentValue() {
+        String domainName = "ServicePutDom1";
+        String serviceName = "Service1";
+
+        List<PublicKeyEntry> publicKeyOldList = new ArrayList<>();
+        PublicKeyEntry publicKeyEntryOld = new PublicKeyEntry();
+        publicKeyEntryOld.setKey(zmsTestInitializer.getPubKeyK1());
+        publicKeyEntryOld.setId("1");
+        publicKeyOldList.add(publicKeyEntryOld);
+
+        List<PublicKeyEntry> publicKeyNewList = new ArrayList<>();
+        PublicKeyEntry publicKeyEntryNew = new PublicKeyEntry();
+        publicKeyEntryNew.setKey(zmsTestInitializer.getPubKeyK2());
+        publicKeyEntryNew.setId("1");
+        publicKeyNewList.add(publicKeyEntryNew);
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(ResourceUtils.serviceResourceName(domainName, serviceName));
+        service.setPublicKeys(publicKeyOldList);
+        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, serviceName, zmsTestInitializer.getAuditRef(), false, service);
+
+        ServiceIdentity serviceRes = zmsTestInitializer.getZms().getServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), "ServicePutDom1.Service1".toLowerCase());
+        assertEquals(serviceRes.getPublicKeys().size(), 1);
+        assertEquals(serviceRes.getPublicKeys().get(0), publicKeyEntryOld);
+
+        service.setPublicKeys(publicKeyNewList);
+        zmsTestInitializer.getZms().putServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, serviceName, zmsTestInitializer.getAuditRef(), false, service);
+
+        serviceRes = zmsTestInitializer.getZms().getServiceIdentity(zmsTestInitializer.getMockDomRsrcCtx(), domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), "ServicePutDom1.Service1".toLowerCase());
+        assertEquals(serviceRes.getPublicKeys().size(), 1);
+        assertEquals(serviceRes.getPublicKeys().get(0).getId(), "1");
+        assertEquals(serviceRes.getPublicKeys().get(0).getKey(), zmsTestInitializer.getPubKeyK2());
+
+        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(),  domainName, zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
     public void testPutServiceIdentityInvalidServiceName() {
         String domainName = "ServicePutDom1";
         String serviceName = "cloud";

@@ -949,16 +949,25 @@ public class DBService implements RolesProvider {
                 }
             }
             Map<String, PublicKeyEntry> publicKeysMap = new HashMap<>();
+            Map<String, PublicKeyEntry> updatePublicKeysMap = new HashMap<>();
             if (publicKeys != null) {
                 for (PublicKeyEntry publicKey : publicKeys) {
-                    publicKeysMap.put(publicKey.getId(), publicKey);
+                    // we want to update the pubKey if the pubKey with same id already exist but the key have changed
+                    if (curPublicKeysMap.containsKey(publicKey.getId()) && !publicKey.getKey().equals(curPublicKeysMap.get(publicKey.getId()).getKey())) {
+                        updatePublicKeysMap.put(publicKey.getId(), publicKey);
+                    } else {
+                        publicKeysMap.put(publicKey.getId(), publicKey);
+                    }
                 }
             }
+
             Set<String> curPublicKeysSet = new HashSet<>(curPublicKeysMap.keySet());
             Set<String> delPublicKeysSet = new HashSet<>(curPublicKeysSet);
             Set<String> newPublicKeysSet = new HashSet<>(publicKeysMap.keySet());
+            Set<String> updatePublicKeysSet = new HashSet<>(updatePublicKeysMap.keySet());
             newPublicKeysSet.removeAll(curPublicKeysSet);
             delPublicKeysSet.removeAll(new HashSet<>(publicKeysMap.keySet()));
+            delPublicKeysSet.removeAll(updatePublicKeysSet);
 
             if (!ignoreDeletes) {
                 for (String publicKey : delPublicKeysSet) {
@@ -975,6 +984,13 @@ public class DBService implements RolesProvider {
                 }
             }
             auditLogPublicKeyEntries(auditDetails, "added-publickeys", newPublicKeysSet, publicKeysMap);
+
+            for (String publicKey : updatePublicKeysSet) {
+                if (!con.updatePublicKeyEntry(domainName, serviceName, updatePublicKeysMap.get(publicKey))) {
+                    return false;
+                }
+            }
+            auditLogPublicKeyEntries(auditDetails, "updated-publicKeys", updatePublicKeysSet, updatePublicKeysMap);
         }
 
         // now we need to process the hosts defined for this service
