@@ -17,8 +17,15 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import Header from '../../../components/header/Header';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
 describe('Header', () => {
+    beforeEach(() => {
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
+    });
+    afterEach(() => MockApi.cleanMockApi());
     it('should render', () => {
         let headerDetails = {
             headerLinks: [

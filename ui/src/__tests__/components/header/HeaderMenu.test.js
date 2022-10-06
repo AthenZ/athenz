@@ -17,8 +17,12 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import HeaderMenu from '../../../components/header/HeaderMenu';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
 describe('HeaderMenu', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
     it('should render', () => {
         let headerDetails = {
             headerLinks: [
@@ -29,6 +33,9 @@ describe('HeaderMenu', () => {
                 },
             ],
         };
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
         const { getByTestId } = renderWithRedux(
             <HeaderMenu headerDetails={headerDetails} />
         );
