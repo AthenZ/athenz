@@ -1828,8 +1828,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   expiration      : expiration date format yyyy-mm-ddThh:mm:ss.msecZ\n")
 		buf.WriteString("   review          : review date format yyyy-mm-ddThh:mm:ss.msecZ\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " add-temporary-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z\n")
-		buf.WriteString("   " + domainExample + " add-temporary-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z 2017-01-02T15:09:05.999Z\n")
+		buf.WriteString("   " + domainExample + " add-temporary-member readers " + cli.UserDomain + ".john 2017-03-02T15:04:05.999Z\n")
+		buf.WriteString("   " + domainExample + " add-temporary-member readers " + cli.UserDomain + ".john 2017-03-02T15:04:05.999Z 2017-01-02T15:09:05.999Z\n")
 	case "add-reviewed-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-reviewed-member regular_role user_or_service review\n")
@@ -1841,7 +1841,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service : user or service to be added as member\n")
 		buf.WriteString("   review          : review date format yyyy-mm-ddThh:mm:ss.msecZ\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " add-reviewed-member readers " + cli.UserDomain + ",john 2017-03-02T15:04:05.999Z\n")
+		buf.WriteString("   " + domainExample + " add-reviewed-member readers " + cli.UserDomain + ".john 2017-03-02T15:04:05.999Z\n")
 	case "check-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " check-member regular_role user_or_service [user_or_service ...]\n")
