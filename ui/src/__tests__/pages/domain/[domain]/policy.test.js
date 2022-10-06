@@ -28,6 +28,12 @@ afterEach(() => {
 });
 
 describe('PolicyPage', () => {
+    beforeEach(() => {
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
+    });
+    afterEach(() => MockApi.cleanMockApi());
     it('should render', async () => {
         const query = {
             domain: 'dom',

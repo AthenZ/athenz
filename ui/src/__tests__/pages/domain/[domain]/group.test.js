@@ -27,6 +27,12 @@ afterEach(() => {
 });
 
 describe('GroupPage', () => {
+    beforeEach(() => {
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
+    });
+    afterEach(() => MockApi.cleanMockApi());
     it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });
