@@ -1,5 +1,5 @@
 /*
- * Copyright The Athenz Authors
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import HeaderMenu from '../../../components/header/HeaderMenu';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
 
 describe('HeaderMenu', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
     it('should render', () => {
         let headerDetails = {
             headerLinks: [
@@ -29,6 +33,9 @@ describe('HeaderMenu', () => {
                 },
             ],
         };
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
         const { getByTestId } = renderWithRedux(
             <HeaderMenu headerDetails={headerDetails} />
         );

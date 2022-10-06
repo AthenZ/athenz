@@ -1,5 +1,5 @@
 /*
- * Copyright The Athenz Authors
+ * Copyright 2020 Verizon Media
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ import React from 'react';
 import Home from '../../pages';
 import { renderWithRedux } from '../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../mock/MockApi';
+import { waitFor } from '@testing-library/react';
 
 afterEach(() => {
-   MockApi.cleanMockApi();
+    MockApi.cleanMockApi();
 });
 
 describe('Home', () => {
@@ -37,19 +38,18 @@ describe('Home', () => {
             ],
         };
         MockApi.setMockApi({
-            listUserDomains: jest.fn().mockReturnValue(
-                Promise.resolve(domains)
-            ),
-        })
+            getPendingDomainMembersList: jest
+                .fn()
+                .mockReturnValue(Promise.resolve([])),
+            getHeaderDetails: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(headerDetails)),
+        });
 
-        const { getByTestId } = await renderWithRedux(
-            <Home
-                domains={domains}
-                userId='test'
-                headerDetails={headerDetails}
-            />
+        const { getByTestId } = renderWithRedux(
+            <Home domains={domains} userId='test' />,
+            { domains: { domainsList: domains } }
         );
-        const home = getByTestId('home');
-        expect(home).toMatchSnapshot();
+        await waitFor(() => expect(getByTestId('home')).toMatchSnapshot());
     });
 });

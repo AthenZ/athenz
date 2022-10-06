@@ -22,11 +22,13 @@ import {
 } from '../../../../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../../../../mock/MockApi';
 
-afterEach(() => {
-    MockApi.cleanMockApi();
-});
-
 describe('GroupReviewPage', () => {
+    beforeEach(() => {
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
+    });
+    afterEach(() => MockApi.cleanMockApi());
     it('should render', async () => {
         let domains = [];
         domains.push({ name: 'athens' });

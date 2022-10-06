@@ -26,11 +26,13 @@ import {
     singleApiGroup,
 } from '../../../../../redux/config/group.test';
 
-afterEach(() => {
-    MockApi.cleanMockApi();
-});
-
 describe('Groups Tag Page', () => {
+    beforeEach(() => {
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+        });
+    });
+    afterEach(() => MockApi.cleanMockApi());
     it('should render', async () => {
         const query = {
             domain: 'dom',
@@ -39,7 +41,6 @@ describe('Groups Tag Page', () => {
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
         const userId = 'test';
-        const domain = 'home.test';
         const domainDetails = {
             description: 'test',
             org: 'athenz',
