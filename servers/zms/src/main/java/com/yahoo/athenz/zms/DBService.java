@@ -287,7 +287,8 @@ public class DBService implements RolesProvider {
         cacheStore.invalidate(domainName);
     }
 
-    void purgeTaskSaveDomainChanges(ResourceContext ctx, ObjectStoreConnection con, String domainName, List<ExpiryMember> purgeMemberList, String auditRef, String caller, DomainChangeMessage.ObjectType collectionType) {
+    void purgeTaskSaveDomainChanges(ResourceContext ctx, ObjectStoreConnection con, String domainName,
+            List<ExpiryMember> purgeMemberList, String auditRef, String caller, DomainChangeMessage.ObjectType collectionType) {
 
         saveChanges(con, domainName);
 
@@ -8080,7 +8081,7 @@ public class DBService implements RolesProvider {
                             member.getExpiration(), ex);
                 }
             }
-            purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.GROUP);
+            purgeTaskSaveDomainChanges(ctx, con, domainName, removedList, auditRef, caller, DomainChangeMessage.ObjectType.ROLE);
             return removedList;
         } catch (Exception ex) {
             LOG.error("failed to delete expired role member of domain={} ({}): ",
@@ -8338,8 +8339,6 @@ public class DBService implements RolesProvider {
             });
         }
     }
-
-
 
     private void addDomainChangeMessage(ResourceContext ctx, String domainName, String objectName, DomainChangeMessage.ObjectType objectType) {
         if (ctx != null) {
