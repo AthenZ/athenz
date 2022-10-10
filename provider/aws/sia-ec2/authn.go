@@ -128,9 +128,12 @@ func GetEC2AccessProfile(configFile, metaEndpoint string, useRegionalSTS bool, r
 			// to use fallback to <domain>.<service>-service@access-profile naming structure
 			log.Println("Trying to determine profile name from security credentials...")
 			_, accessProfileConfig, err = options.InitCredsConfig("-service", "@", useRegionalSTS, region)
-			if err != nil {
-				log.Printf("Unable to process access profile configuration file '%s': %v\n", configFile, err)
-				log.Println("Trying to determine profile details from profile arn...")
+			// if the profile is empty try to determine access profile info from instance profile
+			if accessProfileConfig == nil || accessProfileConfig.Profile == "" {
+				if err != nil {
+					log.Printf("Unable to obtain access profile info from security credentials, err: %v\n", err)
+				}
+				log.Println("Trying to determine access profile details from instance profile arn...")
 				_, accessProfileConfig, err = options.InitProfileConfig(metaEndpoint, "-service", "@")
 				if err != nil {
 					return nil, err
