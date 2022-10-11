@@ -1,3 +1,15 @@
+Athenz v1.11.11 Release / Oct 10, 2022
+--------------------------------------
+
+#1973 UI: Fix pec file by @royelbaum in #1973
+#1976 UI: ipgrade multer version by @royelbaum in #1976
+#1977 UI: fix integration test cases
+#1978 fix putServiceIdentity logic to allow update of exising pubKey
+#1980 UI: fix integration test cases
+#1981 Use correct object type for role member delete notifications
+#1982 fix zms-cli online help for adding temporary members
+#1983 update sia-ec2 access profile logic
+
 Athenz v1.11.10 Release / Sep 26, 2022
 --------------------------------------
 
