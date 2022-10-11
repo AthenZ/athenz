@@ -17,6 +17,7 @@ import React from 'react';
 import ManageDomainsPage from '../../../pages/domain/manage';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
+import { getByText, waitFor } from '@testing-library/react';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -76,10 +77,15 @@ describe('PageManageDomains', () => {
                     resolve([]);
                 })
             ),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <ManageDomainsPage
                 req='req'
                 userId={userId}
@@ -89,6 +95,9 @@ describe('PageManageDomains', () => {
                 domainResult={[]}
                 headerDetails={headerDetails}
             />
+        );
+        await waitFor(() =>
+            expect(getByTestId('page-manage-domains')).toBeInTheDocument()
         );
         const pageManageDomains = getByTestId('page-manage-domains');
         expect(pageManageDomains).toMatchSnapshot();

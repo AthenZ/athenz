@@ -88,7 +88,7 @@ describe('ServicePage', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <ServicePage
                 req='req'
                 userId={userId}

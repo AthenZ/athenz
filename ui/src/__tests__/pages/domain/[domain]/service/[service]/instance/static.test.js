@@ -17,6 +17,8 @@ import React from 'react';
 import { waitFor } from '@testing-library/react';
 import StaticInstancePage from '../../../../../../../pages/domain/[domain]/service/[service]/instance/static';
 import {
+    buildServicesForState,
+    getStateWithServices,
     mockAllDomainDataApiCalls,
     renderWithRedux,
 } from '../../../../../../../tests_utils/ComponentsTestUtils';
@@ -79,6 +81,14 @@ describe('StaticInstancePage', () => {
             url: '',
             target: '_blank',
         };
+        let services = {
+            'dom.serv': {
+                name: 'dom.serv',
+                staticInstances: testInstancedetails,
+                serviceHeaderDetails,
+            },
+        };
+        const servicesForState = buildServicesForState(services);
 
         const api = {
             ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
@@ -88,15 +98,6 @@ describe('StaticInstancePage', () => {
             listUserDomains: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(domains)),
-            getServices: jest
-                .fn()
-                .mockReturnValue(Promise.resolve([{ name: 'dom.serv' }])),
-            getInstances: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(instanceDetails)),
-            getServiceHeaderDetails: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(serviceHeaderDetails)),
         };
         MockApi.setMockApi(api);
 
@@ -108,7 +109,8 @@ describe('StaticInstancePage', () => {
                 reload={false}
                 domainName='dom'
                 serviceName='serv'
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
 
         await waitFor(() =>

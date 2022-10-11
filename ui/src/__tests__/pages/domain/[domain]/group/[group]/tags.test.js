@@ -27,12 +27,9 @@ import {
 } from '../../../../../redux/config/group.test';
 
 describe('Groups Tag Page', () => {
-    beforeEach(() => {
-        MockApi.setMockApi({
-            getPendingDomainMembersList: jest.fn().mockReturnValue([]),
-        });
+    afterEach(() => {
+        MockApi.cleanMockApi();
     });
-    afterEach(() => MockApi.cleanMockApi());
     it('should render', async () => {
         const query = {
             domain: 'dom',
@@ -41,6 +38,7 @@ describe('Groups Tag Page', () => {
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
         const userId = 'test';
+        const domain = 'home.test';
         const domainDetails = {
             description: 'test',
             org: 'athenz',
@@ -97,7 +95,7 @@ describe('Groups Tag Page', () => {
             ),
         };
         MockApi.setMockApi(mockApi);
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <GroupTagsPage
                 req='req'
                 userId={userId}
@@ -118,9 +116,9 @@ describe('Groups Tag Page', () => {
             }
         );
 
-        await waitFor(() => {
-            expect(getByTestId('group-tags')).toBeInTheDocument();
-        });
+        await waitFor(() =>
+            expect(getByTestId('group-tags')).toBeInTheDocument()
+        );
 
         const groupTagsPage = getByTestId('group-tags');
         expect(groupTagsPage).toMatchSnapshot();

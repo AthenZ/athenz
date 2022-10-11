@@ -82,7 +82,7 @@ describe('MicrosegmentationPage', () => {
 
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <MicrosegmentationPage
                 req='req'
                 userId='userid'

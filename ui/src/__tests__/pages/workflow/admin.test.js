@@ -26,7 +26,7 @@ import MockApi from '../../../mock/MockApi';
 describe('PendingApprovalPage', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
-    })
+    });
     it('should render', async () => {
         const query = {
             domain: 'dom',
@@ -107,7 +107,7 @@ describe('PendingApprovalPage', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <WorkflowAdmin
                 req='req'
                 userId={userId}
@@ -116,7 +116,9 @@ describe('PendingApprovalPage', () => {
             />
         );
 
-        await waitFor(() => expect(getByTestId('pending-approval')).toBeInTheDocument());
+        await waitFor(() =>
+            expect(getByTestId('pending-approval')).toBeInTheDocument()
+        );
         const pendingapproval = getByTestId('pending-approval');
         expect(pendingapproval).toMatchSnapshot();
     });

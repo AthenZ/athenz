@@ -72,7 +72,7 @@ describe('Tag Page', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <TagsPage
                 req='req'
                 userId={userId}

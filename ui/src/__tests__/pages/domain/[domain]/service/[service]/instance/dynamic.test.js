@@ -17,6 +17,8 @@ import React from 'react';
 import { waitFor } from '@testing-library/react';
 import MockApi from '../../../../../../../mock/MockApi';
 import {
+    buildServicesForState,
+    getStateWithServices,
     mockAllDomainDataApiCalls,
     renderWithRedux,
 } from '../../../../../../../tests_utils/ComponentsTestUtils';
@@ -79,6 +81,14 @@ describe('DynamicInstancePage', () => {
             url: '',
             target: '_blank',
         };
+        let services = {
+            'dom.serv': {
+                name: 'dom.serv',
+                dynamicInstances: testInstancedetails,
+                serviceHeaderDetails,
+            },
+        };
+        const servicesForState = buildServicesForState(services);
         const api = {
             ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
             getPendingDomainMembersList: jest
@@ -87,15 +97,6 @@ describe('DynamicInstancePage', () => {
             listUserDomains: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(domains)),
-            getServices: jest
-                .fn()
-                .mockReturnValue(Promise.resolve([{ name: 'dom.serv' }])),
-            getInstances: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(instanceDetails)),
-            getServiceHeaderDetails: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(serviceHeaderDetails)),
         };
         MockApi.setMockApi(api);
         const { getByTestId } = renderWithRedux(
@@ -106,7 +107,8 @@ describe('DynamicInstancePage', () => {
                 reload={false}
                 domainName='dom'
                 serviceName='serv'
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         await waitFor(() =>
             expect(getByTestId('dynamic-instance')).toBeInTheDocument()
