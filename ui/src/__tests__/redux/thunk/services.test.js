@@ -27,6 +27,7 @@ import {
     addService,
     addServiceHost,
     allowProviderTemplate,
+    deleteInstance,
     deleteKey,
     deleteService,
     getProvider,
@@ -41,6 +42,7 @@ import {
     allowProviderTemplateToStore,
     deleteKeyFromStore,
     deleteServiceFromStore,
+    deleteServiceInstanceFromStore,
     loadInstancesToStore,
     loadProvidersToStore,
     loadServiceHeaderDetailsToStore,
@@ -373,6 +375,114 @@ describe('deleteService method', () => {
             _.isEqual(
                 fakeDispatch.getCall(1).args[0],
                 deleteServiceFromStore('dom.service1')
+            )
+        ).toBeTruthy();
+    });
+});
+
+describe('deleteServiceInstance method', () => {
+    afterAll(() => {
+        jest.spyOn(
+            serviceSelector,
+            'selectInstancesWorkLoadData'
+        ).mockRestore();
+    });
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+
+    it('get an error because instance doesnt exists', async () => {
+        let workLoadData = [
+            {
+                domainName: 'dom',
+                serviceName: 'ows',
+                uuid: '7982edfc-0b1b-4674-ad1c-55af492bd45d',
+                ipAddresses: ['10.53.150.116', '2001:4998:efeb:283:0:0:0:236'],
+                hostname: '7982edfc.dom.ne1.ows.oath.cloud',
+                provider: 'sys.openstack.provider-classic',
+                updateTime: '2022-08-01T18:00:40.240Z',
+                certExpiryTime: '2022-08-31T00:42:58.000Z',
+                certIssueTime: '2022-07-31T23:42:58.000Z',
+            },
+        ];
+        jest.spyOn(
+            serviceSelector,
+            'selectInstancesWorkLoadData'
+        ).mockReturnValue(workLoadData);
+        const fakeDispatch = sinon.spy();
+        const getState = () => {
+            return {
+                services: { domainName: domainName },
+            };
+        };
+        try {
+            await deleteInstance(
+                'dynamic',
+                'sys.openstack.provider-classic',
+                'dom',
+                'ows',
+                '11111111-1111-1111-1111-111111111111',
+                'auditRef',
+                'csrf'
+            )(fakeDispatch, getState);
+            fail();
+        } catch (e) {
+            expect(e.statusCode).toBe(404);
+            expect(e.body.message).toBe(
+                'Service Instance 11111111-1111-1111-1111-111111111111 doesnt exist'
+            );
+        }
+
+        expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
+    });
+
+    it('successfully delete service instance', async () => {
+        let workLoadData = [
+            {
+                domainName: 'dom',
+                serviceName: 'ows',
+                uuid: '7982edfc-0b1b-4674-ad1c-55af492bd45d',
+                ipAddresses: ['10.53.150.116', '2001:4998:efeb:283:0:0:0:236'],
+                hostname: '7982edfc.dom.ne1.ows.oath.cloud',
+                provider: 'sys.openstack.provider-classic',
+                updateTime: '2022-08-01T18:00:40.240Z',
+                certExpiryTime: '2022-08-31T00:42:58.000Z',
+                certIssueTime: '2022-07-31T23:42:58.000Z',
+            },
+        ];
+        jest.spyOn(
+            serviceSelector,
+            'selectInstancesWorkLoadData'
+        ).mockReturnValue(workLoadData);
+        const getState = () => {
+            return {
+                services: { domainName: domainName },
+            };
+        };
+        MockApi.setMockApi({
+            deleteInstance: jest.fn().mockReturnValue(Promise.resolve(true)),
+        });
+        const fakeDispatch = sinon.spy();
+
+        await deleteInstance(
+            'dynamic',
+            'sys.openstack.provider-classic',
+            'dom',
+            'ows',
+            '7982edfc-0b1b-4674-ad1c-55af492bd45d',
+            'auditRef',
+            'csrf'
+        )(fakeDispatch, getState);
+
+        expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(1).args[0],
+                deleteServiceInstanceFromStore(
+                    'dom.ows',
+                    '7982edfc-0b1b-4674-ad1c-55af492bd45d',
+                    'dynamic'
+                )
             )
         ).toBeTruthy();
     });

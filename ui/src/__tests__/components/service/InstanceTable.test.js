@@ -17,6 +17,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import InstanceTable from '../../../components/service/InstanceTable';
 import API from '../../../api';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('InstanceTable', () => {
     it('should render', () => {
@@ -33,7 +34,7 @@ describe('InstanceTable', () => {
                 updateTime: '2021-03-28T21:38:27.070Z',
             },
         ];
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <InstanceTable
                 instances={instances}
                 api={api}

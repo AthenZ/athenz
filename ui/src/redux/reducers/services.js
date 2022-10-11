@@ -21,13 +21,14 @@ import {
     ALLOW_PROVIDER_TEMPLATE_TO_STORE,
     DELETE_KEY_FROM_STORE,
     DELETE_SERVICE_FROM_STORE,
+    DELETE_SERVICE_INSTANCE_FROM_STORE,
     LOAD_INSTANCES_TO_STORE,
     LOAD_PROVIDER_TO_STORE,
     LOAD_SERVICE_HEADER_DETAILS_TO_STORE,
     LOAD_SERVICES,
     RETURN_SERVICES,
 } from '../actions/services';
-import { getExpiryTime } from '../utils';
+import { deleteInstanceFromWorkloadDataDraft, getExpiryTime } from '../utils';
 import produce from 'immer';
 
 export const services = (state = {}, action) => {
@@ -54,6 +55,60 @@ export const services = (state = {}, action) => {
                 delete draft.services[serviceFullName];
             });
             return newState;
+        }
+        case DELETE_SERVICE_INSTANCE_FROM_STORE: {
+            const { serviceFullName, uuid, category } = payload;
+            if (category === 'dynamic') {
+                let newState = produce(state, (draft) => {
+                    let originalLen =
+                        draft.services[serviceFullName].dynamicInstances
+                            .workLoadData.length;
+                    deleteInstanceFromWorkloadDataDraft(
+                        draft.services[serviceFullName].dynamicInstances
+                            .workLoadData,
+                        uuid
+                    );
+                    if (
+                        originalLen ==
+                        draft.services[serviceFullName].dynamicInstances
+                            .workLoadData.length +
+                            1
+                    ) {
+                        draft.services[
+                            serviceFullName
+                        ].dynamicInstances.workLoadMeta.totalDynamic -= 1;
+                        draft.services[
+                            serviceFullName
+                        ].dynamicInstances.workLoadMeta.totalRecords -= 1;
+                        draft.services[
+                            serviceFullName
+                        ].dynamicInstances.workLoadMeta.totalHealthyDynamic -= 1;
+                    }
+                });
+                return newState;
+            } else {
+                let newState = produce(state, (draft) => {
+                    let originalLen =
+                        draft.services[serviceFullName].staticInstances
+                            .workLoadData.length;
+                    deleteInstanceFromWorkloadDataDraft(
+                        draft.services[serviceFullName].staticInstances
+                            .workLoadData,
+                        uuid
+                    );
+                    if (
+                        originalLen ==
+                        draft.services[serviceFullName].staticInstances
+                            .workLoadData.length +
+                            1
+                    ) {
+                        draft.services[
+                            serviceFullName
+                        ].staticInstances.workLoadMeta.totalRecords -= 1;
+                    }
+                });
+                return newState;
+            }
         }
         case DELETE_KEY_FROM_STORE: {
             const { serviceFullName, keyId } = payload;

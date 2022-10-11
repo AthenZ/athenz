@@ -17,7 +17,6 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import SearchInput from '../denali/SearchInput';
-import Alert from '../denali/Alert';
 import InstanceTable from './InstanceTable';
 import AddStaticInstances from '../microsegmentation/AddStaticInstances';
 import InputDropdown from '../denali/InputDropdown';
@@ -74,7 +73,6 @@ class InstanceList extends React.Component {
             searchText: '',
         };
         this.toggleAddInstance = this.toggleAddInstance.bind(this);
-        this.closeModal = this.closeModal.bind(this);
         this.optionChanged = this.optionChanged.bind(this);
     }
 
@@ -137,10 +135,6 @@ class InstanceList extends React.Component {
             this.setState({ instances });
         }
     };
-
-    closeModal() {
-        this.setState({ showSuccess: null });
-    }
 
     optionChanged(chosen) {
         if (chosen && chosen.value != null) {
@@ -219,19 +213,12 @@ class InstanceList extends React.Component {
                     <InstanceTable
                         instances={this.state.instances}
                         domain={this.props.domain}
+                        service={this.props.service}
                         _csrf={this.props._csrf}
-                        onSubmit={this.reloadInstances}
+                        onSubmit={this.props.onInstancesUpdated}
                         category={this.props.category}
                     />
                 )}
-                {this.state.showSuccess ? (
-                    <Alert
-                        isOpen={this.state.showSuccess}
-                        title={this.state.successMessage}
-                        onClose={this.closeModal}
-                        type='success'
-                    />
-                ) : null}
             </InstanceSectionDiv>
         );
     }

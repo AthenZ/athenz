@@ -18,13 +18,19 @@ import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import { withRouter } from 'next/router';
 import { css, keyframes } from '@emotion/react';
+import DeleteModal from '../modal/DeleteModal';
+import Icon from '../denali/icons/Icon';
+import { colors } from '../denali/styles';
+import Menu from '../denali/Menu/Menu';
+import RequestUtils from '../utils/RequestUtils';
+import { deleteInstance } from '../../redux/thunks/services';
+import { connect } from 'react-redux';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
     padding: 5px 0 5px 15px;
     vertical-align: middle;
-    word-break: break-all;
 `;
 
 const TrStyled = styled.tr`
@@ -53,13 +59,90 @@ const colorTransition = keyframes`
         }
 `;
 
+const DivIpStyled = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 10px;
+`;
+
+const MenuDiv = styled.div`
+    padding: 5px 10px;
+    background-color: black;
+    color: white;
+    font-size: 12px;
+`;
+
 class InstanceRow extends React.Component {
     constructor(props) {
         super(props);
+        this.onSubmitDelete = this.onSubmitDelete.bind(this);
+        this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
+        this.saveJustification = this.saveJustification.bind(this);
         this.state = {
-            key: this.props.details.uuid + this.props.details.ipAddresses[0],
+            key: this.props.details.hostname + this.props.details.uuid,
+            showDelete: false,
+            deleteJustification: '',
+            errorMessage: null,
         };
         this.localDate = new DateUtils();
+    }
+
+    saveJustification(val) {
+        this.setState({ deleteJustification: val });
+    }
+
+    onClickDelete() {
+        this.setState({
+            showDelete: true,
+        });
+    }
+
+    onSubmitDelete(provider, domain, service, uuid) {
+        if (
+            this.props.justificationRequired &&
+            (this.state.deleteJustification === undefined ||
+                this.state.deleteJustification.trim() === '')
+        ) {
+            this.setState({
+                errorMessage: 'Justification is required to delete an instance',
+            });
+            return;
+        }
+
+        this.props
+            .deleteInstance(
+                this.props.category,
+                provider,
+                domain,
+                service,
+                uuid,
+                this.state.deleteJustification
+                    ? this.state.deleteJustification
+                    : 'deleted using Athenz UI',
+                this.props._csrf
+            )
+            .then(() => {
+                this.setState({
+                    showDelete: false,
+                    deleteJustification: null,
+                    errorMessage: null,
+                });
+                this.props.onUpdateSuccess(
+                    `Successfully deleted instance for host ${this.props.details.hostname}`
+                );
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
+    }
+
+    onClickDeleteCancel() {
+        this.setState({
+            showDelete: false,
+            errorMessage: null,
+        });
     }
 
     render() {
@@ -67,90 +150,147 @@ class InstanceRow extends React.Component {
         let left = 'left';
         let center = 'center';
         let color = this.props.color;
-
         let details = this.props.details;
+        let ipAddresses = [];
+        let clickDelete = this.onClickDelete.bind(this);
+        let submitDelete = this.onSubmitDelete.bind(
+            this,
+            details.provider,
+            this.props.domain,
+            this.props.service,
+            details.uuid
+        );
+        let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
+
         details.ipAddresses.forEach((ipAddress, idx) => {
-            rows.push(
-                <TrStyled key={this.state.key + idx} data-testid='instance-row'>
-                    <TDStyled color={color} align={left}>
-                        {ipAddress}
-                    </TDStyled>
-                    {this.props.category === 'dynamic'
-                        ? [
-                              <TDStyled
-                                  color={color}
-                                  align={left}
-                                  key={'hostName'}
-                              >
-                                  {details.hostname}
-                              </TDStyled>,
-                              <TDStyled
-                                  color={color}
-                                  align={left}
-                                  key={'provider'}
-                              >
-                                  {details.provider}
-                              </TDStyled>,
-                              <TDStyled
-                                  color={color}
-                                  align={left}
-                                  key={'certExpiryTime'}
-                              >
-                                  {this.localDate.getLocalDate(
-                                      details.certExpiryTime,
-                                      'UTC',
-                                      'UTC'
-                                  )}
-                              </TDStyled>,
-                              <TDStyled
-                                  color={color}
-                                  align={left}
-                                  key={'updateTime'}
-                              >
-                                  {this.localDate.getLocalDate(
-                                      details.updateTime,
-                                      'UTC',
-                                      'UTC'
-                                  )}
-                              </TDStyled>,
-                          ]
-                        : null}
-                    {this.props.category === 'static'
-                        ? [
-                              <TDStyled
-                                  color={color}
-                                  align={center}
-                                  key={'ips'}
-                              >
-                                  {'ips'}
-                              </TDStyled>,
-                              <TDStyled
-                                  color={color}
-                                  align={center}
-                                  key={'staticUpdateTime'}
-                              >
-                                  {this.localDate.getLocalDate(
-                                      details.updateTime,
-                                      'UTC',
-                                      'UTC'
-                                  )}
-                              </TDStyled>,
-                          ]
-                        : null}
-                    {/*{this.props.category === 'static' && (*/}
-                    {/*    <TDStyled color={color} align={center}>*/}
-                    {/*        {this.localDate.getLocalDate(*/}
-                    {/*            details.updateTime,*/}
-                    {/*            'UTC',*/}
-                    {/*            'UTC'*/}
-                    {/*        )}*/}
-                    {/*    </TDStyled>*/}
-                    {/*)}*/}
-                </TrStyled>
+            ipAddresses.push(
+                <DivIpStyled key={this.state.key + ipAddress}>
+                    {ipAddress}
+                </DivIpStyled>
             );
         });
+        rows.push(
+            <TrStyled key={this.state.key} data-testid='instance-row'>
+                <TDStyled color={color} align={left}>
+                    {ipAddresses}
+                </TDStyled>
+                {this.props.category === 'dynamic' && (
+                    <TDStyled color={color} align={left}>
+                        {details.hostname}
+                    </TDStyled>
+                )}
+                {this.props.category === 'dynamic' && (
+                    <TDStyled color={color} align={left}>
+                        {details.provider}
+                    </TDStyled>
+                )}
+                {this.props.category === 'dynamic' && (
+                    <TDStyled color={color} align={left}>
+                        {details.uuid}
+                    </TDStyled>
+                )}
+                {this.props.category === 'dynamic' && (
+                    <TDStyled color={color} align={left}>
+                        {this.localDate.getLocalDate(
+                            details.certExpiryTime,
+                            'UTC',
+                            'UTC'
+                        )}
+                    </TDStyled>
+                )}
+                {this.props.category === 'dynamic' && (
+                    <TDStyled color={color} align={left}>
+                        {this.localDate.getLocalDate(
+                            details.updateTime,
+                            'UTC',
+                            'UTC'
+                        )}
+                    </TDStyled>
+                )}
+                {this.props.category === 'dynamic' && (
+                    <TDStyled color={color} align={center}>
+                        <Menu
+                            placement='bottom-start'
+                            trigger={
+                                <span>
+                                    <Icon
+                                        icon={'trash'}
+                                        onClick={clickDelete}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </span>
+                            }
+                        >
+                            <MenuDiv>Delete</MenuDiv>
+                        </Menu>
+                    </TDStyled>
+                )}
+                {this.props.category === 'static' && (
+                    <TDStyled color={color} align={center}>
+                        {'ips'}
+                    </TDStyled>
+                )}
+                {this.props.category === 'static' && (
+                    <TDStyled color={color} align={center}>
+                        {this.localDate.getLocalDate(
+                            details.updateTime,
+                            'UTC',
+                            'UTC'
+                        )}
+                    </TDStyled>
+                )}
+            </TrStyled>
+        );
+
+        if (this.state.showDelete) {
+            rows.push(
+                <DeleteModal
+                    name={this.props.details.hostname}
+                    isOpen={this.state.showDelete}
+                    cancel={clickDeleteCancel}
+                    submit={submitDelete}
+                    key={
+                        this.props.details.hostname +
+                        this.props.details.uuid +
+                        '-delete'
+                    }
+                    showJustification={this.props.justificationRequired}
+                    message={
+                        'Are you sure you want to permanently delete the host record '
+                    }
+                    onJustification={this.saveJustification}
+                    errorMessage={this.state.errorMessage}
+                />
+            );
+        }
 
         return rows;
     }
 }
-export default withRouter(InstanceRow);
+const mapDispatchToProps = (dispatch) => ({
+    deleteInstance: (
+        category,
+        provider,
+        domain,
+        service,
+        uuid,
+        deleteJustification,
+        _csrf
+    ) =>
+        dispatch(
+            deleteInstance(
+                category,
+                provider,
+                domain,
+                service,
+                uuid,
+                deleteJustification,
+                _csrf
+            )
+        ),
+});
+
+export default connect(null, mapDispatchToProps)(withRouter(InstanceRow));
