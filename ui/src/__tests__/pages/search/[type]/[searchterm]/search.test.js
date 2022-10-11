@@ -52,7 +52,7 @@ describe('Search', () => {
             ],
         };
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <Search
                 domain='test'
                 type='domain'

@@ -76,7 +76,7 @@ describe('RolePage', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <RolePage
                 req='req'
                 userId='userid'

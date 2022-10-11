@@ -86,7 +86,7 @@ describe('PolicyPage', () => {
 
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <PolicyPage
                 req='req'
                 userId={userId}
@@ -97,9 +97,7 @@ describe('PolicyPage', () => {
             />
         );
         await waitFor(() => {
-            expect(getByTestId('policy')).toBeInTheDocument();
+            expect(getByTestId('policy')).toMatchSnapshot();
         });
-        const policyPage = getByTestId('policy');
-        expect(policyPage).toMatchSnapshot();
     });
 });

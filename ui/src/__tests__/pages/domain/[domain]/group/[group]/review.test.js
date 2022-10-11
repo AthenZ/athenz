@@ -90,7 +90,7 @@ describe('GroupReviewPage', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <GroupReviewPage
                 req='req'
                 userId='userid'

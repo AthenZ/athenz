@@ -76,7 +76,7 @@ describe('VisibilityPage', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <VisibilityPage
                 req='req'
                 userId='userid'

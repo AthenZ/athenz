@@ -91,7 +91,7 @@ describe('GroupSettingPage', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <GroupSettingsPage
                 req='req'
                 userId='userid'

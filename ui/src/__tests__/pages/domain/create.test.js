@@ -15,10 +15,9 @@
  */
 import React from 'react';
 import CreateDomainPage from '../../../pages/domain/create';
-import {
-    renderWithRedux,
-} from '../../../tests_utils/ComponentsTestUtils';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
+import { waitFor } from '@testing-library/react';
 
 afterEach(() => {
     MockApi.cleanMockApi();
@@ -51,10 +50,15 @@ describe('CreateDomainPage', () => {
                     resolve(domains);
                 })
             ),
+            getPendingDomainMembersList: jest.fn().mockReturnValue(
+                new Promise((resolve, reject) => {
+                    resolve([]);
+                })
+            ),
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <CreateDomainPage
                 req='req'
                 userId={userId}
@@ -63,6 +67,9 @@ describe('CreateDomainPage', () => {
                 domain='dom'
                 headerDetails={headerDetails}
             />
+        );
+        await waitFor(() =>
+            expect(getByTestId('create-domain')).toBeInTheDocument()
         );
         const createDomain = getByTestId('create-domain');
         expect(createDomain).toMatchSnapshot();

@@ -72,7 +72,7 @@ describe('Template Page', () => {
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = await renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <TemplatePage
                 req='req'
                 userId={userId}
