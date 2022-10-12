@@ -1,0 +1,26 @@
+{
+    "version": "1.0.0",
+    "service": "api",
+    "services": {
+        "api": {},
+        "ui": {
+            "user": "root"
+        },
+        "yamas": {
+            "user": "nobody",
+            "group": "sys"
+        }
+    },
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012",
+            "roles": {
+                "sports:role.readers": {
+                    "service": "ui"
+                }
+            }
+        }
+    ]
+}

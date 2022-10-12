@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -50,8 +49,11 @@ type ConfigService struct {
 
 // ConfigRole represents a role to be specified by user, and specify attributes for the role
 type ConfigRole struct {
-	Filename   string `json:"filename,omitempty"`
-	ExpiryTime int    `json:"expiry_time,omitempty"`
+	Filename   string `json:"filename,omitempty"`    //filename for the generated role certificate file
+	ExpiryTime int    `json:"expiry_time,omitempty"` //requested expiry time for the role certificate
+	Service    string `json:"service,omitempty"`     //principal with role access
+	User       string `json:"user,omitempty"`        //user owner on the role identity key
+	Group      string `json:"group,omitempty"`       //group owner on the role identity key
 }
 
 // ConfigAccount represents each of the accounts that can be specified in the config file
@@ -96,13 +98,14 @@ type AccessProfileConfig struct {
 
 // Role contains role details. Attributes are set based on the config values
 type Role struct {
-	Name     string
-	Service  string
-	Filename string
-	User     string
-	Uid      int
-	Gid      int
-	FileMode int
+	Name       string
+	Service    string
+	ExpiryTime int
+	Filename   string
+	User       string
+	Uid        int
+	Gid        int
+	FileMode   int
 }
 
 // Service represents service details. Attributes are filled in based on the config values
@@ -122,52 +125,52 @@ type Service struct {
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider           string                //name of the provider
-	Name               string                //name of the service identity
-	User               string                //the user name to chown the cert/key dirs to. If absent, then root
-	Group              string                //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain             string                //name of the domain for the identity
-	Account            string                //name of the account
-	Service            string                //name of the service for the identity
-	Zts                string                //the ZTS to contact
-	Filename           string                //filename to put the service certificate
-	InstanceId         string                //instance id if ec2, task id if running within eks/ecs
-	Roles              map[string]ConfigRole //map of roles to retrieve certificates for
-	Region             string                //region name
-	SanDnsWildcard     bool                  //san dns wildcard support
-	Version            string                //sia version number
-	ZTSDomains         []string              //zts domain prefixes
-	Services           []Service             //array of configured services
-	Ssh                bool                  //ssh certificate support
-	UseRegionalSTS     bool                  //use regional sts endpoint
-	KeyDir             string                //private key directory path
-	CertDir            string                //x.509 certificate directory path
-	AthenzCACertFile   string                //filename to store Athenz CA certs
-	ZTSCACertFile      string                //filename for CA certs when communicating with ZTS
-	ZTSServerName      string                //ZTS server name, if necessary for tls
-	ZTSAWSDomains      []string              //list of domain prefixes for sanDNS entries
-	GenerateRoleKey    bool                  //option to generate a separate key for role certificates
-	RotateKey          bool                  //rotate the private key when refreshing certificates
-	BackUpDir          string                //backup directory for key/cert rotation
-	CertCountryName    string                //generated x.509 certificate country name
-	CertOrgName        string                //generated x.509 certificate organization name
-	SshPubKeyFile      string                //ssh host public key file path
-	SshCertFile        string                //ssh host certificate file path
-	SshConfigFile      string                //sshd config file path
-	PrivateIp          string                //instance private ip
-	EC2Document        string                //EC2 instance identity document
-	EC2Signature       string                //EC2 instance identity document pkcs7 signature
-	EC2StartTime       *time.Time            //EC2 instance start time
-	InstanceIdSanDNS   bool                  //include instance id in a san dns entry (backward compatible option)
-	RolePrincipalEmail bool                  //include role principal in a san email field (backward compatible option)
-	SDSUdsPath         string                //UDS path if the agent should support uds connections
-	SDSUdsUid          int                   //UDS connections must be from the given user uid
-	RefreshInterval    int                   //refresh interval for certificates - default 24 hours
-	ZTSRegion          string                //ZTS region in case the client needs this information
-	KeepPrivileges     bool                  //Keep privileges as root instead of dropping to configured user
-	TokenDir           string                //Access tokens directory
-	AccessTokens       []ac.AccessToken      //Access tokens object
-	Profile            string                //Access profile name
+	Provider           string           //name of the provider
+	Name               string           //name of the service identity
+	User               string           //the user name to chown the cert/key dirs to. If absent, then root
+	Group              string           //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain             string           //name of the domain for the identity
+	Account            string           //name of the account
+	Service            string           //name of the service for the identity
+	Zts                string           //the ZTS to contact
+	Filename           string           //filename to put the service certificate
+	InstanceId         string           //instance id if ec2, task id if running within eks/ecs
+	Roles              []Role           //map of roles to retrieve certificates for
+	Region             string           //region name
+	SanDnsWildcard     bool             //san dns wildcard support
+	Version            string           //sia version number
+	ZTSDomains         []string         //zts domain prefixes
+	Services           []Service        //array of configured services
+	Ssh                bool             //ssh certificate support
+	UseRegionalSTS     bool             //use regional sts endpoint
+	KeyDir             string           //private key directory path
+	CertDir            string           //x.509 certificate directory path
+	AthenzCACertFile   string           //filename to store Athenz CA certs
+	ZTSCACertFile      string           //filename for CA certs when communicating with ZTS
+	ZTSServerName      string           //ZTS server name, if necessary for tls
+	ZTSAWSDomains      []string         //list of domain prefixes for sanDNS entries
+	GenerateRoleKey    bool             //option to generate a separate key for role certificates
+	RotateKey          bool             //rotate the private key when refreshing certificates
+	BackUpDir          string           //backup directory for key/cert rotation
+	CertCountryName    string           //generated x.509 certificate country name
+	CertOrgName        string           //generated x.509 certificate organization name
+	SshPubKeyFile      string           //ssh host public key file path
+	SshCertFile        string           //ssh host certificate file path
+	SshConfigFile      string           //sshd config file path
+	PrivateIp          string           //instance private ip
+	EC2Document        string           //EC2 instance identity document
+	EC2Signature       string           //EC2 instance identity document pkcs7 signature
+	EC2StartTime       *time.Time       //EC2 instance start time
+	InstanceIdSanDNS   bool             //include instance id in a san dns entry (backward compatible option)
+	RolePrincipalEmail bool             //include role principal in a san email field (backward compatible option)
+	SDSUdsPath         string           //UDS path if the agent should support uds connections
+	SDSUdsUid          int              //UDS connections must be from the given user uid
+	RefreshInterval    int              //refresh interval for certificates - default 24 hours
+	ZTSRegion          string           //ZTS region in case the client needs this information
+	KeepPrivileges     bool             //Keep privileges as root instead of dropping to configured user
+	TokenDir           string           //Access tokens directory
+	AccessTokens       []ac.AccessToken //Access tokens object
+	Profile            string           //Access profile name
 }
 
 const (
@@ -228,7 +231,7 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 }
 
 func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, account string) (*Config, *ConfigAccount, error) {
-	confBytes, err := ioutil.ReadFile(fileName)
+	confBytes, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -348,10 +351,20 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		return config, nil, fmt.Errorf("invalid role arn - missing components: %s", roleArn)
 	}
 
+	var configRoles map[string]ConfigRole
+	rolesEnv := os.Getenv("ATHENZ_SIA_ACCOUNT_ROLES")
+	if rolesEnv != "" {
+		err = json.Unmarshal([]byte(rolesEnv), &configRoles)
+		if err != nil {
+			return config, nil, fmt.Errorf("unable to parse athenz account roles '%s': %v", rolesEnv, err)
+		}
+	}
+
 	return config, &ConfigAccount{
 		Account: account,
 		Domain:  domain,
 		Service: service,
+		Roles:   configRoles,
 		Name:    fmt.Sprintf("%s.%s", domain, service),
 	}, nil
 }
@@ -417,7 +430,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 
 	var services []Service
 	if config == nil || len(config.Services) == 0 {
-		// There is no sia_config, or multiple services are not configured. Populate services with the account information we gathered
+		//There is no sia_config, or multiple services are not configured.
+		//Populate services with the account information we gathered
 		s := Service{
 			Name:     account.Service,
 			Filename: account.Filename,
@@ -438,7 +452,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 
 		// Populate the remaining into tail
-		tail := []Service{}
+		var tail []Service
 		for name, s := range config.Services {
 			svcExpiryTime := expiryTime
 			if s.ExpiryTime > 0 {
@@ -488,20 +502,41 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		services = append(services, first)
 		services = append(services, tail...)
 	}
+
 	// Process all access_tokens
 	accessTokens, err := processAccessTokens(config, services)
-
 	if err != nil {
 		return nil, err
 	}
 
-	for _, r := range account.Roles {
+	var roles []Role
+	for name, r := range account.Roles {
 		if r.Filename != "" && r.Filename[0] == '/' {
 			log.Println("when custom filepaths are specified, rotate_key and generate_role_key are not supported")
 			generateRoleKey = false
 			rotateKey = false
-			break
 		}
+		roleService := getRoleServiceOwner(r.Service, services)
+		role := Role{
+			Name:       name,
+			Service:    roleService.Name,
+			Filename:   r.Filename,
+			ExpiryTime: r.ExpiryTime,
+			FileMode:   0444,
+		}
+		role.Uid = roleService.Uid
+		role.Gid = roleService.Gid
+		// override the uid/gid values if specified at role level
+		if r.User != "" || r.Group != "" {
+			rUid, rGid, _ := util.SvcAttrs(r.User, r.Group)
+			if r.User != "" {
+				role.Uid = rUid
+			}
+			if r.Group != "" {
+				role.Gid = rGid
+			}
+		}
+		roles = append(roles, role)
 	}
 
 	if profileConfig != nil {
@@ -520,7 +555,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		UseRegionalSTS:   useRegionalSTS,
 		SanDnsWildcard:   sanDnsWildcard,
 		Services:         services,
-		Roles:            account.Roles,
+		Roles:            roles,
 		TokenDir:         fmt.Sprintf("%s/tokens", siaDir),
 		CertDir:          fmt.Sprintf("%s/certs", siaDir),
 		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
@@ -535,6 +570,19 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		AccessTokens:     accessTokens,
 		Profile:          profile,
 	}, nil
+}
+
+func getRoleServiceOwner(serviceName string, services []Service) Service {
+	if serviceName == "" {
+		return services[0]
+	}
+	for _, s := range services {
+		if s.Name == serviceName {
+			return s
+		}
+	}
+	log.Printf("unknown service %s specified for role, defaulting to primary service\n", serviceName)
+	return services[0]
 }
 
 func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessToken, error) {
@@ -635,6 +683,13 @@ func GetRunsAsUidGid(opts *Options) (int, int) {
 			if svc.Uid != uid || svc.Gid != gid {
 				return -1, -1
 			}
+		}
+	}
+	// if we have a mismatch with any of our roles then
+	// we cannot change our run-as user either
+	for _, role := range opts.Roles {
+		if role.Uid != uid || role.Gid != gid {
+			return -1, -1
 		}
 	}
 	// if our uid is equivalent to our running process uid

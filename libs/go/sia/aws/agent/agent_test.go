@@ -18,7 +18,6 @@ package agent
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -58,7 +57,7 @@ func TestUpdateFileNew(test *testing.T) {
 		test.Errorf("Cannot create new file: %v", err)
 		return
 	}
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		test.Errorf("Cannot read new created file: %v", err)
 		_ = os.Remove(fileName)
@@ -78,7 +77,7 @@ func TestUpdateFileExisting(test *testing.T) {
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	testContents := "sia-unit-test"
-	err := ioutil.WriteFile(fileName, []byte(testContents), 0644)
+	err := os.WriteFile(fileName, []byte(testContents), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -89,7 +88,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		test.Errorf("Cannot create new file: %v", err)
 		return
 	}
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		test.Errorf("Cannot read new created file: %v", err)
 		_ = os.Remove(fileName)
@@ -155,11 +154,11 @@ func TestRegisterInstance(test *testing.T) {
 }
 
 func copyFile(src, dst string) error {
-	data, err := ioutil.ReadFile(src)
+	data, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(dst, data, 0644)
+	return os.WriteFile(dst, data, 0644)
 }
 
 func TestRefreshInstance(test *testing.T) {
@@ -211,8 +210,8 @@ func TestRefreshInstance(test *testing.T) {
 	err = RefreshInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5084/zts/v1", opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
-	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
-	newCert, _ := ioutil.ReadFile(certFile)
+	oldCert, _ := os.ReadFile("devel/data/cert.pem")
+	newCert, _ := os.ReadFile(certFile)
 	if string(oldCert) == string(newCert) {
 		test.Errorf("Certificate was not refreshed")
 		return
@@ -253,8 +252,12 @@ func TestRoleCertificateRequest(test *testing.T) {
 				Gid:  util.ExecIdCommand("-g"),
 			},
 		},
-		Roles: map[string]options.ConfigRole{
-			"athenz:role.writers": {
+		Roles: []options.Role{
+			{
+				Name:     "athenz:role.writers",
+				Service:  "hockey",
+				Uid:      util.ExecIdCommand("-u"),
+				Gid:      util.ExecIdCommand("-g"),
 				Filename: roleCertFile,
 			},
 		},
@@ -265,7 +268,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 		Provider:         "athenz.aws.us-west-2",
 	}
 
-	result := GetRoleCertificate("http://127.0.0.1:5084/zts/v1", keyFile, certFile, opts)
+	result := GetRoleCertificates("http://127.0.0.1:5084/zts/v1", opts)
 	if !result {
 		test.Errorf("Unable to get role certificate: %v", err)
 		return
@@ -319,12 +322,12 @@ func TestHostCertificateLinePresent(test *testing.T) {
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
-			tmpFile, err := ioutil.TempFile(os.TempDir(), "sia-agent-test-")
+			tmpFile, err := os.CreateTemp(os.TempDir(), "sia-agent-test-")
 			if err != nil {
 				log.Fatal("Cannot create temporary file", err)
 			}
 			defer os.Remove(tmpFile.Name())
-			ioutil.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
+			os.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
 			result, _ := hostCertificateLinePresent(tmpFile.Name())
 			if result != tt.result {
 				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, result)
@@ -344,17 +347,17 @@ func TestUpdateSSHConfigFile(test *testing.T) {
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
-			tmpFile, err := ioutil.TempFile(os.TempDir(), "sia-agent-test-")
+			tmpFile, err := os.CreateTemp(os.TempDir(), "sia-agent-test-")
 			if err != nil {
 				log.Fatal("Cannot create temporary file", err)
 			}
 			defer os.Remove(tmpFile.Name())
-			ioutil.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
+			os.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
 			err = updateSSHConfigFile(tmpFile.Name(), "/sshd.config")
 			if err != nil {
 				test.Errorf("%s: unable to update file %s - error: %v", tt.name, tmpFile.Name(), err)
 			}
-			data, _ := ioutil.ReadFile(tmpFile.Name())
+			data, _ := os.ReadFile(tmpFile.Name())
 			if tt.result != string(data) {
 				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, string(data))
 			}
