@@ -46,7 +46,7 @@ import (
 const siaMainDir = "/var/lib/sia"
 
 func readCertificate(certFile string) (*x509.Certificate, error) {
-	data, err := ioutil.ReadFile(certFile)
+	data, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err
 	}
@@ -83,25 +83,31 @@ func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
 	return util.PrivateKeyFromFile(svcKey)
 }
 
-func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Options) bool {
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile)
-	if err != nil {
-		log.Printf("unable to initialize ZTS Client for %s, err: %v\n", ztsUrl, err)
-		return false
-	}
-	client.AddCredentials("User-Agent", opts.Version)
-
-	key, err := util.PrivateKeyFromFile(svcKeyFile)
-	if err != nil {
-		log.Printf("unable to read private key from %s, err: %v\n", svcKeyFile, err)
-		return false
-	}
+func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
 
 	//initialize our return state to success
 	failures := 0
 
 	var roleRequest = new(zts.RoleCertificateRequest)
-	for roleName, role := range opts.Roles {
+	for _, role := range opts.Roles {
+
+		svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, role.Service)
+		svcCertFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, role.Service)
+
+		client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile)
+		if err != nil {
+			log.Printf("unable to initialize ZTS Client with url %s for role %s, err: %v\n", ztsUrl, role.Name, err)
+			failures += 1
+			continue
+		}
+		client.AddCredentials("User-Agent", opts.Version)
+
+		key, err := util.PrivateKeyFromFile(svcKeyFile)
+		if err != nil {
+			log.Printf("unable to read private key from %s for role %s, err: %v\n", svcKeyFile, role.Name, err)
+			failures += 1
+			continue
+		}
 
 		if opts.GenerateRoleKey {
 			var err error
@@ -117,9 +123,9 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		if opts.RolePrincipalEmail {
 			emailDomain = opts.ZTSAWSDomains[0]
 		}
-		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, opts.Services[0].Name, roleName, opts.InstanceId, opts.Provider, emailDomain)
+		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, role.Service, role.Name, opts.InstanceId, opts.Provider, emailDomain)
 		if err != nil {
-			log.Printf("unable to generate CSR for %s, err: %v\n", roleName, err)
+			log.Printf("unable to generate CSR for %s, err: %v\n", role.Name, err)
 			failures += 1
 			continue
 		}
@@ -128,7 +134,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 			roleRequest.ExpiryTime = int64(role.ExpiryTime)
 		}
 
-		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, roleName)
+		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, role.Name)
 		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem)
 		roleRequest.PrevCertNotBefore = notBefore
 		roleRequest.PrevCertNotAfter = notAfter
@@ -141,22 +147,13 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 		//role is readers
 		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
-			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", roleName, err)
+			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", role.Name, err)
 			failures += 1
 			continue
 		}
 
 		roleKeyBytes := util.PrivatePem(key)
-		optsRole := options.Role{
-			Name:     roleName,
-			Service:  opts.Services[0].Name,
-			Filename: role.Filename,
-			User:     "",
-			Uid:      opts.Services[0].Uid,
-			Gid:      opts.Services[0].Gid,
-			FileMode: 0444,
-		}
-		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), optsRole, opts)
+		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), role, opts)
 		if err != nil {
 			failures += 1
 			continue
@@ -501,11 +498,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 	}
 	switch siaCmd {
 	case "rolecert":
-		GetRoleCertificate(ztsUrl,
-			fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
-			fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
-			opts,
-		)
+		GetRoleCertificates(ztsUrl, opts)
 	case "token":
 		if tokenOpts != nil {
 			err := accessTokenRequest(tokenOpts)
@@ -583,11 +576,7 @@ func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
 				} else {
 					initialSetup = false
 				}
-				GetRoleCertificate(ztsUrl,
-					fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, opts.Services[0].Name),
-					fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, opts.Services[0].Name),
-					opts,
-				)
+				GetRoleCertificates(ztsUrl, opts)
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true
 				}

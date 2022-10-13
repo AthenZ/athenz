@@ -19,10 +19,10 @@ package options
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -82,22 +82,22 @@ func (t *testServer) httpUrl() string {
 
 func getConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string) (*Config, *ConfigAccount, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
-	config, configAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, "")
+	cfg, cfgAccount, err := InitFileConfig(fileName, metaEndPoint, useRegionalSTS, region, "")
 	if err != nil {
 		log.Printf("unable to parse configuration file, error: %v\n", err)
 		// if we do not have a configuration file, we're going
 		// to use fallback to <domain>.<service>-service
 		// naming structure
 		log.Println("trying to determine service name from profile arn...")
-		configAccount, _, err = InitProfileConfig(metaEndPoint, roleSuffix, "@")
+		cfgAccount, _, err = InitProfileConfig(metaEndPoint, roleSuffix, "@")
 		if err != nil {
 			return nil, nil, fmt.Errorf("config non-parsable and unable to determine service name from profile arn, error: %v", err)
 		}
 	}
-	return config, configAccount, nil
+	return cfg, cfgAccount, nil
 }
 
-func getAccessProfileConfig(fileName, roleInfix, metaEndPoint string) (*ConfigAccount, *AccessProfileConfig, error) {
+func getAccessProfileConfig(fileName, metaEndPoint string) (*ConfigAccount, *AccessProfileConfig, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
 	profileConfig, err := InitAccessProfileFileConfig(fileName)
 	var configAccount *ConfigAccount = nil
@@ -148,7 +148,7 @@ func getUserGid(name string) int {
 }
 
 func getGid(t *testing.T, group string) int {
-	out, err := ioutil.ReadFile("/etc/group")
+	out, err := os.ReadFile("/etc/group")
 	require.Nil(t, err)
 
 	for _, line := range strings.Split(string(out), "\n") {
@@ -177,8 +177,8 @@ func TestOptionsNoConfig(t *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	config, configAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2")
-	opts, e := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
+	cfg, cfgAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
@@ -202,7 +202,7 @@ func TestOptionsNoProfileConfig(t *testing.T) {
 	metaServer.start(router)
 	defer metaServer.stop()
 
-	configAccount, profileConfig, err := getAccessProfileConfig("data/profile_config.empty", "-service@", metaServer.httpUrl())
+	configAccount, profileConfig, err := getAccessProfileConfig("data/profile_config.empty", metaServer.httpUrl())
 	require.Nilf(t, err, "error should be empty, error: %v", err)
 
 	opts, e := setOptions(nil, configAccount, profileConfig, "/tmp", "1.0.0")
@@ -218,9 +218,9 @@ func TestOptionsNoProfileConfig(t *testing.T) {
 
 // TestOptionsWithProfileConfig test the scenario when profile config file is present
 func TestOptionsWithProfileConfig(t *testing.T) {
-	_, profileConfig, _ := getAccessProfileConfig("data/profile_config", "-service@", "http://localhost:80")
-	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
-	opts, e := setOptions(config, configAccount, profileConfig, "/tmp", "1.0.0")
+	_, profileConfig, _ := getAccessProfileConfig("data/profile_config", "http://localhost:80")
+	cfg, cfgAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, profileConfig, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 	assert.True(t, opts.RefreshInterval == 1440)
@@ -242,8 +242,8 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 
 // TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
 func TestOptionsWithConfig(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
-	opts, e := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
+	cfg, cfgAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 	assert.True(t, opts.RefreshInterval == 1440)
@@ -262,18 +262,18 @@ func TestOptionsWithConfig(t *testing.T) {
 
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
 func TestOptionsNoService(t *testing.T) {
-	config, configAccount, e := getConfig("data/sia_no_service", "-service", "http://localhost:80", false, "us-west-2")
+	cfg, cfgAccount, e := getConfig("data/sia_no_service", "-service", "http://localhost:80", false, "us-west-2")
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 
-	config, configAccount, _ = getConfig("data/sia_no_service2", "-service", "http://localhost:80", false, "us-west-2")
-	_, e = setOptions(config, configAccount, nil, "/tmp", "1.0.0")
+	cfg, cfgAccount, _ = getConfig("data/sia_no_service2", "-service", "http://localhost:80", false, "us-west-2")
+	_, e = setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.NotNilf(t, e, "error should be thrown, error: %v", e)
 }
 
 // TestOptionsNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
 func TestOptionsNoServices(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2")
-	opts, e := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
+	cfg, cfgAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RefreshInterval == 120)
 	assert.True(t, opts.ZTSRegion == "us-west-2")
@@ -286,42 +286,81 @@ func TestOptionsNoServices(t *testing.T) {
 }
 
 func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_generate_role_key", "-service", "http://localhost:80", false, "us-west-2")
-	opts, e := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
+	cfg, cfgAccount, _ := getConfig("data/sia_generate_role_key", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
 }
 
 func TestOptionsWithRotateKeyConfig(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_rotate_key", "-service", "http://localhost:80", false, "us-west-2")
-	opts, e := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
+	cfg, cfgAccount, _ := getConfig("data/sia_rotate_key", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.RotateKey == true)
 }
 
-func TestOptionsMultipleUsers(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
-	opts, _ := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
-	uid, gid := GetRunsAsUidGid(opts)
-	assert.True(t, uid == -1)
-	assert.True(t, gid == -1)
-}
+func TestGetRunsAsUidGid(t *testing.T) {
 
-func TestOptionsSingleUser(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_config_same_user", "-service", "http://localhost:80", false, "us-west-2")
-	opts, _ := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
-	uid, gid := GetRunsAsUidGid(opts)
-	assert.True(t, uid == getUid("nobody"))
-	assert.True(t, gid == getUserGid("nobody"))
-}
+	tests := map[string]struct {
+		filename       string
+		uid            int
+		gid            int
+		keepPrivileges bool
+	}{
+		"single-user-with-roles1": {
+			filename:       "data/sia_config_same_user_with_roles",
+			uid:            getUid("nobody"),
+			gid:            getUserGid("nobody"),
+			keepPrivileges: false,
+		},
+		"multiple-users": {
+			filename:       "data/sia_config",
+			uid:            -1,
+			gid:            -1,
+			keepPrivileges: false,
+		},
+		"multiple-users-with-roles": {
+			filename:       "data/sia_config_with_roles",
+			uid:            -1,
+			gid:            -1,
+			keepPrivileges: false,
+		},
+		"single-user": {
+			filename:       "data/sia_config_same_user",
+			uid:            getUid("nobody"),
+			gid:            getUserGid("nobody"),
+			keepPrivileges: false,
+		},
+		"single-user-with-roles": {
+			filename:       "data/sia_config_same_user_with_roles",
+			uid:            getUid("nobody"),
+			gid:            getUserGid("nobody"),
+			keepPrivileges: false,
+		},
+		"single-user-keep": {
+			filename:       "data/sia_config_same_user",
+			uid:            -1,
+			gid:            -1,
+			keepPrivileges: true,
+		},
+		"single-user-role-mismatch": {
+			filename:       "data/sia_config_same_user_role_mismatch",
+			uid:            -1,
+			gid:            -1,
+			keepPrivileges: false,
+		},
+	}
 
-func TestOptionsSingleUserKeepConfigured(t *testing.T) {
-	config, configAccount, _ := getConfig("data/sia_config_same_user", "-service", "http://localhost:80", false, "us-west-2")
-	config.KeepPrivileges = true
-	opts, _ := setOptions(config, configAccount, nil, "/tmp", "1.0.0")
-	uid, gid := GetRunsAsUidGid(opts)
-	assert.True(t, uid == -1)
-	assert.True(t, gid == -1)
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			cfg, cfgAccount, _ := getConfig(tt.filename, "-service", "http://localhost:80", false, "us-west-2")
+			cfg.KeepPrivileges = tt.keepPrivileges
+			opts, _ := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
+			uid, gid := GetRunsAsUidGid(opts)
+			assert.True(t, uid == tt.uid)
+			assert.True(t, gid == tt.gid)
+		})
+	}
 }
 
 func toServiceNames(services []Service) []string {
@@ -422,6 +461,28 @@ func TestInvalidAccessTokenDomain(t *testing.T) {
 	require.Nil(t, opts)
 }
 
+func TestGetRoleServiceOwner(t *testing.T) {
+	services := []Service{
+		{
+			Name: "svc1",
+		},
+		{
+			Name: "svc2",
+		},
+	}
+	svc := getRoleServiceOwner("", services)
+	assert.True(t, svc.Name == "svc1")
+
+	svc = getRoleServiceOwner("svc1", services)
+	assert.True(t, svc.Name == "svc1")
+
+	svc = getRoleServiceOwner("svc2", services)
+	assert.True(t, svc.Name == "svc2")
+
+	svc = getRoleServiceOwner("svc3", services)
+	assert.True(t, svc.Name == "svc1")
+}
+
 func assertToken(tokens []config.AccessToken, token config.AccessToken) bool {
 	log.Printf("Looking for Token: %+v", token)
 	for _, t := range tokens {
@@ -449,4 +510,44 @@ func idCommandId(arg string) int {
 		log.Fatalf("Unexpected UID/GID format in user record: %s\n", string(out))
 	}
 	return id
+}
+
+func TestInitEnvConfig(t *testing.T) {
+	os.Setenv("ATHENZ_SIA_SANDNS_WILDCARD", "true")
+	os.Setenv("ATHENZ_SIA_REGIONAL_STS", "true")
+	os.Setenv("ATHENZ_SIA_GENERATE_ROLE_KEY", "true")
+	os.Setenv("ATHENZ_SIA_ROTATE_KEY", "false")
+	os.Setenv("ATHENZ_SIA_USER", "root")
+	os.Setenv("ATHENZ_SIA_GROUP", "nobody")
+	os.Setenv("ATHENZ_SIA_SDS_UDS_PATH", "/tmp/uds")
+	os.Setenv("ATHENZ_SIA_SDS_UDS_UID", "1336")
+	os.Setenv("ATHENZ_SIA_EXPIRY_TIME", "10001")
+	os.Setenv("ATHENZ_SIA_REFRESH_INTERVAL", "120")
+	os.Setenv("ATHENZ_SIA_ZTS_REGION", "us-west-3")
+	os.Setenv("ATHENZ_SIA_KEEP_PRIVILEGES", "true")
+	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
+	os.Setenv("ATHENZ_SIA_ACCOUNT_ROLES", "{\"sports:role.readers\":{\"service\":\"api\"},\"sports:role.writers\":{\"user\": \"nobody\"}}")
+
+	cfg, cfgAccount, err := InitEnvConfig(nil)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	assert.True(t, cfg.SanDnsWildcard)
+	assert.True(t, cfg.UseRegionalSTS)
+	assert.True(t, cfg.GenerateRoleKey)
+	assert.False(t, cfg.RotateKey)
+	assert.Equal(t, cfg.User, "root")
+	assert.Equal(t, cfg.Group, "nobody")
+	assert.Equal(t, cfg.SDSUdsPath, "/tmp/uds")
+	assert.Equal(t, cfg.SDSUdsUid, 1336)
+	assert.Equal(t, cfg.ExpiryTime, 10001)
+	assert.Equal(t, cfg.RefreshInterval, 120)
+	assert.Equal(t, cfg.ZTSRegion, "us-west-3")
+	assert.True(t, cfg.KeepPrivileges)
+
+	assert.True(t, cfgAccount.Account == "123456789012")
+	assert.True(t, cfgAccount.Domain == "athenz")
+	assert.True(t, cfgAccount.Service == "api")
+	assert.True(t, cfgAccount.Name == "athenz.api")
+	assert.True(t, len(cfgAccount.Roles) == 2)
+
+	os.Clearenv()
 }
