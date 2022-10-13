@@ -388,12 +388,12 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("StaticWorkload", "DELETE", "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/static")
+        sb.resource("StaticWorkload", "DELETE", "/domain/{domainName}/service/{serviceName}/name/{name}/workload/static")
             .comment("Api to perform a static workload DELETE operation for a domain, service, and instance")
             .name("deleteStaticWorkload")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
-            .pathParam("instanceId", "PathElement", "unique instance id within provider's namespace")
+            .pathParam("name", "String", "name associated with the workload. In most cases will be a FQDN")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")

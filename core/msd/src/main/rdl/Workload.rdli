@@ -86,10 +86,10 @@ resource StaticWorkload PUT "/domain/{domainName}/service/{serviceName}/workload
 }
 
 // Api to perform a static workload DELETE operation for a domain, service, and instance
-resource StaticWorkload DELETE "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/static" (name=deleteStaticWorkload) {
+resource StaticWorkload DELETE "/domain/{domainName}/service/{serviceName}/name/{name}/workload/static" (name=deleteStaticWorkload) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
-    PathElement instanceId; //unique instance id within provider's namespace
+    String name; // name associated with the workload. In most cases will be a FQDN
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {

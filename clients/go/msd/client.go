@@ -562,8 +562,8 @@ func (client MSDClient) PutStaticWorkload(domainName DomainName, serviceName Ent
 	}
 }
 
-func (client MSDClient) DeleteStaticWorkload(domainName DomainName, serviceName EntityName, instanceId PathElement) error {
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/instanceId/" + fmt.Sprint(instanceId) + "/workload/static"
+func (client MSDClient) DeleteStaticWorkload(domainName DomainName, serviceName EntityName, name string) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/name/" + name + "/workload/static"
 	resp, err := client.httpDelete(url, nil)
 	if err != nil {
 		return err

@@ -212,6 +212,23 @@ public class MSDClient implements Closeable {
     }
 
     /**
+     * Api to perform a dynamic workload Delete operation for a domain, service and name
+     *
+     * @param domain  name of the domain
+     * @param service name of the service
+     * @param instanceId instanceId of the host
+     */
+    public void deleteDynamicWorkload(String domain, String service, String instanceId) {
+        try {
+            client.deleteDynamicWorkload(domain, service, instanceId);
+        } catch (ResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Api to perform a static workload PUT operation for a domain and service
      *
      * @param domain         name of the domain
@@ -222,6 +239,23 @@ public class MSDClient implements Closeable {
     public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
         try {
             return client.putStaticWorkload(domain, service, staticWorkload);
+        } catch (ResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Api to perform a static workload Delete operation for a domain, service and name
+     *
+     * @param domain  name of the domain
+     * @param service name of the service
+     * @param name name of the static workload
+     */
+    public void deleteStaticWorkload(String domain, String service, String name) {
+        try {
+            client.deleteStaticWorkload(domain, service, name);
         } catch (ResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

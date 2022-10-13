@@ -101,11 +101,33 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     }
 
     @Override
+    public WorkloadOptions deleteDynamicWorkload(String domain, String service, String instanceId) {
+        if ("bad-domain".equals(domain)) {
+            throw new ResourceException(404, "unknown domain");
+        }
+        if (service == null) {
+            throw new RuntimeException("bad request");
+        }
+        return null;
+    }
+
+    @Override
     public StaticWorkload putStaticWorkload(String domain, String service, StaticWorkload staticWorkload) {
         if ("bad-domain".equals(domain)) {
             throw new ResourceException(404, "unknown domain");
         }
         if (staticWorkload == null) {
+            throw new RuntimeException("bad request");
+        }
+        return null;
+    }
+
+    @Override
+    public StaticWorkload deleteStaticWorkload(String domain, String service, String name) {
+        if ("bad-domain".equals(domain)) {
+            throw new ResourceException(404, "unknown domain");
+        }
+        if (service == null) {
             throw new RuntimeException("bad request");
         }
         return null;
