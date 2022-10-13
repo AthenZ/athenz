@@ -46,14 +46,15 @@ const (
 
 // TokenOptions holds all the configurable options for driving Access Tokens functionality
 type TokenOptions struct {
-	Domain       string            // Domain of the instance
-	Services     []string          // Services set on the instance
-	TokenDir     string            // Directory where tokens will be saved, typically /var/lib/sia/tokens
-	Tokens       []AccessToken     // List of Access Tokens with their configuration
-	CertDir      string            // Directory where certs can be found, typically /var/lib/sia/certs
-	KeyDir       string            // Directory where keys can be found, typically /var/lib/sia/keys
-	ZtsUrl       string            // ZTS endpoint
-	UserAgent    string            // User Agent string to be sent in the client call to ZTS, typically a client version
-	TokenRefresh time.Duration     // Token refresh interval
-	StoreOptions StoreTokenOptions // Store token option
+	Domain          string            // Domain of the instance
+	Services        []string          // Services set on the instance
+	TokenDir        string            // Directory where tokens will be saved, typically /var/lib/sia/tokens
+	Tokens          []AccessToken     // List of Access Tokens with their configuration
+	CertDir         string            // Directory where certs can be found, typically /var/lib/sia/certs
+	KeyDir          string            // Directory where keys can be found, typically /var/lib/sia/keys
+	ZtsUrl          string            // ZTS endpoint
+	UserAgent       string            // User Agent string to be sent in the client call to ZTS, typically a client version
+	TokenRefresh    time.Duration     // Token refresh interval
+	StoreOptions    StoreTokenOptions // Store token option
+	ExpiryThreshold int               // Called specified expiry in minutes for refresh
 }

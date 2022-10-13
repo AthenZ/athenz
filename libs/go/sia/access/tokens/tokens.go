@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,9 +39,9 @@ import (
 )
 
 const (
-	USER_AGENT                = "User-Agent"
-	TOKEN_REFRESH_PERIOD_PROP = "TOKEN_REFRESH_PERIOD"
-	DEFAULT_REFRESH_DURATION  = "1.5h"
+	UserAgent              = "User-Agent"
+	TokenRefreshPeriodProp = "TOKEN_REFRESH_PERIOD"
+	DefaultRefreshDuration = "1.5h"
 )
 
 // ToBeRefreshed looks into /var/lib/sia/tokens folder and returns the list of tokens whose
@@ -74,7 +73,7 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 				continue
 			}
 		} else {
-			content, err := ioutil.ReadFile(tpath)
+			content, err := os.ReadFile(tpath)
 			if err != nil {
 				errs = append(errs, fmt.Errorf("token: %s exists, but could not read it, err: %v", tpath, err))
 				continue
@@ -106,13 +105,18 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 
 			validityDuration, validityDurationRemaining, err := CheckExpiry(claims, currentTime)
 			if err != nil {
-				// token expired - refreh immediately
+				// token expired - refresh immediately
 				refresh = append(refresh, t)
 				continue
 			}
 
 			// If the token age is more than half of token's total validity, refresh the token
 			if (validityDurationRemaining * 2) < validityDuration {
+				refresh = append(refresh, t)
+			}
+			// if we have a threshold specified, also verify that the token is valid for
+			// the given number of minutes
+			if opts.ExpiryThreshold > 0 && validityDurationRemaining <= float64(opts.ExpiryThreshold) {
 				refresh = append(refresh, t)
 			}
 		}
@@ -145,7 +149,7 @@ func Fetch(opts *config.TokenOptions) ([]string, []error) {
 		client.Transport = &http.Transport{
 			TLSClientConfig: c,
 		}
-		client.AddCredentials(USER_AGENT, opts.UserAgent)
+		client.AddCredentials(UserAgent, opts.UserAgent)
 
 		res, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(makeTokenRequest(t.Domain, t.Roles, t.Expiry)))
 		if err != nil {
@@ -241,22 +245,23 @@ func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) 
 		return nil, fmt.Errorf("unable to create access-token directories, err: %v", err)
 	}
 
-	tokenRefreshPeriod := util.EnvOrDefault(TOKEN_REFRESH_PERIOD_PROP, DEFAULT_REFRESH_DURATION)
+	tokenRefreshPeriod := util.EnvOrDefault(TokenRefreshPeriodProp, DefaultRefreshDuration)
 	tokenRefresh, err := time.ParseDuration(tokenRefreshPeriod)
 	if err != nil {
 		return nil, fmt.Errorf("invalid token refresh period %q, %v", tokenRefreshPeriod, err)
 	}
 
 	tokenOpts := &config.TokenOptions{
-		Domain:       options.Domain,
-		Services:     toServiceNames(options.Services),
-		TokenDir:     options.TokenDir,
-		Tokens:       options.AccessTokens,
-		CertDir:      options.CertDir,
-		KeyDir:       options.KeyDir,
-		ZtsUrl:       ztsUrl,
-		UserAgent:    userAgent,
-		TokenRefresh: tokenRefresh,
+		Domain:          options.Domain,
+		Services:        toServiceNames(options.Services),
+		TokenDir:        options.TokenDir,
+		Tokens:          options.AccessTokens,
+		CertDir:         options.CertDir,
+		KeyDir:          options.KeyDir,
+		ZtsUrl:          ztsUrl,
+		UserAgent:       userAgent,
+		TokenRefresh:    tokenRefresh,
+		ExpiryThreshold: 0,
 	}
 	return tokenOpts, nil
 }
@@ -296,7 +301,7 @@ func CheckExpiry(claims map[string]interface{}, now time.Time) (float64, float64
 	validityDurationRemaining := tokenExpiry.Sub(now).Minutes()
 
 	if validityDurationRemaining < 0 {
-		return 0, 0, fmt.Errorf("Access token expired: %v, CurrentTime: %v", tokenExpiry, now)
+		return 0, 0, fmt.Errorf("access token expired: %v, CurrentTime: %v", tokenExpiry, now)
 	}
 
 	return validityDuration, validityDurationRemaining, nil
