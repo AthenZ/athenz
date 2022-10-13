@@ -218,7 +218,7 @@ const mapDispatchToProps = (dispatch) => ({
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
     getGroup: (domainName, groupName) =>
-        dispatch(getGroup(domainName, groupName)),
+        dispatch(getGroup(domainName, groupName, true)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(GroupHistoryPage);

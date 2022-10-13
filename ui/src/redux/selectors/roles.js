@@ -43,19 +43,21 @@ const buildUserMapFromRoles = (roles) => {
     let userMap = {};
     for (const [roleName, role] of Object.entries(roles)) {
         for (let [memberName, member] of Object.entries(role.roleMembers)) {
-            if (userMap[memberName]) {
-                userMap[memberName].memberRoles.push({
-                    roleName: roleName,
-                    expiration: member.expiration,
-                });
-            } else {
-                userMap[member.memberName] = { ...member };
-                userMap[member.memberName].memberRoles = [
-                    {
+            if (member.approved === undefined || member.approved === true) {
+                if (userMap[memberName]) {
+                    userMap[memberName].memberRoles.push({
                         roleName: roleName,
                         expiration: member.expiration,
-                    },
-                ];
+                    });
+                } else {
+                    userMap[member.memberName] = { ...member };
+                    userMap[member.memberName].memberRoles = [
+                        {
+                            roleName: roleName,
+                            expiration: member.expiration,
+                        },
+                    ];
+                }
             }
         }
     }

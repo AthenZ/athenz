@@ -201,7 +201,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         headerDetails: selectHeaderDetails(state),
-        pending: selectPendingMembersList(state),
+        pending: selectPendingMembersList(state, null, 'admin'),
     };
 };
 

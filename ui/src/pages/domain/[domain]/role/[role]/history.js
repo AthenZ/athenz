@@ -199,7 +199,8 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => ({
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
-    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName)),
+    getRole: (domainName, roleName) =>
+        dispatch(getRole(domainName, roleName, true)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RoleHistoryPage);

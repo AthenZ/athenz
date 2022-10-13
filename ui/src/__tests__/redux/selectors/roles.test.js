@@ -67,6 +67,14 @@ describe('test role selectors', () => {
                             principalType: 1,
                             memberFullName: 'user.user2',
                         },
+                        'user.user3': {
+                            active: false,
+                            approved: false,
+                            auditRef: 'added using Athenz UI',
+                            expiration: expiry,
+                            memberFullName: 'user.user3',
+                            requestedTime: expiry,
+                        },
                     },
                     lastReviewedDate: '2022-07-18T13:42:54.907Z',
                 },
@@ -337,7 +345,6 @@ describe('test role selectors', () => {
                     ],
                 },
             ];
-            const c = selectRoleUsers(stateWithRoles);
             expect(selectRoleUsers(stateWithRoles)).toEqual(expectedRoleUsers);
         });
         it('should return empty list', () => {

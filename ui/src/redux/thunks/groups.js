@@ -119,12 +119,12 @@ export const reviewGroup =
     };
 
 export const getGroup =
-    (domainName, groupName) => async (dispatch, getState) => {
+    (domainName, groupName, forceCall) => async (dispatch, getState) => {
         try {
             groupName = groupName.toLowerCase();
             await dispatch(getGroups(domainName));
             let group = thunkSelectGroup(getState(), domainName, groupName);
-            if (group.auditLog) {
+            if (!forceCall && group.auditLog) {
                 dispatch(returnGroups());
             } else {
                 await getGroupApiCall(domainName, groupName, dispatch);

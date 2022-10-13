@@ -261,7 +261,7 @@ describe('Roles Reducer', () => {
         const newState = roles(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
-    it('should review role1 from the store', () => {
+    it('should delete by review role1 from the store', () => {
         const initialState = {
             roles: AppUtils.deepClone(configStoreRoles),
             domainName: domainName,
@@ -278,6 +278,14 @@ describe('Roles Reducer', () => {
                             expiration: expiry,
                             principalType: 1,
                             memberFullName: 'user.user2',
+                        },
+                        'user.user3': {
+                            active: false,
+                            approved: false,
+                            auditRef: 'added using Athenz UI',
+                            expiration: expiry,
+                            memberFullName: 'user.user3',
+                            requestedTime: expiry,
                         },
                     },
                     lastReviewedDate: '2022-07-18T13:42:54.907Z',
