@@ -242,6 +242,202 @@ public class MSDSchema {
             .field("effect", "NetworkPolicyChangeEffect", false, "enum indicating effect of network policy change on one or more transport policies")
             .arrayField("details", "NetworkPolicyChangeImpactDetail", true, "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies");
 
+        sb.stringType("rdl.Identifier")
+            .comment("All names need to be of this restricted string type")
+            .pattern("[a-zA-Z_]+[a-zA-Z_0-9]*");
+
+        sb.stringType("rdl.NamespacedIdentifier")
+            .comment("A Namespace is a dotted compound name, using reverse domain name order (i.e. \"com.yahoo.auth\")")
+            .pattern("([a-zA-Z_]+[a-zA-Z_0-9]*)(\\.[a-zA-Z_]+[a-zA-Z_0-9])*");
+
+    
+
+    
+
+        sb.enumType("rdl.BaseType")
+            .element("Bool")
+            .element("Int8")
+            .element("Int16")
+            .element("Int32")
+            .element("Int64")
+            .element("Float32")
+            .element("Float64")
+            .element("Bytes")
+            .element("String")
+            .element("Timestamp")
+            .element("Symbol")
+            .element("UUID")
+            .element("Array")
+            .element("Map")
+            .element("Struct")
+            .element("Enum")
+            .element("Union")
+            .element("Any");
+
+        sb.stringType("rdl.ExtendedAnnotation")
+            .comment("ExtendedAnnotation - parsed and preserved, but has no defined meaning in RDL. Such annotations must begin with \"x_\", and may have an associated string literal value (the value will be \"\" if the annotation is just a flag).")
+            .pattern("x_[a-zA-Z_0-9]*");
+
+        sb.structType("rdl.TypeDef")
+            .comment("TypeDef is the basic type definition.")
+            .field("type", "rdl.TypeRef", false, "The type this type is derived from. For base types, it is the same as the name")
+            .field("name", "rdl.TypeName", false, "The name of the type")
+            .field("comment", "String", true, "The comment for the type")
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
+
+        sb.structType("rdl.AliasTypeDef", "rdl.TypeDef")
+            .comment("AliasTypeDef is used for type definitions that add no additional attributes, and thus just create an alias");
+
+        sb.structType("rdl.BytesTypeDef", "rdl.TypeDef")
+            .comment("Bytes allow the restriction by fixed size, or min/max size.")
+            .field("size", "Int32", true, "Fixed size")
+            .field("minSize", "Int32", true, "Min size")
+            .field("maxSize", "Int32", true, "Max size");
+
+        sb.structType("rdl.StringTypeDef", "rdl.TypeDef")
+            .comment("Strings allow the restriction by regular expression pattern or by an explicit set of values. An optional maximum size may be asserted")
+            .field("pattern", "String", true, "A regular expression that must be matched. Mutually exclusive with values")
+            .arrayField("values", "String", true, "A set of allowable values")
+            .field("minSize", "Int32", true, "Min size")
+            .field("maxSize", "Int32", true, "Max size");
+
+        sb.unionType("rdl.Number")
+            .comment("A numeric is any of the primitive numeric types")
+            .variant("Int8")
+            .variant("Int16")
+            .variant("Int32")
+            .variant("Int64")
+            .variant("Float32")
+            .variant("Float64");
+
+        sb.structType("rdl.NumberTypeDef", "rdl.TypeDef")
+            .comment("A number type definition allows the restriction of numeric values.")
+            .field("min", "rdl.Number", true, "Min value")
+            .field("max", "rdl.Number", true, "Max value");
+
+        sb.structType("rdl.ArrayTypeDef", "rdl.TypeDef")
+            .comment("Array types can be restricted by item type and size")
+            .field("items", "rdl.TypeRef", false, "The type of the items, default to any type", null)
+            .field("size", "Int32", true, "If present, indicate the fixed size.")
+            .field("minSize", "Int32", true, "If present, indicate the min size")
+            .field("maxSize", "Int32", true, "If present, indicate the max size");
+
+        sb.structType("rdl.MapTypeDef", "rdl.TypeDef")
+            .comment("Map types can be restricted by key type, item type and size")
+            .field("keys", "rdl.TypeRef", false, "The type of the keys, default to String.", null)
+            .field("items", "rdl.TypeRef", false, "The type of the items, default to Any type", null)
+            .field("size", "Int32", true, "If present, indicates the fixed size.")
+            .field("minSize", "Int32", true, "If present, indicate the min size")
+            .field("maxSize", "Int32", true, "If present, indicate the max size");
+
+        sb.structType("rdl.StructFieldDef")
+            .comment("Each field in a struct_field_spec is defined by this type")
+            .field("name", "rdl.Identifier", false, "The name of the field")
+            .field("type", "rdl.TypeRef", false, "The type of the field")
+            .field("optional", "Bool", false, "The field may be omitted even if specified", false)
+            .field("default", "Any", true, "If field is absent, what default value should be assumed.")
+            .field("comment", "String", true, "The comment for the field")
+            .field("items", "rdl.TypeRef", true, "For map or array fields, the type of the items")
+            .field("keys", "rdl.TypeRef", true, "For map type fields, the type of the keys")
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
+
+        sb.structType("rdl.StructTypeDef", "rdl.TypeDef")
+            .comment("A struct can restrict specific named fields to specific types. By default, any field not specified is allowed, and can be of any type. Specifying closed means only those fields explicitly")
+            .arrayField("fields", "rdl.StructFieldDef", false, "The fields in this struct. By default, open Structs can have any fields in addition to these")
+            .field("closed", "Bool", false, "indicates that only the specified fields are acceptable. Default is open (any fields)", false);
+
+        sb.structType("rdl.EnumElementDef")
+            .comment("EnumElementDef defines one of the elements of an Enum")
+            .field("symbol", "rdl.Identifier", false, "The identifier representing the value")
+            .field("comment", "String", true, "the comment for the element")
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
+
+        sb.structType("rdl.EnumTypeDef", "rdl.TypeDef")
+            .comment("Define an enumerated type. Each value of the type is represented by a symbolic identifier.")
+            .arrayField("elements", "rdl.EnumElementDef", false, "The enumeration of the possible elements");
+
+        sb.structType("rdl.UnionTypeDef", "rdl.TypeDef")
+            .comment("Define a type as one of any other specified type.")
+            .arrayField("variants", "rdl.TypeRef", false, "The type names of constituent types. Union types get expanded, this is a flat list");
+
+        sb.unionType("rdl.Type")
+            .comment("A Type can be specified by any of the above specialized Types, determined by the value of the the 'type' field")
+            .variant("rdl.BaseType")
+            .variant("rdl.StructTypeDef")
+            .variant("rdl.MapTypeDef")
+            .variant("rdl.ArrayTypeDef")
+            .variant("rdl.EnumTypeDef")
+            .variant("rdl.UnionTypeDef")
+            .variant("rdl.StringTypeDef")
+            .variant("rdl.BytesTypeDef")
+            .variant("rdl.NumberTypeDef")
+            .variant("rdl.AliasTypeDef");
+
+        sb.structType("rdl.ResourceInput")
+            .comment("ResourceOutput defines input characteristics of a Resource")
+            .field("name", "rdl.Identifier", false, "the formal name of the input")
+            .field("type", "rdl.TypeRef", false, "The type of the input")
+            .field("comment", "String", true, "The optional comment")
+            .field("pathParam", "Bool", false, "true of this input is a path parameter", false)
+            .field("queryParam", "String", true, "if present, the name of the query param name")
+            .field("header", "String", true, "If present, the name of the header the input is associated with")
+            .field("pattern", "String", true, "If present, the pattern associated with the pathParam (i.e. wildcard path matches)")
+            .field("default", "Any", true, "If present, the default value for optional params")
+            .field("optional", "Bool", false, "If present, indicates that the input is optional", false)
+            .field("flag", "Bool", false, "If present, indicates the queryparam is of flag style (no value)", false)
+            .field("context", "String", true, "If present, indicates the parameter comes form the implementation context")
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
+
+        sb.structType("rdl.ResourceOutput")
+            .comment("ResourceOutput defines output characteristics of a Resource")
+            .field("name", "rdl.Identifier", false, "the formal name of the output")
+            .field("type", "rdl.TypeRef", false, "The type of the output")
+            .field("header", "String", false, "the name of the header associated with this output")
+            .field("comment", "String", true, "The optional comment for the output")
+            .field("optional", "Bool", false, "If present, indicates that the output is optional (the server decides)", false)
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
+
+        sb.structType("rdl.ResourceAuth")
+            .comment("ResourceAuth defines authentication and authorization attributes of a resource. Presence of action, resource, or domain implies authentication; the authentication flag alone is required only when no authorization is done.")
+            .field("authenticate", "Bool", false, "if present and true, then the requester must be authenticated", false)
+            .field("action", "String", true, "the action to authorize access to. This forces authentication")
+            .field("resource", "String", true, "the resource identity to authorize access to")
+            .field("domain", "String", true, "if present, the alternate domain to check access to. This is rare.");
+
+        sb.structType("rdl.ExceptionDef")
+            .comment("ExceptionDef describes the exception a symbolic response code maps to.")
+            .field("type", "String", false, "The type of the exception")
+            .field("comment", "String", true, "the optional comment for the exception");
+
+        sb.structType("rdl.Resource")
+            .comment("A Resource of a REST service")
+            .field("type", "rdl.TypeRef", false, "The type of the resource")
+            .field("method", "String", false, "The method for the action (typically GET, POST, etc for HTTP access)")
+            .field("path", "String", false, "The resource path template")
+            .field("comment", "String", true, "The optional comment")
+            .arrayField("inputs", "rdl.ResourceInput", true, "An Array named inputs")
+            .arrayField("outputs", "rdl.ResourceOutput", true, "An Array of named outputs")
+            .field("auth", "rdl.ResourceAuth", true, "The optional authentication or authorization directive")
+            .field("expected", "String", false, "The expected symbolic response code", "OK")
+            .arrayField("alternatives", "String", true, "The set of alternative but non-error response codes")
+            .mapField("exceptions", "String", "rdl.ExceptionDef", true, "A map of symbolic response code to Exception definitions")
+            .field("async", "Bool", true, "A hint to server implementations that this resource would be better implemented with async I/O")
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"")
+            .arrayField("consumes", "String", true, "Optional hint for resource acceptable input types")
+            .arrayField("produces", "String", true, "Optional hint for resource output content types")
+            .field("name", "rdl.Identifier", true, "The optional name of the resource");
+
+        sb.structType("rdl.Schema")
+            .comment("A Schema is a container for types and resources. It is self-contained (no external references). and is the output of the RDL parser.")
+            .field("namespace", "rdl.NamespacedIdentifier", true, "The namespace for the schema")
+            .field("name", "rdl.Identifier", true, "The name of the schema")
+            .field("version", "Int32", true, "The version of the schema")
+            .field("comment", "String", true, "The comment for the entire schema")
+            .arrayField("types", "rdl.Type", true, "The types this schema defines.")
+            .arrayField("resources", "rdl.Resource", true, "The resources for a service this schema defines")
+            .field("base", "String", true, "the base path for resources in the schema.")
+            .mapField("annotations", "rdl.ExtendedAnnotation", "String", true, "additional annotations starting with \"x_\"");
+
 
         sb.resource("TransportPolicyRules", "GET", "/transportpolicies")
             .comment("API endpoint to get the transport policy rules defined in Athenz")
@@ -423,6 +619,11 @@ public class MSDSchema {
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
+
+        sb.resource("rdl.Schema", "GET", "/schema")
+            .comment("Get RDL Schema")
+            .auth("", "", true)
+            .expected("OK");
 
 
         return sb.build();
