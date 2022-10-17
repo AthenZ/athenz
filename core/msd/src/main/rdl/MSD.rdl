@@ -11,3 +11,4 @@ namespace com.yahoo.athenz.msd;
 include "TransportPolicyRule.rdli";
 include "Workload.rdli";
 include "NetworkPolicy.rdli";
+include "Schema.rdli";

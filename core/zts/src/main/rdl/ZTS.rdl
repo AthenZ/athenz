@@ -23,4 +23,5 @@ include "OAuth.rdli";
 include "RoleCert.rdli";
 include "Workload.rdli";
 include "TransportRule.rdli";
-include "Info.rdli"
+include "Info.rdli";
+include "Schema.rdli";

@@ -143,6 +143,7 @@ import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import com.yahoo.rdl.Schema;
 
 public class {{cName}}Client {
 

@@ -24,8 +24,9 @@ include "Template.rdli";
 include "User.rdli";
 include "Quota.rdli";
 include "Status.rdli";
-include "DomainRoleMembership.rdli"
-include "Authority.rdli"
-include "Stats.rdli"
-include "Dependency.rdli"
-include "Info.rdli"
+include "DomainRoleMembership.rdli";
+include "Authority.rdli";
+include "Stats.rdli";
+include "Dependency.rdli";
+include "Info.rdli";
+include "Schema.rdli";

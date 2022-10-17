@@ -5,14 +5,7 @@
 // The Authorization Token Service (ZTS) API
 //
 name ZTS;
-use "rdl";
 version 1;
 namespace com.yahoo.athenz.zts;
 
 include "../../../../../core/zts/src/main/rdl/ZTS.rdl";
-
-// Get RDL Schema
-resource rdl.Schema GET "/schema" {
-    authenticate;
-    expected OK;
-}
