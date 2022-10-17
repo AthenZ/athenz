@@ -1,8 +1,18 @@
+Athenz v1.11.12 Release / Oct 17, 2022
+--------------------------------------
+
+#1972 Delete static workload expects resource name and not instanceId
+#1985 UI: Fix pipeline
+#1986 UI: Change the api file
+#1987 extend role support in identity agent to specify service ownership
+#1988 support new expiry threshold setting for access token refresh
+#1990 expose getRdlSchema api endpoint in clients
+
 Athenz v1.11.11 Release / Oct 10, 2022
 --------------------------------------
 
-#1973 UI: Fix pec file by @royelbaum in #1973
-#1976 UI: ipgrade multer version by @royelbaum in #1976
+#1973 UI: Fix spec file
+#1976 UI: upgrade multer version
 #1977 UI: fix integration test cases
 #1978 fix putServiceIdentity logic to allow update of exising pubKey
 #1980 UI: fix integration test cases
