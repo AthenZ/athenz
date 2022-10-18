@@ -290,6 +290,19 @@ func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
 	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.True(t, opts.GenerateRoleKey == true)
+	assert.Equal(t, 2, len(opts.Roles))
+	count := 0
+	for _, role := range opts.Roles {
+		switch role.Name {
+		case "sports:role.readers":
+			assert.Equal(t, 0440, role.FileMode)
+			count += 1
+		case "sports:role.writers":
+			assert.Equal(t, 0440, role.FileMode)
+			count += 1
+		}
+	}
+	assert.Equal(t, 2, count)
 }
 
 func TestOptionsWithRotateKeyConfig(t *testing.T) {

@@ -522,18 +522,19 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 			Service:    roleService.Name,
 			Filename:   r.Filename,
 			ExpiryTime: r.ExpiryTime,
-			FileMode:   0444,
+			FileMode:   roleService.FileMode,
 		}
 		role.Uid = roleService.Uid
 		role.Gid = roleService.Gid
 		// override the uid/gid values if specified at role level
 		if r.User != "" || r.Group != "" {
-			rUid, rGid, _ := util.SvcAttrs(r.User, r.Group)
+			rUid, rGid, fileMode := util.SvcAttrs(r.User, r.Group)
 			if r.User != "" {
 				role.Uid = rUid
 			}
 			if r.Group != "" {
 				role.Gid = rGid
+				role.FileMode = fileMode
 			}
 		}
 		roles = append(roles, role)
