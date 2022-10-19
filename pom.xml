@@ -72,14 +72,14 @@
 
   <properties>
     <apache.httpclient.version>4.5.13</apache.httpclient.version>
-    <aws.version>1.12.310</aws.version>
-    <aws2.version>2.17.281</aws2.version>
+    <aws.version>1.12.323</aws.version>
+    <aws2.version>2.17.294</aws2.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <commons.daemon.version>1.3.1</commons.daemon.version>
+    <commons.daemon.version>1.3.2</commons.daemon.version>
     <guava.version>31.1-jre</guava.version>
     <hamcrest.version>2.2</hamcrest.version>
     <jackson-core.version>2.13.4</jackson-core.version>
-    <jackson-databind.version>2.13.4</jackson-databind.version>
+    <jackson-databind.version>2.13.4.2</jackson-databind.version>
     <jakarta.activation.version>2.0.1</jakarta.activation.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
@@ -91,7 +91,7 @@
     <jjwt.version>0.11.5</jjwt.version>
     <jmockit.version>1.49</jmockit.version>
     <logback.client.version>1.2.11</logback.client.version>
-    <logback.server.version>1.4.1</logback.server.version>
+    <logback.server.version>1.4.4</logback.server.version>
     <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
@@ -107,14 +107,14 @@
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
-    <mockito.version>4.8.0</mockito.version>
-    <mysql.connector.version>8.0.30</mysql.connector.version>
-    <nimbus.jose.version>9.25.3</nimbus.jose.version>
+    <mockito.version>4.8.1</mockito.version>
+    <mysql.connector.version>8.0.31</mysql.connector.version>
+    <nimbus.jose.version>9.25.6</nimbus.jose.version>
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
-    <slf4j.server.version>2.0.2</slf4j.server.version>
+    <slf4j.server.version>2.0.3</slf4j.server.version>
     <testng.version>7.6.1</testng.version>
-    <swagger.version>2.2.2</swagger.version>
+    <swagger.version>2.2.4</swagger.version>
     <commons.logging.version>1.2</commons.logging.version>
 
     <code.coverage.min>0.95</code.coverage.min>

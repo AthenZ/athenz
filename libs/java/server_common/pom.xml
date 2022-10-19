@@ -31,7 +31,8 @@
     <commons.dbcp2.version>2.9.0</commons.dbcp2.version>
     <commons.pool2.version>2.11.1</commons.pool2.version>
     <jakarta.mail.version>2.0.1</jakarta.mail.version>
-    <pulsar.client.version>2.10.1</pulsar.client.version>
+    <protobuf.java.version>3.19.6</protobuf.java.version>
+    <pulsar.client.version>2.10.2</pulsar.client.version>
     <uuid.version>4.0.1</uuid.version>
   </properties>
 
@@ -186,6 +187,17 @@
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>${mysql.connector.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.protobuf</groupId>
+          <artifactId>protobuf-java</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>${protobuf.java.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
