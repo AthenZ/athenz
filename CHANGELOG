@@ -1,3 +1,9 @@
+Athenz v1.11.13 Release / Oct 19, 2022
+--------------------------------------
+
+#1993 fix role key filemode in sia
+#1994 deps update - address jackson databind and protobuf CVEs
+
 Athenz v1.11.12 Release / Oct 17, 2022
 --------------------------------------
 
