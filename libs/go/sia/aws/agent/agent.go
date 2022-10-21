@@ -372,7 +372,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options) error {
 	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, false, false, opts.KeyDir, opts.CertDir, opts.BackUpDir)
+	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir)
 }
 
 func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options) error {
