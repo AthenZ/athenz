@@ -660,7 +660,7 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 	backUpKeyFile := fmt.Sprintf("%s/%s.key.pem", backupDir, keyPrefix)
 	backUpCertFile := fmt.Sprintf("%s/%s.cert.pem", backupDir, certPrefix)
 
-	if rotateKey == true {
+	if rotateKey {
 		err = EnsureBackUpDir(backupDir)
 		if err != nil {
 			return err
@@ -677,7 +677,7 @@ func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid,
 		if err != nil {
 			return err
 		}
-	} else if createKey == true && !FileExists(keyFile) {
+	} else if createKey && !FileExists(keyFile) {
 		//write the new key and x509KeyPair to disk
 		log.Printf("writing new key file: %s to disk\n", keyFile)
 		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode))
