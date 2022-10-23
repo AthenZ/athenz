@@ -103,12 +103,12 @@ export const deleteRole =
     };
 
 export const getRole =
-    (domainName, roleName, forceCall) => async (dispatch, getState) => {
+    (domainName, roleName) => async (dispatch, getState) => {
         roleName = roleName.toLowerCase();
         await dispatch(getRoles(domainName));
         let role = thunkSelectRole(getState(), domainName, roleName);
         // auditLog is a unique filed which the backend returns only in getRole api call
-        if (!forceCall && role.auditLog) {
+        if (role.auditLog) {
             dispatch(returnRoles());
         } else {
             try {
@@ -236,6 +236,16 @@ export const deleteMemberFromAllRoles =
                 }
             }
             return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    };
+
+
+export const getRoleHistory =
+    (domainName, roleName) => async (dispatch, getState) => {
+        try {
+            await getRoleApiCall(domainName, roleName, dispatch);
         } catch (error) {
             return Promise.reject(error);
         }

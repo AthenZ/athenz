@@ -27,7 +27,7 @@ import RequestUtils from '../../../../../components/utils/RequestUtils';
 import Error from '../../../../_error';
 import GroupTabs from '../../../../../components/header/GroupTabs';
 import { getDomainData } from '../../../../../redux/thunks/domain';
-import { getGroup } from '../../../../../redux/thunks/groups';
+import { getGroupHistory } from '../../../../../redux/thunks/groups';
 import { connect } from 'react-redux';
 import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import {
@@ -107,11 +107,11 @@ class GroupHistoryPage extends React.Component {
     }
 
     componentDidMount() {
-        const { domainName, userName, getDomainData, groupName, getGroup } =
+        const { domainName, userName, getDomainData, groupName, getGroupHistory } =
             this.props;
         Promise.all([
             getDomainData(domainName, userName),
-            getGroup(domainName, groupName),
+            getGroupHistory(domainName, groupName),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             this.setState({
@@ -217,8 +217,8 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => ({
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
-    getGroup: (domainName, groupName) =>
-        dispatch(getGroup(domainName, groupName, true)),
+    getGroupHistory: (domainName, groupName) =>
+        dispatch(getGroupHistory(domainName, groupName)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(GroupHistoryPage);

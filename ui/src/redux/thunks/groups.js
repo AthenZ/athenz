@@ -33,6 +33,7 @@ import {
     listToMap,
 } from '../utils';
 import { groupDelimiter, memberNameKey } from '../config';
+import {getRoleApiCall} from "./utils/roles";
 
 export const addGroup =
     (groupName, auditRef, group, _csrf) => async (dispatch, getState) => {
@@ -119,12 +120,12 @@ export const reviewGroup =
     };
 
 export const getGroup =
-    (domainName, groupName, forceCall) => async (dispatch, getState) => {
+    (domainName, groupName) => async (dispatch, getState) => {
         try {
             groupName = groupName.toLowerCase();
             await dispatch(getGroups(domainName));
             let group = thunkSelectGroup(getState(), domainName, groupName);
-            if (!forceCall && group.auditLog) {
+            if (group.auditLog) {
                 dispatch(returnGroups());
             } else {
                 await getGroupApiCall(domainName, groupName, dispatch);
@@ -163,3 +164,13 @@ export const getGroups = (domainName) => async (dispatch, getState) => {
         await getGroupsApiCall(domainName, dispatch);
     }
 };
+
+
+export const getGroupHistory =
+    (domainName, groupName) => async (dispatch, getState) => {
+        try {
+            await getGroupApiCall(domainName, groupName, dispatch);
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    };

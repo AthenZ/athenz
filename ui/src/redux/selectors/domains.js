@@ -41,7 +41,7 @@ export const selectBusinessServicesAll = (state) => {
 };
 
 export const selectAllDomainsList = (state) => {
-    return state.domains.allDomainsList ? state.domains.allDomainsList : [];
+    return state.domains && state.domains.allDomainsList ? state.domains.allDomainsList : [];
 };
 
 export const selectPendingMembersList = (state, domainName, view) => {

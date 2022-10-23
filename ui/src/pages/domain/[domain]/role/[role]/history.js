@@ -33,7 +33,7 @@ import {
     selectRole,
     selectRoleHistory,
 } from '../../../../../redux/selectors/roles';
-import { getRole } from '../../../../../redux/thunks/roles';
+import { getRoleHistory} from '../../../../../redux/thunks/roles';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
@@ -107,11 +107,11 @@ class RoleHistoryPage extends React.Component {
     }
 
     componentDidMount() {
-        const { domainName, userName, getDomainData, roleName, getRole } =
+        const { domainName, userName, getDomainData, roleName, getRoleHistory } =
             this.props;
         Promise.all([
             getDomainData(domainName, userName),
-            getRole(domainName, roleName),
+            getRoleHistory(domainName, roleName),
         ]).catch((err) => {
             let response = RequestUtils.errorCheckHelper(err);
             this.setState({
@@ -199,8 +199,8 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => ({
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
-    getRole: (domainName, roleName) =>
-        dispatch(getRole(domainName, roleName, true)),
+    getRoleHistory: (domainName, roleName) =>
+        dispatch(getRoleHistory(domainName, roleName)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RoleHistoryPage);
