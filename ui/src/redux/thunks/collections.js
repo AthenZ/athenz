@@ -71,6 +71,7 @@ export const addMember =
                     _csrf,
                     true
                 );
+                // if the member is a group we need to call getRole in order to get the group members and display it
                 if (member.memberName.toLowerCase().includes(':group.')) {
                     await getRoleApiCall(domainName, collectionName, dispatch);
                 } else {

@@ -144,7 +144,6 @@ class WorkflowAdmin extends React.Component {
 
                                         <WorkFlowSectionDiv>
                                             <PendingApprovalTable
-                                                loadList={this.loadList}
                                                 _csrf={this.props._csrf}
                                                 view={'admin'}
                                             />

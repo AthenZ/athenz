@@ -198,19 +198,23 @@ export const domains = (state = {}, action) => {
             let domainName = collection.split(':')[0];
             let newState = produce(state, (draft) => {
                 if (draft[domainName]) {
-                    if (
-                        draft[domainName].domainData.bellPendingMembers &&
-                        draft[domainName].domainData.bellPendingMembers[
-                            collection + memberName
-                        ]
-                    ) {
-                        delete draft[domainName].domainData.bellPendingMembers[
-                            collection + memberName
-                        ];
+                    if (draft[domainName].domainData.bellPendingMembers) {
+                        if (
+                            draft[domainName].domainData.bellPendingMembers[
+                                collection + memberName
+                            ]
+                        ) {
+                            delete draft[domainName].domainData
+                                .bellPendingMembers[collection + memberName];
+                        } else {
+                            draft[domainName].domainData.bellPendingMembers[
+                                collection + memberName
+                            ] = true;
+                        }
                     } else {
-                        draft[domainName].domainData.bellPendingMembers[
-                            collection + memberName
-                        ] = true;
+                        draft[domainName].domainData.bellPendingMembers = {
+                            [collection + memberName]: true,
+                        };
                     }
                 }
             });

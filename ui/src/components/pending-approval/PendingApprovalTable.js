@@ -464,7 +464,11 @@ class PendingApprovalTable extends React.Component {
 const mapStateToProps = (state, props) => {
     return {
         ...props,
-        pendingData: selectPendingMembersList(state, props.domainName),
+        pendingData: selectPendingMembersList(
+            state,
+            props.domainName,
+            props.view
+        ),
     };
 };
 
