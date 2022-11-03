@@ -4014,33 +4014,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if enabled, we are not going to allow any user to delete a
         // role that is referenced in any assertion of any policy
 
-        validateRoleNotAssociatedToPolicy(getPolicyList(domainName, caller), roleName, domainName, caller);
+        if (validatePolicyAssertionRoles.get() == Boolean.TRUE) {
+            validateRoleNotAssociatedToPolicy(getPolicyList(domainName, caller), roleName, domainName, caller);
+        }
 
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
     }
 
-    private List<Policy> getPolicyList(String domainName, String caller) {
-        AthenzDomain domain = getAthenzDomain(domainName, false);
+    private List<Policy> getPolicyList(final String domainName, final String caller) {
+        AthenzDomain domain = getAthenzDomain(domainName, false, true);
         if (domain == null) {
             throw ZMSUtils.notFoundError(caller + ": Domain not found: '" + domainName + "'", caller);
         }
         return setupPolicyList(domain, true, true);
     }
 
-    void validateRoleNotAssociatedToPolicy(List<Policy> policies, String roleName, String domainName, String caller) {
+    void validateRoleNotAssociatedToPolicy(List<Policy> policies, final String roleName,
+            final String domainName, final String caller) {
 
-        if (validatePolicyAssertionRoles.get() != Boolean.TRUE) {
-            return;
-        }
-
-        roleName = ResourceUtils.roleResourceName(domainName, roleName);
+        final String fullRoleName = ResourceUtils.roleResourceName(domainName, roleName);
         for (Policy policy : policies) {
             if (policy.getAssertions() == null) {
                 continue;
             }
             for (Assertion assertion : policy.getAssertions()) {
-                if (assertion.getRole().equals(roleName)) {
-                    throw ZMSUtils.requestError("deleteRole: the role: " + roleName + " associated to policy: " + policy.name + ", it cannot be deleted", caller);
+                if (assertion.getRole().equals(fullRoleName)) {
+                    throw ZMSUtils.requestError("deleteRole: the role: " + roleName + " associated to policy: "
+                            + policy.name + ", it cannot be deleted", caller);
                 }
             }
         }
