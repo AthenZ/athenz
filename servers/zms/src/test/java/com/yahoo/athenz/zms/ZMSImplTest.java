@@ -2927,31 +2927,42 @@ public class ZMSImplTest {
     @Test
     public void testDeleteRoleAssociatedToPolicy() {
 
-        String domain = "testDeleteRoleAssociatedToPolicy";
-        String role = "associatedRole";
-        String policy = "policy1";
+        final String domain = "testDeleteRoleAssociatedToPolicy";
+        final String role = "associatedRole";
+        final String policy = "policy1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domain,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
-        Role relatedRole = zmsTestInitializer.createRoleObject(domain, role, null, "user.joe",
-                "user.jane");
-        zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, role, zmsTestInitializer.getAuditRef(), false, relatedRole);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        Role relatedRole = zmsTestInitializer.createRoleObject(domain, role, null, "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, domain, role, auditRef, false, relatedRole);
 
         Policy policy1 = zmsTestInitializer.createPolicyObject(domain, policy, role,
                 "update_members", domain + ":role." + role, AssertionEffect.ALLOW);
 
-        zmsTestInitializer.getZms().putPolicy(zmsTestInitializer.getMockDomRsrcCtx(), domain, policy, zmsTestInitializer.getAuditRef(), false, policy1);
+        zmsImpl.putPolicy(ctx, domain, policy, auditRef, false, policy1);
 
         try {
-            zmsTestInitializer.getZms().deleteRole(zmsTestInitializer.getMockDomRsrcCtx(), domain, role, zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteRole(ctx, domain, role, auditRef);
             fail("should be fail");
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("it cannot be deleted"));
-        } finally {
-            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domain, zmsTestInitializer.getAuditRef());
         }
+
+        // we're going to retry our example with feature turned off
+        // save our existing value, so we can restore after the test
+
+        DynamicConfigBoolean currentValue = zmsImpl.validatePolicyAssertionRoles;
+        zmsImpl.validatePolicyAssertionRoles = new DynamicConfigBoolean(false);
+        zmsImpl.deleteRole(ctx, domain, role, auditRef);
+        zmsImpl.validatePolicyAssertionRoles = currentValue;
+
+        zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef);
     }
 
     @Test
@@ -2961,54 +2972,49 @@ public class ZMSImplTest {
         final String domainName = "dom1";
         final String caller = "testValidateRoleNotAssociatedToPolicy";
 
-        Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1", relatedRole, "", "", AssertionEffect.ALLOW );
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, "policy1", relatedRole,
+                "", "", AssertionEffect.ALLOW );
         List<Policy> policies = Collections.singletonList(policy);
 
         try {
-            zmsTestInitializer.getZms().validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
+            zmsImpl.validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
             fail("should be fail");
         } catch (ResourceException ex){
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("it cannot be deleted"));
         }
 
-        // we're going to retry our first example with feature turned off
-        // save our existing value so we can restore after the test
-
-        DynamicConfigBoolean currentValue = zmsTestInitializer.getZms().validatePolicyAssertionRoles;
-        zmsTestInitializer.getZms().validatePolicyAssertionRoles = new DynamicConfigBoolean(false);
-
-        zmsTestInitializer.getZms().validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
-
-        zmsTestInitializer.getZms().validatePolicyAssertionRoles = currentValue;
-
         // make sure some non-existent role is passed as ok
 
-        zmsTestInitializer.getZms().validateRoleNotAssociatedToPolicy(policies, "not_related_role", domainName, caller);
+        zmsImpl.validateRoleNotAssociatedToPolicy(policies, "not_related_role", domainName, caller);
 
         // policy with no assertions should be supported as ok
 
         policy = new Policy().setName(ResourceUtils.policyResourceName(domainName, "policy1"));
         policies = Collections.singletonList(policy);
-        zmsTestInitializer.getZms().validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
+        zmsImpl.validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
     }
 
     @Test
     public void testValidateRoleAssociatedIsExist(){
-        String caller = "testValidateRoleAssociatedIsExist";
-        String domainName = "dom1";
-        String existRole = "role1";
-        String doesNotExistRole = "role2";
-        Set<String> roleNames = new HashSet<String>(){
+        final String caller = "testValidateRoleAssociatedIsExist";
+        final String domainName = "dom1";
+        final String existRole = "role1";
+        final String doesNotExistRole = "role2";
+        Set<String> roleNames = new HashSet<>(){
             {
                 add("admin");
                 add(existRole);
             }
         };
 
-        zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, existRole), domainName, caller);
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        zmsImpl.validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, existRole),
+                domainName, caller);
         try {
-            zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, doesNotExistRole), "policy1", caller);
+            zmsImpl.validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, doesNotExistRole),
+                    "policy1", caller);
             fail("should be fail");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -3017,16 +3023,14 @@ public class ZMSImplTest {
 
         // wild card case
 
-        String wildCard = ResourceUtils.roleResourceName(domainName, "Role*".toLowerCase());
-
+        final String wildCard = ResourceUtils.roleResourceName(domainName, "Role*".toLowerCase());
         try {
-            zmsTestInitializer.getZms().validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, wildCard), domainName, caller);
-            fail("should be fail");
+            zmsImpl.validateRoleAssociatedIsExist(roleNames, ResourceUtils.roleResourceName(domainName, wildCard), domainName, caller);
+            fail("should fail");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("that associated to an assertion"));
         }
-
     }
 
     @Test
