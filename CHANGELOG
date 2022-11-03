@@ -1,3 +1,11 @@
+Athenz v1.11.14 Release / Nov 3, 2022
+-------------------------------------
+
+#1991 UI: change the api file
+#1996 aws sia: pass correct key flags to the save key method
+#1997 update go dependencies to their latest releases
+#1999 during role delete check policy usage against primary db
+
 Athenz v1.11.13 Release / Oct 19, 2022
 --------------------------------------
 
