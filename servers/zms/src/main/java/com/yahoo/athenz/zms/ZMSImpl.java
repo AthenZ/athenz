@@ -8296,7 +8296,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                                 adminName, roleName);
                     }
 
-                    dbService.executeDeleteMembership(ctx, domainName, roleName, adminName, auditRef, caller);
+                    // we're going to ignore any exceptions and just log the errors
+
+                    try {
+                        dbService.executeDeleteMembership(ctx, domainName, roleName, adminName, auditRef, caller);
+                    } catch (Exception ex) {
+                        LOG.error("removeAdminMembers: unable to remove member: {} from role: {}, error: {}",
+                                adminName, roleName, ex.getMessage());
+                    }
                 }
             }
         }

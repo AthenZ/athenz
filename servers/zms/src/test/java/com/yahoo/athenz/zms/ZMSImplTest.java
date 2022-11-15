@@ -23417,11 +23417,15 @@ public class ZMSImplTest {
 
         final String domainName = "add-default-domain-admins";
 
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
-        Role adminRole = zmsTestInitializer.getZms().getRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", false, false, false);
+        Role adminRole = zmsImpl.getRole(ctx, domainName, "admin", false, false, false);
         assertEquals(adminRole.getRoleMembers().size(), 1);
 
         List<String> admins = new ArrayList<>();
@@ -23429,9 +23433,9 @@ public class ZMSImplTest {
         admins.add("user.default");
 
         DefaultAdmins addDefaultAdmins = new DefaultAdmins().setAdmins(admins);
-        zmsTestInitializer.getZms().addDefaultAdminMembers(zmsTestInitializer.getMockDomRsrcCtx(), domainName, adminRole, addDefaultAdmins, zmsTestInitializer.getAuditRef(), "unittest");
+        zmsImpl.addDefaultAdminMembers(ctx, domainName, adminRole, addDefaultAdmins, auditRef, "unittest");
 
-        adminRole = zmsTestInitializer.getZms().getRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", false, false, false);
+        adminRole = zmsImpl.getRole(ctx, domainName, "admin", false, false, false);
         assertEquals(adminRole.getRoleMembers().size(), 2);
         boolean newAdminFound = false;
         for (RoleMember roleMember : adminRole.getRoleMembers()) {
@@ -23449,16 +23453,22 @@ public class ZMSImplTest {
         admins.add("user.unknown");
         DefaultAdmins deleteDefaultAdmins = new DefaultAdmins().setAdmins(admins);
 
-        zmsTestInitializer.getZms().removeAdminMembers(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Collections.singletonList(adminRole),
-                adminRole.getName(), deleteDefaultAdmins, zmsTestInitializer.getAuditRef(), "unittest");
+        zmsImpl.removeAdminMembers(ctx, domainName, Collections.singletonList(adminRole),
+                adminRole.getName(), deleteDefaultAdmins, auditRef, "unittest");
 
         // verify we're back to a single admin role member
 
-        adminRole = zmsTestInitializer.getZms().getRole(zmsTestInitializer.getMockDomRsrcCtx(), domainName, "admin", false, false, false);
-        assertEquals(adminRole.getRoleMembers().size(), 1);
-        assertEquals(adminRole.getRoleMembers().get(0).getMemberName(), zmsTestInitializer.getAdminUser());
+        Role adminRoleResponse = zmsImpl.getRole(ctx, domainName, "admin", false, false, false);
+        assertEquals(adminRoleResponse.getRoleMembers().size(), 1);
+        assertEquals(adminRoleResponse.getRoleMembers().get(0).getMemberName(), zmsTestInitializer.getAdminUser());
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        // let's delete the members again which typically would return
+        // a not found exception, but we're going to ignore it
+
+        zmsImpl.removeAdminMembers(ctx, domainName, Collections.singletonList(adminRole),
+                adminRole.getName(), deleteDefaultAdmins, auditRef, "unittest");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
