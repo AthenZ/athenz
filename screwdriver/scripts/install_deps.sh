@@ -13,7 +13,7 @@ echo "-----------------Install maven: -----------------"
 apt-get install -y maven
 
 echo "-----------------Install nodejs: -----------------"
-curl -sL https://deb.nodesource.com/setup_14.x | bash -
+curl -sL https://deb.nodesource.com/setup_18.x | bash -
 apt-get install -y nodejs
 aptitude install -y npm
 npm install -g npm@latest

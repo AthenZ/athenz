@@ -17,7 +17,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { cx } from '@emotion/css';
 import { cssArrow, makeCssPopperBox } from './styles';
-import TooltipTrigger from 'react-popper-tooltip';
+import { usePopperTooltip } from 'react-popper-tooltip';
+import 'react-popper-tooltip/dist/styles.css';
 
 // Default offset when 'placement' ends with '-start' or '-end'
 const DEFAULT_ARROW_OFFSET = 10;
@@ -101,10 +102,10 @@ export const popperMod = (data, options) => {
  * soon.
  *
  */
-class Menu extends React.Component {
-    renderTrigger = ({ getTriggerProps, triggerRef }) => {
-        if (typeof this.props.trigger === 'function') {
-            const renderedTrigger = this.props.trigger({
+function Menu(props) {
+    const renderTrigger = ({ getTriggerProps, triggerRef }) => {
+        if (typeof props.trigger === 'function') {
+            const renderedTrigger = props.trigger({
                 getTriggerProps,
                 triggerRef,
             });
@@ -113,10 +114,10 @@ class Menu extends React.Component {
         }
 
         let trigger;
-        if (typeof this.props.trigger === 'string') {
-            trigger = <span>{this.props.trigger}</span>;
+        if (typeof props.trigger === 'string') {
+            trigger = <span>{props.trigger}</span>;
         } else {
-            trigger = this.props.trigger;
+            trigger = props.trigger;
         }
 
         return React.cloneElement(trigger, {
@@ -126,79 +127,79 @@ class Menu extends React.Component {
         });
     };
 
-    renderTooltip = ({
-        getTooltipProps,
+    // DEPRECATED: align will be deprecated, but support for now.
+    let placement;
+    if (props.align) {
+        placement = `bottom-${props.align}`;
+    } else {
+        placement = props.placement;
+    }
+    let modifiers = {
+        arrowMod: {
+            arrowOffset: props.arrowOffset,
+            enabled: true,
+            order: 890,
+            fn: arrowMod,
+        },
+        popperMod: {
+            menuOffset: props.menuOffset,
+            enabled: true,
+            order: 880,
+            fn: popperMod,
+        },
+        preventOverflow: {
+            boundariesElement: props.boundary,
+            padding: 0,
+        },
+    };
+
+    const {
         getArrowProps,
-        tooltipRef,
-        arrowRef,
-        placement,
-    }) => (
-        <div
-            {...getTooltipProps({
-                className: cx(
-                    makeCssPopperBox({
-                        basic: typeof this.props.children === 'string',
-                        noanim: this.props.noanim,
-                    }),
-                    this.props.className
-                ),
-                ref: tooltipRef,
-                'data-placement': placement,
-            })}
-        >
-            {this.props.children}
-            {!this.props.noArrow && (
-                <div
-                    {...getArrowProps({
-                        className: cssArrow,
-                        ref: arrowRef,
-                        'data-placement': placement,
-                    })}
-                />
-            )}
-        </div>
+        getTooltipProps,
+        setTooltipRef,
+        setTriggerRef,
+        visible,
+    } = usePopperTooltip(
+        { trigger: props.triggerOn },
+        {
+            placement,
+            modifiers,
+        }
     );
 
-    render() {
-        // DEPRECATED: align will be deprecated, but support for now.
-        let placement;
-        if (this.props.align) {
-            placement = `bottom-${this.props.align}`;
-        } else {
-            placement = this.props.placement;
-        }
-
-        return (
-            <TooltipTrigger
-                modifiers={{
-                    arrowMod: {
-                        arrowOffset: this.props.arrowOffset,
-                        enabled: true,
-                        order: 890,
-                        fn: arrowMod,
-                    },
-                    popperMod: {
-                        menuOffset: this.props.menuOffset,
-                        enabled: true,
-                        order: 880,
-                        fn: popperMod,
-                    },
-                    preventOverflow: {
-                        boundariesElement: this.props.boundary,
-                        padding: 0,
-                    },
-                }}
-                onVisibilityChange={this.props.onVisibilityChange}
-                placement={placement}
-                tooltip={this.renderTooltip}
-                tooltipShown={this.props.showMenu}
-                trigger={this.props.triggerOn}
-                usePortal={this.props.usePortal}
-            >
-                {this.renderTrigger}
-            </TooltipTrigger>
-        );
-    }
+    return (
+        <>
+            {renderTrigger({
+                getTriggerProps: (props) => props,
+                triggerRef: setTriggerRef,
+            })}
+            {visible && (
+                <div
+                    ref={setTooltipRef}
+                    {...getTooltipProps({
+                        className: cx(
+                            makeCssPopperBox({
+                                basic: typeof props.children === 'string',
+                                noanim: props.noanim,
+                            }),
+                            props.className
+                        ),
+                        'data-placement': placement,
+                    })}
+                >
+                    {props.children}
+                    {!props.noArrow && (
+                        <div
+                            {...getArrowProps({
+                                className: cssArrow,
+                                'data-placement': placement,
+                            })}
+                        />
+                    )}
+                </div>
+            )}
+        </>
+    );
 }
 
 Menu.propTypes = {

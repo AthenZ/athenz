@@ -71,7 +71,6 @@ const FlatPickrInputDiv = styled.div`
         background-color: rgba(53, 112, 244, 0.05);
         box-shadow: none;
         color: rgb(48, 48, 48);
-        height: 16px;
         min-width: 50px;
         text-align: left;
         border-width: 2px;

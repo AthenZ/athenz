@@ -20,8 +20,8 @@ import ReactFlow, {
     isNode,
     MiniMap,
     Position,
-    useStoreActions,
-    useStoreState,
+    useEdgesState,
+    useNodesState,
 } from 'react-flow-renderer';
 
 const getLayoutedElements = (elements, nodes, api, _csrf) => {
@@ -46,8 +46,8 @@ const getLayoutedElements = (elements, nodes, api, _csrf) => {
             graphLayoutStyle.push({
                 selector: '#' + el.id,
                 style: {
-                    width: el.__rf.width,
-                    height: el.__rf.height,
+                    width: el.width,
+                    height: el.height,
                 },
             });
         }
@@ -56,17 +56,15 @@ const getLayoutedElements = (elements, nodes, api, _csrf) => {
     return api.updateGraphLayout(graphLayoutElements, graphLayoutStyle, _csrf);
 };
 
-const nodeHasDimension = (el) => el.__rf.width && el.__rf.height;
+const nodeHasDimension = (el) => el.width && el.height;
 
 const ReactFlowRenderer = (props) => {
-    const { elements, nodeTypes, api, _csrf } = props;
+    const { nodeTypes, api, _csrf } = props;
     const [shouldLayout, setShouldLayout] = useState(true);
 
-    const nodes = useStoreState((state) => state.nodes);
-    const edges = useStoreState((state) => state.edges);
-
-    const setElements = useStoreActions((actions) => actions.setElements);
-    const onLoad = useCallback((reactFlowInstance) => {
+    const [nodes, setNodes, onNodesChange] = useNodesState(props.nodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges);
+    const onInit = useCallback((reactFlowInstance) => {
         reactFlowInstance.fitView({
             padding: 0.5,
         });
@@ -75,7 +73,7 @@ const ReactFlowRenderer = (props) => {
 
     useEffect(() => {
         setShouldLayout(true);
-    }, [elements]);
+    }, [props.nodes, props.edges]);
 
     useEffect(() => {
         if (
@@ -91,9 +89,11 @@ const ReactFlowRenderer = (props) => {
                 api,
                 _csrf
             );
+            const newNodes = [];
+            const newEdges = [];
             elementsWithLayoutPromise
                 .then((resultLayout) => {
-                    const elementsWithLayout = elements.map((el) => {
+                    elements.forEach((el) => {
                         if (isNode(el)) {
                             const nodeWithPosition = resultLayout[el.id];
                             el.targetPosition = Position.Left;
@@ -102,21 +102,17 @@ const ReactFlowRenderer = (props) => {
                             el.position = {
                                 x:
                                     nodeWithPosition.x -
-                                    el.__rf.width / 2 +
+                                    el.width / 2 +
                                     Math.random() / 1000,
-                                y: nodeWithPosition.y - el.__rf.height / 2,
+                                y: nodeWithPosition.y - el.height / 2,
                             };
-                            el.__rf.position = {
-                                x:
-                                    nodeWithPosition.x -
-                                    el.__rf.width / 2 +
-                                    Math.random() / 1000,
-                                y: nodeWithPosition.y - el.__rf.height / 2,
-                            };
+                            newNodes.push(el);
+                        } else {
+                            newEdges.push(el);
                         }
-                        return el;
                     });
-                    setElements(elementsWithLayout);
+                    setNodes(newNodes);
+                    setEdges(newEdges);
                     setShouldLayout(false);
                 })
                 .catch((err) => {
@@ -129,11 +125,15 @@ const ReactFlowRenderer = (props) => {
 
     return (
         <ReactFlow
-            elements={elements}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
             elementsSelectable={false}
             selectNodesOnDrag={true}
             nodeTypes={nodeTypes}
-            onLoad={onLoad}
+            onInit={onInit}
+            fitView
         >
             <Background
                 variant='dots'

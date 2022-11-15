@@ -1066,7 +1066,6 @@ exports[`RolePage should render 1`] = `
 .emotion-103 {
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
-  font-size: 0.8rem;
   vertical-align: top;
   text-transform: uppercase;
   padding: 5px 0px 5px 15px;
@@ -1603,13 +1602,11 @@ exports[`RolePage should render 1`] = `
                 >
                   Add Role
                 </button>
-                
                 <button
                   class="emotion-99 denali-button"
                 >
                   Add Member
                 </button>
-                
               </div>
             </div>
             <div
@@ -1670,7 +1667,6 @@ exports[`RolePage should render 1`] = `
                   Delete
                 </div>
               </div>
-              <tbody />
             </div>
           </div>
         </div>

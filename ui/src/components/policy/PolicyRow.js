@@ -131,7 +131,6 @@ const TableHeadStyled = styled.th`
     color: rgb(154, 154, 154);
     padding-bottom: 5px;
     font-weight: 600;
-    font-size: 0.8rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;

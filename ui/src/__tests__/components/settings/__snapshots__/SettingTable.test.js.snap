@@ -850,7 +850,6 @@ exports[`SettingTable should render setting table 1`] = `
               <div
                 class="input-icon"
               >
-                
                 <svg
                   class="emotion-136"
                   data-testid="icon"
@@ -925,7 +924,6 @@ exports[`SettingTable should render setting table 1`] = `
               <div
                 class="input-icon"
               >
-                
                 <svg
                   class="emotion-136"
                   data-testid="icon"

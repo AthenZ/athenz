@@ -136,7 +136,7 @@ exports[`PendingApprovalTable should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
@@ -148,7 +148,7 @@ exports[`PendingApprovalTable should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -160,7 +160,7 @@ exports[`PendingApprovalTable should render 1`] = `
 .emotion-15 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   padding-bottom: 5px;
   vertical-align: bottom;
   padding: 5px 0 5px 15px;
@@ -289,12 +289,19 @@ exports[`PendingApprovalTable should render 1`] = `
 }
 
 .emotion-24 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-26 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-30 {
+.emotion-34 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -302,7 +309,7 @@ exports[`PendingApprovalTable should render 1`] = `
   text-transform: uppercase;
   text-align: center;
   position: absolute;
-  width: 11em;
+  width: 12em;
   right: 11em;
   z-index: 1;
   height: 42px;
@@ -311,17 +318,17 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-32 {
+.emotion-36 {
   margin-top: 10px;
 }
 
-.emotion-34 {
+.emotion-38 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-35 {
+.emotion-39 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -339,17 +346,30 @@ exports[`PendingApprovalTable should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-60 {
+.emotion-44 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.1rem;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.emotion-64 {
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 1.1rem;
   vertical-align: top;
   text-transform: uppercase;
   text-align: center;
   position: absolute;
-  width: 15em;
-  right: 13em;
+  width: 15.5em;
+  right: 13.5em;
   z-index: 1;
   height: 15px;
   padding-bottom: 5px;
@@ -357,11 +377,11 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-62 {
+.emotion-66 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.1rem;
   vertical-align: top;
   text-transform: uppercase;
   text-align: center;
@@ -445,7 +465,7 @@ exports[`PendingApprovalTable should render 1`] = `
           disabled=""
         >
           <div
-            class="fp-workflowHeaderExpiry"
+            class="fp-workflowHeaderExpiry emotion-24 emotion-25"
           >
             <input
               class="flatpickr-input"
@@ -466,7 +486,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="emotion-24"
+                class="emotion-26"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -491,7 +511,7 @@ exports[`PendingApprovalTable should render 1`] = `
           disabled=""
         >
           <div
-            class="fp-workflowHeaderReviewReminder"
+            class="fp-workflowHeaderReviewReminder emotion-24 emotion-25"
           >
             <input
               class="flatpickr-input"
@@ -512,7 +532,7 @@ exports[`PendingApprovalTable should render 1`] = `
               data-clear=""
             >
               <svg
-                class="emotion-24"
+                class="emotion-26"
                 data-testid="icon"
                 height="1.25em"
                 viewBox="0 0 1024 1024"
@@ -530,13 +550,13 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-30 emotion-31"
+        class="emotion-34 emotion-35"
       >
         <div
-          class="emotion-32 emotion-33"
+          class="emotion-36 emotion-37"
         >
           <svg
-            class="emotion-34"
+            class="emotion-38"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -555,13 +575,13 @@ exports[`PendingApprovalTable should render 1`] = `
         </div>
       </th>
       <th
-        class="emotion-35 emotion-36"
+        class="emotion-39 emotion-40"
       >
         <div
-          class="emotion-32 emotion-33"
+          class="emotion-36 emotion-37"
         >
           <svg
-            class="emotion-34"
+            class="emotion-38"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -579,61 +599,61 @@ exports[`PendingApprovalTable should render 1`] = `
     </tr>
     <tr>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       />
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Type
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Name
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Member
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
         colspan="2"
       >
         User Comment
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Requester
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Request Time
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Audit Reference
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Expiration Date
       </th>
       <th
-        class="emotion-7 emotion-41"
+        class="emotion-44 emotion-45"
       >
         Reminder Date
       </th>
       <th
-        class="emotion-60 emotion-61"
+        class="emotion-64 emotion-65"
       >
         Approve
       </th>
       <th
-        class="emotion-62 emotion-63"
+        class="emotion-66 emotion-67"
       >
         Reject
       </th>

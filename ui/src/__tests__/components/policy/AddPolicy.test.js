@@ -17,8 +17,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import AddPolicy from '../../../components/policy/AddPolicy';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import { resetIdCounter } from 'downshift';
 
 describe('AddPolicy', () => {
+    beforeEach(() => resetIdCounter());
     it('should render', () => {
         const showAddPolicy = true;
         const cancel = function () {};

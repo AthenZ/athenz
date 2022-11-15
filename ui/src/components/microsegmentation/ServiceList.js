@@ -121,10 +121,12 @@ class ServiceList extends React.Component {
                 data-testid={'segmentation-service-list'}
             >
                 <StyleTable>
-                    <StyledTr>
-                        <StyledTh> Services </StyledTh>
-                    </StyledTr>
-                    {rows}
+                    <thead>
+                        <StyledTr>
+                            <StyledTh> Services </StyledTh>
+                        </StyledTr>
+                    </thead>
+                    <tbody>{rows}</tbody>
                 </StyleTable>
             </StyledDiv>
         );

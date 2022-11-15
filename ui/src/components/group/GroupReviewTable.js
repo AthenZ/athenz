@@ -52,7 +52,6 @@ const TableHeadStyled = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
-    font-size: 0.8rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -224,7 +223,8 @@ class GroupReviewTable extends React.Component {
         if (!this.props.members || this.props.members.length === 0) {
             return (
                 <ReviewMembersContainerDiv>
-                    There is no members to review for group: {this.props.groupName}.
+                    There is no members to review for group:{' '}
+                    {this.props.groupName}.
                 </ReviewMembersContainerDiv>
             );
         }

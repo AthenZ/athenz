@@ -196,7 +196,6 @@ exports[`InstanceList should render for dynamic 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -511,7 +510,6 @@ exports[`InstanceList should render for static 1`] = `
       >
         Add Static Instance
       </button>
-      
     </div>
   </div>
 </div>

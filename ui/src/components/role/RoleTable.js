@@ -16,6 +16,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import RoleRow from './RoleRow';
+//import 'denali-css/css/denali.css';
 import RoleGroup from './RoleGroup';
 
 const StyleTable = styled.div`
@@ -29,7 +30,6 @@ const StyleTable = styled.div`
 const TableHeadStyled = styled.div`
     border-bottom: 2px solid rgb(213, 213, 213);
     color: rgb(154, 154, 154);
-    font-size: 0.8rem;
     vertical-align: top;
     text-transform: uppercase;
     padding: 5px 0px 5px 15px;
@@ -57,7 +57,6 @@ const TableHeadStyledRoleName = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
-    font-size: 0.8rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -199,7 +198,7 @@ export default class RoleTable extends React.Component {
                     <StyledIconCol align={center}>History</StyledIconCol>
                     <StyledIconCol align={center}>Delete</StyledIconCol>
                 </TableHeadStyled>
-                <tbody>{rows}</tbody>
+                {rows}
             </StyleTable>
         );
     }

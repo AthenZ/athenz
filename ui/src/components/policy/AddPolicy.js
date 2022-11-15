@@ -68,11 +68,6 @@ export default class AddPolicy extends React.Component {
                 this.state.effect,
                 this.state.case,
                 this.props._csrf
-                // () => this.setState({ showModal: false }),
-                // (err) =>
-                //     this.setState({
-                //         errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                //     })
             )
             .then(() => this.setState({ showModal: false }))
             .catch((err) => {

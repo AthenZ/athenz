@@ -43,7 +43,7 @@ const StyledInputLabel = styled(InputLabel)`
 
 const StyledInput = styled(Input)`
     width: 350px;
-    padding: 0 12px;
+    padding: 0 12px !important;
 `;
 
 const StyledIncludedMembersDiv = styled.div`

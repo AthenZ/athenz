@@ -148,7 +148,6 @@ exports[`RuleRow should render 1`] = `
       </svg>
     </span>
   </td>
-  
   <td
     class="emotion-18 emotion-3"
     color="#3570f40D"

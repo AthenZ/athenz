@@ -188,7 +188,11 @@ class RolePolicyList extends React.Component {
                 );
             });
         } else {
-            rows = 'There is no policy related to this role';
+            rows = (
+                <tr>
+                    <td>There is no policy related to this role</td>
+                </tr>
+            );
         }
 
         let addPolicy = this.state.showAddPolicy ? (

@@ -15,12 +15,17 @@
  */
 import React from 'react';
 import {
-    buildServicesForState, getStateWithServices,
+    buildServicesForState,
+    getStateWithServices,
     renderWithRedux,
 } from '../../../tests_utils/ComponentsTestUtils';
 import AddSegmentation from '../../../components/microsegmentation/AddSegmentation';
+import { resetIdCounter } from 'downshift';
 
 describe('AddSegmentation', () => {
+    beforeEach(() => {
+        resetIdCounter();
+    });
     const pageFeatureFlag = {
         policyValidation: true,
     };
@@ -33,6 +38,8 @@ describe('AddSegmentation', () => {
             name: 'user.test2',
         },
     ]);
+
+    beforeEach(() => resetIdCounter());
 
     it('should render', () => {
         let domain = 'domain';

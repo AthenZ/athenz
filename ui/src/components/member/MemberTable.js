@@ -58,7 +58,6 @@ const TableHeadStyled = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
-    font-size: 0.8rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -71,7 +70,6 @@ const TableHeadStyledRoleName = styled.th`
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
-    font-size: 0.8rem;
     padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
@@ -79,13 +77,14 @@ const TableHeadStyledRoleName = styled.th`
     word-break: break-all;
 `;
 
-const TableCaptionStyled = styled.caption`
+const TableThStyled = styled.th`
     height: 25px;
     margin-left: 10px;
     margin-top: 10px;
     text-align: left;
     padding: 5px 0 5px 15px;
     vertical-align: middle;
+    font-weight: lighter;
     word-break: break-all;
     display: block;
 `;
@@ -154,8 +153,36 @@ export default class MemberTable extends React.Component {
         if (!this.state.expanded) {
             return (
                 <StyleTable data-testid='member-table'>
-                    <thead>
-                        <TableCaptionStyled>
+                    <tbody>
+                        <tr>
+                            <TableThStyled>
+                                <LeftMarginSpan>
+                                    <Icon
+                                        icon={
+                                            this.state.expanded
+                                                ? arrowup
+                                                : arrowdown
+                                        }
+                                        onClick={expandMembers}
+                                        color={colors.icons}
+                                        isLink
+                                        size={'1.25em'}
+                                        verticalAlign={'text-bottom'}
+                                    />
+                                </LeftMarginSpan>
+                                {`${caption} (${length})`}
+                            </TableThStyled>
+                        </tr>
+                    </tbody>
+                </StyleTable>
+            );
+        }
+
+        return (
+            <StyleTable data-testid='member-table'>
+                <thead>
+                    <tr>
+                        <TableThStyled>
                             <LeftMarginSpan>
                                 <Icon
                                     icon={
@@ -171,28 +198,8 @@ export default class MemberTable extends React.Component {
                                 />
                             </LeftMarginSpan>
                             {`${caption} (${length})`}
-                        </TableCaptionStyled>
-                    </thead>
-                </StyleTable>
-            );
-        }
-
-        return (
-            <StyleTable data-testid='member-table'>
-                <thead>
-                    <TableCaptionStyled>
-                        <LeftMarginSpan>
-                            <Icon
-                                icon={this.state.expanded ? arrowup : arrowdown}
-                                onClick={expandMembers}
-                                color={colors.icons}
-                                isLink
-                                size={'1.25em'}
-                                verticalAlign={'text-bottom'}
-                            />
-                        </LeftMarginSpan>
-                        {`${caption} (${length})`}
-                    </TableCaptionStyled>
+                        </TableThStyled>
+                    </tr>
                     <tr>
                         <TableHeadStyledRoleName align={left}>
                             User Name

@@ -24,7 +24,6 @@ exports[`TemplateList should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -37,7 +36,6 @@ exports[`TemplateList should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -92,11 +90,15 @@ exports[`TemplateList should render 1`] = `
       </tr>
     </thead>
     <tbody />
-    <div
-      class="emotion-2 emotion-3"
-    >
-      Server Templates
-    </div>
+  </table>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    Server Templates
+  </div>
+  <table
+    class="emotion-4 emotion-5"
+  >
     <thead>
       <tr>
         <th
@@ -160,7 +162,6 @@ exports[`TemplateList should render with metadata array 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -173,7 +174,6 @@ exports[`TemplateList should render with metadata array 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.8rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -181,7 +181,7 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-32 {
+.emotion-34 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -189,7 +189,7 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-36 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -197,13 +197,13 @@ exports[`TemplateList should render with metadata array 1`] = `
   word-break: break-all;
 }
 
-.emotion-36 {
+.emotion-38 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-45 {
+.emotion-47 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -230,21 +230,21 @@ exports[`TemplateList should render with metadata array 1`] = `
   color: #3697f2;
 }
 
-.emotion-45:first-of-type {
+.emotion-47:first-of-type {
   margin-left: 0;
 }
 
-.emotion-45:disabled {
+.emotion-47:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-45:disabled {
+.emotion-47:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-45:hover:not(:disabled) {
+.emotion-47:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -295,11 +295,15 @@ exports[`TemplateList should render with metadata array 1`] = `
       </tr>
     </thead>
     <tbody />
-    <div
-      class="emotion-2 emotion-3"
-    >
-      Server Templates
-    </div>
+  </table>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    Server Templates
+  </div>
+  <table
+    class="emotion-4 emotion-5"
+  >
     <thead>
       <tr>
         <th
@@ -339,18 +343,18 @@ exports[`TemplateList should render with metadata array 1`] = `
         data-testid="template-row"
       >
         <td
-          class="emotion-32 emotion-33"
+          class="emotion-34 emotion-35"
           color="#3570f40D"
         >
           aws
         </td>
         <td
-          class="emotion-34 emotion-33"
+          class="emotion-36 emotion-35"
           color="#3570f40D"
         >
           <span>
             <svg
-              class="emotion-36"
+              class="emotion-38"
               data-testid="icon"
               height="1.25em"
               viewBox="0 0 1024 1024"
@@ -372,34 +376,33 @@ exports[`TemplateList should render with metadata array 1`] = `
           </span>
         </td>
         <td
-          class="emotion-34 emotion-33"
+          class="emotion-36 emotion-35"
           color="#3570f40D"
         >
           N/A
         </td>
         <td
-          class="emotion-34 emotion-33"
+          class="emotion-36 emotion-35"
           color="#3570f40D"
         >
           1
         </td>
         <td
-          class="emotion-34 emotion-33"
+          class="emotion-36 emotion-35"
           color="#3570f40D"
         >
           2020-04-28T00:00:00.000Z
         </td>
         <td
-          class="emotion-34 emotion-33"
+          class="emotion-36 emotion-35"
           color="#3570f40D"
         >
           <button
-            class="emotion-45 denali-button"
+            class="emotion-47 denali-button"
             type="submit"
           >
             Onboard
           </button>
-          
         </td>
       </tr>
     </tbody>

@@ -51,7 +51,7 @@ describe('PrincipalToken impl', function() {
     try {
       var principalToken = new PrincipalToken(null);
     } catch (e) {
-      expect(e.message).to.contain('Cannot read property');
+      expect(e.message).to.contain('Cannot read properties');
       return;
     }
     expect(1).to.be.false;

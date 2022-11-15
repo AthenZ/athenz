@@ -126,12 +126,14 @@ class EnforcementStateList extends React.Component {
                 data-testid={'microsegmentation-enforcement-list'}
             >
                 <StyleTable>
-                    <StyledTr>
-                        <StyledTh> Enforcement State </StyledTh>
-                        <StyledTh> Hosts </StyledTh>
-                        <StyledTh> Action </StyledTh>
-                    </StyledTr>
-                    {rows}
+                    <thead>
+                        <StyledTr>
+                            <StyledTh> Enforcement State </StyledTh>
+                            <StyledTh> Hosts </StyledTh>
+                            <StyledTh> Action </StyledTh>
+                        </StyledTr>
+                    </thead>
+                    <tbody>{rows}</tbody>
                 </StyleTable>
             </StyledDiv>
         );

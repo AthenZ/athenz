@@ -275,7 +275,7 @@ exports[`AddStaticInstances should render 1`] = `
 
 .emotion-13 {
   width: 350px;
-  padding: 0 12px;
+  padding: 0 12px!important;
 }
 
 <div
@@ -321,7 +321,6 @@ exports[`AddStaticInstances should render 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-11"
               data-testid="icon"
@@ -638,7 +637,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
 
 .emotion-13 {
   width: 350px;
-  padding: 0 12px;
+  padding: 0 12px!important;
 }
 
 <div
@@ -660,7 +659,7 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
-        aria-labelledby="downshift-1-label"
+        aria-labelledby="downshift-0-label"
         class="emotion-9 denali-input-dropdown"
         data-testid="input-dropdown"
         role="combobox"
@@ -671,11 +670,11 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
         >
           <input
             aria-autocomplete="list"
-            aria-labelledby="downshift-1-label"
+            aria-labelledby="downshift-0-label"
             autocomplete="off"
             autocorrect="off"
             data-testid="input-node"
-            id="downshift-1-input"
+            id="downshift-0-input"
             name="resourceType"
             placeholder="Select Resourcetype"
             spellcheck="false"
@@ -684,7 +683,6 @@ exports[`AddStaticInstances should render fail to submit add-segmentation: Resou
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-11"
               data-testid="icon"

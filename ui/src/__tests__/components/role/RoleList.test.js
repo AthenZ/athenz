@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import RoleList from '../../../components/role/RoleList';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleList', () => {
     it('should render', () => {
-        const { getByTestId } = renderWithRedux(<RoleList />);
+        const { getByTestId } = renderWithRedux(
+            <RoleList showUserToggle={jest.fn()} />
+        );
         const rolelist = getByTestId('rolelist');
 
         expect(rolelist).toMatchSnapshot();

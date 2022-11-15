@@ -36,9 +36,10 @@ const HomeContainerDiv = styled.div`
 `;
 
 const WorkFlowSectionDiv = styled.div`
-    width: calc(100vw - 23em);
+    width: calc(100vw - 25em);
     overflow-x: scroll;
     overflow-y: visible;
+    box-sizing: content-box !important;
 `;
 
 const TitleDiv = styled.div`
@@ -62,7 +63,7 @@ const AppContainerDiv = styled.div`
 const MainContentDiv = styled.div`
     flex: 1 1 calc(100vh - 60px);
     overflow: hidden;
-    font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+    font: 500 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
 `;
 
 const WorkFlowDiv = styled.div`
@@ -71,6 +72,7 @@ const WorkFlowDiv = styled.div`
     height: calc(100vh - 60px);
     overflow: auto;
     position: relative;
+    box-sizing: content-box !important;
 `;
 
 export async function getServerSideProps(context) {

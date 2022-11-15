@@ -99,7 +99,6 @@ exports[`Member should render 1`] = `
     user.test2
      
   </a>
-  
   <div
     class="tag-remove"
   >

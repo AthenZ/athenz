@@ -18,8 +18,10 @@ import { fireEvent, render } from '@testing-library/react';
 import AddStaticinstances from '../../../components/microsegmentation/AddStaticInstances';
 import API from '../../../api';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import { resetIdCounter } from 'downshift';
 
 describe('AddStaticInstances', () => {
+    beforeEach(() => resetIdCounter());
     it('should render', () => {
         let domain = 'domain';
         const showAddStaticinstances = true;

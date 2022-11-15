@@ -113,7 +113,7 @@ const modalContentClass = css`
 
     & > .content {
         flex: 1 1 auto;
-        font-size: 0.8571rem;
+        //font-size: 0.8571rem;
         overflow: auto;
         padding: 20px;
     }

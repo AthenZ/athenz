@@ -513,7 +513,6 @@ exports[`AddRuleForm should render 1`] = `
   class="emotion-0 emotion-1"
   data-testid="add-rule-form"
 >
-  
   <div
     class="emotion-2 emotion-3"
   >
@@ -636,7 +635,6 @@ exports[`AddRuleForm should render 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-35"
               data-testid="icon"
@@ -1231,7 +1229,6 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
   class="emotion-0 emotion-1"
   data-testid="add-rule-form"
 >
-  
   <div
     class="emotion-2 emotion-3"
   >
@@ -1330,7 +1327,7 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
-        aria-labelledby="downshift-1-label"
+        aria-labelledby="downshift-0-label"
         class="emotion-31 denali-input-dropdown emotion-32 emotion-33"
         data-testid="input-dropdown"
         role="combobox"
@@ -1341,11 +1338,11 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
         >
           <input
             aria-autocomplete="list"
-            aria-labelledby="downshift-1-label"
+            aria-labelledby="downshift-0-label"
             autocomplete="off"
             autocorrect="off"
             data-testid="input-node"
-            id="downshift-1-input"
+            id="downshift-0-input"
             name="rule-role"
             placeholder="Select Role"
             spellcheck="false"
@@ -1354,7 +1351,6 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-35"
               data-testid="icon"

@@ -724,7 +724,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
-        aria-labelledby="downshift-2-label"
+        aria-labelledby="downshift-0-label"
         class="emotion-27 denali-input-dropdown emotion-28 emotion-29"
         data-testid="input-dropdown"
         role="combobox"
@@ -735,11 +735,11 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         >
           <input
             aria-autocomplete="list"
-            aria-labelledby="downshift-2-label"
+            aria-labelledby="downshift-0-label"
             autocomplete="off"
             autocorrect="off"
             data-testid="input-node"
-            id="downshift-2-input"
+            id="downshift-0-input"
             name="destinationService"
             placeholder="Select Destination Service"
             spellcheck="false"
@@ -748,7 +748,6 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-31"
               data-testid="icon"
@@ -965,7 +964,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
       <div
         aria-expanded="false"
         aria-haspopup="listbox"
-        aria-labelledby="downshift-3-label"
+        aria-labelledby="downshift-1-label"
         class="emotion-27 denali-input-dropdown emotion-28 emotion-29"
         data-testid="input-dropdown"
         role="combobox"
@@ -976,11 +975,11 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         >
           <input
             aria-autocomplete="list"
-            aria-labelledby="downshift-3-label"
+            aria-labelledby="downshift-1-label"
             autocomplete="off"
             autocorrect="off"
             data-testid="input-node"
-            id="downshift-3-input"
+            id="downshift-1-input"
             name="protocol"
             placeholder="Select Protocol"
             spellcheck="false"
@@ -989,7 +988,6 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <div
             class="input-icon"
           >
-            
             <svg
               class="emotion-31"
               data-testid="icon"

@@ -36,7 +36,6 @@ const GroupRoleDiv = styled.div`
 const TableHeadStyled = styled.div`
     border-bottom: 2px solid rgb(213, 213, 213);
     color: rgb(154, 154, 154);
-    font-size: 0.8rem;
     vertical-align: top;
     text-transform: uppercase;
     padding: 5px 0px 5px 15px;
@@ -141,7 +140,7 @@ class GroupRoleTable extends React.Component {
                         Members
                     </TableHeadStyledLabel>
                 </TableHeadStyled>
-                <tbody>{rows}</tbody>
+                <GroupRoleDiv>{rows}</GroupRoleDiv>
             </StyleTable>
         );
     }

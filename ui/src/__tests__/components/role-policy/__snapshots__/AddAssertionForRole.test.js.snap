@@ -487,7 +487,6 @@ exports[`AddAssertionForRole should render 1`] = `
     class="emotion-2 emotion-3"
     data-testid="add-rule-form-for-role"
   >
-    
     <div
       class="emotion-4 emotion-5"
     >
@@ -1131,7 +1130,6 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
     class="emotion-2 emotion-3"
     data-testid="add-rule-form-for-role"
   >
-    
     <div
       class="emotion-4 emotion-5"
     >

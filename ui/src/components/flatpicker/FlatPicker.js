@@ -22,6 +22,11 @@ import styled from '@emotion/styled';
 
 const DateClearAnchor = styled.a`
     margin-left: -7px;
+    margin-top: 10px !important;
+`;
+
+const Div = styled.div`
+    display: flex;
 `;
 
 export default class FlatPicker extends React.Component {
@@ -96,7 +101,7 @@ export default class FlatPicker extends React.Component {
     render() {
         let fpClass = this.props.id ? 'fp-' + this.props.id : 'flatpickr';
         return (
-            <div className={fpClass}>
+            <Div className={fpClass}>
                 <input
                     type='date'
                     data-testid='flatPicker'
@@ -128,7 +133,7 @@ export default class FlatPicker extends React.Component {
                         />
                     </DateClearAnchor>
                 )}
-            </div>
+            </Div>
         );
     }
 }

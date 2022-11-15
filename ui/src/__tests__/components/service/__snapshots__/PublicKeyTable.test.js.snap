@@ -113,7 +113,6 @@ exports[`PublicKeyTable should reloadService after successful delete 1`] = `
       Add Key
     </a>
   </div>
-  
   <div
     class="emotion-6 emotion-7"
   />
@@ -233,7 +232,6 @@ exports[`PublicKeyTable should render 1`] = `
       Add Key
     </a>
   </div>
-  
   <div
     class="emotion-6 emotion-7"
   />

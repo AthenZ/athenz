@@ -133,8 +133,8 @@ exports[`InputDropdown opens the dropdown 1`] = `
 <div
   aria-expanded="true"
   aria-haspopup="listbox"
-  aria-labelledby="downshift-7-label"
-  aria-owns="downshift-7-menu"
+  aria-labelledby="downshift-0-label"
+  aria-owns="downshift-0-menu"
   class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
@@ -145,13 +145,13 @@ exports[`InputDropdown opens the dropdown 1`] = `
   >
     <input
       aria-autocomplete="list"
-      aria-controls="downshift-7-menu"
-      aria-labelledby="downshift-7-label"
+      aria-controls="downshift-0-menu"
+      aria-labelledby="downshift-0-label"
       autocomplete="off"
       autocorrect="off"
       class="focused"
       data-testid="input-node"
-      id="downshift-7-input"
+      id="downshift-0-input"
       name="test"
       readonly=""
       spellcheck="false"
@@ -160,7 +160,6 @@ exports[`InputDropdown opens the dropdown 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -317,7 +316,7 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
-  aria-labelledby="downshift-13-label"
+  aria-labelledby="downshift-0-label"
   class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
@@ -328,11 +327,11 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
   >
     <input
       aria-autocomplete="list"
-      aria-labelledby="downshift-13-label"
+      aria-labelledby="downshift-0-label"
       autocomplete="off"
       autocorrect="off"
       data-testid="input-node"
-      id="downshift-13-input"
+      id="downshift-0-input"
       name="test"
       spellcheck="false"
       value=""
@@ -340,7 +339,6 @@ exports[`InputDropdown renders a filterable dropdown 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -498,7 +496,7 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
-  aria-labelledby="downshift-1-label"
+  aria-labelledby="downshift-0-label"
   class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
@@ -509,11 +507,11 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
   >
     <input
       aria-autocomplete="list"
-      aria-labelledby="downshift-1-label"
+      aria-labelledby="downshift-0-label"
       autocomplete="off"
       autocorrect="off"
       data-testid="input-node"
-      id="downshift-1-input"
+      id="downshift-0-input"
       name="test"
       readonly=""
       spellcheck="false"
@@ -522,7 +520,6 @@ exports[`InputDropdown renders fluid dropdown 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -703,7 +700,6 @@ exports[`InputDropdown renders initial (closed) state 1`] = `
     <div
       class="input-icon"
     >
-      
       <svg
         class="emotion-2"
         data-testid="icon"
@@ -854,7 +850,7 @@ exports[`InputDropdown renders searchable input 1`] = `
 <div
   aria-expanded="false"
   aria-haspopup="listbox"
-  aria-labelledby="downshift-14-label"
+  aria-labelledby="downshift-0-label"
   class="emotion-0 denali-input-dropdown"
   data-testid="input-dropdown"
   role="combobox"
@@ -865,20 +861,18 @@ exports[`InputDropdown renders searchable input 1`] = `
   >
     <input
       aria-autocomplete="list"
-      aria-labelledby="downshift-14-label"
+      aria-labelledby="downshift-0-label"
       autocomplete="off"
       autocorrect="off"
       data-testid="input-node"
-      id="downshift-14-input"
+      id="downshift-0-input"
       name="test"
       spellcheck="false"
       value=""
     />
     <div
       class="input-icon"
-    >
-      
-    </div>
+    />
     <div
       class="message"
       data-testid="message"

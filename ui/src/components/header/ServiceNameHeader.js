@@ -62,6 +62,7 @@ export default function ServiceNameHeader(props) {
         message.push(' For more information click ');
         var urlLink = (
             <StyledAnchor
+                key={Date.now()}
                 onClick={() =>
                     window.open(
                         serviceHeaderDetails.url,

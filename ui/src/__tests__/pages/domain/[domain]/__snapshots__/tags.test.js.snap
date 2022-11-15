@@ -1300,7 +1300,6 @@ exports[`Tag Page should render 1`] = `
                 >
                   Add Tag
                 </button>
-                
               </div>
             </div>
             Click on Add Tag to create a new tag

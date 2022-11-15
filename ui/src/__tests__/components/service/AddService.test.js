@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 import React from 'react';
-import {
-    render,
-    fireEvent,
-    waitFor,
-    waitForElement,
-} from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
+
 import AddService from '../../../components/service/AddService';
-import {
-    buildServicesForState,
-    getStateWithServices,
-    renderWithRedux,
-} from '../../../tests_utils/ComponentsTestUtils';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 const pageConfig = {
     servicePageConfig: {
@@ -200,7 +192,7 @@ describe('AddService', () => {
             },
         });
         fireEvent.click(await waitFor(() => getByText('Submit')));
-        expect(await waitForElement(() => test)).toEqual(1);
+        await waitFor(() => expect(test).toEqual(1));
     });
 
     it('should render error if no key name specified', async () => {

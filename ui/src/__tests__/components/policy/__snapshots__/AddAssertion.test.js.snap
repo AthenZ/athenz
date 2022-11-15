@@ -621,7 +621,6 @@ exports[`AddAssertion should render 1`] = `
     class="emotion-2 emotion-3"
     data-testid="add-rule-form"
   >
-    
     <div
       class="emotion-4 emotion-5"
     >
@@ -744,7 +743,6 @@ exports[`AddAssertion should render 1`] = `
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-37"
                 data-testid="icon"
@@ -1462,7 +1460,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
     class="emotion-2 emotion-3"
     data-testid="add-rule-form"
   >
-    
     <div
       class="emotion-4 emotion-5"
     >
@@ -1585,7 +1582,6 @@ exports[`AddAssertion should render failed to submit action is required 1`] = `
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-37"
                 data-testid="icon"
@@ -2303,7 +2299,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
     class="emotion-2 emotion-3"
     data-testid="add-rule-form"
   >
-    
     <div
       class="emotion-4 emotion-5"
     >
@@ -2426,7 +2421,6 @@ exports[`AddAssertion should render failed to submit role name is required 1`] =
             <div
               class="input-icon"
             >
-              
               <svg
                 class="emotion-37"
                 data-testid="icon"

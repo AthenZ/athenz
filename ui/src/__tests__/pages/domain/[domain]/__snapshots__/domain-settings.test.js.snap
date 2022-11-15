@@ -1648,7 +1648,6 @@ exports[`DomainSettingsPage should render 1`] = `
                 >
                   Submit
                 </button>
-                
                 <button
                   class="emotion-157 denali-button"
                 >

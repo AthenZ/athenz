@@ -130,7 +130,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
@@ -142,7 +142,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
@@ -154,7 +154,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
 .emotion-13 {
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   padding-bottom: 5px;
   vertical-align: bottom;
   padding: 5px 0 5px 15px;
@@ -283,12 +283,19 @@ exports[`PendingApprovalTableHeader should render 1`] = `
 }
 
 .emotion-22 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-24 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-28 {
+.emotion-32 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -296,7 +303,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   text-transform: uppercase;
   text-align: center;
   position: absolute;
-  width: 11em;
+  width: 12em;
   right: 11em;
   z-index: 1;
   height: 42px;
@@ -305,17 +312,17 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-30 {
+.emotion-34 {
   margin-top: 10px;
 }
 
-.emotion-32 {
+.emotion-36 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-33 {
+.emotion-37 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -397,7 +404,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
       disabled=""
     >
       <div
-        class="fp-workflowHeaderExpiry"
+        class="fp-workflowHeaderExpiry emotion-22 emotion-23"
       >
         <input
           class="flatpickr-input"
@@ -418,7 +425,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-22"
+            class="emotion-24"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -443,7 +450,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
       disabled=""
     >
       <div
-        class="fp-workflowHeaderReviewReminder"
+        class="fp-workflowHeaderReviewReminder emotion-22 emotion-23"
       >
         <input
           class="flatpickr-input"
@@ -464,7 +471,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           data-clear=""
         >
           <svg
-            class="emotion-22"
+            class="emotion-24"
             data-testid="icon"
             height="1.25em"
             viewBox="0 0 1024 1024"
@@ -482,13 +489,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-28 emotion-29"
+    class="emotion-32 emotion-33"
   >
     <div
-      class="emotion-30 emotion-31"
+      class="emotion-34 emotion-35"
     >
       <svg
-        class="emotion-32"
+        class="emotion-36"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"
@@ -507,13 +514,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-33 emotion-34"
+    class="emotion-37 emotion-38"
   >
     <div
-      class="emotion-30 emotion-31"
+      class="emotion-34 emotion-35"
     >
       <svg
-        class="emotion-32"
+        class="emotion-36"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

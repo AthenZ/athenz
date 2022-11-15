@@ -16,8 +16,10 @@
 import React from 'react';
 import AddRuleForm from '../../../components/policy/AddRuleForm';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import { resetIdCounter } from 'downshift';
 
 describe('AddRuleForm', () => {
+    beforeEach(() => resetIdCounter());
     it('should render', () => {
         const { getByTestId } = renderWithRedux(<AddRuleForm />);
         const addRuleForm = getByTestId('add-rule-form');

@@ -51,60 +51,64 @@ exports[`ServiceList should render 1`] = `
   <table
     class="emotion-2 emotion-3"
   >
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <th
-        class="emotion-6 emotion-7"
+    <thead>
+      <tr
+        class="emotion-4 emotion-5"
       >
-         Services 
-      </th>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <td
-        class="emotion-10 emotion-11"
-      >
-        <a
-          class="emotion-12 emotion-13"
+        <th
+          class="emotion-6 emotion-7"
         >
-           
-          serviceB
-           
-        </a>
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <td
-        class="emotion-10 emotion-11"
+           Services 
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="emotion-4 emotion-5"
       >
-        <a
-          class="emotion-12 emotion-13"
+        <td
+          class="emotion-10 emotion-11"
         >
-           
-          serviceC
-           
-        </a>
-      </td>
-    </tr>
-    <tr
-      class="emotion-4 emotion-5"
-    >
-      <td
-        class="emotion-10 emotion-11"
+          <a
+            class="emotion-12 emotion-13"
+          >
+             
+            serviceB
+             
+          </a>
+        </td>
+      </tr>
+      <tr
+        class="emotion-4 emotion-5"
       >
-        <a
-          class="emotion-12 emotion-13"
+        <td
+          class="emotion-10 emotion-11"
         >
-           
-          serviceD
-           
-        </a>
-      </td>
-    </tr>
+          <a
+            class="emotion-12 emotion-13"
+          >
+             
+            serviceC
+             
+          </a>
+        </td>
+      </tr>
+      <tr
+        class="emotion-4 emotion-5"
+      >
+        <td
+          class="emotion-10 emotion-11"
+        >
+          <a
+            class="emotion-12 emotion-13"
+          >
+             
+            serviceD
+             
+          </a>
+        </td>
+      </tr>
+    </tbody>
   </table>
 </div>
 `;
