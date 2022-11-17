@@ -691,7 +691,7 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 	//end loop
 	s += "\tdefault:\n"
 	s += "\t\tvar errobj rdl.ResourceError\n"
-	s += "\t\tcontentBytes, err " + assign + " ioutil.ReadAll(resp.Body)\n"
+	s += "\t\tcontentBytes, err " + assign + " io.ReadAll(resp.Body)\n"
 	s += "\t\tif err != nil {\n\t\t\t" + errorReturn + "\n\t\t}\n"
 	s += "\t\tjson.Unmarshal(contentBytes, &errobj)\n"
 	s += "\t\tif errobj.Code == 0 {\n"

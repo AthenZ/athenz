@@ -8,8 +8,8 @@ import (
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
 	svc "github.com/AthenZ/athenz/utils/msd-agent/svc"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/AthenZ/athenz/clients/go/msd"
@@ -36,7 +36,7 @@ func (c Client) PutWorkload(domain string, service string, options *msd.Workload
 func clientWithUserAgent(c Client) msd.MSDClient {
 	msdClient := msd.NewClient(c.Url, c.Transport)
 	osVersion := func() string {
-		b, err := ioutil.ReadFile("/etc/redhat-release")
+		b, err := os.ReadFile("/etc/redhat-release")
 		if err != nil {
 			log.Debugf("Failed to read os version")
 			return ""

@@ -8,7 +8,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -72,7 +71,7 @@ func isFreshFile(filename string, maxAge float64) bool {
 func getCachedNToken() string {
 	ntokenFile := os.Getenv("HOME") + "/.ntoken"
 	if isFreshFile(ntokenFile, 45) {
-		data, err := ioutil.ReadFile(ntokenFile)
+		data, err := os.ReadFile(ntokenFile)
 		if err == nil {
 			return strings.TrimSpace(string(data))
 		}
@@ -123,7 +122,7 @@ func getAuthNToken(identity, authorizedServices, zmsURL string, tr *http.Transpo
 	if tok.Token != "" {
 		ntokenFile := os.Getenv("HOME") + "/.ntoken"
 		data := []byte(tok.Token)
-		ioutil.WriteFile(ntokenFile, data, 0600)
+		os.WriteFile(ntokenFile, data, 0600)
 	}
 	return string(tok.Token), nil
 }
@@ -159,7 +158,7 @@ func printVersion() {
 }
 
 func loadNtokenFromFile(fileName string) (string, error) {
-	buf, err := ioutil.ReadFile(fileName)
+	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return "", err
 	}
@@ -274,7 +273,7 @@ func main() {
 	buf.WriteString("\n")
 	buf.WriteString("}\n")
 
-	err = ioutil.WriteFile(*pOutputFile, buf.Bytes(), 0644)
+	err = os.WriteFile(*pOutputFile, buf.Bytes(), 0644)
 	if err != nil {
 		log.Fatalf("Unable to write athenz.conf file, err: %v", err)
 	}
@@ -325,18 +324,18 @@ func GetTLSConfigFromFiles(certFile, keyFile, caCertFile *string) (*tls.Config, 
 	var caCertPem []byte
 	var err error
 	if keyFile != nil {
-		keyPem, err = ioutil.ReadFile(*keyFile)
+		keyPem, err = os.ReadFile(*keyFile)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to read keyfile: %q, error: %v", *keyFile, err)
 		}
 
-		certPem, err = ioutil.ReadFile(*certFile)
+		certPem, err = os.ReadFile(*certFile)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to read certfile: %q, error: %v", *certFile, err)
 		}
 	}
 	if caCertFile != nil {
-		caCertPem, err = ioutil.ReadFile(*caCertFile)
+		caCertPem, err = os.ReadFile(*caCertFile)
 		if err != nil {
 			return nil, fmt.Errorf("Unable to read ca certfile: %q, error: %v", *caCertFile, err)
 		}

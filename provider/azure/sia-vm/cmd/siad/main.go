@@ -86,7 +86,7 @@ func main() {
 		log.Fatalf("Unable to get the instance identity document, error: %v\n", err)
 	}
 
-	confBytes, _ := ioutil.ReadFile(*pConf)
+	confBytes, _ := os.ReadFile(*pConf)
 	opts, err := options.NewOptions(confBytes, identityDocument, siaMainDir, siaVersion, *ztsCACert, *ztsServerName, ztsAzureDomainList, *countryName, *azureProvider)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)

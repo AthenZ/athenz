@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 )
@@ -78,7 +78,7 @@ func PubKey(file string, n int) ([]byte, error) {
 	var pubKey []byte
 	var err error
 	for i := 0; i < n; i++ {
-		pubKey, err = ioutil.ReadFile(file)
+		pubKey, err = os.ReadFile(file)
 		if err == nil {
 			return pubKey, nil
 		}
@@ -92,7 +92,7 @@ func PubKeyFile(sshDir string, keyType KeyType) string {
 	return filepath.Join(sshDir, fmt.Sprintf("ssh_host_%s_key.pub", toString[keyType]))
 }
 
-// PubCertFile returns the path to the ssh host certificate based on the keyType
+// CertFile returns the path to the ssh host certificate based on the keyType
 func CertFile(sshDir string, keyType KeyType) string {
 	return filepath.Join(sshDir, fmt.Sprintf("ssh_host_%s_key-cert.pub", toString[keyType]))
 }

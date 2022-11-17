@@ -19,7 +19,7 @@ package hostkey
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -49,7 +49,7 @@ func TestPubKey(t *testing.T) {
 	assert.Nil(t, pubKey)
 
 	// let's create a file now for testing
-	ioutil.WriteFile(sshPubFile, []byte("test key"), 0400)
+	os.WriteFile(sshPubFile, []byte("test key"), 0400)
 
 	// wait for PubKey to finish
 	wg.Wait()

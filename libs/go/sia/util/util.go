@@ -27,7 +27,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -134,17 +133,17 @@ func tlsConfiguration(keyfile, certfile, cafile string) (*tls.Config, error) {
 	var certpem []byte
 	var err error
 	if cafile != "" {
-		capem, err = ioutil.ReadFile(cafile)
+		capem, err = os.ReadFile(cafile)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if keyfile != "" && certfile != "" {
-		keypem, err = ioutil.ReadFile(keyfile)
+		keypem, err = os.ReadFile(keyfile)
 		if err != nil {
 			return nil, err
 		}
-		certpem, err = ioutil.ReadFile(certfile)
+		certpem, err = os.ReadFile(certfile)
 		if err != nil {
 			return nil, err
 		}
@@ -251,7 +250,7 @@ func FileExists(path string) bool {
 
 func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	log.Printf("Reading private key from %s...\n", filename)
-	pemBytes, err := ioutil.ReadFile(filename)
+	pemBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +344,7 @@ func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAws
 
 	log.Println("Generating SSH Host Certificate CSR...")
 
-	pubkey, err := ioutil.ReadFile(sshPubKeyFile)
+	pubkey, err := os.ReadFile(sshPubKeyFile)
 	if err != nil {
 		log.Printf("Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
 		return "", nil
@@ -448,7 +447,7 @@ func EnsureBackUpDir(backUpDir string) error {
 }
 
 func Copy(sourceFile, destFile string, perm os.FileMode) error {
-	sourceBytes, err := ioutil.ReadFile(sourceFile)
+	sourceBytes, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return err
 	}
@@ -457,7 +456,7 @@ func Copy(sourceFile, destFile string, perm os.FileMode) error {
 			log.Printf("Unable to delete file %s\n", destFile)
 		}
 	}
-	return ioutil.WriteFile(destFile, sourceBytes, perm)
+	return os.WriteFile(destFile, sourceBytes, perm)
 }
 
 func CopyCertKeyFile(srcKey, destKey, srcCert, destCert string, keyPerm int) error {
@@ -506,7 +505,7 @@ func ParseAssumedRoleArn(roleArn, serviceSuffix, accessProfileSeparator string) 
 	}
 	// second component is our athenz service name with the requested service suffix
 	// if the service suffix is empty then we don't need any parsing of the requested
-	// domain/service values and we'll just parse the values as is
+	// domain/service values, and we'll just parse the values as is
 	var domain, service, profile string
 	if serviceSuffix == "" {
 		roleName := roleComps[1]
@@ -799,13 +798,13 @@ func GetAthenzJwkConfModTime(siaDir string) rdl.Timestamp {
 }
 
 func ReadAthenzJwkConf(jwkConfFile string, jwkConfObj *zts.AthenzJWKConfig) error {
-	jwkConfStr, err := ioutil.ReadFile(jwkConfFile)
+	jwkConfStr, err := os.ReadFile(jwkConfFile)
 	if err != nil {
-		return fmt.Errorf("athenz.conf does not exist in [%s], err: %v", jwkConfFile, err.Error())
+		return fmt.Errorf("athenz.conf does not exist in [%s], err: %v", jwkConfFile, err)
 	}
 	err = json.Unmarshal(jwkConfStr, jwkConfObj)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal athenz.conf: [%s], err: %v", jwkConfFile, err.Error())
+		return fmt.Errorf("failed to unmarshal athenz.conf: [%s], err: %v", jwkConfFile, err)
 	}
 	return nil
 }

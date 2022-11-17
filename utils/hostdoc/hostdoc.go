@@ -19,7 +19,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -39,9 +38,9 @@ func main() {
 
 	app.Command("show", "show entries from host document", func(cmd *cli.Cmd) {
 		var (
-			domain = cmd.BoolOpt("d domain",false, "show domain")
-			service = cmd.BoolOpt("s service",false, "show services, comma separated")
-			profile = cmd.BoolOpt("p profile",false, "show profile")
+			domain  = cmd.BoolOpt("d domain", false, "show domain")
+			service = cmd.BoolOpt("s service", false, "show services, comma separated")
+			profile = cmd.BoolOpt("p profile", false, "show profile")
 			primary = cmd.BoolOpt("primary-service", false, "show primary service")
 		)
 
@@ -59,7 +58,7 @@ func main() {
 }
 
 func Process(docFile string, domain, service, profile, primary bool) (string, error) {
-	b, err := ioutil.ReadFile(docFile)
+	b, err := os.ReadFile(docFile)
 	if err != nil {
 		return "", err
 	}
@@ -82,5 +81,5 @@ func Process(docFile string, domain, service, profile, primary bool) (string, er
 	default:
 		return "", errors.New("no selection made to print from host document")
 	}
-	return "", nil;
+	return "", nil
 }

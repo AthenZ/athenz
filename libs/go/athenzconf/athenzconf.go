@@ -6,7 +6,6 @@ package athenzconf
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
@@ -28,16 +27,16 @@ type AthenzConf struct {
 func ReadConf(athenzConf string) (*AthenzConf, error) {
 	var aConf *AthenzConf
 	if !exists(athenzConf) {
-		return nil, fmt.Errorf("The Athenz configuration file does not exist at path: %v", athenzConf)
+		return nil, fmt.Errorf("the Athenz configuration file does not exist at path: %v", athenzConf)
 	}
 
-	data, err := ioutil.ReadFile(athenzConf)
+	data, err := os.ReadFile(athenzConf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read the Athenz configuration file, Error:%v", err)
+		return nil, fmt.Errorf("failed to read the Athenz configuration file, Error:%v", err)
 	}
 	err = json.Unmarshal(data, &aConf)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse the Athenz configuration file, Error:%v", err)
+		return nil, fmt.Errorf("failed to parse the Athenz configuration file, Error:%v", err)
 	}
 	return aConf, nil
 }
@@ -47,7 +46,7 @@ func (conf *AthenzConf) FetchZTSPublicKey(keyVersion string) ([]byte, error) {
 		if publicKey.Id == keyVersion {
 			key, err := new(zmssvctoken.YBase64).DecodeString(publicKey.Key)
 			if err != nil {
-				return nil, fmt.Errorf("Unable to decode ZTS public Key with id: %v, Error: %v", publicKey.Id, err)
+				return nil, fmt.Errorf("unable to decode ZTS public Key with id: %v, Error: %v", publicKey.Id, err)
 			}
 			return key, nil
 		}
@@ -60,7 +59,7 @@ func (conf *AthenzConf) FetchZMSPublicKey(keyVersion string) ([]byte, error) {
 		if publicKey.Id == keyVersion {
 			key, err := new(zmssvctoken.YBase64).DecodeString(publicKey.Key)
 			if err != nil {
-				return nil, fmt.Errorf("Unable to decode ZMS public Key with id: %v, Error: %v", publicKey.Id, err)
+				return nil, fmt.Errorf("unable to decode ZMS public Key with id: %v, Error: %v", publicKey.Id, err)
 			}
 			return key, nil
 		}

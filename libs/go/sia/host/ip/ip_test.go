@@ -19,7 +19,6 @@ package ip
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -108,15 +107,15 @@ func TestGetIps(t *testing.T) {
 func TestGetExcludeOpts(t *testing.T) {
 	a := assert.New(t)
 
-	f, err := ioutil.TempFile("", "exclude_ips")
+	f, err := os.CreateTemp("", "exclude_ips")
 	require.Nil(t, err)
 	defer os.Remove(f.Name())
 
-	err = ioutil.WriteFile(f.Name(), []byte("10.144.5.6/32,10.144.5.7/32\t \n10.144.4.0/30"), 0444)
+	err = os.WriteFile(f.Name(), []byte("10.144.5.6/32,10.144.5.7/32\t \n10.144.4.0/30"), 0444)
 	require.Nil(t, err)
 
 	// Test for 'all'
-	err = ioutil.WriteFile(f.Name(), []byte("\t\n\nall\n\n"), 0444)
+	err = os.WriteFile(f.Name(), []byte("\t\n\nall\n\n"), 0444)
 	require.Nil(t, err)
 
 	o, err := GetExcludeOpts(f.Name())

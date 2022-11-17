@@ -19,7 +19,6 @@ package attestation
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -79,7 +78,7 @@ func GetECSTaskId() string {
 	if ecs == "" {
 		return ""
 	}
-	ecsMetaData, err := ioutil.ReadFile(ecs)
+	ecsMetaData, err := os.ReadFile(ecs)
 	if err != nil {
 		return ""
 	}

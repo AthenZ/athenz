@@ -20,7 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
-	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 
@@ -68,7 +68,7 @@ func verifyFn(caKeyId string) verify.VerifyFn {
 
 // Load takes in a filepath and returns a parsed ssh.Certificate
 func Load(f string) (*ssh.Certificate, error) {
-	bytes, err := ioutil.ReadFile(f)
+	bytes, err := os.ReadFile(f)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read existing cert: %q, error: %v", f, err)
 	}

@@ -9,9 +9,9 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
@@ -52,23 +52,23 @@ func main() {
 	}
 
 	client := zms.NewClient(zmsURL, transport)
-	access, err := client.GetAccess(zms.ActionName(action), zms.ResourceName(resource), zms.DomainName(""), zms.EntityName(""))
+	access, err := client.GetAccess(zms.ActionName(action), zms.ResourceName(resource), "", "")
 	if err != nil {
-		log.Fatalf("Unable to do GetAccess, err: %v, action: %q, resource: %q", err, action, resource)
+		log.Fatalf("unable to do GetAccess, err: %v, action: %q, resource: %q", err, action, resource)
 	}
 
 	log.Printf("Access Granted: %t", access.Granted)
 }
 
 func getTLSConfigFromFiles(keyFile, certFile string) (*tls.Config, error) {
-	keypem, err := ioutil.ReadFile(keyFile)
+	keypem, err := os.ReadFile(keyFile)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read keyfile: %q, error: %v", keyFile, err)
+		return nil, fmt.Errorf("unable to read keyfile: %q, error: %v", keyFile, err)
 	}
 
-	certpem, err := ioutil.ReadFile(certFile)
+	certpem, err := os.ReadFile(certFile)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to read certfile: %q, error: %v", certFile, err)
+		return nil, fmt.Errorf("unable to read certfile: %q, error: %v", certFile, err)
 	}
 
 	return getTLSConfig(certpem, keypem)
@@ -77,7 +77,7 @@ func getTLSConfigFromFiles(keyFile, certFile string) (*tls.Config, error) {
 func getTLSConfig(certpem, keypem []byte) (*tls.Config, error) {
 	clientCert, err := tls.X509KeyPair(certpem, keypem)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to formulate clientCert from key and cert bytes, error: %v", err)
+		return nil, fmt.Errorf("unable to formulate clientCert from key and cert bytes, error: %v", err)
 	}
 
 	config := &tls.Config{}

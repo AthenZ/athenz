@@ -4,8 +4,8 @@
 package svc
 
 import (
-	"io/ioutil"
 	"net"
+	"os"
 	"path/filepath"
 
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
@@ -96,7 +96,7 @@ func ReadSiaConfig() ([]byte, string) {
 		return nil, ""
 	}
 	if siafile.Exists(SIA_CONFIG) {
-		bytes, err := ioutil.ReadFile(SIA_CONFIG)
+		bytes, err := os.ReadFile(SIA_CONFIG)
 		if err != nil {
 			return nil, ""
 		} else if len(bytes) == 0 {
@@ -110,7 +110,7 @@ func ReadSiaConfig() ([]byte, string) {
 func ReadHostDocument() ([]byte, string) {
 	docFile := filepath.Join(SIA_DIR, HOST_DOCUMENT)
 	if siafile.Exists(docFile) {
-		docBytes, err := ioutil.ReadFile(docFile)
+		docBytes, err := os.ReadFile(docFile)
 		if err == nil {
 			return docBytes, docFile
 		}

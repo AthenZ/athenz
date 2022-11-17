@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -182,14 +181,14 @@ func cleanUp() error {
 
 func TestWritePolicies(t *testing.T) {
 	a := assert.New(t)
-	policyJSON, _ := ioutil.ReadFile("test_data/data_domain.json")
+	policyJSON, _ := os.ReadFile("test_data/data_domain.json")
 	err := WritePolicies(testConfig, policyJSON, Domain)
 	a.Nil(err)
 	policyFile := fmt.Sprintf("%s/%s.pol", PoliciesDir, Domain)
 	tempPolicyFile := fmt.Sprintf("%s/%s.tmp", TempPoliciesDir, Domain)
 	a.Equal(util.Exists(tempPolicyFile), false)
 	a.Equal(util.Exists(policyFile), true)
-	data, err := ioutil.ReadFile(policyFile)
+	data, err := os.ReadFile(policyFile)
 	a.Nil(err)
 	a.Equal(string(data), string(policyJSON))
 	err = os.Remove(policyFile)
@@ -198,7 +197,7 @@ func TestWritePolicies(t *testing.T) {
 
 func TestWritePoliciesEmptyPolicyDir(t *testing.T) {
 	a := assert.New(t)
-	policyJSON, _ := ioutil.ReadFile("test_data/data_domain.json")
+	policyJSON, _ := os.ReadFile("test_data/data_domain.json")
 	testConfig.PolicyFileDir = "/random"
 	err := WritePolicies(testConfig, policyJSON, Domain)
 	fmt.Print(err)
@@ -231,7 +230,7 @@ func TestGetEtagForExistingPolicyJson(test *testing.T) {
 			a.Nil(err)
 			policyJSON, err := json.Marshal(policyData)
 			a.Nil(err)
-			err = ioutil.WriteFile(PoliciesDir+"/test.pol", policyJSON, 0755)
+			err = os.WriteFile(PoliciesDir+"/test.pol", policyJSON, 0755)
 			a.Nil(err)
 
 			testConfig.PutZtsPublicKey("0", string(ecdsaPublicKeyPEM))
@@ -274,7 +273,7 @@ func TestGetEtagForExistingPolicyJws(test *testing.T) {
 			a.Nil(err)
 			policyJSON, err := json.Marshal(policyData)
 			a.Nil(err)
-			err = ioutil.WriteFile(PoliciesDir+"/test.pol", policyJSON, 0755)
+			err = os.WriteFile(PoliciesDir+"/test.pol", policyJSON, 0755)
 			a.Nil(err)
 
 			testConfig.PutZtsPublicKey("0", string(ecdsaPublicKeyPEM))
@@ -418,7 +417,7 @@ func TestPolicyUpdaterJwkOnInit(t *testing.T) {
 	a := assert.New(t)
 	ztsRouter := httptreemux.New()
 
-	siaDir, err := ioutil.TempDir("", "sia")
+	siaDir, err := os.MkdirTemp("", "sia")
 	if err != nil {
 		a.Nil(err)
 	}
@@ -477,7 +476,7 @@ func TestPolicyUpdaterJwkOnZtsCall(t *testing.T) {
 	ztsRouter := httptreemux.New()
 	ztsRouter.EscapeAddedRoutes = true
 
-	siaDir, err := ioutil.TempDir("", "sia")
+	siaDir, err := os.MkdirTemp("", "sia")
 	if err != nil {
 		a.Nil(err)
 	}
@@ -538,7 +537,7 @@ func writeAthenzJwkConf(pubJwk string, zpuConf *ZpuConfiguration) {
 	}
 
 	confFile := filepath.Join(zpuConf.SiaDir, siautil.JwkConfFile)
-	if err := ioutil.WriteFile(confFile, bytes, 0600); err != nil {
+	if err := os.WriteFile(confFile, bytes, 0600); err != nil {
 		log.Fatalf("Unable to create the file %q: %v", confFile, err)
 	}
 }

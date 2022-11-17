@@ -2,7 +2,6 @@ package futil
 
 import (
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -102,16 +101,16 @@ func TestSymlink(t *testing.T) {
 	log.Printf("sshDir: %q", sshDir)
 
 	source := filepath.Join(sshDir, "source")
-	ioutil.WriteFile(source, []byte("source file"), 0400)
+	os.WriteFile(source, []byte("source file"), 0400)
 
 	existingLink := filepath.Join(sshDir, "existingLink")
 	existingSource := filepath.Join(sshDir, "existingSource")
-	ioutil.WriteFile(existingSource, []byte("earlier source file"), 0000)
+	os.WriteFile(existingSource, []byte("earlier source file"), 0000)
 	err := os.Symlink(existingSource, existingLink)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	regularFile := filepath.Join(sshDir, "regular")
-	ioutil.WriteFile(regularFile, []byte("regular file"), 0400)
+	os.WriteFile(regularFile, []byte("regular file"), 0400)
 
 	linkToSource := filepath.Join(sshDir, "link-to-source")
 	err = os.Symlink(source, linkToSource)

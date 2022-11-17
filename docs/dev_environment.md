@@ -71,7 +71,7 @@ $ export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
 #### Node JS
 
-Install node 14.x by following the directions at
+Install node 18.x by following the directions at
 [Node.js JavaScript Runtime](https://nodejs.org/en/)
 
 Verify that you have the required minimum version of `node`,
@@ -80,12 +80,12 @@ in your runtime path:
 
 ```shell
 $ node --version
-v14.18.2
+v18.12.1
 $ npm -v
-8.3.0
+8.19.2
 $ npm install -g nodemon
 $ nodemon --version
-2.0.15
+2.0.20
 ```
 
 ## Build Steps

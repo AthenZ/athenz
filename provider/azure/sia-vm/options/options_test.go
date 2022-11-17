@@ -21,8 +21,8 @@ import (
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"os/user"
 	"strconv"
@@ -251,7 +251,7 @@ func getUserGid(name string) int {
 }
 
 func getGid(t *testing.T, group string) int {
-	out, err := ioutil.ReadFile("/etc/group")
+	out, err := os.ReadFile("/etc/group")
 	require.Nil(t, err)
 
 	for _, line := range strings.Split(string(out), "\n") {

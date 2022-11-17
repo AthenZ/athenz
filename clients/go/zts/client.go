@@ -308,7 +308,7 @@ func (client ZTSClient) GetResourceAccess(action ActionName, resource ResourceNa
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -340,7 +340,7 @@ func (client ZTSClient) GetResourceAccessExt(action ActionName, resource string,
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -372,7 +372,7 @@ func (client ZTSClient) GetServiceIdentity(domainName DomainName, serviceName Se
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -404,7 +404,7 @@ func (client ZTSClient) GetServiceIdentityList(domainName DomainName) (*ServiceI
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -436,7 +436,7 @@ func (client ZTSClient) GetPublicKeyEntry(domainName DomainName, serviceName Sim
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -468,7 +468,7 @@ func (client ZTSClient) GetHostServices(host string) (*HostServices, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -506,7 +506,7 @@ func (client ZTSClient) GetDomainSignedPolicyData(domainName DomainName, matchin
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -548,7 +548,7 @@ func (client ZTSClient) PostSignedPolicyRequest(domainName DomainName, request *
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -580,7 +580,7 @@ func (client ZTSClient) GetRoleToken(domainName DomainName, role EntityList, min
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -616,7 +616,7 @@ func (client ZTSClient) PostRoleCertificateRequest(domainName DomainName, roleNa
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -648,7 +648,7 @@ func (client ZTSClient) GetAccess(domainName DomainName, roleName EntityName, pr
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -680,7 +680,7 @@ func (client ZTSClient) GetRoleAccess(domainName DomainName, principal EntityNam
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -712,7 +712,7 @@ func (client ZTSClient) GetTenantDomains(providerDomainName DomainName, userName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -748,7 +748,7 @@ func (client ZTSClient) PostInstanceRefreshRequest(domain CompoundName, service 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -780,7 +780,7 @@ func (client ZTSClient) GetAWSTemporaryCredentials(domainName DomainName, role A
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -817,7 +817,7 @@ func (client ZTSClient) PostInstanceRegisterInformation(info *InstanceRegisterIn
 		return data, location, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -853,7 +853,7 @@ func (client ZTSClient) PostInstanceRefreshInformation(provider ServiceName, dom
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -885,7 +885,7 @@ func (client ZTSClient) GetInstanceRegisterToken(provider ServiceName, domain Do
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -912,7 +912,7 @@ func (client ZTSClient) DeleteInstanceIdentity(provider ServiceName, domain Doma
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -944,7 +944,7 @@ func (client ZTSClient) GetCertificateAuthorityBundle(name SimpleName) (*Certifi
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -976,7 +976,7 @@ func (client ZTSClient) GetStatus() (*Status, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1012,7 +1012,7 @@ func (client ZTSClient) PostSSHCertRequest(certRequest *SSHCertRequest) (*SSHCer
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1044,7 +1044,7 @@ func (client ZTSClient) GetOpenIDConfig() (*OpenIDConfig, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1076,7 +1076,7 @@ func (client ZTSClient) GetOAuthConfig() (*OAuthConfig, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1108,7 +1108,7 @@ func (client ZTSClient) GetJWKList(rfc *bool) (*JWKList, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1141,7 +1141,7 @@ func (client ZTSClient) PostAccessTokenRequest(request AccessTokenRequest) (*Acc
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1171,7 +1171,7 @@ func (client ZTSClient) GetOIDCResponse(responseType string, clientId ServiceNam
 		return data, location, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -1207,7 +1207,7 @@ func (client ZTSClient) PostRoleCertificateRequestExt(req *RoleCertificateReques
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1239,7 +1239,7 @@ func (client ZTSClient) GetRolesRequireRoleCert(principal EntityName) (*RoleAcce
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1271,7 +1271,7 @@ func (client ZTSClient) GetWorkloadsByService(domainName DomainName, serviceName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1303,7 +1303,7 @@ func (client ZTSClient) GetWorkloadsByIP(ip string) (*Workloads, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1335,7 +1335,7 @@ func (client ZTSClient) GetTransportRules(domainName DomainName, serviceName Ent
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1367,7 +1367,7 @@ func (client ZTSClient) GetInfo() (*Info, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1399,7 +1399,7 @@ func (client ZTSClient) GetRdlSchema() (*rdl.Schema, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}

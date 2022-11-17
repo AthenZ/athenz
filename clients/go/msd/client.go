@@ -314,7 +314,7 @@ func (client MSDClient) GetTransportPolicyRules(matchingTag string) (*TransportP
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -350,7 +350,7 @@ func (client MSDClient) ValidateTransportPolicy(transportPolicy *TransportPolicy
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -382,7 +382,7 @@ func (client MSDClient) GetTransportPolicyValidationStatus(domainName DomainName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -420,7 +420,7 @@ func (client MSDClient) GetWorkloadsByService(domainName DomainName, serviceName
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -458,7 +458,7 @@ func (client MSDClient) GetWorkloadsByIP(ip string, matchingTag string) (*Worklo
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -489,7 +489,7 @@ func (client MSDClient) PutDynamicWorkload(domainName DomainName, serviceName En
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -516,7 +516,7 @@ func (client MSDClient) DeleteDynamicWorkload(domainName DomainName, serviceName
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -547,7 +547,7 @@ func (client MSDClient) PutStaticWorkload(domainName DomainName, serviceName Ent
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -574,7 +574,7 @@ func (client MSDClient) DeleteStaticWorkload(domainName DomainName, serviceName 
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -610,7 +610,7 @@ func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeI
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -642,7 +642,7 @@ func (client MSDClient) GetRdlSchema() (*rdl.Schema, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}

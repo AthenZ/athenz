@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/utils/zpe-updater/metrics"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -420,7 +419,7 @@ func WritePolicies(config *ZpuConfiguration, bytes []byte, domain string) error 
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(tempPolicyFile, bytes, 0755)
+	err = os.WriteFile(tempPolicyFile, bytes, 0755)
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	"github.com/AthenZ/athenz/libs/go/sia/verify"
-	"io/ioutil"
 	"os"
 	"time"
 )
@@ -22,13 +21,13 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 		return nil
 	}
 	// if the original file does not exists then we
-	// we just write the contents to the given file
+	// just write the contents to the given file
 	// directly
 	stat, err := os.Stat(fileName)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Printf("Updating file %s...\n", fileName)
-			err = ioutil.WriteFile(fileName, contents, perm)
+			err = os.WriteFile(fileName, contents, perm)
 			if err != nil {
 				log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
 				return err
@@ -39,8 +38,8 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 			return err
 		}
 	} else {
-		// Skip updating file if it's identical to existing file
-		oldBytes, err := ioutil.ReadFile(fileName)
+		// Skip updating file if it's identical to the existing file
+		oldBytes, err := os.ReadFile(fileName)
 		if bytes.Equal(oldBytes, contents) {
 			log.Printf("File contents hasn't changed. Skipping writing to file %s\n", fileName)
 			// Change permissions only if needed (minimizing mtime / ctime changes in the file)
@@ -77,7 +76,7 @@ func overrideFile(fileName string, err error, contents []byte, perm os.FileMode,
 	// write the new contents to a temporary file
 	newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
 	log.Printf("Writing contents to temporary file %s...\n", newFileName)
-	err = ioutil.WriteFile(newFileName, contents, perm)
+	err = os.WriteFile(newFileName, contents, perm)
 	if err != nil {
 		log.Printf("Unable to write new file %s, err: %v\n", newFileName, err)
 		return err
@@ -117,12 +116,12 @@ func overrideFile(fileName string, err error, contents []byte, perm os.FileMode,
 
 func Copy(sourceFile, destFile string, perm os.FileMode) error {
 	if Exists(sourceFile) {
-		sourceBytes, err := ioutil.ReadFile(sourceFile)
+		sourceBytes, err := os.ReadFile(sourceFile)
 		if err != nil {
 			log.Printf("unable to read file %s\n", sourceFile)
 			return err
 		}
-		err = ioutil.WriteFile(destFile, sourceBytes, perm)
+		err = os.WriteFile(destFile, sourceBytes, perm)
 		if err != nil {
 			log.Printf("unable to write to file %s\n", destFile)
 			return err
@@ -154,7 +153,7 @@ func Exists(path string) bool {
 func WriteFile(content interface{}, ipFile string) error {
 	file, err := json.MarshalIndent(content, "", " ")
 	if err == nil {
-		err = ioutil.WriteFile(ipFile, file, 0644)
+		err = os.WriteFile(ipFile, file, 0644)
 		if err != nil {
 			log.Printf("Failed to write file, Error: %v\n", err)
 			return err
@@ -168,7 +167,7 @@ func WriteFile(content interface{}, ipFile string) error {
 
 func ReadFile(filePath string, value interface{}) error {
 
-	file, err := ioutil.ReadFile(filePath)
+	file, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Printf("Failed to read file: %v\n", err)
 		return err

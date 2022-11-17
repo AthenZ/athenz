@@ -18,7 +18,6 @@ package sia
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -185,11 +184,11 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 }
 
 func copyFile(src, dst string) error {
-	data, err := ioutil.ReadFile(src)
+	data, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(dst, data, 0644)
+	return os.WriteFile(dst, data, 0644)
 }
 
 func TestRefreshInstance(test *testing.T) {
@@ -243,8 +242,8 @@ func TestRefreshInstance(test *testing.T) {
 	err = RefreshInstance([]*attestation.Data{a}, "http://127.0.0.1:5085/zts/v1", &identityDocument, &opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
-	oldCert, _ := ioutil.ReadFile("devel/data/cert.pem")
-	newCert, _ := ioutil.ReadFile(certFile)
+	oldCert, _ := os.ReadFile("devel/data/cert.pem")
+	newCert, _ := os.ReadFile(certFile)
 	if string(oldCert) == string(newCert) {
 		test.Errorf("Certificate was not refreshed")
 		return

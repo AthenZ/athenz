@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
-	"io/ioutil"
 	"net"
+	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
@@ -101,5 +101,5 @@ func Write(doc raw.Doc, docPath string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(docPath, docJsonBytes, 0644)
+	return os.WriteFile(docPath, docJsonBytes, 0644)
 }

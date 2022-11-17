@@ -10,9 +10,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -3145,7 +3145,7 @@ func (cli Zms) HelpListCommand() string {
 
 func (cli Zms) getPublicKey(s string) (*string, error) {
 	if strings.HasSuffix(s, ".pem") || strings.HasSuffix(s, ".key") {
-		fileBytes, err := ioutil.ReadFile(s)
+		fileBytes, err := os.ReadFile(s)
 		if err != nil {
 			return nil, err
 		}
@@ -3157,17 +3157,17 @@ func (cli Zms) getPublicKey(s string) (*string, error) {
 }
 
 func (cli *Zms) SetX509CertClient(keyFile, certFile, caCertFile, socksProxy string, httpProxy, skipVerify bool) error {
-	keypem, err := ioutil.ReadFile(keyFile)
+	keypem, err := os.ReadFile(keyFile)
 	if err != nil {
 		return err
 	}
-	certpem, err := ioutil.ReadFile(certFile)
+	certpem, err := os.ReadFile(certFile)
 	if err != nil {
 		return err
 	}
 	var cacertpem []byte
 	if caCertFile != "" {
-		cacertpem, err = ioutil.ReadFile(caCertFile)
+		cacertpem, err = os.ReadFile(caCertFile)
 		if err != nil {
 			return err
 		}
