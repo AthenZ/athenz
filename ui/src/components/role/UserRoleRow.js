@@ -130,7 +130,7 @@ export default class UserRoleRow extends React.Component {
             return (
                 <FlexDiv key={role.roleName}>
                     <TDStyledMember align={'left'}>
-                        {role.roleName.split('.').slice(-1)}
+                        {role.roleName}
                     </TDStyledMember>
                     <TDStyledIcon align={'center'}>
                         {role.expiration
