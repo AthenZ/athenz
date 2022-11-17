@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"log/syslog"
 	"os"
@@ -36,7 +35,7 @@ func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode
 	_, err := os.Stat(fileName)
 	if err != nil && os.IsNotExist(err) {
 		log.Printf("Updating file %s...\n", fileName)
-		err = ioutil.WriteFile(fileName, contents, perm)
+		err = os.WriteFile(fileName, contents, perm)
 		if err != nil {
 			log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
 			return err
@@ -46,7 +45,7 @@ func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode
 		// write the new contents to a temporary file
 		newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
 		log.Printf("Writing contents to temporary file %s...\n", newFileName)
-		err = ioutil.WriteFile(newFileName, contents, perm)
+		err = os.WriteFile(newFileName, contents, perm)
 		if err != nil {
 			log.Printf("Unable to write new file %s, err: %v\n", newFileName, err)
 			return err

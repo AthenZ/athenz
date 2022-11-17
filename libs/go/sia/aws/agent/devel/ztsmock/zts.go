@@ -26,7 +26,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
@@ -68,7 +67,7 @@ func StartZtsServer(endPoint string) {
 	router.HandleFunc("/zts/v1/instance", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("/instance is called")
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Fatalln("Could not read the body")
 		}
@@ -113,7 +112,7 @@ func StartZtsServer(endPoint string) {
 	router.HandleFunc("/zts/v1/instance/athenz.aws.us-west-2/athenz/hockey/pod-1234", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("instance refresh handler called")
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Fatalln("Could not read the body")
 		}
@@ -155,7 +154,7 @@ func StartZtsServer(endPoint string) {
 	router.HandleFunc("/zts/v1/rolecert", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("role certificate handler called")
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Fatalln("Could not read the body")
 		}

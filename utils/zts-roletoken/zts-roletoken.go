@@ -6,7 +6,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -205,7 +204,7 @@ func ztsNtokenClient(ztsURL, ntoken, ntokenFile, hdr string) (*zts.ZTSClient, er
 	// if our ntoken is empty then we have a file so we
 	// we need to load our ntoken from the given file
 	if ntoken == "" {
-		bytes, err := ioutil.ReadFile(ntokenFile)
+		bytes, err := os.ReadFile(ntokenFile)
 		if err != nil {
 			return nil, err
 		}

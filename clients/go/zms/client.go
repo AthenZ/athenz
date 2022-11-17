@@ -308,7 +308,7 @@ func (client ZMSClient) GetDomain(domain DomainName) (*Domain, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -343,7 +343,7 @@ func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -382,7 +382,7 @@ func (client ZMSClient) PostTopLevelDomain(auditRef string, detail *TopLevelDoma
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -421,7 +421,7 @@ func (client ZMSClient) PostSubDomain(parent DomainName, auditRef string, detail
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -460,7 +460,7 @@ func (client ZMSClient) PostUserDomain(name SimpleName, auditRef string, detail 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -490,7 +490,7 @@ func (client ZMSClient) DeleteTopLevelDomain(name SimpleName, auditRef string) e
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -520,7 +520,7 @@ func (client ZMSClient) DeleteSubDomain(parent DomainName, name SimpleName, audi
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -550,7 +550,7 @@ func (client ZMSClient) DeleteUserDomain(name SimpleName, auditRef string) error
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -584,7 +584,7 @@ func (client ZMSClient) PutDomainMeta(name DomainName, auditRef string, detail *
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -618,7 +618,7 @@ func (client ZMSClient) PutDomainSystemMeta(name DomainName, attribute SimpleNam
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -652,7 +652,7 @@ func (client ZMSClient) PutDomainTemplate(name DomainName, auditRef string, doma
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -686,7 +686,7 @@ func (client ZMSClient) PutDomainTemplateExt(name DomainName, template SimpleNam
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -718,7 +718,7 @@ func (client ZMSClient) GetDomainTemplateList(name DomainName) (*DomainTemplateL
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -748,7 +748,7 @@ func (client ZMSClient) DeleteDomainTemplate(name DomainName, template SimpleNam
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -780,7 +780,7 @@ func (client ZMSClient) GetDomainMetaStoreValidValuesList(attributeName string, 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -812,7 +812,7 @@ func (client ZMSClient) GetAuthHistoryDependencies(domainName DomainName) (*Auth
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -850,7 +850,7 @@ func (client ZMSClient) DeleteExpiredMembers(purgeResources *int32, auditRef str
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -882,7 +882,7 @@ func (client ZMSClient) GetDomainDataCheck(domainName DomainName) (*DomainDataCh
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -916,7 +916,7 @@ func (client ZMSClient) PutEntity(domainName DomainName, entityName EntityName, 
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -948,7 +948,7 @@ func (client ZMSClient) GetEntity(domainName DomainName, entityName EntityName) 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -978,7 +978,7 @@ func (client ZMSClient) DeleteEntity(domainName DomainName, entityName EntityNam
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1010,7 +1010,7 @@ func (client ZMSClient) GetEntityList(domainName DomainName) (*EntityList, error
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1042,7 +1042,7 @@ func (client ZMSClient) GetRoleList(domainName DomainName, limit *int32, skip st
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1074,7 +1074,7 @@ func (client ZMSClient) GetRoles(domainName DomainName, members *bool, tagKey Co
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1106,7 +1106,7 @@ func (client ZMSClient) GetRole(domainName DomainName, roleName EntityName, audi
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1148,7 +1148,7 @@ func (client ZMSClient) PutRole(domainName DomainName, roleName EntityName, audi
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1178,7 +1178,7 @@ func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, a
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1210,7 +1210,7 @@ func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1242,7 +1242,7 @@ func (client ZMSClient) GetOverdueReview(domainName DomainName) (*DomainRoleMemb
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1274,7 +1274,7 @@ func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRole
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1306,7 +1306,7 @@ func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName Dom
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1348,7 +1348,7 @@ func (client ZMSClient) PutMembership(domainName DomainName, roleName EntityName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1378,7 +1378,7 @@ func (client ZMSClient) DeleteMembership(domainName DomainName, roleName EntityN
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1408,7 +1408,7 @@ func (client ZMSClient) DeletePendingMembership(domainName DomainName, roleName 
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1442,7 +1442,7 @@ func (client ZMSClient) PutDefaultAdmins(domainName DomainName, auditRef string,
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1476,7 +1476,7 @@ func (client ZMSClient) PutRoleSystemMeta(domainName DomainName, roleName Entity
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1510,7 +1510,7 @@ func (client ZMSClient) PutRoleMeta(domainName DomainName, roleName EntityName, 
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1544,7 +1544,7 @@ func (client ZMSClient) PutMembershipDecision(domainName DomainName, roleName En
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1586,7 +1586,7 @@ func (client ZMSClient) PutRoleReview(domainName DomainName, roleName EntityName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1618,7 +1618,7 @@ func (client ZMSClient) GetGroups(domainName DomainName, members *bool, tagKey C
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1650,7 +1650,7 @@ func (client ZMSClient) GetGroup(domainName DomainName, groupName EntityName, au
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1692,7 +1692,7 @@ func (client ZMSClient) PutGroup(domainName DomainName, groupName EntityName, au
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1722,7 +1722,7 @@ func (client ZMSClient) DeleteGroup(domainName DomainName, groupName EntityName,
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1754,7 +1754,7 @@ func (client ZMSClient) GetGroupMembership(domainName DomainName, groupName Enti
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1786,7 +1786,7 @@ func (client ZMSClient) GetPrincipalGroups(principal EntityName, domainName Doma
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1828,7 +1828,7 @@ func (client ZMSClient) PutGroupMembership(domainName DomainName, groupName Enti
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -1858,7 +1858,7 @@ func (client ZMSClient) DeleteGroupMembership(domainName DomainName, groupName E
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1888,7 +1888,7 @@ func (client ZMSClient) DeletePendingGroupMembership(domainName DomainName, grou
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1922,7 +1922,7 @@ func (client ZMSClient) PutGroupSystemMeta(domainName DomainName, groupName Enti
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1956,7 +1956,7 @@ func (client ZMSClient) PutGroupMeta(domainName DomainName, groupName EntityName
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -1990,7 +1990,7 @@ func (client ZMSClient) PutGroupMembershipDecision(domainName DomainName, groupN
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2032,7 +2032,7 @@ func (client ZMSClient) PutGroupReview(domainName DomainName, groupName EntityNa
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2064,7 +2064,7 @@ func (client ZMSClient) GetPendingDomainGroupMembersList(principal EntityName, d
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2096,7 +2096,7 @@ func (client ZMSClient) GetPolicyList(domainName DomainName, limit *int32, skip 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2128,7 +2128,7 @@ func (client ZMSClient) GetPolicies(domainName DomainName, assertions *bool, inc
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2160,7 +2160,7 @@ func (client ZMSClient) GetPolicy(domainName DomainName, policyName EntityName) 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2202,7 +2202,7 @@ func (client ZMSClient) PutPolicy(domainName DomainName, policyName EntityName, 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2232,7 +2232,7 @@ func (client ZMSClient) DeletePolicy(domainName DomainName, policyName EntityNam
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2264,7 +2264,7 @@ func (client ZMSClient) GetAssertion(domainName DomainName, policyName EntityNam
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2303,7 +2303,7 @@ func (client ZMSClient) PutAssertion(domainName DomainName, policyName EntityNam
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2342,7 +2342,7 @@ func (client ZMSClient) PutAssertionPolicyVersion(domainName DomainName, policyN
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2372,7 +2372,7 @@ func (client ZMSClient) DeleteAssertion(domainName DomainName, policyName Entity
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2402,7 +2402,7 @@ func (client ZMSClient) DeleteAssertionPolicyVersion(domainName DomainName, poli
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2441,7 +2441,7 @@ func (client ZMSClient) PutAssertionConditions(domainName DomainName, policyName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2480,7 +2480,7 @@ func (client ZMSClient) PutAssertionCondition(domainName DomainName, policyName 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2510,7 +2510,7 @@ func (client ZMSClient) DeleteAssertionConditions(domainName DomainName, policyN
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2540,7 +2540,7 @@ func (client ZMSClient) DeleteAssertionCondition(domainName DomainName, policyNa
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2572,7 +2572,7 @@ func (client ZMSClient) GetPolicyVersionList(domainName DomainName, policyName E
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2604,7 +2604,7 @@ func (client ZMSClient) GetPolicyVersion(domainName DomainName, policyName Entit
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2646,7 +2646,7 @@ func (client ZMSClient) PutPolicyVersion(domainName DomainName, policyName Entit
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2680,7 +2680,7 @@ func (client ZMSClient) SetActivePolicyVersion(domainName DomainName, policyName
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2710,7 +2710,7 @@ func (client ZMSClient) DeletePolicyVersion(domainName DomainName, policyName En
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2752,7 +2752,7 @@ func (client ZMSClient) PutServiceIdentity(domain DomainName, service SimpleName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2784,7 +2784,7 @@ func (client ZMSClient) GetServiceIdentity(domain DomainName, service SimpleName
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2814,7 +2814,7 @@ func (client ZMSClient) DeleteServiceIdentity(domain DomainName, service SimpleN
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2846,7 +2846,7 @@ func (client ZMSClient) GetServiceIdentities(domainName DomainName, publickeys *
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2878,7 +2878,7 @@ func (client ZMSClient) GetServiceIdentityList(domainName DomainName, limit *int
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2910,7 +2910,7 @@ func (client ZMSClient) GetPublicKeyEntry(domain DomainName, service SimpleName,
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -2944,7 +2944,7 @@ func (client ZMSClient) PutPublicKeyEntry(domain DomainName, service SimpleName,
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -2974,7 +2974,7 @@ func (client ZMSClient) DeletePublicKeyEntry(domain DomainName, service SimpleNa
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3008,7 +3008,7 @@ func (client ZMSClient) PutServiceIdentitySystemMeta(domain DomainName, service 
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3042,7 +3042,7 @@ func (client ZMSClient) PutTenancy(domain DomainName, service ServiceName, audit
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3072,7 +3072,7 @@ func (client ZMSClient) DeleteTenancy(domain DomainName, service ServiceName, au
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3106,7 +3106,7 @@ func (client ZMSClient) PutTenant(domain DomainName, service SimpleName, tenantD
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3136,7 +3136,7 @@ func (client ZMSClient) DeleteTenant(domain DomainName, service SimpleName, tena
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3175,7 +3175,7 @@ func (client ZMSClient) PutTenantResourceGroupRoles(domain DomainName, service S
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3207,7 +3207,7 @@ func (client ZMSClient) GetTenantResourceGroupRoles(domain DomainName, service S
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3237,7 +3237,7 @@ func (client ZMSClient) DeleteTenantResourceGroupRoles(domain DomainName, servic
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3276,7 +3276,7 @@ func (client ZMSClient) PutProviderResourceGroupRoles(tenantDomain DomainName, p
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3308,7 +3308,7 @@ func (client ZMSClient) GetProviderResourceGroupRoles(tenantDomain DomainName, p
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3338,7 +3338,7 @@ func (client ZMSClient) DeleteProviderResourceGroupRoles(tenantDomain DomainName
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3370,7 +3370,7 @@ func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, doma
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3402,7 +3402,7 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3434,7 +3434,7 @@ func (client ZMSClient) GetResourceAccessList(principal ResourceName, action Act
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3472,7 +3472,7 @@ func (client ZMSClient) GetSignedDomains(domain DomainName, metaOnly string, met
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -3510,7 +3510,7 @@ func (client ZMSClient) GetJWSDomain(name DomainName, signatureP1363Format *bool
 		return data, tag, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -3542,7 +3542,7 @@ func (client ZMSClient) GetUserToken(userName SimpleName, serviceNames string, h
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3574,7 +3574,7 @@ func (client ZMSClient) OptionsUserToken(userName SimpleName, serviceNames strin
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3606,7 +3606,7 @@ func (client ZMSClient) GetServicePrincipal() (*ServicePrincipal, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3638,7 +3638,7 @@ func (client ZMSClient) GetServerTemplateList() (*ServerTemplateList, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3670,7 +3670,7 @@ func (client ZMSClient) GetTemplate(template SimpleName) (*Template, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3702,7 +3702,7 @@ func (client ZMSClient) GetDomainTemplateDetailsList(name DomainName) (*DomainTe
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3734,7 +3734,7 @@ func (client ZMSClient) GetServerTemplateDetailsList() (*DomainTemplateDetailsLi
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3766,7 +3766,7 @@ func (client ZMSClient) GetUserList(domainName DomainName) (*UserList, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3796,7 +3796,7 @@ func (client ZMSClient) DeleteUser(name SimpleName, auditRef string) error {
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3826,7 +3826,7 @@ func (client ZMSClient) DeleteDomainRoleMember(domainName DomainName, memberName
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3858,7 +3858,7 @@ func (client ZMSClient) GetQuota(name DomainName) (*Quota, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3892,7 +3892,7 @@ func (client ZMSClient) PutQuota(name DomainName, auditRef string, quota *Quota)
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3922,7 +3922,7 @@ func (client ZMSClient) DeleteQuota(name DomainName, auditRef string) error {
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -3954,7 +3954,7 @@ func (client ZMSClient) GetStatus() (*Status, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -3986,7 +3986,7 @@ func (client ZMSClient) GetPendingDomainRoleMembersList(principal EntityName, do
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4018,7 +4018,7 @@ func (client ZMSClient) GetUserAuthorityAttributeMap() (*UserAuthorityAttributeM
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4050,7 +4050,7 @@ func (client ZMSClient) GetStats(name DomainName) (*Stats, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4082,7 +4082,7 @@ func (client ZMSClient) GetSystemStats() (*Stats, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4116,7 +4116,7 @@ func (client ZMSClient) PutDomainDependency(domainName DomainName, auditRef stri
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err = ioutil.ReadAll(resp.Body)
+		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -4146,7 +4146,7 @@ func (client ZMSClient) DeleteDomainDependency(domainName DomainName, service Se
 		return nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return err
 		}
@@ -4178,7 +4178,7 @@ func (client ZMSClient) GetDependentServiceList(domainName DomainName) (*Service
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4210,7 +4210,7 @@ func (client ZMSClient) GetDependentServiceResourceGroupList(domainName DomainNa
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4242,7 +4242,7 @@ func (client ZMSClient) GetDependentDomainList(service ServiceName) (*DomainList
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4274,7 +4274,7 @@ func (client ZMSClient) GetInfo() (*Info, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}
@@ -4306,7 +4306,7 @@ func (client ZMSClient) GetRdlSchema() (*rdl.Schema, error) {
 		return data, nil
 	default:
 		var errobj rdl.ResourceError
-		contentBytes, err := ioutil.ReadAll(resp.Body)
+		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return data, err
 		}

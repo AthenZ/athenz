@@ -18,7 +18,7 @@ package meta
 import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -78,7 +78,7 @@ func processHttpRequest(base, path, method string, headers map[string]string) ([
 	if err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	_ = res.Body.Close()
 	if err != nil {
 		return nil, err

@@ -19,9 +19,9 @@ package ip
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
+	"os"
 	"regexp"
 	"strings"
 
@@ -126,7 +126,7 @@ func GetExcludeOpts(file string) (Opts, error) {
 		return Opts{}, nil
 	}
 
-	b, err := ioutil.ReadFile(file)
+	b, err := os.ReadFile(file)
 	if err != nil {
 		return Opts{}, err
 	}

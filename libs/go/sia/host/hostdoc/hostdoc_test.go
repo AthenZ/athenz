@@ -19,7 +19,7 @@ package hostdoc
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -88,7 +88,7 @@ func TestNewHostDocServices(t *testing.T) {
 func TestNewHostDocNoDomain(t *testing.T) {
 	a := assert.New(t)
 
-	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.nodomain"))
+	docBytes, err := os.ReadFile(filepath.Join("testdata", "host_document.nodomain"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	_, _, err = NewPlainDoc(docBytes)
@@ -99,7 +99,7 @@ func TestNewHostDocNoDomain(t *testing.T) {
 func TestNewHostDocMultipleSvcs(t *testing.T) {
 	a := assert.New(t)
 
-	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.services"))
+	docBytes, err := os.ReadFile(filepath.Join("testdata", "host_document.services"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
@@ -113,7 +113,7 @@ func TestNewHostDocMultipleSvcs(t *testing.T) {
 func TestNewHostDocNoService(t *testing.T) {
 	a := assert.New(t)
 
-	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.noservice"))
+	docBytes, err := os.ReadFile(filepath.Join("testdata", "host_document.noservice"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	_, _, err = NewPlainDoc(docBytes)
@@ -124,7 +124,7 @@ func TestNewHostDocNoService(t *testing.T) {
 func TestNewHostDocIp(t *testing.T) {
 	a := assert.New(t)
 
-	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.ip"))
+	docBytes, err := os.ReadFile(filepath.Join("testdata", "host_document.ip"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
@@ -138,7 +138,7 @@ func TestNewHostDocIp(t *testing.T) {
 func TestNewHostDocIpUncompressed(t *testing.T) {
 	a := assert.New(t)
 
-	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.ip.uncompressed"))
+	docBytes, err := os.ReadFile(filepath.Join("testdata", "host_document.ip.uncompressed"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
@@ -153,7 +153,7 @@ func TestNewHostDocIpUncompressed(t *testing.T) {
 func TestNewHostDocIpUpperCase(t *testing.T) {
 	a := assert.New(t)
 
-	docBytes, err := ioutil.ReadFile(filepath.Join("testdata", "host_document.ip.uppercase"))
+	docBytes, err := os.ReadFile(filepath.Join("testdata", "host_document.ip.uppercase"))
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	hostDoc, pvdrStr, err := NewPlainDoc(docBytes)
@@ -165,7 +165,7 @@ func TestNewHostDocIpUpperCase(t *testing.T) {
 }
 
 func parseHostDocument(hostDocPath string) (*raw.Doc, error) {
-	hostDocBytes, err := ioutil.ReadFile(hostDocPath)
+	hostDocBytes, err := os.ReadFile(hostDocPath)
 	if err != nil {
 		return nil, err
 	}

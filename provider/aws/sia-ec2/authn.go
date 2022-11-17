@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -65,7 +64,7 @@ func GetECSOnEC2TaskId() string {
 		log.Println("Not ECS on EC2 instance")
 		return ""
 	}
-	ecsMetaData, err := ioutil.ReadFile(ecs)
+	ecsMetaData, err := os.ReadFile(ecs)
 	if err != nil {
 		log.Printf("Unable to read ECS on EC2 instance metadata: %s - %v\n", ecs, err)
 		return ""

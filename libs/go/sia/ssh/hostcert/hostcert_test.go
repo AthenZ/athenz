@@ -23,7 +23,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -61,7 +60,7 @@ func makeHostCert(sshDir, keyId, certBaseName string) (string, error) {
 	}
 
 	certFile := filepath.Join(sshDir, certBaseName)
-	err = ioutil.WriteFile(certFile, ssh.MarshalAuthorizedKey(cert), 0444)
+	err = os.WriteFile(certFile, ssh.MarshalAuthorizedKey(cert), 0444)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +95,7 @@ func TestLoad(t *testing.T) {
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	invalidCert := filepath.Join(sshDir, "invalid_cert")
-	ioutil.WriteFile(invalidCert, []byte(`bad cert`), 0444)
+	os.WriteFile(invalidCert, []byte(`bad cert`), 0444)
 
 	nonExistingCert := filepath.Join(sshDir, "nonexisting_cert")
 	notHostCert := filepath.Join("testdata", "ssh_host_rsa_key.pub")
@@ -150,7 +149,7 @@ func TestVerifyFn(t *testing.T) {
 	sshPubKey, err := ssh.NewPublicKey(key.Public())
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	err = ioutil.WriteFile(notHostCert, ssh.MarshalAuthorizedKey(sshPubKey), 0444)
+	err = os.WriteFile(notHostCert, ssh.MarshalAuthorizedKey(sshPubKey), 0444)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	nonAthenzHostCert, err := makeHostCert(sshDir, "fakeCA", "fake_ssh_host_rsa_key-cert.pub")
@@ -204,7 +203,7 @@ func TestUpdate(t *testing.T) {
 	sshDir, hostCertFile, err := makeSshDir(t)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
-	hostCertBytes, err := ioutil.ReadFile(hostCertFile)
+	hostCertBytes, err := os.ReadFile(hostCertFile)
 	require.Nilf(t, err, "unexpected err: %v", err)
 
 	type args struct {

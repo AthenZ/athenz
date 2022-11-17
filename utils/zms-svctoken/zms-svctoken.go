@@ -6,8 +6,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// load private key
-	bytes, err := ioutil.ReadFile(privateKeyFile)
+	bytes, err := os.ReadFile(privateKeyFile)
 	if err != nil {
 		log.Fatalln(err)
 	}

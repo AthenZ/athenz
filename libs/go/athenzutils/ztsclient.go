@@ -6,9 +6,9 @@ package athenzutils
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -17,17 +17,17 @@ import (
 
 // ZtsClient creates and returns a ZTS client instance.
 func ZtsClient(ztsURL, keyFile, certFile, caCertFile string, proxy bool) (*zts.ZTSClient, error) {
-	keypem, err := ioutil.ReadFile(keyFile)
+	keypem, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, err
 	}
-	certpem, err := ioutil.ReadFile(certFile)
+	certpem, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err
 	}
 	var cacertpem []byte
 	if caCertFile != "" {
-		cacertpem, err = ioutil.ReadFile(caCertFile)
+		cacertpem, err = os.ReadFile(caCertFile)
 		if err != nil {
 			return nil, err
 		}

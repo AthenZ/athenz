@@ -12,7 +12,6 @@ import (
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -185,7 +184,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 
 func ztsNtokenClient(ztsURL, ntokenFile, hdr string) (*zts.ZTSClient, error) {
 	// we need to load our ntoken from the given file
-	bytes, err := ioutil.ReadFile(ntokenFile)
+	bytes, err := os.ReadFile(ntokenFile)
 	if err != nil {
 		return nil, err
 	}

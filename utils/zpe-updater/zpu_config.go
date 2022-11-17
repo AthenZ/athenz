@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -261,7 +260,7 @@ func ReadAthenzConf(athenzConf string) (*AthenzConf, error) {
 		return nil, fmt.Errorf("athenz configuration file does not exist at path: %v", athenzConf)
 	}
 
-	data, err := ioutil.ReadFile(athenzConf)
+	data, err := os.ReadFile(athenzConf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the Athenz configuration file, Error:%v", err)
 	}
@@ -278,7 +277,7 @@ func ReadZpuConf(zpuConf string) (*ZpuConf, error) {
 		return nil, fmt.Errorf("zpu configuration file does not exist at the given path: %v", zpuConf)
 	}
 
-	data, err := ioutil.ReadFile(zpuConf)
+	data, err := os.ReadFile(zpuConf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the Zpu configuration file, Error:%v", err)
 	}

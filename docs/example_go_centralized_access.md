@@ -124,7 +124,7 @@ in their respective code bases to support centralized authorization
 checks. The client needs to make sure to submit its service
 identity as part of its request, while the service needs to
 carry out the authorization check based on that service
-identity to determine if it request should be processed or not.
+identity to determine if the request should be processed or not.
 
 ### Client Changes
 ------------------
@@ -158,7 +158,7 @@ available on the host where the client will be running.
 
 ```go
     // load private key
-    bytes, err := ioutil.ReadFile(privateKeyFile)
+    bytes, err := os.ReadFile(privateKeyFile)
     if err != nil {
         log.Fatalln(err)
     }

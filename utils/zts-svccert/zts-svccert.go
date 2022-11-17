@@ -13,7 +13,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -146,7 +145,7 @@ func main() {
 		}
 		if getInstanceRegisterToken {
 			if attestationDataFile != "" {
-				err := ioutil.WriteFile(attestationDataFile, []byte(attestationData), 0444)
+				err := os.WriteFile(attestationDataFile, []byte(attestationData), 0444)
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -163,7 +162,7 @@ func main() {
 	}
 
 	// load private key
-	keyBytes, err := ioutil.ReadFile(serviceKey)
+	keyBytes, err := os.ReadFile(serviceKey)
 	if err != nil {
 		if useInstanceRegisterToken {
 			keyBytes, err = generatePrivateKey(serviceKey)
@@ -256,7 +255,7 @@ func main() {
 		}
 		if attestationData == "" {
 			if attestationDataFile != "" {
-				attestationDataBytes, err := ioutil.ReadFile(attestationDataFile)
+				attestationDataBytes, err := os.ReadFile(attestationDataFile)
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -305,7 +304,7 @@ func main() {
 	}
 
 	if certFile != "" {
-		err = ioutil.WriteFile(certFile, []byte(certificate), 0444)
+		err = os.WriteFile(certFile, []byte(certificate), 0444)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -314,7 +313,7 @@ func main() {
 	}
 
 	if signerCertFile != "" {
-		err = ioutil.WriteFile(signerCertFile, []byte(caCertificates), 0444)
+		err = os.WriteFile(signerCertFile, []byte(caCertificates), 0444)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -327,7 +326,7 @@ func generatePrivateKey(serviceKey string) ([]byte, error) {
 		return nil, err
 	}
 	keyBytes := getPEMBlock(rsaKey)
-	err = ioutil.WriteFile(serviceKey, keyBytes, 0400)
+	err = os.WriteFile(serviceKey, keyBytes, 0400)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +349,7 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile, true)
 	} else {
 		// we need to load our ntoken from the given file
-		ntokenBytes, err := ioutil.ReadFile(ntokenFile)
+		ntokenBytes, err := os.ReadFile(ntokenFile)
 		if err != nil {
 			return "", err
 		}
@@ -467,7 +466,7 @@ func ntokenClient(ztsURL, ntoken, caCertFile, hdr string) (*zts.ZTSClient, error
 	if caCertFile != "" {
 		config := &tls.Config{}
 		certPool := x509.NewCertPool()
-		caCert, err := ioutil.ReadFile(caCertFile)
+		caCert, err := os.ReadFile(caCertFile)
 		if err != nil {
 			return nil, err
 		}
@@ -485,14 +484,14 @@ func certClient(ztsURL string, keyBytes []byte, certfile, caCertFile string) (*z
 	var certpem []byte
 	var err error
 	if certfile != "" {
-		certpem, err = ioutil.ReadFile(certfile)
+		certpem, err = os.ReadFile(certfile)
 		if err != nil {
 			return nil, err
 		}
 	}
 	var cacertpem []byte
 	if caCertFile != "" {
-		cacertpem, err = ioutil.ReadFile(caCertFile)
+		cacertpem, err = os.ReadFile(caCertFile)
 		if err != nil {
 			return nil, err
 		}

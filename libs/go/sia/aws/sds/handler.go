@@ -30,8 +30,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 	"io"
-	"io/ioutil"
 	"log"
+	"os"
 	"sync"
 )
 
@@ -160,7 +160,7 @@ func (handler *ServerHandler) FetchSecrets(ctx context.Context, req *envoyDiscov
 }
 
 func resourceNamesChanged(currentResources []string, newResources []string) bool {
-	// if the length of arrays are different then we know there is a change
+	// if the length of arrays are different, then we know there is a change
 	if len(currentResources) != len(newResources) {
 		return true
 	}
@@ -314,13 +314,13 @@ func (handler *ServerHandler) authenticateRequest(info ClientInfo, node *envoyCo
 func (handler *ServerHandler) getTLSCertificateSecret(spiffeUri string, svc *options.Service) (*anypb.Any, error) {
 
 	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", handler.Options.KeyDir, handler.Options.Domain, svc.Name)
-	keyPEM, err := ioutil.ReadFile(keyFile)
+	keyPEM, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, err
 	}
 
 	certFile := util.GetSvcCertFileName(handler.Options.CertDir, svc.Filename, handler.Options.Domain, svc.Name)
-	certPEM, err := ioutil.ReadFile(certFile)
+	certPEM, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +350,7 @@ func (handler *ServerHandler) getTLSCABundleSecret(spiffeUri, caNamespace, caNam
 	if caNamespace != "athenz" || caName != "default" {
 		return nil, fmt.Errorf("unknown TLS CA Bundle: %s\n", spiffeUri)
 	}
-	caCertsPEM, err := ioutil.ReadFile(handler.Options.AthenzCACertFile)
+	caCertsPEM, err := os.ReadFile(handler.Options.AthenzCACertFile)
 	if err != nil {
 		return nil, err
 	}

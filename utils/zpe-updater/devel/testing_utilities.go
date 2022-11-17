@@ -15,7 +15,6 @@ import (
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 	"github.com/ardielle/ardielle-go/rdl"
-	"io/ioutil"
 	"os"
 
 	"gopkg.in/square/go-jose.v2"
@@ -28,7 +27,7 @@ func CreateFile(fileName, content string) error {
 			return fmt.Errorf("unable to remove file: %v, Error:%v", fileName, err)
 		}
 	}
-	err := ioutil.WriteFile(fileName, []byte(content), 0755)
+	err := os.WriteFile(fileName, []byte(content), 0755)
 	if err != nil {
 		return fmt.Errorf("unable to write file: %v, Error:%v", fileName, err)
 	}
@@ -75,7 +74,7 @@ func SignPolicy(policyDataStr []byte, signature string, keyVersion string) (*zts
 }
 
 func GenerateSignedPolicyData(filename string, privateKeyPEM []byte, keyVersion string, expiryOffset float64) (*zts.DomainSignedPolicyData, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the data file, Error:%v", err)
 	}
@@ -116,7 +115,7 @@ func GenerateSignedPolicyData(filename string, privateKeyPEM []byte, keyVersion 
 }
 
 func GenerateJWSPolicyData(filename string, privateKeyPEM []byte, keyVersion, algorithm string, expiryOffset float64) (*zts.JWSPolicyData, error) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the data file, Error:%v", err)
 	}

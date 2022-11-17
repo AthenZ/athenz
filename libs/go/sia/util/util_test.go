@@ -20,7 +20,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"strconv"
@@ -140,7 +139,7 @@ func TestUpdateFileNew(test *testing.T) {
 		test.Errorf("Cannot create new file: %v", err)
 		return
 	}
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		test.Errorf("Cannot read new created file: %v", err)
 		os.Remove(fileName)
@@ -159,7 +158,7 @@ func TestUpdateFileExisting(test *testing.T) {
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	testContents := "sia-unit-test"
-	err := ioutil.WriteFile(fileName, []byte(testContents), 0644)
+	err := os.WriteFile(fileName, []byte(testContents), 0644)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -170,7 +169,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		test.Errorf("Cannot create new file: %v", err)
 		return
 	}
-	data, err := ioutil.ReadFile(fileName)
+	data, err := os.ReadFile(fileName)
 	if err != nil {
 		test.Errorf("Cannot read new created file: %v", err)
 		os.Remove(fileName)
@@ -919,7 +918,7 @@ func mockAthenzJWK() *zts.AthenzJWKConfig {
 
 func TestReadWriteAthenzJwkConf(t *testing.T) {
 	a := assert.New(t)
-	siaDir, err := ioutil.TempDir("", "sia.")
+	siaDir, err := os.MkdirTemp("", "sia.")
 	require.Nil(t, err, "should be able to create temp folder for sia")
 	defer os.RemoveAll(siaDir)
 

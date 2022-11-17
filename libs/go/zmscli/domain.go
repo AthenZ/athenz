@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -111,7 +110,7 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 		validatedAdmins = cli.validatedUsers(admins, true)
 	}
 	var signedDomain zms.DomainData
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +184,7 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*string, error) {
 	validatedAdmins := cli.validatedUsers(admins, true)
 	var spec map[string]interface{}
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +272,7 @@ func (cli Zms) UpdateDomain(dn string, filename string) (*string, error) {
 
 func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 	var spec map[string]interface{}
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +351,7 @@ func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 		if filename == "-" {
 			fmt.Println(*data)
 		} else {
-			err = ioutil.WriteFile(filename, []byte(*data), 0644)
+			err = os.WriteFile(filename, []byte(*data), 0644)
 		}
 	}
 	return nil, err
@@ -371,7 +370,7 @@ func (cli Zms) SystemBackup(dir string) (*string, error) {
 		data, err := cli.showDomain(string(name))
 		if err == nil && data != nil {
 			s := *data
-			err = ioutil.WriteFile(filename, []byte(s), 0644)
+			err = os.WriteFile(filename, []byte(s), 0644)
 		}
 	}
 	cli.Verbose = verbose

@@ -13,10 +13,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ardielle/ardielle-go/rdl"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
@@ -123,7 +123,7 @@ func main() {
 	}
 
 	// load private key
-	keyBytes, err := ioutil.ReadFile(roleKeyFile)
+	keyBytes, err := os.ReadFile(roleKeyFile)
 	if err != nil {
 		log.Fatalf("Unable to read private key file %s, err: %v\n", roleKeyFile, err)
 	}
@@ -155,7 +155,7 @@ func main() {
 }
 
 func extractServiceDetailsFromCert(certFile string) (string, string, error) {
-	data, err := ioutil.ReadFile(certFile)
+	data, err := os.ReadFile(certFile)
 	if err != nil {
 		return "", "", err
 	}
@@ -222,7 +222,7 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, principal, dnsDomain, 
 }
 
 func CertFromFile(filename string) (*x509.Certificate, error) {
-	pemBytes, err := ioutil.ReadFile(filename)
+	pemBytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +233,7 @@ func CertFromPEMBytes(pemBytes []byte) (*x509.Certificate, error) {
 	var derBytes []byte
 	block, _ := pem.Decode(pemBytes)
 	if block == nil {
-		return nil, fmt.Errorf("Cannot parse cert (empty pem)")
+		return nil, fmt.Errorf("cannot parse cert (empty pem)")
 	}
 	derBytes = block.Bytes
 	cert, err := x509.ParseCertificate(derBytes)
@@ -275,7 +275,7 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 	}
 
 	if roleCertFile != "" {
-		err = ioutil.WriteFile(roleCertFile, []byte(roleCertificate.X509Certificate), 0644)
+		err = os.WriteFile(roleCertFile, []byte(roleCertificate.X509Certificate), 0644)
 		if err != nil {
 			log.Fatalf("Unable to save role token certificate in %s, err: %v\n", roleCertFile, err)
 		}

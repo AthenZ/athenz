@@ -6,7 +6,6 @@ package ztsroletoken
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -159,10 +158,10 @@ func TestRoleTokenFromCert(t *testing.T) {
 	certFile := fmt.Sprintf("%s/cert.pem", certDir)
 	keyFile := fmt.Sprintf("%s/key.pem", certDir)
 
-	err := ioutil.WriteFile(certFile, clientCert, 0444)
+	err := os.WriteFile(certFile, clientCert, 0444)
 	require.Nil(t, err, "Should be able to write cert to disk")
 
-	err = ioutil.WriteFile(keyFile, clientKey, 0400)
+	err = os.WriteFile(keyFile, clientKey, 0400)
 	require.Nil(t, err, "Should be able to write key to disk")
 
 	rt := NewRoleTokenFromCert(certFile, keyFile, "my.domain", RoleTokenOptions{

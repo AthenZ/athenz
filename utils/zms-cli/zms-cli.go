@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/ardielle/ardielle-go/rdl"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -83,7 +82,7 @@ func isFreshFile(filename string, maxAge float64) bool {
 func getCachedNToken() string {
 	ntokenFile := os.Getenv("HOME") + "/.ntoken"
 	if isFreshFile(ntokenFile, 45) {
-		data, err := ioutil.ReadFile(ntokenFile)
+		data, err := os.ReadFile(ntokenFile)
 		if err == nil {
 			return strings.TrimSpace(string(data))
 		}
@@ -134,7 +133,7 @@ func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transpo
 	if tok.Token != "" {
 		ntokenFile := os.Getenv("HOME") + "/.ntoken"
 		data := []byte(tok.Token)
-		ioutil.WriteFile(ntokenFile, data, 0600)
+		os.WriteFile(ntokenFile, data, 0600)
 	}
 	return string(tok.Token), nil
 }
@@ -168,7 +167,7 @@ func usage() string {
 }
 
 func loadNtokenFromFile(fileName string) (string, error) {
-	buf, err := ioutil.ReadFile(fileName)
+	buf, err := os.ReadFile(fileName)
 	if err != nil {
 		return "", err
 	}
@@ -379,7 +378,7 @@ func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Tra
 	if caCertFile != nil || skipVerify {
 		config := &tls.Config{}
 		if caCertFile != nil {
-			capem, err := ioutil.ReadFile(*caCertFile)
+			capem, err := os.ReadFile(*caCertFile)
 			if err != nil {
 				log.Fatalf("Unable to read CA Certificate file %s, error: %v", *caCertFile, err)
 			}

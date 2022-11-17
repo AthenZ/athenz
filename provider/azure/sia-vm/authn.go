@@ -26,8 +26,8 @@ import (
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/data/attestation"
 	"github.com/AthenZ/athenz/provider/azure/sia-vm/options"
 	"github.com/ardielle/ardielle-go/rdl"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -285,7 +285,7 @@ func updateSSH(hostCert, hostSigner string) error {
 	}
 
 	// Now update the config file, if needed
-	data, err := ioutil.ReadFile(sshConfigFile)
+	data, err := os.ReadFile(sshConfigFile)
 	if err != nil {
 		return err
 	}
@@ -323,7 +323,7 @@ func generateSSHHostCSR(sshCert bool, domain, service, ip string, ztsAzureDomain
 	if !sshCert {
 		return "", nil
 	}
-	pubkey, err := ioutil.ReadFile(sshPubKeyFile)
+	pubkey, err := os.ReadFile(sshPubKeyFile)
 	if err != nil {
 		log.Printf("Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
 		return "", nil
@@ -370,7 +370,7 @@ func extractProviderFromCert(certFile string) string {
 }
 
 func readCertificate(certFile string) (*x509.Certificate, error) {
-	data, err := ioutil.ReadFile(certFile)
+	data, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err
 	}

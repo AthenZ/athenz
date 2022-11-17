@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zms"
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -24,7 +24,7 @@ func TestGetTimeStamp(t *testing.T) {
 
 func loadTestData(test *testing.T, filename string) *map[string]interface{} {
 	var data map[string]interface{}
-	bytes, err := ioutil.ReadFile("testdata/" + filename)
+	bytes, err := os.ReadFile("testdata/" + filename)
 	if err != nil {
 		fmt.Printf("Cannot read data(%s): %v", filename, err)
 		test.Errorf("Cannot read data(%s): %v", filename, err)
@@ -44,7 +44,7 @@ func TestDumpByFormatJson(t *testing.T) {
 		OutputFormat: "json",
 	}
 	roleData := loadTestData(t, "role_test.json")
-	expectedBytes, _ := ioutil.ReadFile("testdata/expected_role_json.json")
+	expectedBytes, _ := os.ReadFile("testdata/expected_role_json.json")
 	value, _ := cli.dumpByFormat(roleData, cli.buildYAMLOutput)
 
 	if *value != string(expectedBytes) {
@@ -59,7 +59,7 @@ func TestDumpByFormatYaml(t *testing.T) {
 		OutputFormat: "yaml",
 	}
 	roleData := loadTestData(t, "role_test.json")
-	expectedBytes, _ := ioutil.ReadFile("testdata/expected_role_yaml.yaml")
+	expectedBytes, _ := os.ReadFile("testdata/expected_role_yaml.yaml")
 	value, _ := cli.dumpByFormat(roleData, nil)
 	if *value != string(expectedBytes) {
 		t.Errorf("Expected value:\n %s \n, received value:\n %s \n", string(expectedBytes), *value)
@@ -73,7 +73,7 @@ func TestDumpByFormatOldYaml(t *testing.T) {
 		OutputFormat: "manualYaml",
 	}
 	roleData := loadTestData(t, "role_test.json")
-	expectedBytes, _ := ioutil.ReadFile("testdata/expected_role_yaml_old.yaml")
+	expectedBytes, _ := os.ReadFile("testdata/expected_role_yaml_old.yaml")
 
 	jsonbody, err := json.Marshal(roleData)
 	if err != nil {
