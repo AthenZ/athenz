@@ -595,7 +595,7 @@ public class ZMSClient implements Closeable {
      * @return JWSDomain      object
      * @throws ZMSClientException in case of failure
      */
-    public JWSDomain getJWSDomain(String domain,  Boolean signatureP1363Format, String matchingTag, Map<String, List<String>> responseHeaders) {
+    public JWSDomain getJWSDomain(String domain, Boolean signatureP1363Format, String matchingTag, Map<String, List<String>> responseHeaders) {
         updatePrincipal();
         try {
             return client.getJWSDomain(domain, signatureP1363Format, matchingTag, responseHeaders);
@@ -608,12 +608,29 @@ public class ZMSClient implements Closeable {
 
     /**
      * Retrieve the list of domains provisioned on the ZMS Server
-     *
      * @return list of Domains
      * @throws ZMSClientException in case of failure
      */
     public DomainList getDomainList() {
-        return getDomainList(null, null);
+        return getDomainList(null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param limit  number of domain objects to return
+     * @param skip   exclude all the domains including the specified one from the return set
+     * @param prefix return domains starting with this value
+     * @param depth  maximum depth of the domain (0 - top level domains only)
+     * @param modifiedSince return domains only modified since this date
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainList(Integer limit, final String skip, final String prefix,
+                                    Integer depth, Date modifiedSince) {
+        return getDomainList(limit, skip, prefix, depth, null, null, null, null,
+                null, null, null, null, null, modifiedSince);
     }
 
     /**
@@ -634,9 +651,11 @@ public class ZMSClient implements Closeable {
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
+    @Deprecated
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
                                     String awsAccount, Integer productId, Date modifiedSince) {
-        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, modifiedSince, null, null, null);
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null,
+                null, null, null, null, null, modifiedSince);
     }
 
     /**
@@ -660,10 +679,11 @@ public class ZMSClient implements Closeable {
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
+    @Deprecated
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
                                     String awsAccount, Integer productId, String azureSubscription, Date modifiedSince) {
-        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, azureSubscription,
-                modifiedSince, null, null, null);
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null,
+                azureSubscription, null, null, null, null, modifiedSince);
     }
 
     /**
@@ -689,13 +709,14 @@ public class ZMSClient implements Closeable {
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
+    @Deprecated
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
                                     String awsAccount, Integer productId, String azureSubscription,
                                     Date modifiedSince, String tagKey, String tagValue) {
-        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, azureSubscription,
-                modifiedSince, tagKey, tagValue, null);
-
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null,
+                azureSubscription, null, tagKey, tagValue, null, modifiedSince);
     }
+
     /**
      * Retrieve the list of domains provisioned on the ZMS Server
      * filters based on the specified arguments
@@ -720,23 +741,99 @@ public class ZMSClient implements Closeable {
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
+    @Deprecated
     public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth,
                                     String awsAccount, Integer productId, String azureSubscription,
                                     Date modifiedSince, String tagKey, String tagValue, String businessService) {
-        updatePrincipal();
-        String modSinceStr = null;
-        if (modifiedSince != null) {
-            DateFormat df = new SimpleDateFormat(HTTP_RFC1123_DATE_FORMAT);
-            modSinceStr = df.format(modifiedSince);
-        }
-        try {
-            return client.getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null,
-                    azureSubscription, tagKey, tagValue, businessService, modSinceStr);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
-        }
+        return getDomainList(limit, skip, prefix, depth, awsAccount, productId, null, null,
+                azureSubscription, null, tagKey, tagValue, businessService, modifiedSince);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param productId return domain that has the specified product id
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByProductId(Integer productId) {
+        return getDomainList(null, null, null, null, null, productId, null, null,
+                null, null, null, null, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param tagKey query all domains with given tag name
+     * @param tagValue query all domains with given tag key and value
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByTags(final String tagKey, final String tagValue) {
+         return getDomainList(null, null, null, null, null, null, null, null,
+                 null, null, tagKey, tagValue, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param businessService returns domains that have the specified business service.
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByBusinessService(final String businessService) {
+
+        return getDomainList(null, null, null, null, null, null, null, null,
+                null, null, null, null, businessService, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param awsAccount return domain that has the specified aws account name
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByAwsAccount(final String awsAccount) {
+        return getDomainList(null, null, null, null, awsAccount, null, null, null,
+                null, null, null, null, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param azureSubscription return domain that has the specified azure subscription id
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByAzureSubscription(final String azureSubscription) {
+        return getDomainList(null, null, null, null, null, null, null, null,
+                azureSubscription, null, null, null, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param gcpProject return domain that has the specified gcp project name
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByGcpProject(final String gcpProject) {
+        return getDomainList(null, null, null, null, null, null, null, null,
+                null, gcpProject, null, null, null, null);
+    }
+
+    /**
+     * Retrieve the list of domains provisioned on the ZMS Server
+     * filters based on the specified arguments
+     * @param roleMember name of the principal
+     * @param roleName   name of the role where the principal is a member of
+     * @return list of domain names
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainList getDomainListByRole(String roleMember, String roleName) {
+        return getDomainList(null, null, null, null, null, null, roleMember, roleName,
+                null, null, null, null, null, null);
     }
 
     /**
@@ -748,11 +845,25 @@ public class ZMSClient implements Closeable {
      * @return list of domain names
      * @throws ZMSClientException in case of failure
      */
+    @Deprecated
     public DomainList getDomainList(String roleMember, String roleName) {
+        return getDomainList(null, null, null, null, null, null, roleMember, roleName,
+                null, null, null, null, null, null);
+    }
+
+    private DomainList getDomainList(Integer limit, final String skip, final String prefix, Integer depth,
+                             final String awsAccount, Integer productId, final String roleMember, final String roleName,
+                             final String azureSubscription, final String gcpProject, final String tagKey,
+                             final String tagValue, final String businessService, Date modifiedSince) {
         updatePrincipal();
+        String modSinceStr = null;
+        if (modifiedSince != null) {
+            DateFormat df = new SimpleDateFormat(HTTP_RFC1123_DATE_FORMAT);
+            modSinceStr = df.format(modifiedSince);
+        }
         try {
-            return client.getDomainList(null, null, null, null, null, null, roleMember, roleName,
-                    null, null, null, null, null);
+            return client.getDomainList(limit, skip, prefix, depth, awsAccount, productId, roleMember, roleName,
+                    azureSubscription, gcpProject, tagKey, tagValue, businessService, modSinceStr);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

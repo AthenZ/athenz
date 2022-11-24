@@ -25,6 +25,10 @@ import java.util.Set;
 
 public interface ObjectStoreConnection extends Closeable {
 
+    static final String PROVIDER_AWS   = "aws";
+    static final String PROVIDER_AZURE = "azure";
+    static final String PROVIDER_GCP   = "gcp";
+
     // Transaction commands
 
     void commitChanges();
@@ -42,7 +46,8 @@ public interface ObjectStoreConnection extends Closeable {
     long getDomainModTimestamp(String domainName);
     boolean updateDomainModTimestamp(String domainName);
     List<String> listDomains(String prefix, long modifiedSince);
-    String lookupDomainById(String account, String subscription, int productId);
+    String lookupDomainByProductId(int productId);
+    String lookupDomainByCloudProvider(String provider, String value);
     List<String> lookupDomainByRole(String roleMember, String roleName);
     List<String> lookupDomainByBusinessService(String businessService);
 

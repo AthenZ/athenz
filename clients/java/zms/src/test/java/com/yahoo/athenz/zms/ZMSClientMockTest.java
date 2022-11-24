@@ -62,7 +62,8 @@ public class ZMSClientMockTest {
                 ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(Integer.class),
                 ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(Integer.class), ArgumentMatchers.isA(String.class),
                 ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class),
-                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class));
+                ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class), ArgumentMatchers.isA(String.class),
+                ArgumentMatchers.isA(String.class));
         userList = new ArrayList<>();
         userList.add("user.johnny");
         zclt = new ZMSClient(zmsUrl);
@@ -75,7 +76,7 @@ public class ZMSClientMockTest {
         String domName = "testdom";
         Mockito.doReturn(new Domain()).when(mockZMS).getDomain(domName);
         Mockito.doReturn(new DomainList()).when(mockZMS).getDomainList(null, null, null,
-            null, null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, null);
 
         DomainList domList = zclt.getDomainList();
         assertNotNull(domList);
@@ -109,7 +110,7 @@ public class ZMSClientMockTest {
         DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz");
         String modifiedSince = df.format(now);
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null,
-                null, null, null, null, null, null,null, null, null, modifiedSince);
+                null, null, null, null, null, null,null, null, null, null, modifiedSince);
 
         DomainList domainList = zclt.getDomainList(null, null, null,
                 null, null, null, now);
@@ -747,9 +748,9 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null,
-                "1234", null, null, null, null, null, null, null, null);
+                "1234", null, null, null, null, null, null, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null,
-                "1235", null, null, null, null, null, null, null, null);
+                "1235", null, null, null, null, null, null, null, null, null);
 
         DomainList domainList = zclt.getDomainList(null, null, null, null, "1234", null, null);
         assertNotNull(domainList);
@@ -771,9 +772,9 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null, null,
-                101, null, null, null, null, null, null, null);
+                101, null, null, null, null, null, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null, null,
-                102, null, null, null, null, null, null, null);
+                102, null, null, null, null, null, null, null, null);
 
         DomainList domainList = zclt.getDomainList(null, null, null, null, null, 101, null);
         assertNotNull(domainList);
@@ -795,9 +796,9 @@ public class ZMSClientMockTest {
         DomainList domEmptyList = new DomainList();
 
         Mockito.doReturn(domList).when(mockZMS).getDomainList(null, null, null, null, null,
-                null, "user.user1", "admin", null, null, null, null, null);
+                null, "user.user1", "admin", null, null, null, null, null, null);
         Mockito.doReturn(domEmptyList).when(mockZMS).getDomainList(null, null, null, null, null,
-                null, "user.user2", "admin", null, null, null, null, null);
+                null, "user.user2", "admin", null, null, null, null, null, null);
 
         DomainList domainList = zclt.getDomainList("user.user1", "admin");
         assertNotNull(domainList);

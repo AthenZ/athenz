@@ -35,6 +35,7 @@ fi
 
 go install github.com/ardielle/ardielle-go/...
 go build
+rm -f ${GOPATH}/bin/rdl-gen-athenz-server
 cp rdl-gen-athenz-server ${GOPATH}/bin/rdl-gen-athenz-server
 
 # Copyright The Athenz Authors

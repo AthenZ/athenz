@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 //
 public interface ZMSHandler { 
     Domain getDomain(ResourceContext context, String domain);
-    DomainList getDomainList(ResourceContext context, Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String tagKey, String tagValue, String businessService, String modifiedSince);
+    DomainList getDomainList(ResourceContext context, Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String project, String tagKey, String tagValue, String businessService, String modifiedSince);
     Domain postTopLevelDomain(ResourceContext context, String auditRef, TopLevelDomain detail);
     Domain postSubDomain(ResourceContext context, String parent, String auditRef, SubDomain detail);
     Domain postUserDomain(ResourceContext context, String name, String auditRef, UserDomain detail);

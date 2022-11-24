@@ -147,7 +147,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String tagKey, String tagValue, String businessService, String modifiedSince) throws URISyntaxException, IOException {
+    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String project, String tagKey, String tagValue, String businessService, String modifiedSince) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (limit != null) {
@@ -176,6 +176,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (subscription != null) {
             uriBuilder.setParameter("azure", subscription);
+        }
+        if (project != null) {
+            uriBuilder.setParameter("gcp", project);
         }
         if (tagKey != null) {
             uriBuilder.setParameter("tagKey", tagKey);

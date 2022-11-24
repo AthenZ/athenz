@@ -67,6 +67,9 @@ public class UserDomain {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String gcpProject;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -198,6 +201,13 @@ public class UserDomain {
     public String getAzureSubscription() {
         return azureSubscription;
     }
+    public UserDomain setGcpProject(String gcpProject) {
+        this.gcpProject = gcpProject;
+        return this;
+    }
+    public String getGcpProject() {
+        return gcpProject;
+    }
     public UserDomain setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
@@ -290,6 +300,9 @@ public class UserDomain {
                 return false;
             }
             if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
+                return false;
+            }
+            if (gcpProject == null ? a.gcpProject != null : !gcpProject.equals(a.gcpProject)) {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {

@@ -67,6 +67,9 @@ public class DomainMeta {
     public String azureSubscription;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String gcpProject;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -194,6 +197,13 @@ public class DomainMeta {
     public String getAzureSubscription() {
         return azureSubscription;
     }
+    public DomainMeta setGcpProject(String gcpProject) {
+        this.gcpProject = gcpProject;
+        return this;
+    }
+    public String getGcpProject() {
+        return gcpProject;
+    }
     public DomainMeta setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
@@ -272,6 +282,9 @@ public class DomainMeta {
                 return false;
             }
             if (azureSubscription == null ? a.azureSubscription != null : !azureSubscription.equals(a.azureSubscription)) {
+                return false;
+            }
+            if (gcpProject == null ? a.gcpProject != null : !gcpProject.equals(a.gcpProject)) {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {

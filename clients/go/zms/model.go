@@ -242,6 +242,11 @@ type DomainMeta struct {
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated gcp project name (system attribute - uniqueness check)
+	//
+	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -343,6 +348,12 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.GcpProject != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.GcpProject)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.gcpProject does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.BusinessService != "" {
@@ -449,6 +460,11 @@ type Domain struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated gcp project name (system attribute - uniqueness check)
+	//
+	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// key-value pair tags, tag might contain multiple values
@@ -567,6 +583,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("Domain.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.GcpProject != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.GcpProject)
+		if !val.Valid {
+			return fmt.Errorf("Domain.gcpProject does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.BusinessService != "" {
@@ -3369,6 +3391,11 @@ type TopLevelDomain struct {
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated gcp project name (system attribute - uniqueness check)
+	//
+	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -3490,6 +3517,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.GcpProject != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.GcpProject)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.gcpProject does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.BusinessService != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
 		if !val.Valid {
@@ -3600,6 +3633,11 @@ type SubDomain struct {
 	// associated azure subscription id (system attribute - uniqueness check)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated gcp project name (system attribute - uniqueness check)
+	//
+	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// key-value pair tags, tag might contain multiple values
@@ -3728,6 +3766,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.azureSubscription does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.GcpProject != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.GcpProject)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.gcpProject does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.BusinessService != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
 		if !val.Valid {
@@ -3849,6 +3893,11 @@ type UserDomain struct {
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated gcp project name (system attribute - uniqueness check)
+	//
+	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -3960,6 +4009,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.GcpProject != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.GcpProject)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.gcpProject does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.BusinessService != "" {
@@ -6236,6 +6291,11 @@ type DomainData struct {
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated gcp project name (system attribute - uniqueness check)
+	//
+	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -6387,6 +6447,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.AzureSubscription)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.GcpProject != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.GcpProject)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.gcpProject does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.BusinessService != "" {

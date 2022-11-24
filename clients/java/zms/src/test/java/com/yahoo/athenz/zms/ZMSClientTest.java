@@ -18,6 +18,8 @@ package com.yahoo.athenz.zms;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.yahoo.athenz.auth.Authority;
@@ -61,10 +63,8 @@ public class ZMSClientTest {
 
     private boolean printURL = true;
 
-    static final Struct TABLE_PROVIDER_ROLE_ACTIONS = new Struct()
-        .with("admin", "*").with("writer", "WRITE").with("reader", "READ");
-
     private static final String AUDIT_REF = "zmsjcltest";
+    private static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
 
     static final int BASE_PRODUCT_ID = 100000000; // these product id's will lie in 100 million range
     static java.util.Random domainProductId = new java.security.SecureRandom();
@@ -1309,10 +1309,37 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainListMock = Mockito.mock(DomainList.class);
         Mockito.when(
-            c.getDomainList(null, null, null, null, null, null, null, null, null, null, null, null, null))
+            c.getDomainList(null, null, null, null, null, null, null, null, null, null, null, null, null, null))
             .thenReturn(domainListMock);
         DomainList domList = client.getDomainList();
         assertNotNull(domList);
+    }
+
+    @Test
+    public void testGetDomainListByLimits() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        Date now = new Date();
+        DateFormat df = new SimpleDateFormat(HTTP_RFC1123_DATE_FORMAT);
+        final String modSinceStr = df.format(now);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(100, "skip", "prefix", 1, null, null, null, null,
+                        null, null, null, null, null, modSinceStr)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainList(100, "skip", "prefix", 1, now));
+        try {
+            client.getDomainList(100, "skip", "prefix", 1, now);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainList(100, "skip", "prefix", 1, now);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
     }
 
     @Test
@@ -1320,19 +1347,187 @@ public class ZMSClientTest {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, null, "MemberRole1", "RoleName1",
+                        null, null, null, null, null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainList("MemberRole1", "RoleName1"));
         try {
-            Mockito.when(
-                c.getDomainList(null, null, null, null, null, null, "MemberRole1", "RoleName1", null, null, null, null, null))
-                    .thenThrow(new NullPointerException());
             client.getDomainList("MemberRole1", "RoleName1");
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getDomainList(null, null, null, null, null, null, "MemberRole2", "RoleName2", null, null, null, null, null))
-                    .thenThrow(new ResourceException(400));
-            client.getDomainList("MemberRole2", "RoleName2");
+            client.getDomainList("MemberRole1", "RoleName1");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListByRole() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, null, "MemberRole1", "RoleName1",
+                null, null, null, null, null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByRole("MemberRole1", "RoleName1"));
+        try {
+            client.getDomainListByRole("MemberRole1", "RoleName1");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByRole("MemberRole1", "RoleName1");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListAwsAccount() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, "aws", null, null, null,
+                        null, null, null, null, null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByAwsAccount("aws"));
+        try {
+            client.getDomainListByAwsAccount("aws");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByAwsAccount("aws");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListByAzureSubscription() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
+                        "azure", null, null, null, null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByAzureSubscription("azure"));
+        try {
+            client.getDomainListByAzureSubscription("azure");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByAzureSubscription("azure");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListByGcpProject() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
+                        null, "gcp", null, null, null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByGcpProject("gcp"));
+        try {
+            client.getDomainListByGcpProject("gcp");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByGcpProject("gcp");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListByBusinessService() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
+                        null, null, null, null, "business-service", null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByBusinessService("business-service"));
+        try {
+            client.getDomainListByBusinessService("business-service");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByBusinessService("business-service");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListByProductId() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, 101, null, null,
+                        null, null, null, null, null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByProductId(101));
+        try {
+            client.getDomainListByProductId(101);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByProductId(101);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetDomainListByTags() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
+        Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
+                        null, null, "tag-key", "tag-value", null, null)).thenReturn(domainList)
+                .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
+        assertNotNull(client.getDomainListByTags("tag-key", "tag-value"));
+        try {
+            client.getDomainListByTags("tag-key", "tag-value");
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getDomainListByTags("tag-key", "tag-value");
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
@@ -2384,7 +2579,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         try {
             Mockito.when(
-                    c.getDomainList(0, null, null, null, null, null, null, null, null, null, null, null, null))
+                    c.getDomainList(0, null, null, null, null, null, null, null, null, null, null, null, null, null))
                     .thenThrow(new RuntimeException());
             client.getDomainList(0, null, null, null, null, null, null, null, null, null, null);
             fail();
@@ -2394,7 +2589,7 @@ public class ZMSClientTest {
 
         try {
             Mockito.when(
-                    c.getDomainList(1, null, null, null, null, null, null, null, null, null, null, null, null))
+                    c.getDomainList(1, null, null, null, null, null, null, null, null, null, null, null, null, null))
                     .thenThrow(new InvalidParameterException("Bad parameter"));
             client.getDomainList(1, null, null, null, null, null, null, null, null, null, null);
             fail();
@@ -2404,7 +2599,7 @@ public class ZMSClientTest {
 
         try {
             Mockito.when(
-                    c.getDomainList(2, null, null, null, null, null, null, null, null, null, null, null, null))
+                    c.getDomainList(2, null, null, null, null, null, null, null, null, null, null, null, null, null))
                     .thenThrow(new ResourceException(400));
             client.getDomainList(2, null, null, null, null, null, null, null, null, null, null);
             fail();

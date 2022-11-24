@@ -35,6 +35,9 @@ public class DomainMetaStoreTest {
         assertTrue(metaStore.isValidAzureSubscription("athenz", "azure"));
         assertTrue(metaStore.isValidAzureSubscription("athenz", null));
 
+        assertTrue(metaStore.isValidGcpProject("athenz", "gcp"));
+        assertTrue(metaStore.isValidGcpProject("athenz", null));
+
         assertTrue(metaStore.isValidAWSAccount("athenz", "aws"));
         assertTrue(metaStore.isValidAWSAccount("athenz", null));
 
@@ -46,16 +49,23 @@ public class DomainMetaStoreTest {
 
         assertEquals(metaStore.getValidBusinessServices(null), new ArrayList<>());
         assertEquals(metaStore.getValidBusinessServices("user"), new ArrayList<>());
+
         assertEquals(metaStore.getValidAWSAccounts(null), new ArrayList<>());
         assertEquals(metaStore.getValidAWSAccounts("user"), new ArrayList<>());
+
         assertEquals(metaStore.getValidAzureSubscriptions(null), new ArrayList<>());
         assertEquals(metaStore.getValidAzureSubscriptions("user"), new ArrayList<>());
+
+        assertEquals(metaStore.getValidGcpProjects(null), new ArrayList<>());
+        assertEquals(metaStore.getValidGcpProjects("user"), new ArrayList<>());
+
         assertEquals(metaStore.getValidProductIds(null), new ArrayList<>());
         assertEquals(metaStore.getValidProductIds("user"), new ArrayList<>());
 
         // these methods would throw no exceptions
 
         metaStore.setAzureSubscriptionDomain("athenz", "azure");
+        metaStore.setGcpProjectDomain("athenz", "gcp");
         metaStore.setAWSAccountDomain("athenz", "aws");
         metaStore.setBusinessServiceDomain("athenz", "security");
         metaStore.setProductIdDomain("athenz", 42);
@@ -64,5 +74,6 @@ public class DomainMetaStoreTest {
         assertEquals(DomainMetaStore.META_ATTR_AWS_ACCOUNT, 1);
         assertEquals(DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION, 2);
         assertEquals(DomainMetaStore.META_ATTR_PRODUCT_ID, 3);
+        assertEquals(DomainMetaStore.META_ATTR_GCP_PROJECT, 4);
     }
 }

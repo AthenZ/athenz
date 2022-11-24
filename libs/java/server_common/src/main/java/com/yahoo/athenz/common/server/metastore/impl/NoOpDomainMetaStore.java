@@ -68,6 +68,20 @@ public class NoOpDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public boolean isValidGcpProject(String domainName, String gcpProject) {
+        return true;
+    }
+
+    @Override
+    public void setGcpProjectDomain(String domainName, String gcpProject) {
+    }
+
+    @Override
+    public List<String> getValidGcpProjects(String userName) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isValidProductId(final String domainName, Integer productId) {
         return true;
     }
