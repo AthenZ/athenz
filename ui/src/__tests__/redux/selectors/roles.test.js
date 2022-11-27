@@ -16,6 +16,7 @@
 import { domainName, expiry, modified } from '../../config/config.test';
 import { configStoreRoles } from '../config/role.test';
 import {
+    selectReviewRoleMembers,
     selectRole,
     selectRoleHistory,
     selectRoleMembers,
@@ -237,6 +238,73 @@ describe('test role selectors', () => {
         it('should return empty list', () => {
             expect(
                 selectRoleMembers(stateWithoutRoles, domainName, 'admin')
+            ).toEqual([]);
+        });
+    });
+    describe('test selectReviewRoleMembers selector', () => {
+        it('should return role members list', () => {
+            const roles = {
+                'dom:role.role1': {
+                    name: 'dom:role.role1',
+                    modified: modified,
+                    roleMembers: {
+                        'user.user1': {
+                            memberName: 'user.user1',
+                            expiration: expiry,
+                            principalType: 1,
+                            approved: true,
+                            memberFullName: 'user.user1',
+                        },
+                        'user.user2': {
+                            memberName: 'user.user2',
+                            expiration: expiry,
+                            principalType: 1,
+                            approved: false,
+                            memberFullName: 'user.user2',
+                        },
+                        'user.user3': {
+                            active: false,
+                            approved: true,
+                            auditRef: 'added using Athenz UI',
+                            expiration: expiry,
+                            memberFullName: 'user.user3',
+                            requestedTime: expiry,
+                        },
+                    },
+                    lastReviewedDate: '2022-07-18T13:42:54.907Z',
+                },
+            };
+            const state = {
+                roles: {
+                    domainName,
+                    expiry,
+                    roles,
+                },
+            };
+            const expectedReviewRoleMembersList = [
+                {
+                    memberName: 'user.user1',
+                    expiration: expiry,
+                    principalType: 1,
+                    approved: true,
+                    memberFullName: 'user.user1',
+                },
+                {
+                    active: false,
+                    approved: true,
+                    auditRef: 'added using Athenz UI',
+                    expiration: expiry,
+                    memberFullName: 'user.user3',
+                    requestedTime: expiry,
+                },
+            ];
+            expect(selectReviewRoleMembers(state, 'dom', 'role1')).toEqual(
+                expectedReviewRoleMembersList
+            );
+        });
+        it('should return empty list', () => {
+            expect(
+                selectReviewRoleMembers(stateWithoutRoles, 'dom', 'role1')
             ).toEqual([]);
         });
     });
