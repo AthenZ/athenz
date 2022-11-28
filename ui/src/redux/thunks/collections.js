@@ -32,6 +32,7 @@ import {
 } from '../utils';
 import { getRoleApiCall } from './utils/roles';
 import { updateBellPendingMember } from '../actions/domain-data';
+import {groupDelimiter} from "../config";
 
 export const addMember =
     (
@@ -49,6 +50,12 @@ export const addMember =
         if (category === 'group') {
             data = thunkSelectGroup(getState(), domainName, collectionName);
         } else if (category === 'role') {
+            if (member.memberName.includes(groupDelimiter) && collectionName === 'admin') {
+                return Promise.reject({
+                    body: { message:  'Group principals are not allowed in the admin role'},
+                    statusCode: 400,
+                })
+            }
             await dispatch(getRole(domainName, collectionName));
             data = thunkSelectRole(getState(), domainName, collectionName);
         }
