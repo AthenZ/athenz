@@ -158,6 +158,7 @@ export const ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER =
 export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
 export const ADD_ROLE_MEMBER_PLACEHOLDER =
     'user.<userid> or <domain>.<service> or <domain>:group.<group>';
+export const ADD_ROLE_EXPIRATION_PLACEHOLDER = 'Expiration (Optional)';
 export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
 export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
     'Enter Domain for Delegate Role';
@@ -191,4 +192,8 @@ export const PENDING_APPROVAL_TYPE_ENUM = Object.freeze({
 });
 export const PENDING_APPROVAL_KEY_ENUM = Object.freeze({
     SELECTALL: 'SelectAll',
+});
+export const EDITABLE_DATE_ENUM = Object.freeze({
+    EXPIRATION: 'Expiration',
+    REMINDER: 'Reminder',
 });

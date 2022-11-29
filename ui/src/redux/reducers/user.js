@@ -27,7 +27,6 @@ export const user = (state = {}, action) => {
         }
         case PROCESS_PENDING_MEMBERS_TO_STORE: {
             const { member, domainName, roleName } = payload;
-            debugger;
             let newState = produce(state, (draft) => {
                 if (
                     draft.pendingMembers[
