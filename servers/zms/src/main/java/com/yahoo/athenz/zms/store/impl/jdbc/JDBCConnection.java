@@ -58,20 +58,22 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=?;";
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
-    private static final String SQL_GET_DOMAIN_WITH_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
-    private static final String SQL_GET_DOMAIN_WITH_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
+    private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
+    private static final String SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
+    private static final String SQL_GET_DOMAIN_WITH_GCP_PROJECT = "SELECT name FROM domain WHERE gcp_project=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_LIST_DOMAIN_WITH_BUSINESS_SERVICE = "SELECT name FROM domain WHERE business_service=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
-            + " member_purge_expiry_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " member_purge_expiry_days, gcp_project) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
-            + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=? WHERE name=?;";
+            + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
+            + " gcp_project=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -780,6 +782,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
                 .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
                 .setAzureSubscription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)))
+                .setGcpProject(saveValue(rs.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT)))
                 .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
                 .setCertDnsDomain(saveValue(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
@@ -826,8 +829,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         // in the store. we can't rely on db uniqueness check since
         // some of the domains will not have these attributes set
 
-        verifyDomainAccountUniqueness(domain.getName(), domain.getAccount(), caller);
-        verifyDomainSubscriptionUniqueness(domain.getName(), domain.getAzureSubscription(), caller);
+        verifyDomainAwsAccountUniqueness(domain.getName(), domain.getAccount(), caller);
+        verifyDomainAzureSubscriptionUniqueness(domain.getName(), domain.getAzureSubscription(), caller);
+        verifyDomainGcpProjectUniqueness(domain.getName(), domain.getGcpProject(), caller);
         verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
         verifyDomainNameDashUniqueness(domain.getName(), caller);
 
@@ -853,6 +857,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(19, processInsertValue(domain.getAzureSubscription()));
             ps.setString(20, processInsertValue(domain.getBusinessService()));
             ps.setInt(21, processInsertValue(domain.getMemberPurgeExpiryDays()));
+            ps.setString(22, processInsertValue(domain.getGcpProject()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -885,42 +890,51 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
 
-    void verifyDomainProductIdUniqueness(String name, Integer productId, String caller) {
+    void verifyDomainProductIdUniqueness(final String name, Integer productId, final String caller) {
 
         if (productId == null || productId == 0) {
             return;
         }
 
-        String domainName = lookupDomainById(null, null, productId);
+        final String domainName = lookupDomainByProductId(productId);
         if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Product Id: " + productId +
-                    " is already assigned to domain: " + domainName);
+            throw requestError(caller, "Product Id: " + productId + " is already assigned to domain: " + domainName);
         }
     }
 
-    void verifyDomainAccountUniqueness(final String name, final String account, final String caller) {
+    void verifyDomainAwsAccountUniqueness(final String name, final String account, final String caller) {
 
         if (account == null || account.isEmpty()) {
             return;
         }
 
-        String domainName = lookupDomainById(account, null, 0);
+        final String domainName = lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, account);
         if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Account Id: " + account +
-                    " is already assigned to domain: " + domainName);
+            throw requestError(caller, "Account Id: " + account + " is already assigned to domain: " + domainName);
         }
     }
 
-    void verifyDomainSubscriptionUniqueness(final String name, final String subscription, final String caller) {
+    void verifyDomainAzureSubscriptionUniqueness(final String name, final String subscription, final String caller) {
 
         if (subscription == null || subscription.isEmpty()) {
             return;
         }
 
-        String domainName = lookupDomainById(null, subscription, 0);
+        final String domainName = lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, subscription);
         if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Subscription Id: " + subscription +
-                    " is already assigned to domain: " + domainName);
+            throw requestError(caller, "Subscription Id: " + subscription + " is already assigned to domain: " + domainName);
+        }
+    }
+
+    void verifyDomainGcpProjectUniqueness(final String name, final String project, final String caller) {
+
+        if (project == null || project.isEmpty()) {
+            return;
+        }
+
+        final String domainName = lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, project);
+        if (domainName != null && !domainName.equals(name)) {
+            throw requestError(caller, "Project: " + project + " is already assigned to domain: " + domainName);
         }
     }
 
@@ -934,8 +948,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         // in the store. we can't rely on db uniqueness check since
         // some of the domains will not have these attributes set
 
-        verifyDomainAccountUniqueness(domain.getName(), domain.getAccount(), caller);
-        verifyDomainSubscriptionUniqueness(domain.getName(), domain.getAzureSubscription(), caller);
+        verifyDomainAwsAccountUniqueness(domain.getName(), domain.getAccount(), caller);
+        verifyDomainAzureSubscriptionUniqueness(domain.getName(), domain.getAzureSubscription(), caller);
+        verifyDomainGcpProjectUniqueness(domain.getName(), domain.getGcpProject(), caller);
         verifyDomainProductIdUniqueness(domain.getName(), domain.getYpmId(), caller);
 
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_DOMAIN)) {
@@ -959,7 +974,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(18, processInsertValue(domain.getAzureSubscription()));
             ps.setString(19, processInsertValue(domain.getBusinessService()));
             ps.setInt(20, processInsertValue(domain.getMemberPurgeExpiryDays()));
-            ps.setString(21, domain.getName());
+            ps.setString(21, processInsertValue(domain.getGcpProject()));
+            ps.setString(22, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1115,28 +1131,50 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public String lookupDomainById(String account, String subscription, int productId) {
+    public String lookupDomainByProductId(int productId) {
 
-        final String caller = "lookupDomain";
-        String sqlCmd;
-        if (account != null) {
-            sqlCmd = SQL_GET_DOMAIN_WITH_ACCOUNT;
-        } else if (subscription != null) {
-            sqlCmd = SQL_GET_DOMAIN_WITH_SUBSCRIPTION;
-        } else {
-            sqlCmd = SQL_GET_DOMAIN_WITH_PRODUCT_ID;
+        final String caller = "lookupDomainByProductId";
+        String domainName = null;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_WITH_PRODUCT_ID)) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    domainName = rs.getString(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
         }
 
+        return domainName;
+    }
+
+    String getCloudProviderSQLCommand(final String provider) {
+        if (provider == null) {
+            return null;
+        }
+        switch (provider.toLowerCase()) {
+            case ObjectStoreConnection.PROVIDER_AWS:
+                return SQL_GET_DOMAIN_WITH_AWS_ACCOUNT;
+            case ObjectStoreConnection.PROVIDER_AZURE:
+                return SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION;
+            case ObjectStoreConnection.PROVIDER_GCP:
+                return SQL_GET_DOMAIN_WITH_GCP_PROJECT;
+        }
+        return null;
+    }
+
+    @Override
+    public String lookupDomainByCloudProvider(String provider, String value) {
+
+        final String caller = "lookupDomainByCloudProvider";
+        final String sqlCmd = getCloudProviderSQLCommand(provider);
+        if (sqlCmd == null || value == null) {
+            return null;
+        }
         String domainName = null;
         try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
-
-            if (account != null) {
-                ps.setString(1, account.trim());
-            } else if (subscription != null) {
-                ps.setString(1, subscription.trim());
-            } else {
-                ps.setInt(1, productId);
-            }
+            ps.setString(1, value.trim());
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     domainName = rs.getString(1);

@@ -2869,11 +2869,11 @@ public class DBService implements RolesProvider {
         }
     }
 
-    DomainList lookupDomainById(final String account, final String subscription, int productId) {
+    DomainList lookupDomainByCloudProvider(final String provider, final String value) {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            String domain = con.lookupDomainById(account, subscription, productId);
+            final String domain = con.lookupDomainByCloudProvider(provider, value);
             if (domain != null) {
                 domList.setNames(Collections.singletonList(domain));
             }
@@ -2882,15 +2882,26 @@ public class DBService implements RolesProvider {
     }
 
     DomainList lookupDomainByAWSAccount(final String account) {
-        return lookupDomainById(account, null, 0);
+        return lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, account);
     }
 
     DomainList lookupDomainByAzureSubscription(final String subscription) {
-        return lookupDomainById(null, subscription, 0);
+        return lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, subscription);
+    }
+
+    DomainList lookupDomainByGcpProject(final String project) {
+        return lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, project);
     }
 
     DomainList lookupDomainByProductId(Integer productId) {
-        return lookupDomainById(null, null, productId);
+        DomainList domList = new DomainList();
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            String domain = con.lookupDomainByProductId(productId);
+            if (domain != null) {
+                domList.setNames(Collections.singletonList(domain));
+            }
+        }
+        return domList;
     }
 
     DomainList lookupDomainByBusinessService(final String businessService) {
@@ -3382,6 +3393,7 @@ public class DBService implements RolesProvider {
                         .setApplicationId(domain.getApplicationId())
                         .setAccount(domain.getAccount())
                         .setAzureSubscription(domain.getAzureSubscription())
+                        .setGcpProject(domain.getGcpProject())
                         .setYpmId(domain.getYpmId())
                         .setCertDnsDomain(domain.getCertDnsDomain())
                         .setMemberExpiryDays(domain.getMemberExpiryDays())
@@ -3763,6 +3775,12 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setAzureSubscription(meta.getAzureSubscription());
+                break;
+            case ZMSConsts.SYSTEM_META_GCP_PROJECT:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getGcpProject(), meta.getGcpProject())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setGcpProject(meta.getGcpProject());
                 break;
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getYpmId(), meta.getYpmId())) {

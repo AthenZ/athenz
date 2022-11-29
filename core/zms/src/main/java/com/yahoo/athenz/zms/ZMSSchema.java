@@ -131,6 +131,7 @@ public class ZMSSchema {
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
+            .field("gcpProject", "String", true, "associated gcp project name (system attribute - uniqueness check)")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("businessService", "String", true, "associated business service with domain")
             .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past");
@@ -894,7 +895,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainList", "GET", "/domain")
-            .comment("Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
+            .comment("Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, gcp project, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
             .queryParam("limit", "limit", "Int32", null, "restrict the number of results in this call")
             .queryParam("skip", "skip", "String", null, "restrict the set to those after the specified \"next\" token returned from a previous call")
             .queryParam("prefix", "prefix", "String", null, "restrict to names that start with the prefix")
@@ -904,6 +905,7 @@ public class ZMSSchema {
             .queryParam("member", "roleMember", "ResourceName", null, "restrict the domain names where the specified user is in a role - see roleName")
             .queryParam("role", "roleName", "ResourceName", null, "restrict the domain names where the specified user is in this role - see roleMember")
             .queryParam("azure", "subscription", "String", null, "restrict to domain names that have specified azure subscription name")
+            .queryParam("gcp", "project", "String", null, "restrict to domain names that have specified gcp project name")
             .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all domains that have a given tagName")
             .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all domains that have a given tag name and value")
             .queryParam("businessService", "businessService", "String", null, "restrict to domain names that have specified business service name")

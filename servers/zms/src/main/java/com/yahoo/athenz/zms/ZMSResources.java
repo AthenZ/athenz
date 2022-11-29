@@ -53,7 +53,7 @@ public class ZMSResources {
     @GET
     @Path("/domain")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
+    @Operation(description = "Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, gcp project, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.")
     public DomainList getDomainList(
         @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit,
         @Parameter(description = "restrict the set to those after the specified \"next\" token returned from a previous call", required = false) @QueryParam("skip") String skip,
@@ -64,6 +64,7 @@ public class ZMSResources {
         @Parameter(description = "restrict the domain names where the specified user is in a role - see roleName", required = false) @QueryParam("member") String roleMember,
         @Parameter(description = "restrict the domain names where the specified user is in this role - see roleMember", required = false) @QueryParam("role") String roleName,
         @Parameter(description = "restrict to domain names that have specified azure subscription name", required = false) @QueryParam("azure") String subscription,
+        @Parameter(description = "restrict to domain names that have specified gcp project name", required = false) @QueryParam("gcp") String project,
         @Parameter(description = "flag to query all domains that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
         @Parameter(description = "flag to query all domains that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue,
         @Parameter(description = "restrict to domain names that have specified business service name", required = false) @QueryParam("businessService") String businessService,
@@ -73,7 +74,7 @@ public class ZMSResources {
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainList");
             context.authenticate();
-            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, tagKey, tagValue, businessService, modifiedSince);
+            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, project, tagKey, tagValue, businessService, modifiedSince);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

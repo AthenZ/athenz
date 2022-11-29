@@ -248,6 +248,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_AS_PRINCIPAL_NAME  = "principal_name";
     public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
     public static final String DB_COLUMN_AZURE_SUBSCRIPTION = "azure_subscription";
+    public static final String DB_COLUMN_GCP_PROJECT        = "gcp_project";
     public static final String DB_COLUMN_BUSINESS_SERVICE   = "business_service";
     public static final String DB_COLUMN_ACTIVE             = "active";
     public static final String DB_COLUMN_VERSION            = "version";
@@ -298,6 +299,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_LAST_MOD_TIME      = "modified";
     public static final String SYSTEM_META_PROVIDER_ENDPOINT  = "providerendpoint";
     public static final String SYSTEM_META_AZURE_SUBSCRIPTION = "azuresubscription";
+    public static final String SYSTEM_META_GCP_PROJECT        = "gcpproject";
     public static final String SYSTEM_META_BUSINESS_SERVICE   = "businessservice";
 
 

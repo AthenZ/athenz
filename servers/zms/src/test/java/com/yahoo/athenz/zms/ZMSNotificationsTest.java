@@ -19,7 +19,9 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.common.server.notification.Notification;
+import com.yahoo.athenz.common.server.notification.NotificationToEmailConverterCommon;
 import com.yahoo.athenz.zms.notification.GroupMemberExpiryNotificationTask;
+import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
 import com.yahoo.athenz.zms.notification.RoleMemberExpiryNotificationTask;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.*;
@@ -56,9 +58,14 @@ public class ZMSNotificationsTest {
 
     @Test
     public void testRoleExpiryNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         try {
             long currentTimeMillis = System.currentTimeMillis();
@@ -69,8 +76,10 @@ public class ZMSNotificationsTest {
             Role role1 = zmsTestInitializer.createRoleObject("test-domain1", "Role1",
                     null, roleMembers);
 
-            zmsTestInitializer.getZms().putRole(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Role1", zmsTestInitializer.getAuditRef(), false, role1);
-            RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+            zmsImpl.putRole(ctx, "test-domain1", "Role1", auditRef, false, role1);
+            RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask =
+                    new RoleMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
+                            zmsImpl.notificationToEmailConverterCommon);
             List<Notification> notifications = roleMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days while metrics should be recorded every day
@@ -95,7 +104,7 @@ public class ZMSNotificationsTest {
                 }
             }
         } finally {
-            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
         }
     }
 
@@ -116,9 +125,14 @@ public class ZMSNotificationsTest {
 
     @Test
     public void testGroupExpiryNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         try {
             long currentTimeMillis = System.currentTimeMillis();
@@ -128,8 +142,10 @@ public class ZMSNotificationsTest {
 
             Group group1 = zmsTestInitializer.createGroupObject("test-domain1", "Group1", groupMembers);
 
-            zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), false, group1);
-            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+            zmsImpl.putGroup(ctx, "test-domain1", "Group1", auditRef, false, group1);
+            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
+                    new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
+                            zmsImpl.notificationToEmailConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days
@@ -155,15 +171,20 @@ public class ZMSNotificationsTest {
                 }
             }
         } finally {
-            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
         }
     }
 
     @Test
     public void testDisableUserGroupExpiryNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         try {
             long currentTimeMillis = System.currentTimeMillis();
@@ -176,8 +197,10 @@ public class ZMSNotificationsTest {
             disableUserTags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("1")));
             group1.setTags(disableUserTags);
 
-            zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), false, group1);
-            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+            zmsImpl.putGroup(ctx, "test-domain1", "Group1", auditRef, false, group1);
+            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
+                    new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
+                            zmsImpl.notificationToEmailConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days
@@ -190,12 +213,13 @@ public class ZMSNotificationsTest {
                     "user.expireddays28"}));
             assertEquals(notifications.size(), 1, "notificationRecipients: " + notificationsToRecipientString(notifications));
             Notification notification = notifications.get(0);
-            assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: " + notificationsToRecipientString(notifications));
+            assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
+                    + notificationsToRecipientString(notifications));
             String recipient = notification.getRecipients().stream().findFirst().get();
             assertEquals(recipient, "user.testadminuser");
             verifyAdminNotifications(emailNotificationMembers, notification);
         } finally {
-            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
         }
     }
 
@@ -205,9 +229,14 @@ public class ZMSNotificationsTest {
 
     @Test
     public void testDisableAdminGroupExpiryNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         try {
             long currentTimeMillis = System.currentTimeMillis();
@@ -220,8 +249,10 @@ public class ZMSNotificationsTest {
             disableUserTags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("2")));
             group1.setTags(disableUserTags);
 
-            zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), false, group1);
-            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+            zmsImpl.putGroup(ctx, "test-domain1", "Group1", auditRef, false, group1);
+            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
+                    new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
+                            zmsImpl.notificationToEmailConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days
@@ -234,22 +265,28 @@ public class ZMSNotificationsTest {
                     "user.expireddays28"}));
             assertEquals(notifications.size(), 6, "notificationRecipients: " + notificationsToRecipientString(notifications));
             for (Notification notification : notifications) {
-                assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: " + notificationsToRecipientString(notifications));
+                assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
+                        + notificationsToRecipientString(notifications));
                 String recipient = notification.getRecipients().stream().findFirst().get();
                 assertTrue(emailNotificationMembers.contains(recipient));
                 emailNotificationMembers.remove(recipient);
             }
             assertTrue(emailNotificationMembers.isEmpty());
         } finally {
-            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
         }
     }
 
     @Test
     public void testDisableAllGroupExpiryNotification() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("test-domain1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         try {
             long currentTimeMillis = System.currentTimeMillis();
@@ -261,12 +298,14 @@ public class ZMSNotificationsTest {
             disableUserTags.put("zms.DisableReminderNotifications", new TagValueList().setList(Arrays.asList("3")));
             group1.setTags(disableUserTags);
 
-            zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", "Group1", zmsTestInitializer.getAuditRef(), false, group1);
-            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask = new GroupMemberExpiryNotificationTask(zmsTestInitializer.getZms().dbService, zmsTestInitializer.getZms().userDomainPrefix, zmsTestInitializer.getZms().notificationToEmailConverterCommon);
+            zmsImpl.putGroup(ctx, "test-domain1", "Group1", auditRef, false, group1);
+            GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
+                    new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
+                            zmsImpl.notificationToEmailConverterCommon);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
             assertEquals(notifications.size(), 0, "notificationRecipients: " + notificationsToRecipientString(notifications));
         } finally {
-            zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "test-domain1", zmsTestInitializer.getAuditRef());
+            zmsImpl.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
         }
     }
 

@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms.store.impl.jdbc;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
+import com.yahoo.athenz.zms.store.ObjectStoreConnection;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -76,6 +77,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
         Mockito.doReturn(90).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT);
         Mockito.doReturn("service1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
@@ -114,6 +116,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn("OnShore").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
@@ -392,6 +395,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn("OnShore").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
@@ -467,7 +471,8 @@ public class JDBCConnectionTest {
                 .setOrg("cloud_services")
                 .setAccount("123456789")
                 .setYpmId(1011)
-                .setAzureSubscription("1234");
+                .setAzureSubscription("1234")
+                .setGcpProject("gcp");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertDomain(domain);
@@ -483,6 +488,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "123456789");
         Mockito.verify(mockPrepStmt, times(1)).setInt(8, 1011);
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "1234");
+        Mockito.verify(mockPrepStmt, times(1)).setString(22, "gcp");
         jdbcConn.close();
     }
 
@@ -611,7 +617,8 @@ public class JDBCConnectionTest {
                 .setUserAuthorityFilter("OnShore")
                 .setAzureSubscription("azure")
                 .setBusinessService("service1")
-                .setMemberPurgeExpiryDays(90);
+                .setMemberPurgeExpiryDays(90)
+                .setGcpProject("gcp");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -637,7 +644,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(18, "azure");
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "service1");
         Mockito.verify(mockPrepStmt, times(1)).setInt(20, 90);
-        Mockito.verify(mockPrepStmt, times(1)).setString(21, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(21, "gcp");
+        Mockito.verify(mockPrepStmt, times(1)).setString(22, "my-domain");
         jdbcConn.close();
     }
 
@@ -674,7 +682,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(18, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(20, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setString(21, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(21, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(22, "my-domain");
         jdbcConn.close();
     }
 
@@ -5914,6 +5923,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
@@ -6062,6 +6072,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
@@ -6225,6 +6236,36 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testVerifyDomainSubscriptionUniquenessEmptyAccount() throws Exception {
+
+        // we are going to set the code to return exception so that we can
+        // verify that we're returning before making any sql calls
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.verifyDomainAzureSubscriptionUniqueness("iaas.athenz", null, "unitTest");
+        jdbcConn.verifyDomainAzureSubscriptionUniqueness("iaas.athenz", "", "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainProjectUniquenessEmptyAccount() throws Exception {
+
+        // we are going to set the code to return exception so that we can
+        // verify that we're returning before making any sql calls
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", null, "unitTest");
+        jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", "", "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
     public void testVerifyDomainAccountUniquenessEmptyAccount() throws Exception {
 
         // we are going to set the code to return exception so that we can
@@ -6234,8 +6275,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.verifyDomainAccountUniqueness("iaas.athenz", null, "unitTest");
-        jdbcConn.verifyDomainAccountUniqueness("iaas.athenz", "", "unitTest");
+        jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", null, "unitTest");
+        jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "", "unitTest");
         jdbcConn.close();
     }
 
@@ -6246,7 +6287,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.verifyDomainAccountUniqueness("iaas.athenz", "12345", "unitTest");
+        jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
         jdbcConn.close();
     }
 
@@ -6256,7 +6297,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.verifyDomainAccountUniqueness("iaas.athenz", "12345", "unitTest");
+        jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
         jdbcConn.close();
     }
 
@@ -6268,7 +6309,7 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
-            jdbcConn.verifyDomainAccountUniqueness("iaas.athenz", "12345", "unitTest");
+            jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
@@ -6331,27 +6372,57 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testLookupDomainByAccount() throws Exception {
+    public void testLookupDomainByAwsAccount() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        String domainName = jdbcConn.lookupDomainById("1234", null, 0);
+        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, "1234");
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
 
     @Test
-    public void testLookupDomainBySubscription() throws Exception {
+    public void testLookupDomainByAzureSubscription() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        String domainName = jdbcConn.lookupDomainById(null, "azure", 0);
+        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, "azure");
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
+    }
+
+    @Test
+    public void testLookupDomainByGcpProject() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, "gcp");
+        assertEquals(domainName, "iaas.athenz");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDomainByCloudProviderFailure() throws Exception {
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        assertNull(jdbcConn.lookupDomainByCloudProvider(null, "iaas.athenz"));
+        assertNull(jdbcConn.lookupDomainByCloudProvider("unknown", "iaas.athenz"));
+        assertNull(jdbcConn.lookupDomainByCloudProvider("aws", null));
+
+        try {
+            jdbcConn.lookupDomainByCloudProvider("aws", "iaas.athenz");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Test
@@ -6390,7 +6461,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        String domainName = jdbcConn.lookupDomainById(null, null, 1001);
+        String domainName = jdbcConn.lookupDomainByProductId(1001);
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
@@ -6402,7 +6473,7 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
-            jdbcConn.lookupDomainById(null, null, 1001);
+            jdbcConn.lookupDomainByProductId(1001);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -13589,7 +13660,6 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_VALUE)).thenReturn("value1");
         Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID)).thenReturn(1);
 
-
         AthenzDomain athenzDomain = new AthenzDomain("dom1");
         jdbcConn.getAthenzDomainPolicies("dom1", 1, athenzDomain);
         assertNotNull(athenzDomain.getPolicies().get(0).getAssertions().get(0).getConditions());
@@ -13708,6 +13778,20 @@ public class JDBCConnectionTest {
         } catch (RuntimeException rx){
             assertTrue(rx.getMessage().contains("sql error"));
         }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetCloudProviderSQLCommand() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        assertNull(jdbcConn.getCloudProviderSQLCommand(null));
+        assertNull(jdbcConn.getCloudProviderSQLCommand(""));
+        assertNull(jdbcConn.getCloudProviderSQLCommand("unknown"));
+
+        assertEquals(jdbcConn.getCloudProviderSQLCommand("aws"), "SELECT name FROM domain WHERE account=?;");
+        assertEquals(jdbcConn.getCloudProviderSQLCommand("azure"), "SELECT name FROM domain WHERE azure_subscription=?;");
+        assertEquals(jdbcConn.getCloudProviderSQLCommand("gcp"), "SELECT name FROM domain WHERE gcp_project=?;");
         jdbcConn.close();
     }
 }

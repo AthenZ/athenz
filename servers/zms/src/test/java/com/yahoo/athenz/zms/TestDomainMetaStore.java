@@ -69,6 +69,21 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public boolean isValidGcpProject(String domainName, String gcpProject) {
+        return isValidAttribute(gcpProject);
+    }
+
+    @Override
+    public void setGcpProjectDomain(String domainName, String gcpProject) {
+        setAttribute(gcpProject);
+    }
+
+    @Override
+    public List<String> getValidGcpProjects(String userName) {
+        return new ArrayList<>();
+    }
+
+    @Override
     public boolean isValidProductId(String domainName, Integer productId) {
         return isValidAttribute(productId);
     }

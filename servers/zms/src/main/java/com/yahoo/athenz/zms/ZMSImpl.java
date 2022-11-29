@@ -703,7 +703,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     private ChangePublisher<DomainChangeMessage> createPublisher(String topicName) {
-        ChangePublisherFactory<DomainChangeMessage> publisherFactory = null;
+        ChangePublisherFactory<DomainChangeMessage> publisherFactory;
         final String domainChangePublisherClassName = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_FACTORY_CLASS,
             ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
@@ -1325,7 +1325,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     @Override
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
             Integer depth, String account, Integer productId, String roleMember, String roleName,
-            String subscription, String tagKey, String tagValue, String businessService, String modifiedSince) {
+            String subscription, String project, String tagKey, String tagValue, String businessService,
+            String modifiedSince) {
 
         final String caller = ctx.getApiName();
 
@@ -1335,9 +1336,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, productId: {}, " +
-                    "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, businessService: {}",
+                    "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, project: {}, businessService: {}",
                     limit, skip, prefix, depth, account, productId, roleMember, roleName,
-                    modifiedSince, subscription, businessService);
+                    modifiedSince, subscription, project, businessService);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -1389,6 +1390,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dlist = dbService.lookupDomainByAWSAccount(account);
         } else if (!StringUtil.isEmpty(subscription)) {
             dlist = dbService.lookupDomainByAzureSubscription(subscription);
+        } else if (!StringUtil.isEmpty(project)) {
+            dlist = dbService.lookupDomainByGcpProject(project);
         } else if (productId != null && productId != 0) {
             dlist = dbService.lookupDomainByProductId(productId);
         } else if (roleMember != null || roleName != null) {
@@ -1506,6 +1509,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setId(UUID.fromCurrentTime())
                 .setAccount(detail.getAccount())
                 .setAzureSubscription(detail.getAzureSubscription())
+                .setGcpProject(detail.getGcpProject())
                 .setYpmId(productId)
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
@@ -2137,6 +2141,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getGcpProject(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
 
         // we're going to check the meta values for our new domain
@@ -2150,6 +2155,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
             throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
+        }
+        if (!domainMetaStore.isValidGcpProject(domain.getName(), domain.getGcpProject())) {
+            throw ZMSUtils.requestError("invalid gcp project for domain", caller);
         }
         if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
             throw ZMSUtils.requestError("invalid product id for domain", caller);
@@ -2179,6 +2187,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         throw ZMSUtils.requestError("invalid azure subscription for domain", caller);
                     }
                     changedAttrs.set(DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION);
+                }
+                break;
+            case ZMSConsts.SYSTEM_META_GCP_PROJECT:
+                if (ZMSUtils.metaValueChanged(domain.getGcpProject(), meta.getGcpProject())) {
+                    if (!domainMetaStore.isValidGcpProject(domain.getName(), meta.getGcpProject())) {
+                        throw ZMSUtils.requestError("invalid gcp project for domain", caller);
+                    }
+                    changedAttrs.set(DomainMetaStore.META_ATTR_GCP_PROJECT);
                 }
                 break;
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
@@ -2256,6 +2272,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
                     domainMetaStore.setAzureSubscriptionDomain(domainName, (String) value);
                     break;
+                case DomainMetaStore.META_ATTR_GCP_PROJECT:
+                    domainMetaStore.setGcpProjectDomain(domainName, (String) value);
+                    break;
                 case DomainMetaStore.META_ATTR_PRODUCT_ID:
                     domainMetaStore.setProductIdDomain(domainName, (Integer) value);
                     break;
@@ -2280,6 +2299,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION,
                     domain.getAzureSubscription());
         }
+        if (!StringUtil.isEmpty(domain.getGcpProject())) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_GCP_PROJECT,
+                    domain.getGcpProject());
+        }
         if (domain.getYpmId() != null) {
             updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_PRODUCT_ID,
                     domain.getYpmId());
@@ -2297,6 +2320,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
             case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
                 value = meta.getAzureSubscription();
+                break;
+            case DomainMetaStore.META_ATTR_GCP_PROJECT:
+                value = meta.getGcpProject();
                 break;
             case DomainMetaStore.META_ATTR_PRODUCT_ID:
                 value = meta.getYpmId();
@@ -2653,6 +2679,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
             case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION_NAME:
                 values = domainMetaStore.getValidAzureSubscriptions(userName);
+                break;
+            case DomainMetaStore.META_ATTR_GCP_PROJECT_NAME:
+                values = domainMetaStore.getValidGcpProjects(userName);
                 break;
             case DomainMetaStore.META_ATTR_PRODUCT_ID_NAME:
                 values = domainMetaStore.getValidProductIds(userName);
@@ -6035,6 +6064,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     }
                     signedDomain.getDomain().setAzureSubscription(azureSubscription);
                     break;
+                case ZMSConsts.SYSTEM_META_GCP_PROJECT:
+                    final String gcpProject = domain.getGcpProject();
+                    if (gcpProject == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setGcpProject(gcpProject);
+                    break;
                 case META_ATTR_YPM_ID:
                     final Integer ypmId = domain.getYpmId();
                     if (ypmId == null || ypmId == 0) {
@@ -6061,6 +6097,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setDescription(domain.getDescription());
         domainData.setAccount(domain.getAccount());
         domainData.setAzureSubscription(domain.getAzureSubscription());
+        domainData.setGcpProject(domain.getGcpProject());
         domainData.setYpmId(domain.getYpmId());
         domainData.setApplicationId(domain.getApplicationId());
         domainData.setMemberExpiryDays(domain.getMemberExpiryDays());

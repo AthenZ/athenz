@@ -28,6 +28,7 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "description", domain.Description)
 	dumpStringValue(buf, indentLevel1, "aws_account", domain.Account)
 	dumpStringValue(buf, indentLevel1, "azure_subscription", domain.AzureSubscription)
+	dumpStringValue(buf, indentLevel1, "gcp_project", domain.GcpProject)
 	dumpStringValue(buf, indentLevel1, "application_id", domain.ApplicationId)
 	dumpStringValue(buf, indentLevel1, "business_service", domain.BusinessService)
 	dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
@@ -565,6 +566,12 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 			buf.WriteString(indentLevel1)
 			buf.WriteString("azure_subscription: ")
 			buf.WriteString(domainData.AzureSubscription)
+			buf.WriteString("\n")
+		}
+		if domainData.GcpProject != "" {
+			buf.WriteString(indentLevel1)
+			buf.WriteString("gcp_project: ")
+			buf.WriteString(domainData.GcpProject)
 			buf.WriteString("\n")
 		}
 		if domainData.BusinessService != "" {
