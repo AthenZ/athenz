@@ -22,10 +22,15 @@ class DateUtils {
         this.stringUtils = new StringUtils();
     }
 
-    getLocalDate(currentDate, currentTimezone, newTimezone) {
+    getLocalDate(
+        currentDate,
+        currentTimezone,
+        newTimezone,
+        dateFormat = this.dateFormat
+    ) {
         return moment(currentDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ', currentTimezone)
             .tz(newTimezone)
-            .format(this.dateFormat);
+            .format(dateFormat);
     }
 
     getUTCDate(currentDate, currentTimezone) {
@@ -59,6 +64,22 @@ class DateUtils {
             return new Date(ux).toISOString();
         }
         return '';
+    }
+
+    // converts a RDL "Timestamp" to UX date time
+    // e.g. for timestamp "2023-04-26T18:34:03.543Z" and local-time-zone "Asia/Jerusalem"
+    // the func will return "2023-04-26 21:34 pm"
+    rdlTimestampToUxDatetime(ts) {
+        let currentDate = new Date(ts);
+        let currentTimeZone = 'UTC';
+        let newTimeZone = this.getCurrentTimeZone();
+        let dateFormat = 'YYYY-MM-DD HH:mm a';
+        return this.getLocalDate(
+            currentDate,
+            currentTimeZone,
+            newTimeZone,
+            dateFormat
+        );
     }
 
     isBeforeCurrenTime(selectedDate) {

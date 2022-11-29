@@ -9,18 +9,27 @@ exports[`MemberRow should render 1`] = `
   word-break: break-all;
 }
 
+.emotion-8 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-column-gap: 10px;
+  column-gap: 10px;
+}
+
 .emotion-10 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-16 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
-}
-
-.emotion-12 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
 }
 
 <tr
@@ -41,21 +50,61 @@ exports[`MemberRow should render 1`] = `
     class="emotion-2 emotion-3"
     color="#3570f40D"
   >
-    N/A
+    <div
+      class="emotion-8 emotion-9"
+    >
+      N/A
+      <span>
+        <svg
+          class="emotion-10"
+          data-testid="icon"
+          height="1.25em"
+          viewBox="0 0 1024 1024"
+          width="1.25em"
+        >
+          <title>
+            edit
+          </title>
+          <path
+            d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+          />
+        </svg>
+      </span>
+    </div>
   </td>
   <td
     class="emotion-2 emotion-3"
     color="#3570f40D"
   >
-    N/A
+    <div
+      class="emotion-8 emotion-9"
+    >
+      N/A
+      <span>
+        <svg
+          class="emotion-10"
+          data-testid="icon"
+          height="1.25em"
+          viewBox="0 0 1024 1024"
+          width="1.25em"
+        >
+          <title>
+            edit
+          </title>
+          <path
+            d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+          />
+        </svg>
+      </span>
+    </div>
   </td>
   <td
-    class="emotion-10 emotion-3"
+    class="emotion-16 emotion-3"
     color="#3570f40D"
   >
     <span>
       <svg
-        class="emotion-12"
+        class="emotion-10"
         data-testid="icon"
         height="1.25em"
         viewBox="0 0 1024 1024"

@@ -47,3 +47,15 @@ describe('LocalDate', () => {
         expect(dateUtils.validateDate(futureDate)).toEqual(false);
     });
 });
+
+describe('rdlTimestampToUxDatetime', () => {
+    it('should test', () => {
+        let dateUtils = new DateUtils();
+        jest.spyOn(dateUtils, 'getCurrentTimeZone').mockReturnValue(
+            'America/Los_Angeles'
+        );
+        let ts = '2020-02-12T21:44:37.792Z';
+        let uxDatetime = dateUtils.rdlTimestampToUxDatetime(ts);
+        expect(uxDatetime).toEqual('2020-02-12 13:44 pm');
+    });
+});

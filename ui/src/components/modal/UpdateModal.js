@@ -19,6 +19,8 @@ import Button from '../denali/Button';
 import Modal from '../denali/Modal';
 import Color from '../denali/Color';
 import Input from '../denali/Input';
+import FlatPicker from '../flatpicker/FlatPicker';
+import { colors } from '../denali/styles';
 
 const StyledModal = styled(Modal)`
     width: 600px;
@@ -45,6 +47,32 @@ const StyledJustification = styled(Input)`
     margin-left: 15px;
 `;
 
+const FlatPickrInputDiv = styled.div`
+    & > div input {
+        position: relative;
+        font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+        background-color: ${(props) =>
+    props.disabled ? colors.grey500 : 'rgba(53, 112, 244, 0.05)'};
+        box-shadow: none;
+        color: rgb(48, 48, 48);
+        min-width: 50px;
+        text-align: left;
+        border-width: 2px;
+        border-style: solid;
+        border-color: transparent;
+        border-image: initial;
+        border-radius: 2px;
+        flex: 1 0 auto;
+        margin: 0px;
+        margin-top: 5px;
+        outline: none;
+        padding: 0.6em 12px;
+        transition: background-color 0.2s ease-in-out 0s,
+            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        width: 10em;
+    }
+`;
+
 export default class UpdateModal extends React.Component {
     constructor(props) {
         super(props);
@@ -62,6 +90,18 @@ export default class UpdateModal extends React.Component {
                 onClose={this.props.cancel}
                 title={'This update is permanent'}
             >
+                {this.props.showPicker && (
+                    <FlatPickrInputDiv>
+                        <FlatPicker
+                            onChange={(date) => {
+                                this.props.onDateChange(date);
+                            }}
+                            placeholder={this.props.date}
+                            id='editMember'
+                            clear={this.props.date}
+                        />
+                    </FlatPickrInputDiv>
+                )}
                 <MessageDiv data-testid='update-modal-message'>
                     {this.props.message}
                     <b>{this.props.name}</b> ?

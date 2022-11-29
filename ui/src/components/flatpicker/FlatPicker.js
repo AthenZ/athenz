@@ -19,6 +19,7 @@ import DateUtils from '../utils/DateUtils';
 import { colors } from '../denali/styles';
 import Icon from '../denali/icons/Icon';
 import styled from '@emotion/styled';
+import { ADD_ROLE_EXPIRATION_PLACEHOLDER } from '../constants/constants';
 
 const DateClearAnchor = styled.a`
     margin-left: -7px;
@@ -40,13 +41,13 @@ export default class FlatPicker extends React.Component {
             minDate: this.props.minDate
                 ? this.props.minDate
                 : this.dateUtils.getDatePlusFourHours(
-                      new Date(),
-                      this.dateUtils.getCurrentTimeZone()
-                  ),
+                    new Date(),
+                    this.dateUtils.getCurrentTimeZone()
+                ),
             maxDate: this.props.maxDate ? this.props.maxDate : null,
             placeholder: this.props.placeholder
                 ? this.props.placeholder
-                : 'Expiration (Optional)',
+                : ADD_ROLE_EXPIRATION_PLACEHOLDER,
             value: this.props.value
                 ? this.dateUtils.uxDatetimeToRDLTimestamp(this.props.value)
                 : '',
