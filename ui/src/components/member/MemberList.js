@@ -98,7 +98,7 @@ class MemberList extends React.Component {
         let pendingMembers = [];
         let addMemberButton = '';
         let justificationReq =
-            collectionDetails.isDomainAuditEnabled ||
+            this.props.isDomainAuditEnabled ||
             collectionDetails.reviewEnabled ||
             collectionDetails.selfServe;
         let addMember = this.state.showAddMember ? (

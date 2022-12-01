@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import AddRole from '../../../components/role/AddRole';
-import API from '../../../api';
-import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import {
+    buildDomainDataForState,
+    getStateWithDomainData,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 
 describe('AddRole', () => {
     it('should render', () => {
@@ -27,12 +30,59 @@ describe('AddRole', () => {
         const { getByTestId } = renderWithRedux(
             <AddRole
                 domain={domain}
-                justificationRequired={true}
                 showAddRole={true}
                 onCancel={onCancelMock}
             />
         );
         const addRoleForm = getByTestId('add-role');
+        expect(addRoleForm).toMatchSnapshot();
+    });
+    it('should open add model without justification input', async () => {
+        let domain = 'domain';
+        const domainMetadata = {
+            modified: '2020-02-12T21:44:37.792Z',
+            auditEnabled: false,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const onCancelMock = jest.fn();
+
+        const { getByTestId } = renderWithRedux(
+            <AddRole
+                domain={domain}
+                showAddRole={true}
+                onCancel={onCancelMock}
+            />,
+            getStateWithDomainData(domainData)
+        );
+        await waitFor(() =>
+            expect(getByTestId('add-modal-message')).toBeInTheDocument()
+        );
+
+        const addRoleForm = getByTestId('add-modal-message');
+        expect(addRoleForm).toMatchSnapshot();
+    });
+    it('should open add model with justification input', async () => {
+        let domain = 'domain';
+        const domainMetadata = {
+            modified: '2020-02-12T21:44:37.792Z',
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const onCancelMock = jest.fn();
+
+        const { getByTestId } = renderWithRedux(
+            <AddRole
+                domain={domain}
+                showAddRole={true}
+                onCancel={onCancelMock}
+            />,
+            getStateWithDomainData(domainData)
+        );
+        await waitFor(() =>
+            expect(getByTestId('add-modal-message')).toBeInTheDocument()
+        );
+
+        const addRoleForm = getByTestId('add-modal-message');
         expect(addRoleForm).toMatchSnapshot();
     });
 });
