@@ -1,5 +1,1348 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AddRole should open add model with justification input 1`] = `
+.emotion-0 {
+  text-align: left;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+  max-height: auto;
+  overflow-y: auto;
+}
+
+.emotion-2 {
+  width: 700px;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-4 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 10px;
+}
+
+.emotion-6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-7 {
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
+}
+
+.emotion-9 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-9::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  width: calc(50% + 4px);
+}
+
+.emotion-10 {
+  height: 40px;
+  width: 200px;
+}
+
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-12:hover {
+  color: #303030;
+}
+
+.emotion-13 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-13:hover {
+  color: #3570f4;
+}
+
+.emotion-19 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-21 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-21 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-21.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-21 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input.focused,
+.emotion-21 input:active,
+.emotion-21 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-21.error input,
+.emotion-21.error input.focused,
+.emotion-21.error input:active,
+.emotion-21.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-21.error .message {
+  color: #d01111;
+}
+
+.emotion-22 {
+  width: 100%;
+}
+
+.emotion-31 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-41 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-41>div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53, 112, 244, 0.05);
+  box-shadow: none;
+  color: rgb(48, 48, 48);
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0;
+  margin-right: 10px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 77%;
+}
+
+.emotion-43 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-45 {
+  margin-left: -7px;
+  margin-top: 10px!important;
+}
+
+.emotion-47 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-60 {
+  margin-left: 10px;
+}
+
+.emotion-62 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-62:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-62:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-62:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-62:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-63 {
+  width: 125px;
+}
+
+.emotion-70 {
+  width: 65%;
+}
+
+.emotion-79 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 250px;
+}
+
+.emotion-79 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-79.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-79 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-79 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-79 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-79 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-79 input.focused,
+.emotion-79 input:active,
+.emotion-79 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-79 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-79 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-79.error input,
+.emotion-79.error input.focused,
+.emotion-79.error input:active,
+.emotion-79.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-79.error .message {
+  color: #d01111;
+}
+
+.emotion-85 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-left: 10px;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="add-modal-message"
+  height="auto"
+>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Role Category
+      </label>
+      <div
+        class="emotion-9 denali-button-group emotion-10 emotion-11"
+        data-testid="buttongroup"
+      >
+        <div
+          class="emotion-12"
+          data-active="true"
+        >
+          Regular
+        </div>
+        <div
+          class="emotion-13"
+          data-active="false"
+        >
+          Delegated
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Role Name
+      </label>
+      <div
+        class="emotion-19 emotion-20"
+      >
+        <div
+          class="emotion-21 denali-input emotion-22 emotion-23"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            placeholder="Enter New Role Name"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Add Member(s)
+      </label>
+      <div
+        class="emotion-19 emotion-20"
+      >
+        <div
+          class="emotion-31 emotion-32"
+        >
+          <div
+            class="emotion-21 denali-input emotion-22 emotion-23"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              placeholder="user.<userid> or <domain>.<service> or <domain>:group.<group>"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      />
+      <div
+        class="emotion-41 emotion-42"
+      >
+        <div
+          class="fp-addrole emotion-43 emotion-44"
+        >
+          <input
+            class="flatpickr-input"
+            data-input=""
+            data-testid="flatPicker"
+            placeholder="Expiration (Optional)"
+            type="hidden"
+            value=""
+          />
+          <input
+            class=" form-control input"
+            placeholder="Expiration (Optional)"
+            readonly="readonly"
+            tabindex="0"
+            type="text"
+          />
+          <a
+            class="emotion-45 emotion-46"
+            data-clear=""
+          >
+            <svg
+              class="emotion-47"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                close
+              </title>
+              <path
+                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div
+        class="emotion-41 emotion-42"
+      >
+        <div
+          class="fp-addrole-reminder emotion-43 emotion-44"
+        >
+          <input
+            class="flatpickr-input"
+            data-input=""
+            data-testid="flatPicker"
+            placeholder="Reminder (Optional)"
+            type="hidden"
+            value=""
+          />
+          <input
+            class=" form-control input"
+            placeholder="Reminder (Optional)"
+            readonly="readonly"
+            tabindex="0"
+            type="text"
+          />
+          <a
+            class="emotion-45 emotion-46"
+            data-clear=""
+          >
+            <svg
+              class="emotion-47"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                close
+              </title>
+              <path
+                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      />
+      <div
+        class="emotion-60 emotion-61"
+      >
+        <button
+          class="emotion-62 denali-button emotion-63 emotion-64"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      />
+      <div
+        class="emotion-70 emotion-71"
+      />
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Justification
+      </label>
+      <div
+        class="emotion-19 emotion-20"
+      >
+        <div
+          class="emotion-79 denali-input animated emotion-22 emotion-23"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            id="justification"
+            name="justification"
+            placeholder="Enter justification here"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <svg
+        class="emotion-47"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          arrowhead-down-circle
+        </title>
+        <path
+          d="M512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001zM512 981.333c259.206 0 469.333-210.128 469.333-469.333s-210.128-469.333-469.333-469.333c-259.206 0-469.333 210.128-469.333 469.333v0c-0.003 0.635-0.005 1.387-0.005 2.138 0 258.027 209.173 467.2 467.2 467.2 0.752 0 1.504-0.002 2.255-0.005l-0.117 0z"
+        />
+        <path
+          d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+        />
+      </svg>
+      <div
+        class="emotion-85 emotion-86"
+      >
+        Advanced Settings
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`AddRole should open add model without justification input 1`] = `
+.emotion-0 {
+  text-align: left;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  padding-bottom: 15px;
+  max-height: auto;
+  overflow-y: auto;
+}
+
+.emotion-2 {
+  width: 700px;
+  text-align: left;
+  background-color: #fff;
+}
+
+.emotion-4 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 10px;
+}
+
+.emotion-6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-7 {
+  float: left;
+  font-size: 14px;
+  font-weight: 700;
+  width: 17%;
+}
+
+.emotion-9 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: rgba(53,112,244,0.05);
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  height: 28px;
+  position: relative;
+}
+
+.emotion-9::before {
+  background: #fff;
+  border: 2px solid #0072df;
+  border-radius: 2px;
+  box-sizing: border-box;
+  content: '';
+  height: calc(100% + 4px);
+  margin: -2px -2px -2px calc(0% - 2px);
+  position: absolute;
+  width: calc(50% + 4px);
+}
+
+.emotion-10 {
+  height: 40px;
+  width: 200px;
+}
+
+.emotion-12 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #303030;
+  cursor: initial;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-12:hover {
+  color: #303030;
+}
+
+.emotion-13 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: #3697f2;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 3px;
+  padding: 0 12px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-13:hover {
+  color: #3570f4;
+}
+
+.emotion-19 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-21 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-21 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-21.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-21 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-21 input.focused,
+.emotion-21 input:active,
+.emotion-21 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-21 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-21 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-21.error input,
+.emotion-21.error input.focused,
+.emotion-21.error input:active,
+.emotion-21.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-21.error .message {
+  color: #d01111;
+}
+
+.emotion-22 {
+  width: 100%;
+}
+
+.emotion-31 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-41 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 10px;
+}
+
+.emotion-41>div input {
+  position: relative;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  background-color: rgba(53, 112, 244, 0.05);
+  box-shadow: none;
+  color: rgb(48, 48, 48);
+  min-width: 50px;
+  text-align: left;
+  border-width: 2px;
+  border-style: solid;
+  border-color: transparent;
+  border-image: initial;
+  border-radius: 2px;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  margin: 0;
+  margin-right: 10px;
+  margin-top: 5px;
+  outline: none;
+  padding: 0.6em 12px;
+  -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
+  width: 77%;
+}
+
+.emotion-43 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.emotion-45 {
+  margin-left: -7px;
+  margin-top: 10px!important;
+}
+
+.emotion-47 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-60 {
+  margin-left: 10px;
+}
+
+.emotion-62 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 1;
+  margin: 5px;
+  min-width: 70px;
+  outline: 0;
+  padding: 8px 18px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
+}
+
+.emotion-62:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-62:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-62:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-62:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-63 {
+  width: 125px;
+}
+
+.emotion-70 {
+  width: 65%;
+}
+
+.emotion-75 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-left: 10px;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="add-modal-message"
+  height="auto"
+>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Role Category
+      </label>
+      <div
+        class="emotion-9 denali-button-group emotion-10 emotion-11"
+        data-testid="buttongroup"
+      >
+        <div
+          class="emotion-12"
+          data-active="true"
+        >
+          Regular
+        </div>
+        <div
+          class="emotion-13"
+          data-active="false"
+        >
+          Delegated
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Role Name
+      </label>
+      <div
+        class="emotion-19 emotion-20"
+      >
+        <div
+          class="emotion-21 denali-input emotion-22 emotion-23"
+          data-testid="input-wrapper"
+        >
+          <input
+            autocomplete="off"
+            data-testid="input-node"
+            placeholder="Enter New Role Name"
+            value=""
+          />
+          <div
+            class="message"
+            data-testid="message"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      >
+        Add Member(s)
+      </label>
+      <div
+        class="emotion-19 emotion-20"
+      >
+        <div
+          class="emotion-31 emotion-32"
+        >
+          <div
+            class="emotion-21 denali-input emotion-22 emotion-23"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              placeholder="user.<userid> or <domain>.<service> or <domain>:group.<group>"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      />
+      <div
+        class="emotion-41 emotion-42"
+      >
+        <div
+          class="fp-addrole emotion-43 emotion-44"
+        >
+          <input
+            class="flatpickr-input"
+            data-input=""
+            data-testid="flatPicker"
+            placeholder="Expiration (Optional)"
+            type="hidden"
+            value=""
+          />
+          <input
+            class=" form-control input"
+            placeholder="Expiration (Optional)"
+            readonly="readonly"
+            tabindex="0"
+            type="text"
+          />
+          <a
+            class="emotion-45 emotion-46"
+            data-clear=""
+          >
+            <svg
+              class="emotion-47"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                close
+              </title>
+              <path
+                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div
+        class="emotion-41 emotion-42"
+      >
+        <div
+          class="fp-addrole-reminder emotion-43 emotion-44"
+        >
+          <input
+            class="flatpickr-input"
+            data-input=""
+            data-testid="flatPicker"
+            placeholder="Reminder (Optional)"
+            type="hidden"
+            value=""
+          />
+          <input
+            class=" form-control input"
+            placeholder="Reminder (Optional)"
+            readonly="readonly"
+            tabindex="0"
+            type="text"
+          />
+          <a
+            class="emotion-45 emotion-46"
+            data-clear=""
+          >
+            <svg
+              class="emotion-47"
+              data-testid="icon"
+              height="1.25em"
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                close
+              </title>
+              <path
+                d="M571.733 512l226.133-224c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042-226.133 226.133-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 226.133 224-226.133 224c-7.901 8.071-12.777 19.131-12.777 31.33 0 9.87 3.192 18.994 8.599 26.397l-0.088-0.127c7.382 10.88 19.691 17.934 33.649 17.934 12.060 0 22.89-5.267 30.315-13.626l0.036-0.042 226.133-226.133 226.133 226.133c7.461 8.401 18.291 13.668 30.351 13.668 13.957 0 26.267-7.055 33.558-17.793l0.091-0.142c5.319-7.276 8.51-16.4 8.51-26.27 0-12.199-4.876-23.259-12.785-31.338l0.008 0.008z"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      />
+      <div
+        class="emotion-60 emotion-61"
+      >
+        <button
+          class="emotion-62 denali-button emotion-63 emotion-64"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <label
+        class="emotion-6 denali-input-label emotion-7 emotion-8"
+      />
+      <div
+        class="emotion-70 emotion-71"
+      />
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <svg
+        class="emotion-47"
+        data-testid="icon"
+        height="1.25em"
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          arrowhead-down-circle
+        </title>
+        <path
+          d="M512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001zM512 981.333c259.206 0 469.333-210.128 469.333-469.333s-210.128-469.333-469.333-469.333c-259.206 0-469.333 210.128-469.333 469.333v0c-0.003 0.635-0.005 1.387-0.005 2.138 0 258.027 209.173 467.2 467.2 467.2 0.752 0 1.504-0.002 2.255-0.005l-0.117 0z"
+        />
+        <path
+          d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+        />
+      </svg>
+      <div
+        class="emotion-75 emotion-76"
+      >
+        Advanced Settings
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`AddRole should render 1`] = `
 <div
   data-testid="add-role"
