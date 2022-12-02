@@ -88,7 +88,7 @@ type Config struct {
 	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
 	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
 	ZTSRegion       string                   `json:"zts_region,omitempty"`        //specifies zts region for the requests
-	KeepPrivileges  bool                     `json:"keep_privileges,omitempty"`   //keep privileges as root instead of dropping to configured user
+	DropPrivileges  bool                     `json:"drop_privileges,omitempty"`   //drop privileges to configured user instead of running as root
 	AccessTokens    map[string]ac.Role       `json:"access_tokens,omitempty"`     // map of role name to token attributes
 }
 
@@ -167,7 +167,7 @@ type Options struct {
 	SDSUdsUid          int              //UDS connections must be from the given user uid
 	RefreshInterval    int              //refresh interval for certificates - default 24 hours
 	ZTSRegion          string           //ZTS region in case the client needs this information
-	KeepPrivileges     bool             //Keep privileges as root instead of dropping to configured user
+	DropPrivileges     bool             //Drop privileges to configured user instead of running as root
 	TokenDir           string           //Access tokens directory
 	AccessTokens       []ac.AccessToken //Access tokens object
 	Profile            string           //Access profile name
@@ -335,8 +335,8 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.ZTSRegion == "" {
 		config.ZTSRegion = os.Getenv("ATHENZ_SIA_ZTS_REGION")
 	}
-	if !config.KeepPrivileges {
-		config.KeepPrivileges = util.ParseEnvBooleanFlag("ATHENZ_SIA_KEEP_PRIVILEGES")
+	if !config.DropPrivileges {
+		config.DropPrivileges = util.ParseEnvBooleanFlag("ATHENZ_SIA_DROP_PRIVILEGES")
 	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
@@ -395,7 +395,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	expiryTime := 0
 	refreshInterval := 24 * 60
 	ztsRegion := ""
-	keepPrivileges := false
+	dropPrivileges := false
 	profile := ""
 
 	if config != nil {
@@ -405,7 +405,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		sdsUdsUid = config.SDSUdsUid
 		expiryTime = config.ExpiryTime
 		ztsRegion = config.ZTSRegion
-		keepPrivileges = config.KeepPrivileges
+		dropPrivileges = config.DropPrivileges
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
@@ -567,7 +567,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		SDSUdsPath:       sdsUdsPath,
 		RefreshInterval:  refreshInterval,
 		ZTSRegion:        ztsRegion,
-		KeepPrivileges:   keepPrivileges,
+		DropPrivileges:   dropPrivileges,
 		AccessTokens:     accessTokens,
 		Profile:          profile,
 	}, nil
@@ -661,7 +661,7 @@ func GetSvcNames(svcs []Service) string {
 func GetRunsAsUidGid(opts *Options) (int, int) {
 	// first we want to check if the caller has specifically indicated
 	// that they want to keep the privileges and not drop to another user
-	if opts.KeepPrivileges {
+	if !opts.DropPrivileges {
 		log.Println("Configured to keep run as privileges")
 		return -1, -1
 	}

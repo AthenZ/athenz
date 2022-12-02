@@ -656,7 +656,7 @@ func TestAccessTokensBadCerts(t *testing.T) {
 
 func TestNewTokenOptions(t *testing.T) {
 	cfg, configAccount, _ := options.InitFileConfig("data/sia_config.with-access-tokens", "http://localhost:80", false, "us-west-2", "")
-	cfg.KeepPrivileges = true
+	cfg.DropPrivileges = false
 	siaDir := "/tmp"
 
 	opts, err := options.NewOptions(cfg, configAccount, nil, siaDir, "1.0.0", false, "us-west-2")

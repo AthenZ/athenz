@@ -318,56 +318,56 @@ func TestGetRunsAsUidGid(t *testing.T) {
 		filename       string
 		uid            int
 		gid            int
-		keepPrivileges bool
+		dropPrivileges bool
 	}{
 		"single-user-with-roles1": {
 			filename:       "data/sia_config_same_user_with_roles",
 			uid:            getUid("nobody"),
 			gid:            getUserGid("nobody"),
-			keepPrivileges: false,
+			dropPrivileges: true,
 		},
 		"multiple-users": {
 			filename:       "data/sia_config",
 			uid:            -1,
 			gid:            -1,
-			keepPrivileges: false,
+			dropPrivileges: true,
 		},
 		"multiple-users-with-roles": {
 			filename:       "data/sia_config_with_roles",
 			uid:            -1,
 			gid:            -1,
-			keepPrivileges: false,
+			dropPrivileges: true,
 		},
 		"single-user": {
 			filename:       "data/sia_config_same_user",
 			uid:            getUid("nobody"),
 			gid:            getUserGid("nobody"),
-			keepPrivileges: false,
+			dropPrivileges: true,
 		},
 		"single-user-with-roles": {
 			filename:       "data/sia_config_same_user_with_roles",
 			uid:            getUid("nobody"),
 			gid:            getUserGid("nobody"),
-			keepPrivileges: false,
+			dropPrivileges: true,
 		},
 		"single-user-keep": {
 			filename:       "data/sia_config_same_user",
 			uid:            -1,
 			gid:            -1,
-			keepPrivileges: true,
+			dropPrivileges: false,
 		},
 		"single-user-role-mismatch": {
 			filename:       "data/sia_config_same_user_role_mismatch",
 			uid:            -1,
 			gid:            -1,
-			keepPrivileges: false,
+			dropPrivileges: true,
 		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			cfg, cfgAccount, _ := getConfig(tt.filename, "-service", "http://localhost:80", false, "us-west-2")
-			cfg.KeepPrivileges = tt.keepPrivileges
+			cfg.DropPrivileges = tt.dropPrivileges
 			opts, _ := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 			uid, gid := GetRunsAsUidGid(opts)
 			assert.True(t, uid == tt.uid)
@@ -390,7 +390,7 @@ func TestOptionsWithAccessToken(t *testing.T) {
 	a := assert.New(t)
 
 	cfg, configAccount, _ := getConfig("data/sia_config.with-access-tokens", "-service", "http://localhost:80", false, "us-west-2")
-	cfg.KeepPrivileges = true
+	cfg.DropPrivileges = false
 	siaDir := "/tmp"
 	opts, err := setOptions(cfg, configAccount, nil, siaDir, "1.0.0")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
@@ -554,7 +554,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, cfg.ExpiryTime, 10001)
 	assert.Equal(t, cfg.RefreshInterval, 120)
 	assert.Equal(t, cfg.ZTSRegion, "us-west-3")
-	assert.True(t, cfg.KeepPrivileges)
+	assert.False(t, cfg.DropPrivileges)
 
 	assert.True(t, cfgAccount.Account == "123456789012")
 	assert.True(t, cfgAccount.Domain == "athenz")
