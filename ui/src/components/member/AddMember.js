@@ -203,7 +203,7 @@ class AddMember extends React.Component {
                                 'memberName'
                             )}
                             placeholder={
-                                this.props.category === 'role'
+                                this.props.category === 'role' && this.props.collection !== 'admin'
                                     ? 'user.<shortid> or <domain>.<service> or unix.<group> or <domain>:group.<group>'
                                     : 'user.<shortid> or <domain>.<service> or unix.<group>'
                             }

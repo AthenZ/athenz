@@ -599,3 +599,47 @@ describe('addMember method', () => {
         );
     });
 });
+
+it('failed to add group as a member to admin role', async () => {
+    let domainName = 'dom';
+    let collectionName = 'admin';
+    let category = 'role';
+    let member = { memberName: 'dom1:group.group1' };
+    let auditRef = 'auditRef';
+    let _csrf = 'csrf';
+
+    const getState = () => {};
+
+    jest.spyOn(roleSelector, 'thunkSelectRole').mockReturnValue(
+        {
+            name: 'dom:role.admin',
+            roleMembers: {
+                'user.user3': {
+                    memberName: 'user.user3',
+                    approved: true,
+                    auditRef: 'Updated domain Meta using Athenz UI',
+                    memberFullName: null,
+                },
+            }
+        }
+    );
+    let extendRole = AppUtils.deepClone(singleStoreRole);
+    extendRole.roleMembers[singleGroupAsARoleMember.memberName] =
+        singleGroupAsARoleMember;
+
+    const fakeDispatch = sinon.spy();
+    try {
+        await addMember(
+            domainName,
+            collectionName,
+            category,
+            member,
+            auditRef,
+            _csrf,
+            true
+        )(fakeDispatch, getState)
+    } catch (e) {
+        expect(e.statusCode).toBe(400)
+        expect(e.body.message).toEqual('Group principals are not allowed in the admin role')
+    }
+});
