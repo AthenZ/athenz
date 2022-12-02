@@ -39,6 +39,7 @@
   </dependencyManagement>
 
   <properties>
+    <kinesis.logback.version>2.1.1</kinesis.logback.version>
     <code.coverage.min>0.8726</code.coverage.min>
   </properties>
 
@@ -167,7 +168,7 @@
     <dependency>
       <groupId>com.gu</groupId>
       <artifactId>kinesis-logback-appender</artifactId>
-      <version>2.1.0</version>
+      <version>${kinesis.logback.version}</version>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
