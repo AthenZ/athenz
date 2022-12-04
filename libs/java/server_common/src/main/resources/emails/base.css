@@ -118,7 +118,11 @@ body {
 .athenz-wrapper .footer-container {
     text-align: center;
 }
-
+.divScroll {
+    height: 200px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
 @media only screen and (max-width: 600px) {
     .footer-container .footer {
         font-size: 8px;
