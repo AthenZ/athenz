@@ -1,3 +1,22 @@
+Athenz v1.11.15 Release / Dec 5, 2022
+-------------------------------------
+
+#1971 UI: Upgrade node from 14 to 18
+#1974 UI: Bump d3-color from 3.0.1 to 3.1.0 in /ui
+#2000 upgrade examples to use the latest athenz libs
+#2001 ignore errors when adding a new user to an empty admin role
+#2002 UI: Bump @xmldom/xmldom from 0.7.5 to 0.7.9 in /ui
+#2003 Fix showing in role users page the full role name
+#2004 replace golang ioutil deprecated calls
+#2005 add gcp project attribute for domains
+#2009 Upgrade protobuf java to fix vulnerabilities warning
+#2010 UI: Bump minimatch and recursive-readdir in /ui
+#2012 UI: Display input for entering justification when needed
+#2013 switch from keep_privileges to drop_privileges for service identity agents
+#2014 update dependency packages
+
+Schema Update: https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20221122.sql
+
 Athenz v1.11.14 Release / Nov 3, 2022
 -------------------------------------
 
