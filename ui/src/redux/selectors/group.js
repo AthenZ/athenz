@@ -31,59 +31,64 @@ export const selectGroups = (state) => {
 
 export const selectGroup = (state, domainName, groupName) => {
     return state.groups.groups &&
-        state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
+    state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
         ? state.groups.groups[
-              getFullName(domainName, groupDelimiter, groupName)
-          ]
+            getFullName(domainName, groupDelimiter, groupName)
+            ]
         : {};
 };
 
 export const selectGroupMembers = (state, domainName, groupName) => {
     return state.groups.groups &&
-        state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
+    state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
         ? mapToList(
-              state.groups.groups[
-                  getFullName(domainName, groupDelimiter, groupName)
-              ].groupMembers
-          )
+            state.groups.groups[
+                getFullName(domainName, groupDelimiter, groupName)
+                ].groupMembers
+        )
         : [];
+};
+
+export const selectReviewGroupMembers = (state, domainName, groupName) => {
+    let members = selectGroupMembers(state, domainName, groupName);
+    return members.filter((m) => m.approved);
 };
 
 export const selectGroupHistory = (state, domainName, groupName) => {
     return state.groups.groups &&
-        state.groups.groups[
-            getFullName(domainName, groupDelimiter, groupName)
+    state.groups.groups[
+        getFullName(domainName, groupDelimiter, groupName)
         ] &&
-        state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
-            .auditLog
+    state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
+        .auditLog
         ? state.groups.groups[
-              getFullName(domainName, groupDelimiter, groupName)
-          ].auditLog
+            getFullName(domainName, groupDelimiter, groupName)
+            ].auditLog
         : [];
 };
 
 export const selectGroupRoleMembers = (state, domainName, groupName) => {
     return state.groups.groups &&
-        state.groups.groups[
-            getFullName(domainName, groupDelimiter, groupName)
+    state.groups.groups[
+        getFullName(domainName, groupDelimiter, groupName)
         ] &&
-        state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
-            .roleMembers
+    state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
+        .roleMembers
         ? state.groups.groups[
-              getFullName(domainName, groupDelimiter, groupName)
-          ].roleMembers
+            getFullName(domainName, groupDelimiter, groupName)
+            ].roleMembers
         : [];
 };
 
 export const selectGroupTags = (state, domainName, groupName) => {
     return state.groups.groups &&
-        state.groups.groups[
-            getFullName(domainName, groupDelimiter, groupName)
+    state.groups.groups[
+        getFullName(domainName, groupDelimiter, groupName)
         ] &&
-        state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
-            .tags
+    state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
+        .tags
         ? state.groups.groups[
-              getFullName(domainName, groupDelimiter, groupName)
-          ].tags
+            getFullName(domainName, groupDelimiter, groupName)
+            ].tags
         : {};
 };

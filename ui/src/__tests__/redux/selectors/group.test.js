@@ -21,6 +21,7 @@ import {
     selectGroupMembers,
     selectGroups,
     selectGroupTags,
+    selectReviewGroupMembers,
     thunkSelectGroups,
 } from '../../../redux/selectors/group';
 
@@ -145,6 +146,57 @@ describe('test group selectors', () => {
         });
         it('should return empty list', () => {
             expect(selectGroupMembers(stateWithoutGroups)).toEqual([]);
+        });
+    });
+    describe('test selectReviewGroupMembers selector', () => {
+        it('should return group members', () => {
+            const state = {
+                groups: {
+                    domainName,
+                    expiry,
+                    groups: {
+                        'dom:group.group1': {
+                            name: 'dom:group.group1',
+                            modified: modified,
+                            auditLog: 'for test',
+                            groupMembers: {
+                                'user.user4': {
+                                    memberName: 'user.user4',
+                                    groupName: 'dom:group.group1',
+                                    expiration: '2022-09-02T08:14:08.131Z',
+                                    approved: false,
+                                },
+                                'user.user1': {
+                                    memberName: 'user.user1',
+                                    groupName: 'dom:group.group1',
+                                    expiration: '2022-09-02T08:14:08.131Z',
+                                    approved: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+            const expectedGroupMembersList = [
+                {
+                    memberName: 'user.user1',
+                    groupName: 'dom:group.group1',
+                    expiration: '2022-09-02T08:14:08.131Z',
+                    approved: true,
+                },
+            ];
+            expect(
+                selectReviewGroupMembers(state, domainName, 'group1')
+            ).toEqual(expectedGroupMembersList);
+        });
+        it('should return empty list', () => {
+            expect(
+                selectReviewGroupMembers(
+                    stateWithoutGroups,
+                    domainName,
+                    'group1'
+                )
+            ).toEqual([]);
         });
     });
     describe('test selectGroupHistory selector', () => {

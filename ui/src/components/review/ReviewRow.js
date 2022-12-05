@@ -44,8 +44,7 @@ export default class ReviewRow extends React.Component {
         super(props);
         this.api = this.props.api;
         this.onReview = this.onReview.bind(this);
-        let selectedOption =
-            this.props.category === 'group' ? 'no-action' : 'extend';
+        let selectedOption = 'extend';
         this.state = {
             selectedOption: selectedOption,
         };
@@ -74,8 +73,7 @@ export default class ReviewRow extends React.Component {
     componentDidUpdate = (prevProps) => {
         if (prevProps.submittedReview !== this.props.submittedReview) {
             this.setState({
-                selectedOption:
-                    this.props.category === 'group' ? 'no-action' : 'extend',
+                selectedOption: 'extend',
             });
         }
     };

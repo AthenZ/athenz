@@ -90,6 +90,11 @@ export const selectRoleMembers = (state, domainName, roleName) => {
         : [];
 };
 
+export const selectReviewRoleMembers = (state, domainName, roleName) => {
+    let members = selectRoleMembers(state, domainName, roleName)
+    return members.filter(m => m.approved)
+}
+
 export const selectRoleTags = (state, domainName, roleName) => {
     return state.roles.roles &&
         state.roles.roles[getFullName(domainName, roleDelimiter, roleName)] &&

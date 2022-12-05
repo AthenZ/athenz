@@ -30,6 +30,7 @@ import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import { getDomainData } from '../../../../../redux/thunks/domain';
 import { connect } from 'react-redux';
 import {
+    selectReviewRoleMembers,
     selectRole,
     selectRoleMembers,
 } from '../../../../../redux/selectors/roles';
@@ -194,7 +195,7 @@ const mapStateToProps = (state, props) => {
         ...props,
         isLoading: selectIsLoading(state),
         roleDetails: selectRole(state, props.domainName, props.roleName),
-        members: selectRoleMembers(state, props.domainName, props.roleName),
+        members: selectReviewRoleMembers(state, props.domainName, props.roleName),
     };
 };
 

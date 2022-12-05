@@ -20,7 +20,7 @@ import Button from '../denali/Button';
 import Color from '../denali/Color';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
-import { selectGroupMembers } from '../../redux/selectors/group';
+import { selectReviewGroupMembers } from '../../redux/selectors/group';
 import { reviewGroup } from '../../redux/thunks/groups';
 import { connect } from 'react-redux';
 import produce from 'immer';
@@ -186,26 +186,25 @@ class GroupReviewTable extends React.Component {
         const rows =
             this.props.members && this.props.members.length > 0
                 ? this.props.members
-                      .sort((a, b) => {
-                          return a.memberName.localeCompare(b.memberName);
-                      })
-                      .map((item, i) => {
-                          let color = 'white';
-                          return (
-                              <ReviewRow
-                                  category={'group'}
-                                  key={'group-review-' + i}
-                                  idx={'group-review-' + i}
-                                  details={item}
-                                  collection={this.props.groupName}
-                                  color={color}
-                                  onUpdate={this.onUpdate}
-                                  submittedReview={this.state.submittedReview}
-                              />
-                          );
-                      })
+                    .sort((a, b) => {
+                        return a.memberName.localeCompare(b.memberName);
+                    })
+                    .map((item) => {
+                        let color = 'white';
+                        return (
+                            <ReviewRow
+                                category={'group'}
+                                key={'group-review-' + item.memberName}
+                                idx={'group-review-' + item.memberName}
+                                details={item}
+                                collection={this.props.groupName}
+                                color={color}
+                                onUpdate={this.onUpdate}
+                                submittedReview={this.state.submittedReview}
+                            />
+                        );
+                    })
                 : [];
-
         if (this.state.showTrustError) {
             return (
                 <ReviewMembersContainerDiv>
@@ -235,68 +234,68 @@ class GroupReviewTable extends React.Component {
                 <ReviewMembersSectionDiv data-testid='review-table'>
                     <ReviewMembersTable>
                         <thead>
-                            <tr>
-                                <TableHeadStyled align={left}>
-                                    MEMBER
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left}>
-                                    MEMBER NAME
-                                </TableHeadStyled>
-                                <TableHeadStyled align={left} colSpan={2}>
-                                    EXPIRATION DATE
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    EXTEND
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    NO ACTION
-                                </TableHeadStyled>
-                                <TableHeadStyled align={center}>
-                                    DELETE
-                                </TableHeadStyled>
-                            </tr>
+                        <tr>
+                            <TableHeadStyled align={left}>
+                                MEMBER
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left}>
+                                MEMBER NAME
+                            </TableHeadStyled>
+                            <TableHeadStyled align={left} colSpan={2}>
+                                EXPIRATION DATE
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                EXTEND
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                NO ACTION
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                DELETE
+                            </TableHeadStyled>
+                        </tr>
                         </thead>
                         <tbody>
-                            {rows}
-                            <tr key='submit-review'>
-                                <td colSpan={2}>
-                                    <StyledJustification
-                                        id='justification'
-                                        name='justification'
-                                        value={
-                                            this.state.justification
-                                                ? this.state.justification
-                                                : ''
-                                        }
-                                        onChange={this.inputChanged.bind(
-                                            this,
-                                            'justification'
-                                        )}
-                                        autoComplete={'off'}
-                                        placeholder='Enter justification here'
-                                    />
-                                </td>
-                                <td colSpan={1}>
-                                    <SubmitDiv>
-                                        <Button
-                                            secondary={true}
-                                            onClick={this.submitReview}
-                                        >
-                                            Submit Review
-                                        </Button>
-                                    </SubmitDiv>
-                                </td>
-                                <td colSpan={3}></td>
-                            </tr>
-                            <tr key='error-message'>
-                                <td colSpan={6}>
-                                    {this.state.errorMessage && (
-                                        <Color name={'red600'}>
-                                            {this.state.errorMessage}
-                                        </Color>
+                        {rows}
+                        <tr key='submit-review'>
+                            <td colSpan={2}>
+                                <StyledJustification
+                                    id='justification'
+                                    name='justification'
+                                    value={
+                                        this.state.justification
+                                            ? this.state.justification
+                                            : ''
+                                    }
+                                    onChange={this.inputChanged.bind(
+                                        this,
+                                        'justification'
                                     )}
-                                </td>
-                            </tr>
+                                    autoComplete={'off'}
+                                    placeholder='Enter justification here'
+                                />
+                            </td>
+                            <td colSpan={1}>
+                                <SubmitDiv>
+                                    <Button
+                                        secondary={true}
+                                        onClick={this.submitReview}
+                                    >
+                                        Submit Review
+                                    </Button>
+                                </SubmitDiv>
+                            </td>
+                            <td colSpan={3}></td>
+                        </tr>
+                        <tr key='error-message'>
+                            <td colSpan={6}>
+                                {this.state.errorMessage && (
+                                    <Color name={'red600'}>
+                                        {this.state.errorMessage}
+                                    </Color>
+                                )}
+                            </td>
+                        </tr>
                         </tbody>
                     </ReviewMembersTable>
                 </ReviewMembersSectionDiv>
@@ -308,7 +307,7 @@ class GroupReviewTable extends React.Component {
 const mapStateToProps = (state, props) => {
     return {
         ...props,
-        members: selectGroupMembers(state, props.domain, props.groupName),
+        members: selectReviewGroupMembers(state, props.domain, props.groupName),
     };
 };
 
