@@ -31,7 +31,7 @@
     <commons.dbcp2.version>2.9.0</commons.dbcp2.version>
     <commons.pool2.version>2.11.1</commons.pool2.version>
     <jakarta.mail.version>2.0.1</jakarta.mail.version>
-    <protobuf.java.version>3.21.10</protobuf.java.version>
+    <protobuf.java.version>3.21.11</protobuf.java.version>
     <pulsar.client.version>2.10.2</pulsar.client.version>
     <aws.secretmanager.version>1.0.10</aws.secretmanager.version>
     <uuid.version>4.0.1</uuid.version>
