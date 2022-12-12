@@ -20,17 +20,20 @@ import {
     LOAD_ROLE,
     LOAD_ROLES,
     MAKE_ROLES_EXPIRES,
+    MARKS_ROLE_AS_NEED_REFRESH,
     RETURN_ROLES,
     REVIEW_ROLE,
 } from '../actions/roles';
 import {
     ADD_MEMBER_TO_STORE,
+    ADD_PENDING_MEMBER_TO_STORE,
     DELETE_MEMBER_FROM_STORE,
+    DELETE_PENDING_MEMBER_FROM_STORE,
     UPDATE_SETTING_TO_STORE,
     UPDATE_TAGS_TO_STORE,
 } from '../actions/collections';
 import produce from 'immer';
-import { PROCESS_PENDING_MEMBERS_TO_STORE } from '../actions/domains';
+import { PROCESS_ROLE_PENDING_MEMBERS_TO_STORE } from '../actions/domains';
 import { getExpiredTime } from '../utils';
 import { getFullCollectionName } from '../thunks/utils/collection';
 
@@ -87,6 +90,46 @@ export const roles = (state = {}, action) => {
             });
             return newState;
         }
+        case ADD_MEMBER_TO_STORE: {
+            const { member, category, collectionName } = payload;
+            let newState = produce(state, (draft) => {
+                if (category === 'role') {
+                    if (
+                        draft.roles[collectionName] &&
+                        draft.roles[collectionName].roleMembers
+                    ) {
+                        draft.roles[collectionName].roleMembers[
+                            member.memberName
+                        ] = member;
+                    } else {
+                        draft.roles[collectionName].roleMembers = {
+                            [member.memberName]: member,
+                        };
+                    }
+                }
+            });
+            return newState;
+        }
+        case ADD_PENDING_MEMBER_TO_STORE: {
+            const { member, category, collectionName } = payload;
+            let newState = produce(state, (draft) => {
+                if (category === 'role') {
+                    if (
+                        draft.roles[collectionName] &&
+                        draft.roles[collectionName].rolePendingMembers
+                    ) {
+                        draft.roles[collectionName].rolePendingMembers[
+                            member.memberName
+                        ] = member;
+                    } else {
+                        draft.roles[collectionName].rolePendingMembers = {
+                            [member.memberName]: member,
+                        };
+                    }
+                }
+            });
+            return newState;
+        }
         case DELETE_MEMBER_FROM_STORE: {
             const { memberName, category, collectionName } = payload;
             let newState = produce(state, (draft) => {
@@ -96,6 +139,22 @@ export const roles = (state = {}, action) => {
                         draft.roles[collectionName].roleMembers
                     ) {
                         delete draft.roles[collectionName].roleMembers[
+                            memberName
+                        ];
+                    }
+                }
+            });
+            return newState;
+        }
+        case DELETE_PENDING_MEMBER_FROM_STORE: {
+            const { memberName, category, collectionName } = payload;
+            let newState = produce(state, (draft) => {
+                if (category === 'role') {
+                    if (
+                        draft.roles[collectionName] &&
+                        draft.roles[collectionName].rolePendingMembers
+                    ) {
+                        delete draft.roles[collectionName].rolePendingMembers[
                             memberName
                         ];
                     }
@@ -146,7 +205,7 @@ export const roles = (state = {}, action) => {
             }
             return newState;
         }
-        case PROCESS_PENDING_MEMBERS_TO_STORE: {
+        case PROCESS_ROLE_PENDING_MEMBERS_TO_STORE: {
             const { domainName, member, roleName } = payload;
             let roleFullName = getFullCollectionName(
                 domainName,
@@ -159,14 +218,25 @@ export const roles = (state = {}, action) => {
                     if (member.approved) {
                         draft.roles[roleFullName].roleMembers[
                             member.memberName
-                        ].approved = true;
-                    } else {
-                        delete draft.roles[roleFullName].roleMembers[
-                            member.memberName
-                        ];
+                        ] = member;
                     }
+                    delete draft.roles[roleFullName].rolePendingMembers[
+                        member.memberName
+                    ];
                 });
             }
+            return newState;
+        }
+        case MARKS_ROLE_AS_NEED_REFRESH: {
+            const { domainName, roleName, needRefresh } = payload;
+            let roleFullName = getFullCollectionName(
+                domainName,
+                roleName,
+                'role'
+            );
+            let newState = produce(state, (draft) => {
+                draft.roles[roleFullName].needRefresh = needRefresh;
+            });
             return newState;
         }
         case MAKE_ROLES_EXPIRES: {

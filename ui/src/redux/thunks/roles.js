@@ -20,6 +20,7 @@ import {
     addRoleToStore,
     deleteRoleFromStore,
     loadRoles,
+    marksRoleInStoreAsNeedRefresh,
     returnRoles,
     reviewRoleToStore,
 } from '../actions/roles';
@@ -32,10 +33,9 @@ import { thunkSelectRole, thunkSelectRoles } from '../selectors/roles';
 import {
     buildErrorForDoesntExistCase,
     buildErrorForDuplicateCase,
-    getCurrentTime,
     getFullName,
     isExpired,
-    listToMap,
+    membersListToMaps,
 } from '../utils';
 import { roleDelimiter } from '../config';
 import {
@@ -65,10 +65,11 @@ export const addRole =
                     _csrf,
                     true
                 );
-                addedRole.roleMembers = listToMap(
-                    addedRole.roleMembers,
-                    'memberName'
+                const { members, pendingMembers } = membersListToMaps(
+                    addedRole.roleMembers
                 );
+                addedRole.roleMembers = members;
+                addedRole.rolePendingMembers = pendingMembers;
                 dispatch(addRoleToStore(addedRole));
                 return Promise.resolve();
             } catch (error) {
@@ -102,23 +103,27 @@ export const deleteRole =
         }
     };
 
-export const getRole =
+export const marksRoleAsNeedRefresh =
     (domainName, roleName) => async (dispatch, getState) => {
-        roleName = roleName.toLowerCase();
-        await dispatch(getRoles(domainName));
-        let role = thunkSelectRole(getState(), domainName, roleName);
-        // auditLog is a unique filed which the backend returns only in getRole api call
-        if (role.auditLog) {
-            dispatch(returnRoles());
-        } else {
-            try {
-                await getRoleApiCall(domainName, roleName, dispatch);
-                return Promise.resolve();
-            } catch (e) {
-                return Promise.reject(e);
-            }
-        }
+        dispatch(marksRoleInStoreAsNeedRefresh(domainName, roleName));
     };
+
+export const getRole = (domainName, roleName) => async (dispatch, getState) => {
+    roleName = roleName.toLowerCase();
+    await dispatch(getRoles(domainName));
+    let role = thunkSelectRole(getState(), domainName, roleName);
+    // auditLog is a unique filed which the backend returns only in getRole api call
+    if (role.auditLog && !role.needRefresh) {
+        dispatch(returnRoles());
+    } else {
+        try {
+            await getRoleApiCall(domainName, roleName, dispatch);
+            return Promise.resolve();
+        } catch (e) {
+            return Promise.reject(e);
+        }
+    }
+};
 
 export const addMemberToRoles =
     (domainName, checkedRoles, member, justification, _csrf) =>
@@ -206,12 +211,14 @@ export const reviewRole =
                 _csrf,
                 true
             );
-            reviewedRole.roleMembers = listToMap(
-                reviewedRole.roleMembers,
-                'memberName'
+            const { members, pendingMembers } = membersListToMaps(
+                reviewedRole.roleMembers
             );
+            reviewedRole.roleMembers = members;
+            reviewedRole.rolePendingMembers = pendingMembers;
 
             dispatch(reviewRoleToStore(reviewedRole.name, reviewedRole));
+            dispatch(marksRoleAsNeedRefresh(domainName, role.name));
             return Promise.resolve();
         } catch (error) {
             return Promise.reject(error);
@@ -240,7 +247,6 @@ export const deleteMemberFromAllRoles =
             return Promise.reject(error);
         }
     };
-
 
 export const getRoleHistory =
     (domainName, roleName) => async (dispatch, getState) => {

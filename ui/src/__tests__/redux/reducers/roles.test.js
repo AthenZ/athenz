@@ -20,6 +20,7 @@ import {
     LOAD_ROLE,
     LOAD_ROLES,
     MAKE_ROLES_EXPIRES,
+    MARKS_ROLE_AS_NEED_REFRESH,
     RETURN_ROLES,
     REVIEW_ROLE,
 } from '../../../redux/actions/roles';
@@ -30,11 +31,13 @@ import { singleStoreRole, configStoreRoles } from '../config/role.test';
 import AppUtils from '../../../components/utils/AppUtils';
 import {
     ADD_MEMBER_TO_STORE,
+    ADD_PENDING_MEMBER_TO_STORE,
     DELETE_MEMBER_FROM_STORE,
+    DELETE_PENDING_MEMBER_FROM_STORE,
     UPDATE_SETTING_TO_STORE,
     UPDATE_TAGS_TO_STORE,
 } from '../../../redux/actions/collections';
-import { PROCESS_PENDING_MEMBERS_TO_STORE } from '../../../redux/actions/domains';
+import { PROCESS_ROLE_PENDING_MEMBERS_TO_STORE } from '../../../redux/actions/domains';
 
 const utils = require('../../../redux/utils');
 
@@ -242,6 +245,32 @@ describe('Roles Reducer', () => {
         const newState = roles(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
+    it('should add a pending member to role1 in the store', () => {
+        const initialState = {
+            roles: AppUtils.deepClone(configStoreRoles),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const newMember = {
+            memberName: 'user.user4',
+            expiration: '',
+            reviewReminder: '',
+            approved: false,
+        };
+        const action = {
+            type: ADD_PENDING_MEMBER_TO_STORE,
+            payload: {
+                member: newMember,
+                category: 'role',
+                collectionName: 'dom:role.role1',
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        expectedState.roles['dom:role.role1'].rolePendingMembers['user.user4'] =
+            newMember;
+        const newState = roles(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
     it('should delete member from role1 from the store', () => {
         const initialState = {
             roles: AppUtils.deepClone(configStoreRoles),
@@ -258,6 +287,27 @@ describe('Roles Reducer', () => {
         };
         let expectedState = AppUtils.deepClone(initialState);
         delete expectedState.roles['dom:role.role1'].roleMembers['user.user1'];
+        const newState = roles(initialState, action);
+        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+    });
+    it('should delete a pending member from role1 from the store', () => {
+        const initialState = {
+            roles: AppUtils.deepClone(configStoreRoles),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: DELETE_PENDING_MEMBER_FROM_STORE,
+            payload: {
+                memberName: 'user.user3',
+                category: 'role',
+                collectionName: 'dom:role.role1',
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        delete expectedState.roles['dom:role.role1'].rolePendingMembers[
+            'user.user3'
+        ];
         const newState = roles(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
@@ -279,6 +329,8 @@ describe('Roles Reducer', () => {
                             principalType: 1,
                             memberFullName: 'user.user2',
                         },
+                    },
+                    rolePendingMembers: {
                         'user.user3': {
                             active: false,
                             approved: false,
@@ -311,7 +363,7 @@ describe('Roles Reducer', () => {
             expiry: expiry,
         };
         const action = {
-            type: PROCESS_PENDING_MEMBERS_TO_STORE,
+            type: PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
             payload: {
                 domainName: 'dom',
                 roleName: 'expiration',
@@ -319,9 +371,11 @@ describe('Roles Reducer', () => {
             },
         };
         let expectedState = AppUtils.deepClone(initialState);
-        expectedState.roles['dom:role.expiration'].roleMembers[
+        delete expectedState.roles['dom:role.expiration'].rolePendingMembers[
             'user.user4'
-        ].approved = true;
+        ];
+        expectedState.roles['dom:role.expiration'].roleMembers['user.user4'] =
+            memberShip;
         const newState = roles(initialState, action);
         expect(newState).toEqual(expectedState);
     });
@@ -338,7 +392,7 @@ describe('Roles Reducer', () => {
             expiry: expiry,
         };
         const action = {
-            type: PROCESS_PENDING_MEMBERS_TO_STORE,
+            type: PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
             payload: {
                 domainName: 'dom',
                 roleName: 'expiration',
@@ -346,9 +400,28 @@ describe('Roles Reducer', () => {
             },
         };
         let expectedState = AppUtils.deepClone(initialState);
-        delete expectedState.roles['dom:role.expiration'].roleMembers[
+        delete expectedState.roles['dom:role.expiration'].rolePendingMembers[
             'user.user4'
         ];
+        const newState = roles(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
+    it('should marks role as need refresh', () => {
+        const initialState = {
+            roles: AppUtils.deepClone(configStoreRoles),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: MARKS_ROLE_AS_NEED_REFRESH,
+            payload: {
+                domainName: 'dom',
+                roleName: 'role1',
+                needRefresh: true,
+            },
+        };
+        const expectedState = AppUtils.deepClone(initialState);
+        expectedState.roles['dom:role.role1']['needRefresh'] = true;
         const newState = roles(initialState, action);
         expect(newState).toEqual(expectedState);
     });

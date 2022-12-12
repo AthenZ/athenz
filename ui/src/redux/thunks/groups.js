@@ -31,9 +31,10 @@ import {
     getFullName,
     isExpired,
     listToMap,
+    membersListToMaps,
 } from '../utils';
 import { groupDelimiter, memberNameKey } from '../config';
-import {getRoleApiCall} from "./utils/roles";
+import { getRoleApiCall } from './utils/roles';
 
 export const addGroup =
     (groupName, auditRef, group, _csrf) => async (dispatch, getState) => {
@@ -55,10 +56,13 @@ export const addGroup =
                     _csrf,
                     true
                 );
-                addedGroup.groupMembers = listToMap(
+                const { members, pendingMembers } = membersListToMaps(
                     addedGroup.groupMembers,
                     memberNameKey
                 );
+                addedGroup.groupMembers = members;
+                addedGroup.groupPendingMembers = pendingMembers;
+
                 dispatch(addGroupToStore(addedGroup));
                 return Promise.resolve();
             } catch (err) {
@@ -108,10 +112,13 @@ export const reviewGroup =
                 _csrf,
                 true
             );
-            reviewedGroup.groupMembers = listToMap(
+            const { members, pendingMembers } = membersListToMaps(
                 reviewedGroup.groupMembers,
                 memberNameKey
             );
+            reviewedGroup.groupMembers = members;
+            reviewedGroup.groupPendingMembers = pendingMembers;
+
             dispatch(reviewGroupToStore(reviewedGroup.name, reviewedGroup));
             return Promise.resolve();
         } catch (err) {
@@ -164,7 +171,6 @@ export const getGroups = (domainName) => async (dispatch, getState) => {
         await getGroupsApiCall(domainName, dispatch);
     }
 };
-
 
 export const getGroupHistory =
     (domainName, groupName) => async (dispatch, getState) => {

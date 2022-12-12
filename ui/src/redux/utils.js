@@ -31,6 +31,19 @@ export const listToMap = (list, keyVal = 'name', delimiter) => {
     return newMap;
 };
 
+export const membersListToMaps = (list, keyVal = 'memberName', delimiter) => {
+    let members = [];
+    let pendingMembers = [];
+    if (list) {
+        members = list.filter((m) => m.approved !== false);
+        pendingMembers = list.filter((m) => m.approved === false);
+    }
+    return {
+        members: listToMap(members, keyVal, delimiter),
+        pendingMembers: listToMap(pendingMembers, keyVal, delimiter),
+    };
+};
+
 export const mapToList = (map) => {
     let newList = [];
     let convertMap = map ? map : {};
@@ -38,6 +51,10 @@ export const mapToList = (map) => {
         newList.push(value);
     }
     return newList;
+};
+
+export const membersMapsToList = (membersMap, pendingMembersMap) => {
+    return [...mapToList(membersMap), ...mapToList(pendingMembersMap)];
 };
 
 export const buildPolicyMapKey = (policyFullName, version) => {

@@ -20,6 +20,7 @@ import {
     singleStoreGroup,
     configStoreGroups,
     groupAuditLog,
+    configStoreGroupsWithPendingMembers,
 } from '../config/group.test';
 import {
     ADD_GROUP_TO_STORE,
@@ -33,10 +34,18 @@ import { groups } from '../../../redux/reducers/groups';
 import AppUtils from '../../../components/utils/AppUtils';
 import {
     ADD_MEMBER_TO_STORE,
+    ADD_PENDING_MEMBER_TO_STORE,
     DELETE_MEMBER_FROM_STORE,
+    DELETE_PENDING_MEMBER_FROM_STORE,
     UPDATE_SETTING_TO_STORE,
     UPDATE_TAGS_TO_STORE,
 } from '../../../redux/actions/collections';
+import { configStoreRoles } from '../config/role.test';
+import {
+    PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
+    PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
+} from '../../../redux/actions/domains';
+import { roles } from '../../../redux/reducers/roles';
 
 let groupRoleMembers = {
     memberName: 'dom:group.group1',
@@ -197,6 +206,33 @@ describe('Groups Reducer', () => {
         const newState = groups(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
+    it('should insert to the store a pending member to group1', () => {
+        const initialState = {
+            groups: configStoreGroupsWithPendingMembers,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        let newMember = {
+            memberName: 'user.user2',
+            expiration: '',
+            reviewReminder: '',
+            approved: false,
+        };
+        const action = {
+            type: ADD_PENDING_MEMBER_TO_STORE,
+            payload: {
+                collectionName: 'dom:group.group1',
+                category: 'group',
+                member: newMember,
+            },
+        };
+        const expectedState = AppUtils.deepClone(initialState);
+        expectedState.groups['dom:group.group1'].groupPendingMembers[
+            'user.user2'
+        ] = newMember;
+        const newState = groups(initialState, action);
+        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+    });
     it('should delete from the store a member from group1', () => {
         const initialState = {
             groups: configStoreGroups,
@@ -213,6 +249,27 @@ describe('Groups Reducer', () => {
         };
         const expectedState = AppUtils.deepClone(initialState);
         delete expectedState.groups['dom:group.group1'].groupMembers[
+            'user.user4'
+        ];
+        const newState = groups(initialState, action);
+        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+    });
+    it('should delete from the store a pending member', () => {
+        const initialState = {
+            groups: configStoreGroupsWithPendingMembers,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: DELETE_PENDING_MEMBER_FROM_STORE,
+            payload: {
+                collectionName: 'dom:group.group1',
+                category: 'group',
+                memberName: 'user.user4',
+            },
+        };
+        const expectedState = AppUtils.deepClone(initialState);
+        delete expectedState.groups['dom:group.group1'].groupPendingMembers[
             'user.user4'
         ];
         const newState = groups(initialState, action);
@@ -292,6 +349,62 @@ describe('Groups Reducer', () => {
             reviewedGroup.modified;
         expectedState.groups['dom:group.group1'].lastReviewedDate =
             reviewedGroup.lastReviewedDate;
+        const newState = groups(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
+    it('should approve pending member user.user4 from group', () => {
+        let memberShip = {
+            approved: true,
+            memberName: 'user.user4',
+            groupName: 'dom:group.group1',
+            expiration: '2022-09-02T08:14:08.131Z',
+        };
+        const initialState = {
+            groups: configStoreGroupsWithPendingMembers,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
+            payload: {
+                domainName: 'dom',
+                groupName: 'group1',
+                member: memberShip,
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        delete expectedState.groups['dom:group.group1'].groupPendingMembers[
+            'user.user4'
+        ];
+        expectedState.groups['dom:group.group1'].groupMembers['user.user4'] =
+            memberShip;
+        const newState = groups(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
+    it('should deny pending member user.user4 from group', () => {
+        let memberShip = {
+            approved: false,
+            memberName: 'user.user4',
+            groupName: 'dom:group.group1',
+            expiration: '2022-09-02T08:14:08.131Z',
+        };
+        const initialState = {
+            groups: configStoreGroupsWithPendingMembers,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
+            payload: {
+                domainName: 'dom',
+                groupName: 'group1',
+                member: memberShip,
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        delete expectedState.groups['dom:group.group1'].groupPendingMembers[
+            'user.user4'
+        ];
         const newState = groups(initialState, action);
         expect(newState).toEqual(expectedState);
     });

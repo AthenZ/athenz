@@ -22,6 +22,7 @@ import { MODAL_TIME_OUT } from '../constants/constants';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
+import { withRouter } from 'next/router';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
@@ -59,13 +60,15 @@ class ReviewList extends React.Component {
             successMessage,
             errorMessage: null,
         });
-        setTimeout(
-            () =>
-                this.setState({
-                    showSuccess: false,
-                }),
-            MODAL_TIME_OUT
-        );
+        setTimeout(() => {
+            this.setState({
+                showSuccess: false,
+            });
+            this.props.router.push(
+                `/domain/${this.props.domain}/${this.props.category}/${this.props.collection}/members`,
+                `/domain/${this.props.domain}/${this.props.category}/${this.props.collection}/members`
+            );
+        }, MODAL_TIME_OUT);
     }
 
     closeModal() {
@@ -116,4 +119,4 @@ const mapStateToProps = (state, props) => {
     };
 };
 
-export default connect(mapStateToProps)(ReviewList);
+export default connect(mapStateToProps)(withRouter(ReviewList));

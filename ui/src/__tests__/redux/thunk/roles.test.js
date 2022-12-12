@@ -286,24 +286,18 @@ describe('getRole method', () => {
         });
         await getRole(domainName, 'role1')(fakeDispatch, () => {});
         expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(1).args[0],
-                loadingInProcess('getRole')
+        expect(fakeDispatch.getCall(1).args[0]).toEqual(
+            loadingInProcess('getRole')
+        );
+        expect(fakeDispatch.getCall(2).args[0]).toEqual(
+            loadRole(
+                { roleMembers: {}, rolePendingMembers: {} },
+                'dom:role.role1'
             )
-        ).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(2).args[0],
-                loadRole({ roleMembers: {} }, 'dom:role.role1')
-            )
-        ).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(3).args[0],
-                loadingSuccess('getRole')
-            )
-        ).toBeTruthy();
+        );
+        expect(fakeDispatch.getCall(3).args[0]).toEqual(
+            loadingSuccess('getRole')
+        );
     });
 });
 
@@ -396,6 +390,7 @@ describe('addRole method', () => {
                     memberFullName: null,
                 },
             },
+            rolePendingMembers: {},
         };
         const apiRole = {
             name: 'dom:role.role1',
@@ -682,7 +677,7 @@ describe('reviewRole method', () => {
         MockApi.cleanMockApi();
     });
 
-    it('successfully reviewed roll', async () => {
+    it('successfully reviewed role', async () => {
         const fakeDispatch = sinon.spy();
         const getState = () => {};
 
@@ -701,11 +696,8 @@ describe('reviewRole method', () => {
         )(fakeDispatch, getState);
 
         expect(fakeDispatch.getCall(0).args[0]).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(1).args[0],
-                reviewRoleToStore(singleStoreRole.name, singleStoreRole)
-            )
-        ).toBeTruthy();
+        expect(fakeDispatch.getCall(1).args[0]).toEqual(
+            reviewRoleToStore(singleStoreRole.name, singleStoreRole)
+        );
     });
 });

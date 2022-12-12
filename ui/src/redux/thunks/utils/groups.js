@@ -21,7 +21,12 @@ import {
 } from '../../actions/loading';
 import { loadGroup, loadGroups } from '../../actions/groups';
 import API from '../../../api';
-import { getExpiryTime, getFullName, listToMap } from '../../utils';
+import {
+    getExpiryTime,
+    getFullName,
+    listToMap,
+    membersListToMaps,
+} from '../../utils';
 import { groupDelimiter } from '../../config';
 
 export const getGroupsApiCall = async (domainName, dispatch) => {
@@ -50,7 +55,11 @@ export const getGroupApiCall = async (domainName, groupName, dispatch) => {
             getFullName(domainName, groupDelimiter, groupName)
         );
         group.roleMembers = currRoleMembers;
-        group.groupMembers = listToMap(group.groupMembers, 'memberName');
+        const { members, pendingMembers } = membersListToMaps(
+            group.groupMembers
+        );
+        group.groupMembers = members;
+        group.groupPendingMembers = pendingMembers;
         dispatch(
             loadGroup(group, getFullName(domainName, groupDelimiter, groupName))
         );

@@ -68,6 +68,7 @@ describe('test group selectors', () => {
                             expiration: '2022-09-02T08:14:08.131Z',
                         },
                     },
+                    groupPendingMembers: {},
                 },
                 {
                     memberExpiryDays: 50,
@@ -89,6 +90,7 @@ describe('test group selectors', () => {
                             expiration: '2022-08-25T15:39:23.701Z',
                         },
                     },
+                    groupPendingMembers: {},
                     lastReviewedDate: '2022-07-18T14:20:45.836Z',
                     expiry: 1658408002704,
                 },
@@ -117,6 +119,7 @@ describe('test group selectors', () => {
                         expiration: '2022-09-02T08:14:08.131Z',
                     },
                 },
+                groupPendingMembers: {},
             };
             expect(selectGroup(stateWithGroups, domainName, 'group1')).toEqual(
                 expectedGroup

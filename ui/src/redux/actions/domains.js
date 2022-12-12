@@ -135,9 +135,24 @@ export const loadPendingDomainMembersList = (
     payload: { pendingDomainMembersList, domainName },
 });
 
-export const PROCESS_PENDING_MEMBERS_TO_STORE =
-    'PROCESS_PENDING_MEMBERS_TO_STORE';
-export const processPendingMembersToStore = (domainName, roleName, member) => ({
-    type: PROCESS_PENDING_MEMBERS_TO_STORE,
+export const PROCESS_ROLE_PENDING_MEMBERS_TO_STORE =
+    'PROCESS_ROLE_PENDING_MEMBERS_TO_STORE';
+export const processRolePendingMembersToStore = (
+    domainName,
+    roleName,
+    member
+) => ({
+    type: PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
     payload: { member, roleName, domainName },
+});
+
+export const PROCESS_GROUP_PENDING_MEMBERS_TO_STORE =
+    'PROCESS_GROUP_PENDING_MEMBERS_TO_STORE';
+export const processGroupPendingMembersToStore = (
+    domainName,
+    groupName,
+    member
+) => ({
+    type: PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
+    payload: { member, groupName, domainName },
 });

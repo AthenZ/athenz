@@ -30,7 +30,8 @@ import {
     loadHeaderDetails,
     loadPendingDomainMembersList,
     loadUserDomainList,
-    processPendingMembersToStore,
+    processGroupPendingMembersToStore,
+    processRolePendingMembersToStore,
     returnAuthorityAttributes,
     returnBusinessServicesAll,
     returnDomainList,
@@ -41,6 +42,7 @@ import { buildErrorForDuplicateCase, getFullName } from '../utils';
 import { subDomainDelimiter } from '../config';
 import { selectPersonalDomain } from '../selectors/domains';
 import { updateBellPendingMember } from '../actions/domain-data';
+import { getFullCollectionName } from './utils/collection';
 
 export const getUserDomainsList = () => async (dispatch, getState) => {
     try {
@@ -200,25 +202,47 @@ export const getPendingDomainMembersListByDomain =
     };
 
 export const processPendingMembers =
-    (domainName, roleName, memberName, auditRef, category, membership, _csrf) =>
+    (
+        domainName,
+        collectionName,
+        memberName,
+        auditRef,
+        category,
+        membership,
+        _csrf
+    ) =>
     async (dispatch, getState) => {
         try {
             await API().processPending(
                 domainName,
-                roleName,
+                collectionName,
                 memberName,
                 auditRef,
                 category,
                 membership,
                 _csrf
             );
-            dispatch(
-                processPendingMembersToStore(domainName, roleName, membership)
-            );
+            if (category === 'role') {
+                dispatch(
+                    processRolePendingMembersToStore(
+                        domainName,
+                        collectionName,
+                        membership
+                    )
+                );
+            } else if (category === 'group') {
+                dispatch(
+                    processGroupPendingMembersToStore(
+                        domainName,
+                        collectionName,
+                        membership
+                    )
+                );
+            }
             dispatch(
                 updateBellPendingMember(
                     memberName,
-                    getFullName(domainName, ':role', roleName)
+                    getFullCollectionName(domainName, collectionName, category)
                 )
             );
             return Promise.resolve();

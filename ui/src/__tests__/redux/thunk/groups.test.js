@@ -289,6 +289,7 @@ describe('getGroup method', () => {
             loadGroup(
                 {
                     groupMembers: {},
+                    groupPendingMembers: {},
                     roleMembers: {},
                 },
                 'dom:group.group1'

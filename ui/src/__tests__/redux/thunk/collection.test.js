@@ -15,7 +15,11 @@
  */
 import MockApi from '../../../mock/MockApi';
 import sinon from 'sinon';
-import { getExpiryTime } from '../../../redux/utils';
+import {
+    getExpiryTime,
+    mapToList,
+    membersListToMaps,
+} from '../../../redux/utils';
 import { _ } from 'lodash';
 import {
     addMemberToStore,
@@ -31,6 +35,7 @@ import {
 } from '../../../redux/thunks/collections';
 import { singleApiGroupMember, singleStoreGroup } from '../config/group.test';
 import {
+    singleApiRole,
     singleApiRoleMember,
     singleGroupAsARoleMember,
     singleStoreRole,
@@ -169,7 +174,7 @@ describe('deleteMember method', () => {
                     'csrf'
                 )
         ).toBeTruthy();
-        expect(fakeDispatch.getCall(2).args[0]).toEqual(
+        expect(fakeDispatch.getCall(1).args[0]).toEqual(
             deleteMemberFromStore('member1', 'group', 'dom:group.group1')
         );
     });
@@ -211,7 +216,7 @@ describe('deleteMember method', () => {
                     'csrf'
                 )
         ).toBeTruthy();
-        expect(fakeDispatch.getCall(2).args[0]).toEqual(
+        expect(fakeDispatch.getCall(1).args[0]).toEqual(
             deleteMemberFromStore('member1', 'role', 'dom:role.role1')
         );
     });
@@ -543,10 +548,8 @@ describe('addMember method', () => {
         jest.spyOn(roleSelector, 'thunkSelectRole').mockReturnValue(
             singleStoreRole
         );
-        let extendRole = AppUtils.deepClone(singleStoreRole);
-        extendRole.roleMembers[singleGroupAsARoleMember.memberName] =
-            singleGroupAsARoleMember;
-
+        let extendRole = AppUtils.deepClone(singleApiRole);
+        extendRole.roleMembers.push(singleGroupAsARoleMember);
         let myApiMock = {
             addMember: jest
                 .fn()
@@ -610,19 +613,17 @@ it('failed to add group as a member to admin role', async () => {
 
     const getState = () => {};
 
-    jest.spyOn(roleSelector, 'thunkSelectRole').mockReturnValue(
-        {
-            name: 'dom:role.admin',
-            roleMembers: {
-                'user.user3': {
-                    memberName: 'user.user3',
-                    approved: true,
-                    auditRef: 'Updated domain Meta using Athenz UI',
-                    memberFullName: null,
-                },
-            }
-        }
-    );
+    jest.spyOn(roleSelector, 'thunkSelectRole').mockReturnValue({
+        name: 'dom:role.admin',
+        roleMembers: {
+            'user.user3': {
+                memberName: 'user.user3',
+                approved: true,
+                auditRef: 'Updated domain Meta using Athenz UI',
+                memberFullName: null,
+            },
+        },
+    });
     let extendRole = AppUtils.deepClone(singleStoreRole);
     extendRole.roleMembers[singleGroupAsARoleMember.memberName] =
         singleGroupAsARoleMember;
@@ -637,9 +638,11 @@ it('failed to add group as a member to admin role', async () => {
             auditRef,
             _csrf,
             true
-        )(fakeDispatch, getState)
+        )(fakeDispatch, getState);
     } catch (e) {
-        expect(e.statusCode).toBe(400)
-        expect(e.body.message).toEqual('Group principals are not allowed in the admin role')
+        expect(e.statusCode).toBe(400);
+        expect(e.body.message).toEqual(
+            'Group principals are not allowed in the admin role'
+        );
     }
 });
