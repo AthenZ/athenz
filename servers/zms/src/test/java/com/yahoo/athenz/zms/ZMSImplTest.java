@@ -3462,6 +3462,56 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutMembershipRespone() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper mockDomRsrcCtx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "mgradddom1";
+        String roleName = "role";
+        String roleFullName = domainName + ":role." + roleName;
+        String memberName = "user.doe";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        zmsImpl.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role);
+
+        // add member to the role
+        Membership member = new Membership().setMemberName(memberName);
+        Response returnedMember = zmsImpl.putMembership(mockDomRsrcCtx, domainName, roleName, memberName, auditRef, true, member);
+
+        // check the response - the member should be approved
+        assertTrue(returnedMember.getEntity() instanceof Membership);
+        Membership m = (Membership)returnedMember.getEntity();
+        assertEquals(m.getRoleName(), roleFullName);
+        assertEquals(m.getMemberName(), memberName);
+        assertTrue(m.getApproved());
+
+        // make the role review enabled
+        RoleMeta meta = new RoleMeta()
+                .setReviewEnabled(true);
+        zmsImpl.putRoleMeta(mockDomRsrcCtx, domainName, roleName, auditRef, meta);
+
+        // add the same member to the role, now it should be added as a pending member
+        returnedMember = zmsImpl.putMembership(mockDomRsrcCtx, domainName, roleName, memberName, auditRef, true, member);
+
+        // check the response - the member should be not approved
+        assertTrue(returnedMember.getEntity() instanceof Membership);
+        m = (Membership)returnedMember.getEntity();
+        assertEquals(m.getRoleName(), roleFullName);
+        assertEquals(m.getMemberName(), memberName);
+        assertFalse(m.getApproved());
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testPutMembershipExpiration() {
 
         when(zmsTestInitializer.getMockDomRsrcCtx().getApiName())
@@ -25582,6 +25632,56 @@ public class ZMSImplTest {
         zmsImpl.deleteSubDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", "storage", zmsTestInitializer.getAuditRef());
         zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), "coretech", zmsTestInitializer.getAuditRef());
         zmsImpl.deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+    }
+
+    @Test
+    public void testPutGroupMembershipRespone() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper mockDomRsrcCtx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "mgradddom1";
+        String groupName = "group";
+        String groupFullName = domainName + ":group." + groupName;
+        String memberName = "user.doe";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+
+        Group group = zmsTestInitializer.createGroupObject(domainName, groupName,
+                "user.joe", "user.jane");
+        zmsImpl.putGroup(mockDomRsrcCtx, domainName, groupName, auditRef, false, group);
+
+        // add member to the group
+        GroupMembership member = new GroupMembership().setMemberName(memberName);
+        Response returnedMember = zmsImpl.putGroupMembership(mockDomRsrcCtx, domainName, groupName, memberName, auditRef, true, member);
+
+        // check the response - the member should be approved
+        assertTrue(returnedMember.getEntity() instanceof GroupMembership);
+        GroupMembership gm = (GroupMembership)returnedMember.getEntity();
+        assertEquals(gm.getGroupName(), groupFullName);
+        assertEquals(gm.getMemberName(), memberName);
+        assertTrue(gm.getApproved());
+
+        // make the group review enabled
+        GroupMeta meta = new GroupMeta()
+                .setReviewEnabled(true);
+        zmsImpl.putGroupMeta(mockDomRsrcCtx, domainName, groupName, auditRef, meta);
+
+        // add the same member to the group, now it should be added as a pending member
+        returnedMember = zmsImpl.putGroupMembership(mockDomRsrcCtx, domainName, groupName, memberName, auditRef, true, member);
+
+        // check the response - the member should be not approved
+        assertTrue(returnedMember.getEntity() instanceof GroupMembership);
+        gm = (GroupMembership)returnedMember.getEntity();
+        assertEquals(gm.getGroupName(), groupFullName);
+        assertEquals(gm.getMemberName(), memberName);
+        assertFalse(gm.getApproved());
+
+        zmsImpl.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
