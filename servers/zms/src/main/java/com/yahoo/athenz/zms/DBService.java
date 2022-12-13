@@ -1711,7 +1711,7 @@ public class DBService implements RolesProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, roleMember.getMemberName(), 0, false) : null;
+                return returnObj == Boolean.TRUE ? con.getRoleMember(domainName, roleName, roleMember.getMemberName(), 0, roleMember.getApproved() == Boolean.FALSE) : null;
 
             } catch (ResourceException ex) {
 
@@ -1777,7 +1777,7 @@ public class DBService implements RolesProvider {
 
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
 
-                return returnObj == Boolean.TRUE ? con.getGroupMember(domainName, groupName, groupMember.getMemberName(), 0, false) : null;
+                return returnObj == Boolean.TRUE ? con.getGroupMember(domainName, groupName, groupMember.getMemberName(), 0, groupMember.getApproved() == Boolean.FALSE) : null;
 
             } catch (ResourceException ex) {
 
