@@ -54,6 +54,10 @@ export const getGroupApiCall = async (domainName, groupName, dispatch) => {
         let currRoleMembers = await API().getDomainRoleMembers(
             getFullName(domainName, groupDelimiter, groupName)
         );
+        // This is done to avoid retrieving it from the server again if getGroup is called again
+        if (!group.auditLog) {
+            group.auditLog = [];
+        }
         group.roleMembers = currRoleMembers;
         const { members, pendingMembers } = membersListToMaps(
             group.groupMembers

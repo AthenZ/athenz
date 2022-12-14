@@ -46,10 +46,7 @@ import { getFullCollectionName } from './utils/collection';
 
 export const getUserDomainsList = () => async (dispatch, getState) => {
     try {
-        if (
-            !getState().domains.domainsList ||
-            getState().domains.domainsList.length === 0
-        ) {
+        if (!getState().domains.domainsList) {
             dispatch(loadingInProcess('getUserDomainsList'));
             const domainsList = await API().listUserDomains();
             dispatch(loadUserDomainList(domainsList));

@@ -93,6 +93,10 @@ export const getRoleApiCall = async (domainName, roleName, dispatch) => {
     try {
         roleName = roleName.toLowerCase();
         let role = await API().getRole(domainName, roleName, true, false, true);
+        // This is done to avoid retrieving it from the server again if getRole is called again
+        if (!role.auditLog) {
+            role.auditLog = [];
+        }
         const { members, pendingMembers } = membersListToMaps(role.roleMembers);
         role.roleMembers = members;
         role.rolePendingMembers = pendingMembers;

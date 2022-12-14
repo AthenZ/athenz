@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
 import UserDomains from '../../../components/domain/UserDomains';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
@@ -27,6 +27,18 @@ describe('UserDomains', () => {
         let domains = [];
         domains.push({ name: 'athens' });
         domains.push({ name: 'athens.ci' });
+
+        const { getByTestId } = renderWithRedux(<UserDomains />, {
+            domains: { domainsList: domains },
+        });
+
+        await waitFor(() =>
+            expect(getByTestId('user-domains')).toMatchSnapshot()
+        );
+    });
+
+    it('should render with no domains', async () => {
+        let domains = [];
 
         const { getByTestId } = renderWithRedux(<UserDomains />, {
             domains: { domainsList: domains },
