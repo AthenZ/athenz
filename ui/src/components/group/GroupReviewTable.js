@@ -94,15 +94,6 @@ class GroupReviewTable extends React.Component {
             deletedMembers: new Set(),
         };
     }
-    loadGroup() {
-        let members =
-            this.props.members && this.props.members.map((m) => m.memberName);
-        this.setState({
-            extendedMembers: new Set(members),
-            deletedMembers: new Set(),
-            submittedReview: false,
-        });
-    }
 
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
@@ -124,15 +115,11 @@ class GroupReviewTable extends React.Component {
                 });
                 return;
             }
-            // show prompt for user to ask for confirmation once the user asked to delete member/s
-            let showDeleteConfirmation =
-                CollectionUtils.intersection(
-                    this.props.members.map((m) => m.memberName),
-                    Array.from(this.state.deletedMembers)
-                ).length > 0;
 
-            if (showDeleteConfirmation) {
-                this.setState({ showDeleteConfirmation });
+            // show prompt for user to ask for confirmation once the user asked to delete member/s
+
+            if (this.state.deletedMembers.size > 0) {
+                this.setState({ showDeleteConfirmation : true });
             } else {
                 this.updateReviewGroup();
             }
@@ -177,7 +164,6 @@ class GroupReviewTable extends React.Component {
                 this.props.onUpdateSuccess(
                     `Successfully submitted the review for group ${this.props.groupName}`
                 );
-                this.loadGroup();
             })
             .catch((err) => {
                 this.setState({

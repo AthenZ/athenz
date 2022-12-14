@@ -137,14 +137,9 @@ export class ReviewTable extends React.Component {
             }
 
             // show prompt for user to ask for confirmation once the user asked to delete member/s
-            let showDeleteConfirmation =
-                CollectionUtils.intersection(
-                    this.props.members.map((m) => m.memberName),
-                    Array.from(this.state.deletedMembers)
-                ).length > 0;
 
-            if (showDeleteConfirmation) {
-                this.setState({ showDeleteConfirmation });
+            if (this.state.deletedMembers.size > 0) {
+                this.setState({ showDeleteConfirmation: true });
             } else {
                 this.updateReviewRole();
             }
