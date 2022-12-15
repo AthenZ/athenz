@@ -89,6 +89,7 @@ export const singleStoreGroup = {
             memberFullName: null,
         },
     },
+    groupPendingMembers: {},
     auditLog: [
         {
             member: 'user.user4',
@@ -164,6 +165,7 @@ export const configStoreGroups = {
                 expiration: '2022-09-02T08:14:08.131Z',
             },
         },
+        groupPendingMembers: {},
     },
     'dom:group.expiration': {
         memberExpiryDays: 50,
@@ -182,7 +184,31 @@ export const configStoreGroups = {
                 expiration: '2022-08-25T15:39:23.701Z',
             },
         },
+        groupPendingMembers: {},
         lastReviewedDate: '2022-07-18T14:20:45.836Z',
         expiry: 1658408002704,
+    },
+};
+
+export const configStoreGroupsWithPendingMembers = {
+    'dom:group.group1': {
+        name: 'dom:group.group1',
+        modified: modified,
+        auditLog: 'for test',
+        groupMembers: {
+            'user.user1': {
+                memberName: 'user.user1',
+                groupName: 'dom:group.group1',
+                expiration: '2022-09-02T08:14:08.131Z',
+            },
+        },
+        groupPendingMembers: {
+            'user.user4': {
+                approved: false,
+                memberName: 'user.user4',
+                groupName: 'dom:group.group1',
+                expiration: '2022-09-02T08:14:08.131Z',
+            },
+        },
     },
 };

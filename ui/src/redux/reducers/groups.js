@@ -25,11 +25,15 @@ import {
 } from '../actions/groups';
 import {
     ADD_MEMBER_TO_STORE,
+    ADD_PENDING_MEMBER_TO_STORE,
     DELETE_MEMBER_FROM_STORE,
+    DELETE_PENDING_MEMBER_FROM_STORE,
     UPDATE_SETTING_TO_STORE,
     UPDATE_TAGS_TO_STORE,
 } from '../actions/collections';
 import produce from 'immer';
+import { PROCESS_GROUP_PENDING_MEMBERS_TO_STORE } from '../actions/domains';
+import { getFullCollectionName } from '../thunks/utils/collection';
 
 export const groups = (state = {}, action) => {
     const { type, payload } = action;
@@ -78,6 +82,28 @@ export const groups = (state = {}, action) => {
             });
             return newState;
         }
+        case ADD_PENDING_MEMBER_TO_STORE: {
+            const { member, category, collectionName } = payload;
+            let newState = produce(state, (draft) => {
+                if (category === 'group') {
+                    if (
+                        draft.groups[collectionName] &&
+                        draft.groups[collectionName].groupPendingMembers
+                    ) {
+                        draft.groups[collectionName].groupPendingMembers[
+                            member.memberName
+                        ] = member;
+                    } else {
+                        draft.groups[collectionName] = {
+                            groupPendingMembers: {
+                                [member.memberName]: member,
+                            },
+                        };
+                    }
+                }
+            });
+            return newState;
+        }
         case DELETE_MEMBER_FROM_STORE: {
             const { memberName, category, collectionName } = payload;
             let newState = produce(state, (draft) => {
@@ -87,6 +113,22 @@ export const groups = (state = {}, action) => {
                         draft.groups[collectionName].groupMembers
                     ) {
                         delete draft.groups[collectionName].groupMembers[
+                            memberName
+                        ];
+                    }
+                }
+            });
+            return newState;
+        }
+        case DELETE_PENDING_MEMBER_FROM_STORE: {
+            const { memberName, category, collectionName } = payload;
+            let newState = produce(state, (draft) => {
+                if (category === 'group') {
+                    if (
+                        draft.groups[collectionName] &&
+                        draft.groups[collectionName].groupPendingMembers
+                    ) {
+                        delete draft.groups[collectionName].groupPendingMembers[
                             memberName
                         ];
                     }
@@ -147,6 +189,28 @@ export const groups = (state = {}, action) => {
                     ? (draft.groups[groupName].roleMembers = roleMembers)
                     : (draft.groups[groupName] = { roleMembers });
             });
+            return newState;
+        }
+        case PROCESS_GROUP_PENDING_MEMBERS_TO_STORE: {
+            const { domainName, member, groupName } = payload;
+            let groupFullName = getFullCollectionName(
+                domainName,
+                groupName,
+                'group'
+            );
+            let newState = state;
+            if (state.groups && state.groups[groupFullName]) {
+                newState = produce(state, (draft) => {
+                    if (member.approved) {
+                        draft.groups[groupFullName].groupMembers[
+                            member.memberName
+                        ] = member;
+                    }
+                    delete draft.groups[groupFullName].groupPendingMembers[
+                        member.memberName
+                    ];
+                });
+            }
             return newState;
         }
         case RETURN_GROUPS:

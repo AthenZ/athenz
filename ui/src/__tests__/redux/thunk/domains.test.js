@@ -38,7 +38,8 @@ import {
     loadBusinessServicesAll,
     loadPendingDomainMembersList,
     loadUserDomainList,
-    processPendingMembersToStore,
+    processGroupPendingMembersToStore,
+    processRolePendingMembersToStore,
     returnBusinessServicesAll,
     returnDomainList,
 } from '../../../redux/actions/domains';
@@ -462,7 +463,7 @@ describe('test processPendingMembers thunk', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
     });
-    it('should success processPendingMembers', async () => {
+    it('should success process role pending members', async () => {
         const fakeDispatch = sinon.spy();
         MockApi.setMockApi({
             processPending: jest.fn().mockReturnValue(Promise.resolve()),
@@ -472,11 +473,28 @@ describe('test processPendingMembers thunk', () => {
             'role1',
             'user.user1',
             '',
-            null,
+            'role',
             membership
         )(fakeDispatch);
         expect(fakeDispatch.getCall(0).args[0]).toEqual(
-            processPendingMembersToStore('dom', 'role1', membership)
+            processRolePendingMembersToStore('dom', 'role1', membership)
+        );
+    });
+    it('should success process group pending members', async () => {
+        const fakeDispatch = sinon.spy();
+        MockApi.setMockApi({
+            processPending: jest.fn().mockReturnValue(Promise.resolve()),
+        });
+        await processPendingMembers(
+            'dom',
+            'group1',
+            'user.user1',
+            '',
+            'group',
+            membership
+        )(fakeDispatch);
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            processGroupPendingMembersToStore('dom', 'group1', membership)
         );
     });
     it('should fail processPendingMembers', async () => {
@@ -490,7 +508,7 @@ describe('test processPendingMembers thunk', () => {
                 'role1',
                 'user.user1',
                 '',
-                null,
+                'role',
                 membership
             )(fakeDispatch);
             fail();

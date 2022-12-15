@@ -162,6 +162,8 @@ export const configStoreRoles = {
                 principalType: 1,
                 memberFullName: 'user.user2',
             },
+        },
+        rolePendingMembers: {
             'user.user3': {
                 active: false,
                 approved: false,
@@ -182,6 +184,7 @@ export const configStoreRoles = {
                 memberFullName: null,
             },
         },
+        rolePendingMembers: {},
     },
     'dom:role.acl.ows.outbound-test2': {
         modified: modified,
@@ -192,6 +195,7 @@ export const configStoreRoles = {
                 memberFullName: null,
             },
         },
+        rolePendingMembers: {},
     },
     'dom:role.admin': {
         tags: { tag: { list: ['tag1'] } },
@@ -211,12 +215,14 @@ export const configStoreRoles = {
                 memberFullName: null,
             },
         },
+        rolePendingMembers: {},
     },
     'dom:role.empty': {
         name: 'dom:role.empty',
         modified: modified,
         auditLog: 'for test',
         roleMembers: {},
+        rolePendingMembers: {},
     },
     'dom:role.expiration': {
         memberExpiryDays: 100,
@@ -224,13 +230,16 @@ export const configStoreRoles = {
         tags: { tag: { list: ['tag1', 'tag2'] } },
         name: 'dom:role.expiration',
         modified: modified,
-        roleMembers: {
+        rolePendingMembers: {
             'user.user4': {
                 memberName: 'user.user4',
                 expiration: expiry,
+                approved: false,
                 principalType: 1,
                 memberFullName: null,
             },
+        },
+        roleMembers: {
             'user.user6': {
                 memberName: 'user.user6',
                 expiration: expiry,
@@ -308,6 +317,7 @@ export const singleStoreRole = {
             memberFullName: null,
         },
     },
+    rolePendingMembers: {},
     auditLog: [
         {
             member: 'user.user1',

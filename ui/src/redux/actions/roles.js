@@ -61,3 +61,13 @@ export const MAKE_ROLES_EXPIRES = 'MAKE_ROLES_EXPIRES';
 export const makeRolesExpires = () => ({
     type: MAKE_ROLES_EXPIRES,
 });
+
+export const MARKS_ROLE_AS_NEED_REFRESH = 'MARKS_ROLE_AS_NEED_REFRESH';
+export const marksRoleInStoreAsNeedRefresh = (domainName, roleName) => ({
+    type: MARKS_ROLE_AS_NEED_REFRESH,
+    payload: {
+        domainName,
+        roleName,
+        needRefresh: true,
+    },
+});

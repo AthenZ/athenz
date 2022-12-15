@@ -24,7 +24,7 @@ import {
     LOAD_HEADER_DETAILS,
     LOAD_PENDING_DOMAIN_MEMBERS_LIST,
     LOAD_USER_DOMAINS_LIST,
-    PROCESS_PENDING_MEMBERS_TO_STORE,
+    PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
     STORE_DOMAIN_DATA,
     STORE_GROUPS,
     STORE_POLICIES,
@@ -555,7 +555,7 @@ describe('Domains Reducer', () => {
             },
         };
         const action = {
-            type: PROCESS_PENDING_MEMBERS_TO_STORE,
+            type: PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
             payload: {
                 member: { memberName: 'user.user1' },
                 domainName: 'dom',

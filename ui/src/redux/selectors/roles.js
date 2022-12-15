@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import { getFullName, mapToList } from '../utils';
+import { getFullName, mapToList, membersMapsToList } from '../utils';
 import { roleDelimiter } from '../config';
 
 export const thunkSelectRoles = (state) => {
@@ -43,21 +43,19 @@ const buildUserMapFromRoles = (roles) => {
     let userMap = {};
     for (const [roleName, role] of Object.entries(roles)) {
         for (let [memberName, member] of Object.entries(role.roleMembers)) {
-            if (member.approved === undefined || member.approved === true) {
-                if (userMap[memberName]) {
-                    userMap[memberName].memberRoles.push({
+            if (userMap[memberName]) {
+                userMap[memberName].memberRoles.push({
+                    roleName: roleName,
+                    expiration: member.expiration,
+                });
+            } else {
+                userMap[member.memberName] = { ...member };
+                userMap[member.memberName].memberRoles = [
+                    {
                         roleName: roleName,
                         expiration: member.expiration,
-                    });
-                } else {
-                    userMap[member.memberName] = { ...member };
-                    userMap[member.memberName].memberRoles = [
-                        {
-                            roleName: roleName,
-                            expiration: member.expiration,
-                        },
-                    ];
-                }
+                    },
+                ];
             }
         }
     }
@@ -82,18 +80,21 @@ export const selectRoleMembers = (state, domainName, roleName) => {
         state.roles.roles[getFullName(domainName, roleDelimiter, roleName)] &&
         state.roles.roles[getFullName(domainName, roleDelimiter, roleName)]
             .roleMembers
-        ? mapToList(
+        ? membersMapsToList(
               state.roles.roles[
                   getFullName(domainName, roleDelimiter, roleName)
-              ].roleMembers
+              ].roleMembers,
+              state.roles.roles[
+                  getFullName(domainName, roleDelimiter, roleName)
+              ].rolePendingMembers
           )
         : [];
 };
 
 export const selectReviewRoleMembers = (state, domainName, roleName) => {
-    let members = selectRoleMembers(state, domainName, roleName)
-    return members.filter(m => m.approved)
-}
+    let members = selectRoleMembers(state, domainName, roleName);
+    return members.filter((m) => m.approved !== false);
+};
 
 export const selectRoleTags = (state, domainName, roleName) => {
     return state.roles.roles &&

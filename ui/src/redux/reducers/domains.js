@@ -24,7 +24,8 @@ import {
     LOAD_HEADER_DETAILS,
     LOAD_PENDING_DOMAIN_MEMBERS_LIST,
     LOAD_USER_DOMAINS_LIST,
-    PROCESS_PENDING_MEMBERS_TO_STORE,
+    PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
+    PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
     RETURN_AUTHORITY_ATTRIBUTES,
     RETURN_BUSINESS_SERVICES_ALL,
     RETURN_DOMAIN_LIST,
@@ -177,12 +178,23 @@ export const domains = (state = {}, action) => {
             });
             return newState;
         }
-        case PROCESS_PENDING_MEMBERS_TO_STORE: {
+        case PROCESS_ROLE_PENDING_MEMBERS_TO_STORE: {
             const { member, domainName, roleName } = payload;
             let newState = produce(state, (draft) => {
                 if (draft[domainName]) {
                     delete draft[domainName].domainData.pendingMembersList[
                         domainName + member.memberName + roleName
+                    ];
+                }
+            });
+            return newState;
+        }
+        case PROCESS_GROUP_PENDING_MEMBERS_TO_STORE: {
+            const { member, domainName, groupName } = payload;
+            let newState = produce(state, (draft) => {
+                if (draft[domainName]) {
+                    delete draft[domainName].domainData.pendingMembersList[
+                        domainName + member.memberName + groupName
                     ];
                 }
             });

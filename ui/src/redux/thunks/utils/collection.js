@@ -25,3 +25,10 @@ export const getFullCollectionName = (domainName, collectionName, category) => {
     }
     return collectionName;
 };
+
+export const buildMembersMapName = (category, pending) => {
+    if (pending) {
+        return category + 'PendingMembers';
+    }
+    return category + 'Members';
+};

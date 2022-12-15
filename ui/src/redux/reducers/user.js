@@ -15,7 +15,7 @@
  */
 
 import { LOAD_PENDING_MEMBERS } from '../actions/user';
-import { PROCESS_PENDING_MEMBERS_TO_STORE } from '../actions/domains';
+import {PROCESS_GROUP_PENDING_MEMBERS_TO_STORE, PROCESS_ROLE_PENDING_MEMBERS_TO_STORE} from '../actions/domains';
 import produce from 'immer';
 
 export const user = (state = {}, action) => {
@@ -25,9 +25,8 @@ export const user = (state = {}, action) => {
             const { pendingMembers, expiry } = payload;
             return { ...state, pendingMembers, expiry };
         }
-        case PROCESS_PENDING_MEMBERS_TO_STORE: {
+        case PROCESS_ROLE_PENDING_MEMBERS_TO_STORE: {
             const { member, domainName, roleName } = payload;
-            debugger;
             let newState = produce(state, (draft) => {
                 if (
                     draft.pendingMembers[
@@ -36,6 +35,21 @@ export const user = (state = {}, action) => {
                 ) {
                     delete draft.pendingMembers[
                         domainName + member.memberName + roleName
+                    ];
+                }
+            });
+            return newState;
+        }
+        case PROCESS_GROUP_PENDING_MEMBERS_TO_STORE: {
+            const { member, domainName, groupName } = payload;
+            let newState = produce(state, (draft) => {
+                if (
+                    draft.pendingMembers[
+                        domainName + member.memberName + groupName
+                    ]
+                ) {
+                    delete draft.pendingMembers[
+                        domainName + member.memberName + groupName
                     ];
                 }
             });

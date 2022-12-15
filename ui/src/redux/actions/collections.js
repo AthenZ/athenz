@@ -24,6 +24,16 @@ export const addMemberToStore = (member, category, collectionName) => ({
     },
 });
 
+export const ADD_PENDING_MEMBER_TO_STORE = 'ADD_PENDING_MEMBER_TO_STORE';
+export const addPendingMemberToStore = (member, category, collectionName) => ({
+    type: ADD_PENDING_MEMBER_TO_STORE,
+    payload: {
+        member,
+        category,
+        collectionName,
+    },
+});
+
 export const DELETE_MEMBER_FROM_STORE = 'DELETE_MEMBER_FROM_STORE';
 export const deleteMemberFromStore = (
     memberName,
@@ -31,6 +41,21 @@ export const deleteMemberFromStore = (
     collectionName
 ) => ({
     type: DELETE_MEMBER_FROM_STORE,
+    payload: {
+        memberName,
+        category,
+        collectionName,
+    },
+});
+
+export const DELETE_PENDING_MEMBER_FROM_STORE =
+    'DELETE_PENDING_MEMBER_FROM_STORE';
+export const deletePendingMemberFromStore = (
+    memberName,
+    category,
+    collectionName
+) => ({
+    type: DELETE_PENDING_MEMBER_FROM_STORE,
     payload: {
         memberName,
         category,

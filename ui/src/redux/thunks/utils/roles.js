@@ -20,7 +20,12 @@ import {
     loadingSuccess,
 } from '../../actions/loading';
 import { loadRole, loadRoles } from '../../actions/roles';
-import { getExpiryTime, getFullName, listToMap } from '../../utils';
+import {
+    getExpiryTime,
+    getFullName,
+    listToMap,
+    membersListToMaps,
+} from '../../utils';
 import API from '../../../api';
 import { roleDelimiter } from '../../config';
 import { thunkSelectRoleMembers } from '../../selectors/roles';
@@ -64,7 +69,11 @@ export const getRolesApiCall = async (domainName, dispatch) => {
         ]);
         const expiry = getExpiryTime();
         roleList.forEach((role) => {
-            role.roleMembers = listToMap(role.roleMembers, 'memberName');
+            const { members, pendingMembers } = membersListToMaps(
+                role.roleMembers
+            );
+            role.roleMembers = members;
+            role.rolePendingMembers = pendingMembers;
         });
         let rolesMap = listToMap(roleList, 'name');
         rolesMap = mergeUserListWithRoleListData(
@@ -84,7 +93,9 @@ export const getRoleApiCall = async (domainName, roleName, dispatch) => {
     try {
         roleName = roleName.toLowerCase();
         let role = await API().getRole(domainName, roleName, true, false, true);
-        role.roleMembers = listToMap(role.roleMembers, 'memberName');
+        const { members, pendingMembers } = membersListToMaps(role.roleMembers);
+        role.roleMembers = members;
+        role.rolePendingMembers = pendingMembers;
         dispatch(
             loadRole(role, getFullName(domainName, roleDelimiter, roleName))
         );

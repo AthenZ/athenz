@@ -16,23 +16,29 @@
 
 import { thunkSelectGroup } from '../selectors/group';
 import { getGroup } from './groups';
-import { getRole } from './roles';
+import { getRole, marksRoleAsNeedRefresh } from './roles';
 import { thunkSelectRole } from '../selectors/roles';
 import {
     addMemberToStore,
+    addPendingMemberToStore,
     deleteMemberFromStore,
+    deletePendingMemberFromStore,
     updateSettingsToStore,
     updateTagsToStore,
 } from '../actions/collections';
 import API from '../../api';
-import { getFullCollectionName } from './utils/collection';
+import {
+    buildMembersMapName,
+    getFullCollectionName,
+    isMemberExistsInStore,
+} from './utils/collection';
 import {
     buildErrorForDoesntExistCase,
     buildErrorForDuplicateCase,
 } from '../utils';
 import { getRoleApiCall } from './utils/roles';
 import { updateBellPendingMember } from '../actions/domain-data';
-import {groupDelimiter} from "../config";
+import { groupDelimiter } from '../config';
 
 export const addMember =
     (
@@ -50,18 +56,25 @@ export const addMember =
         if (category === 'group') {
             data = thunkSelectGroup(getState(), domainName, collectionName);
         } else if (category === 'role') {
-            if (member.memberName.includes(groupDelimiter) && collectionName === 'admin') {
+            if (
+                member.memberName.includes(groupDelimiter) &&
+                collectionName === 'admin'
+            ) {
                 return Promise.reject({
-                    body: { message:  'Group principals are not allowed in the admin role'},
+                    body: {
+                        message:
+                            'Group principals are not allowed in the admin role',
+                    },
                     statusCode: 400,
-                })
+                });
             }
             await dispatch(getRole(domainName, collectionName));
             data = thunkSelectRole(getState(), domainName, collectionName);
         }
         if (
             !overrideIfExists &&
-            member.memberName in data[category + 'Members']
+            member.memberName in
+                data[buildMembersMapName(category, member.pending)]
         ) {
             return Promise.reject(
                 buildErrorForDuplicateCase('Member', member.memberName)
@@ -82,29 +95,41 @@ export const addMember =
                 if (member.memberName.toLowerCase().includes(':group.')) {
                     await getRoleApiCall(domainName, collectionName, dispatch);
                 } else {
-                    dispatch(
-                        addMemberToStore(
-                            addedMember,
-                            category,
-                            getFullCollectionName(
-                                domainName,
-                                collectionName,
-                                category
+                    if (!addedMember.approved) {
+                        dispatch(
+                            addPendingMemberToStore(
+                                addedMember,
+                                category,
+                                getFullCollectionName(
+                                    domainName,
+                                    collectionName,
+                                    category
+                                )
                             )
-                        )
-                    );
-                }
-                if (!addedMember.approved) {
-                    dispatch(
-                        updateBellPendingMember(
-                            member.memberName,
-                            getFullCollectionName(
-                                domainName,
-                                collectionName,
-                                category
+                        );
+                        dispatch(
+                            updateBellPendingMember(
+                                member.memberName,
+                                getFullCollectionName(
+                                    domainName,
+                                    collectionName,
+                                    category
+                                )
                             )
-                        )
-                    );
+                        );
+                    } else {
+                        dispatch(
+                            addMemberToStore(
+                                addedMember,
+                                category,
+                                getFullCollectionName(
+                                    domainName,
+                                    collectionName,
+                                    category
+                                )
+                            )
+                        );
+                    }
                 }
                 return Promise.resolve();
             } catch (err) {
@@ -133,7 +158,8 @@ export const deleteMember =
             await dispatch(getRole(domainName, collectionName));
             data = thunkSelectRole(getState(), domainName, collectionName);
         }
-        if (memberName in data[category + 'Members']) {
+
+        if (memberName in data[buildMembersMapName(category, pending)]) {
             try {
                 await API().deleteMember(
                     domainName,
@@ -144,7 +170,21 @@ export const deleteMember =
                     category,
                     _csrf
                 );
-                if (!data[category + 'Members'][memberName].approved) {
+                if (
+                    data[buildMembersMapName(category, pending)][memberName]
+                        .approved === false
+                ) {
+                    dispatch(
+                        deletePendingMemberFromStore(
+                            memberName,
+                            category,
+                            getFullCollectionName(
+                                domainName,
+                                collectionName,
+                                category
+                            )
+                        )
+                    );
                     dispatch(
                         updateBellPendingMember(
                             memberName,
@@ -155,18 +195,19 @@ export const deleteMember =
                             )
                         )
                     );
-                }
-                dispatch(
-                    deleteMemberFromStore(
-                        memberName,
-                        category,
-                        getFullCollectionName(
-                            domainName,
-                            collectionName,
-                            category
+                } else {
+                    dispatch(
+                        deleteMemberFromStore(
+                            memberName,
+                            category,
+                            getFullCollectionName(
+                                domainName,
+                                collectionName,
+                                category
+                            )
                         )
-                    )
-                );
+                    );
+                }
                 return Promise.resolve();
             } catch (err) {
                 return Promise.reject(err);
@@ -204,6 +245,13 @@ export const updateTags =
         }
     };
 
+export const marksCollectionAsNeedRefresh =
+    (domainName, category, collectionName) => async (dispatch, getStore) => {
+        switch (category) {
+            case 'role':
+                dispatch(marksRoleAsNeedRefresh(domainName, collectionName));
+        }
+    };
 export const updateSettings =
     (domainName, collectionMeta, collectionName, _csrf, category) =>
     async (dispatch, getStore) => {
@@ -222,6 +270,13 @@ export const updateSettings =
                     getFullCollectionName(domainName, collectionName, category),
                     collectionMeta,
                     category
+                )
+            );
+            dispatch(
+                marksCollectionAsNeedRefresh(
+                    domainName,
+                    category,
+                    collectionName
                 )
             );
             return Promise.resolve();

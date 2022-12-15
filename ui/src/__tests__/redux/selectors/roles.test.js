@@ -68,6 +68,8 @@ describe('test role selectors', () => {
                             principalType: 1,
                             memberFullName: 'user.user2',
                         },
+                    },
+                    rolePendingMembers: {
                         'user.user3': {
                             active: false,
                             approved: false,
@@ -81,6 +83,7 @@ describe('test role selectors', () => {
                 },
                 {
                     modified: modified,
+                    rolePendingMembers: {},
                     roleMembers: {
                         'yamas.api': {
                             memberName: 'yamas.api',
@@ -91,6 +94,7 @@ describe('test role selectors', () => {
                 },
                 {
                     modified: modified,
+                    rolePendingMembers: {},
                     roleMembers: {
                         'sys.auth': {
                             memberName: 'sys.auth',
@@ -103,6 +107,7 @@ describe('test role selectors', () => {
                     tags: { tag: { list: ['tag1'] } },
                     name: 'dom:role.admin',
                     modified: modified,
+                    rolePendingMembers: {},
                     roleMembers: {
                         'user.user2': {
                             memberName: 'user.user2',
@@ -123,6 +128,7 @@ describe('test role selectors', () => {
                     modified: modified,
                     auditLog: 'for test',
                     roleMembers: {},
+                    rolePendingMembers: {},
                 },
                 {
                     memberExpiryDays: 100,
@@ -130,13 +136,16 @@ describe('test role selectors', () => {
                     tags: { tag: { list: ['tag1', 'tag2'] } },
                     name: 'dom:role.expiration',
                     modified: modified,
-                    roleMembers: {
+                    rolePendingMembers: {
                         'user.user4': {
                             memberName: 'user.user4',
                             expiration: expiry,
+                            approved: false,
                             principalType: 1,
                             memberFullName: null,
                         },
+                    },
+                    roleMembers: {
                         'user.user6': {
                             memberName: 'user.user6',
                             expiration: expiry,
@@ -178,6 +187,7 @@ describe('test role selectors', () => {
                         memberFullName: null,
                     },
                 },
+                rolePendingMembers: {},
             };
             expect(selectRole(stateWithRoles, domainName, 'admin')).toEqual(
                 expectedRole
@@ -384,18 +394,6 @@ describe('test role selectors', () => {
                     memberRoles: [
                         {
                             roleName: 'dom:role.admin',
-                            expiration: expiry,
-                        },
-                    ],
-                },
-                {
-                    memberName: 'user.user4',
-                    expiration: expiry,
-                    principalType: 1,
-                    memberFullName: null,
-                    memberRoles: [
-                        {
-                            roleName: 'dom:role.expiration',
                             expiration: expiry,
                         },
                     ],
