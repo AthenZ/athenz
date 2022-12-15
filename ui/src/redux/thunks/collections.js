@@ -40,6 +40,32 @@ import { getRoleApiCall } from './utils/roles';
 import { updateBellPendingMember } from '../actions/domain-data';
 import { groupDelimiter } from '../config';
 
+export const editMember =
+    (domainName, collectionName, category, member, auditRef, _csrf) =>
+        async (dispatch, getState) => {
+            collectionName = collectionName.toLowerCase();
+            // before we call to addMember endpoint we must replace the member role/group name to a short name
+            switch (category) {
+                case 'role':
+                    member.roleName = collectionName;
+                    break;
+                case 'group':
+                    member.groupName = collectionName;
+            }
+
+            await dispatch(
+                addMember(
+                    domainName,
+                    collectionName,
+                    category,
+                    member,
+                    auditRef,
+                    _csrf,
+                    true
+                )
+            );
+        };
+
 export const addMember =
     (
         domainName,
