@@ -31,6 +31,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/doc"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
@@ -76,6 +77,7 @@ type Config struct {
 	Service         string                   `json:"service,omitempty"`           //name of the service for the identity
 	Services        map[string]ConfigService `json:"services,omitempty"`          //names of the multiple services for the identity
 	Ssh             *bool                    `json:"ssh,omitempty"`               //ssh certificate support
+	SshHostKeyType  hostkey.KeyType          `json:"ssh_host_key_type,omitempty"` //ssh host key type - rsa, ecdsa, etc
 	SanDnsWildcard  bool                     `json:"sandns_wildcard,omitempty"`   //san dns wildcard support
 	UseRegionalSTS  bool                     `json:"regionalsts,omitempty"`       //whether to use a regional STS endpoint (default is false)
 	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
