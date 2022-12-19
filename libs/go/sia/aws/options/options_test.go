@@ -32,6 +32,7 @@ import (
 	"testing"
 
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 
 	"github.com/dimfeld/httptreemux"
@@ -537,7 +538,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_EXPIRY_TIME", "10001")
 	os.Setenv("ATHENZ_SIA_REFRESH_INTERVAL", "120")
 	os.Setenv("ATHENZ_SIA_ZTS_REGION", "us-west-3")
-	os.Setenv("ATHENZ_SIA_KEEP_PRIVILEGES", "true")
+	os.Setenv("ATHENZ_SIA_DROP_PRIVILEGES", "true")
 	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
 	os.Setenv("ATHENZ_SIA_ACCOUNT_ROLES", "{\"sports:role.readers\":{\"service\":\"api\"},\"sports:role.writers\":{\"user\": \"nobody\"}}")
 
@@ -554,7 +555,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, cfg.ExpiryTime, 10001)
 	assert.Equal(t, cfg.RefreshInterval, 120)
 	assert.Equal(t, cfg.ZTSRegion, "us-west-3")
-	assert.False(t, cfg.DropPrivileges)
+	assert.True(t, cfg.DropPrivileges)
 
 	assert.True(t, cfgAccount.Account == "123456789012")
 	assert.True(t, cfgAccount.Domain == "athenz")
@@ -563,4 +564,46 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.True(t, len(cfgAccount.Roles) == 2)
 
 	os.Clearenv()
+}
+
+func TestGetConfigWithSshHostKeyType(t *testing.T) {
+
+	tests := map[string]struct {
+		filename    string
+		parseFailed bool
+		hostKeyType hostkey.KeyType
+	}{
+		"config-with-no-keytype": {
+			filename:    "data/sia_config",
+			parseFailed: false,
+			hostKeyType: 0,
+		},
+		"config-with-rsa": {
+			filename:    "data/sia_config_ssh_rsa",
+			parseFailed: false,
+			hostKeyType: hostkey.Rsa,
+		},
+		"config-with-ecdsa": {
+			filename:    "data/sia_config_ssh_ecdsa",
+			parseFailed: false,
+			hostKeyType: hostkey.Ecdsa,
+		},
+		"config-with-ed25519": {
+			filename:    "data/sia_config_ssh_ed25519",
+			parseFailed: false,
+			hostKeyType: hostkey.Ed25519,
+		},
+		"config-with-unknown": {
+			filename:    "data/sia_config_ssh_unknown",
+			parseFailed: true,
+			hostKeyType: hostkey.Rsa,
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			cfg, _, _ := getConfig(tt.filename, "-service", "http://localhost:80", false, "us-west-2")
+			assert.Equal(t, cfg.SshHostKeyType, tt.hostKeyType)
+		})
+	}
 }
