@@ -1,3 +1,18 @@
+Athenz v1.11.16 Release / Dec 19, 2022
+--------------------------------------
+
+#2006 UI: fix review tab for roles to correctly handle default options
+#2007 improve messaging for groups in admin roles and detect error sooner
+#2011 UI: simplify way to change user's expiry/reminder dates
+#2015 UI: bump decode-uri-component from 0.2.0 to 0.2.2 in /ui
+#2016 fix the table overflow in the email notification's body
+#2017 UI: Bump qs from 6.5.2 to 6.5.3 in /ui
+#2018 remove netty override version from syncer pom.xml
+#2020 UI: Separate members and pending members into 2 different maps in the view
+#2021 update jetty + deps to their latest release
+#2023 Return the correct response from putMembership/putGroupMembership on pending members
+#2025 support ssh host key type attribute in sia config options
+
 Athenz v1.11.15 Release / Dec 5, 2022
 -------------------------------------
 
