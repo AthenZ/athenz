@@ -406,7 +406,7 @@ func updateSSH(sshCertFile, sshConfigFile, hostCert string) error {
 	//to insert is HostCertificate <sshCertFile>. so we'll see if the line exists
 	//or not and if not we'll insert one at the end of the file
 	if sshConfigFile != "" {
-		configPresent, err := hostCertificateLinePresent(sshConfigFile)
+		configPresent, err := hostCertificateLinePresent(sshConfigFile, sshCertFile)
 		if err != nil {
 			log.Printf("unable to check host certificate line for %s - error %v\n", sshConfigFile, err)
 			return err
@@ -440,8 +440,9 @@ func updateSSHConfigFile(sshConfigFile, sshCertFile string) error {
 	return nil
 }
 
-func hostCertificateLinePresent(sshConfigFile string) (bool, error) {
+func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error) {
 
+	certLine := fmt.Sprintf("HostCertificate %s", sshCertFile)
 	file, err := os.Open(sshConfigFile)
 	if err != nil {
 		return false, err
@@ -451,7 +452,7 @@ func hostCertificateLinePresent(sshConfigFile string) (bool, error) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		line := strings.Trim(scanner.Text(), " \t")
-		if strings.HasPrefix(line, "HostCertificate ") {
+		if strings.HasPrefix(line, certLine) {
 			log.Printf("ssh configuration file already includes expected line: %s\n", line)
 			return true, nil
 		}

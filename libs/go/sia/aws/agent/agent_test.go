@@ -305,20 +305,22 @@ func TestShouldSkipRegister(test *testing.T) {
 
 func TestHostCertificateLinePresent(test *testing.T) {
 	tests := []struct {
-		name   string
-		data   string
-		result bool
+		name     string
+		data     string
+		certFile string
+		result   bool
 	}{
-		{"valid-start", "HostCertificate /sshd.config", true},
-		{"valid-mid", "PermitTunnel no\nHostCertificate /sshd.config\nUseDNS no", true},
-		{"valid-mid-space", "PermitTunnel no\n  HostCertificate /sshd.config\nUseDNS no", true},
-		{"valid-mid-tab", "PermitTunnel no\n\tHostCertificate /sshd.config\nUseDNS no", true},
-		{"valid-mid-mix", "PermitTunnel no\n \t HostCertificate /sshd.config\nUseDNS no", true},
-		{"valid-end", "PermitTunnel no\nHostCertificate /sshd.config", true},
-		{"valid-commented", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no", false},
-		{"valid-not-present1", "PermitTunnel no\nHostCertificateOther /sshd.config\nUseDNS no", false},
-		{"valid-not-present2", "PermitTunnel no\nHostCertificate/sshd.config\nUseDNS no", false},
-		{"valid-not-present3", "PermitTunnel no\n\nUseDNS no\n", false},
+		{"valid-start", "HostCertificate /sshd.config", "/sshd.config", true},
+		{"valid-mid", "PermitTunnel no\nHostCertificate /sshd.config\nUseDNS no", "/sshd.config", true},
+		{"valid-mid-space", "PermitTunnel no\n  HostCertificate /sshd.config\nUseDNS no", "/sshd.config", true},
+		{"valid-mid-tab", "PermitTunnel no\n\tHostCertificate /sshd.config\nUseDNS no", "/sshd.config", true},
+		{"valid-mid-mix", "PermitTunnel no\n \t HostCertificate /sshd.config\nUseDNS no", "/sshd.config", true},
+		{"valid-end", "PermitTunnel no\nHostCertificate /sshd.config", "/sshd.config", true},
+		{"valid-commented", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no", "/sshd.config", false},
+		{"valid-not-present1", "PermitTunnel no\nHostCertificateOther /sshd.config\nUseDNS no", "/sshd.config", false},
+		{"valid-not-present2", "PermitTunnel no\nHostCertificate/sshd.config\nUseDNS no", "/sshd.config", false},
+		{"valid-not-present3", "PermitTunnel no\n\nUseDNS no\n", "/sshd.config", false},
+		{"valid-not-present3", "PermitTunnel no\nHostCertificate /sshd2.config\nUseDNS no\n", "/sshd.config", false},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
@@ -328,7 +330,7 @@ func TestHostCertificateLinePresent(test *testing.T) {
 			}
 			defer os.Remove(tmpFile.Name())
 			os.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
-			result, _ := hostCertificateLinePresent(tmpFile.Name())
+			result, _ := hostCertificateLinePresent(tmpFile.Name(), tt.certFile)
 			if result != tt.result {
 				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, result)
 			}
