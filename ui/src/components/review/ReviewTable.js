@@ -25,6 +25,8 @@ import { withRouter } from 'next/router';
 import { connect } from 'react-redux';
 import { reviewRole } from '../../redux/thunks/roles';
 import produce from 'immer';
+import DeleteModal from '../modal/DeleteModal';
+import CollectionUtils from 'lodash';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -93,10 +95,12 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
-class ReviewTable extends React.Component {
+export class ReviewTable extends React.Component {
     constructor(props) {
         super(props);
         this.submitReview = this.submitReview.bind(this);
+        this.updateReviewRole = this.updateReviewRole.bind(this);
+        this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.onClickSettings = this.onClickSettings.bind(this);
         this.cancelRoleMetaUpdate = this.cancelRoleMetaUpdate.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
@@ -105,6 +109,7 @@ class ReviewTable extends React.Component {
         this.state = {
             roleObj: props.roleDetails,
             submittedReview: false,
+            showDeleteConfirmation: false,
             extendedMembers: new Set(members),
             deletedMembers: new Set(),
         };
@@ -112,6 +117,10 @@ class ReviewTable extends React.Component {
 
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
+    }
+
+    onClickDeleteCancel() {
+        this.setState({ showDeleteConfirmation: false });
     }
 
     submitReview() {
@@ -127,50 +136,61 @@ class ReviewTable extends React.Component {
                 return;
             }
 
-            //construct role object from state
-            let role = {
-                name: this.props.role,
-            };
-            role.roleMembers = produce(this.props.members, (draft) => {
-                draft.forEach((m) => {
-                    if (this.state.deletedMembers.has(m.memberName)) {
-                        m.active = false;
-                    }
-                    m.expiration = null;
-                    m.reviewReminder = null;
-                    delete m.memberFullName; // memberFullName is not a valid property on the server
-                });
-            });
-            role.roleMembers = role.roleMembers.filter((m) => {
-                if (
-                    this.state.deletedMembers.has(m.memberName) ||
-                    this.state.extendedMembers.has(m.memberName)
-                ) {
-                    return m;
-                }
-            });
-            this.props
-                .reviewRole(
-                    this.props.domain,
-                    role,
-                    this.state.justification,
-                    this.props._csrf
-                )
-                .then(() => {
-                    this.setState({
-                        submittedReview: true,
-                        errorMessage: null,
-                    });
-                    this.props.onUpdateSuccess(
-                        `Successfully submitted the review for role ${this.props.role}`
-                    );
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            // show prompt for user to ask for confirmation once the user asked to delete member/s
+
+            if (this.state.deletedMembers.size > 0) {
+                this.setState({ showDeleteConfirmation: true });
+            } else {
+                this.updateReviewRole();
+            }
         }
+    }
+
+    updateReviewRole() {
+        //construct role object from state
+        let role = {
+            name: this.props.role,
+        };
+        role.roleMembers = produce(this.props.members, (draft) => {
+            draft.forEach((m) => {
+                if (this.state.deletedMembers.has(m.memberName)) {
+                    m.active = false;
+                }
+                m.expiration = null;
+                m.reviewReminder = null;
+                delete m.memberFullName; // memberFullName is not a valid property on the server
+            });
+        });
+        role.roleMembers = role.roleMembers.filter((m) => {
+            if (
+                this.state.deletedMembers.has(m.memberName) ||
+                this.state.extendedMembers.has(m.memberName)
+            ) {
+                return m;
+            }
+        });
+        this.props
+            .reviewRole(
+                this.props.domain,
+                role,
+                this.state.justification,
+                this.props._csrf
+            )
+            .then(() => {
+                this.setState({
+                    submittedReview: true,
+                    errorMessage: null,
+                    showDeleteConfirmation: false,
+                });
+                this.props.onUpdateSuccess(
+                    `Successfully submitted the review for role ${this.props.role}`
+                );
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
     }
 
     onClickSettings() {
@@ -398,6 +418,18 @@ class ReviewTable extends React.Component {
                         </tbody>
                     </ReviewMembersTable>
                 </ReviewMembersSectionDiv>
+                {this.state.showDeleteConfirmation && (
+                    <DeleteModal
+                        name={this.props.role}
+                        isOpen={this.state.showDeleteConfirmation}
+                        cancel={this.onClickDeleteCancel}
+                        submit={this.updateReviewRole}
+                        key={this.props.role + '-delete'}
+                        message={
+                            'Are you sure you want to permanently delete member/s from role '
+                        }
+                    />
+                )}
             </ReviewMembersContainerDiv>
         );
     }

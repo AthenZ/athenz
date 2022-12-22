@@ -24,6 +24,8 @@ import { selectReviewGroupMembers } from '../../redux/selectors/group';
 import { reviewGroup } from '../../redux/thunks/groups';
 import { connect } from 'react-redux';
 import produce from 'immer';
+import CollectionUtils from 'lodash';
+import DeleteModal from '../modal/DeleteModal';
 
 const TitleDiv = styled.div`
     font-size: 16px;
@@ -81,26 +83,24 @@ class GroupReviewTable extends React.Component {
     constructor(props) {
         super(props);
         this.submitReview = this.submitReview.bind(this);
+        this.updateReviewGroup = this.updateReviewGroup.bind(this);
+        this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
         let members = props.members && props.members.map((m) => m.memberName);
         this.state = {
             submittedReview: false,
+            showDeleteConfirmation: false,
             extendedMembers: new Set(members),
             deletedMembers: new Set(),
         };
     }
-    loadGroup() {
-        let members =
-            this.props.members && this.props.members.map((m) => m.memberName);
-        this.setState({
-            extendedMembers: new Set(members),
-            deletedMembers: new Set(),
-            submittedReview: false,
-        });
-    }
 
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
+    }
+
+    onClickDeleteCancel() {
+        this.setState({ showDeleteConfirmation: false });
     }
 
     submitReview() {
@@ -116,51 +116,60 @@ class GroupReviewTable extends React.Component {
                 return;
             }
 
-            //construct role object from state
-            let group = {
-                name: this.props.groupName,
-            };
-            group.groupMembers = produce(this.props.members, (draft) => {
-                draft.forEach((member) => {
-                    if (this.state.deletedMembers.has(member.memberName)) {
-                        member.active = false;
-                    }
-                    member.expiration = null;
-                    delete member.memberFullName;
-                });
-            });
-            group.groupMembers = group.groupMembers.filter((m) => {
-                if (
-                    this.state.deletedMembers.has(m.memberName) ||
-                    this.state.extendedMembers.has(m.memberName)
-                ) {
-                    return m;
-                }
-            });
-            this.props
-                .reviewGroup(
-                    this.props.groupName,
-                    group,
-                    this.state.justification,
-                    this.props._csrf
-                )
-                .then(() => {
-                    this.setState({
-                        submittedReview: true,
-                        errorMessage: null,
-                        justification: '',
-                    });
-                    this.props.onUpdateSuccess(
-                        `Successfully submitted the review for group ${this.props.groupName}`
-                    );
-                    this.loadGroup();
-                })
-                .catch((err) => {
-                    this.setState({
-                        errorMessage: RequestUtils.xhrErrorCheckHelper(err),
-                    });
-                });
+            // show prompt for user to ask for confirmation once the user asked to delete member/s
+
+            if (this.state.deletedMembers.size > 0) {
+                this.setState({ showDeleteConfirmation : true });
+            } else {
+                this.updateReviewGroup();
+            }
         }
+    }
+
+    updateReviewGroup() {
+        //construct role object from state
+        let group = {
+            name: this.props.groupName,
+        };
+        group.groupMembers = produce(this.props.members, (draft) => {
+            draft.forEach((member) => {
+                if (this.state.deletedMembers.has(member.memberName)) {
+                    member.active = false;
+                }
+                member.expiration = null;
+                delete member.memberFullName;
+            });
+        });
+        group.groupMembers = group.groupMembers.filter((m) => {
+            if (
+                this.state.deletedMembers.has(m.memberName) ||
+                this.state.extendedMembers.has(m.memberName)
+            ) {
+                return m;
+            }
+        });
+        this.props
+            .reviewGroup(
+                this.props.groupName,
+                group,
+                this.state.justification,
+                this.props._csrf
+            )
+            .then(() => {
+                this.setState({
+                    submittedReview: true,
+                    errorMessage: null,
+                    justification: '',
+                });
+                this.props.onUpdateSuccess(
+                    `Successfully submitted the review for group ${this.props.groupName}`
+                );
+            })
+            .catch((err) => {
+                this.setState({
+                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
     }
 
     onUpdate(key, value) {
@@ -299,6 +308,18 @@ class GroupReviewTable extends React.Component {
                         </tbody>
                     </ReviewMembersTable>
                 </ReviewMembersSectionDiv>
+                {this.state.showDeleteConfirmation && (
+                    <DeleteModal
+                        name={this.props.groupName}
+                        isOpen={this.state.showDeleteConfirmation}
+                        cancel={this.onClickDeleteCancel}
+                        submit={this.updateReviewGroup}
+                        key={this.props.groupName + '-delete'}
+                        message={
+                            'Are you sure you want to permanently delete member/s from group '
+                        }
+                    />
+                )}
             </ReviewMembersContainerDiv>
         );
     }
