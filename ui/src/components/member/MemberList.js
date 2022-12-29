@@ -22,9 +22,8 @@ import AddMember from './AddMember';
 import MemberTable from './MemberTable';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
-import Loader from '../denali/Loader';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
-import ArrayUtils from "../utils/ArrayUtils";
+import { arrayEquals } from '../utils/ArrayUtils';
 
 const MembersSectionDiv = styled.div`
     margin: 20px;
@@ -51,7 +50,6 @@ class MemberList extends React.Component {
         this.toggleAddMember = this.toggleAddMember.bind(this);
         this.closeModal = this.closeModal.bind(this);
         this.reloadMembers = this.reloadMembers.bind(this);
-        this.arrayUtils = new ArrayUtils();
     }
 
     toggleAddMember() {
@@ -64,7 +62,7 @@ class MemberList extends React.Component {
         if (
             prevProps.collection !== this.props.collection ||
             prevProps.domain !== this.props.domain ||
-            !this.arrayUtils.isEquals(prevProps.members, this.props.members)
+            !arrayEquals(prevProps.members, this.props.members)
         ) {
             this.setState({
                 members: this.props.members,

@@ -25,7 +25,6 @@ import { getUserDomainsList } from '../../redux/thunks/domains';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { selectUserDomains } from '../../redux/selectors/domains';
 import RequestUtils from '../utils/RequestUtils';
-import Alert from "../denali/Alert";
 
 const DomainListDiv = styled.div`
     padding: 0 30px 0 15px;
@@ -128,16 +127,6 @@ class UserDomains extends React.Component {
     }
 
     render() {
-        if (this.state.showError) {
-            return (
-                <Alert
-                    isOpen={this.state.showError}
-                    title={this.state.errorMessage}
-                    onClose={() => {}}
-                    type='danger'
-                />
-            );
-        }
         let userIcons = [];
         let currentDomain = this.props.domain ? this.props.domain : null;
         if (this.props.domains && this.props.domains.length > 0) {
@@ -197,7 +186,11 @@ class UserDomains extends React.Component {
                                 </Link>
                             </div>
                         </ManageDomainsHeaderDiv>
-                        <DomainListDiv>{userIcons}</DomainListDiv>
+                        <DomainListDiv>
+                            {this.state.showError
+                                ? this.state.errorMessage
+                                : userIcons}
+                        </DomainListDiv>
                     </ShowDomainsDiv>
                 )}
             </div>

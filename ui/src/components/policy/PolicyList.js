@@ -37,7 +37,7 @@ import AddPolicy from './AddPolicy';
 import { selectPolicies } from '../../redux/selectors/policies';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
-import ArrayUtils from "../utils/ArrayUtils";
+import { arrayEquals } from '../utils/ArrayUtils';
 
 const PolicySectionDiv = styled.div`
     margin: 20px;
@@ -122,13 +122,10 @@ export class PolicyList extends React.Component {
             duplicateVersionSourceName: null,
             duplicateVersionName: null,
         };
-        this.arrayUtils = new ArrayUtils();
     }
 
     componentDidUpdate = (prevProps) => {
-        if (
-            !this.arrayUtils.isEquals(prevProps.policies, this.props.policies)
-        ) {
+        if (!arrayEquals(prevProps.policies, this.props.policies)) {
             this.setState({
                 policiesMap: this.policyListToMap(this.props.policies),
             });
