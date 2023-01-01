@@ -288,6 +288,7 @@ describe('getGroup method', () => {
         expect(fakeDispatch.getCall(2).args[0]).toEqual(
             loadGroup(
                 {
+                    auditLog: [],
                     groupMembers: {},
                     groupPendingMembers: {},
                     roleMembers: {},

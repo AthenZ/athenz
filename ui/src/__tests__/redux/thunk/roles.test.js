@@ -291,7 +291,7 @@ describe('getRole method', () => {
         );
         expect(fakeDispatch.getCall(2).args[0]).toEqual(
             loadRole(
-                { roleMembers: {}, rolePendingMembers: {} },
+                { roleMembers: {}, rolePendingMembers: {}, auditLog: [] },
                 'dom:role.role1'
             )
         );

@@ -289,3 +289,149 @@ exports[`UserDomains should render 1`] = `
   </div>
 </div>
 `;
+
+exports[`UserDomains should render with no domains 1`] = `
+.emotion-0 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #d5d5d5;
+  border-left: 1px solid #d5d5d5;
+  border-top: 1px solid #d5d5d5;
+  cursor: pointer;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 20px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin-left: -21px;
+  margin-top: 20px;
+  position: absolute;
+  text-align: center;
+  width: 20px;
+}
+
+.emotion-2 {
+  fill: #303030;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-3 {
+  margin-right: 0;
+  border-left: 1px solid #d5d5d5;
+  -webkit-flex: 0 0 350px;
+  -ms-flex: 0 0 350px;
+  flex: 0 0 350px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  -webkit-transition: margin 0.4s ease-in-out;
+  transition: margin 0.4s ease-in-out;
+  display: block;
+  min-width: 350px;
+  width: 350px;
+}
+
+.emotion-5 {
+  -webkit-align-items: baseline;
+  -webkit-box-align: baseline;
+  -ms-flex-align: baseline;
+  align-items: baseline;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  padding: 20px 30px 20px 15px;
+}
+
+.emotion-7 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emotion-9 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.emotion-11 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-15 {
+  padding: 0 30px 0 15px;
+}
+
+<div
+  data-testid="user-domains"
+>
+  <div
+    class="emotion-0 emotion-1"
+    data-testid="toggle-domain"
+  >
+    <svg
+      class="emotion-2"
+      data-testid="icon"
+      height="1em"
+      viewBox="0 0 1024 1024"
+      width="1em"
+    >
+      <title>
+        arrow-right
+      </title>
+      <path
+        d="M579.627 512l-225.707 226.133c-7.425 7.668-12.002 18.133-12.002 29.667 0 14.028 6.77 26.476 17.222 34.252l0.114 0.081c6.877 4.635 15.35 7.398 24.467 7.398 12.618 0 24-5.292 32.048-13.778l0.019-0.020 254.293-253.653c7.731-7.723 12.514-18.396 12.514-30.187s-4.782-22.464-12.513-30.186l-0-0-254.293-254.507c-8.066-8.506-19.448-13.798-32.066-13.798-9.118 0-17.59 2.763-24.625 7.498l0.158-0.1c-10.919 7.83-17.949 20.483-17.949 34.778 0 11.841 4.824 22.556 12.613 30.286l0.003 0.003z"
+      />
+    </svg>
+  </div>
+  <div
+    class="emotion-3 emotion-4"
+  >
+    <div
+      class="emotion-5 emotion-6"
+    >
+      <div
+        class="emotion-7 emotion-8"
+      >
+        My Domains
+      </div>
+      <div>
+        <a
+          class="emotion-9 emotion-10"
+        >
+          Create
+        </a>
+        <span
+          class="emotion-11 emotion-12"
+        >
+           | 
+        </span>
+        <a
+          class="emotion-9 emotion-10"
+        >
+          Manage
+        </a>
+      </div>
+    </div>
+    <div
+      class="emotion-15 emotion-16"
+    />
+  </div>
+</div>
+`;

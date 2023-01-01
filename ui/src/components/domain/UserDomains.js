@@ -98,7 +98,10 @@ class UserDomains extends React.Component {
     constructor(props) {
         super(props);
         this.toggleDomains = this.toggleDomains.bind(this);
+        this.showError = this.showError.bind(this);
         this.state = {
+            errorMessage: '',
+            showError: false,
             showDomains: !(props.hideDomains ? props.hideDomains : false),
         };
     }
@@ -113,6 +116,13 @@ class UserDomains extends React.Component {
         const { getDomainList } = this.props;
         Promise.all([getDomainList()]).catch((err) => {
             this.showError(RequestUtils.fetcherErrorCheckHelper(err));
+        });
+    }
+
+    showError(errorMessage) {
+        this.setState({
+            showError: true,
+            errorMessage: errorMessage,
         });
     }
 
@@ -176,7 +186,11 @@ class UserDomains extends React.Component {
                                 </Link>
                             </div>
                         </ManageDomainsHeaderDiv>
-                        <DomainListDiv>{userIcons}</DomainListDiv>
+                        <DomainListDiv>
+                            {this.state.showError
+                                ? this.state.errorMessage
+                                : userIcons}
+                        </DomainListDiv>
                     </ShowDomainsDiv>
                 )}
             </div>
