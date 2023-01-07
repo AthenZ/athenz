@@ -126,6 +126,7 @@ func TestRegisterInstance(test *testing.T) {
 		Region:           "us-west-2",
 		InstanceId:       "pod-1234",
 		Provider:         "athenz.aws.us-west-2",
+		SanDnsHostname:   true,
 	}
 
 	a := &attestation.AttestationData{

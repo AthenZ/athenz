@@ -65,6 +65,7 @@ type Config struct {
 	Ssh            *bool                    `json:"ssh,omitempty"`             //ssh certificate support
 	Accounts       []ConfigAccount          `json:"accounts,omitempty"`        //array of configured accounts
 	SanDnsWildcard bool                     `json:"sandns_wildcard,omitempty"` //san dns wildcard support
+	SanDnsHostname bool                     `json:"sandns_hostname,omitempty"` //san dns hostname support
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -109,6 +110,7 @@ type Options struct {
 	ZTSAzureDomains  []string
 	CountryName      string
 	SanDnsWildcard   bool
+	SanDnsHostname   bool
 }
 
 func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigAccount, error) {
@@ -175,8 +177,10 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 	}
 
 	sanDnsWildcard := false
+	sanDnsHostname := false
 	if config != nil {
 		sanDnsWildcard = config.SanDnsWildcard
+		sanDnsHostname = config.SanDnsHostname
 	}
 
 	var services []Service
@@ -251,6 +255,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 		ZTSAzureDomains:  ztsAzureDomains,
 		CountryName:      countryName,
 		SanDnsWildcard:   sanDnsWildcard,
+		SanDnsHostname:   sanDnsHostname,
 	}, nil
 }
 

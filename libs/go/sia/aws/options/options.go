@@ -79,6 +79,7 @@ type Config struct {
 	Ssh             *bool                    `json:"ssh,omitempty"`               //ssh certificate support
 	SshHostKeyType  hostkey.KeyType          `json:"ssh_host_key_type,omitempty"` //ssh host key type - rsa, ecdsa, etc
 	SanDnsWildcard  bool                     `json:"sandns_wildcard,omitempty"`   //san dns wildcard support
+	SanDnsHostname  bool                     `json:"sandns_hostname,omitempty"`   //san dns hostname support
 	UseRegionalSTS  bool                     `json:"regionalsts,omitempty"`       //whether to use a regional STS endpoint (default is false)
 	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
 	GenerateRoleKey bool                     `json:"generate_role_key,omitempty"` //private key to be generated for role certificate
@@ -140,6 +141,7 @@ type Options struct {
 	Roles              []Role           //map of roles to retrieve certificates for
 	Region             string           //region name
 	SanDnsWildcard     bool             //san dns wildcard support
+	SanDnsHostname     bool             //san dns hostname support
 	Version            string           //sia version number
 	ZTSDomains         []string         //zts domain prefixes
 	Services           []Service        //array of configured services
@@ -298,6 +300,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if !config.SanDnsWildcard {
 		config.SanDnsWildcard = util.ParseEnvBooleanFlag("ATHENZ_SIA_SANDNS_WILDCARD")
 	}
+	if !config.SanDnsHostname {
+		config.SanDnsHostname = util.ParseEnvBooleanFlag("ATHENZ_SIA_SANDNS_HOSTNAME")
+	}
 	if !config.UseRegionalSTS {
 		config.UseRegionalSTS = util.ParseEnvBooleanFlag("ATHENZ_SIA_REGIONAL_STS")
 	}
@@ -390,6 +395,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	//update regional sts and wildcard settings based on config settings
 	useRegionalSTS := false
 	sanDnsWildcard := false
+	sanDnsHostname := false
 	sdsUdsPath := ""
 	sdsUdsUid := 0
 	generateRoleKey := false
@@ -403,6 +409,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
+		sanDnsHostname = config.SanDnsHostname
 		sdsUdsPath = config.SDSUdsPath
 		sdsUdsUid = config.SDSUdsUid
 		expiryTime = config.ExpiryTime
@@ -557,6 +564,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		Version:          fmt.Sprintf("SIA-AWS %s", version),
 		UseRegionalSTS:   useRegionalSTS,
 		SanDnsWildcard:   sanDnsWildcard,
+		SanDnsHostname:   sanDnsHostname,
 		Services:         services,
 		Roles:            roles,
 		TokenDir:         fmt.Sprintf("%s/tokens", siaDir),

@@ -144,7 +144,7 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, opts.SanDnsHostname, false)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	}
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, opts.SanDnsHostname, false)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

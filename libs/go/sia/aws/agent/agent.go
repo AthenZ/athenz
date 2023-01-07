@@ -209,7 +209,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 			return err
 		}
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.SanDnsHostname, opts.InstanceIdSanDNS)
 	if err != nil {
 		return err
 	}
@@ -234,6 +234,12 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
+	}
+	if opts.SanDnsHostname {
+		hostname, err := os.Hostname()
+		if err != nil {
+			info.Hostname = zts.DomainName(hostname)
+		}
 	}
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile)
@@ -303,7 +309,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.SanDnsHostname, opts.InstanceIdSanDNS)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
@@ -331,6 +337,12 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
+	}
+	if opts.SanDnsHostname {
+		hostname, err := os.Hostname()
+		if err != nil {
+			info.Hostname = zts.DomainName(hostname)
+		}
 	}
 
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
