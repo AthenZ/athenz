@@ -359,7 +359,7 @@
                     {
                         "name": "from",
                         "type": "TransportPolicyPeer",
-                        "optional": false,
+                        "optional": true,
                         "comment": "Source of network traffic"
                     }
                 ],
@@ -393,7 +393,7 @@
                     {
                         "name": "to",
                         "type": "TransportPolicyPeer",
-                        "optional": false,
+                        "optional": true,
                         "comment": "Destination of network traffic"
                     }
                 ],
@@ -751,6 +751,30 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "NetworkPolicyPorts",
+                "comment": "allows creating a unique tuple of source and destination ports",
+                "fields": [
+                    {
+                        "name": "sourcePorts",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of source ports",
+                        "items": "NetworkPolicyPort"
+                    },
+                    {
+                        "name": "destinationPorts",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of destination ports",
+                        "items": "NetworkPolicyPort"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "NetworkPolicyChangeImpactRequest",
                 "comment": "struct representing input details for evaluating network policies change impact on transport policies",
                 "fields": [
@@ -769,18 +793,11 @@
                         "items": "IPBlock"
                     },
                     {
-                        "name": "sourcePorts",
+                        "name": "ports",
                         "type": "Array",
                         "optional": false,
-                        "comment": "list of source ports",
-                        "items": "NetworkPolicyPort"
-                    },
-                    {
-                        "name": "destinationPorts",
-                        "type": "Array",
-                        "optional": false,
-                        "comment": "list of destination ports",
-                        "items": "NetworkPolicyPort"
+                        "comment": "list of ports. Facilitates multiple transports for the same source and destinations.",
+                        "items": "NetworkPolicyPorts"
                     }
                 ],
                 "closed": false
@@ -1134,6 +1151,62 @@
             "name": "putDynamicWorkload"
         },
         {
+            "type": "WorkloadOptions",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/dynamic",
+            "comment": "Api to perform a dynamic workload DELETE operation for a domain, service, and instance",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "instanceId",
+                    "type": "PathElement",
+                    "comment": "unique instance id within provider's namespace",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteDynamicWorkload"
+        },
+        {
             "type": "StaticWorkload",
             "method": "PUT",
             "path": "/domain/{domainName}/service/{serviceName}/workload/static",
@@ -1188,6 +1261,62 @@
                 }
             },
             "name": "putStaticWorkload"
+        },
+        {
+            "type": "StaticWorkload",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/static",
+            "comment": "Api to perform a static workload DELETE operation for a domain, service, and instance",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "EntityName",
+                    "comment": "name of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "instanceId",
+                    "type": "PathElement",
+                    "comment": "unique instance id within provider's namespace",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:service.{serviceName}"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteStaticWorkload"
         },
         {
             "type": "NetworkPolicyChangeImpactRequest",

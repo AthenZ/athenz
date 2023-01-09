@@ -32,8 +32,15 @@ class RequestUtils {
         let message;
         if (err && err.statusCode === 0) {
             message = 'Session expired. Please refresh the page.';
-        } else {
+        } else if (
+            err.body !== null &&
+            err.body !== undefined &&
+            err.body.message !== null &&
+            err.body.message !== undefined
+        ) {
             message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
+        } else {
+            message = `Status: ${err.statusCode}.`;
         }
         return message;
     }

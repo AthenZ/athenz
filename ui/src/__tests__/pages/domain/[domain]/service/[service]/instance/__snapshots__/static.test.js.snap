@@ -873,7 +873,6 @@ exports[`StaticInstancePage should render 1`] = `
   vertical-align: top;
   text-transform: uppercase;
   padding: 5px 0 5px 25px;
-  word-break: break-all;
 }
 
 .emotion-68 {
@@ -884,7 +883,6 @@ exports[`StaticInstancePage should render 1`] = `
   vertical-align: top;
   text-transform: uppercase;
   padding: 5px 0 5px 15px;
-  word-break: break-all;
 }
 
 .emotion-72 {
@@ -903,17 +901,26 @@ exports[`StaticInstancePage should render 1`] = `
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
-  word-break: break-all;
 }
 
 .emotion-76 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+
+.emotion-78 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
-  word-break: break-all;
 }
 
-.emotion-80 {
+.emotion-82 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -939,13 +946,13 @@ exports[`StaticInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-82 {
+.emotion-84 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-83 {
+.emotion-85 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -960,7 +967,7 @@ exports[`StaticInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-85 {
+.emotion-87 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -979,28 +986,28 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-87 {
+.emotion-89 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-89 {
+.emotion-91 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-91 {
+.emotion-93 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-95 {
+.emotion-97 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-97 {
+.emotion-99 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1008,12 +1015,12 @@ exports[`StaticInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-99 {
+.emotion-101 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-101 {
+.emotion-103 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1314,19 +1321,25 @@ exports[`StaticInstancePage should render 1`] = `
             >
               <colgroup>
                 <col
-                  style="width: 20%;"
+                  style="width: 14%;"
                 />
                 <col
                   style="width: 20%;"
                 />
                 <col
-                  style="width: 20%;"
+                  style="width: 14%;"
                 />
                 <col
                   style="width: 20%;"
                 />
                 <col
-                  style="width: 20%;"
+                  style="width: 14%;"
+                />
+                <col
+                  style="width: 14%;"
+                />
+                <col
+                  style="width: 4%;"
                 />
               </colgroup>
               <thead>
@@ -1356,15 +1369,19 @@ exports[`StaticInstancePage should render 1`] = `
                   <td
                     class="emotion-74 emotion-75"
                     color=""
-                  />
+                  >
+                    <div
+                      class="emotion-76 emotion-77"
+                    />
+                  </td>
                   <td
-                    class="emotion-76 emotion-75"
+                    class="emotion-78 emotion-75"
                     color=""
                   >
                     ips
                   </td>
                   <td
-                    class="emotion-76 emotion-75"
+                    class="emotion-78 emotion-75"
                     color=""
                   >
                     2021-05-15 01:17 UTC
@@ -1379,11 +1396,11 @@ exports[`StaticInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-80 emotion-81"
+          class="emotion-82 emotion-83"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-82"
+            class="emotion-84"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1398,45 +1415,45 @@ exports[`StaticInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-83 emotion-84"
+          class="emotion-85 emotion-86"
         >
           <div
-            class="emotion-85 emotion-86"
+            class="emotion-87 emotion-88"
           >
             <div
-              class="emotion-87 emotion-88"
+              class="emotion-89 emotion-90"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-89 emotion-90"
+                class="emotion-91 emotion-92"
               >
                 Create
               </a>
               <span
-                class="emotion-91 emotion-92"
+                class="emotion-93 emotion-94"
               >
                  | 
               </span>
               <a
-                class="emotion-89 emotion-90"
+                class="emotion-91 emotion-92"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-95 emotion-96"
+            class="emotion-97 emotion-98"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-99 emotion-100"
             >
               <div
-                class="emotion-99 emotion-100"
+                class="emotion-101 emotion-102"
               >
                 <svg
-                  class="emotion-101"
+                  class="emotion-103"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1457,19 +1474,19 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-89 emotion-90"
+                class="emotion-91 emotion-92"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-99 emotion-100"
             >
               <div
-                class="emotion-99 emotion-100"
+                class="emotion-101 emotion-102"
               >
                 <svg
-                  class="emotion-101"
+                  class="emotion-103"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1490,7 +1507,7 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-89 emotion-90"
+                class="emotion-91 emotion-92"
               >
                 athens.ci
               </a>

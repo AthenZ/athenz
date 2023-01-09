@@ -27,6 +27,7 @@ import {
     ALLOW_PROVIDER_TEMPLATE_TO_STORE,
     DELETE_KEY_FROM_STORE,
     DELETE_SERVICE_FROM_STORE,
+    DELETE_SERVICE_INSTANCE_FROM_STORE,
     LOAD_INSTANCES_TO_STORE,
     LOAD_PROVIDER_TO_STORE,
     LOAD_SERVICE_HEADER_DETAILS_TO_STORE,
@@ -97,6 +98,45 @@ describe('Services Reducer', () => {
         delete expectedState.services['dom.service1'];
         const newState = services(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
+    });
+    it('should delete service instance', () => {
+        const initialState = {
+            services: configStoreServices,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: DELETE_SERVICE_INSTANCE_FROM_STORE,
+            payload: {
+                serviceFullName: 'dom.service2',
+                category: 'dynamic',
+                uuid: '11111111-1111-1111-1111-111111111111',
+            },
+        };
+        const expectedState = AppUtils.deepClone(initialState);
+        expectedState.services['dom.service2'].dynamicInstances.workLoadData =
+            expectedState.services[
+                'dom.service2'
+            ].dynamicInstances.workLoadData.filter((instance) => {
+                return instance.uuid != '11111111-1111-1111-1111-111111111111';
+            });
+        expectedState.services['dom.service2'].dynamicInstances.workLoadMeta
+            .totalDynamic--;
+        expectedState.services['dom.service2'].dynamicInstances.workLoadMeta
+            .totalHealthyDynamic--;
+        expectedState.services['dom.service2'].dynamicInstances.workLoadMeta
+            .totalRecords--;
+        const newState = services(initialState, action);
+        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(
+            _.isEqual(
+                Object.keys(
+                    expectedState.services['dom.service2'].dynamicInstances
+                        .workLoadData
+                ).length,
+                1
+            )
+        ).toBeTruthy();
     });
     it('should add key to service1', () => {
         const initialState = {

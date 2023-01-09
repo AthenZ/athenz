@@ -18,7 +18,17 @@ exports[`GroupRow should render 1`] = `
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
-  word-break: break-all;
+}
+
+.emotion-4 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  padding-bottom: 10px;
 }
 
 <tr
@@ -29,7 +39,11 @@ exports[`GroupRow should render 1`] = `
     class="emotion-2 emotion-3"
     color="#3570f40D"
   >
-    10.3.1.1
+    <div
+      class="emotion-4 emotion-5"
+    >
+      10.3.1.1
+    </div>
   </td>
 </tr>
 `;

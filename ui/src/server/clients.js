@@ -32,9 +32,25 @@ function refreshCertClients(config, options) {
         },
     });
 
+    CLIENTS.zts = rdlRest({
+        apiHost: config.zts,
+        rdl: require('../config/zts.json'),
+        requestOpts: {
+            strictSSL: config.strictSSL,
+        },
+    });
+
     CLIENTS.msd = rdlRest({
         apiHost: config.msd,
         rdl: require('../config/msd.json'),
+        requestOpts: {
+            strictSSL: config.strictSSL,
+        },
+    });
+
+    CLIENTS.ums = rdlRest({
+        apiHost: config.ums,
+        rdl: require('../config/ums.json'),
         requestOpts: {
             strictSSL: config.strictSSL,
         },
@@ -77,6 +93,8 @@ module.exports.middleware = function middleware() {
         req.clients = {
             zms: CLIENTS.zms(req, setCookieinClients(req)),
             msd: CLIENTS.msd(req, setCookieinClients(req)),
+            zts: CLIENTS.zts(req, setCookieinClients(req)),
+            ums: CLIENTS.ums(req, setCookieinClients(req)),
         };
         next();
     };
