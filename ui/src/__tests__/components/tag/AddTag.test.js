@@ -17,7 +17,7 @@ import React from 'react';
 import API from '../../../api';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import AddTag from '../../../components/tag/AddTag';
-import MockApi from "../../../mock/MockApi";
+import MockApi from '../../../mock/MockApi';
 
 describe('AddTag', () => {
     const onCancel = jest.fn();

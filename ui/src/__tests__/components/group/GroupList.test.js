@@ -17,7 +17,11 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import GroupList from '../../../components/group/GroupList';
 import API from '../../../api';
-import { buildDomainDataForState, getStateWithDomainData, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import {
+    buildDomainDataForState,
+    getStateWithDomainData,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 
 describe('GroupList', () => {
     it('should render', () => {
@@ -28,10 +32,7 @@ describe('GroupList', () => {
         };
         const domainData = buildDomainDataForState(domainMetadata, domain);
         const { getByTestId } = renderWithRedux(
-            <GroupList
-                domain={domain}
-                _csrf={_csrf}
-            />,
+            <GroupList domain={domain} _csrf={_csrf} />,
             getStateWithDomainData(domainData)
         );
         const grouplist = getByTestId('grouplist');

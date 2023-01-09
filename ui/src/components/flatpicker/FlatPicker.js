@@ -41,9 +41,9 @@ export default class FlatPicker extends React.Component {
             minDate: this.props.minDate
                 ? this.props.minDate
                 : this.dateUtils.getDatePlusFourHours(
-                    new Date(),
-                    this.dateUtils.getCurrentTimeZone()
-                ),
+                      new Date(),
+                      this.dateUtils.getCurrentTimeZone()
+                  ),
             maxDate: this.props.maxDate ? this.props.maxDate : null,
             placeholder: this.props.placeholder
                 ? this.props.placeholder

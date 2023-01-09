@@ -107,8 +107,13 @@ class GroupHistoryPage extends React.Component {
     }
 
     componentDidMount() {
-        const { domainName, userName, getDomainData, groupName, getGroupHistory } =
-            this.props;
+        const {
+            domainName,
+            userName,
+            getDomainData,
+            groupName,
+            getGroupHistory,
+        } = this.props;
         Promise.all([
             getDomainData(domainName, userName),
             getGroupHistory(domainName, groupName),

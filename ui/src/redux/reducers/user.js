@@ -15,7 +15,10 @@
  */
 
 import { LOAD_PENDING_MEMBERS } from '../actions/user';
-import {PROCESS_GROUP_PENDING_MEMBERS_TO_STORE, PROCESS_ROLE_PENDING_MEMBERS_TO_STORE} from '../actions/domains';
+import {
+    PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
+    PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
+} from '../actions/domains';
 import produce from 'immer';
 
 export const user = (state = {}, action) => {

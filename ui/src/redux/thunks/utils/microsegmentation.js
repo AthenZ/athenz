@@ -58,9 +58,13 @@ export const buildInboundOutbound = (domainName, state) => {
                 }
                 let tempData = {};
                 let tempProtocol = assertionItem.action.split('-');
-                tempData['layer'] = reduxApiUtils.omitUndefined(tempProtocol[0]);
+                tempData['layer'] = reduxApiUtils.omitUndefined(
+                    tempProtocol[0]
+                );
                 let tempPort = assertionItem.action.split(':');
-                tempData['source_port'] = reduxApiUtils.omitUndefined(tempPort[1]);
+                tempData['source_port'] = reduxApiUtils.omitUndefined(
+                    tempPort[1]
+                );
                 tempData['destination_port'] = reduxApiUtils.omitUndefined(
                     tempPort[2]
                 );

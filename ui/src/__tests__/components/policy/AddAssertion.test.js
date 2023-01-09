@@ -47,9 +47,7 @@ describe('AddAssertion', () => {
         const cancel = function () {};
         const domain = 'domain';
         const { getByTestId, getByText, getByPlaceholderText } =
-            renderWithRedux(
-                <AddAssertion cancel={cancel} domain={domain} />
-            );
+            renderWithRedux(<AddAssertion cancel={cancel} domain={domain} />);
         const addPolicy = getByTestId('add-assertion');
         expect(addPolicy).toMatchSnapshot();
 

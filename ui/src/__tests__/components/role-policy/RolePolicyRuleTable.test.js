@@ -25,23 +25,26 @@ describe('PolicyRuleTable', () => {
     it('should render', () => {
         const domain = 'home.pgote';
         const policyName = 'test';
-        const policies = buildPoliciesForState({
-            [`${domain}:policy.${policyName}:0`]: {
-                name: `${domain}:policy.${policyName}`,
-                modified: "2022-07-13T09:48:22.510Z",
-                version: "0",
-                active: true,
-                assertions: {
-                    11921: {
-                        role: 'home.pgote:role.allunixusers',
-                        resource: 'home.pgote:aaaa',
-                        action: 'aaa',
-                        effect: 'ALLOW',
-                        id: 11921,
+        const policies = buildPoliciesForState(
+            {
+                [`${domain}:policy.${policyName}:0`]: {
+                    name: `${domain}:policy.${policyName}`,
+                    modified: '2022-07-13T09:48:22.510Z',
+                    version: '0',
+                    active: true,
+                    assertions: {
+                        11921: {
+                            role: 'home.pgote:role.allunixusers',
+                            resource: 'home.pgote:aaaa',
+                            action: 'aaa',
+                            effect: 'ALLOW',
+                            id: 11921,
+                        },
                     },
                 },
-            }
-        }, domain);
+            },
+            domain
+        );
 
         const { getByTestId } = renderWithRedux(
             <table>
