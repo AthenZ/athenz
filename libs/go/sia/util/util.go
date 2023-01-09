@@ -261,7 +261,7 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider string, ztsDomains []string, wildCardDnsName, instanceIdSanDNS bool) (string, error) {
+func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider string, ztsDomains []string, wildCardDnsName, hostnameDnsName, instanceIdSanDNS bool) (string, error) {
 
 	log.Println("Generating X.509 Service Certificate CSR...")
 
@@ -283,6 +283,15 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, servi
 		if wildCardDnsName {
 			host = fmt.Sprintf("*.%s.%s.%s", service, hyphenDomain, ztsDomain)
 			csrDetails.HostList = append(csrDetails.HostList, host)
+		}
+	}
+	// include os hostname if requested
+	if hostnameDnsName {
+		hostname, err := os.Hostname()
+		if err == nil {
+			csrDetails.HostList = append(csrDetails.HostList, hostname)
+		} else {
+			log.Printf("Unable to extract instance hostname: %v\n", err)
 		}
 	}
 	// for backward compatibility a sanDNS entry with instance id in the hostname

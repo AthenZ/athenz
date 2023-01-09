@@ -62,12 +62,12 @@ public class SecureBootProvider implements InstanceProvider {
         // obtain list of valid principals for this principal if one is configured
 
         final String principalList = System.getProperty(ZTS_PROP_SB_PRINCIPAL_LIST);
-        if (principalList != null && !principalList.isEmpty()) {
+        if (!StringUtil.isEmpty(principalList)) {
             principals = new HashSet<>(Arrays.asList(principalList.split(",")));
         }
 
         final String issuerList = System.getProperty(ZTS_PROP_SB_ISSUER_DN_LIST);
-        if (issuerList != null && !issuerList.isEmpty()) {
+        if (!StringUtil.isEmpty(issuerList)) {
             issuerDNs = parseDnList(Arrays.asList(issuerList.split(";")));
         }
 
@@ -170,7 +170,7 @@ public class SecureBootProvider implements InstanceProvider {
         // validate the certificate san DNS names
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, instanceId)) {
+                instanceService, dnsSuffixes, false, instanceId)) {
             throw forbiddenError("Unable to validate certificate request DNS", logTxt(confirmation));
         }
 
@@ -241,7 +241,8 @@ public class SecureBootProvider implements InstanceProvider {
                 InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME);
 
         // It's possible the refresh request is coming in without the hostname in the URI
-        if (certHostname == null || certHostname.isEmpty()) {
+
+        if (StringUtil.isEmpty(certHostname)) {
             return true;
         }
         return hostname.equals(certHostname);
@@ -259,7 +260,7 @@ public class SecureBootProvider implements InstanceProvider {
                 InstanceProvider.ZTS_INSTANCE_SAN_IP);
 
         String[] sanIps = null;
-        if (sanIpStr != null && !sanIpStr.isEmpty()) {
+        if (!StringUtil.isEmpty(sanIpStr)) {
             sanIps = sanIpStr.split(",");
         }
 

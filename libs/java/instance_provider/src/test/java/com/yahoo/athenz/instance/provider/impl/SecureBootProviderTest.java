@@ -365,8 +365,15 @@ public class SecureBootProviderTest {
 
     @Test
     public void testValidateSanIp() {
+
         assertTrue(new SecureBootProvider().validateSanIp("athenz-examples1.abc.com", null));
         assertTrue(new SecureBootProvider().validateSanIp("athenz-examples1.abc.com", new HashMap<>()));
+        assertTrue(new SecureBootProvider().validateSanIp("athenz-examples1.abc.com",
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, "")));
+        assertTrue(new SecureBootProvider().validateSanIp("athenz-examples1.abc.com",
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, ",")));
+        assertTrue(new SecureBootProvider().validateSanIp("athenz-examples1.abc.com",
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, ",,,,")));
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
         Mockito.when(hostnameResolver.getAllByName("athenz-examples1.abc.com")).thenReturn(
@@ -392,6 +399,7 @@ public class SecureBootProviderTest {
                 Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.3,2001:db8:a0b:12f0:0:0:0:1")));
         assertFalse(provider.validateSanIp("athenz-examples1.abc.com",
                 Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.1.1.2,2001:db8:a0b:12f0:0:0:0:2")));
+
 
     }
 

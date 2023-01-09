@@ -261,7 +261,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), instanceId)) {
+                instanceService, getDnsSuffixes(), true, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
         

@@ -528,6 +528,7 @@ func idCommandId(arg string) int {
 
 func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SANDNS_WILDCARD", "true")
+	os.Setenv("ATHENZ_SIA_SANDNS_HOSTNAME", "true")
 	os.Setenv("ATHENZ_SIA_REGIONAL_STS", "true")
 	os.Setenv("ATHENZ_SIA_GENERATE_ROLE_KEY", "true")
 	os.Setenv("ATHENZ_SIA_ROTATE_KEY", "false")
@@ -545,6 +546,7 @@ func TestInitEnvConfig(t *testing.T) {
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
 	assert.True(t, cfg.SanDnsWildcard)
+	assert.True(t, cfg.SanDnsHostname)
 	assert.True(t, cfg.UseRegionalSTS)
 	assert.True(t, cfg.GenerateRoleKey)
 	assert.False(t, cfg.RotateKey)

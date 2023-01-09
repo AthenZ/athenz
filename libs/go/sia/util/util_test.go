@@ -214,7 +214,7 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -362,7 +362,7 @@ func TestGenerateWithWildCardHostname(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -388,6 +388,40 @@ func TestGenerateWithWildCardHostname(test *testing.T) {
 	}
 }
 
+func TestGenerateWithHostname(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, false, true, false)
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+	if len(parsedcertreq.DNSNames) != 2 {
+		test.Errorf("CSR does not have 2 expected san dns names: %d", len(parsedcertreq.DNSNames))
+		return
+	}
+	if parsedcertreq.DNSNames[0] != "service.domain.athenz.cloud" {
+		test.Errorf("CSR does not have expected dns name: %s", parsedcertreq.DNSNames[0])
+		return
+	}
+	hostname, _ := os.Hostname()
+	if parsedcertreq.DNSNames[1] != hostname {
+		test.Errorf("CSR does not have expected dns hostname: %s", parsedcertreq.DNSNames[1])
+		return
+	}
+}
+
 func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
@@ -397,7 +431,7 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
