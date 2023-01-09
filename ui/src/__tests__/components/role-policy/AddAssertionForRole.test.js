@@ -24,11 +24,7 @@ describe('AddAssertionForRole', () => {
         const domain = 'domain';
         const role = 'roleName';
         const { getByTestId } = renderWithRedux(
-            <AddAssertionForRole
-                cancel={cancel}
-                domain={domain}
-                role={role}
-            />
+            <AddAssertionForRole cancel={cancel} domain={domain} role={role} />
         );
         const addPolicy = getByTestId('add-assertion-for-role');
         expect(addPolicy).toMatchSnapshot();
@@ -39,11 +35,7 @@ describe('AddAssertionForRole', () => {
         const domain = 'domain';
         const role = 'roleName';
         const { getByTestId, getByText } = renderWithRedux(
-            <AddAssertionForRole
-                cancel={cancel}
-                domain={domain}
-                role={role}
-            />
+            <AddAssertionForRole cancel={cancel} domain={domain} role={role} />
         );
         const addPolicy = getByTestId('add-assertion-for-role');
         expect(addPolicy).toMatchSnapshot();

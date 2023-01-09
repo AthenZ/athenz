@@ -31,7 +31,9 @@ describe('Header', () => {
         };
         const { getByTestId } = renderWithRedux(
             <DomainNameHeader domainName={domain} />,
-            getStateWithDomainData(buildDomainDataForState(domainMetadata, domain))
+            getStateWithDomainData(
+                buildDomainDataForState(domainMetadata, domain)
+            )
         );
         const header = getByTestId('domain-name-header');
         expect(header).toMatchSnapshot();
@@ -43,7 +45,9 @@ describe('Header', () => {
         };
         const { getByTestId } = renderWithRedux(
             <DomainNameHeader domainName={domain} />,
-            getStateWithDomainData(buildDomainDataForState(domainMetadata, domain))
+            getStateWithDomainData(
+                buildDomainDataForState(domainMetadata, domain)
+            )
         );
         const header = getByTestId('domain-name-header');
         expect(header).toMatchSnapshot();

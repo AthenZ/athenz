@@ -75,7 +75,9 @@ describe('test selectUserPendingMembers', () => {
         const state = {
             user: { pendingMembers: userPendingMembers },
         };
-        expect(selectPendingMembersList(state, null, 'admin')).toEqual(userPendingMembers);
+        expect(selectPendingMembersList(state, null, 'admin')).toEqual(
+            userPendingMembers
+        );
     });
     it('should return empty list', () => {
         const state = {

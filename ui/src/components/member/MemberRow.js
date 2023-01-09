@@ -66,8 +66,8 @@ const colorTransition = keyframes`
 
 const TrStyled = styled.tr`
     ${(props) =>
-    props.isSuccess &&
-    css`
+        props.isSuccess &&
+        css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -271,12 +271,12 @@ class MemberRow extends React.Component {
         );
         let isSuccess =
             member.memberName +
-            '-' +
-            this.props.category +
-            '-' +
-            this.props.domain +
-            '-' +
-            this.props.collection ===
+                '-' +
+                this.props.category +
+                '-' +
+                this.props.domain +
+                '-' +
+                this.props.collection ===
             this.props.newMember;
         rows.push(
             <TrStyled
@@ -312,10 +312,10 @@ class MemberRow extends React.Component {
                     <EditDiv>
                         {member.expiration
                             ? this.localDate.getLocalDate(
-                                member.expiration,
-                                'UTC',
-                                'UTC'
-                            )
+                                  member.expiration,
+                                  'UTC',
+                                  'UTC'
+                              )
                             : 'N/A'}
                         <Menu
                             placement='bottom-start'
@@ -341,10 +341,10 @@ class MemberRow extends React.Component {
                         <EditDiv>
                             {member.reviewReminder
                                 ? this.localDate.getLocalDate(
-                                    member.reviewReminder,
-                                    'UTC',
-                                    'UTC'
-                                )
+                                      member.reviewReminder,
+                                      'UTC',
+                                      'UTC'
+                                  )
                                 : 'N/A'}
                             <Menu
                                 placement='bottom-start'

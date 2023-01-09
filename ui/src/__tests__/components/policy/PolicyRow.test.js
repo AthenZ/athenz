@@ -26,11 +26,7 @@ describe('PolicyRow', () => {
         const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
-                    <PolicyRow
-                        name={name}
-                        color={color}
-                        isActive={true}
-                    />
+                    <PolicyRow name={name} color={color} isActive={true} />
                 </tbody>
             </table>
         );

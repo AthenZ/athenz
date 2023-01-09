@@ -19,9 +19,7 @@ import PageLogin from '../../pages/login';
 
 describe('Login', () => {
     it('should render', () => {
-        const { getByTestId } = render(
-            <PageLogin />
-        );
+        const { getByTestId } = render(<PageLogin />);
         const login = getByTestId('login');
         expect(login).toMatchSnapshot();
     });

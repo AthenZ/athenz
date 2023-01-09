@@ -52,7 +52,7 @@ const FlatPickrInputDiv = styled.div`
         position: relative;
         font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
         background-color: ${(props) =>
-    props.disabled ? colors.grey500 : 'rgba(53, 112, 244, 0.05)'};
+            props.disabled ? colors.grey500 : 'rgba(53, 112, 244, 0.05)'};
         box-shadow: none;
         color: rgb(48, 48, 48);
         min-width: 50px;

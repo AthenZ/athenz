@@ -16,7 +16,11 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import ServiceList from '../../../components/service/ServiceList';
-import { buildServicesForState, getStateWithServices, renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import {
+    buildServicesForState,
+    getStateWithServices,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 const pageConfig = {
     servicePageConfig: {
@@ -31,22 +35,25 @@ const pageConfig = {
 const domain = 'home.test';
 const service = 'openhouse';
 const fullServiceName = domain + '.' + service;
-const servicesForState = buildServicesForState({
+const servicesForState = buildServicesForState(
+    {
         [fullServiceName]: {
             name: fullServiceName,
             modified: '2020-02-08T00:02:49.477Z',
-        }
-    }, 'home.test'
+        },
+    },
+    'home.test'
 );
 
 describe('ServiceList', () => {
-
     afterEach(() => {
-       MockApi.cleanMockApi();
+        MockApi.cleanMockApi();
     });
 
     it('should render without services', () => {
-        const { getByTestId } = renderWithRedux(<ServiceList pageConfig={pageConfig} />);
+        const { getByTestId } = renderWithRedux(
+            <ServiceList pageConfig={pageConfig} />
+        );
         const servicelist = getByTestId('service-list');
 
         expect(servicelist).toMatchSnapshot();
@@ -86,10 +93,7 @@ describe('ServiceList', () => {
         MockApi.setMockApi(api);
 
         const { getByText, getByTestId, getByTitle } = renderWithRedux(
-            <ServiceList
-                domain={domain}
-                pageConfig={pageConfig}
-            />,
+            <ServiceList domain={domain} pageConfig={pageConfig} />,
             getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
@@ -118,10 +122,7 @@ describe('ServiceList', () => {
         MockApi.setMockApi(api);
 
         const { getByText, getByTestId, getByTitle } = renderWithRedux(
-            <ServiceList
-                domain={domain}
-                pageConfig={pageConfig}
-            />,
+            <ServiceList domain={domain} pageConfig={pageConfig} />,
             getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
@@ -148,10 +149,7 @@ describe('ServiceList', () => {
         MockApi.setMockApi(api);
 
         const { getByText, getByTestId, getByTitle } = renderWithRedux(
-            <ServiceList
-                domain={domain}
-                pageConfig={pageConfig}
-            />,
+            <ServiceList domain={domain} pageConfig={pageConfig} />,
             getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));
@@ -182,10 +180,7 @@ describe('ServiceList', () => {
         MockApi.setMockApi(api);
 
         const { getByText, getByTestId, getByTitle } = renderWithRedux(
-            <ServiceList
-                domain={domain}
-                pageConfig={pageConfig}
-            />,
+            <ServiceList domain={domain} pageConfig={pageConfig} />,
             getStateWithServices(servicesForState)
         );
         fireEvent.click(getByTitle('trash'));

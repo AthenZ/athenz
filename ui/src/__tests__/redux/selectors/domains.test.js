@@ -178,7 +178,11 @@ describe('test domains selectors', () => {
     describe('test selectPendingMembersList selector', () => {
         it('should return domain pending members list for current domain', () => {
             expect(
-                selectPendingMembersList(stateWithDomainsData, domainName, 'domain')
+                selectPendingMembersList(
+                    stateWithDomainsData,
+                    domainName,
+                    'domain'
+                )
             ).toEqual(configDom.domainData.pendingMembersList);
         });
         it('should return domain pending members list for another domain', () => {
@@ -250,7 +254,9 @@ describe('test domains selectors', () => {
             const state = {
                 user: { pendingMembers: userPendingMembers },
             };
-            expect(selectPendingMembersList(state, null, 'admin')).toEqual(userPendingMembers);
+            expect(selectPendingMembersList(state, null, 'admin')).toEqual(
+                userPendingMembers
+            );
         });
         it('should return empty object', () => {
             expect(

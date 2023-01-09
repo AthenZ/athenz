@@ -195,15 +195,18 @@ const mapStateToProps = (state, props) => {
         ...props,
         isLoading: selectIsLoading(state),
         roleDetails: selectRole(state, props.domainName, props.roleName),
-        members: selectReviewRoleMembers(state, props.domainName, props.roleName),
+        members: selectReviewRoleMembers(
+            state,
+            props.domainName,
+            props.roleName
+        ),
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
-    getRole: (domainName, roleName) =>
-        dispatch(getRole(domainName, roleName)),
+    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ReviewPage);

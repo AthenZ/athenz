@@ -22,8 +22,8 @@ import MockApi from '../../../mock/MockApi';
 
 describe('AddMemberToRoles', () => {
     afterEach(() => {
-      MockApi.cleanMockApi();
-    })
+        MockApi.cleanMockApi();
+    });
     it('should render', () => {
         let domain = 'domain';
         let roles = [];
@@ -51,50 +51,52 @@ describe('AddMemberToRoles', () => {
         };
         let roleMembers = [];
         let roleMember1 = {
-            "memberName": "user.test1",
-            "memberRoles": [
+            memberName: 'user.test1',
+            memberRoles: [
                 {
-                    "roleName": "role1",
-                }
+                    roleName: 'role1',
+                },
             ],
-            "memberFullName": null
+            memberFullName: null,
         };
         roleMembers.push(roleMember1);
         let roleMember2 = {
-            "memberName": "user.test2",
-            "memberRoles": [
+            memberName: 'user.test2',
+            memberRoles: [
                 {
-                    "roleName": "role1",
-                }
+                    roleName: 'role1',
+                },
             ],
-            "memberFullName": null
+            memberFullName: null,
         };
         roleMembers.push(roleMember2);
         let roleMember3 = {
-            "memberName": "user.test3",
-            "memberRoles": [
+            memberName: 'user.test3',
+            memberRoles: [
                 {
-                    "roleName": "role2",
-                }
+                    roleName: 'role2',
+                },
             ],
-            "memberFullName": null
+            memberFullName: null,
         };
         roleMembers.push(roleMember3);
         let roleMember4 = {
-            "memberName": "user.test4",
-            "memberRoles": [
+            memberName: 'user.test4',
+            memberRoles: [
                 {
-                    "roleName": "role2",
-                }
+                    roleName: 'role2',
+                },
             ],
-            "memberFullName": null
+            memberFullName: null,
         };
         roleMembers.push(roleMember4);
 
         MockApi.setMockApi({
             getRoles: jest.fn().mockReturnValue(Promise.resolve(roles)),
-            getRoleMembers: jest.fn().mockReturnValue(Promise.resolve(roleMembers))
-        })
+            getRoleMembers: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(roleMembers)),
+        });
         const onCancelMock = jest.fn();
         roles.push(role1);
         roles.push(role2);
