@@ -33,7 +33,7 @@ import {
     selectRole,
     selectRoleHistory,
 } from '../../../../../redux/selectors/roles';
-import { getRoleHistory} from '../../../../../redux/thunks/roles';
+import { getRoleHistory } from '../../../../../redux/thunks/roles';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
@@ -107,8 +107,13 @@ class RoleHistoryPage extends React.Component {
     }
 
     componentDidMount() {
-        const { domainName, userName, getDomainData, roleName, getRoleHistory } =
-            this.props;
+        const {
+            domainName,
+            userName,
+            getDomainData,
+            roleName,
+            getRoleHistory,
+        } = this.props;
         Promise.all([
             getDomainData(domainName, userName),
             getRoleHistory(domainName, roleName),

@@ -23,6 +23,7 @@ import {
     allowProviderTemplateToStore,
     deleteKeyFromStore,
     deleteServiceFromStore,
+    deleteServiceInstanceFromStore,
     loadInstancesToStore,
     loadProvidersToStore,
     loadServiceHeaderDetailsToStore,
@@ -39,13 +40,20 @@ import {
     listToMap,
 } from '../utils';
 import { getServicesApiCall } from './utils/services';
-import { thunkSelectService, thunkSelectServices } from '../selectors/services';
-import { serviceDelimiter } from '../config';
+import {
+    selectInstancesWorkLoadData,
+    thunkSelectService,
+    thunkSelectServices,
+} from '../selectors/services';
+import { roleDelimiter, serviceDelimiter } from '../config';
 import {
     loadingFailed,
     loadingInProcess,
     loadingSuccess,
 } from '../actions/loading';
+import { thunkSelectRoles } from '../selectors/roles';
+import { deleteRoleFromStore } from '../actions/roles';
+import { getRoles } from './roles';
 
 export const addService =
     (domainName, service, _csrf) => async (dispatch, getState) => {
@@ -339,5 +347,47 @@ export const addServiceHost =
             return Promise.resolve();
         } catch (err) {
             return Promise.reject(err);
+        }
+    };
+
+export const deleteInstance =
+    (category, provider, domain, service, uuid, deleteJustification, _csrf) =>
+    async (dispatch, getState) => {
+        await dispatch(getServiceInstances(domain, service, category));
+        let instancesData = selectInstancesWorkLoadData(
+            getState(),
+            domain,
+            service,
+            category
+        );
+
+        let instance = instancesData.filter((instance) => {
+            return instance.uuid == uuid;
+        });
+        if (!Array.isArray(instance) || !instance.length) {
+            return Promise.reject(
+                buildErrorForDoesntExistCase('Service Instance', uuid)
+            );
+        } else {
+            try {
+                await API().deleteInstance(
+                    provider,
+                    domain,
+                    service,
+                    uuid,
+                    deleteJustification,
+                    _csrf
+                );
+                dispatch(
+                    deleteServiceInstanceFromStore(
+                        getFullName(domain, serviceDelimiter, service),
+                        uuid,
+                        category
+                    )
+                );
+                return Promise.resolve();
+            } catch (error) {
+                return Promise.reject(error);
+            }
         }
     };

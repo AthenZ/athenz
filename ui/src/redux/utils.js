@@ -150,3 +150,16 @@ export const createBellPendingMembers = (pendingMembers) => {
     }
     return bellPendingList;
 };
+
+export const deleteInstanceFromWorkloadDataDraft = (workLoadData, uuid) => {
+    let originalLen = workLoadData.length;
+    let indexToDelete = -1;
+    for (let i = 0; i < originalLen; i++) {
+        if (workLoadData[i].uuid == uuid) {
+            indexToDelete = i;
+        }
+    }
+    if (indexToDelete != -1) {
+        workLoadData.splice(indexToDelete, 1);
+    }
+};

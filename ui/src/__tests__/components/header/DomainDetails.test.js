@@ -26,19 +26,18 @@ import MockApi from '../../../mock/MockApi';
 const mockApi = {
     getMeta: jest.fn().mockReturnValue(
         new Promise((resolve, reject) => {
-                resolve([])
-            }
-        )
+            resolve([]);
+        })
     ),
-}
+};
 
 beforeEach(() => {
     MockApi.setMockApi(mockApi);
-})
+});
 
 afterEach(() => {
     MockApi.cleanMockApi();
-})
+});
 
 describe('DomainDetails', () => {
     it('should render', () => {
@@ -55,7 +54,6 @@ describe('DomainDetails', () => {
         expect(domainDetails).toMatchSnapshot();
     });
     it('should render with mock data', () => {
-
         const domainMetadata = {
             modified: '2020-02-12T21:44:37.792Z',
             ypmId: 'test',
