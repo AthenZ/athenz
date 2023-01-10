@@ -3,16 +3,17 @@ const fs = require('fs');
 const path = require('path');
 const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
+const appConfig = require('../../config/config')();
 const {
   BUILD_NUMBER,
   SD_JOB_NAME,
   WORK_DIR,
-  TUNNEL_IDENTIFIER = 'tunnel-yahoo-corp',
-  PARENT_TUNNEL = 'yahoo_general'
+  TUNNEL_IDENTIFIER = appConfig.tunnelIdentifier,
+  PARENT_TUNNEL = appConfig.parentTunnel,
 } = process.env;
-let sdv4Job = SD_JOB_NAME === 'master';
 let athenzDomain;
 let athenzService;
+let sdv4FunctionalJob = SD_JOB_NAME && SD_JOB_NAME === appConfig.devSdJobName;
 
 if (process.env.INSTANCE) { // executing functional test pointing at dev environment
   athenzDomain = 'athenz.k8s';
@@ -27,22 +28,22 @@ let sdAthenzCertFiledPath = WORK_DIR + '/func.cert.pem';
 let localAthenzKeyFilePath = '~/.athenz/keys/' + athenzDomain + '.' + athenzService + '.key.pem';
 let localAthenzCertFilePath = '~/.athenz/certs/' + athenzDomain + '.' + athenzService + '.cert.pem';
 
-let functionalTestConfig = {
-  'athensZtsAPI': 'https://zts.athens.yahoo.com:4443/zts/v1',
+let functionalConfig = {
+  'athensZtsAPI': appConfig.ztsOnPrem,
   'athenzService': athenzService,
   'athenzDomain': athenzDomain,
-  'athenzKeyFile': sdv4Job ? sdAthenzKeyFilePath : localAthenzKeyFilePath,
-  'athenzCertFile': sdv4Job ? sdAthenzCertFiledPath : localAthenzCertFilePath,
-  'sauceUser': sdv4Job ? 'athenzui-saucelabs' : process.env.SAUCE_USERNAME,
+  'athenzKeyFile': sdv4FunctionalJob ? sdAthenzKeyFilePath : localAthenzKeyFilePath,
+  'athenzCertFile': sdv4FunctionalJob ? sdAthenzCertFiledPath : localAthenzCertFilePath,
+  'sauceUser': sdv4FunctionalJob ? appConfig.sauceUser : process.env.SAUCE_USERNAME,
   'sauceKey': process.env.SAUCE_KEY,
   'instance': process.env.INSTANCE || 'https://local-ui.athenz.ouryahoo.com/',
-  'cookieDomain': process.env.COOKIE || '.athenz.ouryahoo.com',
-  'sauceSeleniumAddress': 'ondemand.us-west-1.saucelabs.com/wd/hub',
+  'cookieDomain': process.env.COOKIE || appConfig.cookieDomain,
+  'sauceSeleniumAddress': appConfig.sauceSeleniumAddress,
   'screenResolution': '1600x1200'
 };
 
-const sauceLabsKey = functionalTestConfig.sauceKey || '';
-const sauceLabsUser = functionalTestConfig.sauceUser || '';
+const sauceLabsKey = functionalConfig.sauceKey || '';
+const sauceLabsUser = functionalConfig.sauceUser || '';
 const localOrRemote = { };
 if (!sauceLabsUser) {
   //
@@ -70,7 +71,7 @@ if (!sauceLabsUser) {
     sauceConnect: true,
     region: 'us',
     updateJob: true,
-    sauceSeleniumAddress: functionalTestConfig.sauceSeleniumAddress,
+    sauceSeleniumAddress: functionalConfig.sauceSeleniumAddress,
     setJobName: (config, capabilities, suiteTitle) => {
       capabilities.name = suiteTitle + ':' + 'Athenz UI Tests';
     }
@@ -88,7 +89,7 @@ if (!sauceLabsUser) {
         parentTunnel: process.env.SAUCE_TUNNEL || PARENT_TUNNEL,
         name: process.env.npm_package_name || 'Athenz UI Tests',
         build: BUILD_NUMBER,
-        screenResolution: functionalTestConfig.screenResolution
+        screenResolution: functionalConfig.screenResolution
       }
     }
   ];
@@ -171,7 +172,7 @@ let config = {
     // Define all options that are relevant for the WebdriverIO instance here
     //
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    logLevel: 'info',
+    // logLevel: 'info',
     //
     // Set specific log levels per logger
     // loggers:
@@ -182,10 +183,10 @@ let config = {
     // - @wdio/sumologic-reporter
     // - @wdio/cli, @wdio/config, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
-    // logLevels: {
-    //     webdriver: 'info',
-    //     '@wdio/appium-service': 'info'
-    // },
+    logLevels: {
+      webdriver: 'error',
+      '@wdio/local-runner': 'info',
+    },
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
@@ -195,7 +196,7 @@ let config = {
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
-    baseUrl: functionalTestConfig.instance,
+    baseUrl: functionalConfig.instance,
     //
     // Default timeout for all waitFor* commands.
     waitforTimeout: 10000,
@@ -221,7 +222,7 @@ let config = {
     framework: 'mocha',
     //
     // The number of times to retry the entire specfile when it fails as a whole
-    specFileRetries: 1,
+    // specFileRetries: 1,
     //
     // Delay in seconds between the spec file retry attempts
     // specFileRetriesDelay: 0,
@@ -349,11 +350,11 @@ let config = {
     
         let getAccessToken = function(callback) {
           let command = 'zts-accesstoken' +
-                                ' -domain ' + functionalTestConfig.athenzDomain +
-                                ' -service ' + functionalTestConfig.athenzService +
-                                ' -svc-key-file ' + functionalTestConfig.athenzKeyFile +
-                                ' -svc-cert-file ' + functionalTestConfig.athenzCertFile +
-                                ' -zts ' + functionalTestConfig.athensZtsAPI;
+                                ' -domain ' + functionalConfig.athenzDomain +
+                                ' -service ' + functionalConfig.athenzService +
+                                ' -svc-key-file ' + functionalConfig.athenzKeyFile +
+                                ' -svc-cert-file ' + functionalConfig.athenzCertFile +
+                                ' -zts ' + functionalConfig.athensZtsAPI;
           console.log('Fetching access token using command: ', command);
           exec(command, (err, stdout, stderr) => {
             let value = {};
@@ -384,7 +385,7 @@ let config = {
                   name: 'okta_at',
                   value: tokens.access_token,
                   path: '/',
-                  domain: functionalTestConfig.cookieDomain,
+                  domain: functionalConfig.cookieDomain,
                   secure: true,
                   httpOnly: true
                 });
@@ -393,7 +394,7 @@ let config = {
                   name: 'okta_it',
                   value: tokens.id_token,
                   path: '/',
-                  domain: functionalTestConfig.cookieDomain,
+                  domain: functionalConfig.cookieDomain,
                   secure: true,
                   httpOnly: true
                 });
@@ -402,7 +403,7 @@ let config = {
                   name: 'okta_rt',
                   value: '',
                   path: '/',
-                  domain: functionalTestConfig.cookieDomain,
+                  domain: functionalConfig.cookieDomain,
                   secure: true,
                   httpOnly: true
                 });
