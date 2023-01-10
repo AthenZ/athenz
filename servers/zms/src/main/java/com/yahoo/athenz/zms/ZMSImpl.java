@@ -708,16 +708,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_PUBLISHER_DEFAULT);
         try {
             publisherFactory = (ChangePublisherFactory<DomainChangeMessage>) Class.forName(domainChangePublisherClassName).getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            LOG.error("unable to initialize publisher factory for: {}", domainChangePublisherClassName);
+        } catch (Exception ex) {
+            LOG.error("unable to initialize publisher factory for: {}", domainChangePublisherClassName, ex);
             return null;
         }
-        if (publisherFactory != null) {
-            try {
-                return publisherFactory.create(keyStore, topicName);
-            } catch (Exception e) {
-                LOG.error("unable to create a publisher for topic: {}", topicName, e);
-            }
+        try {
+            return publisherFactory.create(keyStore, topicName);
+        } catch (Exception ex) {
+            LOG.error("unable to create a publisher for topic: {}", topicName, ex);
         }
         return null;
     }
@@ -3686,7 +3684,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public Response putRole(ResourceContext ctx, String domainName, String roleName, String auditRef, Boolean returnObj, Role role) {
+    public Response putRole(ResourceContext ctx, String domainName, String roleName, String auditRef,
+            Boolean returnObj, Role role) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3732,6 +3731,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
         }
 
+        // role cannot be requested to be audit-enabled if the domain is not audit enabled
+
+        if (role.getAuditEnabled() == Boolean.TRUE && domain.getAuditEnabled() != Boolean.TRUE) {
+            throw ZMSUtils.requestError("Role cannot be set as audit-enabled if the domain is not audit-enabled", caller);
+        }
+
         // validate role and trust settings are as expected
 
         validateRoleStructure(role, domainName, caller);
@@ -3743,18 +3748,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check to see if we need to validate user and service members
         // and possibly user authority filter restrictions. For the
         // admin role we're not going to allow any group members to
-        // enforce least privilege access where specific users must
+        // enforce the least privilege access where specific users must
         // be specified as members.
 
         boolean disallowGroups = ADMIN_ROLE_NAME.equals(roleName);
         validateRoleMemberPrincipals(role, domain.getUserAuthorityFilter(), disallowGroups, caller);
 
-        // if the role is review enabled then it cannot contain
+        // if the role is review and/or audit enabled then it cannot contain
         // role members as we want review and audit enabled roles
         // to be enabled as such and then add individual members
 
-        if (role.getReviewEnabled() == Boolean.TRUE && !role.getRoleMembers().isEmpty()) {
-            throw ZMSUtils.requestError("Set review enabled flag using role meta api", caller);
+        if ((role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE)
+                && !role.getRoleMembers().isEmpty()) {
+            throw ZMSUtils.requestError("Set review-enabled or audit-enabled flag using role meta api", caller);
         }
 
         // update role expiry based on our configurations
@@ -3776,16 +3782,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // process our request
 
         Role dbRole = dbService.executePutRole(ctx, domainName, roleName, role, auditRef, caller, returnObj);
-
-
         return ZMSUtils.returnPutResponse(returnObj, dbRole);
-
     }
 
     void validateRoleStructure(final Role role, final String domainName, final String caller) {
 
-        if ((role.getMembers() != null && !role.getMembers().isEmpty())
-                && (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty())) {
+        if (!ZMSUtils.isListEmpty(role.getMembers()) && !ZMSUtils.isListEmpty(role.getRoleMembers())) {
             throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
         }
 
@@ -3793,18 +3795,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // delegated back to itself and there are no members since
         // those 2 fields are mutually exclusive
 
-        if (role.getTrust() != null && !role.getTrust().isEmpty()) {
+        if (!StringUtil.isEmpty(role.getTrust())) {
 
             AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
             if (athenzDomain == null) {
                 throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
             }
 
-            if (role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+            if (!ZMSUtils.isListEmpty(role.getRoleMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
             }
 
-            if (role.getMembers() != null && !role.getMembers().isEmpty()) {
+            if (!ZMSUtils.isListEmpty(role.getMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
             }
 
@@ -8836,6 +8838,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Invalid domain/role name specified", caller);
         }
 
+        // validate audit enabled flag for the given role
+
+        validateRoleAuditEnabledFlag(meta, role, domain.getDomain(), caller);
+
         // authorization check since we have 2 actions: update and update_meta
         // that allow access callers to manage metadata in a role
 
@@ -8855,6 +8861,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutRoleMeta(ctx, domainName, roleName, role, meta, auditRef, caller);
+    }
+
+    void validateRoleAuditEnabledFlag(RoleMeta meta, Role role, Domain domain, final String caller) {
+
+        if (meta.getAuditEnabled() == Boolean.TRUE) {
+            if (domain.getAuditEnabled() != Boolean.TRUE) {
+                throw ZMSUtils.requestError("Role cannot be set as audit-enabled if the domain is not audit-enabled", caller);
+            }
+            if (role.getAuditEnabled() != Boolean.TRUE && !role.getRoleMembers().isEmpty()) {
+                throw ZMSUtils.requestError("Only system admins can set the role as audit-enabled if it already has members", caller);
+            }
+        } else {
+            meta.setAuditEnabled(role.getAuditEnabled());
+        }
     }
 
     void validateGroupMemberAuthorityAttributes(Role role, final String userAuthorityFilter,
@@ -9571,6 +9591,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("No such domain: " + domainName, caller);
         }
 
+        // group cannot be requested to be audit-enabled if the domain is not audit enabled
+
+        if (group.getAuditEnabled() == Boolean.TRUE && domain.getAuditEnabled() != Boolean.TRUE) {
+            throw ZMSUtils.requestError("Group cannot be set as audit-enabled if the domain is not audit-enabled", caller);
+        }
+
         // normalize and remove duplicate members
 
         normalizeGroupMembers(group);
@@ -9580,12 +9606,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateGroupMemberPrincipals(group, domain.getUserAuthorityFilter(), caller);
 
-        // if the group is review enabled then it cannot contain
+        // if the group is review-enabled or audit-enabled then it cannot contain
         // group members as we want review and audit enabled roles
         // to be enabled as such and then add individual members
 
-        if (group.getReviewEnabled() == Boolean.TRUE && !group.getGroupMembers().isEmpty()) {
-            throw ZMSUtils.requestError("Set review enabled flag using group meta api", caller);
+        if ((group.getReviewEnabled() == Boolean.TRUE || group.getAuditEnabled() == Boolean.TRUE)
+                && !group.getGroupMembers().isEmpty()) {
+            throw ZMSUtils.requestError("Set review-enabled or audit-enabled flag using group meta api", caller);
         }
 
         // update group expiry based on our configurations
@@ -10103,11 +10130,38 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
+        // make sure to fetch our domain and role objects
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        Group group = getGroupFromDomain(groupName, domain);
+
+        if (group == null) {
+            throw ZMSUtils.notFoundError("Invalid domain/group name specified", caller);
+        }
+
+        // validate audit enabled flag for the given role
+
+        validateGroupAuditEnabledFlag(meta, group, domain.getDomain(), caller);
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("putGroupMeta: name={}, role={} meta={}", domainName, groupName, meta);
         }
 
         dbService.executePutGroupMeta(ctx, domainName, groupName, meta, auditRef);
+    }
+
+    void validateGroupAuditEnabledFlag(GroupMeta meta, Group group, Domain domain, final String caller) {
+
+        if (meta.getAuditEnabled() == Boolean.TRUE) {
+            if (domain.getAuditEnabled() != Boolean.TRUE) {
+                throw ZMSUtils.requestError("Group cannot be set as audit-enabled if the domain is not audit-enabled", caller);
+            }
+            if (group.getAuditEnabled() != Boolean.TRUE && !group.getGroupMembers().isEmpty()) {
+                throw ZMSUtils.requestError("Only system admins can set the group as audit-enabled if it already has members", caller);
+            }
+        } else {
+            meta.setAuditEnabled(group.getAuditEnabled());
+        }
     }
 
     @Override

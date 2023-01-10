@@ -51,6 +51,7 @@ type GroupMeta Struct {
     Int32 memberExpiryDays (optional); //all user members in the group will have specified max expiry days
     Int32 serviceExpiryDays (optional); //all services in the group will have specified max expiry days
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
 }
 
 //The representation for a Group with set of members.
@@ -59,7 +60,6 @@ type Group GroupMeta {
     Timestamp modified (optional); //last modification timestamp of the group
     Array<GroupMember> groupMembers (optional);  //members with expiration
     Array<GroupAuditLog> auditLog (optional); //an audit log for group membership changes
-    Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
     Timestamp lastReviewedDate (optional); //last review timestamp of the group
 }
 

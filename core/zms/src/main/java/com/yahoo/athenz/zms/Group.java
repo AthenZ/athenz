@@ -38,6 +38,9 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean auditEnabled;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -48,9 +51,6 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<GroupAuditLog> auditLog;
-    @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean auditEnabled;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp lastReviewedDate;
@@ -111,6 +111,13 @@ public class Group {
     public Map<String, TagValueList> getTags() {
         return tags;
     }
+    public Group setAuditEnabled(Boolean auditEnabled) {
+        this.auditEnabled = auditEnabled;
+        return this;
+    }
+    public Boolean getAuditEnabled() {
+        return auditEnabled;
+    }
     public Group setName(String name) {
         this.name = name;
         return this;
@@ -138,13 +145,6 @@ public class Group {
     }
     public List<GroupAuditLog> getAuditLog() {
         return auditLog;
-    }
-    public Group setAuditEnabled(Boolean auditEnabled) {
-        this.auditEnabled = auditEnabled;
-        return this;
-    }
-    public Boolean getAuditEnabled() {
-        return auditEnabled;
     }
     public Group setLastReviewedDate(Timestamp lastReviewedDate) {
         this.lastReviewedDate = lastReviewedDate;
@@ -185,6 +185,9 @@ public class Group {
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
+            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
+                return false;
+            }
             if (name == null ? a.name != null : !name.equals(a.name)) {
                 return false;
             }
@@ -195,9 +198,6 @@ public class Group {
                 return false;
             }
             if (auditLog == null ? a.auditLog != null : !auditLog.equals(a.auditLog)) {
-                return false;
-            }
-            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
             if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {

@@ -51,6 +51,7 @@ type RoleMeta Struct {
     Int32 groupReviewDays (optional); //all groups in the domain roles will have specified max review days
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String description (optional); //a description of the role
+    Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
 }
 
 //The representation for a Role with set of members.
@@ -61,7 +62,6 @@ type Role RoleMeta {
     Array<RoleMember> roleMembers (optional);  //members with expiration
     DomainName trust (optional); //a trusted domain to delegate membership decisions to
     Array<RoleAuditLog> auditLog (optional); //an audit log for role membership changes
-    Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
     Timestamp lastReviewedDate (optional); //last review timestamp of the role
 }
 

@@ -195,7 +195,8 @@ public class ZMSSchema {
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("groupReviewDays", "Int32", true, "all groups in the domain roles will have specified max review days")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
-            .field("description", "String", true, "a description of the role");
+            .field("description", "String", true, "a description of the role")
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")
@@ -205,7 +206,6 @@ public class ZMSSchema {
             .arrayField("roleMembers", "RoleMember", true, "members with expiration")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role");
 
         sb.structType("Roles")
@@ -483,7 +483,8 @@ public class ZMSSchema {
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("memberExpiryDays", "Int32", true, "all user members in the group will have specified max expiry days")
             .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false);
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")
@@ -491,7 +492,6 @@ public class ZMSSchema {
             .field("modified", "Timestamp", true, "last modification timestamp of the group")
             .arrayField("groupMembers", "GroupMember", true, "members with expiration")
             .arrayField("auditLog", "GroupAuditLog", true, "an audit log for group membership changes")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group");
 
         sb.structType("Groups")

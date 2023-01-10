@@ -62,6 +62,9 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean auditEnabled;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -175,6 +178,13 @@ public class RoleMeta {
     public String getDescription() {
         return description;
     }
+    public RoleMeta setAuditEnabled(Boolean auditEnabled) {
+        this.auditEnabled = auditEnabled;
+        return this;
+    }
+    public Boolean getAuditEnabled() {
+        return auditEnabled;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -229,6 +239,9 @@ public class RoleMeta {
                 return false;
             }
             if (description == null ? a.description != null : !description.equals(a.description)) {
+                return false;
+            }
+            if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
                 return false;
             }
         }
