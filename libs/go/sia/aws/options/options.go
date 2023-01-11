@@ -39,36 +39,40 @@ import (
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
-	Filename       string `json:"filename,omitempty"`
-	User           string `json:"user,omitempty"`
-	Group          string `json:"group,omitempty"`
-	ExpiryTime     int    `json:"expiry_time,omitempty"`
-	SDSUdsUid      int    `json:"sds_uds_uid,omitempty"`
-	SDSNodeId      string `json:"sds_node_id,omitempty"`
-	SDSNodeCluster string `json:"sds_node_cluster,omitempty"`
+	Filename       string  `json:"filename,omitempty"`
+	User           string  `json:"user,omitempty"`
+	Group          string  `json:"group,omitempty"`
+	ExpiryTime     int     `json:"expiry_time,omitempty"`
+	SDSUdsUid      int     `json:"sds_uds_uid,omitempty"`
+	SDSNodeId      string  `json:"sds_node_id,omitempty"`
+	SDSNodeCluster string  `json:"sds_node_cluster,omitempty"`
+	Threshold      float64 `json:"cert_threshold_to_check,omitempty"`
 }
 
 // ConfigRole represents a role to be specified by user, and specify attributes for the role
 type ConfigRole struct {
-	Filename   string `json:"filename,omitempty"`    //filename for the generated role certificate file
-	ExpiryTime int    `json:"expiry_time,omitempty"` //requested expiry time for the role certificate
-	Service    string `json:"service,omitempty"`     //principal with role access
-	User       string `json:"user,omitempty"`        //user owner on the role identity key
-	Group      string `json:"group,omitempty"`       //group owner on the role identity key
+	Filename   string  `json:"filename,omitempty"`    //filename for the generated role certificate file
+	ExpiryTime int     `json:"expiry_time,omitempty"` //requested expiry time for the role certificate
+	Service    string  `json:"service,omitempty"`     //principal with role access
+	User       string  `json:"user,omitempty"`        //user owner on the role identity key
+	Group      string  `json:"group,omitempty"`       //group owner on the role identity key
+	Threshold  float64 `json:"cert_threshold_to_check,omitempty"`
 }
 
 // ConfigAccount represents each of the accounts that can be specified in the config file
 type ConfigAccount struct {
-	Name     string                `json:"name,omitempty"`     //name of the service identity
-	User     string                `json:"user,omitempty"`     //the username to chown the cert/key dirs to. If absent, then root.
-	Group    string                `json:"group,omitempty"`    //the group name to chown the cert/key dirs to. If absent, then athenz.
-	Domain   string                `json:"domain,omitempty"`   //name of the domain for the identity
-	Account  string                `json:"account,omitempty"`  //name of the account
-	Service  string                `json:"service,omitempty"`  //name of the service for the identity
-	Zts      string                `json:"zts,omitempty"`      //the ZTS to contact
-	Filename string                `json:"filename,omitempty"` //filename to put the service certificate
-	Roles    map[string]ConfigRole `json:"roles,omitempty"`    //map of roles to retrieve certificates for
-	Version  string                `json:"version,omitempty"`  //sia version number
+	Name         string                `json:"name,omitempty"`                       //name of the service identity
+	User         string                `json:"user,omitempty"`                       //the username to chown the cert/key dirs to. If absent, then root.
+	Group        string                `json:"group,omitempty"`                      //the group name to chown the cert/key dirs to. If absent, then athenz.
+	Domain       string                `json:"domain,omitempty"`                     //name of the domain for the identity
+	Account      string                `json:"account,omitempty"`                    //name of the account
+	Service      string                `json:"service,omitempty"`                    //name of the service for the identity
+	Zts          string                `json:"zts,omitempty"`                        //the ZTS to contact
+	Filename     string                `json:"filename,omitempty"`                   //filename to put the service certificate
+	Roles        map[string]ConfigRole `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
+	Version      string                `json:"version,omitempty"`                    //sia version number
+	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    // Threshold to verify for all certs
+	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` // Threshold to verify for ssh certs
 }
 
 // Config represents entire sia_config file
@@ -108,6 +112,7 @@ type Role struct {
 	Uid        int
 	Gid        int
 	FileMode   int
+	Threshold  float64
 }
 
 // Service represents service details. Attributes are filled in based on the config values
@@ -123,6 +128,7 @@ type Service struct {
 	SDSUdsUid      int
 	SDSNodeId      string
 	SDSNodeCluster string
+	Threshold      float64
 }
 
 // Options represents settings that are derived from config file and application defaults
@@ -173,10 +179,13 @@ type Options struct {
 	TokenDir           string           //Access tokens directory
 	AccessTokens       []ac.AccessToken //Access tokens object
 	Profile            string           //Access profile name
+	Threshold          float64
+	SshThreshold       float64
 }
 
 const (
-	DEFAULT_TOKEN_EXPIRY = 28800 // 8 hrs
+	DEFAULT_TOKEN_EXPIRY = 28800       // 8 hrs
+	DEFAULT_THRESHOLD    = float64(15) // 15 days
 )
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
@@ -199,10 +208,12 @@ func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS b
 		return nil, nil, fmt.Errorf("unable to parse role arn: %v", err)
 	}
 	return &ConfigAccount{
-			Domain:  domain,
-			Service: service,
-			Account: account,
-			Name:    fmt.Sprintf("%s.%s", domain, service),
+			Domain:       domain,
+			Service:      service,
+			Account:      account,
+			Name:         fmt.Sprintf("%s.%s", domain, service),
+			Threshold:    DEFAULT_THRESHOLD,
+			SshThreshold: DEFAULT_THRESHOLD,
 		}, &AccessProfileConfig{
 			Profile: profile,
 		}, nil
@@ -223,10 +234,12 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 	}
 
 	return &ConfigAccount{
-			Domain:  domain,
-			Service: service,
-			Account: account,
-			Name:    fmt.Sprintf("%s.%s", domain, service),
+			Domain:       domain,
+			Service:      service,
+			Account:      account,
+			Name:         fmt.Sprintf("%s.%s", domain, service),
+			Threshold:    DEFAULT_THRESHOLD,
+			SshThreshold: DEFAULT_THRESHOLD,
 		}, &AccessProfileConfig{
 			Profile: profile,
 		}, nil
@@ -260,6 +273,8 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, 
 			}
 			configAccount.Service = config.Service
 			configAccount.Name = fmt.Sprintf("%s.%s", configAccount.Domain, configAccount.Service)
+			configAccount.Threshold = nonZeroValue(configAccount.Threshold, DEFAULT_THRESHOLD)
+			configAccount.SshThreshold = nonZeroValue(configAccount.SshThreshold, DEFAULT_THRESHOLD)
 			return &config, &configAccount, nil
 		}
 	}
@@ -362,12 +377,17 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		}
 	}
 
+	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DEFAULT_THRESHOLD)
+	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DEFAULT_THRESHOLD)
+
 	return config, &ConfigAccount{
-		Account: account,
-		Domain:  domain,
-		Service: service,
-		Roles:   configRoles,
-		Name:    fmt.Sprintf("%s.%s", domain, service),
+		Account:      account,
+		Domain:       domain,
+		Service:      service,
+		Roles:        configRoles,
+		Name:         fmt.Sprintf("%s.%s", domain, service),
+		Threshold:    threshold,
+		SshThreshold: sshThreshold,
 	}, nil
 }
 
@@ -435,9 +455,10 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		//There is no sia_config, or multiple services are not configured.
 		//Populate services with the account information we gathered
 		s := Service{
-			Name:     account.Service,
-			Filename: account.Filename,
-			User:     account.User,
+			Name:      account.Service,
+			Filename:  account.Filename,
+			User:      account.User,
+			Threshold: account.Threshold,
 		}
 		s.Uid, s.Gid, s.FileMode = util.SvcAttrs(account.User, account.Group)
 		s.SDSUdsUid = sdsUdsUid
@@ -481,12 +502,14 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 				first.SDSNodeId = s.SDSNodeId
 				first.SDSNodeCluster = s.SDSNodeCluster
 				first.SDSUdsUid = svcSDSUdsUid
+				first.Threshold = nonZeroValue(s.Threshold, account.Threshold)
 			} else {
 				ts := Service{
-					Name:     name,
-					Filename: s.Filename,
-					User:     s.User,
-					Group:    s.Group,
+					Name:      name,
+					Filename:  s.Filename,
+					User:      s.User,
+					Group:     s.Group,
+					Threshold: nonZeroValue(s.Threshold, account.Threshold),
 				}
 				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group)
 				ts.ExpiryTime = svcExpiryTime
@@ -525,6 +548,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 			Filename:   r.Filename,
 			ExpiryTime: r.ExpiryTime,
 			FileMode:   roleService.FileMode,
+			Threshold:  nonZeroValue(r.Threshold, account.Threshold),
 		}
 		role.Uid = roleService.Uid
 		role.Gid = roleService.Gid
@@ -572,6 +596,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		DropPrivileges:   dropPrivileges,
 		AccessTokens:     accessTokens,
 		Profile:          profile,
+		Threshold:        account.Threshold,
+		SshThreshold:     account.SshThreshold,
 	}, nil
 }
 
@@ -722,4 +748,11 @@ func NewOptions(config *Config, configAccount *ConfigAccount, profileConfig *Acc
 		opts.UseRegionalSTS = true
 	}
 	return opts, nil
+}
+
+func nonZeroValue(t, base float64) float64 {
+	if t != 0 {
+		return t
+	}
+	return base
 }

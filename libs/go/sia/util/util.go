@@ -634,6 +634,18 @@ func ParseEnvIntFlag(varName string, defaultValue int) int {
 	return value
 }
 
+func ParseEnvFloatFlag(varName string, defaultValue float64) float64 {
+	varStr := os.Getenv(varName)
+	if varStr == "" {
+		return defaultValue
+	}
+	value, err := strconv.ParseFloat(varStr, 64)
+	if err != nil {
+		return defaultValue
+	}
+	return value
+}
+
 func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (string, string) {
 	if file != "" && file[0] == '/' {
 		return file, fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
