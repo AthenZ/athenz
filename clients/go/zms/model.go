@@ -1094,6 +1094,13 @@ type RoleMeta struct {
 	// a description of the role
 	//
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether or not role updates should be approved by GRC. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1243,6 +1250,13 @@ type Role struct {
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Flag indicates whether or not role updates should be approved by GRC. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it.
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the role
 	//
 	Name ResourceName `json:"name"`
@@ -1271,13 +1285,6 @@ type Role struct {
 	// an audit log for role membership changes
 	//
 	AuditLog []*RoleAuditLog `json:"auditLog,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether or not role updates should require GRC approval. If
-	// true, the auditRef parameter must be supplied(not empty) for any API defining
-	// it
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// last review timestamp of the role
@@ -5039,6 +5046,13 @@ type GroupMeta struct {
 	// key-value pair tags, tag might contain multiple values
 	//
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether or not group updates should require GRC approval. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -5136,6 +5150,13 @@ type Group struct {
 	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Flag indicates whether or not group updates should require GRC approval. If
+	// true, the auditRef parameter must be supplied(not empty) for any API defining
+	// it
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the group
 	//
 	Name ResourceName `json:"name"`
@@ -5154,13 +5175,6 @@ type Group struct {
 	// an audit log for group membership changes
 	//
 	AuditLog []*GroupAuditLog `json:"auditLog,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// Flag indicates whether or not group updates should require GRC approval. If
-	// true, the auditRef parameter must be supplied(not empty) for any API defining
-	// it
-	//
-	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// last review timestamp of the group

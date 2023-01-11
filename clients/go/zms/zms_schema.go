@@ -226,6 +226,7 @@ func init() {
 	tRoleMeta.Field("groupReviewDays", "Int32", true, nil, "all groups in the domain roles will have specified max review days")
 	tRoleMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tRoleMeta.Field("description", "String", true, nil, "a description of the role")
+	tRoleMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -236,7 +237,6 @@ func init() {
 	tRole.ArrayField("roleMembers", "RoleMember", true, "members with expiration")
 	tRole.Field("trust", "DomainName", true, nil, "a trusted domain to delegate membership decisions to")
 	tRole.ArrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-	tRole.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
 	tRole.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the role")
 	sb.AddType(tRole.Build())
 
@@ -560,6 +560,7 @@ func init() {
 	tGroupMeta.Field("memberExpiryDays", "Int32", true, nil, "all user members in the group will have specified max expiry days")
 	tGroupMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the group will have specified max expiry days")
 	tGroupMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+	tGroupMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")
@@ -568,7 +569,6 @@ func init() {
 	tGroup.Field("modified", "Timestamp", true, nil, "last modification timestamp of the group")
 	tGroup.ArrayField("groupMembers", "GroupMember", true, "members with expiration")
 	tGroup.ArrayField("auditLog", "GroupAuditLog", true, "an audit log for group membership changes")
-	tGroup.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
 	tGroup.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the group")
 	sb.AddType(tGroup.Build())
 
