@@ -1,7 +1,19 @@
+/*
+ * Copyright The Athenz Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 'use strict';
-const fs = require('fs');
-const path = require('path');
-const mkdirp = require('mkdirp');
 const exec = require('child_process').exec;
 const appConfig = require('../../config/config')();
 const {
@@ -298,56 +310,6 @@ let config = {
      * @param {Object}         browser      instance of created browser/device session
      */
      before: function(capabilities, specs, browser) {
-        browser.addCommand('screenshot', function(filename) {
-          return browser.takeScreenshot().then(function(png) {
-            return browser.driver.controlFlow().execute(function() {
-              return new Promise(function(fulfill) {
-                mkdirp(path.dirname(filename), function() {
-                  let stream = fs.createWriteStream(filename);
-                  stream.write(new Buffer(png, 'base64'));
-                  stream.end(function() {
-                    fulfill();
-                  });
-                });
-              });
-            });
-          });
-        });
-        let count = 0;
-        let Mocha = require('mocha');
-        if (!Mocha._pesExt) {
-          Mocha._pesExt = true;
-          let run = Mocha.prototype.run;
-          Mocha.prototype.run = function() {
-            this.suite.on('pre-require', function() {
-              // Anything that is shared across all tests should be put here.
-              function screenshot(test) {
-                if (test.state === 'failed') {
-                  let shotsDir = path.join(process.cwd(), 'artifacts/shots'),
-                    filename = encodeURIComponent(test.title.replace(/\s+/g, '-'));
-                  if (process.env.ARTIFACTS_DIR) {
-                    shotsDir = path.join(process.env.ARTIFACTS_DIR, 'shots');
-                  }
-      
-                  filename = path.join(shotsDir, count + '-' + filename + '.png');
-                  count += 1;
-                  console.log('\n=====================Test case failed!=======================');
-                  console.log('Test file: ' + test.file);
-                  console.log('Test name: ' + test.title);
-                  console.log('Screen shot location: ' + filename);
-                  console.log('===============================================================\n');
-                  return browser.screenshot(filename);
-                }
-              }
-      
-              afterEach(function(){
-                screenshot(this.currentTest);
-              });
-            });
-            return run.apply(this, arguments);
-          };
-        }
-    
         let getAccessToken = function(callback) {
           let command = 'zts-accesstoken' +
                                 ' -domain ' + functionalConfig.athenzDomain +
