@@ -830,6 +830,34 @@ func TestParseEnvIntFlag(test *testing.T) {
 	}
 }
 
+func TestParseEnvFloatFlag(test *testing.T) {
+
+	tests := []struct {
+		name         string
+		varName      string
+		varValue     string
+		defaultValue float64
+		returnValue  float64
+	}{
+		{"valid", "TEST-INT-ENV1", "1.5", 2, 1.5},
+		{"valid-negative", "TEST-INT-ENV2", "-1", 2, -1},
+		{"not-set", "TEST-INT-ENV3", "", 2, 2},
+		{"not-int1", "TEST-INT-ENV4", "abc", 3.5, 3.5},
+		{"not-int2", "TEST-INT-ENV5", "4abc", 3, 3},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			if tt.varValue != "" {
+				os.Setenv(tt.varName, tt.varValue)
+			}
+			value := ParseEnvFloatFlag(tt.varName, tt.defaultValue)
+			if value != tt.returnValue {
+				test.Errorf("%s: invalid value returned - expected: %f, received %f", tt.name, tt.returnValue, value)
+			}
+		})
+	}
+}
+
 func TestParseServiceSpiffeUri(test *testing.T) {
 
 	tests := []struct {

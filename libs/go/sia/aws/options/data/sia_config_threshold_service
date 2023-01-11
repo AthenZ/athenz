@@ -1,0 +1,24 @@
+{
+    "version": "1.0.0",
+    "service": "api",
+    "services": {
+        "api": {},
+        "ui": {
+            "user": "root"
+        },
+        "yamas": {
+            "user": "nobody",
+            "group": "sys",
+            "cert_threshold_to_check": 25
+        }
+    },
+    "accounts": [
+        {
+            "domain": "athenz",
+            "user": "nobody",
+            "account": "123456789012",
+            "cert_threshold_to_check": 35,
+            "sshcert_threshold_to_check": 60
+        }
+    ]
+}
