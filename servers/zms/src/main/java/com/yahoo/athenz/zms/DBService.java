@@ -575,8 +575,6 @@ public class DBService implements RolesProvider {
 
         boolean requestSuccess;
         if (originalRole == null) {
-            // auditEnabled can only be set with system admin privileges
-            role.setAuditEnabled(false);
             requestSuccess = con.insertRole(domainName, role);
         } else {
             // carrying over auditEnabled from original role
@@ -595,7 +593,7 @@ public class DBService implements RolesProvider {
         auditDetails.append("{\"name\": \"").append(roleName)
             .append("\", \"trust\": \"").append(role.getTrust()).append('\"');
 
-        // now we need process our role members depending this is
+        // now we need process our role members depending on if this is
         // a new insert operation or an update
 
         List<RoleMember> roleMembers = role.getRoleMembers();
@@ -1392,9 +1390,10 @@ public class DBService implements RolesProvider {
                         roleName, auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
 
-              return returnObj == Boolean.TRUE ? getRole(con, domainName, roleName, true, false, true) : null;
+                return returnObj == Boolean.TRUE ? getRole(con, domainName, roleName, true, false, true) : null;
 
             } catch (ResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -5602,6 +5601,9 @@ public class DBService implements RolesProvider {
         if (meta.getReviewEnabled() != null) {
             role.setReviewEnabled(meta.getReviewEnabled());
         }
+        if (meta.getAuditEnabled() != null) {
+            role.setAuditEnabled(meta.getAuditEnabled());
+        }
         if (meta.getNotifyRoles() != null) {
             role.setNotifyRoles(meta.getNotifyRoles());
         }
@@ -5729,6 +5731,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getTags() != null) {
             group.setTags(meta.getTags());
+        }
+        if (meta.getAuditEnabled() != null) {
+            group.setAuditEnabled(meta.getAuditEnabled());
         }
     }
 

@@ -465,4 +465,8 @@ public class ZMSUtils {
                 ? Response.status(ResourceException.OK).entity(returnObj).build()
                 : Response.status(ResourceException.NO_CONTENT).build();
     }
+
+    public static boolean isListEmpty(List list) {
+        return list == null || list.isEmpty();
+    }
 }

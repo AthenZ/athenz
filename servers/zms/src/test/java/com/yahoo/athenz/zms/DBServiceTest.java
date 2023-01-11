@@ -5627,7 +5627,7 @@ public class DBServiceTest {
         StringBuilder auditDetails = new StringBuilder("testAudit");
         zms.dbService.processRole(conn, null, "auditedDomain", "testRole1",
                 role, adminUser, auditRef, false, auditDetails);
-        assertFalse(role.getAuditEnabled());
+        assertTrue(role.getAuditEnabled());
         assertTrue(role.getSelfServe());
     }
 

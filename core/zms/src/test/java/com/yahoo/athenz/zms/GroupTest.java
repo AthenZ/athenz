@@ -467,6 +467,7 @@ public class GroupTest {
                 .setSelfServe(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setReviewEnabled(false)
+                .setAuditEnabled(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
@@ -477,6 +478,7 @@ public class GroupTest {
         assertFalse(rm.getSelfServe());
         assertEquals(rm.getNotifyRoles(), "role1,domain:role.role2");
         assertFalse(rm.getReviewEnabled());
+        assertFalse(rm.getAuditEnabled());
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getMemberExpiryDays().intValue(), 10);
@@ -487,6 +489,7 @@ public class GroupTest {
                 .setSelfServe(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setReviewEnabled(false)
+                .setAuditEnabled(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
@@ -506,6 +509,13 @@ public class GroupTest {
         rm2.setReviewEnabled(null);
         assertFalse(rm2.equals(rm));
         rm2.setReviewEnabled(false);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setAuditEnabled(true);
+        assertFalse(rm2.equals(rm));
+        rm2.setAuditEnabled(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setAuditEnabled(false);
         assertTrue(rm2.equals(rm));
 
         rm2.setSelfServe(true);
