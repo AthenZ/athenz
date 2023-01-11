@@ -2499,7 +2499,7 @@ public class ZMSImplTest {
             zms.putRole(ctx, domainName2, "role23", auditRef, false, role23);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Set review-enabled or audit-enabled flag using role meta api"));
+            assertTrue(ex.getMessage().contains("Only system admins can set the role as audit-enabled if it has members"));
         }
 
         zms.deleteTopLevelDomain(ctx, domainName1, auditRef);
@@ -23061,7 +23061,7 @@ public class ZMSImplTest {
             zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, role1);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Set review-enabled or audit-enabled flag using role meta api"));
+            assertTrue(ex.getMessage().contains("Set review-enabled flag using role meta api"));
         }
 
         // now create a role review enabled with no members
@@ -24950,7 +24950,7 @@ public class ZMSImplTest {
             zms.putGroup(ctx, domainName2, "group23", auditRef, false, group23);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Set review-enabled or audit-enabled flag using group meta api"));
+            assertTrue(ex.getMessage().contains("Only system admins can set the group as audit-enabled if it has members"));
         }
 
         zms.deleteTopLevelDomain(ctx, domainName1, auditRef);
@@ -30831,7 +30831,7 @@ public class ZMSImplTest {
         // this should throw an exception since domain is not audit enabled
 
         try {
-            zms.validateRoleAuditEnabledFlag(meta, null, domain, "validateRoleAuditEnabledFlag");
+            zms.validateRoleMetaAuditEnabledFlag(meta, null, domain, "validateRoleAuditEnabledFlag");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Role cannot be set as audit-enabled if the domain is not audit-enabled"));
@@ -30846,7 +30846,7 @@ public class ZMSImplTest {
         domain.setAuditEnabled(true);
 
         try {
-            zms.validateRoleAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+            zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Only system admins can set the role as audit-enabled if it already has members"));
@@ -30856,28 +30856,28 @@ public class ZMSImplTest {
 
         role.setAuditEnabled(false);
         role.setRoleMembers(Collections.emptyList());
-        zms.validateRoleAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
 
         // if the role is audit enabled then we're good
 
         role.setAuditEnabled(true);
         role.setRoleMembers(roleMembers);
-        zms.validateRoleAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
 
         // if the role is not audit enabled but the member list is empty then we're good as well
 
         role.setRoleMembers(Collections.emptyList());
-        zms.validateRoleAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
 
         // if meta is set as audit disabled, then it must get the same value as the role
 
         meta.setAuditEnabled(false);
         role.setAuditEnabled(false);
-        zms.validateRoleAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
         assertFalse(meta.getAuditEnabled());
 
         role.setAuditEnabled(true);
-        zms.validateRoleAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
         assertTrue(meta.getAuditEnabled());
     }
 
@@ -30891,7 +30891,7 @@ public class ZMSImplTest {
         // this should throw an exception since domain is not audit enabled
 
         try {
-            zms.validateGroupAuditEnabledFlag(meta, null, domain, "validateGroupAuditEnabledFlag");
+            zms.validateGroupMetaAuditEnabledFlag(meta, null, domain, "validateGroupAuditEnabledFlag");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Group cannot be set as audit-enabled if the domain is not audit-enabled"));
@@ -30906,7 +30906,7 @@ public class ZMSImplTest {
         domain.setAuditEnabled(true);
 
         try {
-            zms.validateGroupAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+            zms.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Only system admins can set the group as audit-enabled if it already has members"));
@@ -30916,28 +30916,28 @@ public class ZMSImplTest {
 
         group.setAuditEnabled(false);
         group.setGroupMembers(Collections.emptyList());
-        zms.validateGroupAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+        zms.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
 
         // if the group is audit enabled but the list is not empty then we're good
 
         group.setAuditEnabled(true);
         group.setGroupMembers(groupMembers);
-        zms.validateGroupAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+        zms.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
 
         // if the group is not audit enabled but the member list is empty then we're still good
 
         group.setGroupMembers(Collections.emptyList());
-        zms.validateGroupAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+        zms.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
 
         // if meta is set as audit disabled, then it must get the same value as the group
 
         meta.setAuditEnabled(false);
         group.setAuditEnabled(false);
-        zms.validateGroupAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+        zms.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
         assertFalse(meta.getAuditEnabled());
 
         group.setAuditEnabled(true);
-        zms.validateGroupAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+        zms.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
         assertTrue(meta.getAuditEnabled());
     }
 }
