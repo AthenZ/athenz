@@ -7872,7 +7872,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteTenantRoles(ctx, provSvcDomain, provSvcName, tenantDomain,
                 resourceGroup, auditRef, caller);
 
-        // If listed as service provider, check if there are remaining resource group roles. If not - de-register dependency between the provider service and the tenant domain
+        // If listed as service provider, check if there are remaining resource group roles.
+        // If not - de-register dependency between the provider service and the tenant domain
 
         tenancyDeregisterDomainDependency(ctx, tenantDomain, provSvcDomain, provSvcName, auditRef, caller);
     }
@@ -10688,10 +10689,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private List<String> getResourceGroupsForProviderServiceTenantDomain(final String service, final String tenantDomain) {
         final String provSvcName = ZMSUtils.providerServiceName(service);
         final String provSvcDomain = ZMSUtils.providerServiceDomain(service);
-        final String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, null);
+        final String rolePrefix = ZMSUtils.getTenantResourceGroupRolePrefix(provSvcName, tenantDomain, "");
         final List<String> tenantDomainRoles = dbService.listRoles(provSvcDomain);
         return tenantDomainRoles.stream()
-                .filter(role -> role.startsWith(rolePrefix) && role.contains(".res_group."))
+                .filter(role -> role.startsWith(rolePrefix))
                 .collect(Collectors.toList());
     }
 
