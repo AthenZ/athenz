@@ -1,3 +1,16 @@
+Athenz v1.11.17 Release / Jan 11, 2023
+--------------------------------------
+
+#1984 UI: Delete Instance from UI
+#2026 validate ssh host certificate line including cert filename
+#2029 support sandns_hostname for aws ec2
+#2030 UI: just run the fix_lint
+#2031 UI: Bump json5 from 2.2.1 to 2.2.3 in /ui
+#2032 allow domain admins to enable audit flag for new roles/groups
+#2033 update pkg dependencies to their latest releases
+#2035 Add SIA AWS option for certificate expiry threshold check
+#2036 update zms go auto-generated code for audit enabled flag
+
 Athenz v1.11.16 Release / Dec 19, 2022
 --------------------------------------
 
