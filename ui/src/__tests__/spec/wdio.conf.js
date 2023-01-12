@@ -48,7 +48,7 @@ let functionalConfig = {
   'athenzCertFile': sdv4FunctionalJob ? sdAthenzCertFiledPath : localAthenzCertFilePath,
   'sauceUser': sdv4FunctionalJob ? appConfig.sauceUser : process.env.SAUCE_USERNAME,
   'sauceKey': process.env.SAUCE_KEY,
-  'instance': process.env.INSTANCE || 'https://local-ui.athenz.ouryahoo.com/',
+  'instance': process.env.INSTANCE || appConfig.localUrl,
   'cookieDomain': process.env.COOKIE || appConfig.cookieDomain,
   'sauceSeleniumAddress': appConfig.sauceSeleniumAddress,
   'screenResolution': '1600x1200'
