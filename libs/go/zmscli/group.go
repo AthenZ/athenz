@@ -44,11 +44,11 @@ func (cli Zms) ListGroups(dn string) (*string, error) {
 }
 
 func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*zms.Group, *string, error) {
-	var log *bool
+	var groupAuditLog *bool
 	if auditLog {
-		log = &auditLog
+		groupAuditLog = &auditLog
 	} else {
-		log = nil
+		groupAuditLog = nil
 	}
 	var pend *bool
 	if pending {
@@ -56,7 +56,7 @@ func (cli Zms) ShowGroup(dn string, gn string, auditLog, pending bool) (*zms.Gro
 	} else {
 		pend = nil
 	}
-	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), log, pend)
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), groupAuditLog, pend)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -269,15 +269,27 @@ func (cli Zms) ShowGroupsPrincipal(principal string, dn string) (*string, error)
 	return cli.dumpByFormat(domainGroupMember, oldYamlConverter)
 }
 
-func (cli Zms) SetGroupAuditEnabled(dn string, group string, auditEnabled bool) (*string, error) {
+func (cli Zms) SetGroupAuditEnabled(dn string, gn string, auditEnabled bool) (*string, error) {
+	// first we're going to try as system admin
 	meta := zms.GroupSystemMeta{
 		AuditEnabled: &auditEnabled,
 	}
-	err := cli.Zms.PutGroupSystemMeta(zms.DomainName(dn), zms.EntityName(group), "auditenabled", cli.AuditRef, &meta)
+	err := cli.Zms.PutGroupSystemMeta(zms.DomainName(dn), zms.EntityName(gn), "auditenabled", cli.AuditRef, &meta)
 	if err != nil {
-		return nil, err
+		// if fails, we're going to try as regular domain admin
+		group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+		if err != nil {
+			return nil, err
+		}
+		meta := getGroupMetaObject(group)
+		meta.AuditEnabled = &auditEnabled
+
+		err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+		if err != nil {
+			return nil, err
+		}
 	}
-	s := "[domain " + dn + " group " + group + " audit-enabled successfully updated]\n"
+	s := "[domain " + dn + " group " + gn + " audit-enabled successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,
@@ -290,6 +302,7 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 	return zms.GroupMeta{
 		SelfServe:               group.SelfServe,
 		ReviewEnabled:           group.ReviewEnabled,
+		AuditEnabled:            group.AuditEnabled,
 		NotifyRoles:             group.NotifyRoles,
 		UserAuthorityExpiration: group.UserAuthorityExpiration,
 		UserAuthorityFilter:     group.UserAuthorityFilter,

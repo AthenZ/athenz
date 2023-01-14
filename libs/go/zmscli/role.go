@@ -48,17 +48,17 @@ func (cli Zms) ListRoles(dn string) (*string, error) {
 }
 
 func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending bool) (*string, error) {
-	var log *bool
+	var roleAuditLog *bool
 	if auditLog {
-		log = &auditLog
+		roleAuditLog = &auditLog
 	} else {
-		log = nil
+		roleAuditLog = nil
 	}
-	var expnd *bool
+	var roleExpand *bool
 	if expand {
-		expnd = &expand
+		roleExpand = &expand
 	} else {
-		expnd = nil
+		roleExpand = nil
 	}
 
 	var pend *bool
@@ -67,7 +67,7 @@ func (cli Zms) ShowRole(dn string, rn string, auditLog, expand bool, pending boo
 	} else {
 		pend = nil
 	}
-	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), log, expnd, pend)
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), roleAuditLog, roleExpand, pend)
 	if err != nil {
 		return nil, err
 	}
@@ -381,12 +381,23 @@ func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) 
 }
 
 func (cli Zms) SetRoleAuditEnabled(dn string, rn string, auditEnabled bool) (*string, error) {
+	// first we're going to try as system admin
 	meta := zms.RoleSystemMeta{
 		AuditEnabled: &auditEnabled,
 	}
 	err := cli.Zms.PutRoleSystemMeta(zms.DomainName(dn), zms.EntityName(rn), "auditenabled", cli.AuditRef, &meta)
 	if err != nil {
-		return nil, err
+		// if fails, we're going to try as regular domain admin
+		role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+		if err != nil {
+			return nil, err
+		}
+		meta := getRoleMetaObject(role)
+		meta.AuditEnabled = &auditEnabled
+		err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+		if err != nil {
+			return nil, err
+		}
 	}
 	s := "[domain " + dn + " role " + rn + " audit-enabled successfully updated]\n"
 	message := SuccessMessage{
@@ -426,6 +437,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		CertExpiryMins:          role.CertExpiryMins,
 		SignAlgorithm:           role.SignAlgorithm,
 		ReviewEnabled:           role.ReviewEnabled,
+		AuditEnabled:            role.AuditEnabled,
 		NotifyRoles:             role.NotifyRoles,
 		ServiceExpiryDays:       role.ServiceExpiryDays,
 		GroupExpiryDays:         role.GroupExpiryDays,
