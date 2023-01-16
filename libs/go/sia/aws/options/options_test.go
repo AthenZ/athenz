@@ -191,6 +191,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: idCommandId("-u"), Gid: idCommandId("-g"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
 	assert.True(t, opts.Threshold == DEFAULT_THRESHOLD)
 	assert.True(t, opts.SshThreshold == DEFAULT_THRESHOLD)
+	assert.False(t, opts.FileDirectUpdate)
 }
 
 // TestOptionsNoProfileConfig tests the scenario when there is no /etc/sia/profile_config, the system uses instance profile arn
@@ -341,14 +342,15 @@ func TestOptionsNoServices(t *testing.T) {
 	cfg, cfgAccount, _ := getConfig("data/sia_no_services", "-service", "http://localhost:80", false, "us-west-2")
 	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
-	assert.True(t, opts.RefreshInterval == 120)
-	assert.True(t, opts.ZTSRegion == "us-west-2")
+	assert.Equal(t, 120, opts.RefreshInterval)
+	assert.Equal(t, "us-west-2", opts.ZTSRegion)
 
 	// Make sure one service is set
-	assert.True(t, len(opts.Services) == 1)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.api")
+	assert.Equal(t, 1, len(opts.Services))
+	assert.Equal(t, "athenz", opts.Domain)
+	assert.Equal(t, "athenz.api", opts.Name)
 	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
+	assert.True(t, opts.FileDirectUpdate)
 }
 
 func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
@@ -605,6 +607,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_REFRESH_INTERVAL", "120")
 	os.Setenv("ATHENZ_SIA_ZTS_REGION", "us-west-3")
 	os.Setenv("ATHENZ_SIA_DROP_PRIVILEGES", "true")
+	os.Setenv("ATHENZ_SIA_FILE_DIRECT_UPDATE", "true")
 	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
 	os.Setenv("ATHENZ_SIA_ACCOUNT_ROLES", "{\"sports:role.readers\":{\"service\":\"api\"},\"sports:role.writers\":{\"user\": \"nobody\"}}")
 
@@ -614,6 +617,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.True(t, cfg.SanDnsHostname)
 	assert.True(t, cfg.UseRegionalSTS)
 	assert.True(t, cfg.GenerateRoleKey)
+	assert.True(t, cfg.FileDirectUpdate)
 	assert.False(t, cfg.RotateKey)
 	assert.Equal(t, cfg.User, "root")
 	assert.Equal(t, cfg.Group, "nobody")

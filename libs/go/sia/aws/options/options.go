@@ -77,26 +77,27 @@ type ConfigAccount struct {
 
 // Config represents entire sia_config file
 type Config struct {
-	Version         string                   `json:"version,omitempty"`           //name of the provider
-	Service         string                   `json:"service,omitempty"`           //name of the service for the identity
-	Services        map[string]ConfigService `json:"services,omitempty"`          //names of the multiple services for the identity
-	Ssh             *bool                    `json:"ssh,omitempty"`               //ssh certificate support
-	SshHostKeyType  hostkey.KeyType          `json:"ssh_host_key_type,omitempty"` //ssh host key type - rsa, ecdsa, etc
-	SanDnsWildcard  bool                     `json:"sandns_wildcard,omitempty"`   //san dns wildcard support
-	SanDnsHostname  bool                     `json:"sandns_hostname,omitempty"`   //san dns hostname support
-	UseRegionalSTS  bool                     `json:"regionalsts,omitempty"`       //whether to use a regional STS endpoint (default is false)
-	Accounts        []ConfigAccount          `json:"accounts,omitempty"`          //array of configured accounts
-	GenerateRoleKey bool                     `json:"generate_role_key,omitempty"` //private key to be generated for role certificate
-	RotateKey       bool                     `json:"rotate_key,omitempty"`        //rotate private key support
-	User            string                   `json:"user,omitempty"`              //the user name to chown the cert/key dirs to. If absent, then root
-	Group           string                   `json:"group,omitempty"`             //the group name to chown the cert/key dirs to. If absent, then athenz
-	SDSUdsPath      string                   `json:"sds_uds_path,omitempty"`      //uds path if the agent should support uds connections
-	SDSUdsUid       int                      `json:"sds_uds_uid,omitempty"`       //uds connections must be from the given user uid
-	ExpiryTime      int                      `json:"expiry_time,omitempty"`       //service and role certificate expiry in minutes
-	RefreshInterval int                      `json:"refresh_interval,omitempty"`  //specifies refresh interval in minutes
-	ZTSRegion       string                   `json:"zts_region,omitempty"`        //specifies zts region for the requests
-	DropPrivileges  bool                     `json:"drop_privileges,omitempty"`   //drop privileges to configured user instead of running as root
-	AccessTokens    map[string]ac.Role       `json:"access_tokens,omitempty"`     // map of role name to token attributes
+	Version          string                   `json:"version,omitempty"`            //name of the provider
+	Service          string                   `json:"service,omitempty"`            //name of the service for the identity
+	Services         map[string]ConfigService `json:"services,omitempty"`           //names of the multiple services for the identity
+	Ssh              *bool                    `json:"ssh,omitempty"`                //ssh certificate support
+	SshHostKeyType   hostkey.KeyType          `json:"ssh_host_key_type,omitempty"`  //ssh host key type - rsa, ecdsa, etc
+	SanDnsWildcard   bool                     `json:"sandns_wildcard,omitempty"`    //san dns wildcard support
+	SanDnsHostname   bool                     `json:"sandns_hostname,omitempty"`    //san dns hostname support
+	UseRegionalSTS   bool                     `json:"regionalsts,omitempty"`        //whether to use a regional STS endpoint (default is false)
+	Accounts         []ConfigAccount          `json:"accounts,omitempty"`           //array of configured accounts
+	GenerateRoleKey  bool                     `json:"generate_role_key,omitempty"`  //private key to be generated for role certificate
+	RotateKey        bool                     `json:"rotate_key,omitempty"`         //rotate private key support
+	User             string                   `json:"user,omitempty"`               //the user name to chown the cert/key dirs to. If absent, then root
+	Group            string                   `json:"group,omitempty"`              //the group name to chown the cert/key dirs to. If absent, then athenz
+	SDSUdsPath       string                   `json:"sds_uds_path,omitempty"`       //uds path if the agent should support uds connections
+	SDSUdsUid        int                      `json:"sds_uds_uid,omitempty"`        //uds connections must be from the given user uid
+	ExpiryTime       int                      `json:"expiry_time,omitempty"`        //service and role certificate expiry in minutes
+	RefreshInterval  int                      `json:"refresh_interval,omitempty"`   //specifies refresh interval in minutes
+	ZTSRegion        string                   `json:"zts_region,omitempty"`         //specifies zts region for the requests
+	DropPrivileges   bool                     `json:"drop_privileges,omitempty"`    //drop privileges to configured user instead of running as root
+	AccessTokens     map[string]ac.Role       `json:"access_tokens,omitempty"`      //map of role name to token attributes
+	FileDirectUpdate bool                     `json:"file_direct_update,omitempty"` //update key/cert files directly instead of using rename
 }
 
 type AccessProfileConfig struct {
@@ -181,8 +182,9 @@ type Options struct {
 	TokenDir           string           //Access tokens directory
 	AccessTokens       []ac.AccessToken //Access tokens object
 	Profile            string           //Access profile name
-	Threshold          float64
-	SshThreshold       float64
+	Threshold          float64          //threshold in number of days for cert expiry checks
+	SshThreshold       float64          //threshold in number of days for ssh cert expiry checks
+	FileDirectUpdate   bool             //update key/cert files directly instead of using rename
 }
 
 const (
@@ -360,6 +362,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if !config.DropPrivileges {
 		config.DropPrivileges = util.ParseEnvBooleanFlag("ATHENZ_SIA_DROP_PRIVILEGES")
 	}
+	if !config.FileDirectUpdate {
+		config.FileDirectUpdate = util.ParseEnvBooleanFlag("ATHENZ_SIA_FILE_DIRECT_UPDATE")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -425,6 +430,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	ztsRegion := ""
 	dropPrivileges := false
 	profile := ""
+	fileDirectUpdate := false
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -435,6 +441,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		expiryTime = config.ExpiryTime
 		ztsRegion = config.ZTSRegion
 		dropPrivileges = config.DropPrivileges
+		fileDirectUpdate = config.FileDirectUpdate
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
@@ -606,6 +613,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		Profile:          profile,
 		Threshold:        account.Threshold,
 		SshThreshold:     account.SshThreshold,
+		FileDirectUpdate: fileDirectUpdate,
 	}, nil
 }
 

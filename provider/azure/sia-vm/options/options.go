@@ -59,13 +59,14 @@ type ConfigAccount struct {
 
 // Config represents entire sia_config file
 type Config struct {
-	Version        string                   `json:"version,omitempty"`         //name of the provider
-	Service        string                   `json:"service,omitempty"`         //name of the service for the identity
-	Services       map[string]ConfigService `json:"services,omitempty"`        //names of the multiple services for the identity
-	Ssh            *bool                    `json:"ssh,omitempty"`             //ssh certificate support
-	Accounts       []ConfigAccount          `json:"accounts,omitempty"`        //array of configured accounts
-	SanDnsWildcard bool                     `json:"sandns_wildcard,omitempty"` //san dns wildcard support
-	SanDnsHostname bool                     `json:"sandns_hostname,omitempty"` //san dns hostname support
+	Version          string                   `json:"version,omitempty"`            //name of the provider
+	Service          string                   `json:"service,omitempty"`            //name of the service for the identity
+	Services         map[string]ConfigService `json:"services,omitempty"`           //names of the multiple services for the identity
+	Ssh              *bool                    `json:"ssh,omitempty"`                //ssh certificate support
+	Accounts         []ConfigAccount          `json:"accounts,omitempty"`           //array of configured accounts
+	SanDnsWildcard   bool                     `json:"sandns_wildcard,omitempty"`    //san dns wildcard support
+	SanDnsHostname   bool                     `json:"sandns_hostname,omitempty"`    //san dns hostname support
+	FileDirectUpdate bool                     `json:"file_direct_update,omitempty"` //update key/cert files directly instead of using rename
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -90,27 +91,28 @@ type Service struct {
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider         string
-	Name             string
-	User             string
-	Group            string
-	Domain           string
-	Account          string
-	Services         []Service
-	Ssh              bool
-	Zts              string
-	Filename         string
-	Roles            map[string]ConfigRole
-	Version          string
-	KeyDir           string
-	CertDir          string
-	AthenzCACertFile string
-	ZTSCACertFile    string
-	ZTSServerName    string
-	ZTSAzureDomains  []string
-	CountryName      string
-	SanDnsWildcard   bool
-	SanDnsHostname   bool
+	Provider         string                //name of the provider
+	Name             string                //name of the service identity
+	User             string                //the user name to chown the cert/key dirs to. If absent, then root
+	Group            string                //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain           string                //name of the domain for the identity
+	Account          string                //name of the account
+	Services         []Service             //array of configured services
+	Ssh              bool                  //ssh certificate support
+	Zts              string                //the ZTS to contact
+	Filename         string                //filename to put the service certificate
+	Roles            map[string]ConfigRole //list of configured roles
+	Version          string                //sia version number
+	KeyDir           string                //private key directory path
+	CertDir          string                //x.509 certificate directory path
+	CountryName      string                //country name
+	AthenzCACertFile string                //filename to store Athenz CA certs
+	ZTSCACertFile    string                //filename for CA certs when communicating with ZTS
+	ZTSServerName    string                //ZTS server name, if necessary for tls
+	ZTSAzureDomains  []string              //list of domain prefixes for sanDNS entries
+	SanDnsWildcard   bool                  //san dns wildcard support
+	SanDnsHostname   bool                  //san dns hostname support
+	FileDirectUpdate bool                  //update key/cert files directly instead of using rename
 }
 
 func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigAccount, error) {
@@ -178,9 +180,11 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 
 	sanDnsWildcard := false
 	sanDnsHostname := false
+	fileDirectUpdate := false
 	if config != nil {
 		sanDnsWildcard = config.SanDnsWildcard
 		sanDnsHostname = config.SanDnsHostname
+		fileDirectUpdate = config.FileDirectUpdate
 	}
 
 	var services []Service
@@ -256,6 +260,7 @@ func NewOptions(bytes []byte, identityDocument *attestation.IdentityDocument, si
 		CountryName:      countryName,
 		SanDnsWildcard:   sanDnsWildcard,
 		SanDnsHostname:   sanDnsHostname,
+		FileDirectUpdate: fileDirectUpdate,
 	}, nil
 }
 
