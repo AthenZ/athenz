@@ -46,13 +46,18 @@ func TestMain(m *testing.M) {
 }
 
 func TestUpdateFileNew(test *testing.T) {
+	testInternalUpdateFileNew(test, true)
+	testInternalUpdateFileNew(test, false)
+}
+
+func testInternalUpdateFileNew(test *testing.T, fileDirectUpdate bool) {
 
 	//make sure our temp file does not exist
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	_ = os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := util.UpdateFile(fileName, []byte(testContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644)
+	err := util.UpdateFile(fileName, []byte(testContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644, fileDirectUpdate)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -72,6 +77,11 @@ func TestUpdateFileNew(test *testing.T) {
 }
 
 func TestUpdateFileExisting(test *testing.T) {
+	testInternalUpdateFileExisting(test, true)
+	testInternalUpdateFileExisting(test, false)
+}
+
+func testInternalUpdateFileExisting(test *testing.T, fileDirectUpdate bool) {
 
 	//create our temporary file
 	timeNano := time.Now().UnixNano()
@@ -83,7 +93,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = util.UpdateFile(fileName, []byte(testNewContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644)
+	err = util.UpdateFile(fileName, []byte(testNewContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644, fileDirectUpdate)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return

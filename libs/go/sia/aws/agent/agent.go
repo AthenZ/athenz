@@ -254,18 +254,18 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.Filename, opts.Domain, svc.Name)
-	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444)
+	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 		if err != nil {
 			return err
 		}
@@ -273,7 +273,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	//we're not going to count ssh updates as fatal since the primary
 	//task for sia to get service identity certs but we'll log the failure
 	if ident.SshCertificate != "" {
-		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate)
+		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate, opts.FileDirectUpdate)
 		if err != nil {
 			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
@@ -359,7 +359,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 		if err != nil {
 			return err
 		}
@@ -367,7 +367,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	//we're not going to count ssh updates as fatal since the primary
 	//task for sia to get service identity certs but we'll log the failure
 	if ident.SshCertificate != "" {
-		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate)
+		err = updateSSH(opts.SshCertFile, opts.SshConfigFile, ident.SshCertificate, opts.FileDirectUpdate)
 		if err != nil {
 			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
@@ -384,7 +384,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options) error {
 	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir)
+	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir, opts.FileDirectUpdate)
 }
 
 func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options) error {
@@ -399,17 +399,17 @@ func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options)
 			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
 		}
 	}
-	return util.SaveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir)
+	return util.SaveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir, opts.FileDirectUpdate)
 }
 
 func restartSshdService() error {
 	return exec.Command(util.GetUtilPath("systemctl"), "restart", "sshd").Run()
 }
 
-func updateSSH(sshCertFile, sshConfigFile, hostCert string) error {
+func updateSSH(sshCertFile, sshConfigFile, hostCert string, fileDirectUpdate bool) error {
 
 	//write the host cert file
-	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644)
+	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644, fileDirectUpdate)
 	if err != nil {
 		return err
 	}

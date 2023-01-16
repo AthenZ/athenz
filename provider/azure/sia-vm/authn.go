@@ -109,7 +109,7 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 
 		// we have the role certificate
 		// write the cert to pem file using Role.Filename
-		err = util.UpdateFile(certFilePem, []byte(roleCert.X509Certificate), opts.Services[0].Uid, opts.Services[0].Gid, 0444)
+		err = util.UpdateFile(certFilePem, []byte(roleCert.X509Certificate), opts.Services[0].Uid, opts.Services[0].Gid, 0444, false)
 		if err != nil {
 			failures += 1
 			continue
@@ -173,24 +173,24 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 		return err
 	}
 	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440)
+	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
 	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
-	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444)
+	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(instIdent.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 		if err != nil {
 			return err
 		}
 		// we're not going to count ssh updates as fatal since the primary
 		// task for sia to get service identity certs but we'll log the failure
-		err = updateSSH(instIdent.SshCertificate, instIdent.SshCertificateSigner)
+		err = updateSSH(instIdent.SshCertificate, instIdent.SshCertificateSigner, opts.FileDirectUpdate)
 		if err != nil {
 			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
@@ -250,19 +250,19 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 		return err
 	}
 
-	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444)
+	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
 
 	if opts.Services[0].Name == svc.Name {
-		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444)
+		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 		if err != nil {
 			return err
 		}
 		// we're not going to count ssh updates as fatal since the primary
 		// task for sia to get service identity certs but we'll log the failure
-		err = updateSSH(ident.SshCertificate, ident.SshCertificateSigner)
+		err = updateSSH(ident.SshCertificate, ident.SshCertificateSigner, opts.FileDirectUpdate)
 		if err != nil {
 			log.Printf("Unable to update ssh certificate, err: %v\n", err)
 		}
@@ -270,7 +270,7 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	return nil
 }
 
-func updateSSH(hostCert, hostSigner string) error {
+func updateSSH(hostCert, hostSigner string, fileDirectUpdate bool) error {
 	// if we have no hostCert and hostSigner then
 	// we have nothing to update for ssh access
 	if hostCert == "" && hostSigner == "" {
@@ -279,7 +279,7 @@ func updateSSH(hostCert, hostSigner string) error {
 	}
 
 	// write the host cert file
-	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644)
+	err := util.UpdateFile(sshCertFile, []byte(hostCert), 0, 0, 0644, fileDirectUpdate)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func updateSSH(hostCert, hostSigner string) error {
 	i := strings.Index(conf, "#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub")
 	if i >= 0 {
 		conf = conf[:i] + conf[i+1:]
-		err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644)
+		err = util.UpdateFile(sshConfigFile, []byte(conf), 0, 0, 0644, fileDirectUpdate)
 		if err != nil {
 			return err
 		}

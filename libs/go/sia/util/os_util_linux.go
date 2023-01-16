@@ -12,64 +12,18 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 )
 
 const siaUnixGroup = "athenz"
-const SshSupport = true
 
 func NewSysLogger() (io.Writer, error) {
 	return syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
 }
 
-func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode) error {
-	// verify we have valid contents otherwise we're just
-	// going to skip and return success without doing anything
-	if len(contents) == 0 {
-		log.Printf("Contents is empty. Skipping writing to file %s\n", fileName)
-		return nil
-	}
-	// if the original file does not exist then we
-	// just write the contents to the given file
-	// directly
-	_, err := os.Stat(fileName)
-	if err != nil && os.IsNotExist(err) {
-		log.Printf("Updating file %s...\n", fileName)
-		err = os.WriteFile(fileName, contents, perm)
-		if err != nil {
-			log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
-			return err
-		}
-	} else {
-		timeNano := time.Now().UnixNano()
-		// write the new contents to a temporary file
-		newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
-		log.Printf("Writing contents to temporary file %s...\n", newFileName)
-		err = os.WriteFile(newFileName, contents, perm)
-		if err != nil {
-			log.Printf("Unable to write new file %s, err: %v\n", newFileName, err)
-			return err
-		}
-		// move the contents of the old file to a backup file
-		bakFileName := fmt.Sprintf("%s.bak%d", fileName, timeNano)
-		log.Printf("Renaming original file %s to backup file %s...\n", fileName, bakFileName)
-		err = os.Rename(fileName, bakFileName)
-		if err != nil {
-			log.Printf("Unable to rename file %s to %s, err: %v\n", fileName, bakFileName, err)
-			return err
-		}
-		// move the new contents to the original location
-		log.Printf("Renaming temporary file %s to requested file %s...\n", newFileName, fileName)
-		err = os.Rename(newFileName, fileName)
-		if err != nil {
-			log.Printf("Unable to rename file %s to %s, err: %v\n", newFileName, fileName, err)
-			// before returning try to restore the original file
-			os.Rename(bakFileName, fileName)
-			return err
-		}
-		// remove the temporary backup file
-		log.Printf("Removing backup file %s...\n", bakFileName)
-		os.Remove(bakFileName)
+func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode, directUpdate bool) error {
+	err := UpdateFileContents(fileName, contents, perm, directUpdate)
+	if err != nil {
+		return err
 	}
 	currentUid, currentGid := uidGidForUser("")
 	if currentUid != uid || currentGid != gid {
@@ -80,7 +34,6 @@ func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode
 			return err
 		}
 	}
-
 	return nil
 }
 

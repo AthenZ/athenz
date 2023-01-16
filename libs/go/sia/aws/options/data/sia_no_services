@@ -9,5 +9,6 @@
         }
     ],
     "refresh_interval": 120,
-    "zts_region": "us-west-2"
+    "zts_region": "us-west-2",
+    "file_direct_update": true
 }

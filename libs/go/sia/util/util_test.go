@@ -129,12 +129,17 @@ func TestZtsHostName(test *testing.T) {
 }
 
 func TestUpdateFileNew(test *testing.T) {
+	testInternalUpdateFileNew(test, true)
+	testInternalUpdateFileNew(test, false)
+}
+
+func testInternalUpdateFileNew(test *testing.T, fileDirectUpdate bool) {
 	//make sure our temp file does not exist
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := UpdateFile(fileName, []byte(testContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644)
+	err := UpdateFile(fileName, []byte(testContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644, fileDirectUpdate)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -154,6 +159,11 @@ func TestUpdateFileNew(test *testing.T) {
 }
 
 func TestUpdateFileExisting(test *testing.T) {
+	testInternalUpdateFileExisting(test, true)
+	testInternalUpdateFileExisting(test, false)
+}
+
+func testInternalUpdateFileExisting(test *testing.T, fileDirectUpdate bool) {
 	//create our temporary file
 	timeNano := time.Now().UnixNano()
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
@@ -164,7 +174,7 @@ func TestUpdateFileExisting(test *testing.T) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = UpdateFile(fileName, []byte(testNewContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644)
+	err = UpdateFile(fileName, []byte(testNewContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644, fileDirectUpdate)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -193,7 +203,7 @@ func TestPrivateKeySupport(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	uid := ExecIdCommand("-u")
 	gid := ExecIdCommand("-g")
-	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644)
+	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644, false)
 	if err != nil {
 		test.Errorf("Unable to save private key file - %v", err)
 		return
