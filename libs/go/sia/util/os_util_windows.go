@@ -50,3 +50,6 @@ func SyscallSetGid(gid int) error {
 func SyscallSetUid(uid int) error {
 	return nil
 }
+
+func setupDirOwnership(siaDir string, ownerUid, ownerGid int) {
+}

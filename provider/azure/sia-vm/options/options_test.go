@@ -223,14 +223,15 @@ func assertService(expected Service, actual Service) bool {
 		expected.Uid == actual.Uid &&
 		expected.Group == actual.Group &&
 		expected.Gid == actual.Gid &&
-		expected.Filename == actual.Filename
+		expected.KeyFilename == actual.KeyFilename &&
+		expected.CertFilename == actual.CertFilename
 }
 
 func assertInServices(svcs []Service, actual Service) bool {
 	log.Printf("svcs passed: %+v\n", svcs)
 	log.Printf("actual: %+v\n", actual)
 	for _, s := range svcs {
-		if s.Name == actual.Name && s.User == actual.User && s.Uid == actual.Uid && s.Group == actual.Group && s.Gid == actual.Gid && s.Filename == actual.Filename {
+		if s.Name == actual.Name && s.User == actual.User && s.Uid == actual.Uid && s.Group == actual.Group && s.Gid == actual.Gid && s.KeyFilename == actual.KeyFilename && s.CertFilename == actual.CertFilename {
 			return true
 		}
 

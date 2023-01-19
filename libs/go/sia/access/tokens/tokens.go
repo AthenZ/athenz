@@ -237,7 +237,7 @@ func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) 
 	if options.AccessTokens == nil {
 		return nil, fmt.Errorf("access-token object is not presented")
 	}
-	dirs := []string{options.CertDir, options.KeyDir, options.BackUpDir}
+	dirs := []string{options.CertDir, options.KeyDir, options.BackupDir}
 	dirs = append(dirs, TokenDirs(options.TokenDir, options.AccessTokens)...)
 
 	err := futil.MakeDirs(dirs, 0755)

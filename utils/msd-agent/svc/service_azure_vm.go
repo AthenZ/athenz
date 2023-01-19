@@ -37,11 +37,11 @@ func azureToMsdService(services []options.Service) []Service {
 	srv := make([]Service, 0)
 	for _, service := range services {
 		s := Service{
-			Name:     service.Name,
-			User:     service.User,
-			Uid:      service.Uid,
-			Gid:      service.Gid,
-			Filename: service.Filename,
+			Name:        service.Name,
+			User:        service.User,
+			Uid:         service.Uid,
+			Gid:         service.Gid,
+			KeyFilename: service.KeyFilename,
 		}
 		srv = append(srv, s)
 	}

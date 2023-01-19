@@ -39,7 +39,8 @@ import (
 
 // ConfigService represents a service to be specified by user, and specify User/Group attributes for the service
 type ConfigService struct {
-	Filename       string  `json:"filename,omitempty"`
+	KeyFilename    string  `json:"key_filename,omitempty"`
+	CertFilename   string  `json:"cert_filename,omitempty"`
 	User           string  `json:"user,omitempty"`
 	Group          string  `json:"group,omitempty"`
 	ExpiryTime     int     `json:"expiry_time,omitempty"`
@@ -68,11 +69,10 @@ type ConfigAccount struct {
 	Account      string                `json:"account,omitempty"`                    //name of the account
 	Service      string                `json:"service,omitempty"`                    //name of the service for the identity
 	Zts          string                `json:"zts,omitempty"`                        //the ZTS to contact
-	Filename     string                `json:"filename,omitempty"`                   //filename to put the service certificate
 	Roles        map[string]ConfigRole `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
 	Version      string                `json:"version,omitempty"`                    //sia version number
-	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    // Threshold to verify for all certs
-	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` // Threshold to verify for ssh certs
+	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    //Threshold to verify for all certs
+	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` //Threshold to verify for ssh certs
 }
 
 // Config represents entire sia_config file
@@ -88,7 +88,7 @@ type Config struct {
 	Accounts         []ConfigAccount          `json:"accounts,omitempty"`           //array of configured accounts
 	GenerateRoleKey  bool                     `json:"generate_role_key,omitempty"`  //private key to be generated for role certificate
 	RotateKey        bool                     `json:"rotate_key,omitempty"`         //rotate private key support
-	User             string                   `json:"user,omitempty"`               //the user name to chown the cert/key dirs to. If absent, then root
+	User             string                   `json:"user,omitempty"`               //the username to chown the cert/key dirs to. If absent, then root
 	Group            string                   `json:"group,omitempty"`              //the group name to chown the cert/key dirs to. If absent, then athenz
 	SDSUdsPath       string                   `json:"sds_uds_path,omitempty"`       //uds path if the agent should support uds connections
 	SDSUdsUid        int                      `json:"sds_uds_uid,omitempty"`        //uds connections must be from the given user uid
@@ -98,6 +98,10 @@ type Config struct {
 	DropPrivileges   bool                     `json:"drop_privileges,omitempty"`    //drop privileges to configured user instead of running as root
 	AccessTokens     map[string]ac.Role       `json:"access_tokens,omitempty"`      //map of role name to token attributes
 	FileDirectUpdate bool                     `json:"file_direct_update,omitempty"` //update key/cert files directly instead of using rename
+	SiaKeyDir        string                   `json:"sia_key_dir,omitempty"`        //sia keys directory to override /var/lib/sia/keys
+	SiaCertDir       string                   `json:"sia_cert_dir,omitempty"`       //sia certs directory to override /var/lib/sia/certs
+	SiaTokenDir      string                   `json:"sia_token_dir,omitempty"`      //sia tokens directory to override /var/lib/sia/tokens
+	SiaBackupDir     string                   `json:"sia_backup_dir,omitempty"`     //sia backup directory to override /var/lib/sia/backup
 }
 
 type AccessProfileConfig struct {
@@ -120,7 +124,8 @@ type Role struct {
 // Service represents service details. Attributes are filled in based on the config values
 type Service struct {
 	Name           string
-	Filename       string
+	KeyFilename    string
+	CertFilename   string
 	User           string
 	Group          string
 	Uid            int
@@ -137,13 +142,12 @@ type Service struct {
 type Options struct {
 	Provider           string           //name of the provider
 	Name               string           //name of the service identity
-	User               string           //the user name to chown the cert/key dirs to. If absent, then root
+	User               string           //the username to chown the cert/key dirs to. If absent, then root
 	Group              string           //the group name to chown the cert/key dirs to. If absent, then athenz
 	Domain             string           //name of the domain for the identity
 	Account            string           //name of the account
 	Service            string           //name of the service for the identity
 	Zts                string           //the ZTS to contact
-	Filename           string           //filename to put the service certificate
 	InstanceId         string           //instance id if ec2, task id if running within eks/ecs
 	Roles              []Role           //map of roles to retrieve certificates for
 	Region             string           //region name
@@ -162,7 +166,7 @@ type Options struct {
 	ZTSAWSDomains      []string         //list of domain prefixes for sanDNS entries
 	GenerateRoleKey    bool             //option to generate a separate key for role certificates
 	RotateKey          bool             //rotate the private key when refreshing certificates
-	BackUpDir          string           //backup directory for key/cert rotation
+	BackupDir          string           //backup directory for key/cert rotation
 	CertCountryName    string           //generated x.509 certificate country name
 	CertOrgName        string           //generated x.509 certificate organization name
 	SshPubKeyFile      string           //ssh host public key file path
@@ -365,6 +369,18 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if !config.FileDirectUpdate {
 		config.FileDirectUpdate = util.ParseEnvBooleanFlag("ATHENZ_SIA_FILE_DIRECT_UPDATE")
 	}
+	if config.SiaKeyDir == "" {
+		config.SiaKeyDir = os.Getenv("ATHENZ_SIA_KEY_DIR")
+	}
+	if config.SiaCertDir == "" {
+		config.SiaCertDir = os.Getenv("ATHENZ_SIA_CERT_DIR")
+	}
+	if config.SiaTokenDir == "" {
+		config.SiaTokenDir = os.Getenv("ATHENZ_SIA_TOKEN_DIR")
+	}
+	if config.SiaBackupDir == "" {
+		config.SiaBackupDir = os.Getenv("ATHENZ_SIA_BACKUP_DIR")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -431,6 +447,10 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	dropPrivileges := false
 	profile := ""
 	fileDirectUpdate := false
+	tokenDir := fmt.Sprintf("%s/tokens", siaDir)
+	certDir := fmt.Sprintf("%s/certs", siaDir)
+	keyDir := fmt.Sprintf("%s/keys", siaDir)
+	backupDir := fmt.Sprintf("%s/backup", siaDir)
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -445,7 +465,19 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
-
+		// sia key/cert/token directories if the config has values specified
+		if config.SiaKeyDir != "" {
+			keyDir = config.SiaKeyDir
+		}
+		if config.SiaCertDir != "" {
+			certDir = config.SiaCertDir
+		}
+		if config.SiaTokenDir != "" {
+			tokenDir = config.SiaTokenDir
+		}
+		if config.SiaBackupDir != "" {
+			backupDir = config.SiaBackupDir
+		}
 		//update account user/group settings if override provided at the config level
 		if account.User == "" && config.User != "" {
 			account.User = config.User
@@ -470,7 +502,6 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		//Populate services with the account information we gathered
 		s := Service{
 			Name:      account.Service,
-			Filename:  account.Filename,
 			User:      account.User,
 			Threshold: account.Threshold,
 		}
@@ -500,7 +531,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 				svcSDSUdsUid = s.SDSUdsUid
 			}
 			if name == config.Service {
-				first.Filename = s.Filename
+				first.KeyFilename = s.KeyFilename
+				first.CertFilename = s.CertFilename
 				first.User = s.User
 				first.Group = s.Group
 				// If User/Group are not specified, apply the User/Group settings from Config Account
@@ -519,11 +551,12 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 				first.Threshold = nonZeroValue(s.Threshold, account.Threshold)
 			} else {
 				ts := Service{
-					Name:      name,
-					Filename:  s.Filename,
-					User:      s.User,
-					Group:     s.Group,
-					Threshold: nonZeroValue(s.Threshold, account.Threshold),
+					Name:         name,
+					KeyFilename:  s.KeyFilename,
+					CertFilename: s.CertFilename,
+					User:         s.User,
+					Group:        s.Group,
+					Threshold:    nonZeroValue(s.Threshold, account.Threshold),
 				}
 				ts.Uid, ts.Gid, ts.FileMode = util.SvcAttrs(s.User, s.Group)
 				ts.ExpiryTime = svcExpiryTime
@@ -531,11 +564,6 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 				ts.SDSNodeCluster = s.SDSNodeCluster
 				ts.SDSUdsUid = svcSDSUdsUid
 				tail = append(tail, ts)
-			}
-			if s.Filename != "" && s.Filename[0] == '/' {
-				log.Println("when custom filepaths are specified, rotate_key and generate_role_key are not supported")
-				generateRoleKey = false
-				rotateKey = false
 			}
 		}
 		services = append(services, first)
@@ -591,20 +619,19 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		Domain:           account.Domain,
 		Account:          account.Account,
 		Zts:              account.Zts,
-		Filename:         account.Filename,
 		Version:          fmt.Sprintf("SIA-AWS %s", version),
 		UseRegionalSTS:   useRegionalSTS,
 		SanDnsWildcard:   sanDnsWildcard,
 		SanDnsHostname:   sanDnsHostname,
 		Services:         services,
 		Roles:            roles,
-		TokenDir:         fmt.Sprintf("%s/tokens", siaDir),
-		CertDir:          fmt.Sprintf("%s/certs", siaDir),
-		KeyDir:           fmt.Sprintf("%s/keys", siaDir),
-		AthenzCACertFile: fmt.Sprintf("%s/certs/ca.cert.pem", siaDir),
+		TokenDir:         tokenDir,
+		CertDir:          certDir,
+		KeyDir:           keyDir,
+		AthenzCACertFile: fmt.Sprintf("%s/ca.cert.pem", certDir),
 		GenerateRoleKey:  generateRoleKey,
 		RotateKey:        rotateKey,
-		BackUpDir:        fmt.Sprintf("%s/backup", siaDir),
+		BackupDir:        backupDir,
 		SDSUdsPath:       sdsUdsPath,
 		RefreshInterval:  refreshInterval,
 		ZTSRegion:        ztsRegion,

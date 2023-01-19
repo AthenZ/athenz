@@ -8,5 +8,9 @@
             "user": "nobody",
             "account": "123456789012"
         }
-    ]
+    ],
+    "sia_key_dir": "/var/athenz/keys",
+    "sia_cert_dir": "/var/athenz/certs",
+    "sia_token_dir": "/var/athenz/tokens",
+    "sia_backup_dir": "/var/athenz/backup"
 }

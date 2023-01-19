@@ -43,13 +43,14 @@ func ec2ToMsdService(services []options.Service) []Service {
 	srv := make([]Service, 0)
 	for _, service := range services {
 		s := Service{
-			Name:     service.Name,
-			Filename: service.Filename,
-			User:     service.User,
-			Group:    service.Group,
-			Uid:      service.Uid,
-			Gid:      service.Gid,
-			FileMode: service.FileMode,
+			Name:         service.Name,
+			KeyFilename:  service.KeyFilename,
+			CertFilename: service.CertFilename,
+			User:         service.User,
+			Group:        service.Group,
+			Uid:          service.Uid,
+			Gid:          service.Gid,
+			FileMode:     service.FileMode,
 		}
 		srv = append(srv, s)
 	}
