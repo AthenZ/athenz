@@ -157,7 +157,7 @@ func TestRegisterInstanceMultiple(test *testing.T) {
 	}
 
 	err := RegisterInstance(data, "http://127.0.0.1:5085/zts/v1", &identityDocument, opts)
-	assert.Nil(test, err, "unable to regster instance")
+	assert.Nil(test, err, "unable to register instance")
 
 	// Verify the first service
 	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)

@@ -411,6 +411,17 @@ func GetSvcCertFileName(certDir, fileName, domain, service string) string {
 	}
 }
 
+func GetSvcKeyFileName(keyDir, fileName, domain, service string) string {
+	switch {
+	case fileName == "":
+		return fmt.Sprintf("%s/%s.%s.key.pem", keyDir, domain, service)
+	case fileName[0] == '/':
+		return fileName
+	default:
+		return fmt.Sprintf("%s/%s", keyDir, fileName)
+	}
+}
+
 func ExtractServiceName(arn, comp string) (string, string, error) {
 	//expected format "arn:aws:iam::<account-id><comp>{domain}.{service}-service"
 	//<comp> could be :instance-profile/ or :role/ depending on container
@@ -663,9 +674,16 @@ func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (st
 	}
 }
 
-func SaveCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, fileDirectUpdate bool) error {
-
+func SaveRoleCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, fileDirectUpdate bool) error {
 	certFile, keyFile := getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix)
+	return SaveCertKey(key, cert, keyFile, certFile, keyPrefix, certPrefix, uid, gid, fileMode, createKey, rotateKey, backupDir, fileDirectUpdate)
+}
+
+func SaveServiceCertKey(key, cert []byte, keyFile, certFile, prefix string, uid, gid, fileMode int, createKey, rotateKey bool, backupDir string, fileDirectUpdate bool) error {
+	return SaveCertKey(key, cert, keyFile, certFile, prefix, prefix, uid, gid, fileMode, createKey, rotateKey, backupDir, fileDirectUpdate)
+}
+
+func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, backupDir string, fileDirectUpdate bool) error {
 
 	// perform validation of x509KeyPair pair match before writing to disk
 	x509KeyPair, err := tls.X509KeyPair(cert, key)
@@ -933,5 +951,19 @@ func updateFileDirectly(fileName string, contents []byte, perm os.FileMode) erro
 	// remove the temporary backup file
 	log.Printf("Removing backup file %s...\n", bakFileName)
 	os.Remove(bakFileName)
+	return nil
+}
+
+func SetupSIADir(siaDir string, ownerUid, ownerGid int) error {
+	// Create the requested sia directory, if it doesn't exist
+	if !FileExists(siaDir) {
+		err := os.MkdirAll(siaDir, 0755)
+		if err != nil {
+			return fmt.Errorf("unable to create sia dir: %q, error: %v", siaDir, err)
+		}
+	}
+
+	// update our main and then subdirectories
+	setupDirOwnership(siaDir, ownerUid, ownerGid)
 	return nil
 }

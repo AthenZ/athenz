@@ -313,13 +313,13 @@ func (handler *ServerHandler) authenticateRequest(info ClientInfo, node *envoyCo
 
 func (handler *ServerHandler) getTLSCertificateSecret(spiffeUri string, svc *options.Service) (*anypb.Any, error) {
 
-	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", handler.Options.KeyDir, handler.Options.Domain, svc.Name)
+	keyFile := util.GetSvcKeyFileName(handler.Options.KeyDir, svc.KeyFilename, handler.Options.Domain, svc.Name)
 	keyPEM, err := os.ReadFile(keyFile)
 	if err != nil {
 		return nil, err
 	}
 
-	certFile := util.GetSvcCertFileName(handler.Options.CertDir, svc.Filename, handler.Options.Domain, svc.Name)
+	certFile := util.GetSvcCertFileName(handler.Options.CertDir, svc.CertFilename, handler.Options.Domain, svc.Name)
 	certPEM, err := os.ReadFile(certFile)
 	if err != nil {
 		return nil, err

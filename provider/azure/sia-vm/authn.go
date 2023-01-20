@@ -172,12 +172,12 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 		log.Printf("Unable to do PostInstanceRegisterInformation, err: %v\n", err)
 		return err
 	}
-	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, opts.FileDirectUpdate)
+	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
+	err = util.UpdateFile(keyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
-	certFile := getCertFileName(svc.Filename, opts.Domain, svc.Name, opts.CertDir)
+	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 	err = util.UpdateFile(certFile, []byte(instIdent.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 	if err != nil {
 		return err
@@ -209,14 +209,14 @@ func RefreshInstance(data []*attestation.Data, ztsUrl string, identityDocument *
 }
 
 func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, identityDocument *attestation.IdentityDocument, opts *options.Options) error {
-	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
+	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	key, err := util.PrivateKeyFromFile(keyFile)
 	if err != nil {
 		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
 
-	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
+	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 
 	// include a csr for the host ssh certificate if requested
 	ssh, err := generateSSHHostCSR(opts.Ssh, opts.Domain, svc.Name, identityDocument.PrivateIp, opts.ZTSAzureDomains)
@@ -380,17 +380,6 @@ func readCertificate(certFile string) (*x509.Certificate, error) {
 		return nil, nil
 	}
 	return x509.ParseCertificate(block.Bytes)
-}
-
-func getCertFileName(file, domain, service, certDir string) string {
-	switch {
-	case file == "":
-		return fmt.Sprintf("%s/%s.%s.cert.pem", certDir, domain, service)
-	case file[0] == '/':
-		return file
-	default:
-		return fmt.Sprintf("%s/%s", certDir, file)
-	}
 }
 
 // mkDirPath appends "/" if missing at the end

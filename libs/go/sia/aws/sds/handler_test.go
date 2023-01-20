@@ -217,8 +217,9 @@ func TestGetTLSCertificateSecretUnknownCertificate(test *testing.T) {
 		Domain:  "athenz",
 	})
 	svc := options.Service{
-		Name:     "api",
-		Filename: "unknown",
+		Name:         "api",
+		KeyFilename:  "unknown",
+		CertFilename: "unknown",
 	}
 	_, err := handler.getTLSCertificateSecret("spiffe://athenz/sa/api", &svc)
 	if err == nil {

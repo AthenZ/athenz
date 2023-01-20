@@ -496,17 +496,35 @@ func TestGetRoleCertFileName(test *testing.T) {
 func TestGetSvcCertFileName(test *testing.T) {
 	name := GetSvcCertFileName("/var/run/sia/certs", "/test/file1", "athenz", "api")
 	if name != "/test/file1" {
-		test.Errorf("Unable to verify role cert with given /test/file1 name: %s", name)
+		test.Errorf("Unable to verify service cert with given /test/file1 name: %s", name)
 		return
 	}
 	name = GetSvcCertFileName("/var/run/sia/certs", "test/file1", "athenz", "api")
 	if name != "/var/run/sia/certs/test/file1" {
-		test.Errorf("Unable to verify role cert with given test/file1 name: %s", name)
+		test.Errorf("Unable to verify service cert with given test/file1 name: %s", name)
 		return
 	}
 	name = GetSvcCertFileName("/var/run/sia/certs", "", "athenz", "api")
 	if name != "/var/run/sia/certs/athenz.api.cert.pem" {
-		test.Errorf("Unable to verify role cert with given athenz:role.hockey name: %s", name)
+		test.Errorf("Unable to verify service cert with athenz.api.cert.pem name: %s", name)
+		return
+	}
+}
+
+func TestGetSvcKeyFileName(test *testing.T) {
+	name := GetSvcKeyFileName("/var/run/sia/keys", "/test/file1", "athenz", "api")
+	if name != "/test/file1" {
+		test.Errorf("Unable to verify service key with given /test/file1 name: %s", name)
+		return
+	}
+	name = GetSvcKeyFileName("/var/run/sia/keys", "test/file1", "athenz", "api")
+	if name != "/var/run/sia/keys/test/file1" {
+		test.Errorf("Unable to verify service key with given test/file1 name: %s", name)
+		return
+	}
+	name = GetSvcKeyFileName("/var/run/sia/keys", "", "athenz", "api")
+	if name != "/var/run/sia/keys/athenz.api.key.pem" {
+		test.Errorf("Unable to verify service key with given athenz.api.key.pem name: %s", name)
 		return
 	}
 }
@@ -1023,5 +1041,15 @@ func TestReadWriteAthenzJwkConf(t *testing.T) {
 
 	modTime = GetAthenzJwkConfModTime(siaDir)
 	a.Equal(rdl.TimestampFromEpoch(100).Millis(), modTime.Millis())
+}
 
+func TestSetupSIADir(t *testing.T) {
+
+	SetupSIADir("/tmp/sia-test-dir", -1, -1)
+	assert.True(t, FileExists("/tmp/sia-test-dir"))
+	os.RemoveAll("/tmp/sia-test-dir")
+
+	SetupSIADir("/tmp/sia-test-dir", ExecIdCommand("-u"), ExecIdCommand("-g"))
+	assert.True(t, FileExists("/tmp/sia-test-dir"))
+	os.RemoveAll("/tmp/sia-test-dir")
 }

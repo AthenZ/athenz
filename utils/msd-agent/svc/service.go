@@ -18,13 +18,14 @@ type MsdHost struct {
 }
 
 type Service struct {
-	Name     string
-	Filename string
-	User     string
-	Group    string
-	Uid      int
-	Gid      int
-	FileMode int
+	Name         string
+	KeyFilename  string
+	CertFilename string
+	User         string
+	Group        string
+	Uid          int
+	Gid          int
+	FileMode     int
 }
 
 type ServicesData struct {

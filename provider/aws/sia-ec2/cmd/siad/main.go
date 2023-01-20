@@ -123,5 +123,5 @@ func main() {
 		opts.SDSUdsPath = *udsPath
 	}
 
-	agent.RunAgent(*cmd, siaMainDir, ztsUrl, opts)
+	agent.RunAgent(*cmd, ztsUrl, opts)
 }

@@ -253,13 +253,13 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		log.Printf("Unable to do PostInstanceRegisterInformation, err: %v\n", err)
 		return err
 	}
-	svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
+	svcKeyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
-	certFile := util.GetSvcCertFileName(opts.CertDir, svc.Filename, opts.Domain, svc.Name)
-	err = util.UpdateFile(certFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
+	svcCertFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
+	err = util.UpdateFile(svcCertFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
@@ -289,8 +289,9 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 }
 
 func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options) error {
-	keyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, svc.Name)
-	certFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, svc.Name)
+
+	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
+	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile)
 	if err != nil {
@@ -353,7 +354,8 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 
 	svcKeyBytes := util.PrivatePem(key)
 	svcCertBytes := []byte(ident.X509Certificate)
-	err = SaveSvcCertKey([]byte(svcKeyBytes), svcCertBytes, svc, opts)
+	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
+	err = util.SaveServiceCertKey([]byte(svcKeyBytes), svcCertBytes, keyFile, certFile, prefix, svc.Uid, svc.Gid, svc.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
@@ -382,11 +384,6 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	return nil
 }
 
-func SaveSvcCertKey(key, cert []byte, svc options.Service, opts *options.Options) error {
-	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	return util.SaveCertKey(key, cert, svc.Filename, prefix, prefix, svc.Uid, svc.Gid, svc.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir, opts.FileDirectUpdate)
-}
-
 func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options) error {
 	certPrefix := role.Name
 	if role.Filename != "" {
@@ -399,7 +396,7 @@ func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options)
 			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
 		}
 	}
-	return util.SaveCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackUpDir, opts.FileDirectUpdate)
+	return util.SaveRoleCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackupDir, opts.FileDirectUpdate)
 }
 
 func restartSshdService() error {
@@ -472,14 +469,18 @@ func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error)
 	return false, nil
 }
 
-func RunAgent(siaCmd, siaDir, ztsUrl string, opts *options.Options) {
+func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 
 	//first, let's determine if we need to drop our privileges
 	//since it requires us to create the directories with the
 	//specified ownership
 	runUid, runGid := options.GetRunsAsUidGid(opts)
 
-	_ = util.SetupSIADirs(siaDir, "", runUid, runGid)
+	//make sure all our directories exist and have required ownership
+	_ = util.SetupSIADir(opts.KeyDir, runUid, runGid)
+	_ = util.SetupSIADir(opts.CertDir, runUid, runGid)
+	_ = util.SetupSIADir(opts.TokenDir, runUid, runGid)
+	_ = util.SetupSIADir(opts.BackupDir, runUid, runGid)
 
 	//check to see if we need to drop our privileges and
 	//run as the specific group id

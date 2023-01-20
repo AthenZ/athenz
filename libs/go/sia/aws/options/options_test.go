@@ -121,7 +121,8 @@ func assertService(expected Service, actual Service) bool {
 		expected.Uid == actual.Uid &&
 		expected.Group == actual.Group &&
 		expected.Gid == actual.Gid &&
-		expected.Filename == actual.Filename &&
+		expected.KeyFilename == actual.KeyFilename &&
+		expected.CertFilename == actual.CertFilename &&
 		expected.Threshold == actual.Threshold
 }
 
@@ -129,7 +130,7 @@ func assertInServices(svcs []Service, actual Service) bool {
 	log.Printf("svcs passed: %+v\n", svcs)
 	log.Printf("actual: %+v\n", actual)
 	for _, s := range svcs {
-		if s.Name == actual.Name && s.User == actual.User && s.Uid == actual.Uid && s.Group == actual.Group && s.Gid == actual.Gid && s.Filename == actual.Filename && s.Threshold == actual.Threshold {
+		if s.Name == actual.Name && s.User == actual.User && s.Uid == actual.Uid && s.Group == actual.Group && s.Gid == actual.Gid && s.KeyFilename == actual.KeyFilename && s.CertFilename == actual.CertFilename && s.Threshold == actual.Threshold {
 			return true
 		}
 
@@ -180,18 +181,22 @@ func TestOptionsNoConfig(t *testing.T) {
 	defer metaServer.stop()
 
 	cfg, cfgAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2")
-	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
+	opts, e := setOptions(cfg, cfgAccount, nil, "/var/lib/sia", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
 
 	// Make sure one service is set
-	assert.True(t, len(opts.Services) == 1)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.hockey")
+	assert.Equal(t, 1, len(opts.Services))
+	assert.Equal(t, "athenz", opts.Domain)
+	assert.Equal(t, "athenz.hockey", opts.Name)
 	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: idCommandId("-u"), Gid: idCommandId("-g"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
-	assert.True(t, opts.Threshold == DEFAULT_THRESHOLD)
-	assert.True(t, opts.SshThreshold == DEFAULT_THRESHOLD)
+	assert.Equal(t, DEFAULT_THRESHOLD, opts.Threshold)
+	assert.Equal(t, DEFAULT_THRESHOLD, opts.SshThreshold)
 	assert.False(t, opts.FileDirectUpdate)
+	assert.Equal(t, "/var/lib/sia/keys", opts.KeyDir)
+	assert.Equal(t, "/var/lib/sia/certs", opts.CertDir)
+	assert.Equal(t, "/var/lib/sia/tokens", opts.TokenDir)
+	assert.Equal(t, "/var/lib/sia/backup", opts.BackupDir)
 }
 
 // TestOptionsNoProfileConfig tests the scenario when there is no /etc/sia/profile_config, the system uses instance profile arn
@@ -307,16 +312,25 @@ func TestOptionsWithServiceAccountThreshold(t *testing.T) {
 // TestOptionsWithConfig test the scenario when /etc/sia/sia_config is present
 func TestOptionsWithConfig(t *testing.T) {
 	cfg, cfgAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
-	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
+	assert.Equal(t, "", cfg.SiaKeyDir)
+	assert.Equal(t, "", cfg.SiaCertDir)
+	assert.Equal(t, "", cfg.SiaTokenDir)
+	assert.Equal(t, "", cfg.SiaBackupDir)
+
+	opts, e := setOptions(cfg, cfgAccount, nil, "/var/lib/sia", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
-	assert.True(t, opts.RefreshInterval == 1440)
-	assert.True(t, opts.ZTSRegion == "")
+	assert.Equal(t, 1440, opts.RefreshInterval)
+	assert.Equal(t, "", opts.ZTSRegion)
+	assert.Equal(t, "/var/lib/sia/keys", opts.KeyDir)
+	assert.Equal(t, "/var/lib/sia/certs", opts.CertDir)
+	assert.Equal(t, "/var/lib/sia/tokens", opts.TokenDir)
+	assert.Equal(t, "/var/lib/sia/backup", opts.BackupDir)
 
 	// Make sure services are set
-	assert.True(t, len(opts.Services) == 3)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.api")
+	assert.Equal(t, 3, len(opts.Services))
+	assert.Equal(t, "athenz", opts.Domain)
+	assert.Equal(t, "athenz.api", opts.Name)
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
 	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
@@ -357,7 +371,7 @@ func TestOptionsWithGenerateRoleKeyConfig(t *testing.T) {
 	cfg, cfgAccount, _ := getConfig("data/sia_generate_role_key", "-service", "http://localhost:80", false, "us-west-2")
 	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
-	assert.True(t, opts.GenerateRoleKey == true)
+	assert.True(t, opts.GenerateRoleKey)
 	assert.Equal(t, 2, len(opts.Roles))
 	count := 0
 	for _, role := range opts.Roles {
@@ -377,7 +391,7 @@ func TestOptionsWithRotateKeyConfig(t *testing.T) {
 	cfg, cfgAccount, _ := getConfig("data/sia_rotate_key", "-service", "http://localhost:80", false, "us-west-2")
 	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
-	assert.True(t, opts.RotateKey == true)
+	assert.True(t, opts.RotateKey)
 }
 
 func TestGetRunsAsUidGid(t *testing.T) {
@@ -610,6 +624,9 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_FILE_DIRECT_UPDATE", "true")
 	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
 	os.Setenv("ATHENZ_SIA_ACCOUNT_ROLES", "{\"sports:role.readers\":{\"service\":\"api\"},\"sports:role.writers\":{\"user\": \"nobody\"}}")
+	os.Setenv("ATHENZ_SIA_KEY_DIR", "/var/athenz/keys")
+	os.Setenv("ATHENZ_SIA_CERT_DIR", "/var/athenz/certs")
+	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -619,20 +636,23 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.True(t, cfg.GenerateRoleKey)
 	assert.True(t, cfg.FileDirectUpdate)
 	assert.False(t, cfg.RotateKey)
-	assert.Equal(t, cfg.User, "root")
-	assert.Equal(t, cfg.Group, "nobody")
-	assert.Equal(t, cfg.SDSUdsPath, "/tmp/uds")
-	assert.Equal(t, cfg.SDSUdsUid, 1336)
-	assert.Equal(t, cfg.ExpiryTime, 10001)
-	assert.Equal(t, cfg.RefreshInterval, 120)
-	assert.Equal(t, cfg.ZTSRegion, "us-west-3")
+	assert.Equal(t, "root", cfg.User)
+	assert.Equal(t, "nobody", cfg.Group)
+	assert.Equal(t, "/tmp/uds", cfg.SDSUdsPath)
+	assert.Equal(t, 1336, cfg.SDSUdsUid)
+	assert.Equal(t, 10001, cfg.ExpiryTime)
+	assert.Equal(t, 120, cfg.RefreshInterval)
+	assert.Equal(t, "us-west-3", cfg.ZTSRegion)
 	assert.True(t, cfg.DropPrivileges)
+	assert.Equal(t, "/var/athenz/keys", cfg.SiaKeyDir)
+	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
+	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 
-	assert.True(t, cfgAccount.Account == "123456789012")
-	assert.True(t, cfgAccount.Domain == "athenz")
-	assert.True(t, cfgAccount.Service == "api")
-	assert.True(t, cfgAccount.Name == "athenz.api")
-	assert.True(t, len(cfgAccount.Roles) == 2)
+	assert.Equal(t, "123456789012", cfgAccount.Account)
+	assert.Equal(t, "athenz", cfgAccount.Domain)
+	assert.Equal(t, "api", cfgAccount.Service)
+	assert.Equal(t, "athenz.api", cfgAccount.Name)
+	assert.Equal(t, 2, len(cfgAccount.Roles))
 
 	os.Clearenv()
 }
@@ -677,4 +697,19 @@ func TestGetConfigWithSshHostKeyType(t *testing.T) {
 			assert.Equal(t, cfg.SshHostKeyType, tt.hostKeyType)
 		})
 	}
+}
+
+func TestOptionsWithSiaDirs(t *testing.T) {
+	cfg, cfgAccount, _ := getConfig("data/sia_config_ssh_ecdsa", "-service", "http://localhost:80", false, "us-west-2")
+	assert.Equal(t, "/var/athenz/keys", cfg.SiaKeyDir)
+	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
+	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
+	assert.Equal(t, "/var/athenz/backup", cfg.SiaBackupDir)
+
+	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
+	require.Nilf(t, e, "error should not be thrown, error: %v", e)
+	assert.Equal(t, "/var/athenz/keys", opts.KeyDir)
+	assert.Equal(t, "/var/athenz/certs", opts.CertDir)
+	assert.Equal(t, "/var/athenz/tokens", opts.TokenDir)
+	assert.Equal(t, "/var/athenz/backup", opts.BackupDir)
 }
