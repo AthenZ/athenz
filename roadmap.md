@@ -3,6 +3,23 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q1 2023
+
+- Athenz Integration with Google Cloud Platform (GCP)
+- Provide delete protection for roles, policies and services
+- Require admin approval for member deletion in review-enabled roles
+
+# Q4 2022
+
+- Athenz UI - upgrade from Node.js 14.x to 18.x
+- Athenz Integration with Google Cloud Platform (GCP)
+
+# Q3 2022
+
+- Role Membership Cleanup: auto purge expired role/group members based on server/domain config
+- Implement redux support in Athenz UI
+- Publish athenz auth history syncer
+
 # Q2 2022
 
 - Micro Segmentation: Service Identity based ACLs
