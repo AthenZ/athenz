@@ -4,6 +4,8 @@ export GOPRIVATE=github.com
 
 FMT_LOG=/tmp/fmt.log
 
+BUILD_VERSION:=development
+
 all: build_darwin build_linux build_windows test
 
 build: get all
@@ -13,16 +15,16 @@ mac:   get build_darwin test
 linux: get build_linux test
 
 build_darwin:
-	@echo "Building mac client..."
-	GOOS=darwin go install -ldflags -v $(GOPKGNAME)/...
+	@echo "Building darwin client with $(BUILD_VERSION)"
+	GOOS=darwin go install -ldflags "-X main.Version=$(BUILD_VERSION)" -v $(GOPKGNAME)/...
 
 build_linux:
-	@echo "Building linux client..."
-	GOOS=linux go install -ldflags -v $(GOPKGNAME)/...
+	@echo "Building linux client with $(BUILD_VERSION)"
+	GOOS=linux go install -ldflags "-X main.Version=$(BUILD_VERSION)" -v $(GOPKGNAME)/...
 
 build_windows:
-	@echo "Building windows client..."
-	GOOS=windows go install -ldflags -v $(GOPKGNAME)/...
+	@echo "Building windows client with $(BUILD_VERSION)"
+	GOOS=windows go install -ldflags "-X main.Version=$(BUILD_VERSION)" -v $(GOPKGNAME)/...
 
 get:
 	@echo "Getting dependencies..."
