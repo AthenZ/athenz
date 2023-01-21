@@ -1,3 +1,14 @@
+Athenz v1.11.18 Release / Jan 20, 2023
+--------------------------------------
+
+#2028 UI: setup functional test with webdriverio
+#2037 use correct role prefix when filtering tenant resource group roles
+#2038 support role audit enabled set for domain admins using zms-cli
+#2039 sia config option to update key/cert file directly instead of using rename
+#2040 provide configuration options for sia key/cert/token/backup directories
+#2041 Add build version to sia-ec2
+#2042 update package-lock.json to match package dependencies
+
 Athenz v1.11.17 Release / Jan 11, 2023
 --------------------------------------
 
