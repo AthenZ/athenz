@@ -79,6 +79,7 @@ public class DBService implements RolesProvider {
     private static final String POLICY_PREFIX = "policy.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
     private static final String AUDIT_REF = "Athenz User Authority Enforcer";
+    private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
@@ -2848,10 +2849,109 @@ public class DBService implements RolesProvider {
         // and needs to be optimized. For now we'll configure it with
         // default timeout of 30 minutes to avoid any issues
 
+        ResourceAccessList accessList;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             con.setOperationTimeout(1800);
-            return con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
+            accessList = con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
         }
+
+        // update the resources accordingly if the action is designed for one
+        // of our cloud providers
+
+        if (ZMSConsts.ACTION_ASSUME_AWS_ROLE.equals(action)) {
+            generateAWSResources(accessList);
+        } else if (ZMSConsts.ACTION_ASSUME_GCP_ROLE.equals(action)) {
+            generateGCPResources(accessList);
+        }
+
+        return accessList;
+    }
+
+    void generateGCPResources(ResourceAccessList accessList) {
+    }
+
+    void generateAWSResources(ResourceAccessList accessList) {
+
+        // first we need to get a mapping of our aws domains
+
+        Map<String, String> awsDomains;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            awsDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_AWS);
+        }
+
+        // if awsDomain list is empty then we'll be removing all resources
+
+        if (awsDomains == null || awsDomains.isEmpty()) {
+            accessList.setResources(new ArrayList<>());
+            return;
+        }
+
+        // we're going to update each assertion and generate the
+        // resource in the expected aws role format. however, we
+        // are going to remove any assertions where we do not have a
+        // valid syntax or no aws domain
+
+        List<ResourceAccess> resourceAccessList = accessList.getResources();
+        for (ResourceAccess resourceAccess : resourceAccessList) {
+            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
+            while (assertionIterator.hasNext()) {
+
+                Assertion assertion = assertionIterator.next();
+
+                final String role = assertion.getRole();
+                final String resource = assertion.getResource();
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("processing assertion: {}/{}", role, resource);
+                }
+
+                // verify that role and resource domains match
+
+                final String resourceDomain = assertionDomainCheck(role, resource);
+                if (resourceDomain == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("assertion domain check failed, removing assertion");
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                final String awsDomain = awsDomains.get(resourceDomain);
+                if (awsDomain == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("resource without aws domain: {}", resourceDomain);
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                assertion.setResource(AWS_ARN_PREFIX + awsDomain + ":role/" + resource.substring(resourceDomain.length() + 1));
+            }
+        }
+    }
+
+    String assertionDomainCheck(final String role, final String resource) {
+
+        // first extract and verify the index values
+
+        int rsrcIdx = resource.indexOf(':');
+        if (rsrcIdx == -1 || rsrcIdx == 0) {
+            return null;
+        }
+
+        int roleIdx = role.indexOf(':');
+        if (roleIdx == -1 || roleIdx == 0) {
+            return null;
+        }
+
+        if (rsrcIdx != roleIdx) {
+            return null;
+        }
+
+        // now extract and verify actual domain values
+
+        final String resourceDomain = resource.substring(0, rsrcIdx);
+        return resourceDomain.equals(role.substring(0, roleIdx)) ? resourceDomain : null;
     }
 
     Domain getDomain(String domainName, boolean masterCopy) {

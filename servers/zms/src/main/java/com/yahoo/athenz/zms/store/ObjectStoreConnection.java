@@ -48,6 +48,7 @@ public interface ObjectStoreConnection extends Closeable {
     List<String> listDomains(String prefix, long modifiedSince);
     String lookupDomainByProductId(int productId);
     String lookupDomainByCloudProvider(String provider, String value);
+    Map<String, String> listDomainsByCloudProvider(String provider);
     List<String> lookupDomainByRole(String roleMember, String roleName);
     List<String> lookupDomainByBusinessService(String businessService);
 
