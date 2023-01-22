@@ -80,6 +80,7 @@ public class DBService implements RolesProvider {
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
     private static final String AUDIT_REF = "Athenz User Authority Enforcer";
     private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
+    private static final String GCP_ARN_PREFIX  = "projects/";
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
@@ -2868,6 +2869,66 @@ public class DBService implements RolesProvider {
     }
 
     void generateGCPResources(ResourceAccessList accessList) {
+
+        // first we need to get a mapping of our gcp domains
+
+        Map<String, String> gcpDomains;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            gcpDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_GCP);
+        }
+
+        // if awsDomain list is empty then we'll be removing all resources
+
+        if (gcpDomains == null || gcpDomains.isEmpty()) {
+            accessList.setResources(new ArrayList<>());
+            return;
+        }
+
+        // we're going to update each assertion and generate the
+        // resource in the expected gcp role format. however, we
+        // are going to remove any assertions where we do not have a
+        // valid syntax or no gcp domain
+
+        List<ResourceAccess> resourceAccessList = accessList.getResources();
+        for (ResourceAccess resourceAccess : resourceAccessList) {
+            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
+            while (assertionIterator.hasNext()) {
+
+                Assertion assertion = assertionIterator.next();
+
+                final String role = assertion.getRole();
+                final String resource = assertion.getResource();
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("processing assertion: {}/{}", role, resource);
+                }
+
+                // verify that role and resource domains match
+
+                final String resourceDomain = assertionDomainCheck(role, resource);
+                if (resourceDomain == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("assertion domain check failed, removing assertion");
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                final String gcpProject = gcpDomains.get(resourceDomain);
+                if (gcpProject == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("resource without gcp project: {}", resourceDomain);
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                final String resourceObject = resource.substring(resourceDomain.length() + 1);
+                final String resourceComp = (resourceObject.startsWith("roles/") || resourceObject.startsWith("groups/"))
+                        ? "/" : "/roles/";
+                assertion.setResource(GCP_ARN_PREFIX + gcpProject + resourceComp + resourceObject);
+            }
+        }
     }
 
     void generateAWSResources(ResourceAccessList accessList) {
@@ -2916,16 +2977,16 @@ public class DBService implements RolesProvider {
                     continue;
                 }
 
-                final String awsDomain = awsDomains.get(resourceDomain);
-                if (awsDomain == null) {
+                final String awsAccount = awsDomains.get(resourceDomain);
+                if (awsAccount == null) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("resource without aws domain: {}", resourceDomain);
+                        LOG.debug("resource without aws account: {}", resourceDomain);
                     }
                     assertionIterator.remove();
                     continue;
                 }
 
-                assertion.setResource(AWS_ARN_PREFIX + awsDomain + ":role/" + resource.substring(resourceDomain.length() + 1));
+                assertion.setResource(AWS_ARN_PREFIX + awsAccount + ":role/" + resource.substring(resourceDomain.length() + 1));
             }
         }
     }

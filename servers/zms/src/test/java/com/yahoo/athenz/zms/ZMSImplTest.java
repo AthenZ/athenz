@@ -18659,7 +18659,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetResourceAccessList() {
+    public void testGetResourceAccessListAws() {
 
         final String domainName1 = "resource-aws1";
         final String domainName2 = "resource-aws2";
@@ -18883,6 +18883,260 @@ public class ZMSImplTest {
             resourceCheck.add(assertion.getResource());
         }
         assertTrue(resourceCheck.contains(domainName1 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName4 + ":role3-resource"));
+
+        // get the list of resources for unknown user with null action
+
+        try {
+            zmsImpl.getResourceAccessList(ctx, "user.unknown", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName3, auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName4, auditRef);
+    }
+
+    @Test
+    public void testGetResourceAccessListGcp() {
+
+        final String domainName1 = "resource-gcp1";
+        final String domainName2 = "resource-gcp2";
+        final String domainName3 = "resource-gcp3";
+        final String domainName4 = "resource-gcp4";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.setGcpProject("gcp-1234");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
+                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
+
+        TopLevelDomain dom3 = zmsTestInitializer.createTopLevelDomainObject(domainName3,
+                "Test Domain3", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom3);
+
+        TopLevelDomain dom4 = zmsTestInitializer.createTopLevelDomainObject(domainName4,
+                "Test Domain4", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom4);
+
+        Group group31 = zmsTestInitializer.createGroupObject(domainName3, "group31", "user.john", "user.joe");
+        zmsImpl.putGroup(ctx, domainName3, "group31", auditRef, false, group31);
+
+        Group group32 = zmsTestInitializer.createGroupObject(domainName3, "group32", "user.john", "user.joe");
+        zmsImpl.putGroup(ctx, domainName3, "group32", auditRef, false, group32);
+
+        Group group33 = zmsTestInitializer.createGroupObject(domainName3, "group33", "user.jack", "user.joe");
+        zmsImpl.putGroup(ctx, domainName3, "group33", auditRef, false, group33);
+
+        // two roles in domain1 with gcp access
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName1, "gcp-role1", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName3, "group31"));
+        zmsImpl.putRole(ctx, domainName1, "gcp-role1", auditRef, false, role1);
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName1, "gcp-role2", null, "user.jane",
+                ResourceUtils.groupResourceName(domainName3, "group32"));
+        zmsImpl.putRole(ctx, domainName1, "gcp-role2", auditRef, false, role2);
+
+        Role role3 = zmsTestInitializer.createRoleObject(domainName1, "gcp-role3", null, "user.joe", null);
+        zmsImpl.putRole(ctx, domainName1, "gcp-role3", auditRef, false, role3);
+
+        // we have another role without any policy
+
+        Role role4 = zmsTestInitializer.createRoleObject(domainName1, "gcp-role4", null, "user.david", null);
+        zmsImpl.putRole(ctx, domainName1, "gcp-role4", auditRef, false, role4);
+
+        // same roles in domain2 without gcp access
+
+        role1 = zmsTestInitializer.createRoleObject(domainName2, "gcp-role1", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName3, "group31"));
+        zmsImpl.putRole(ctx, domainName2, "gcp-role1", auditRef, false, role1);
+
+        role2 = zmsTestInitializer.createRoleObject(domainName2, "gcp-role2", null, "user.jane",
+                ResourceUtils.groupResourceName(domainName3, "group32"));
+        zmsImpl.putRole(ctx, domainName2, "gcp-role2", auditRef, false, role2);
+
+        // similar roles in domain3 without any policies
+
+        role1 = zmsTestInitializer.createRoleObject(domainName3, "gcp-role1", null, "user.joe",
+                ResourceUtils.groupResourceName(domainName3, "group33"));
+        zmsImpl.putRole(ctx, domainName3, "gcp-role1", auditRef, false, role1);
+
+        role2 = zmsTestInitializer.createRoleObject(domainName3, "gcp-role2", null, "user.jane",
+                ResourceUtils.groupResourceName(domainName3, "group33"));
+        zmsImpl.putRole(ctx, domainName3, "gcp-role2", auditRef, false, role2);
+
+        // create the policies with assume_gcp_role action
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName1, "policy1", "gcp-role1",
+                "assume_gcp_role", domainName1 + ":roles/role1-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName1, "policy1", auditRef, false, policy1);
+
+        Policy policy2 = zmsTestInitializer.createPolicyObject(domainName1, "policy2", "gcp-role2",
+                "assume_gcp_role", domainName1 + ":role2-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName1, "policy2", auditRef, false, policy2);
+
+        Policy policy3 = zmsTestInitializer.createPolicyObject(domainName1, "policy3", "gcp-role3",
+                "assume_gcp_role", domainName1 + ":groups/group1-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName1, "policy3", auditRef, false, policy3);
+
+        // this should be excluded due to domain mismatch for gcp check
+
+        Policy policy4 = zmsTestInitializer.createPolicyObject(domainName1, "policy4", "gcp-role2",
+                "assume_gcp_role", domainName4 + ":role3-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName1, "policy4", auditRef, false, policy4);
+
+        // same policies in domain 2 without gcp access
+
+        policy1 = zmsTestInitializer.createPolicyObject(domainName2, "policy1", "gcp-role1",
+                "assume_gcp_role", domainName2 + ":role1-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName2, "policy1", auditRef, false, policy1);
+
+        policy2 = zmsTestInitializer.createPolicyObject(domainName2, "policy2", "gcp-role2",
+                "assume_gcp_role", domainName2 + ":role2-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName2, "policy2", auditRef, false, policy2);
+
+        // get the list of resources for user.david which should return empty list
+
+        ResourceAccessList resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.david", "assume_gcp_role");
+        List<ResourceAccess> resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        assertTrue(resources.get(0).getAssertions().isEmpty());
+
+        // get the list of resources for user.joe with assume_gcp_role action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_gcp_role");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        ResourceAccess rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertEquals(rsrcAccess.getAssertions().size(), 3);
+        Set<String> resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role1-resource"));
+        assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role2-resource"));
+        assertTrue(resourceCheck.contains("projects/gcp-1234/groups/group1-resource"));
+
+        // get the list of resources for user.jane with assume_gcp_role action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", "assume_gcp_role");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 1);
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "projects/gcp-1234/roles/role2-resource");
+
+        // get the list of resources for user.john with assume_gcp_role action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", "assume_gcp_role");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.john");
+        assertEquals(rsrcAccess.getAssertions().size(), 2);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role1-resource"));
+        assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role2-resource"));
+
+        // get the list of resources for unknown user with assume_gcp_role action
+
+        try {
+            zmsImpl.getResourceAccessList(ctx, "user.unknown", "assume_gcp_role");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        // get the list of resources for user.joe with unknown action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "unknown");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertTrue(rsrcAccess.getAssertions().isEmpty());
+
+        // get the list of resources for user.joe with null action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", null);
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertEquals(rsrcAccess.getAssertions().size(), 6);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains(domainName1 + ":roles/role1-resource"));
+        assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName1 + ":groups/group1-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role1-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName4 + ":role3-resource"));
+
+        // get the list of resources for user.jane with null action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.jane", null);
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.jane");
+        assertEquals(rsrcAccess.getAssertions().size(), 3);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
+        assertTrue(resourceCheck.contains(domainName4 + ":role3-resource"));
+
+        // get the list of resources for user.john with null action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.john", null);
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.john");
+        assertEquals(rsrcAccess.getAssertions().size(), 5);
+        resourceCheck = new HashSet<>();
+        for (Assertion assertion : rsrcAccess.getAssertions()) {
+            resourceCheck.add(assertion.getResource());
+        }
+        assertTrue(resourceCheck.contains(domainName1 + ":roles/role1-resource"));
         assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
         assertTrue(resourceCheck.contains(domainName2 + ":role1-resource"));
         assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
