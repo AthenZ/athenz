@@ -52,6 +52,11 @@ public class ZMSGroupTagsTest {
 
     @Test
     public void testQueryPutGroupWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         final String domainName = "sys.auth";
 
         // put group with multiple tags
@@ -60,41 +65,41 @@ public class ZMSGroupTagsTest {
         List<String> tagValues = Arrays.asList("val1", "val2");
         Group group = zmsTestInitializer.createGroupObject(domainName, groupWithTags, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupWithTags, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, groupWithTags, auditRef, false, group);
 
         // put group with single tags
         final String groupSingleTag = "groupSingleTag";
         List<String> singleTagValue = Collections.singletonList("val1");
         group = zmsTestInitializer.createGroupObject(domainName, groupSingleTag, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupSingleTag, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, groupSingleTag, auditRef, false, group);
 
         //put group without tags
         final String noTagsGroup = "noTagsGroup";
         group = zmsTestInitializer.createGroupObject(domainName, noTagsGroup, null);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
 
         // get groups without tags query - both tags should be presented
-        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
+        Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
         hasGroupWithTags(groupList, groupWithTags, tagKey, tagValues, 2);
         hasGroupWithTags(groupList, groupSingleTag, tagKey, singleTagValue, 1);
         hasGroupWithTags(groupList, noTagsGroup, null, null, 0);
 
         // get groups with exact tag value
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, "val1");
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, "val1");
         hasGroupWithTags(groupList, groupWithTags, tagKey, tagValues, 2);
         hasGroupWithTags(groupList, groupSingleTag, tagKey, singleTagValue, 1);
         // ensure there are no more groups
         assertEquals(groupList.getList().size(), 2);
 
         // get groups with exact tag value
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, "val2");
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, "val2");
         hasGroupWithTags(groupList, groupWithTags, tagKey, tagValues, 2);
         // ensure there are no more groups
         assertEquals(groupList.getList().size(), 1);
 
         // get groups with only tag key
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, null);
         hasGroupWithTags(groupList, groupWithTags, tagKey, tagValues, 2);
         hasGroupWithTags(groupList, groupSingleTag, tagKey, singleTagValue, 1);
         // ensure there are no more groups
@@ -103,6 +108,10 @@ public class ZMSGroupTagsTest {
 
     @Test
     public void testGroupTagsLimit() {
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         // define limit of 3 group tags
         System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, "3");
         ZMSImpl zmsTest = zmsTestInitializer.zmsInit();
@@ -116,7 +125,7 @@ public class ZMSGroupTagsTest {
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
         try {
-            zmsTest.putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), false, group);
+            zmsTest.putGroup(ctx, domainName, groupName, auditRef, false, group);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -124,8 +133,8 @@ public class ZMSGroupTagsTest {
         }
 
         try {
-            // group should not be created if fails to process tags..
-            zmsTest.getGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, false, false);
+            // group should not be created if fails to process tags.
+            zmsTest.getGroup(ctx, domainName, groupName, false, false);
             fail();
         } catch(ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -137,34 +146,39 @@ public class ZMSGroupTagsTest {
 
     @Test
     public void testQueryUpdateGroupWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         final String domainName = "sys.auth";
         final String tagKey = "tag-key-update";
 
         //put group without tags
         final String noTagsGroup = "noTagsGroup";
         Group group = zmsTestInitializer.createGroupObject(domainName, noTagsGroup, null);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
 
         // assert there are no tags
-        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
+        Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
         hasGroupWithTags(groupList, noTagsGroup, null, null, 0);
 
         // update tag list
         List<String> tagValues = Arrays.asList("val1", "val2", "val3");
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
 
         // 2 tags should be presented
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
         hasGroupWithTags(groupList, noTagsGroup, tagKey, tagValues, 3);
 
         // get groups with exact tag value
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.FALSE, tagKey, "val1");
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.FALSE, tagKey, "val1");
         hasGroupWithTags(groupList, noTagsGroup, tagKey, tagValues, 3);
         assertEquals(groupList.getList().size(), 1);
 
         // get groups with only tag key
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, null);
         hasGroupWithTags(groupList, noTagsGroup, tagKey, tagValues, 3);
         assertEquals(groupList.getList().size(), 1);
 
@@ -176,45 +190,50 @@ public class ZMSGroupTagsTest {
         tagsMap.put(tagKey, new TagValueList().setList(modifiedTagValues));
         tagsMap.put(newTagKey, new TagValueList().setList(newTagValues));
         group.setTags(tagsMap);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, noTagsGroup, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, noTagsGroup, auditRef, false, group);
 
         // 1 tags should be presented
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, null, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, null, null);
         hasGroupWithTags(groupList, noTagsGroup, tagKey, modifiedTagValues, 2);
         hasGroupWithTags(groupList, noTagsGroup, newTagKey, newTagValues, 3);
 
         // get groups with exact tag value
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, "val1");
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, "val1");
         hasGroupWithTags(groupList, noTagsGroup, tagKey, modifiedTagValues, 2);
         assertEquals(groupList.getList().size(), 1);
 
         // get groups with non-existent tag value
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, "val2");
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, "val2");
         assertEquals(groupList.getList().size(), 0);
 
         // get groups with new tag key
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, null);
         hasGroupWithTags(groupList, noTagsGroup, newTagKey, newTagValues, 3);
         assertEquals(groupList.getList().size(), 1);
     }
 
     @Test
     public void testUpdateGroupMetaWithoutTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         final String domainName = "update-group-meta-without-tags";
         final String updateGroupMetaTag = "tag-key-update-group-meta";
         final List<String> updateGroupMetaTagValues = Collections.singletonList("update-meta-value");
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         // put group without tags
         final String groupName = "groupTagsUpdateMeta";
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
 
         // no tags should be presented
-        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, updateGroupMetaTag, null);
+        Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, updateGroupMetaTag, null);
         assertTrue(groupList.getList().isEmpty());
 
         GroupMeta gm = new GroupMeta()
@@ -222,17 +241,22 @@ public class ZMSGroupTagsTest {
                         new TagValueList().setList(updateGroupMetaTagValues)));
 
         // update group tags using group meta
-        zmsTestInitializer.getZms().putGroupMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), gm);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, gm);
 
         // assert that updateGroupMetaTag is in group tags
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, updateGroupMetaTag, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, updateGroupMetaTag, null);
         hasGroupWithTags(groupList, groupName, updateGroupMetaTag, updateGroupMetaTagValues, 1);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
     public void testUpdateGroupMetaWithExistingTag() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
         final String domainName = "update-group-meta-with-existing-tag";
         final String tagKey = "tag-key";
         final String updateGroupMetaTag = "tag-key-update-group-meta-exist-tag";
@@ -240,17 +264,17 @@ public class ZMSGroupTagsTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", "user.user1");
-        zmsTestInitializer.getZms().postTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), zmsTestInitializer.getAuditRef(), dom1);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         // put group with tag
         final String groupName = "groupWithTagUpdateMeta";
         List<String> singleTagValue = Collections.singletonList("val1");
         Group group = zmsTestInitializer.createGroupObject(domainName, groupName, null);
         group.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
-        zmsTestInitializer.getZms().putGroup(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
 
         // tag tagKey should be presented
-        Groups groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, tagKey, null);
+        Groups groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, tagKey, null);
         hasGroupWithTags(groupList, groupName, tagKey, singleTagValue, 1);
 
         GroupMeta gm = new GroupMeta()
@@ -258,13 +282,13 @@ public class ZMSGroupTagsTest {
                         new TagValueList().setList(updateGroupMetaTagValues)));
 
         // update group tags using group meta
-        zmsTestInitializer.getZms().putGroupMeta(zmsTestInitializer.getMockDomRsrcCtx(), domainName, groupName, zmsTestInitializer.getAuditRef(), gm);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, gm);
 
         // group should contain only the new tag
-        groupList = zmsTestInitializer.getZms().getGroups(zmsTestInitializer.getMockDomRsrcCtx(), domainName, Boolean.TRUE, updateGroupMetaTag, null);
+        groupList = zmsImpl.getGroups(ctx, domainName, Boolean.TRUE, updateGroupMetaTag, null);
         hasGroupWithTags(groupList, groupName, updateGroupMetaTag, updateGroupMetaTagValues, 1);
 
-        zmsTestInitializer.getZms().deleteTopLevelDomain(zmsTestInitializer.getMockDomRsrcCtx(), domainName, zmsTestInitializer.getAuditRef());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     private void hasGroupWithTags(Groups groupList, String groupName, String tagKey, List<String> tagValues, int tagValuesLength) {
