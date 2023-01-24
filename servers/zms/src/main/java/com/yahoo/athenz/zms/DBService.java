@@ -2847,7 +2847,7 @@ public class DBService implements RolesProvider {
     public ResourceAccessList getResourceAccessList(String principal, String action) {
 
         // this commands takes a quite a bit of time due to joining tables
-        // and needs to be optimized. For now we'll configure it with
+        // and needs to be optimized. For now, we'll configure it with
         // default timeout of 30 minutes to avoid any issues
 
         ResourceAccessList accessList;
@@ -2877,10 +2877,10 @@ public class DBService implements RolesProvider {
             gcpDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_GCP);
         }
 
-        // if awsDomain list is empty then we'll be removing all resources
+        // if the gcp domain list is empty then we'll be removing all resources
 
         if (gcpDomains == null || gcpDomains.isEmpty()) {
-            accessList.setResources(new ArrayList<>());
+            accessList.setResources(Collections.emptyList());
             return;
         }
 
@@ -2940,10 +2940,10 @@ public class DBService implements RolesProvider {
             awsDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_AWS);
         }
 
-        // if awsDomain list is empty then we'll be removing all resources
+        // if aws domain list is empty then we'll be removing all resources
 
         if (awsDomains == null || awsDomains.isEmpty()) {
-            accessList.setResources(new ArrayList<>());
+            accessList.setResources(Collections.emptyList());
             return;
         }
 
