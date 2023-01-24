@@ -93,5 +93,6 @@ func main() {
 		opts.SDSUdsPath = *udsPath
 	}
 
+	agent.SetupAgent(opts, siaMainDir, "")
 	agent.RunAgent(*cmd, ztsUrl, opts)
 }

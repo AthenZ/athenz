@@ -435,7 +435,7 @@ func updateSSH(sshCertFile, sshConfigFile, hostCert string, fileDirectUpdate boo
 }
 
 func updateSSHConfigFile(sshConfigFile, sshCertFile string) error {
-	//update the sshconfig file to include HostCertificate line
+	//update the sshd config file to include HostCertificate line
 	file, err := os.OpenFile(sshConfigFile, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -469,18 +469,32 @@ func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error)
 	return false, nil
 }
 
-func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
+func SetupAgent(opts *options.Options, siaMainDir, siaLinkDir string) {
 
 	//first, let's determine if we need to drop our privileges
 	//since it requires us to create the directories with the
 	//specified ownership
 	runUid, runGid := options.GetRunsAsUidGid(opts)
 
-	//make sure all our directories exist and have required ownership
-	_ = util.SetupSIADir(opts.KeyDir, runUid, runGid)
-	_ = util.SetupSIADir(opts.CertDir, runUid, runGid)
-	_ = util.SetupSIADir(opts.TokenDir, runUid, runGid)
-	_ = util.SetupSIADir(opts.BackupDir, runUid, runGid)
+	//if our key/cert/token/backup directories are based on our sia main directory,
+	//which indicates they haven't been configured explicitly, then we need to
+	//create and setup up ownership
+	if strings.HasPrefix(opts.KeyDir, siaMainDir) || strings.HasPrefix(opts.CertDir, siaMainDir) ||
+		strings.HasPrefix(opts.TokenDir, siaMainDir) || strings.HasPrefix(opts.BackupDir, siaMainDir) {
+		util.SetupSIADir(siaMainDir, runUid, runGid)
+		//if we have a link directory specified then we'll create that as well
+		if siaLinkDir != "" && !util.FileExists(siaLinkDir) {
+			err := os.Symlink(siaMainDir, siaLinkDir)
+			if err != nil {
+				log.Printf("Unable to symlink SIA directory '%s': %v\n", siaLinkDir, err)
+			}
+		}
+	}
+	//make sure all component directories exist and have required ownership
+	util.SetupSIADir(opts.KeyDir, runUid, runGid)
+	util.SetupSIADir(opts.CertDir, runUid, runGid)
+	util.SetupSIADir(opts.TokenDir, runUid, runGid)
+	util.SetupSIADir(opts.BackupDir, runUid, runGid)
 
 	//check to see if we need to drop our privileges and
 	//run as the specific group id
@@ -495,6 +509,9 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 			log.Printf("unable to drop privileges to user %d, error: %v\n", runUid, err)
 		}
 	}
+}
+
+func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 
 	//the default value is to rotate once every day since our
 	//server and role certs are valid for 30 days by default
