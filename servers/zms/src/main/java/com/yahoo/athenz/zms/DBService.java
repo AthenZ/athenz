@@ -79,6 +79,8 @@ public class DBService implements RolesProvider {
     private static final String POLICY_PREFIX = "policy.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
     private static final String AUDIT_REF = "Athenz User Authority Enforcer";
+    private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
+    private static final String GCP_ARN_PREFIX  = "projects/";
 
     AuditReferenceValidator auditReferenceValidator;
     private ScheduledExecutorService userAuthorityFilterExecutor;
@@ -2845,13 +2847,172 @@ public class DBService implements RolesProvider {
     public ResourceAccessList getResourceAccessList(String principal, String action) {
 
         // this commands takes a quite a bit of time due to joining tables
-        // and needs to be optimized. For now we'll configure it with
+        // and needs to be optimized. For now, we'll configure it with
         // default timeout of 30 minutes to avoid any issues
 
+        ResourceAccessList accessList;
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
             con.setOperationTimeout(1800);
-            return con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
+            accessList = con.listResourceAccess(principal, action, zmsConfig.getUserDomain());
         }
+
+        // update the resources accordingly if the action is designed for one
+        // of our cloud providers
+
+        if (ZMSConsts.ACTION_ASSUME_AWS_ROLE.equals(action)) {
+            generateAWSResources(accessList);
+        } else if (ZMSConsts.ACTION_ASSUME_GCP_ROLE.equals(action)) {
+            generateGCPResources(accessList);
+        }
+
+        return accessList;
+    }
+
+    void generateGCPResources(ResourceAccessList accessList) {
+
+        // first we need to get a mapping of our gcp domains
+
+        Map<String, String> gcpDomains;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            gcpDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_GCP);
+        }
+
+        // if the gcp domain list is empty then we'll be removing all resources
+
+        if (gcpDomains == null || gcpDomains.isEmpty()) {
+            accessList.setResources(Collections.emptyList());
+            return;
+        }
+
+        // we're going to update each assertion and generate the
+        // resource in the expected gcp role format. however, we
+        // are going to remove any assertions where we do not have a
+        // valid syntax or no gcp domain
+
+        List<ResourceAccess> resourceAccessList = accessList.getResources();
+        for (ResourceAccess resourceAccess : resourceAccessList) {
+            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
+            while (assertionIterator.hasNext()) {
+
+                Assertion assertion = assertionIterator.next();
+
+                final String role = assertion.getRole();
+                final String resource = assertion.getResource();
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("processing assertion: {}/{}", role, resource);
+                }
+
+                // verify that role and resource domains match
+
+                final String resourceDomain = assertionDomainCheck(role, resource);
+                if (resourceDomain == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("assertion domain check failed, removing assertion");
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                final String gcpProject = gcpDomains.get(resourceDomain);
+                if (gcpProject == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("resource without gcp project: {}", resourceDomain);
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                final String resourceObject = resource.substring(resourceDomain.length() + 1);
+                final String resourceComp = (resourceObject.startsWith("roles/") || resourceObject.startsWith("groups/"))
+                        ? "/" : "/roles/";
+                assertion.setResource(GCP_ARN_PREFIX + gcpProject + resourceComp + resourceObject);
+            }
+        }
+    }
+
+    void generateAWSResources(ResourceAccessList accessList) {
+
+        // first we need to get a mapping of our aws domains
+
+        Map<String, String> awsDomains;
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            awsDomains = con.listDomainsByCloudProvider(ObjectStoreConnection.PROVIDER_AWS);
+        }
+
+        // if aws domain list is empty then we'll be removing all resources
+
+        if (awsDomains == null || awsDomains.isEmpty()) {
+            accessList.setResources(Collections.emptyList());
+            return;
+        }
+
+        // we're going to update each assertion and generate the
+        // resource in the expected aws role format. however, we
+        // are going to remove any assertions where we do not have a
+        // valid syntax or no aws domain
+
+        List<ResourceAccess> resourceAccessList = accessList.getResources();
+        for (ResourceAccess resourceAccess : resourceAccessList) {
+            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
+            while (assertionIterator.hasNext()) {
+
+                Assertion assertion = assertionIterator.next();
+
+                final String role = assertion.getRole();
+                final String resource = assertion.getResource();
+
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("processing assertion: {}/{}", role, resource);
+                }
+
+                // verify that role and resource domains match
+
+                final String resourceDomain = assertionDomainCheck(role, resource);
+                if (resourceDomain == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("assertion domain check failed, removing assertion");
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                final String awsAccount = awsDomains.get(resourceDomain);
+                if (awsAccount == null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("resource without aws account: {}", resourceDomain);
+                    }
+                    assertionIterator.remove();
+                    continue;
+                }
+
+                assertion.setResource(AWS_ARN_PREFIX + awsAccount + ":role/" + resource.substring(resourceDomain.length() + 1));
+            }
+        }
+    }
+
+    String assertionDomainCheck(final String role, final String resource) {
+
+        // first extract and verify the index values
+
+        int rsrcIdx = resource.indexOf(':');
+        if (rsrcIdx == -1 || rsrcIdx == 0) {
+            return null;
+        }
+
+        int roleIdx = role.indexOf(':');
+        if (roleIdx == -1 || roleIdx == 0) {
+            return null;
+        }
+
+        if (rsrcIdx != roleIdx) {
+            return null;
+        }
+
+        // now extract and verify actual domain values
+
+        final String resourceDomain = resource.substring(0, rsrcIdx);
+        return resourceDomain.equals(role.substring(0, roleIdx)) ? resourceDomain : null;
     }
 
     Domain getDomain(String domainName, boolean masterCopy) {

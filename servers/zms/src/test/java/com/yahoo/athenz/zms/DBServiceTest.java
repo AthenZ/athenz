@@ -12013,4 +12013,17 @@ public class DBServiceTest {
         zms.dbService.store = savedStore;
         zms.dbService.defaultRetryCount = savedRetryCount;
     }
+
+    @Test
+    public void testAssertionDomainCheck() {
+
+        assertNull(zms.dbService.assertionDomainCheck("", "resource.value"));
+        assertNull(zms.dbService.assertionDomainCheck("", ":resource.value"));
+        assertNull(zms.dbService.assertionDomainCheck("role.value", "athenz:resource.value"));
+        assertNull(zms.dbService.assertionDomainCheck(":role.value", "athenz:resource.value"));
+        assertNull(zms.dbService.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
+        assertNull(zms.dbService.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
+        assertEquals("athenz", zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"));
+
+    }
 }

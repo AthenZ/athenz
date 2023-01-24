@@ -278,6 +278,7 @@ public final class ZMSConsts {
     public static final String ASSERTION_EFFECT_ALLOW = "ALLOW";
     public static final String ACTION_ASSUME_ROLE     = "assume_role";
     public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
+    public static final String ACTION_ASSUME_GCP_ROLE = "assume_gcp_role";
     public static final String ACTION_UPDATE          = "update";
 
     public static final String OBJECT_DOMAIN    = "domain";

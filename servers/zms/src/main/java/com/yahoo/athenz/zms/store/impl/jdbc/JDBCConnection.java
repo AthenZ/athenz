@@ -61,6 +61,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
     private static final String SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
     private static final String SQL_GET_DOMAIN_WITH_GCP_PROJECT = "SELECT name FROM domain WHERE gcp_project=?;";
+    private static final String SQL_LIST_DOMAINS_WITH_AWS_ACCOUNT = "SELECT name, account FROM domain WHERE account!='';";
+    private static final String SQL_LIST_DOMAINS_WITH_AZURE_SUBSCRIPTION = "SELECT name, azure_subscription FROM domain WHERE azure_subscription!='';";
+    private static final String SQL_LIST_DOMAINS_WITH_GCP_PROJECT = "SELECT name, gcp_project FROM domain WHERE gcp_project!='';";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_LIST_DOMAIN_WITH_BUSINESS_SERVICE = "SELECT name FROM domain WHERE business_service=?;";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
@@ -94,7 +97,6 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE principal.name=?;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME = "SELECT domain.name FROM domain "
             + "JOIN role ON role.domain_id=domain.domain_id WHERE role.name=?;";
-    private static final String SQL_LIST_DOMAIN_AWS = "SELECT name, account FROM domain WHERE account!='';";
     private static final String SQL_GET_ROLE = "SELECT * FROM role "
             + "JOIN domain ON domain.domain_id=role.domain_id "
             + "WHERE domain.name=? AND role.name=?;";
@@ -641,8 +643,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String CACHE_HOST      = "h:";
     private static final String ALL_PRINCIPALS  = "*";
 
-    private static final String AWS_ARN_PREFIX  = "arn:aws:iam::";
-
     private static final String MYSQL_SERVER_TIMEZONE = System.getProperty(ZMSConsts.ZMS_PROP_MYSQL_SERVER_TIMEZONE, "GMT");
 
     private int roleTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
@@ -1149,7 +1149,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return domainName;
     }
 
-    String getCloudProviderSQLCommand(final String provider) {
+    String getCloudProviderLookupDomainSQLCommand(final String provider) {
         if (provider == null) {
             return null;
         }
@@ -1164,11 +1164,41 @@ public class JDBCConnection implements ObjectStoreConnection {
         return null;
     }
 
+    String getCloudProviderListDomainsSQLCommand(final String provider) {
+        if (provider == null) {
+            return null;
+        }
+        switch (provider.toLowerCase()) {
+            case ObjectStoreConnection.PROVIDER_AWS:
+                return SQL_LIST_DOMAINS_WITH_AWS_ACCOUNT;
+            case ObjectStoreConnection.PROVIDER_AZURE:
+                return SQL_LIST_DOMAINS_WITH_AZURE_SUBSCRIPTION;
+            case ObjectStoreConnection.PROVIDER_GCP:
+                return SQL_LIST_DOMAINS_WITH_GCP_PROJECT;
+        }
+        return null;
+    }
+
+    String getCloudProviderColumnName(final String provider) {
+        if (provider == null) {
+            return null;
+        }
+        switch (provider.toLowerCase()) {
+            case ObjectStoreConnection.PROVIDER_AWS:
+                return DB_COLUMN_ACCOUNT;
+            case ObjectStoreConnection.PROVIDER_AZURE:
+                return DB_COLUMN_AZURE_SUBSCRIPTION;
+            case ObjectStoreConnection.PROVIDER_GCP:
+                return DB_COLUMN_GCP_PROJECT;
+        }
+        return null;
+    }
+
     @Override
     public String lookupDomainByCloudProvider(String provider, String value) {
 
         final String caller = "lookupDomainByCloudProvider";
-        final String sqlCmd = getCloudProviderSQLCommand(provider);
+        final String sqlCmd = getCloudProviderLookupDomainSQLCommand(provider);
         if (sqlCmd == null || value == null) {
             return null;
         }
@@ -1185,6 +1215,29 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return domainName;
+    }
+
+    @Override
+    public Map<String, String> listDomainsByCloudProvider(String provider) {
+
+        final String caller = "listDomainByCloudProvider";
+        final String sqlCmd = getCloudProviderListDomainsSQLCommand(provider);
+        if (sqlCmd == null) {
+            return null;
+        }
+        final String columnName = getCloudProviderColumnName(provider);
+        Map<String, String> domains = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    domains.put(rs.getString(ZMSConsts.DB_COLUMN_NAME), rs.getString(columnName));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        return domains;
     }
 
     @Override
@@ -4194,88 +4247,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         return trustedRoles;
     }
 
-    Map<String, String> getAwsDomains(String caller) {
-
-        Map<String, String> awsDomains = new HashMap<>();
-        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_AWS)) {
-            try (ResultSet rs = executeQuery(ps, caller)) {
-                while (rs.next()) {
-                    awsDomains.put(rs.getString(ZMSConsts.DB_COLUMN_NAME), rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT));
-                }
-            }
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
-        }
-
-        return awsDomains;
-    }
-
-    void addRoleAssertions(List<Assertion> principalAssertions, List<Assertion> roleAssertions,
-            Map<String, String> awsDomains) {
-
-        // if the role assertions is empty then we have nothing to do
-
-        if (roleAssertions == null || roleAssertions.isEmpty()) {
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("addRoleAssertions: role assertion list is empty");
-            }
-
-            return;
-        }
-
-        // if this is not an aws request or the awsDomain list is empty,
-        // then we're just going to add the role assertions to the
-        // principal's assertion list as is
-
-        if (awsDomains == null || awsDomains.isEmpty()) {
+    void addRoleAssertions(List<Assertion> principalAssertions, List<Assertion> roleAssertions) {
+        if (roleAssertions != null && !roleAssertions.isEmpty()) {
             principalAssertions.addAll(roleAssertions);
-            return;
-        }
-
-        // we're going to update each assertion and generate the
-        // resource in the expected aws role format. however, we
-        // going to skip any assertions where we do not have a
-        // valid syntax or no aws domain
-
-        for (Assertion assertion : roleAssertions) {
-
-            final String resource = assertion.getResource();
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("addRoleAssertions: processing assertion: {}", resource);
-            }
-
-            // first we need to check if the assertion has already
-            // been processed and as such the resource has been
-            // rewritten to have aws format
-
-            if (resource.startsWith(AWS_ARN_PREFIX)) {
-                principalAssertions.add(assertion);
-                continue;
-            }
-
-            // otherwise we're going to look for the domain component
-
-            int idx = resource.indexOf(':');
-            if (idx == -1) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("addRoleAssertions: resource without domain component: {}", resource);
-                }
-                continue;
-            }
-
-            final String resourceDomain = resource.substring(0, idx);
-            String awsDomain = awsDomains.get(resourceDomain);
-            if (awsDomain == null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("addRoleAssertions: resource without aws domain: {}", resourceDomain);
-                }
-                continue;
-            }
-
-            assertion.setResource(AWS_ARN_PREFIX + awsDomain + ":role/" + resource.substring(idx + 1));
-            principalAssertions.add(assertion);
         }
     }
 
@@ -4294,11 +4268,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         ResourceAccessList rsrcAccessList = new ResourceAccessList();
         List<ResourceAccess> resources = new ArrayList<>();
         rsrcAccessList.setResources(resources);
-
-        // check to see if this an aws request based on
-        // the action query
-
-        boolean awsQuery = (action != null && action.equals(ZMSConsts.ACTION_ASSUME_AWS_ROLE));
 
         // first let's get the principal list that we're asked to check for
         // since if we have no matches then we have nothing to do
@@ -4332,16 +4301,6 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         Map<String, List<String>> trustedRoles = getTrustedRoles(caller);
 
-        // if we're asked for action assume_aws_role then we're looking
-        // for role access in AWS. So we're going to retrieve
-        // the domains that have aws account configured only and update
-        // the resource to generate aws role resources.
-
-        Map<String, String> awsDomains = null;
-        if (awsQuery) {
-            awsDomains = getAwsDomains(caller);
-        }
-
         // now let's go ahead and combine all of our data together
         // we're going to go through each principal, lookup
         // the assertions for the role and add them to the return object
@@ -4359,7 +4318,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
             // retrieve the assertions for this role
 
-            addRoleAssertions(assertions, roleAssertions.get(roleIndex), awsDomains);
+            addRoleAssertions(assertions, roleAssertions.get(roleIndex));
 
             // check to see if this is a trusted role. There might be multiple
             // roles all being mapped as trusted, so we need to process them all
@@ -4372,7 +4331,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         LOG.debug("{}: processing trusted role: {}", caller, mappedTrustedRole);
                     }
 
-                    addRoleAssertions(assertions, roleAssertions.get(mappedTrustedRole), awsDomains);
+                    addRoleAssertions(assertions, roleAssertions.get(mappedTrustedRole));
                 }
             }
         }
