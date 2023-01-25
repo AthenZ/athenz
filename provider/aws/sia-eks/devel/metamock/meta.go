@@ -26,7 +26,7 @@ var (
 	iamInfoJson = `{
         "Code" : "Success",
         "LastUpdated" : "2019-05-06T15:35:48Z",
-        "InstanceProfileArn" : "arn:aws:iam::123456789012:instance-profile/athenz.hockey-service",
+        "InstanceProfileArn" : "arn:aws:iam::123456789012:instance-profile/athenz.hockey-service@stage",
         "InstanceProfileId" : "XXXXPROFILEIDYYYY"
 	}`
 

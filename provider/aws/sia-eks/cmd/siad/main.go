@@ -48,6 +48,7 @@ func main() {
 	providerPrefix := flag.String("providerprefix", "", "Provider name prefix e.g athenz.aws")
 	displayVersion := flag.Bool("version", false, "Display version information")
 	udsPath := flag.String("uds", "", "uds path")
+	accessProfileConf := flag.String("profileconfig", "/etc/sia/profile_config", "The user access management profile config file")
 
 	flag.Parse()
 
@@ -71,14 +72,15 @@ func main() {
 		log.Fatalln("missing providerprefix argument")
 	}
 
+	log.Printf("SIA-EKS version: %s \n", Version)
 	region := meta.GetRegion(*eksMetaEndPoint, true)
 
-	config, configAccount, err := sia.GetEKSConfig(*pConf, *eksMetaEndPoint, *useRegionalSTS, region)
+	config, configAccount, accessProfileConfig, err := sia.GetEKSConfig(*pConf, *accessProfileConf, *eksMetaEndPoint, *useRegionalSTS, region)
 	if err != nil {
 		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, nil, siaMainDir, Version, *useRegionalSTS, region)
+	opts, err := options.NewOptions(config, configAccount, accessProfileConfig, siaMainDir, Version, *useRegionalSTS, region)
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}

@@ -70,6 +70,8 @@ func main() {
 		log.Fatalln("missing providerprefix argument")
 	}
 
+	log.Printf("SIA-Fargate version: %s \n", Version)
+
 	account, taskId, region, err := sia.GetFargateData(*ecsMetaEndPoint)
 	if err != nil {
 		log.Fatalf("Unable to extract fargate task details: %v\n", err)

@@ -42,34 +42,38 @@ func TestMain(m *testing.M) {
 
 // TestGetConfigNoConfig tests the scenario when there is no /etc/sia/sia_config, the system uses profile arn
 func TestGetConfigNoConfig(t *testing.T) {
-	config, configAccount, err := GetEKSConfig("devel/data/sia_empty_config", "http://127.0.0.1:5082", false, "us-west-2")
+	config, configAccount, accessProfileConfig, err := GetEKSConfig("devel/data/sia_empty_config", "devel/data/access_profile_empty_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nil(t, err)
 	require.NotNil(t, config)
 	require.NotNil(t, configAccount)
+	require.NotNil(t, accessProfileConfig)
 	assert.True(t, configAccount.Domain == "athenz")
 	assert.True(t, configAccount.Service == "hockey")
+	assert.True(t, accessProfileConfig.Profile == "stage")
 }
 
 // TestGetConfigWithConfig test the scenario when /etc/sia/sia_config is present
 func TestGetConfigWithConfig(t *testing.T) {
-	config, configAccount, err := GetEKSConfig("devel/data/sia_config", "http://127.0.0.1:5082", false, "us-west-2")
+	config, configAccount, accessProfileConfig, err := GetEKSConfig("devel/data/sia_config", "devel/data/access_profile_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nilf(t, err, "error should be empty, error: %v", err)
 	require.NotNil(t, config, "should be able to get config")
 	require.NotNil(t, configAccount, "should be able to get config")
+	require.NotNil(t, accessProfileConfig, "should be able to get user access management config")
 
 	// Make sure services are set
 	assert.True(t, config.Service == "api")
 	assert.True(t, configAccount.Domain == "athenz")
 	assert.True(t, configAccount.Service == "api")
+	assert.True(t, accessProfileConfig.Profile == "dev")
 }
 
 // TestGetConfigNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
 func TestGetConfigNoService(t *testing.T) {
-	config, _, err := GetEKSConfig("devel/data/sia_no_service", "http://127.0.0.1:5082", false, "us-west-2")
+	config, _, _, err := GetEKSConfig("devel/data/sia_no_service", "devel/data/access_profile_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	assert.True(t, len(config.Services) == 2)
 
-	config, _, err = GetEKSConfig("devel/data/sia_no_service2", "http://127.0.0.1:5082", false, "us-west-2")
+	config, _, _, err = GetEKSConfig("devel/data/sia_no_service2", "devel/data/access_profile_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	assert.True(t, config.Service == "api")
 	assert.True(t, len(config.Services) == 1)
@@ -78,7 +82,7 @@ func TestGetConfigNoService(t *testing.T) {
 
 // TestGetConfigNoServices test the scenario when only "service" is mentioned and there are no multiple "services"
 func TestGetConfigNoServices(t *testing.T) {
-	config, configAccount, err := GetEKSConfig("devel/data/sia_no_services", "http://127.0.0.1:5082", false, "us-west-2")
+	config, configAccount, _, err := GetEKSConfig("devel/data/sia_no_services", "devel/data/access_profile_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 
 	// Make sure one service is set
@@ -89,13 +93,13 @@ func TestGetConfigNoServices(t *testing.T) {
 }
 
 func TestGetConfigWithGenerateRoleKeyConfig(t *testing.T) {
-	config, _, err := GetEKSConfig("devel/data/sia_generate_role_key", "http://127.0.0.1:5082", false, "us-west-2")
+	config, _, _, err := GetEKSConfig("devel/data/sia_generate_role_key", "devel/data/access_profile_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	assert.True(t, config.GenerateRoleKey == true)
 }
 
 func TestGetConfigWithRotateKeyConfig(t *testing.T) {
-	config, _, err := GetEKSConfig("devel/data/sia_rotate_key", "http://127.0.0.1:5082", false, "us-west-2")
+	config, _, _, err := GetEKSConfig("devel/data/sia_rotate_key", "devel/data/access_profile_config", "http://127.0.0.1:5082", false, "us-west-2")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	assert.True(t, config.RotateKey == true)
 }
