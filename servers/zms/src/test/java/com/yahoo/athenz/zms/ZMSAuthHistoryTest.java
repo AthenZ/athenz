@@ -53,10 +53,14 @@ public class ZMSAuthHistoryTest {
 
     @Test
     public void testGetAuthHistoryDependencies() {
-        AuthHistoryDependencies authHistoryDependencies = zmsTestInitializer.getZms().getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "empty.domain");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        AuthHistoryDependencies authHistoryDependencies = zmsImpl.getAuthHistoryDependencies(ctx, "empty.domain");
         assertEquals(authHistoryDependencies.getOutgoingDependencies(), new ArrayList<>());
         assertEquals(authHistoryDependencies.getIncomingDependencies(), new ArrayList<>());
-        authHistoryDependencies = zmsTestInitializer.getZms().getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "test.domain");
+        authHistoryDependencies = zmsImpl.getAuthHistoryDependencies(ctx, "test.domain");
         assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 500);
         for (int i = 0; i < 500; ++i) {
             AuthHistory authHistory = MockAuthHistoryStoreFactory.generateRecordForTest(i);
@@ -71,7 +75,11 @@ public class ZMSAuthHistoryTest {
 
     @Test
     public void testGetAuthHistoryDependenciesInvalidTimestamp() {
-        AuthHistoryDependencies authHistoryDependencies = zmsTestInitializer.getZms().getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "invalid.timestamp.domain");
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        AuthHistoryDependencies authHistoryDependencies = zmsImpl.getAuthHistoryDependencies(ctx, "invalid.timestamp.domain");
         assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 2);
         assertTrue(authHistoryDependencies.getOutgoingDependencies().isEmpty());
 
@@ -89,8 +97,9 @@ public class ZMSAuthHistoryTest {
     public void testGetAuthHistoryDependenciesDisabled() {
         System.clearProperty(ZMSConsts.ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS);
         ZMSImpl zms = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
-        AuthHistoryDependencies authHistoryDependencies = zms.getAuthHistoryDependencies(zmsTestInitializer.getMockDomRsrcCtx(), "some.domain");
+        AuthHistoryDependencies authHistoryDependencies = zms.getAuthHistoryDependencies(ctx, "some.domain");
         assertEquals(authHistoryDependencies.getIncomingDependencies().size(), 0);
         assertEquals(authHistoryDependencies.getOutgoingDependencies().size(), 0);
     }

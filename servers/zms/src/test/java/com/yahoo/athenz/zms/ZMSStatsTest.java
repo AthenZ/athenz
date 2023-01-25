@@ -49,6 +49,7 @@ public class ZMSStatsTest {
 
         ZMSImpl zms = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
 
         Stats systemStats = zms.getSystemStats(ctx);
         assertNotNull(systemStats);
@@ -70,7 +71,7 @@ public class ZMSStatsTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
-        zms.postTopLevelDomain(ctx, zmsTestInitializer.getAuditRef(), dom1);
+        zms.postTopLevelDomain(ctx, auditRef, dom1);
 
         // verify the stats for the domain
 
@@ -107,7 +108,7 @@ public class ZMSStatsTest {
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
-        zms.postTopLevelDomain(ctx, zmsTestInitializer.getAuditRef(), dom2);
+        zms.postTopLevelDomain(ctx, auditRef, dom2);
 
         Stats domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -124,7 +125,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getName(), domainName2);
 
         Entity entity1 = zmsTestInitializer.createEntityObject(domainName2, "test-entity1");
-        zms.putEntity(ctx, domainName2, "test-entity1", zmsTestInitializer.getAuditRef(), entity1);
+        zms.putEntity(ctx, domainName2, "test-entity1", auditRef, entity1);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -144,7 +145,7 @@ public class ZMSStatsTest {
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName2,
                 "Service1", "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
-        zms.putServiceIdentity(ctx, domainName2, "Service1", zmsTestInitializer.getAuditRef(), false, service);
+        zms.putServiceIdentity(ctx, domainName2, "Service1", auditRef, false, service);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -160,7 +161,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Group group1 = zmsTestInitializer.createGroupObject(domainName2, "group1", "user.user1", "user.user2");
-        zms.putGroup(ctx, domainName2, "group1", zmsTestInitializer.getAuditRef(), false, group1);
+        zms.putGroup(ctx, domainName2, "group1", auditRef, false, group1);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -176,7 +177,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Role role = zmsTestInitializer.createRoleObject(domainName2, "role1", null, "user.john", "user.jane");
-        zms.putRole(ctx, domainName2, "role1", zmsTestInitializer.getAuditRef(), false, role);
+        zms.putRole(ctx, domainName2, "role1", auditRef, false, role);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -192,7 +193,7 @@ public class ZMSStatsTest {
         assertEquals(domain2Stats.getPublicKey(), 2);
 
         Policy pol = zmsTestInitializer.createPolicyObject(domainName2, "policy1", "role1", "action1", "*:resource1", AssertionEffect.ALLOW);
-        zms.putPolicy(ctx, domainName2, "policy1", zmsTestInitializer.getAuditRef(), false, pol);
+        zms.putPolicy(ctx, domainName2, "policy1", auditRef, false, pol);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 0);
@@ -209,7 +210,7 @@ public class ZMSStatsTest {
 
         final String subDomainName2 = domainName2 + ".sub";
         SubDomain subDom = zmsTestInitializer.createSubDomainObject("sub", domainName2, null, null, zmsTestInitializer.getAdminUser());
-        zms.postSubDomain(ctx, domainName2, zmsTestInitializer.getAuditRef(), subDom);
+        zms.postSubDomain(ctx, domainName2, auditRef, subDom);
 
         domain2Stats = zms.getStats(ctx, domainName2);
         assertEquals(domain2Stats.getSubdomain(), 1);
@@ -255,7 +256,7 @@ public class ZMSStatsTest {
 
         // delete subdomain and verify system counts again
 
-        zms.deleteSubDomain(ctx, domainName2, "sub", zmsTestInitializer.getAuditRef());
+        zms.deleteSubDomain(ctx, domainName2, "sub", auditRef);
 
         // verify we can no longer get stats for the deleted domain
 
@@ -283,8 +284,8 @@ public class ZMSStatsTest {
 
         // now delete both domains
 
-        zms.deleteTopLevelDomain(ctx, domainName2, zmsTestInitializer.getAuditRef());
-        zms.deleteTopLevelDomain(ctx, domainName1, zmsTestInitializer.getAuditRef());
+        zms.deleteTopLevelDomain(ctx, domainName2, auditRef);
+        zms.deleteTopLevelDomain(ctx, domainName1, auditRef);
 
         // verify counts again
 
