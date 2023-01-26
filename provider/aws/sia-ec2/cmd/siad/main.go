@@ -84,6 +84,8 @@ func main() {
 		log.Fatalf("missing providerprefix argument\n")
 	}
 
+	log.Printf("SIA-EC2 version: %s \n", Version)
+
 	//obtain the ec2 document details
 	document, signature, account, instanceId, region, startTime, err := sia.GetEC2DocumentDetails(*ec2MetaEndPoint)
 	if err != nil {

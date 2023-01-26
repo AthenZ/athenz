@@ -17,12 +17,12 @@ type EKSFetcher struct {
 
 func (fetcher *EKSFetcher) Fetch(host MsdHost, accountId string) (ServicesData, error) {
 
-	config, configAccount, err := sia.GetEKSConfig(SIA_CONFIG, EksMetaEndPoint, false, "")
+	config, configAccount, accessProfileConfig, err := sia.GetEKSConfig(SIA_CONFIG, PROFILE_CONFIG, EksMetaEndPoint, false, "")
 	if err != nil {
 		log.Fatalf("Unable to formulate config, error: %v\n", err)
 	}
 
-	opts, err := options.NewOptions(config, configAccount, nil, SIA_DIR, "", false, "")
+	opts, err := options.NewOptions(config, configAccount, accessProfileConfig, SIA_DIR, "", false, "")
 	if err != nil {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
