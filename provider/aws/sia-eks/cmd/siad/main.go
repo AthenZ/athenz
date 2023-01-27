@@ -89,11 +89,15 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
-	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
 	opts.InstanceId = sia.GetEKSPodId()
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
 	}
+
+	provider := sia.EKSProvider{
+		Name: fmt.Sprintf("%s.%s", *providerPrefix, region),
+	}
+	opts.Provider = provider
 
 	agent.SetupAgent(opts, siaMainDir, "")
 	agent.RunAgent(*cmd, ztsUrl, opts)

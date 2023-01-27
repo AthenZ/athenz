@@ -108,7 +108,11 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
-	opts.Provider = fmt.Sprintf("%s.%s", *providerPrefix, region)
+
+	provider := sia.EC2Provider{
+		Name: fmt.Sprintf("%s.%s", *providerPrefix, region),
+	}
+	opts.Provider = provider
 
 	//check to see if this is ecs on ec2 and update instance id
 	//for ec2 instances we also need to set the start time so

@@ -144,22 +144,28 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, opts.SanDnsHostname, false)
+	var hostname string
+	if opts.SanDnsHostname {
+		hostname, _ = os.Hostname()
+	}
+	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, hostname, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		return err
 	}
 
-	var info zts.InstanceRegisterInformation
-	info.Provider = zts.ServiceName(provider)
-	info.Domain = zts.DomainName(opts.Domain)
-	info.Service = zts.SimpleName(svc.Name)
-	info.Csr = csr
-	info.Ssh = ssh
 	attestData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-	info.AttestationData = string(attestData)
+	info := zts.InstanceRegisterInformation{
+		Provider:        zts.ServiceName(provider),
+		Domain:          zts.DomainName(opts.Domain),
+		Service:         zts.SimpleName(svc.Name),
+		Hostname:        zts.DomainName(hostname),
+		AttestationData: string(attestData),
+		Csr:             csr,
+		Ssh:             ssh,
+	}
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile)
 	if err != nil {
@@ -230,12 +236,21 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	}
 	provider := getProviderName(opts.Provider, identityDocument.Location)
 	commonName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, opts.ZTSAzureDomains, opts.SanDnsWildcard, opts.SanDnsHostname, false)
+	var hostname string
+	if opts.SanDnsHostname {
+		hostname, _ = os.Hostname()
+	}
+	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, hostname, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
 	}
-	info := &zts.InstanceRefreshInformation{AttestationData: string(attestData), Csr: csr, Ssh: ssh}
+	info := &zts.InstanceRefreshInformation{
+		AttestationData: string(attestData),
+		Hostname:        zts.DomainName(hostname),
+		Csr:             csr,
+		Ssh:             ssh,
+	}
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile)
 	if err != nil {
