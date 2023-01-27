@@ -33,7 +33,7 @@
     <jakarta.mail.version>2.0.1</jakarta.mail.version>
     <protobuf.java.version>3.21.12</protobuf.java.version>
     <pulsar.client.version>2.11.0</pulsar.client.version>
-    <aws.secretmanager.version>1.0.10</aws.secretmanager.version>
+    <aws.secretmanager.version>1.0.11</aws.secretmanager.version>
     <uuid.version>4.1.0</uuid.version>
     <hamcrest.json.version>0.2</hamcrest.json.version>
   </properties>
