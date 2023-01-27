@@ -224,7 +224,7 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", []string{"athenz.cloud"}, false, false, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", "", []string{"athenz.cloud"}, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -372,7 +372,7 @@ func TestGenerateWithWildCardHostname(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, true, false, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", []string{"athenz.cloud"}, true, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -405,7 +405,8 @@ func TestGenerateWithHostname(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", []string{"athenz.cloud"}, false, true, false)
+	hostname, _ := os.Hostname()
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", hostname, []string{"athenz.cloud"}, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -425,7 +426,6 @@ func TestGenerateWithHostname(test *testing.T) {
 		test.Errorf("CSR does not have expected dns name: %s", parsedcertreq.DNSNames[0])
 		return
 	}
-	hostname, _ := os.Hostname()
 	if parsedcertreq.DNSNames[1] != hostname {
 		test.Errorf("CSR does not have expected dns hostname: %s", parsedcertreq.DNSNames[1])
 		return
@@ -441,7 +441,7 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", ztsDomains, true, false, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", ztsDomains, true, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return

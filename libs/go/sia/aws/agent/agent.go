@@ -123,7 +123,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
 		if opts.RolePrincipalEmail {
 			emailDomain = opts.ZTSAWSDomains[0]
 		}
-		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, role.Service, role.Name, opts.InstanceId, opts.Provider, emailDomain)
+		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, role.Service, role.Name, opts.InstanceId, opts.Provider.GetName(), emailDomain)
 		if err != nil {
 			log.Printf("unable to generate CSR for %s, err: %v\n", role.Name, err)
 			failures += 1
@@ -193,6 +193,33 @@ func RefreshInstance(data []*attestation.AttestationData, ztsUrl string, opts *o
 	return nil
 }
 
+func getServiceHostname(opts *options.Options, svc options.Service) string {
+	if !opts.SanDnsHostname {
+		return ""
+	}
+	hostname := opts.Provider.GetHostname()
+	if hostname == "" {
+		log.Println("No hostname configured for the instance")
+		return ""
+	}
+	//if the hostname contains multiple components then we'll
+	//return our hostname as is
+	if strings.Contains(hostname, ".") {
+		return hostname
+	}
+	//otherwise, we'll generate one based on the format
+	//<hostname>.<service>.<domain>.<suffix> only if the
+	//suffix is properly configured since we might be having
+	//multiple suffix values
+	if opts.HostnameSuffix == "" {
+		log.Printf("No hostname suffix configured for the instance: %s\n", hostname)
+		return ""
+	}
+
+	hyphenDomain := strings.Replace(opts.Domain, ".", "-", -1)
+	return fmt.Sprintf("%s.%s.%s.%s", hostname, svc.Name, hyphenDomain, opts.HostnameSuffix)
+}
+
 func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl string, opts *options.Options) error {
 
 	key, err := util.GenerateKeyPair(2048)
@@ -209,7 +236,8 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 			return err
 		}
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.SanDnsHostname, opts.InstanceIdSanDNS)
+	hostname := getServiceHostname(opts, svc)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		return err
 	}
@@ -222,7 +250,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	athenzJwkModified := util.GetAthenzJwkConfModTime(siaMainDir)
 
 	info := &zts.InstanceRegisterInformation{
-		Provider:          zts.ServiceName(opts.Provider),
+		Provider:          zts.ServiceName(opts.Provider.GetName()),
 		Domain:            zts.DomainName(opts.Domain),
 		Service:           zts.SimpleName(svc.Name),
 		Csr:               csr,
@@ -230,16 +258,11 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		AttestationData:   string(attestData),
 		AthenzJWK:         &athenzJwk,
 		AthenzJWKModified: &athenzJwkModified,
+		Hostname:          zts.DomainName(hostname),
 	}
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
-	}
-	if opts.SanDnsHostname {
-		hostname, err := os.Hostname()
-		if err != nil {
-			info.Hostname = zts.DomainName(hostname)
-		}
 	}
 
 	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, "", "", opts.ZTSCACertFile)
@@ -310,7 +333,8 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.SanDnsHostname, opts.InstanceIdSanDNS)
+	hostname := getServiceHostname(opts, svc)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
@@ -334,19 +358,14 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		Ssh:               sshCsr,
 		AthenzJWK:         &athenzJwk,
 		AthenzJWKModified: &athenzJwkModified,
+		Hostname:          zts.DomainName(hostname),
 	}
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
 	}
-	if opts.SanDnsHostname {
-		hostname, err := os.Hostname()
-		if err != nil {
-			info.Hostname = zts.DomainName(hostname)
-		}
-	}
 
-	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
+	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider.GetName()), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
 		log.Printf("Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
 		return err

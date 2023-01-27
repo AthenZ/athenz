@@ -610,6 +610,7 @@ func idCommandId(arg string) int {
 func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SANDNS_WILDCARD", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_HOSTNAME", "true")
+	os.Setenv("ATHENZ_SIA_HOSTNAME_SUFFIX", "zts.athenz.cloud")
 	os.Setenv("ATHENZ_SIA_REGIONAL_STS", "true")
 	os.Setenv("ATHENZ_SIA_GENERATE_ROLE_KEY", "true")
 	os.Setenv("ATHENZ_SIA_ROTATE_KEY", "false")
@@ -647,6 +648,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/var/athenz/keys", cfg.SiaKeyDir)
 	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
+	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 
 	assert.Equal(t, "123456789012", cfgAccount.Account)
 	assert.Equal(t, "athenz", cfgAccount.Domain)
