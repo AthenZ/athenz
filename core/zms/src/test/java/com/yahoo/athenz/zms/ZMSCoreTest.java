@@ -2190,7 +2190,8 @@ public class ZMSCoreTest {
                 .setReviewReminder(Timestamp.fromMillis(123456789126L))
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
-                .setPrincipalType(1);
+                .setPrincipalType(1)
+                .setPendingState("ADD");
 
         assertTrue(rm.equals(rm));
 
@@ -2209,6 +2210,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getReviewLastNotifiedTime().millis(), 123456789127L);
         assertEquals(rm.getSystemDisabled(), Integer.valueOf(1));
         assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
+        assertEquals(rm.getPendingState(), "ADD");
 
         RoleMember rm2 = new RoleMember()
                 .setMemberName("user.test1")
@@ -2222,7 +2224,8 @@ public class ZMSCoreTest {
                 .setReviewReminder(Timestamp.fromMillis(123456789126L))
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
-                .setPrincipalType(1);
+                .setPrincipalType(1)
+                .setPendingState("ADD");
         assertTrue(rm2.equals(rm));
 
         rm2.setRequestPrincipal("user.test2");
@@ -2307,6 +2310,13 @@ public class ZMSCoreTest {
         rm2.setPrincipalType(null);
         assertFalse(rm2.equals(rm));
         rm2.setPrincipalType(1);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setPendingState("DELETE");
+        assertFalse(rm2.equals(rm));
+        rm2.setPendingState(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setPendingState("ADD");
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
@@ -2423,7 +2433,8 @@ public class ZMSCoreTest {
         ms.setMemberName("test.member").setIsMember(false).setRoleName("test.role")
                 .setExpiration(Timestamp.fromMillis(100)).setAuditRef("audit-ref")
                 .setActive(true).setApproved(false).setRequestPrincipal("user.admin")
-                .setReviewReminder(Timestamp.fromMillis(200)).setSystemDisabled(1);
+                .setReviewReminder(Timestamp.fromMillis(200)).setSystemDisabled(1)
+                .setPendingState("ADD");
 
         // init second time does not change state
         ms.init();
@@ -2444,12 +2455,13 @@ public class ZMSCoreTest {
         assertEquals(ms.getRequestPrincipal(), "user.admin");
         assertEquals(ms.getReviewReminder(), Timestamp.fromMillis(200));
         assertEquals(ms.getSystemDisabled(), Integer.valueOf(1));
+        assertEquals(ms.getPendingState(), "ADD");
 
         Membership ms2 = new Membership().setMemberName("test.member").setIsMember(false)
                 .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role")
                 .setActive(true).setAuditRef("audit-ref").setApproved(false)
                 .setRequestPrincipal("user.admin").setReviewReminder(Timestamp.fromMillis(200))
-                .setSystemDisabled(1);
+                .setSystemDisabled(1).setPendingState("ADD");
 
         assertTrue(ms2.equals(ms));
         assertTrue(ms.equals(ms));
@@ -2510,6 +2522,13 @@ public class ZMSCoreTest {
         ms2.setSystemDisabled(null);
         assertFalse(ms2.equals(ms));
         ms2.setSystemDisabled(1);
+        assertTrue(ms2.equals(ms));
+
+        ms2.setPendingState("DELETE");
+        assertFalse(ms2.equals(ms));
+        ms2.setPendingState(null);
+        assertFalse(ms2.equals(ms));
+        ms2.setPendingState("ADD");
         assertTrue(ms2.equals(ms));
 
         assertFalse(ms2.equals(null));

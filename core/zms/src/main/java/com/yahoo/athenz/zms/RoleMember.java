@@ -46,6 +46,9 @@ public class RoleMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer principalType;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String pendingState;
 
     public RoleMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -131,6 +134,13 @@ public class RoleMember {
     public Integer getPrincipalType() {
         return principalType;
     }
+    public RoleMember setPendingState(String pendingState) {
+        this.pendingState = pendingState;
+        return this;
+    }
+    public String getPendingState() {
+        return pendingState;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -173,6 +183,9 @@ public class RoleMember {
                 return false;
             }
             if (principalType == null ? a.principalType != null : !principalType.equals(a.principalType)) {
+                return false;
+            }
+            if (pendingState == null ? a.pendingState != null : !pendingState.equals(a.pendingState)) {
                 return false;
             }
         }

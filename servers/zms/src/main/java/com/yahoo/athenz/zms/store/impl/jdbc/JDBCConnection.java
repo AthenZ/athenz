@@ -125,21 +125,25 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND role_member.expiration=?;";
-    private static final String SQL_GET_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_principal FROM principal "
+    private static final String SQL_GET_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_principal, pending_role_member.pending_state FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=?;";
-    private static final String SQL_GET_TEMP_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_principal FROM principal "
+    private static final String SQL_GET_TEMP_PENDING_ROLE_MEMBER = "SELECT principal.principal_id, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_principal, pending_role_member.pending_state FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id "
             + "WHERE role.role_id=? AND principal.name=? AND pending_role_member.expiration=?;";
+    private static final String SQL_GET_PENDING_ROLE_MEMBER_STATE = "SELECT pending_role_member.pending_state FROM principal "
+            + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
+            + "JOIN role ON role.role_id=pending_role_member.role_id "
+            + "WHERE role.role_id=? AND principal.name=?;";
     private static final String SQL_STD_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_PENDING_ROLE_MEMBER_EXISTS = "SELECT principal_id FROM pending_role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_LIST_ROLE_MEMBERS = "SELECT principal.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.active, role_member.audit_ref, role_member.system_disabled FROM principal "
             + "JOIN role_member ON role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=role_member.role_id WHERE role.role_id=?;";
-    private static final String SQL_LIST_PENDING_ROLE_MEMBERS = "SELECT principal.name, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_time, pending_role_member.audit_ref FROM principal "
+    private static final String SQL_LIST_PENDING_ROLE_MEMBERS = "SELECT principal.name, pending_role_member.expiration, pending_role_member.review_reminder, pending_role_member.req_time, pending_role_member.audit_ref, pending_role_member.pending_state FROM principal "
             + "JOIN pending_role_member ON pending_role_member.principal_id=principal.principal_id "
             + "JOIN role ON role.role_id=pending_role_member.role_id WHERE role.role_id=?;";
     private static final String SQL_COUNT_ROLE_MEMBERS = "SELECT COUNT(*) FROM role_member WHERE role_id=?;";
@@ -153,7 +157,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_ROLE_MEMBER = "INSERT INTO role_member "
             + "(role_id, principal_id, expiration, review_reminder, active, audit_ref, req_principal) VALUES (?,?,?,?,?,?,?);";
     private static final String SQL_INSERT_PENDING_ROLE_MEMBER = "INSERT INTO pending_role_member "
-            + "(role_id, principal_id, expiration, review_reminder, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
+            + "(role_id, principal_id, expiration, review_reminder, audit_ref, req_principal, pending_state) VALUES (?,?,?,?,?,?,?);";
     private static final String SQL_DELETE_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=?;";
     private static final String SQL_DELETE_EXPIRED_ROLE_MEMBER = "DELETE FROM role_member WHERE role_id=? AND principal_id=? AND expiration=?;";
     private static final String SQL_DELETE_PENDING_ROLE_MEMBER = "DELETE FROM pending_role_member WHERE role_id=? AND principal_id=?;";
@@ -2154,6 +2158,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         roleMember.setRequestTime(Timestamp.fromMillis(timestamp.getTime()));
                     }
                     roleMember.setAuditRef(rs.getString(5));
+                    roleMember.setPendingState(rs.getString(6));
                     roleMember.setActive(false);
                     roleMember.setApproved(false);
                     members.add(roleMember);
@@ -2286,6 +2291,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     membership.setRequestPrincipal(rs.getString(ZMSConsts.DB_COLUMN_REQ_PRINCIPAL));
                     if (disabledFlagCheck) {
                         membership.setSystemDisabled(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SYSTEM_DISABLED), 0));
+                    } else {
+                        membership.setPendingState(rs.getString(DB_COLUMN_PENDING_STATE));
                     }
                     return true;
                 }
@@ -2448,6 +2455,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         return result;
     }
 
+    boolean conflictRoleMemberPendingRequest(Integer roleId, String member, String state) {
+        String currentState = getPendingRoleMemberState(roleId, member);
+        return currentState != null && !currentState.equals(state);
+    }
+
     boolean insertPendingRoleMember(int roleId, int principalId, RoleMember roleMember,
             final String admin, final String auditRef, boolean roleMemberExists, final String caller) {
 
@@ -2462,7 +2474,10 @@ public class JDBCConnection implements ObjectStoreConnection {
 
         int affectedRows;
         if (roleMemberExists) {
-
+            // check first that the current request doesn't contradict the existing one
+            if (conflictRoleMemberPendingRequest(roleId, roleMember.getMemberName(), roleMember.getPendingState())) {
+                throw new ResourceException(ResourceException.CONFLICT, "The user " + roleMember.getMemberName() + " already has a pending request in a different state");
+            }
             try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_PENDING_ROLE_MEMBER)) {
                 ps.setTimestamp(1, expiration);
                 ps.setTimestamp(2, reviewReminder);
@@ -2484,6 +2499,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(4, reviewReminder);
                 ps.setString(5, processInsertValue(auditRef));
                 ps.setString(6, processInsertValue(admin));
+                ps.setString(7, roleMember.getPendingState());
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -4956,12 +4972,16 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
         }
 
-        boolean result;
+        boolean result = false;
         if (roleMember.getApproved() == Boolean.TRUE) {
-            roleMemberExists = roleMemberExists(roleId, principalId, false, caller);
-            result = insertStandardRoleMember(roleId, principalId, roleMember, admin,
-                    principal, auditRef, roleMemberExists, true, caller);
-
+            String state = getPendingRoleMemberState(roleId, principal);
+            if (ZMSConsts.PENDING_REQUEST_ADD_STATE.equals(state)) {
+                roleMemberExists = roleMemberExists(roleId, principalId, false, caller);
+                result = insertStandardRoleMember(roleId, principalId, roleMember, admin,
+                        principal, auditRef, roleMemberExists, true, caller);
+            } else if (ZMSConsts.PENDING_REQUEST_DELETE_STATE.equals(state)) {
+                result = deleteRoleMember(domainName, roleName, principal, admin, auditRef);
+            }
             if (result) {
                 executeDeletePendingRoleMember(roleId, principalId, admin, principal,
                         auditRef, false, caller);
@@ -4972,6 +4992,25 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
 
         return result;
+    }
+
+    public String getPendingRoleMemberState(Integer roleId, String member) {
+
+        final String caller = "getPendingRoleMemberState";
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PENDING_ROLE_MEMBER_STATE)) {
+            ps.setInt(1, roleId);
+            ps.setString(2, member);
+                try (ResultSet rs = executeQuery(ps, caller)) {
+                    if (rs.next()) {
+                        return rs.getString(1);
+                    } else {
+                        return null;
+                    }
+                }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
     }
 
     void processPendingMembers(final String domainName, final String query, int principalId,

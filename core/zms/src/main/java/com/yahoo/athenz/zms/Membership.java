@@ -40,6 +40,9 @@ public class Membership {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer systemDisabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String pendingState;
 
     public Membership setMemberName(String memberName) {
         this.memberName = memberName;
@@ -111,6 +114,13 @@ public class Membership {
     public Integer getSystemDisabled() {
         return systemDisabled;
     }
+    public Membership setPendingState(String pendingState) {
+        this.pendingState = pendingState;
+        return this;
+    }
+    public String getPendingState() {
+        return pendingState;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -147,6 +157,9 @@ public class Membership {
                 return false;
             }
             if (systemDisabled == null ? a.systemDisabled != null : !systemDisabled.equals(a.systemDisabled)) {
+                return false;
+            }
+            if (pendingState == null ? a.pendingState != null : !pendingState.equals(a.pendingState)) {
                 return false;
             }
         }
