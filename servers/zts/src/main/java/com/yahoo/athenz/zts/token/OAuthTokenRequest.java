@@ -20,8 +20,7 @@ import com.yahoo.athenz.zts.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class OAuthTokenRequest {
 
@@ -35,17 +34,22 @@ public class OAuthTokenRequest {
     public static String OBJECT_GROUPS  = "groups";
     public static String OBJECT_ROLES   = "roles";
 
-    String domainName = null;
+    Set<String> domainNames = new HashSet<>();
     String serviceName = null;
-    Set<String> roleNames;
-    Set<String> groupNames;
+    Map<String, Set<String>> roleNames;
+    Map<String, Set<String>> groupNames;
     boolean sendScopeResponse = false;
     boolean openIdScope = false;
     boolean groupsScope = false;
     boolean rolesScope = false;
+    int maxDomains;
 
-    public OAuthTokenRequest(final String scope) {
+    public OAuthTokenRequest(final String scope, int maxDomains) {
 
+        this.maxDomains = maxDomains;
+        if (this.maxDomains < 1) {
+            throw error("Invalid value specified for max domains", scope);
+        }
         final String[] scopeList = scope.split(" ");
 
         // the format of our scopes for role access token and id tokens are:
@@ -58,9 +62,10 @@ public class OAuthTokenRequest {
         //   openid [groups | roles]
         //   openid <domainName>:role.<roleName>
         //   openid <domainName>:group.<groupName>
+        //   openid [<domainName>:domain]+
 
-        Set<String> scopeRoleNames = new HashSet<>();
-        Set<String> scopeGroupNames = new HashSet<>();
+        Map<String, Set<String>> scopeRoleNames = new HashMap<>();
+        Map<String, Set<String>> scopeGroupNames = new HashMap<>();
         for (String scopeItem : scopeList) {
 
             // first check if we have an openid scope requested
@@ -81,17 +86,11 @@ public class OAuthTokenRequest {
             int idx = scopeItem.indexOf(OBJECT_SERVICE);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
-                if (scopeDomainName.isEmpty()) {
-                    throw error("Service name without domain name", scope);
-                }
-                if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    throw error("Multiple domains in scope", scope);
-                }
+                addScopeDomain(scopeDomainName, scope);
                 final String scopeServiceName = scopeItem.substring(idx + OBJECT_SERVICE.length());
                 if (serviceName != null && !scopeServiceName.equals(serviceName)) {
                     throw error("Multiple services in scope", scope);
                 }
-                domainName = scopeDomainName;
                 serviceName = scopeServiceName;
                 continue;
             }
@@ -100,13 +99,7 @@ public class OAuthTokenRequest {
 
             if (scopeItem.endsWith(OBJECT_DOMAIN)) {
                 final String scopeDomainName = scopeItem.substring(0, scopeItem.length() - OBJECT_DOMAIN.length());
-                if (scopeDomainName.isEmpty()) {
-                    throw error("Domain scope name without domain name", scope);
-                }
-                if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    throw error("Multiple domains in scope", scope);
-                }
-                domainName = scopeDomainName;
+                addScopeDomain(scopeDomainName, scope);
                 sendScopeResponse = true;
                 continue;
             }
@@ -116,14 +109,9 @@ public class OAuthTokenRequest {
             idx = scopeItem.indexOf(OBJECT_ROLE);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
-                if (scopeDomainName.isEmpty()) {
-                    throw error("Role name without domain name", scope);
-                }
-                if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    throw error("Multiple domains in scope", scope);
-                }
-                domainName = scopeDomainName;
-                scopeRoleNames.add(scopeItem.substring(idx + OBJECT_ROLE.length()));
+                addScopeDomain(scopeDomainName, scope);
+                scopeRoleNames.putIfAbsent(scopeDomainName, new HashSet<>());
+                scopeRoleNames.get(scopeDomainName).add(scopeItem.substring(idx + OBJECT_ROLE.length()));
                 continue;
             }
 
@@ -132,14 +120,9 @@ public class OAuthTokenRequest {
             idx = scopeItem.indexOf(OBJECT_GROUP);
             if (idx != -1) {
                 final String scopeDomainName = scopeItem.substring(0, idx);
-                if (scopeDomainName.isEmpty()) {
-                    throw error("Group name without domain name", scope);
-                }
-                if (domainName != null && !scopeDomainName.equals(domainName)) {
-                    throw error("Multiple domains in scope", scope);
-                }
-                domainName = scopeDomainName;
-                scopeGroupNames.add(scopeItem.substring(idx + OBJECT_GROUP.length()));
+                addScopeDomain(scopeDomainName, scope);
+                scopeGroupNames.putIfAbsent(scopeDomainName, new HashSet<>());
+                scopeGroupNames.get(scopeDomainName).add(scopeItem.substring(idx + OBJECT_GROUP.length()));
                 continue;
             }
 
@@ -172,19 +155,30 @@ public class OAuthTokenRequest {
     }
 
     public String getDomainName() {
-        return domainName;
+        return (maxDomains == 1 && !domainNames.isEmpty()) ? domainNames.stream().findFirst().get() : null;
+    }
+
+    public Set<String> getDomainNames() {
+        return domainNames;
     }
 
     public String getServiceName() {
         return serviceName;
     }
 
-    public String[] getRoleNames() {
-        return roleNames == null ? null : roleNames.toArray(new String[0]);
+    public String[] getRoleNames(final String domainName) {
+        if (roleNames == null) {
+            return null;
+        }
+        Set<String> domainRoleNames = roleNames.get(domainName);
+        return domainRoleNames == null ? null : domainRoleNames.toArray(new String[0]);
     }
 
-    public Set<String> getGroupNames() {
-        return groupNames;
+    public Set<String> getGroupNames(final String domainName) {
+        if (groupNames == null) {
+            return null;
+        }
+        return groupNames.get(domainName);
     }
 
     public boolean sendScopeResponse() {
@@ -203,8 +197,24 @@ public class OAuthTokenRequest {
         return rolesScope;
     }
 
+    void addScopeDomain(final String scopeDomainName, final String scope) {
+        if (scopeDomainName.isEmpty()) {
+            throw error("empty domain name", scope);
+        }
+        final String domainName = getDomainName();
+        if (domainName != null && !scopeDomainName.equals(domainName)) {
+             throw error("Multiple domains in scope", scope);
+        }
+        if (!domainNames.contains(scopeDomainName)) {
+            if (domainNames.size() == maxDomains) {
+                throw error("Domain limit: " + maxDomains + " has been reached", scope);
+            }
+            domainNames.add(scopeDomainName);
+        }
+    }
+
     ResourceException error(final String message, final String scope) {
-        LOGGER.error("access token request error: {} - {}", message, scope);
+        LOGGER.error("oauth token request error: {} - {}", message, scope);
         return new ResourceException(ResourceException.BAD_REQUEST,
                 new ResourceError().code(ResourceException.BAD_REQUEST).message(message));
     }

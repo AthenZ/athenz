@@ -15,7 +15,16 @@
  */
 package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.zts.ZTSConsts;
+
 public class IdTokenRequest extends OAuthTokenRequest {
+
+    private static int maxDomains = Integer.parseInt(
+            System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_DOMAINS, "10"));
+
+    public static void setMaxDomains(int numDomains) {
+        maxDomains = numDomains;
+    }
 
     public IdTokenRequest(final String scope) {
 
@@ -25,7 +34,7 @@ public class IdTokenRequest extends OAuthTokenRequest {
         //   openid <domainName>:role.<roleName>
         //   openid <domainName>:group.<groupName>
 
-        super(scope);
+        super(scope, maxDomains);
 
         // make sure openid scope is requested
 

@@ -7,9 +7,12 @@
       <pattern>%-4relative [%thread] %-5level %class - %msg%n</pattern>
     </encoder>
   </appender>
-     
+
+  <logger name="org.eclipse" level="ERROR"/>
+  <logger name="org.apache" level="ERROR"/>
+
   <root>
-    <level value="ERROR" />
+    <level value="DEBUG" />
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
