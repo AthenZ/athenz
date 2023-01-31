@@ -1859,7 +1859,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     String decodeString(final String encodedString) {
 
         try {
-            return URLDecoder.decode(encodedString, "UTF-8");
+            return URLDecoder.decode(encodedString, StandardCharsets.UTF_8);
         } catch (Exception ex) {
             LOGGER.error("Unable to decode: {}, error: {}", encodedString, ex.getMessage());
             return null;
@@ -1989,16 +1989,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         IdTokenRequest tokenRequest = new IdTokenRequest(scope);
 
-        // make sure the domain specified in group/roles names matches our client id
-        // if they don't match then we need to return the full arn even if not configured
-
-        String tokenRequestDomainName = tokenRequest.getDomainName();
-        if (tokenRequestDomainName != null && !domainName.equalsIgnoreCase(tokenRequestDomainName)) {
-            fullArn = Boolean.TRUE;
-        } else {
-            tokenRequestDomainName = domainName;
-        }
-
         // check if the authorized service domain matches to the
         // requested domain name
 
@@ -2016,75 +2006,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         List<String> idTokenGroups = null;
         if (tokenRequest.isGroupsScope()) {
 
-            Set<String> groupNames = tokenRequest.getGroupNames();
-
-            // first validate the input
-
-            if (groupNames != null) {
-                for (String groupName : groupNames) {
-                    validate(groupName, TYPE_ENTITY_NAME, principalDomain, caller);
-                }
-            }
-
-            // if the request was for a different domain than the client id then
-            // we need to fetch data object for the new domain just to make sure
-            // the new domain is valid
-
-            if (!domainName.equalsIgnoreCase(tokenRequestDomainName)) {
-                data = dataStore.getDataCache(tokenRequestDomainName);
-                if (data == null) {
-                    throw notFoundError("No such domain: " + tokenRequestDomainName, caller, domainName, principalDomain);
-                }
-            }
-
-            // process our request and retrieve the groups for the principal
-
-            List<String> groups = dataStore.getPrincipalGroups(principalName, tokenRequestDomainName, groupNames);
-
-            // we return failure if we don't have access to any groups but
-            // the call specifically requested some
-
-            if (groupNames != null && groups == null) {
-                return oidcError("principal not included in requested groups", redirectUri, state);
-            }
-
-            idTokenGroups = getIdTokenGroupsFromGroups(groups, tokenRequestDomainName, fullArn);
+            idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName, fullArn,
+                    principalDomain, caller);
 
         } else if (tokenRequest.isRolesScope()) {
 
-            String[] requestedRoles = tokenRequest.getRoleNames();
-
-            // first validate the input
-
-            if (requestedRoles != null) {
-                for (String requestedRole : requestedRoles) {
-                    validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
-                }
-            }
-
-            // if the request was for a different domain than the client id then
-            // we need to fetch data object for the new domain
-
-            if (!domainName.equalsIgnoreCase(tokenRequestDomainName)) {
-                data = dataStore.getDataCache(tokenRequestDomainName);
-                if (data == null) {
-                    throw notFoundError("No such domain: " + tokenRequestDomainName, caller, domainName, principalDomain);
-                }
-            }
-
-            // process our request and retrieve the roles for the principal
-
-            Set<String> roles = new HashSet<>();
-            dataStore.getAccessibleRoles(data, tokenRequestDomainName, principalName, requestedRoles, roles, false);
-
-            // we return failure if we don't have access to any roles but
-            // the call specifically requested some
-
-            if (requestedRoles != null && roles.isEmpty()) {
-                return oidcError("principal not included in requested roles", redirectUri, state);
-            }
-
-            idTokenGroups = getIdTokenGroupsFromRoles(roles, tokenRequestDomainName, fullArn);
+            idTokenGroups = processIdTokenRoles(principalName, tokenRequest, domainName, fullArn,
+                    principalDomain, caller);
         }
 
         long iat = System.currentTimeMillis() / 1000;
@@ -2108,6 +2036,143 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         return Response.status(ResourceException.FOUND).header("Location", location).build();
+    }
+
+    List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest, final String clientIdDomainName,
+            Boolean fullArn, final String principalDomain, final String caller) {
+
+        List<String> tokenGroups;
+        Set<String> domainNames = tokenRequest.getDomainNames();
+        if (domainNames.isEmpty()) {
+            tokenGroups = processDomainIdTokenGroups(principalName, clientIdDomainName,
+                    null, fullArn, principalDomain, caller);
+        } else {
+            // first let's determine if we need to return the full arn or not
+            // if multiple domains specified - then yes
+            // if single domain but does not match client id domain name - then yes
+
+            if (domainNames.size() > 1 || !clientIdDomainName.equalsIgnoreCase(domainNames.stream().findFirst().get())) {
+                fullArn = Boolean.TRUE;
+            }
+
+            boolean groupsRequested = false;
+            tokenGroups = new ArrayList<>();
+            for (String domainName : domainNames) {
+                Set<String> groupNames = tokenRequest.getGroupNames(domainName);
+                if (groupNames != null) {
+                    groupsRequested = true;
+                }
+                List<String> groups = processDomainIdTokenGroups(principalName, domainName,
+                        groupNames, fullArn, principalDomain, caller);
+                if (groups != null) {
+                    tokenGroups.addAll(groups);
+                }
+            }
+
+            // we return failure if we don't have access to any groups but
+            // the call specifically requested some
+
+            if (tokenGroups.isEmpty()) {
+                if (groupsRequested) {
+                    throw forbiddenError("principal not included in requested groups", caller,
+                            clientIdDomainName, principalDomain);
+                } else {
+                    tokenGroups = null;
+                }
+            }
+        }
+        return tokenGroups;
+    }
+
+    List<String> processDomainIdTokenGroups(final String principalName, final String domainName, Set<String> groupNames,
+            Boolean fullArn, final String principalDomain, final String caller) {
+
+        // first validate the input
+
+        if (groupNames != null) {
+            for (String groupName : groupNames) {
+                validate(groupName, TYPE_ENTITY_NAME, principalDomain, caller);
+            }
+        }
+
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            throw notFoundError("No such domain: " + domainName, caller, domainName, principalDomain);
+        }
+
+        // process our request and retrieve the groups for the principal
+
+        List<String> groups = dataStore.getPrincipalGroups(principalName, domainName, groupNames);
+        return getIdTokenGroupsFromGroups(groups, domainName, fullArn);
+    }
+
+    List<String> processIdTokenRoles(final String principalName, IdTokenRequest tokenRequest, final String clientIdDomainName,
+                                      Boolean fullArn, final String principalDomain, final String caller) {
+
+        List<String> tokenRoles;
+        Set<String> domainNames = tokenRequest.getDomainNames();
+        if (domainNames.isEmpty()) {
+            tokenRoles = processDomainIdTokenRoles(principalName, clientIdDomainName,
+                    null, fullArn, principalDomain, caller);
+        } else {
+            // first let's determine if we need to return the full arn or not
+            // if multiple domains specified - then yes
+            // if single domain but does not match client id domain name - then yes
+
+            if (domainNames.size() > 1 || !clientIdDomainName.equalsIgnoreCase(domainNames.stream().findFirst().get())) {
+                fullArn = Boolean.TRUE;
+            }
+
+            boolean rolesRequested = false;
+            tokenRoles = new ArrayList<>();
+            for (String domainName : domainNames) {
+                String[] roleNames = tokenRequest.getRoleNames(domainName);
+                if (roleNames != null) {
+                    rolesRequested = true;
+                }
+                List<String> roles = processDomainIdTokenRoles(principalName, domainName,
+                        roleNames, fullArn, principalDomain, caller);
+                if (roles != null) {
+                    tokenRoles.addAll(roles);
+                }
+            }
+
+            // we return failure if we don't have access to any roles but
+            // the call specifically requested some
+
+            if (tokenRoles.isEmpty()) {
+                if (rolesRequested) {
+                    throw forbiddenError("principal not included in requested roles", caller,
+                            clientIdDomainName, principalDomain);
+                } else {
+                    tokenRoles = null;
+                }
+            }
+        }
+        return tokenRoles;
+    }
+
+    List<String> processDomainIdTokenRoles(final String principalName, final String domainName, String[] roleNames,
+            Boolean fullArn, final String principalDomain, final String caller) {
+
+        // first validate the input
+
+        if (roleNames != null) {
+            for (String roleName : roleNames) {
+                validate(roleName, TYPE_ENTITY_NAME, principalDomain, caller);
+            }
+        }
+
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            throw notFoundError("No such domain: " + domainName, caller, domainName, principalDomain);
+        }
+
+        // process our request and retrieve the roles for the principal
+
+        Set<String> roles = new HashSet<>();
+        dataStore.getAccessibleRoles(data, domainName, principalName, roleNames, roles, false);
+        return getIdTokenGroupsFromRoles(roles, domainName, fullArn);
     }
 
     boolean validateOidcRedirectUri(DomainData domainData, final String clientId, final String redirectUri) {
@@ -2160,6 +2225,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     List<String> getIdTokenGroupsFromRoles(Set<String> roles, final String domainName, Boolean fullArn) {
+        if (roles.isEmpty()) {
+            return null;
+        }
         if (fullArn != Boolean.TRUE) {
             return new ArrayList<>(roles);
         }
@@ -2198,7 +2266,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     Response oidcError(final String errorMessage, final String redirectUri, final String state) {
         String location;
         try {
-            location = redirectUri + "?error=invalid_request&error_description=" + URLEncoder.encode(errorMessage, "UTF-8");
+            location = redirectUri + "?error=invalid_request&error_description=" +
+                    URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
             if (!StringUtil.isEmpty(state)) {
                 location += "&state=" + state;
             }
@@ -2320,7 +2389,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         setRequestDomain(ctx, domainName);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
 
-        String[] requestedRoles = tokenRequest.getRoleNames();
+        String[] requestedRoles = tokenRequest.getRoleNames(domainName);
         if (requestedRoles != null) {
             for (String requestedRole : requestedRoles) {
                 validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
@@ -3222,7 +3291,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // been encoded, we're going to decode it first before using it
 
         try {
-            roleName = URLDecoder.decode(roleName, "UTF-8");
+            roleName = URLDecoder.decode(roleName, StandardCharsets.UTF_8);
         } catch (Exception ex) {
             LOGGER.error("Unable to decode {} - error {}", roleName, ex.getMessage());
         }

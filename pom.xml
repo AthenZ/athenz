@@ -306,15 +306,13 @@
                 <exclude>*Test</exclude>
                 <exclude>**/*ZMSRDLGeneratedClient*.class</exclude>
                 <exclude>**/*ZTSRDLGeneratedClient*.class</exclude>
+                <exclude>**/*MSDRDLGeneratedClient*.class</exclude>
                 <exclude>**/ZMSResources.class</exclude>
                 <exclude>**/ZTSResources.class</exclude>
                 <exclude>**/ZMSHandler.class</exclude>
                 <exclude>**/ZTSHandler.class</exclude>
                 <exclude>**/ZMSConsts.class</exclude>
-                <exclude>**/FileConnection.class</exclude>
-                <exclude>**/FileObjectStore.class</exclude>
                 <exclude>**/FileWorkloadStore.class</exclude>
-                <exclude>**/*MSDRDLGeneratedClient*.class</exclude>
               </excludes>
               <rules>
                 <rules>
@@ -339,6 +337,7 @@
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
           <runOrder>alphabetical</runOrder>
+          <argLine>@{argLine} -Dlogback.configurationFile=src/test/resources/sd_logback.xml</argLine>
         </configuration>
       </plugin>
     </plugins>

@@ -31,11 +31,11 @@ public class AccessTokenRequest extends OAuthTokenRequest {
         //   <domainName>:role.<roleName>
         //   openid <domainName>:service.<serviceName>
 
-        super(scope);
+        super(scope, 1);
 
         // if we don't have a domain then it's invalid scope
 
-        if (StringUtil.isEmpty(domainName)) {
+        if (StringUtil.isEmpty(getDomainName())) {
             throw error("No domains in scope", scope);
         }
 

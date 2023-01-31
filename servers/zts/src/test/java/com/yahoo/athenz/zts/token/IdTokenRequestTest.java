@@ -31,11 +31,13 @@ public class IdTokenRequestTest {
         //   openid <domainName>:role.<roleName>
         //   openid <domainName>:group.<groupName>
 
+        IdTokenRequest.setMaxDomains(1);
+
         IdTokenRequest req1 = new IdTokenRequest("openid");
         assertNotNull(req1);
         assertNull(req1.getDomainName());
-        assertNull(req1.getRoleNames());
-        assertNull(req1.getGroupNames());
+        assertNull(req1.getRoleNames("sports"));
+        assertNull(req1.getGroupNames("sports"));
         assertTrue(req1.isOpenIdScope());
         assertFalse(req1.isGroupsScope());
         assertFalse(req1.isRolesScope());
@@ -43,8 +45,8 @@ public class IdTokenRequestTest {
         IdTokenRequest req2 = new IdTokenRequest("openid groups");
         assertNotNull(req2);
         assertNull(req2.getDomainName());
-        assertNull(req2.getRoleNames());
-        assertNull(req2.getGroupNames());
+        assertNull(req2.getRoleNames("sports"));
+        assertNull(req2.getGroupNames("sports"));
         assertTrue(req2.isOpenIdScope());
         assertTrue(req2.isGroupsScope());
         assertFalse(req2.isRolesScope());
@@ -52,8 +54,8 @@ public class IdTokenRequestTest {
         IdTokenRequest req3 = new IdTokenRequest("openid roles");
         assertNotNull(req3);
         assertNull(req3.getDomainName());
-        assertNull(req3.getRoleNames());
-        assertNull(req3.getGroupNames());
+        assertNull(req3.getRoleNames("sports"));
+        assertNull(req3.getGroupNames("sports"));
         assertTrue(req3.isOpenIdScope());
         assertFalse(req3.isGroupsScope());
         assertTrue(req3.isRolesScope());
@@ -61,9 +63,9 @@ public class IdTokenRequestTest {
         IdTokenRequest req4 = new IdTokenRequest("openid sports:group.dev-team");
         assertNotNull(req4);
         assertEquals("sports", req4.getDomainName());
-        assertNull(req4.getRoleNames());
-        assertEquals(1, req4.getGroupNames().size());
-        assertTrue(req4.getGroupNames().contains("dev-team"));
+        assertNull(req4.getRoleNames("sports"));
+        assertEquals(1, req4.getGroupNames("sports").size());
+        assertTrue(req4.getGroupNames("sports").contains("dev-team"));
         assertTrue(req4.isOpenIdScope());
         assertTrue(req4.isGroupsScope());
         assertFalse(req4.isRolesScope());
@@ -71,9 +73,9 @@ public class IdTokenRequestTest {
         IdTokenRequest req5 = new IdTokenRequest("openid sports:role.dev-role");
         assertNotNull(req5);
         assertEquals("sports", req5.getDomainName());
-        assertEquals(1, req5.getRoleNames().length);
-        assertEquals("dev-role", req5.getRoleNames()[0]);
-        assertNull(req5.getGroupNames());
+        assertEquals(1, req5.getRoleNames("sports").length);
+        assertEquals("dev-role", req5.getRoleNames("sports")[0]);
+        assertNull(req5.getGroupNames("sports"));
         assertTrue(req5.isOpenIdScope());
         assertFalse(req5.isGroupsScope());
         assertTrue(req5.isRolesScope());
@@ -81,8 +83,8 @@ public class IdTokenRequestTest {
         IdTokenRequest req6 = new IdTokenRequest("openid sports:service.api sports:domain sports:group.dev-team");
         assertNotNull(req6);
         assertEquals("sports", req6.getDomainName());
-        assertNull(req6.getRoleNames());
-        assertNull(req6.getGroupNames());
+        assertNull(req6.getRoleNames("sports"));
+        assertNull(req6.getGroupNames("sports"));
         assertTrue(req6.sendScopeResponse());
         assertTrue(req6.isOpenIdScope());
         assertTrue(req6.isGroupsScope());
@@ -91,10 +93,10 @@ public class IdTokenRequestTest {
         IdTokenRequest req7 = new IdTokenRequest("openid sports:service.api sports:role.reader sports:group.dev-team");
         assertNotNull(req7);
         assertEquals("sports", req7.getDomainName());
-        assertEquals(1, req7.getRoleNames().length);
-        assertEquals("reader", req7.getRoleNames()[0]);
-        assertEquals(1, req7.getGroupNames().size());
-        assertTrue(req7.getGroupNames().contains("dev-team"));
+        assertEquals(1, req7.getRoleNames("sports").length);
+        assertEquals("reader", req7.getRoleNames("sports")[0]);
+        assertEquals(1, req7.getGroupNames("sports").size());
+        assertTrue(req7.getGroupNames("sports").contains("dev-team"));
         assertFalse(req7.sendScopeResponse());
         assertTrue(req7.isOpenIdScope());
         assertTrue(req7.isGroupsScope());
@@ -103,8 +105,8 @@ public class IdTokenRequestTest {
         IdTokenRequest req8 = new IdTokenRequest("openid groups unknown-scope");
         assertNotNull(req8);
         assertNull(req8.getDomainName());
-        assertNull(req8.getRoleNames());
-        assertNull(req8.getGroupNames());
+        assertNull(req8.getRoleNames("sports"));
+        assertNull(req8.getGroupNames("sports"));
         assertTrue(req8.isOpenIdScope());
         assertTrue(req8.isGroupsScope());
         assertFalse(req8.isRolesScope());
@@ -113,6 +115,8 @@ public class IdTokenRequestTest {
 
     @Test
     public void testIdTokenRequestNoOpenid() {
+
+        IdTokenRequest.setMaxDomains(1);
 
         try {
             new IdTokenRequest("groups");
@@ -163,7 +167,6 @@ public class IdTokenRequestTest {
             assertEquals(400, ex.getCode());
         }
 
-
         try {
             new IdTokenRequest("sports:group.dev-team openid weather:group.dev-team");
             fail();
@@ -181,6 +184,8 @@ public class IdTokenRequestTest {
 
     @Test
     public void testIdTokenRequestMultipleDomains() {
+
+        IdTokenRequest.setMaxDomains(1);
 
         IdTokenRequest req1 = new IdTokenRequest("openid sports:domain sports:domain");
         assertNotNull(req1);
