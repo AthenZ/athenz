@@ -1112,6 +1112,11 @@ type RoleMeta struct {
 	// it.
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled roles.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1266,6 +1271,11 @@ type Role struct {
 	// it.
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled roles.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the role

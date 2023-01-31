@@ -197,7 +197,8 @@ public class ZMSSchema {
             .field("groupReviewDays", "Int32", true, "all groups in the domain roles will have specified max review days")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("description", "String", true, "a description of the role")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
+            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false);
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")

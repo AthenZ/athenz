@@ -1881,7 +1881,10 @@ public class DBService implements RolesProvider {
                 // process our delete role member operation
 
                 Role role = con.getRole(domainName, roleName);
-                boolean pending = (role != null) && (role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE);
+                boolean pending = (role != null) &&
+                        (role.getDeleteProtection() == Boolean.TRUE) &&
+                        (role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE);
+
                 if (pending) {
                     RoleMember roleMember = new RoleMember()
                             .setApproved(Boolean.FALSE)
@@ -1905,14 +1908,8 @@ public class DBService implements RolesProvider {
                 cacheStore.invalidate(domainName);
 
                 // audit log the request
-
-                if (pending) {
-                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, roleName,
-                            "{\"member\": \"" + normalizedMember + "\"}");
-                } else {
-                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                            roleName, "{\"member\": \"" + normalizedMember + "\"}");
-                }
+                auditLogRequest(ctx, domainName, auditRef, caller, pending ? ZMSConsts.HTTP_PUT : ZMSConsts.HTTP_DELETE,
+                        roleName, "{\"member\": \"" + normalizedMember + "\"}");
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
@@ -5604,6 +5601,7 @@ public class DBService implements RolesProvider {
                         .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
+                        .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles());
 
                 // then we're going to apply the updated fields
@@ -5792,6 +5790,9 @@ public class DBService implements RolesProvider {
         if (meta.getAuditEnabled() != null) {
             role.setAuditEnabled(meta.getAuditEnabled());
         }
+        if (meta.getDeleteProtection() != null) {
+            role.setDeleteProtection(meta.getDeleteProtection());
+        }
         if (meta.getNotifyRoles() != null) {
             role.setNotifyRoles(meta.getNotifyRoles());
         }
@@ -5844,6 +5845,7 @@ public class DBService implements RolesProvider {
                         .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
+                        .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles())
                         .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())

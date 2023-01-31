@@ -53,6 +53,7 @@ type RoleMeta Struct {
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String description (optional); //a description of the role
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
+    Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled roles.
 }
 
 //The representation for a Role with set of members.

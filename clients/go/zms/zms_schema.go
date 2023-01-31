@@ -228,6 +228,7 @@ func init() {
 	tRoleMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tRoleMeta.Field("description", "String", true, nil, "a description of the role")
 	tRoleMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
+	tRoleMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled roles.")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")

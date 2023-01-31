@@ -1313,7 +1313,7 @@ public class JDBCConnectionTest {
                 .setSelfServe(true).setMemberExpiryDays(30).setTokenExpiryMins(10)
                 .setCertExpiryMins(20).setSignAlgorithm("ec").setServiceExpiryDays(45)
                 .setMemberReviewDays(70).setServiceReviewDays(80).setGroupExpiryDays(50)
-                .setGroupReviewDays(90)
+                .setGroupReviewDays(90).setDeleteProtection(true)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry");
 
@@ -1347,7 +1347,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "filter");
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "expiry");
         Mockito.verify(mockPrepStmt, times(1)).setInt(16, 50);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(17, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(18, 4);
         jdbcConn.close();
     }
 
@@ -1390,7 +1391,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(16, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(17, false);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(18, 7);
         jdbcConn.close();
     }
 
@@ -2349,7 +2351,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(6, 9);
 
         // operation to check for roleMember exist using roleID and principal ID.
-        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 7);
         Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
 
         assertTrue(requestSuccess);
@@ -8516,17 +8518,17 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
+        String pendingState = ZMSConsts.PENDING_REQUEST_ADD_STATE;
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
         Mockito.when(mockResultSet.getString(1))
-                        .thenReturn("ADD"); // pending state
+                        .thenReturn(pendingState);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
                 .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
@@ -8551,8 +8553,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
 
 
-        Mockito.verify(mockPrepStmt, times(6)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, null);
@@ -8586,7 +8588,6 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
                 .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
@@ -8612,8 +8613,8 @@ public class JDBCConnectionTest {
         //get pending state
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
 
-        Mockito.verify(mockPrepStmt, times(6)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, javaExpiration);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, null);
@@ -8647,7 +8648,6 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
                 .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
@@ -8673,8 +8673,8 @@ public class JDBCConnectionTest {
         //get pending state
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
 
-        Mockito.verify(mockPrepStmt, times(6)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, javaReviewReminder);
@@ -8702,6 +8702,8 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("DELETE"); //pendingState
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
@@ -8728,7 +8730,7 @@ public class JDBCConnectionTest {
         // we need additional operation for the audit log
         // additional operation to check for roleMember exist using roleID and principal ID.
         Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
 
         // the rest of the audit log details
 
@@ -8805,6 +8807,8 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                        .thenReturn("ADD");
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id

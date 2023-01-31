@@ -4770,6 +4770,43 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteMembershipFromDeleteProtectionRole() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null,
+                "user.joe", null);
+        Response response = zmsImpl.putRole(ctx, domainName, "Role1", auditRef, true, role1);
+        Role role = (Role) response.getEntity();
+        assertEquals(role.getRoleMembers().size(), 1);
+        RoleMeta meta = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, domainName, "Role1", auditRef, meta);
+        zmsImpl.deleteMembership(ctx, domainName, "Role1", "user.joe", auditRef);
+
+        role = zmsImpl.getRole(ctx, domainName, "Role1", false, false, true);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        for (RoleMember member: members) {
+            if (!member.getMemberName().equalsIgnoreCase("user.joe")) {
+                fail();
+            }
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
     public void testGetPolicyList() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -18325,6 +18362,7 @@ public class ZMSImplTest {
 
         RoleMeta rm = createRoleMetaObject(true);
         rm.setReviewEnabled(true);
+        rm.setDeleteProtection(true);
         rm.setMemberExpiryDays(45);
         rm.setCertExpiryMins(55);
         rm.setServiceExpiryDays(45);
@@ -18380,6 +18418,7 @@ public class ZMSImplTest {
                     assertEquals(role.getGroupReviewDays().intValue(), 90);
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
+                    assertTrue(role.getDeleteProtection());
                     assertTrue(role.getSelfServe());
                     assertNull(role.getAuditEnabled());
                     role4Check = true;
@@ -18438,6 +18477,7 @@ public class ZMSImplTest {
                     assertEquals(role.getGroupReviewDays().intValue(), 90);
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
+                    assertTrue(role.getDeleteProtection());
                     assertTrue(role.getSelfServe());
                     role4Check = true;
                     break;
@@ -23416,7 +23456,7 @@ public class ZMSImplTest {
         Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.bob", null);
         zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
 
-        RoleMeta rm = new RoleMeta().setReviewEnabled(true);
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
         zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, rm);
 
         // switch to user.user2 principal to add a member to a role
@@ -23514,13 +23554,10 @@ public class ZMSImplTest {
         Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.bob", null);
         zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
 
-        RoleMeta rm = new RoleMeta().setReviewEnabled(true);
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
         zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, rm);
 
-
         zmsImpl.deleteMembership(ctx, domainName, roleName, "user.bob", auditRef);
-
-        Role resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
 
         Membership mbr = new Membership();
         mbr.setMemberName("user.bob");
@@ -24169,6 +24206,8 @@ public class ZMSImplTest {
         zmsImpl.putRole(ctx, "testdomain1", "testrole1", auditRef, false, auditedRole);
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
         zmsImpl.putRoleSystemMeta(ctx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+        RoleMeta rMeta = new RoleMeta().setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, "testdomain1", "testrole1", auditRef, rMeta);
 
         Membership mbr = new Membership();
         mbr.setMemberName("user.bob");

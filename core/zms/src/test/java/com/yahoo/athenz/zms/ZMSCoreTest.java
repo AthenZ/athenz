@@ -178,6 +178,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
+                .setDeleteProtection(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
@@ -206,6 +207,7 @@ public class ZMSCoreTest {
         assertEquals(r.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(r.getSignAlgorithm(), "ec");
         assertFalse(r.getReviewEnabled());
+        assertFalse(r.getDeleteProtection());
         assertEquals(r.getLastReviewedDate(), Timestamp.fromMillis(123456789123L));
         assertEquals(r.getNotifyRoles(), "role1,domain:role.role2");
         assertEquals(r.getUserAuthorityExpiration(), "attr1");
@@ -232,6 +234,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
+                .setDeleteProtection(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
@@ -261,6 +264,13 @@ public class ZMSCoreTest {
         r2.setReviewEnabled(null);
         assertFalse(r2.equals(r));
         r2.setReviewEnabled(false);
+        assertTrue(r2.equals(r));
+
+        r2.setDeleteProtection(true);
+        assertFalse(r2.equals(r));
+        r2.setDeleteProtection(null);
+        assertFalse(r2.equals(r));
+        r2.setDeleteProtection(false);
         assertTrue(r2.equals(r));
 
         r2.setDescription("test role1");
@@ -3745,6 +3755,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setReviewEnabled(false)
                 .setAuditEnabled(false)
+                .setDeleteProtection(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setDescription("test role")
@@ -3764,6 +3775,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getServiceReviewDays(), Integer.valueOf(80));
         assertFalse(rm.getReviewEnabled());
         assertFalse(rm.getAuditEnabled());
+        assertFalse(rm.getDeleteProtection());
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getTags().get("tagKey").getList().get(0), "tagValue");
@@ -3783,6 +3795,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setReviewEnabled(false)
                 .setAuditEnabled(false)
+                .setDeleteProtection(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setDescription("test role")
@@ -3809,6 +3822,13 @@ public class ZMSCoreTest {
         rm2.setAuditEnabled(null);
         assertFalse(rm2.equals(rm));
         rm2.setAuditEnabled(false);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setDeleteProtection(true);
+        assertFalse(rm2.equals(rm));
+        rm2.setDeleteProtection(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setDeleteProtection(false);
         assertTrue(rm2.equals(rm));
 
         rm2.setSignAlgorithm("ec");
