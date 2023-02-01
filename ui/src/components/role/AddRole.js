@@ -27,6 +27,7 @@ import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import Icon from '../denali/icons/Icon';
 import {
+    ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
     ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER,
     ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER,
     ADD_ROLE_JUSTIFICATION_PLACEHOLDER,
@@ -152,10 +153,14 @@ class AddRole extends React.Component {
         this.delegateChanged = this.delegateChanged.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.expandSettings = this.expandSettings.bind(this);
+        this.toggleAuditEnabled = this.toggleAuditEnabled.bind(this);
         this.dateUtils = new DateUtils();
 
-        let role = {};
-        role['selfServe'] = false;
+        let role = {
+            selfServe: false,
+            auditEnabled: false,
+        };
+
         this.state = {
             saving: 'nope',
             category: 'regular',
@@ -169,6 +174,13 @@ class AddRole extends React.Component {
             showSettings: false,
             role: role,
         };
+    }
+
+    toggleAuditEnabled() {
+        this.state.role.auditEnabled = !this.state.role.auditEnabled;
+        this.setState({
+            role: this.state.role,
+        });
     }
 
     categoryChanged(button) {
@@ -293,10 +305,15 @@ class AddRole extends React.Component {
         let role = this.state.role;
         role.name = roleName;
         role.reviewEnabled = this.state.reviewEnabled;
+        role.auditEnabled = this.state.role.auditEnabled;
 
         // Add members to role only if role isn't review enabled.
         // If it is - we want all added members to be reviewed including the first members
-        if (this.state.category === 'regular' && !this.state.reviewEnabled) {
+        if (
+            this.state.category === 'regular' &&
+            !this.state.reviewEnabled &&
+            !this.state.role.auditEnabled
+        ) {
             role.roleMembers =
                 this.state.members.filter((member) => {
                     return member != null || member != undefined;
@@ -392,12 +409,16 @@ class AddRole extends React.Component {
             : '';
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
-        let reviewToolTip = this.state.reviewEnabled
-            ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP
-            : null;
-        let reviewTriggerStyle = this.state.reviewEnabled
-            ? { pointerEvents: 'none', opacity: '0.4' }
-            : {};
+        let reviewToolTip =
+            this.state.reviewEnabled || this.state.role.auditEnabled
+                ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP +
+                '\n' +
+                ADD_ROLE_AUDIT_ENABLED_TOOLTIP
+                : null;
+        let reviewTriggerStyle =
+            this.state.reviewEnabled || this.state.role.auditEnabled
+                ? { pointerEvents: 'none', opacity: '0.4' }
+                : {};
         let sections = (
             <SectionsDiv>
                 <SectionDiv>
@@ -517,18 +538,23 @@ class AddRole extends React.Component {
                 {this.state.showSettings && (
                     <StyleTable data-testid='advanced-setting-table'>
                         <tbody>
-                            <AddRoleAdvancedSettings
-                                userAuthorityAttributes={
-                                    this.props.userAuthorityAttributes
-                                }
-                                userProfileLink={this.props.userProfileLink}
-                                advancedSettingsChanged={
-                                    advancedSettingsChanged
-                                }
-                                reviewEnabledChanged={reviewEnabledChanged}
-                                role={this.state.role}
-                                reviewEnabled={this.state.reviewEnabled}
-                            />
+                        <AddRoleAdvancedSettings
+                            userAuthorityAttributes={
+                                this.props.userAuthorityAttributes
+                            }
+                            userProfileLink={this.props.userProfileLink}
+                            advancedSettingsChanged={
+                                advancedSettingsChanged
+                            }
+                            reviewEnabledChanged={reviewEnabledChanged}
+                            auditEnabledChanged={this.toggleAuditEnabled}
+                            isDomainAuditEnabled={
+                                this.props.isDomainAuditEnabled
+                            }
+                            members={members}
+                            role={this.state.role}
+                            reviewEnabled={this.state.reviewEnabled}
+                        />
                         </tbody>
                     </StyleTable>
                 )}

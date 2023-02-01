@@ -8881,7 +8881,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (domain.getAuditEnabled() != Boolean.TRUE) {
                 throw ZMSUtils.requestError("Role cannot be set as audit-enabled if the domain is not audit-enabled", caller);
             }
-            if (role.getAuditEnabled() != Boolean.TRUE && !role.getRoleMembers().isEmpty()) {
+            if (role.getAuditEnabled() != Boolean.TRUE && role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
                 throw ZMSUtils.requestError("Only system admins can set the role as audit-enabled if it already has members", caller);
             }
         } else {

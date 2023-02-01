@@ -117,6 +117,10 @@ class SettingTable extends React.Component {
     setCollectionDetails(collection) {
         let collectionDetails = {
             reviewEnabled: !!collection.reviewEnabled,
+            auditEnabled: !!collection.auditEnabled,
+            hasRoleMembers:
+                collection.roleMembers &&
+                Object.keys(collection.roleMembers).length !== 0,
             selfServe: !!collection.selfServe,
             memberExpiryDays:
                 collection.memberExpiryDays === undefined
@@ -354,6 +358,30 @@ class SettingTable extends React.Component {
                     _csrf={this.props._csrf}
                 />
             );
+
+        let auditEnabledDesc =
+            'Flag indicates whether or not ' +
+            this.props.category +
+            ' updates require explicit auditing approval process';
+        this.props.category === 'role' &&
+        this.props.justificationRequired &&
+        rows.push(
+            <StyledSettingRow
+                key={'setting-row-auditEnabled'}
+                disabled={
+                    this.state.originalCollectionDetails.auditEnabled ||
+                    this.state.copyCollectionDetails.hasRoleMembers
+                }
+                domain={this.props.domain}
+                name='auditEnabled'
+                label='Audit Enabled'
+                type='switch'
+                desc={auditEnabledDesc}
+                value={this.state.copyCollectionDetails.auditEnabled}
+                onValueChange={this.onValueChange}
+                _csrf={this.props._csrf}
+            />
+        );
 
         let selfServiceDesc =
             'Flag indicates whether or not ' +

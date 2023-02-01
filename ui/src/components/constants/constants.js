@@ -125,8 +125,12 @@ export const StaticWorkloadType = [
     },
 ];
 
+export const ADD_ROLE_AUDIT_ENABLED_TOOLTIP =
+    'Audit Enabled Role must not contain members during creation';
 export const ADD_ROLE_REVIEW_ENABLED_TOOLTIP =
     'Review Enabled Role must not contain members during creation';
+export const ADD_ROLE_AUDIT_DESC =
+    'Flag indicates whether or not role updates require explicit auditing approval process';
 export const ADD_ROLE_REVIEW_DESC =
     'Flag indicates whether or not role updates require another review and approval';
 export const ADD_ROLE_SELF_SERVICE_DESC =
