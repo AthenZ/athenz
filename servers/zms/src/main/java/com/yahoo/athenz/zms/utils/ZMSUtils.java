@@ -203,6 +203,10 @@ public class ZMSUtils {
         return error(ResourceException.FORBIDDEN, msg, caller);
     }
 
+    public static RuntimeException conflictError(String msg, String caller) {
+        return error(ResourceException.CONFLICT, msg, caller);
+    }
+
     public static RuntimeException notFoundError(String msg, String caller) {
         return error(ResourceException.NOT_FOUND, msg, caller);
     }

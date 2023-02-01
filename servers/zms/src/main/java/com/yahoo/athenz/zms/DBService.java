@@ -1058,8 +1058,9 @@ public class DBService implements RolesProvider {
         switch (ex.getCode()) {
 
             case ResourceException.CONFLICT:
-
-                retry = true;
+                if (!ex.getMessage().contains("already has a pending request in a different state")) {
+                    retry = true;
+                }
                 break;
 
             case ResourceException.GONE:
