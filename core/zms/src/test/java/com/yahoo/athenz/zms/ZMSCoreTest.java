@@ -3454,6 +3454,7 @@ public class ZMSCoreTest {
         mbr1.setRequestPrincipal("user.admin");
         mbr1.setSystemDisabled(1);
         mbr1.setReviewReminder(Timestamp.fromMillis(100));
+        mbr1.setPendingState("ADD");
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
@@ -3465,6 +3466,7 @@ public class ZMSCoreTest {
         assertEquals(mbr1.getRequestPrincipal(), "user.admin");
         assertEquals(mbr1.getSystemDisabled(), Integer.valueOf(1));
         assertEquals(Timestamp.fromMillis(100), mbr1.getReviewReminder());
+        assertEquals(mbr1.getPendingState(), "ADD");
 
         assertTrue(mbr1.equals(mbr1));
         assertFalse(mbr1.equals(null));
@@ -3480,7 +3482,8 @@ public class ZMSCoreTest {
                 .setRequestTime(Timestamp.fromMillis(100))
                 .setRequestPrincipal("user.admin")
                 .setSystemDisabled(1)
-                .setReviewReminder(Timestamp.fromMillis(100));
+                .setReviewReminder(Timestamp.fromMillis(100))
+                .setPendingState("ADD");
 
         assertTrue(mbr2.equals(mbr1));
 
@@ -3552,6 +3555,13 @@ public class ZMSCoreTest {
         mbr2.setActive(null);
         assertFalse(mbr2.equals(mbr1));
         mbr2.setActive(false);
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setPendingState("DELETE");
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setPendingState(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setPendingState("ADD");
         assertTrue(mbr2.equals(mbr1));
     }
 

@@ -24133,6 +24133,7 @@ public class ZMSImplTest {
                 for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
                     assertEquals(mr.getRoleName(), "testrole1");
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -24152,6 +24153,7 @@ public class ZMSImplTest {
                 for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
                     assertEquals(mr.getRoleName(), "testrole1");
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -24176,6 +24178,7 @@ public class ZMSImplTest {
                 for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
                     assertEquals(mr.getRoleName(), "testrole1");
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }

@@ -278,6 +278,7 @@ func init() {
 	tMemberRole.Field("requestPrincipal", "EntityName", true, nil, "pending members only - name of the principal requesting the change")
 	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	tMemberRole.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
+	tMemberRole.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")

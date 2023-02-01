@@ -1679,6 +1679,11 @@ type MemberRole struct {
 	// user disabled by system based on configured role setting
 	//
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
@@ -1747,6 +1752,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "EntityName", self.RequestPrincipal)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.requestPrincipal does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.pendingState does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

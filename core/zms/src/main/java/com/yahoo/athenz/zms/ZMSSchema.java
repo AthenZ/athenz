@@ -242,7 +242,8 @@ public class ZMSSchema {
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestPrincipal", "EntityName", true, "pending members only - name of the principal requesting the change")
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
-            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")

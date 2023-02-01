@@ -321,21 +321,21 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "subdomain=?, principal_group=?, principal_group_member=?  WHERE domain_id=?;";
     private static final String SQL_DELETE_QUOTA = "DELETE FROM quota WHERE domain_id=?;";
     private static final String SQL_PENDING_ORG_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal, rmo.pending_state "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE org IN ( "
             + "SELECT DISTINCT role.name AS org FROM role_member JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
     private static final String SQL_PENDING_DOMAIN_AUDIT_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal, rmo.pending_state "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE ro.audit_enabled=true AND ro.domain_id IN ( select domain_id FROM domain WHERE name IN ( "
             + "SELECT DISTINCT role.name AS domain_name FROM role_member JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, ro.name, principal.name;";
     private static final String SQL_PENDING_DOMAIN_ADMIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal, rmo.pending_state "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE (ro.self_serve=true OR ro.review_enabled=true) AND ro.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role "
@@ -343,13 +343,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
             + "order by do.name, ro.name, principal.name;";
     private static final String SQL_PENDING_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal, rmo.pending_state "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE ro.domain_id=? AND (ro.self_serve=true OR ro.review_enabled=true OR ro.audit_enabled=true) "
             + "order by do.name, ro.name, principal.name;";
     private static final String SQL_PENDING_ALL_DOMAIN_ROLE_MEMBER_LIST = "SELECT do.name AS domain, ro.name AS role, "
-            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal "
+            + "principal.name AS member, rmo.expiration, rmo.review_reminder, rmo.audit_ref, rmo.req_time, rmo.req_principal, rmo.pending_state "
             + "FROM principal JOIN pending_role_member rmo "
             + "ON rmo.principal_id=principal.principal_id JOIN role ro ON ro.role_id=rmo.role_id JOIN domain do ON ro.domain_id=do.domain_id "
             + "WHERE (ro.self_serve=true OR ro.review_enabled=true OR ro.audit_enabled=true)"
@@ -362,7 +362,7 @@ public class JDBCConnection implements ObjectStoreConnection {
               "SELECT distinct d.name FROM pending_role_member rm "
             + "JOIN role r ON r.role_id=rm.role_id "
             + "JOIN domain d ON r.domain_id=d.domain_id WHERE (r.self_serve=true OR r.review_enabled=true) AND rm.last_notified_time=? AND rm.server=?;";
-    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.review_reminder, prm.audit_ref, prm.req_time, prm.req_principal "
+    private static final String SQL_GET_EXPIRED_PENDING_ROLE_MEMBERS = "SELECT d.name, r.name, p.name, prm.expiration, prm.review_reminder, prm.audit_ref, prm.req_time, prm.req_principal, prm.pending_state "
             + "FROM principal p JOIN pending_role_member prm "
             + "ON prm.principal_id=p.principal_id JOIN role r ON prm.role_id=r.role_id JOIN domain d ON d.domain_id=r.domain_id "
             + "WHERE prm.req_time < (CURRENT_TIME - INTERVAL ? DAY);";
@@ -5163,8 +5163,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             memberRole.setRequestTime(Timestamp.fromMillis(expiration.getTime()));
         }
         memberRole.setRequestPrincipal(rs.getString(8));
+        memberRole.setPendingState(rs.getString(9));
         memberRoles.add(memberRole);
-
         domainRoleMember.setMemberRoles(memberRoles);
         if (!domainRoleMembers.contains(domainRoleMember)) {
             domainRoleMembers.add(domainRoleMember);

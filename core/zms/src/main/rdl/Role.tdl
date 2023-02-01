@@ -103,6 +103,7 @@ type MemberRole Struct {
     EntityName requestPrincipal (optional); //pending members only - name of the principal requesting the change
     Timestamp requestTime (optional); //for pending membership requests, the request time
     Int32 systemDisabled (optional); //user disabled by system based on configured role setting
+    String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
 type DomainRoleMember Struct {
