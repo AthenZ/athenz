@@ -42,6 +42,7 @@ import {
     selectAuthorityAttributes,
     selectUserLink,
 } from '../../redux/selectors/domains';
+import produce from "immer";
 
 const CATEGORIES = [
     {
@@ -177,9 +178,12 @@ class AddRole extends React.Component {
     }
 
     toggleAuditEnabled() {
-        this.state.role.auditEnabled = !this.state.role.auditEnabled;
+        let newRole = produce(this.state.role, draft => {
+            draft.auditEnabled = !this.state.role.auditEnabled;
+        });
+
         this.setState({
-            role: this.state.role,
+            role: newRole,
         });
     }
 
@@ -302,36 +306,40 @@ class AddRole extends React.Component {
             return;
         }
 
-        let role = this.state.role;
-        role.name = roleName;
-        role.reviewEnabled = this.state.reviewEnabled;
-        role.auditEnabled = this.state.role.auditEnabled;
+        let role = produce(this.state.role, draft => {
+            draft.name = roleName;
+            draft.reviewEnabled = this.state.reviewEnabled;
+            draft.auditEnabled = this.state.role.auditEnabled;
 
-        // Add members to role only if role isn't review enabled.
-        // If it is - we want all added members to be reviewed including the first members
-        if (
-            this.state.category === 'regular' &&
-            !this.state.reviewEnabled &&
-            !this.state.role.auditEnabled
-        ) {
-            role.roleMembers =
-                this.state.members.filter((member) => {
-                    return member != null || member != undefined;
-                }) || [];
-            if (this.state.newMemberName && this.state.newMemberName !== '') {
-                role.roleMembers.push({
-                    memberName: this.state.newMemberName,
-                    expiration: this.dateUtils.uxDatetimeToRDLTimestamp(
-                        this.state.memberExpiry
-                    ),
-                    reviewReminder: this.dateUtils.uxDatetimeToRDLTimestamp(
-                        this.state.memberReviewReminder
-                    ),
-                });
+            // Add members to role only if role isn't review enabled.
+            // If it is - we want all added members to be reviewed including the first members
+            if (
+                this.state.category === 'regular' &&
+                !this.state.reviewEnabled &&
+                !this.state.role.auditEnabled
+            ) {
+                draft.roleMembers =
+                    this.state.members.filter((member) => {
+                        return member != null || member != undefined;
+                    }) || [];
+                if (this.state.newMemberName && this.state.newMemberName !== '') {
+                    draft.roleMembers.push({
+                        memberName: this.state.newMemberName,
+                        expiration: this.dateUtils.uxDatetimeToRDLTimestamp(
+                            this.state.memberExpiry
+                        ),
+                        reviewReminder: this.dateUtils.uxDatetimeToRDLTimestamp(
+                            this.state.memberReviewReminder
+                        ),
+                    });
+                }
             }
-        }
+
+            if (this.state.category === 'delegated') {
+                draft.trust = this.state.trustDomain;
+            }
+        });
         if (this.state.category === 'delegated') {
-            role.trust = this.state.trustDomain;
             if (!role.trust) {
                 this.setState({
                     errorMessage: 'Delegated role name is required.',

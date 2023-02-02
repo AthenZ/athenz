@@ -33086,6 +33086,12 @@ public class ZMSImplTest {
         role.setRoleMembers(Collections.emptyList());
         zmsImpl.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
 
+        // if the role is not audit enabled and the list is null then we're also good
+
+        role.setAuditEnabled(false);
+        role.setRoleMembers(null);
+        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+
         // if the role is audit enabled then we're good
 
         role.setAuditEnabled(true);
