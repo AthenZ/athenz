@@ -2407,7 +2407,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         String currentState = rs.getString(1);
                         // check current request doesn't contradict the existing one
                         if (currentState != null && !currentState.equals(pendingState)) {
-                            throw ZMSUtils.conflictError("The user " + principal + " already has a pending request in a different state", caller);
+                            throw ZMSUtils.requestError("The user " + principal + " already has a pending request in a different state", caller);
                         }
                     }
                     return true;

@@ -23565,7 +23565,8 @@ public class ZMSImplTest {
             zmsImpl.putMembership(ctx, domainName, roleName, "user.bob", auditRef, false, mbr);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("already has a pending request in a different state"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
