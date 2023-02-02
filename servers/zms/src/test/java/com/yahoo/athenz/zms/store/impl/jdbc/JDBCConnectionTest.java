@@ -1313,7 +1313,7 @@ public class JDBCConnectionTest {
                 .setSelfServe(true).setMemberExpiryDays(30).setTokenExpiryMins(10)
                 .setCertExpiryMins(20).setSignAlgorithm("ec").setServiceExpiryDays(45)
                 .setMemberReviewDays(70).setServiceReviewDays(80).setGroupExpiryDays(50)
-                .setGroupReviewDays(90)
+                .setGroupReviewDays(90).setDeleteProtection(true)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry");
 
@@ -1347,7 +1347,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "filter");
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "expiry");
         Mockito.verify(mockPrepStmt, times(1)).setInt(16, 50);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(17, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(18, 4);
         jdbcConn.close();
     }
 
@@ -1390,7 +1391,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(16, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(17, false);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(18, 7);
         jdbcConn.close();
     }
 
@@ -2273,7 +2275,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testInsertPendingRoleMemberUpdate() throws Exception {
+    public void testInsertPendingRoleMemberException() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
@@ -2286,7 +2288,40 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // validate principle domain
                 .thenReturn(true) // principal id
-                .thenReturn(true); // member exists
+                .thenReturn(false); // member exists
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(
+                new SQLException("failed operation", "state", 1001));
+
+        try {
+             jdbcConn.insertRoleMember("my-domain", "role1",
+                    new RoleMember().setApproved(false).setMemberName("user.user1"), "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPendingRoleMemberUpdate() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                        .thenReturn("ADD"); // pending state
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true) // member exists
+                .thenReturn(true); // this one is for pending state
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         long now = System.currentTimeMillis();
@@ -2295,7 +2330,8 @@ public class JDBCConnectionTest {
                         .setApproved(false)
                         .setMemberName("user.user1")
                         .setExpiration(Timestamp.fromMillis(now))
-                        .setReviewReminder(Timestamp.fromMillis(now)),
+                        .setReviewReminder(Timestamp.fromMillis(now))
+                        .setPendingState("ADD"),
                 "user.admin", "audit-ref");
 
         // this is combined for all operations above
@@ -2320,6 +2356,43 @@ public class JDBCConnectionTest {
 
         assertTrue(requestSuccess);
         jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPendingRoleMemberUpdateException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7) // role id
+                .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("ADD"); // pending state
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for role id
+                .thenReturn(true) // validate principle domain
+                .thenReturn(true) // principal id
+                .thenReturn(true) // member exists
+                .thenReturn(true); // this one is for pending state
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(
+                new SQLException("failed operation", "state", 1001));
+
+        long now = System.currentTimeMillis();
+        try {
+            jdbcConn.insertRoleMember("my-domain", "role1",
+                    new RoleMember()
+                            .setApproved(false)
+                            .setMemberName("user.user1")
+                            .setExpiration(Timestamp.fromMillis(now))
+                            .setReviewReminder(Timestamp.fromMillis(now))
+                            .setPendingState("ADD"),
+                    "user.admin", "audit-ref");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Test
@@ -8445,15 +8518,18 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
+        String pendingState = ZMSConsts.PENDING_REQUEST_ADD_STATE;
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                        .thenReturn(pendingState);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
+                .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -8473,8 +8549,12 @@ public class JDBCConnectionTest {
         //get principal
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
+        //get pending state
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
+
+
         Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, null);
@@ -8502,11 +8582,13 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("ADD"); // pending state
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
+                .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -8528,8 +8610,11 @@ public class JDBCConnectionTest {
         //get principal
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
+        //get pending state
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
+
         Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, javaExpiration);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, null);
@@ -8557,11 +8642,13 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("ADD"); // pending state
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
+                .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -8583,8 +8670,11 @@ public class JDBCConnectionTest {
         //get principal
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
+        //get pending state
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
+
         Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(4, javaReviewReminder);
@@ -8612,6 +8702,8 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("DELETE"); //pendingState
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
@@ -8638,7 +8730,7 @@ public class JDBCConnectionTest {
         // we need additional operation for the audit log
         // additional operation to check for roleMember exist using roleID and principal ID.
         Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
 
         // the rest of the audit log details
 
@@ -8715,6 +8807,8 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // role id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                        .thenReturn("ADD");
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for role id
@@ -13735,6 +13829,47 @@ public class JDBCConnectionTest {
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+
+    @Test
+    public void testGetPendingRoleMemberState() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getString(1)).thenReturn(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+        String pendingState = jdbcConn.getPendingRoleMemberState(123, "user.jon");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 123);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.jon");
+        assertEquals(pendingState, ZMSConsts.PENDING_REQUEST_ADD_STATE);
+
+        jdbcConn.con.close();
+    }
+
+    @Test
+    public void testGetPendingRoleMemberStateNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        String pendingState = jdbcConn.getPendingRoleMemberState(123, "user.jon");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 123);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.jon");
+        assertNull(pendingState);
+
+        jdbcConn.con.close();
+    }
+    @Test
+    public void testGetPendingRoleMemberStateException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.getPendingRoleMemberState(123, "user.jon");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }

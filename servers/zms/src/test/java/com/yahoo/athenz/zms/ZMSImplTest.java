@@ -3835,6 +3835,7 @@ public class ZMSImplTest {
         assertEquals(m.getRoleName(), roleFullName);
         assertEquals(m.getMemberName(), memberName);
         assertTrue(m.getApproved());
+        assertNull(m.getPendingState());
 
         // make the role review enabled
         RoleMeta meta = new RoleMeta()
@@ -3850,6 +3851,7 @@ public class ZMSImplTest {
         assertEquals(m.getRoleName(), roleFullName);
         assertEquals(m.getMemberName(), memberName);
         assertFalse(m.getApproved());
+        assertEquals(m.getPendingState(), PENDING_REQUEST_ADD_STATE);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
@@ -4764,6 +4766,43 @@ public class ZMSImplTest {
 
         zmsImpl.deleteSubDomain(ctx, "coretech", "storage", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx, "coretech", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testDeleteMembershipFromDeleteProtectionRole() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "mbr-del-dom";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null,
+                "user.joe", null);
+        Response response = zmsImpl.putRole(ctx, domainName, "Role1", auditRef, true, role1);
+        Role role = (Role) response.getEntity();
+        assertEquals(role.getRoleMembers().size(), 1);
+        RoleMeta meta = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, domainName, "Role1", auditRef, meta);
+        zmsImpl.deleteMembership(ctx, domainName, "Role1", "user.joe", auditRef);
+
+        role = zmsImpl.getRole(ctx, domainName, "Role1", false, false, true);
+        assertNotNull(role);
+
+        List<RoleMember> members = role.getRoleMembers();
+        assertNotNull(members);
+        assertEquals(members.size(), 2);
+
+        for (RoleMember member: members) {
+            if (!member.getMemberName().equalsIgnoreCase("user.joe")) {
+                fail();
+            }
+        }
+
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
@@ -18323,6 +18362,7 @@ public class ZMSImplTest {
 
         RoleMeta rm = createRoleMetaObject(true);
         rm.setReviewEnabled(true);
+        rm.setDeleteProtection(true);
         rm.setMemberExpiryDays(45);
         rm.setCertExpiryMins(55);
         rm.setServiceExpiryDays(45);
@@ -18378,6 +18418,7 @@ public class ZMSImplTest {
                     assertEquals(role.getGroupReviewDays().intValue(), 90);
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
+                    assertTrue(role.getDeleteProtection());
                     assertTrue(role.getSelfServe());
                     assertNull(role.getAuditEnabled());
                     role4Check = true;
@@ -18436,6 +18477,7 @@ public class ZMSImplTest {
                     assertEquals(role.getGroupReviewDays().intValue(), 90);
                     assertNotNull(role.getSignAlgorithm());
                     assertTrue(role.getReviewEnabled());
+                    assertTrue(role.getDeleteProtection());
                     assertTrue(role.getSelfServe());
                     role4Check = true;
                     break;
@@ -23292,7 +23334,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutMembershipDecisionReviewEnabledRoleApprove() {
+    public void testPutMembershipDecisionReviewEnabledRoleApproveAddState() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -23334,6 +23376,7 @@ public class ZMSImplTest {
         Role resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
         assertEquals(resrole.getRoleMembers().size(), 1);
         assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertEquals(resrole.getRoleMembers().get(0).getPendingState(), PENDING_REQUEST_ADD_STATE);
         assertFalse(resrole.getRoleMembers().get(0).getApproved());
 
         // now try as the admin himself to approve this user and it must
@@ -23391,6 +23434,139 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutMembershipDecisionReviewEnabledRoleApproveDeleteState() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "review-enabled-domain";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        final String roleName = "review-role";
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.bob", null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, rm);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        zmsImpl.deleteMembership(ctx, domainName, roleName, "user.bob", auditRef);
+
+        // verify the user is not been deleted and also verify the user is added as a pending member
+
+        Role resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 2);
+        assertEquals(resrole.getRoleMembers().get(0).getMemberName(), "user.bob");
+        assertTrue(resrole.getRoleMembers().get(0).getApproved());
+        assertEquals(resrole.getRoleMembers().get(1).getMemberName(), "user.bob");
+        assertFalse(resrole.getRoleMembers().get(1).getApproved());
+        assertEquals(resrole.getRoleMembers().get(1).getPendingState(), PENDING_REQUEST_DELETE_STATE);
+
+        // now try as the admin himself to approve this user and it must
+        // be rejected since it has to be done by some other admin
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        mbr.setApproved(true);
+        try {
+            zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+        }
+
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+
+        zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
+
+        // verify the user is now been deleted from both tables (standard and pending)
+
+        resrole = zmsImpl.getRole(ctx, domainName, roleName, false, false, true);
+        assertEquals(resrole.getRoleMembers().size(), 0);
+
+        // trying to approve the same user should return 404
+
+        try {
+            zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // now try to approve another use which should also return 404
+
+        mbr.setMemberName("user.joe");
+        try {
+            zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.joe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPendingMembershipConflictRequests() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "review-enabled-domain";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        final String roleName = "review-role";
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, "user.bob", null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+
+        RoleMeta rm = new RoleMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, rm);
+
+        zmsImpl.deleteMembership(ctx, domainName, roleName, "user.bob", auditRef);
+
+        Membership mbr = new Membership();
+        mbr.setMemberName("user.bob");
+        try {
+            zmsImpl.putMembership(ctx, domainName, roleName, "user.bob", auditRef, false, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("already has a pending request in a different state"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -23958,6 +24134,7 @@ public class ZMSImplTest {
                 for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
                     assertEquals(mr.getRoleName(), "testrole1");
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -23977,6 +24154,7 @@ public class ZMSImplTest {
                 for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
                     assertEquals(mr.getRoleName(), "testrole1");
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -24001,6 +24179,7 @@ public class ZMSImplTest {
                 for (MemberRole mr : mem.getMemberRoles()) {
                     assertNotNull(mr);
                     assertEquals(mr.getRoleName(), "testrole1");
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -24031,6 +24210,8 @@ public class ZMSImplTest {
         zmsImpl.putRole(ctx, "testdomain1", "testrole1", auditRef, false, auditedRole);
         RoleSystemMeta rsm = createRoleSystemMetaObject(true);
         zmsImpl.putRoleSystemMeta(ctx, "testdomain1", "testrole1", "auditenabled", auditRef, rsm);
+        RoleMeta rMeta = new RoleMeta().setDeleteProtection(true);
+        zmsImpl.putRoleMeta(ctx, "testdomain1", "testrole1", auditRef, rMeta);
 
         Membership mbr = new Membership();
         mbr.setMemberName("user.bob");
@@ -24038,16 +24219,27 @@ public class ZMSImplTest {
         mbr.setApproved(false);
         zmsImpl.putMembership(ctx, "testdomain1", "testrole1", "user.bob", auditRef, false, mbr);
 
+        // try deleting user.john from review-enabled role, the user should not been deleted and also should add as a pending member
+        zmsImpl.deleteMembership(ctx, "testdomain1", "testrole1", "user.john", auditRef);
+
         Role resRole = zmsImpl.getRole(ctx, "testdomain1", "testrole1", false, false, true);
 
         assertNotNull(resRole);
-        assertEquals(resRole.getRoleMembers().size(), 3);
+        assertEquals(resRole.getRoleMembers().size(), 4);
 
+        int johnCount = 0;
         for ( RoleMember rm : resRole.getRoleMembers()) {
             if ("user.bob".equals(rm.getMemberName())) {
                 assertFalse(rm.getApproved());
+                assertEquals(rm.getPendingState(), PENDING_REQUEST_ADD_STATE);
+            } else if ("user.john".equals(rm.getMemberName())) {
+                ++johnCount;
+                if (!rm.getApproved()) {
+                    assertEquals(rm.getPendingState(), PENDING_REQUEST_DELETE_STATE);
+                }
             }
         }
+        assertEquals(johnCount, 2);
 
         zmsImpl.deleteTopLevelDomain(ctx, "testdomain1", auditRef);
     }

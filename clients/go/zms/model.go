@@ -943,6 +943,11 @@ type RoleMember struct {
 	// group(3)
 	//
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMember - creates an initialized RoleMember instance, returns a pointer to it
@@ -1003,6 +1008,12 @@ func (self *RoleMember) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
 		if !val.Valid {
 			return fmt.Errorf("RoleMember.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("RoleMember.pendingState does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1101,6 +1112,11 @@ type RoleMeta struct {
 	// it.
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled roles.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1255,6 +1271,11 @@ type Role struct {
 	// it.
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled roles.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the role
@@ -1470,6 +1491,11 @@ type Membership struct {
 	// user disabled by system based on configured role setting
 	//
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMembership - creates an initialized Membership instance, returns a pointer to it
@@ -1540,6 +1566,12 @@ func (self *Membership) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "ResourceName", self.RequestPrincipal)
 		if !val.Valid {
 			return fmt.Errorf("Membership.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("Membership.pendingState does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -1647,6 +1679,11 @@ type MemberRole struct {
 	// user disabled by system based on configured role setting
 	//
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
@@ -1715,6 +1752,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "EntityName", self.RequestPrincipal)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.requestPrincipal does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.pendingState does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

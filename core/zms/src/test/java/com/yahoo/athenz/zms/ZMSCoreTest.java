@@ -178,6 +178,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
+                .setDeleteProtection(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
@@ -206,6 +207,7 @@ public class ZMSCoreTest {
         assertEquals(r.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(r.getSignAlgorithm(), "ec");
         assertFalse(r.getReviewEnabled());
+        assertFalse(r.getDeleteProtection());
         assertEquals(r.getLastReviewedDate(), Timestamp.fromMillis(123456789123L));
         assertEquals(r.getNotifyRoles(), "role1,domain:role.role2");
         assertEquals(r.getUserAuthorityExpiration(), "attr1");
@@ -232,6 +234,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setSignAlgorithm("ec")
                 .setReviewEnabled(false)
+                .setDeleteProtection(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setLastReviewedDate(Timestamp.fromMillis(123456789123L))
                 .setUserAuthorityExpiration("attr1")
@@ -261,6 +264,13 @@ public class ZMSCoreTest {
         r2.setReviewEnabled(null);
         assertFalse(r2.equals(r));
         r2.setReviewEnabled(false);
+        assertTrue(r2.equals(r));
+
+        r2.setDeleteProtection(true);
+        assertFalse(r2.equals(r));
+        r2.setDeleteProtection(null);
+        assertFalse(r2.equals(r));
+        r2.setDeleteProtection(false);
         assertTrue(r2.equals(r));
 
         r2.setDescription("test role1");
@@ -2190,7 +2200,8 @@ public class ZMSCoreTest {
                 .setReviewReminder(Timestamp.fromMillis(123456789126L))
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
-                .setPrincipalType(1);
+                .setPrincipalType(1)
+                .setPendingState("ADD");
 
         assertTrue(rm.equals(rm));
 
@@ -2209,6 +2220,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getReviewLastNotifiedTime().millis(), 123456789127L);
         assertEquals(rm.getSystemDisabled(), Integer.valueOf(1));
         assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
+        assertEquals(rm.getPendingState(), "ADD");
 
         RoleMember rm2 = new RoleMember()
                 .setMemberName("user.test1")
@@ -2222,7 +2234,8 @@ public class ZMSCoreTest {
                 .setReviewReminder(Timestamp.fromMillis(123456789126L))
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
-                .setPrincipalType(1);
+                .setPrincipalType(1)
+                .setPendingState("ADD");
         assertTrue(rm2.equals(rm));
 
         rm2.setRequestPrincipal("user.test2");
@@ -2307,6 +2320,13 @@ public class ZMSCoreTest {
         rm2.setPrincipalType(null);
         assertFalse(rm2.equals(rm));
         rm2.setPrincipalType(1);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setPendingState("DELETE");
+        assertFalse(rm2.equals(rm));
+        rm2.setPendingState(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setPendingState("ADD");
         assertTrue(rm2.equals(rm));
 
         assertFalse(rm2.equals(null));
@@ -2423,7 +2443,8 @@ public class ZMSCoreTest {
         ms.setMemberName("test.member").setIsMember(false).setRoleName("test.role")
                 .setExpiration(Timestamp.fromMillis(100)).setAuditRef("audit-ref")
                 .setActive(true).setApproved(false).setRequestPrincipal("user.admin")
-                .setReviewReminder(Timestamp.fromMillis(200)).setSystemDisabled(1);
+                .setReviewReminder(Timestamp.fromMillis(200)).setSystemDisabled(1)
+                .setPendingState("ADD");
 
         // init second time does not change state
         ms.init();
@@ -2444,12 +2465,13 @@ public class ZMSCoreTest {
         assertEquals(ms.getRequestPrincipal(), "user.admin");
         assertEquals(ms.getReviewReminder(), Timestamp.fromMillis(200));
         assertEquals(ms.getSystemDisabled(), Integer.valueOf(1));
+        assertEquals(ms.getPendingState(), "ADD");
 
         Membership ms2 = new Membership().setMemberName("test.member").setIsMember(false)
                 .setExpiration(Timestamp.fromMillis(100)).setRoleName("test.role")
                 .setActive(true).setAuditRef("audit-ref").setApproved(false)
                 .setRequestPrincipal("user.admin").setReviewReminder(Timestamp.fromMillis(200))
-                .setSystemDisabled(1);
+                .setSystemDisabled(1).setPendingState("ADD");
 
         assertTrue(ms2.equals(ms));
         assertTrue(ms.equals(ms));
@@ -2510,6 +2532,13 @@ public class ZMSCoreTest {
         ms2.setSystemDisabled(null);
         assertFalse(ms2.equals(ms));
         ms2.setSystemDisabled(1);
+        assertTrue(ms2.equals(ms));
+
+        ms2.setPendingState("DELETE");
+        assertFalse(ms2.equals(ms));
+        ms2.setPendingState(null);
+        assertFalse(ms2.equals(ms));
+        ms2.setPendingState("ADD");
         assertTrue(ms2.equals(ms));
 
         assertFalse(ms2.equals(null));
@@ -3425,6 +3454,7 @@ public class ZMSCoreTest {
         mbr1.setRequestPrincipal("user.admin");
         mbr1.setSystemDisabled(1);
         mbr1.setReviewReminder(Timestamp.fromMillis(100));
+        mbr1.setPendingState("ADD");
 
         assertEquals("role1", mbr1.getRoleName());
         assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
@@ -3436,6 +3466,7 @@ public class ZMSCoreTest {
         assertEquals(mbr1.getRequestPrincipal(), "user.admin");
         assertEquals(mbr1.getSystemDisabled(), Integer.valueOf(1));
         assertEquals(Timestamp.fromMillis(100), mbr1.getReviewReminder());
+        assertEquals(mbr1.getPendingState(), "ADD");
 
         assertTrue(mbr1.equals(mbr1));
         assertFalse(mbr1.equals(null));
@@ -3451,7 +3482,8 @@ public class ZMSCoreTest {
                 .setRequestTime(Timestamp.fromMillis(100))
                 .setRequestPrincipal("user.admin")
                 .setSystemDisabled(1)
-                .setReviewReminder(Timestamp.fromMillis(100));
+                .setReviewReminder(Timestamp.fromMillis(100))
+                .setPendingState("ADD");
 
         assertTrue(mbr2.equals(mbr1));
 
@@ -3523,6 +3555,13 @@ public class ZMSCoreTest {
         mbr2.setActive(null);
         assertFalse(mbr2.equals(mbr1));
         mbr2.setActive(false);
+        assertTrue(mbr2.equals(mbr1));
+
+        mbr2.setPendingState("DELETE");
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setPendingState(null);
+        assertFalse(mbr2.equals(mbr1));
+        mbr2.setPendingState("ADD");
         assertTrue(mbr2.equals(mbr1));
     }
 
@@ -3726,6 +3765,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setReviewEnabled(false)
                 .setAuditEnabled(false)
+                .setDeleteProtection(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setDescription("test role")
@@ -3745,6 +3785,7 @@ public class ZMSCoreTest {
         assertEquals(rm.getServiceReviewDays(), Integer.valueOf(80));
         assertFalse(rm.getReviewEnabled());
         assertFalse(rm.getAuditEnabled());
+        assertFalse(rm.getDeleteProtection());
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getTags().get("tagKey").getList().get(0), "tagValue");
@@ -3764,6 +3805,7 @@ public class ZMSCoreTest {
                 .setServiceReviewDays(80)
                 .setReviewEnabled(false)
                 .setAuditEnabled(false)
+                .setDeleteProtection(false)
                 .setUserAuthorityExpiration("attr1")
                 .setUserAuthorityFilter("attr2,attr3")
                 .setDescription("test role")
@@ -3790,6 +3832,13 @@ public class ZMSCoreTest {
         rm2.setAuditEnabled(null);
         assertFalse(rm2.equals(rm));
         rm2.setAuditEnabled(false);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setDeleteProtection(true);
+        assertFalse(rm2.equals(rm));
+        rm2.setDeleteProtection(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setDeleteProtection(false);
         assertTrue(rm2.equals(rm));
 
         rm2.setSignAlgorithm("ec");

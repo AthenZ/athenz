@@ -176,7 +176,8 @@ public class ZMSSchema {
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
-            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), or group(3)");
+            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), or group(3)")
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("RoleMeta")
             .comment("Set of metadata attributes that all roles may have and can be changed by domain admins.")
@@ -196,7 +197,8 @@ public class ZMSSchema {
             .field("groupReviewDays", "Int32", true, "all groups in the domain roles will have specified max review days")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("description", "String", true, "a description of the role")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false);
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
+            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false);
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members.")
@@ -223,7 +225,8 @@ public class ZMSSchema {
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled roles ) or by domain admins ( in case of selfserve roles )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
-            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("DefaultAdmins")
             .comment("The list of domain administrators.")
@@ -239,7 +242,8 @@ public class ZMSSchema {
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestPrincipal", "EntityName", true, "pending members only - name of the principal requesting the change")
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
-            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting");
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")

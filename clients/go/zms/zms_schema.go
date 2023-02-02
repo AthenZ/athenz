@@ -206,6 +206,7 @@ func init() {
 	tRoleMember.Field("reviewLastNotifiedTime", "Timestamp", true, nil, "for pending membership requests, time when last notification was sent (for file store)")
 	tRoleMember.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	tRoleMember.Field("principalType", "Int32", true, nil, "server use only - principal type: unknown(0), user(1), service(2), or group(3)")
+	tRoleMember.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	sb.AddType(tRoleMember.Build())
 
 	tRoleMeta := rdl.NewStructTypeBuilder("Struct", "RoleMeta")
@@ -227,6 +228,7 @@ func init() {
 	tRoleMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tRoleMeta.Field("description", "String", true, nil, "a description of the role")
 	tRoleMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
+	tRoleMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled roles.")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -257,6 +259,7 @@ func init() {
 	tMembership.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	tMembership.Field("requestPrincipal", "ResourceName", true, nil, "pending members only - name of the principal requesting the change")
 	tMembership.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
+	tMembership.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	sb.AddType(tMembership.Build())
 
 	tDefaultAdmins := rdl.NewStructTypeBuilder("Struct", "DefaultAdmins")
@@ -275,6 +278,7 @@ func init() {
 	tMemberRole.Field("requestPrincipal", "EntityName", true, nil, "pending members only - name of the principal requesting the change")
 	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	tMemberRole.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
+	tMemberRole.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")

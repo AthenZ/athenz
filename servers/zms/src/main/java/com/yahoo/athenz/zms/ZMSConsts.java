@@ -236,9 +236,11 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_APPLICATION_ID     = "application_id";
     public static final String DB_COLUMN_SIGN_ALGORITHM     = "sign_algorithm";
     public static final String DB_COLUMN_REVIEW_ENABLED     = "review_enabled";
+    public static final String DB_COLUMN_DELETE_PROTECTION  = "delete_protection";
     public static final String DB_COLUMN_NOTIFY_ROLES       = "notify_roles";
     public static final String DB_COLUMN_LAST_REVIEWED_TIME = "last_reviewed_time";
     public static final String DB_COLUMN_REQ_PRINCIPAL      = "req_principal";
+    public static final String DB_COLUMN_PENDING_STATE      = "pending_state";
     public static final String DB_COLUMN_MEMBER_REVIEW_DAYS = "member_review_days";
     public static final String DB_COLUMN_TEMPLATE_NAME      = "template";
     public static final String DB_COLUMN_TEMPLATE_VERSION   = "current_version";
@@ -380,4 +382,8 @@ public final class ZMSConsts {
     public static final Integer ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF = 500;
     public static final String ZMS_PROP_PURGE_MEMBER_EXPIRY_DAYS = "athenz.zms.purge_member_expiry_days";
     public static final Integer ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF = 180;
+
+    //pending member
+    public static final String PENDING_REQUEST_ADD_STATE = "ADD";
+    public static final String PENDING_REQUEST_DELETE_STATE = "DELETE";
 }

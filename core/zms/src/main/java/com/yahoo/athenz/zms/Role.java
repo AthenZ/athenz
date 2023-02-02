@@ -65,6 +65,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean deleteProtection;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -204,6 +207,13 @@ public class Role {
     public Boolean getAuditEnabled() {
         return auditEnabled;
     }
+    public Role setDeleteProtection(Boolean deleteProtection) {
+        this.deleteProtection = deleteProtection;
+        return this;
+    }
+    public Boolean getDeleteProtection() {
+        return deleteProtection;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -310,6 +320,9 @@ public class Role {
                 return false;
             }
             if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
+                return false;
+            }
+            if (deleteProtection == null ? a.deleteProtection != null : !deleteProtection.equals(a.deleteProtection)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

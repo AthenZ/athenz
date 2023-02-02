@@ -31,6 +31,7 @@ type RoleMember Struct {
     Timestamp reviewLastNotifiedTime (optional); //for pending membership requests, time when last notification was sent (for file store)
     Int32 systemDisabled (optional); //user disabled by system based on configured role setting
     Int32 principalType (optional); //server use only - principal type: unknown(0), user(1), service(2), or group(3)
+    String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
 //Set of metadata attributes that all roles may have and can be changed by domain admins.
@@ -52,6 +53,7 @@ type RoleMeta Struct {
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String description (optional); //a description of the role
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
+    Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled roles.
 }
 
 //The representation for a Role with set of members.
@@ -82,6 +84,7 @@ type Membership Struct {
     String auditRef (optional); //audit reference string for the change as supplied by admin
     ResourceName requestPrincipal (optional); //pending members only - name of the principal requesting the change
     Int32 systemDisabled (optional); //user disabled by system based on configured role setting
+    String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
 //The list of domain administrators.
@@ -100,6 +103,7 @@ type MemberRole Struct {
     EntityName requestPrincipal (optional); //pending members only - name of the principal requesting the change
     Timestamp requestTime (optional); //for pending membership requests, the request time
     Int32 systemDisabled (optional); //user disabled by system based on configured role setting
+    String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
 type DomainRoleMember Struct {

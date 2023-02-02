@@ -606,7 +606,8 @@ public class DBService implements RolesProvider {
             if (roleMembers != null) {
 
                 for (RoleMember member : roleMembers) {
-                    if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
+                    String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+                    if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), admin, auditRef)) {
                         return false;
                     }
                 }
@@ -835,15 +836,23 @@ public class DBService implements RolesProvider {
 
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
-                if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
-                    return false;
+                boolean pendingRequest = (member.getApproved() == Boolean.FALSE);
+                if (!pendingRequest) {
+                    if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
+                        return false;
+                    }
+                } else {
+                    if (!con.insertRoleMember(domainName, roleName, member.setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE), admin, auditRef)) {
+                        return false;
+                    }
                 }
             }
             auditLogRoleMembers(auditDetails, "deleted-members", delMembers);
         }
 
         for (RoleMember member : newMembers) {
-            if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
+            String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+            if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), admin, auditRef)) {
                 return false;
             }
         }
@@ -1690,7 +1699,8 @@ public class DBService implements RolesProvider {
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
 
-                if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
+                String pendingState = roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+                if (!con.insertRoleMember(domainName, roleName, roleMember.setPendingState(pendingState), principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
                             roleMember.getMemberName() + " to role: " + roleName, caller);
@@ -1870,7 +1880,22 @@ public class DBService implements RolesProvider {
 
                 // process our delete role member operation
 
-                if (!con.deleteRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
+                Role role = con.getRole(domainName, roleName);
+                boolean pending = (role != null) &&
+                        (role.getDeleteProtection() == Boolean.TRUE) &&
+                        (role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE);
+
+                if (pending) {
+                    RoleMember roleMember = new RoleMember()
+                            .setApproved(Boolean.FALSE)
+                            .setMemberName(normalizedMember)
+                            .setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                    if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
+                        con.rollbackChanges();
+                        throw ZMSUtils.requestError(caller + ": unable to insert role member: " +
+                                roleMember.getMemberName() + " to role: " + roleName, caller);
+                    }
+                } else if (!con.deleteRoleMember(domainName, roleName, normalizedMember, principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError(caller + ": unable to delete role member: " +
                             normalizedMember + " from role: " + roleName, caller);
@@ -1883,8 +1908,7 @@ public class DBService implements RolesProvider {
                 cacheStore.invalidate(domainName);
 
                 // audit log the request
-
-                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                auditLogRequest(ctx, domainName, auditRef, caller, pending ? ZMSConsts.HTTP_PUT : ZMSConsts.HTTP_DELETE,
                         roleName, "{\"member\": \"" + normalizedMember + "\"}");
 
                 // add domain change event
@@ -5577,6 +5601,7 @@ public class DBService implements RolesProvider {
                         .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
+                        .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles());
 
                 // then we're going to apply the updated fields
@@ -5765,6 +5790,9 @@ public class DBService implements RolesProvider {
         if (meta.getAuditEnabled() != null) {
             role.setAuditEnabled(meta.getAuditEnabled());
         }
+        if (meta.getDeleteProtection() != null) {
+            role.setDeleteProtection(meta.getDeleteProtection());
+        }
         if (meta.getNotifyRoles() != null) {
             role.setNotifyRoles(meta.getNotifyRoles());
         }
@@ -5817,6 +5845,7 @@ public class DBService implements RolesProvider {
                         .setServiceReviewDays(originalRole.getServiceReviewDays())
                         .setSignAlgorithm(originalRole.getSignAlgorithm())
                         .setReviewEnabled(originalRole.getReviewEnabled())
+                        .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles())
                         .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())
@@ -6389,6 +6418,10 @@ public class DBService implements RolesProvider {
         boolean bDataChanged = false;
         for (RoleMember roleMember : roleMembers) {
             try {
+                boolean pendingRequest = (roleMember.getApproved() == Boolean.FALSE);
+                if (pendingRequest) {
+                    roleMember.setPendingState(ZMSConsts.PENDING_REQUEST_ADD_STATE);
+                }
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
                     LOG.error("unable to update member {}", roleMember.getMemberName());
                     continue;
@@ -7302,7 +7335,8 @@ public class DBService implements RolesProvider {
                     } else {
                         // if not marked for deletion, then we are going to extend the member
 
-                        if (!con.insertRoleMember(domainName, roleName, member, principal, auditRef)) {
+                        String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+                        if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), principal, auditRef)) {
                             con.rollbackChanges();
                             throw ZMSUtils.notFoundError(caller + ": unable to extend role member: " +
                                     member.getMemberName() + " for the role: " + roleName, caller);
