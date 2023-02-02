@@ -253,6 +253,7 @@ class PendingApprovalTable extends React.Component {
                         approved,
                         expiration: this.state.selectAllDateExpiry,
                         reviewReminder: this.state.selectAllDateReviewReminder,
+                        pendingState: this.state.pendingMap[key].pendingState,
                     };
                     this.props
                         .processPending(
@@ -308,6 +309,7 @@ class PendingApprovalTable extends React.Component {
                     approved,
                     expiration: this.state.pendingMap[key].expiryDate,
                     reviewReminder: this.state.pendingMap[key].reviewReminder,
+                    pendingState: this.state.pendingMap[key].pendingState,
                 };
                 this.props
                     .processPending(
@@ -402,6 +404,7 @@ class PendingApprovalTable extends React.Component {
                         requestedReviewReminder={
                             this.state.pendingMap[key].reviewReminder
                         }
+                        pendingState={this.state.pendingMap[key].pendingState}
                         view={view}
                     />
                 );
@@ -442,6 +445,7 @@ class PendingApprovalTable extends React.Component {
                                 <TableHeaderDomain>Domain</TableHeaderDomain>
                             )}
                             <TableHeader>Type</TableHeader>
+                            <TableHeader>State</TableHeader>
                             <TableHeader>Name</TableHeader>
                             <TableHeader>Member</TableHeader>
                             <TableHeader colSpan={2}>User Comment</TableHeader>

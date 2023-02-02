@@ -27,11 +27,7 @@ import {
     updateTagsToStore,
 } from '../actions/collections';
 import API from '../../api';
-import {
-    buildMembersMapName,
-    getFullCollectionName,
-    isMemberExistsInStore,
-} from './utils/collection';
+import { buildMembersMapName, getFullCollectionName } from './utils/collection';
 import {
     buildErrorForDoesntExistCase,
     buildErrorForDuplicateCase,
@@ -39,6 +35,7 @@ import {
 import { getRoleApiCall } from './utils/roles';
 import { updateBellPendingMember } from '../actions/domain-data';
 import { groupDelimiter } from '../config';
+import { PENDING_STATE_ENUM } from '../../components/constants/constants';
 
 export const editMember =
     (domainName, collectionName, category, member, auditRef, _csrf) =>
@@ -164,6 +161,59 @@ export const addMember =
         }
     };
 
+const handlePendingMemberDeleted = (
+    dispatch,
+    memberName,
+    category,
+    domainName,
+    collectionName
+) => {
+    dispatch(
+        deletePendingMemberFromStore(
+            memberName,
+            category,
+            getFullCollectionName(domainName, collectionName, category)
+        )
+    );
+    dispatch(
+        updateBellPendingMember(
+            memberName,
+            getFullCollectionName(domainName, collectionName, category)
+        )
+    );
+    return Promise.resolve();
+};
+
+const handleMemberDeletedFromProtectedRole = (
+    memberName,
+    collectionName,
+    dispatch,
+    category,
+    domainName
+) => {
+    let member = {
+        memberName: memberName,
+        pendingState: PENDING_STATE_ENUM.DELETE,
+        roleName: collectionName,
+        active: false,
+        approved: false,
+    };
+    dispatch(
+        addPendingMemberToStore(
+            member,
+            category,
+            getFullCollectionName(domainName, collectionName, category)
+        )
+    );
+    dispatch(
+        updateBellPendingMember(
+            memberName,
+            getFullCollectionName(domainName, collectionName, category)
+        )
+    );
+    return Promise.resolve(true);
+};
+
 export const deleteMember =
     (
         domainName,
@@ -200,39 +250,39 @@ export const deleteMember =
                     data[buildMembersMapName(category, pending)][memberName]
                         .approved === false
                 ) {
-                    dispatch(
-                        deletePendingMemberFromStore(
-                            memberName,
-                            category,
-                            getFullCollectionName(
-                                domainName,
-                                collectionName,
-                                category
-                            )
-                        )
-                    );
-                    dispatch(
-                        updateBellPendingMember(
-                            memberName,
-                            getFullCollectionName(
-                                domainName,
-                                collectionName,
-                                category
-                            )
-                        )
+                    handlePendingMemberDeleted(
+                        dispatch,
+                        memberName,
+                        category,
+                        domainName,
+                        collectionName
                     );
                 } else {
-                    dispatch(
-                        deleteMemberFromStore(
+                    if (
+                        category === 'role' &&
+                        data.deleteProtection &&
+                        (data.auditEnabled || data.reviewEnabled)
+                    ) {
+                        return handleMemberDeletedFromProtectedRole(
                             memberName,
+                            collectionName,
+                            dispatch,
                             category,
-                            getFullCollectionName(
-                                domainName,
-                                collectionName,
-                                category
+                            domainName
+                        );
+                    } else {
+                        dispatch(
+                            deleteMemberFromStore(
+                                memberName,
+                                category,
+                                getFullCollectionName(
+                                    domainName,
+                                    collectionName,
+                                    category
+                                )
                             )
-                        )
-                    );
+                        );
+                    }
                 }
                 return Promise.resolve();
             } catch (err) {

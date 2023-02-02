@@ -38,6 +38,7 @@ import {
     UPDATE_TAGS_TO_STORE,
 } from '../../../redux/actions/collections';
 import { PROCESS_ROLE_PENDING_MEMBERS_TO_STORE } from '../../../redux/actions/domains';
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 
 const utils = require('../../../redux/utils');
 
@@ -256,6 +257,7 @@ describe('Roles Reducer', () => {
             expiration: '',
             reviewReminder: '',
             approved: false,
+            pendingState: PENDING_STATE_ENUM.ADD,
         };
         const action = {
             type: ADD_PENDING_MEMBER_TO_STORE,
@@ -356,6 +358,7 @@ describe('Roles Reducer', () => {
             expiration: '2022-09-27T10:10:33.431Z',
             memberName: 'user.user4',
             reviewReminder: undefined,
+            pendingState: PENDING_STATE_ENUM.ADD,
         };
         const initialState = {
             roles: AppUtils.deepClone(configStoreRoles),
@@ -379,12 +382,46 @@ describe('Roles Reducer', () => {
         const newState = roles(initialState, action);
         expect(newState).toEqual(expectedState);
     });
+    it('should approve pending member user.user6 with delete state from expiration role', () => {
+        let membership = {
+            memberName: 'user.user6',
+            expiration: null,
+            principalType: 1,
+            memberFullName: null,
+            pendingState: PENDING_STATE_ENUM.DELETE,
+            approved: true,
+            reviewReminder: undefined,
+        };
+        const initialState = {
+            roles: AppUtils.deepClone(configStoreRoles),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
+            payload: {
+                domainName: 'dom',
+                roleName: 'expiration',
+                member: membership,
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        delete expectedState.roles['dom:role.expiration'].rolePendingMembers[
+            'user.user6'
+        ];
+        delete expectedState.roles['dom:role.expiration'].roleMembers[
+            'user.user6'
+        ];
+        const newState = roles(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
     it('should deny pending member user.user4 from expiration role', () => {
         let memberShip = {
             approved: false,
             expiration: '2022-09-27T10:10:33.431Z',
             memberName: 'user.user4',
             reviewReminder: undefined,
+            pendingState: PENDING_STATE_ENUM.ADD,
         };
         const initialState = {
             roles: AppUtils.deepClone(configStoreRoles),
@@ -402,6 +439,36 @@ describe('Roles Reducer', () => {
         let expectedState = AppUtils.deepClone(initialState);
         delete expectedState.roles['dom:role.expiration'].rolePendingMembers[
             'user.user4'
+        ];
+        const newState = roles(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
+    it('should deny pending member user.user6 with delete state from expiration role', () => {
+        let membership = {
+            memberName: 'user.user6',
+            expiration: null,
+            principalType: 1,
+            memberFullName: null,
+            pendingState: PENDING_STATE_ENUM.DELETE,
+            approved: false,
+            reviewReminder: undefined,
+        };
+        const initialState = {
+            roles: AppUtils.deepClone(configStoreRoles),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
+            payload: {
+                domainName: 'dom',
+                roleName: 'expiration',
+                member: membership,
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        delete expectedState.roles['dom:role.expiration'].rolePendingMembers[
+            'user.user6'
         ];
         const newState = roles(initialState, action);
         expect(newState).toEqual(expectedState);

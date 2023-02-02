@@ -23,6 +23,7 @@ import {
 import { _ } from 'lodash';
 import {
     addMemberToStore,
+    addPendingMemberToStore,
     deleteMemberFromStore,
     updateSettingsToStore,
     updateTagsToStore,
@@ -46,6 +47,8 @@ import {
     loadingSuccess,
 } from '../../../redux/actions/loading';
 import { loadRole } from '../../../redux/actions/roles';
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
+import { updateBellPendingMember } from '../../../redux/actions/domain-data';
 
 const groupsThunk = require('../../../redux/thunks/groups');
 const rolesThunk = require('../../../redux/thunks/roles');
@@ -220,6 +223,63 @@ describe('deleteMember method', () => {
             deleteMemberFromStore('member1', 'role', 'dom:role.role1')
         );
     });
+});
+
+it('role category successfully add a pending member with delete state', async () => {
+    const getState = () => {};
+
+    jest.spyOn(roleSelector, 'thunkSelectRole').mockReturnValue({
+        deleteProtection: true,
+        reviewEnabled: true,
+        roleMembers: {
+            member1: {},
+        },
+    });
+
+    let myApiMock = {
+        deleteMember: jest.fn().mockReturnValue(Promise.resolve([])),
+    };
+    MockApi.setMockApi(myApiMock);
+    sinon.spy(myApiMock, 'deleteMember');
+
+    const fakeDispatch = sinon.spy();
+    await deleteMember(
+        domainName,
+        'role1',
+        'role',
+        'member1',
+        'auditRef',
+        false,
+        'csrf'
+    )(fakeDispatch, getState);
+
+    expect(fakeDispatch.getCall(0)).toBeTruthy();
+    expect(
+        myApiMock.deleteMember
+            .getCall(0)
+            .calledWith(
+                domainName,
+                'role1',
+                'member1',
+                'auditRef',
+                false,
+                'role',
+                'csrf'
+            )
+    ).toBeTruthy();
+    const expectedMember = {
+        memberName: 'member1',
+        pendingState: PENDING_STATE_ENUM.DELETE,
+        roleName: 'role1',
+        active: false,
+        approved: false,
+    };
+    expect(fakeDispatch.getCall(1).args[0]).toEqual(
+        addPendingMemberToStore(expectedMember, 'role', 'dom:role.role1')
+    );
+    expect(fakeDispatch.getCall(2).args[0]).toEqual(
+        updateBellPendingMember(expectedMember.memberName, 'dom:role.role1')
+    );
 });
 
 describe('updateTags method', () => {

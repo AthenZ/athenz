@@ -172,6 +172,7 @@ export default class PendingApprovalTableRow extends React.Component {
                     <TableTdDomain>{this.props.domainName}</TableTdDomain>
                 )}
                 <TableTd>{this.props.category}</TableTd>
+                <TableTd>{this.props.pendingState || 'ADD'}</TableTd>
                 <TableTd>{this.props.roleName}</TableTd>
                 <TableTdText>
                     <p>{this.props.memberNameFull}</p>

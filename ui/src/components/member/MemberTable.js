@@ -208,6 +208,13 @@ export default class MemberTable extends React.Component {
                             Name of User
                         </TableHeadStyled>
 
+                        {this.props.category === 'role' &&
+                            this.props.pending && (
+                                <TableHeadStyled align={left}>
+                                    Pending State
+                                </TableHeadStyled>
+                            )}
+
                         <TableHeadStyled align={left}>
                             Expiration Date
                         </TableHeadStyled>

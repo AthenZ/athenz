@@ -26,6 +26,7 @@ import {
     thunkSelectRoleMembers,
     thunkSelectRoles,
 } from '../../../redux/selectors/roles';
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 
 describe('test role selectors', () => {
     const stateWithRoles = {
@@ -77,6 +78,7 @@ describe('test role selectors', () => {
                             expiration: expiry,
                             memberFullName: 'user.user3',
                             requestedTime: expiry,
+                            pendingState: PENDING_STATE_ENUM.ADD,
                         },
                     },
                     lastReviewedDate: '2022-07-18T13:42:54.907Z',
@@ -143,6 +145,15 @@ describe('test role selectors', () => {
                             approved: false,
                             principalType: 1,
                             memberFullName: null,
+                            pendingState: PENDING_STATE_ENUM.ADD,
+                        },
+                        'user.user6': {
+                            memberName: 'user.user6',
+                            expiration: null,
+                            approved: false,
+                            principalType: 1,
+                            memberFullName: null,
+                            pendingState: PENDING_STATE_ENUM.DELETE,
                         },
                     },
                     roleMembers: {
@@ -153,7 +164,7 @@ describe('test role selectors', () => {
                             memberFullName: null,
                         },
                         'user.user2': {
-                            memberName: 'user.user6',
+                            memberName: 'user.user2',
                             expiration: expiry,
                             principalType: 1,
                             memberFullName: null,

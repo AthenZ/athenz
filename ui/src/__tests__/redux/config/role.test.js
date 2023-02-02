@@ -15,6 +15,7 @@
  */
 import { deepFreezeObject } from '../../../redux/utils';
 import { modified, expiry, domainName } from '../../config/config.test';
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 
 describe('Role Config', () => {
     it('should get default config', () => {
@@ -171,6 +172,7 @@ export const configStoreRoles = {
                 expiration: expiry,
                 memberFullName: 'user.user3',
                 requestedTime: expiry,
+                pendingState: PENDING_STATE_ENUM.ADD,
             },
         },
         lastReviewedDate: '2022-07-18T13:42:54.907Z',
@@ -237,6 +239,15 @@ export const configStoreRoles = {
                 approved: false,
                 principalType: 1,
                 memberFullName: null,
+                pendingState: PENDING_STATE_ENUM.ADD,
+            },
+            'user.user6': {
+                memberName: 'user.user6',
+                expiration: null,
+                approved: false,
+                principalType: 1,
+                memberFullName: null,
+                pendingState: PENDING_STATE_ENUM.DELETE,
             },
         },
         roleMembers: {
@@ -247,7 +258,7 @@ export const configStoreRoles = {
                 memberFullName: null,
             },
             'user.user2': {
-                memberName: 'user.user6',
+                memberName: 'user.user2',
                 expiration: expiry,
                 principalType: 1,
                 memberFullName: null,

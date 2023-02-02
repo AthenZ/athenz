@@ -359,7 +359,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-64 {
+.emotion-66 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -377,7 +377,7 @@ exports[`PendingApprovalTable should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-66 {
+.emotion-68 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -613,6 +613,11 @@ exports[`PendingApprovalTable should render 1`] = `
       <th
         class="emotion-44 emotion-45"
       >
+        State
+      </th>
+      <th
+        class="emotion-44 emotion-45"
+      >
         Name
       </th>
       <th
@@ -652,12 +657,12 @@ exports[`PendingApprovalTable should render 1`] = `
         Reminder Date
       </th>
       <th
-        class="emotion-64 emotion-65"
+        class="emotion-66 emotion-67"
       >
         Approve
       </th>
       <th
-        class="emotion-66 emotion-67"
+        class="emotion-68 emotion-69"
       >
         Reject
       </th>

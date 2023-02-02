@@ -32,6 +32,7 @@ import {
     ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER,
     ADD_ROLE_AUDIT_DESC,
     ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
+    ADD_ROLE_DELETE_PROTECTION_DESC,
 } from '../constants/constants';
 import SettingRow from '../settings/SettingRow';
 
@@ -42,6 +43,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
         this.advancedSettingsChanged = this.props.advancedSettingsChanged;
         this.reviewEnabledChanged = this.props.reviewEnabledChanged;
         this.auditEnabledChanged = this.props.auditEnabledChanged;
+        this.deleteProtectionChanged = this.props.deleteProtectionChanged;
 
         let boolUserAuthorityAttributes = [];
         let dateUserAuthorityAttributes = [];
@@ -105,6 +107,17 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
                 tooltip={ADD_ROLE_REVIEW_ENABLED_TOOLTIP}
+            />,
+            <SettingRow
+                key={'setting-row-deleteProtection'}
+                name='deleteProtection'
+                label='Delete Protection'
+                type='switch'
+                desc={ADD_ROLE_DELETE_PROTECTION_DESC}
+                onValueChange={this.deleteProtectionChanged}
+                value={this.props.role['deleteProtection']}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
             />,
             <SettingRow
                 key={'setting-row-selfServe'}

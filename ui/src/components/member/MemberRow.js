@@ -147,8 +147,13 @@ class MemberRow extends React.Component {
                 this.props.pending,
                 this.props._csrf
             )
-            .then(() => {
-                if (this.props.pending) {
+            .then((deleteProtection) => {
+                if (deleteProtection) {
+                    this.props.onUpdateSuccess(
+                        `Successfully added pending request to delete member ${name}`,
+                        true
+                    );
+                } else if (this.props.pending) {
                     this.props.onUpdateSuccess(
                         `Successfully deleted pending member ${name}`,
                         true
@@ -289,6 +294,7 @@ class MemberRow extends React.Component {
                         <StyledMenu
                             placement='right'
                             boundary='scrollParent'
+                            triggerOn='click'
                             trigger={
                                 <StyledSpan>{member.memberName}</StyledSpan>
                             }
@@ -307,6 +313,12 @@ class MemberRow extends React.Component {
                 <TDStyled color={color} align={left}>
                     {member.memberFullName}
                 </TDStyled>
+
+                {this.props.category === 'role' && this.props.pending && (
+                    <TDStyled color={color} align={left}>
+                        {member.pendingState}
+                    </TDStyled>
+                )}
 
                 <TDStyled color={color} align={left}>
                     <EditDiv>

@@ -21,7 +21,10 @@ import UpdateModal from '../modal/UpdateModal';
 import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import _ from 'lodash';
-import { MODAL_TIME_OUT } from '../constants/constants';
+import {
+    ADD_ROLE_DELETE_PROTECTION_DESC,
+    MODAL_TIME_OUT,
+} from '../constants/constants';
 import { updateSettings } from '../../redux/thunks/collections';
 import { connect } from 'react-redux';
 import { selectIsLoading } from '../../redux/selectors/loading';
@@ -123,6 +126,7 @@ class SettingTable extends React.Component {
                 Object.keys(collection.roleMembers).length !== 0,
             hasGroupMembers: this.props.category === 'group' && collection.groupMembers &&
                 Object.keys(collection.groupMembers).length !== 0,
+            deleteProtection: !!collection.deleteProtection,
             selfServe: !!collection.selfServe,
             memberExpiryDays:
                 collection.memberExpiryDays === undefined
@@ -388,6 +392,20 @@ class SettingTable extends React.Component {
             />
         );
 
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-deleteProtection'}
+                    domain={this.props.domain}
+                    name='deleteProtection'
+                    label='Delete Protection'
+                    type='switch'
+                    desc={ADD_ROLE_DELETE_PROTECTION_DESC}
+                    value={this.state.copyCollectionDetails.deleteProtection}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                />
+            );
         let selfServiceDesc =
             'Flag indicates whether or not ' +
             this.props.category +

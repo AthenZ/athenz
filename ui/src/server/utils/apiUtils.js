@@ -42,6 +42,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: role.requestTime,
                     expiryDate: expiryDate,
+                    pendingState: role.pendingState,
                 };
             });
         });
