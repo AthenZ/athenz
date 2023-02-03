@@ -112,15 +112,17 @@ type AccessProfileConfig struct {
 
 // Role contains role details. Attributes are set based on the config values
 type Role struct {
-	Name       string
-	Service    string
-	ExpiryTime int
-	Filename   string
-	User       string
-	Uid        int
-	Gid        int
-	FileMode   int
-	Threshold  float64
+	Name            string
+	Service         string
+	SvcKeyFilename  string
+	SvcCertFilename string
+	ExpiryTime      int
+	Filename        string
+	User            string
+	Uid             int
+	Gid             int
+	FileMode        int
+	Threshold       float64
 }
 
 // Service represents service details. Attributes are filled in based on the config values
@@ -195,8 +197,8 @@ type Options struct {
 }
 
 const (
-	DEFAULT_TOKEN_EXPIRY = 28800       // 8 hrs
-	DEFAULT_THRESHOLD    = float64(15) // 15 days
+	DefaultTokenExpiry = 28800       // 8 hrs
+	DefaultThreshold   = float64(15) // 15 days
 )
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
@@ -223,8 +225,8 @@ func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS b
 			Service:      service,
 			Account:      account,
 			Name:         fmt.Sprintf("%s.%s", domain, service),
-			Threshold:    DEFAULT_THRESHOLD,
-			SshThreshold: DEFAULT_THRESHOLD,
+			Threshold:    DefaultThreshold,
+			SshThreshold: DefaultThreshold,
 		}, &AccessProfileConfig{
 			Profile: profile,
 		}, nil
@@ -249,8 +251,8 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 			Service:      service,
 			Account:      account,
 			Name:         fmt.Sprintf("%s.%s", domain, service),
-			Threshold:    DEFAULT_THRESHOLD,
-			SshThreshold: DEFAULT_THRESHOLD,
+			Threshold:    DefaultThreshold,
+			SshThreshold: DefaultThreshold,
 		}, &AccessProfileConfig{
 			Profile: profile,
 		}, nil
@@ -284,8 +286,8 @@ func InitFileConfig(fileName, metaEndPoint string, useRegionalSTS bool, region, 
 			}
 			configAccount.Service = config.Service
 			configAccount.Name = fmt.Sprintf("%s.%s", configAccount.Domain, configAccount.Service)
-			configAccount.Threshold = nonZeroValue(configAccount.Threshold, DEFAULT_THRESHOLD)
-			configAccount.SshThreshold = nonZeroValue(configAccount.SshThreshold, DEFAULT_THRESHOLD)
+			configAccount.Threshold = nonZeroValue(configAccount.Threshold, DefaultThreshold)
+			configAccount.SshThreshold = nonZeroValue(configAccount.SshThreshold, DefaultThreshold)
 			return &config, &configAccount, nil
 		}
 	}
@@ -409,8 +411,8 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		}
 	}
 
-	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DEFAULT_THRESHOLD)
-	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DEFAULT_THRESHOLD)
+	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
+	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
 
 	return config, &ConfigAccount{
 		Account:      account,
@@ -593,12 +595,14 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 		roleService := getRoleServiceOwner(r.Service, services)
 		role := Role{
-			Name:       name,
-			Service:    roleService.Name,
-			Filename:   r.Filename,
-			ExpiryTime: r.ExpiryTime,
-			FileMode:   roleService.FileMode,
-			Threshold:  nonZeroValue(r.Threshold, account.Threshold),
+			Name:            name,
+			Service:         roleService.Name,
+			SvcKeyFilename:  roleService.KeyFilename,
+			SvcCertFilename: roleService.CertFilename,
+			Filename:        r.Filename,
+			ExpiryTime:      r.ExpiryTime,
+			FileMode:        roleService.FileMode,
+			Threshold:       nonZeroValue(r.Threshold, account.Threshold),
 		}
 		role.Uid = roleService.Uid
 		role.Gid = roleService.Gid
@@ -684,7 +688,7 @@ func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessTo
 		if len(roles) == 0 {
 			roles = []string{fileName}
 		}
-		expiry := DEFAULT_TOKEN_EXPIRY
+		expiry := DefaultTokenExpiry
 		if t.Expiry != 0 {
 			expiry = t.Expiry
 		}

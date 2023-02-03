@@ -40,14 +40,21 @@ type AccessToken struct {
 type StoreTokenOptions int
 
 const (
-	ZTS_RESPONSE      StoreTokenOptions = iota // Default - store the entire AccessTokenResponse from ZTS
-	ACCESS_TOKEN_PROP                          // Store only the access_token property
+	ZtsResponse     StoreTokenOptions = iota // Default - store the entire AccessTokenResponse from ZTS
+	AccessTokenProp                          // Store only the access_token property
 )
+
+// TokenService service definition with key/cert filenames
+type TokenService struct {
+	Name         string
+	KeyFilename  string
+	CertFilename string
+}
 
 // TokenOptions holds all the configurable options for driving Access Tokens functionality
 type TokenOptions struct {
 	Domain          string            // Domain of the instance
-	Services        []string          // Services set on the instance
+	Services        []TokenService    // Services set on the instance
 	TokenDir        string            // Directory where tokens will be saved, typically /var/lib/sia/tokens
 	Tokens          []AccessToken     // List of Access Tokens with their configuration
 	CertDir         string            // Directory where certs can be found, typically /var/lib/sia/certs

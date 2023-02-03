@@ -23,7 +23,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -91,8 +90,8 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
 	var roleRequest = new(zts.RoleCertificateRequest)
 	for _, role := range opts.Roles {
 
-		svcKeyFile := fmt.Sprintf("%s/%s.%s.key.pem", opts.KeyDir, opts.Domain, role.Service)
-		svcCertFile := fmt.Sprintf("%s/%s.%s.cert.pem", opts.CertDir, opts.Domain, role.Service)
+		svcKeyFile := util.GetSvcKeyFileName(opts.KeyDir, role.SvcKeyFilename, opts.Domain, role.Service)
+		svcCertFile := util.GetSvcCertFileName(opts.CertDir, role.SvcCertFilename, opts.Domain, role.Service)
 
 		client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, svcKeyFile, svcCertFile, opts.ZTSCACertFile)
 		if err != nil {
@@ -571,24 +570,33 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		}
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	default:
-		// if we already have a cert file then we're not going to
-		// prove our identity since most likely it will not succeed
-		// due to boot time check (this could be just a regular
-		// service restart for any reason). Instead, we'll just skip
-		// over and try to rotate the certs
-
+		// we're going to iterate through our configured services.
+		// if the service key and certificate files exist then we're
+		// going to refresh the identity, otherwise we're going to
+		// register it. before registration, we'll verify that we
+		// haven't passed our 30-min server enforced timeout since
+		// there is no point to contact ZTS if it's going to reject it
+		// for any refresh operations, we're going to skip any failures
+		// since the existing file on disk is still valid, and we can
+		// refresh during the next daily run.
 		initialSetup := true
-
-		if files, err := ioutil.ReadDir(opts.CertDir); err != nil || len(files) <= 0 {
-			err := RegisterInstance(data, ztsUrl, opts, true)
-			if err != nil {
-				log.Fatalf("Register identity failed, error: %v\n", err)
+		for i, svc := range opts.Services {
+			if serviceAlreadyRegistered(opts, svc) {
+				err = refreshSvc(svc, data[i], ztsUrl, opts)
+				if err != nil {
+					log.Printf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
+				}
+			} else {
+				if shouldSkipRegister(opts) {
+					log.Fatalf("identity document has expired (30 min timeout). ZTS will not register this instance. Please relaunch or stop and start your instance to refesh its identity document")
+				}
+				err = registerSvc(svc, data[i], ztsUrl, opts)
+				if err != nil {
+					log.Fatalf("unable to register identity for svc: %q, error: %v", svc.Name, err)
+				}
 			}
-
-		} else {
-			initialSetup = false
-			log.Println("Identity certificate file already exists. Retrieving identity details...")
 		}
+
 		log.Printf("Identity established for services: %s\n", svcs)
 
 		stop := make(chan bool, 1)
@@ -597,8 +605,6 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 
 		go func() {
 			for {
-				log.Printf("Identity being used: %s\n", opts.Name)
-
 				// if we just did our initial setup there is no point
 				// to refresh the certs again. so we are going to skip
 				// this time around and refresh certs next time
@@ -615,16 +621,15 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 						return
 					}
 					log.Printf("identity successfully refreshed for services: %s\n", svcs)
-					if tokenOpts != nil {
-						err := accessTokenRequest(tokenOpts)
-						if err != nil {
-							errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
-						}
-					} else {
-						log.Print("token config does not exist - do not refresh token")
+				}
+				initialSetup = false
+				if tokenOpts != nil {
+					err := accessTokenRequest(tokenOpts)
+					if err != nil {
+						errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
 					}
 				} else {
-					initialSetup = false
+					log.Print("token config does not exist - do not refresh token")
 				}
 				GetRoleCertificates(ztsUrl, opts)
 				if opts.SDSUdsPath != "" {
@@ -723,7 +728,7 @@ func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, e
 	if err != nil {
 		return nil, fmt.Errorf("unable to create token options: %s", err.Error())
 	}
-	tokenOpts.StoreOptions = config.ACCESS_TOKEN_PROP
+	tokenOpts.StoreOptions = config.AccessTokenProp
 
 	log.Printf("token options created successfully")
 	return tokenOpts, nil
@@ -754,8 +759,11 @@ func shouldSkipRegister(opts *options.Options) bool {
 	}
 	duration := time.Since(*opts.EC2StartTime)
 	//our server timeout is 30 mins = 1800 secs
-	if duration.Seconds() > 1800 {
-		return true
-	}
-	return false
+	return duration.Seconds() > 1800
+}
+
+func serviceAlreadyRegistered(opts *options.Options, svc options.Service) bool {
+	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
+	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
+	return util.FileExists(keyFile) && util.FileExists(certFile)
 }

@@ -493,3 +493,50 @@ func TestGetServiceHostname(test *testing.T) {
 		})
 	}
 }
+
+func TestServiceAlreadyRegistered(test *testing.T) {
+
+	keyDir := test.TempDir()
+	certDir := test.TempDir()
+	opts := options.Options{
+		KeyDir:  keyDir,
+		CertDir: certDir,
+		Domain:  "athenz",
+	}
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", keyDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", certDir)
+	err := copyFile("devel/data/key.pem", keyFile)
+	if err != nil {
+		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
+		return
+	}
+	err = copyFile("devel/data/cert.pem", certFile)
+	if err != nil {
+		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/cert.pem", certFile, err)
+		return
+	}
+	tests := []struct {
+		name         string
+		keyFileName  string
+		certFileName string
+		result       bool
+	}{
+		{"both-valid", keyFile, certFile, true},
+		{"key-valid-only", keyFile, "", false},
+		{"cert-valid only", "", certFile, false},
+		{"both-invalid", "", "", false},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			svc := options.Service{
+				Name:         "api",
+				KeyFilename:  tt.keyFileName,
+				CertFilename: tt.certFileName,
+			}
+			serviceRegistered := serviceAlreadyRegistered(&opts, svc)
+			if tt.result != serviceRegistered {
+				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, serviceRegistered)
+			}
+		})
+	}
+}
