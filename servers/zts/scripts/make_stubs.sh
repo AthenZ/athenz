@@ -16,17 +16,17 @@ fi
 # Note this script is dependent on the rdl utility.
 #
 # Use open source version of rdl https://github.com/ardielle/ardielle-tools
-# go install github.com/ardielle/ardielle-tools/...
+# go install github.com/ardielle/ardielle-tools/rdl@latest
 
 if [ -x "$(command -v go)" ]; then
-    go install github.com/ardielle/ardielle-tools/...
+    go install github.com/ardielle/ardielle-tools/rdl@latest
 fi
 
 command -v rdl >/dev/null 2>&1 || {
     echo >&2 "------------------------------------------------------------------------";
     echo >&2 "SOURCE WARNING";
     echo >&2 "------------------------------------------------------------------------";
-    echo >&2 "Please install rdl utility: go install github.com/ardielle/ardielle-tools/...";
+    echo >&2 "Please install rdl utility: go install github.com/ardielle/ardielle-tools/rdl@latest";
     echo >&2 "Skipping source generation...";
     exit 0;
 }

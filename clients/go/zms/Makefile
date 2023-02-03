@@ -50,7 +50,7 @@ build: src/$(RDL_LIB)
 
 src/$(RDL_LIB):
 	go install $(RDL_LIB)
-	go install github.com/ardielle/ardielle-tools/...
+	go install github.com/ardielle/ardielle-tools/rdl@latest
 
 model.go: $(RDL_FILE)
 	$(GOPATH)/bin/rdl -ps generate -t -o $@ athenz-go-model $(RDL_FILE)
