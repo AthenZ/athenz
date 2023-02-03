@@ -108,7 +108,6 @@ func gidForGroup(groupname string) int {
 		log.Printf("Invalid response from getent group command: %s\n", s)
 		return -1
 	}
-	log.Printf("Group %s id: %d\n", groupname, id)
 	return id
 }
 

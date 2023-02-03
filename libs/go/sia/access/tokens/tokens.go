@@ -81,7 +81,7 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 
 			// if the token is being stored without expiration property (i.e - not AccessTokenResponse
 			// but AccessTokenResponse::Access_token only), we should refresh immediately
-			if opts.StoreOptions != config.ZTS_RESPONSE {
+			if opts.StoreOptions != config.ZtsResponse {
 				refresh = append(refresh, t)
 				continue
 			}
@@ -160,7 +160,7 @@ func Fetch(opts *config.TokenOptions) ([]string, []error) {
 		fileName := filepath.Join(opts.TokenDir, t.Domain, t.FileName)
 
 		tokenBytesToStore := func(res *zts.AccessTokenResponse, opts *config.TokenOptions) ([]byte, error) {
-			if opts.StoreOptions == config.ZTS_RESPONSE {
+			if opts.StoreOptions == config.ZtsResponse {
 				return json.Marshal(res)
 			} else {
 				return json.Marshal(res.Access_token)
@@ -191,14 +191,14 @@ func loadSvcCerts(opts *config.TokenOptions) (map[string]*tls.Config, []error) {
 	configs := map[string]*tls.Config{}
 	errors := []error{}
 	for _, svc := range opts.Services {
-		certFile := filepath.Join(opts.CertDir, fmt.Sprintf("%s.%s.cert.pem", opts.Domain, svc))
-		keyFile := filepath.Join(opts.KeyDir, fmt.Sprintf("%s.%s.key.pem", opts.Domain, svc))
+		certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
+		keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 		c, err := tlsconfig.GetTLSConfigFromFiles(certFile, keyFile)
 		if err != nil {
 			errors = append(errors, err)
 			continue
 		}
-		configs[svc] = c
+		configs[svc.Name] = c
 	}
 
 	return configs, errors
@@ -253,7 +253,7 @@ func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) 
 
 	tokenOpts := &config.TokenOptions{
 		Domain:          options.Domain,
-		Services:        toServiceNames(options.Services),
+		Services:        toTokenServices(options.Services),
 		TokenDir:        options.TokenDir,
 		Tokens:          options.AccessTokens,
 		CertDir:         options.CertDir,
@@ -266,14 +266,19 @@ func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) 
 	return tokenOpts, nil
 }
 
-func toServiceNames(services []options.Service) []string {
-	var serviceNames []string
+func toTokenServices(services []options.Service) []config.TokenService {
+	var tokenServices []config.TokenService
 
-	for _, srv := range services {
-		serviceNames = append(serviceNames, srv.Name)
+	for _, svc := range services {
+		tokenService := config.TokenService{
+			Name:         svc.Name,
+			KeyFilename:  svc.KeyFilename,
+			CertFilename: svc.CertFilename,
+		}
+		tokenServices = append(tokenServices, tokenService)
 	}
 
-	return serviceNames
+	return tokenServices
 }
 
 // GetClaimsFromAccessTokenUnverified extract the token claims.

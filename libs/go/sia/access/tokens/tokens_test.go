@@ -28,6 +28,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	siafile "github.com/AthenZ/athenz/libs/go/sia/file"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"io"
 	"log"
 	"math/big"
@@ -216,7 +217,7 @@ func TestToBeRefreshedWithStoreOption(t *testing.T) {
 	assert.True(t, len(toRefresh) == 0, fmt.Sprint("there should not be any tokens to refresh"))
 
 	// now set the store option
-	opts.StoreOptions = config.ACCESS_TOKEN_PROP
+	opts.StoreOptions = config.AccessTokenProp
 
 	toRefresh, _ = ToBeRefreshedBasedOnTime(&opts, currentTime)
 	assert.True(t, len(toRefresh) == 1, fmt.Sprint("reader-aged token should be refreshed"))
@@ -240,9 +241,13 @@ func TestTokenWithStoreOption(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -250,7 +255,7 @@ func TestTokenWithStoreOption(t *testing.T) {
 			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
 		ZtsUrl:       ztsServer.baseUrl("zts/v1"),
-		StoreOptions: config.ACCESS_TOKEN_PROP,
+		StoreOptions: config.AccessTokenProp,
 	}
 
 	log.Printf("Options fed are: %+v\n", opts)
@@ -309,9 +314,13 @@ func TestAccessTokensSuccess(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -365,10 +374,14 @@ func TestAccessTokensRerun(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	tokenExpiryMins := 7200
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -460,9 +473,13 @@ func TestAccessTokensUserAgent(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -503,9 +520,13 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -573,9 +594,13 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	ztsServer.start(ztsRouter)
 	defer ztsServer.stop()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -632,9 +657,13 @@ func TestAccessTokensEmpty(t *testing.T) {
 func TestAccessTokensBadCerts(t *testing.T) {
 	siaDir := t.TempDir()
 
+	tokenServices := []config.TokenService{
+		{Name: "httpd"},
+		{Name: "yamas"},
+	}
 	opts := &config.TokenOptions{
 		Domain:   "iaas.athens",
-		Services: []string{"httpd", "yamas"},
+		Services: tokenServices,
 		CertDir:  filepath.Join(siaDir, "certs"),
 		KeyDir:   filepath.Join(siaDir, "keys"),
 		TokenDir: filepath.Join(siaDir, "tokens"),
@@ -866,7 +895,7 @@ func makeIdentity(t *testing.T, opts *config.TokenOptions) {
 			t.Fatalf("Failed to create certificate: %v", err)
 		}
 
-		certOut, err := os.Create(filepath.Join(opts.CertDir, fmt.Sprintf("%s.%s.cert.pem", opts.Domain, svc)))
+		certOut, err := os.Create(util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name))
 		if err != nil {
 			t.Fatalf("Failed to open cert.pem for writing: %v", err)
 		}
@@ -877,7 +906,7 @@ func makeIdentity(t *testing.T, opts *config.TokenOptions) {
 			t.Fatalf("Error closing cert.pem: %v", err)
 		}
 
-		keyOut, err := os.OpenFile(filepath.Join(opts.KeyDir, fmt.Sprintf("%s.%s.key.pem", opts.Domain, svc)), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+		keyOut, err := os.OpenFile(util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
 			t.Fatalf("Failed to open key.pem for writing: %v", err)
 		}

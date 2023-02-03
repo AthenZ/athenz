@@ -189,9 +189,9 @@ func TestOptionsNoConfig(t *testing.T) {
 	assert.Equal(t, 1, len(opts.Services))
 	assert.Equal(t, "athenz", opts.Domain)
 	assert.Equal(t, "athenz.hockey", opts.Name)
-	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: idCommandId("-u"), Gid: idCommandId("-g"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.Threshold)
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.SshThreshold)
+	assert.True(t, assertService(opts.Services[0], Service{Name: "hockey", Uid: idCommandId("-u"), Gid: idCommandId("-g"), FileMode: 288, Threshold: DefaultThreshold}))
+	assert.Equal(t, DefaultThreshold, opts.Threshold)
+	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
 	assert.False(t, opts.FileDirectUpdate)
 	assert.Equal(t, "/var/lib/sia/keys", opts.KeyDir)
 	assert.Equal(t, "/var/lib/sia/certs", opts.CertDir)
@@ -225,8 +225,8 @@ func TestOptionsNoProfileConfig(t *testing.T) {
 	assert.True(t, opts.Name == "athenz.hockey")
 	assert.Equal(t, opts.Profile, "test-profile")
 
-	assert.Equal(t, opts.Threshold, DEFAULT_THRESHOLD)
-	assert.Equal(t, opts.SshThreshold, DEFAULT_THRESHOLD)
+	assert.Equal(t, opts.Threshold, DefaultThreshold)
+	assert.Equal(t, opts.SshThreshold, DefaultThreshold)
 }
 
 // TestOptionsWithProfileConfig test the scenario when profile config file is present
@@ -248,12 +248,12 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 	assert.True(t, opts.Name == "athenz.api")
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui", User: "root", Uid: 0, Gid: 0, FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys"), Threshold: DEFAULT_THRESHOLD}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DefaultThreshold}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui", User: "root", Uid: 0, Gid: 0, FileMode: 288, Threshold: DefaultThreshold}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys"), Threshold: DefaultThreshold}))
 
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.SshThreshold)
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.Threshold)
+	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
+	assert.Equal(t, DefaultThreshold, opts.Threshold)
 }
 
 func TestOptionsWithRoleThreshold(t *testing.T) {
@@ -279,7 +279,7 @@ func TestOptionsWithRoleThreshold(t *testing.T) {
 	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys"), Threshold: 20}))
 	assert.Equal(t, float64(25), opts.Roles[0].Threshold)
 
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.SshThreshold)
+	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
 	assert.True(t, opts.Threshold == 20)
 }
 
@@ -333,12 +333,12 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.Equal(t, "athenz.api", opts.Name)
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui", User: "root", Uid: 0, Gid: 0, FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
-	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys"), Threshold: DEFAULT_THRESHOLD}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DefaultThreshold}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui", User: "root", Uid: 0, Gid: 0, FileMode: 288, Threshold: DefaultThreshold}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys"), Threshold: DefaultThreshold}))
 
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.Threshold)
-	assert.Equal(t, DEFAULT_THRESHOLD, opts.SshThreshold)
+	assert.Equal(t, DefaultThreshold, opts.Threshold)
+	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
 }
 
 // TestOptionsNoService test the scenario when /etc/sia/sia_config is present, but service is not repeated in services
@@ -363,7 +363,7 @@ func TestOptionsNoServices(t *testing.T) {
 	assert.Equal(t, 1, len(opts.Services))
 	assert.Equal(t, "athenz", opts.Domain)
 	assert.Equal(t, "athenz.api", opts.Name)
-	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DEFAULT_THRESHOLD}))
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DefaultThreshold}))
 	assert.True(t, opts.FileDirectUpdate)
 }
 
@@ -489,7 +489,7 @@ func TestOptionsWithAccessToken(t *testing.T) {
 		Service:  "api",
 		Domain:   "athenz.demo",
 		Roles:    []string{"reader"},
-		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		Expiry:   DefaultTokenExpiry,
 		User:     "nobody",
 	}))
 
@@ -507,7 +507,7 @@ func TestOptionsWithAccessToken(t *testing.T) {
 		Service:  "api",
 		Domain:   "athenz.demo",
 		Roles:    []string{"reader", "reader-admin"},
-		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		Expiry:   DefaultTokenExpiry,
 		User:     "nobody",
 	}))
 
@@ -525,7 +525,7 @@ func TestOptionsWithAccessToken(t *testing.T) {
 		Service:  "logger",
 		Domain:   "athenz.demo",
 		Roles:    []string{"splunk"},
-		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		Expiry:   DefaultTokenExpiry,
 		User:     "nobody",
 	}))
 
@@ -534,7 +534,7 @@ func TestOptionsWithAccessToken(t *testing.T) {
 		Service:  "api",
 		Domain:   "athenz.demo",
 		Roles:    []string{"*"},
-		Expiry:   DEFAULT_TOKEN_EXPIRY,
+		Expiry:   DefaultTokenExpiry,
 		User:     "nobody",
 	}))
 	log.Print(opts)
