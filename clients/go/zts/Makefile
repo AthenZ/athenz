@@ -8,7 +8,6 @@
 #
 
 RDL_FILE=../../../core/zts/src/main/rdl/ZTS.rdl
-RDL_LIB=github.com/ardielle/ardielle-go/rdl
 
 # check to see if go utility is installed
 GO := $(shell command -v go 2> /dev/null)
@@ -46,10 +45,7 @@ endif
 
 endif
 
-build: src/$(RDL_LIB)
-
-src/$(RDL_LIB):
-	go install $(RDL_LIB)
+build:
 	go install github.com/ardielle/ardielle-tools/rdl@latest
 
 model.go: $(RDL_FILE)
