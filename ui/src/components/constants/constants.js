@@ -125,6 +125,8 @@ export const StaticWorkloadType = [
     },
 ];
 
+export const ADD_GROUP_AUDIT_ENABLED_TOOLTIP =
+    'Audit Enabled Group must not contain members during creation';
 export const ADD_ROLE_AUDIT_ENABLED_TOOLTIP =
     'Audit Enabled Role must not contain members during creation';
 export const ADD_ROLE_REVIEW_ENABLED_TOOLTIP =

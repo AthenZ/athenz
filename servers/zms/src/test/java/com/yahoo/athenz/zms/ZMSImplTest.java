@@ -33090,7 +33090,7 @@ public class ZMSImplTest {
 
         role.setAuditEnabled(false);
         role.setRoleMembers(null);
-        zms.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
+        zmsImpl.validateRoleMetaAuditEnabledFlag(meta, role, domain, "validateRoleAuditEnabledFlag");
 
         // if the role is audit enabled then we're good
 
@@ -33150,6 +33150,12 @@ public class ZMSImplTest {
 
         group.setAuditEnabled(false);
         group.setGroupMembers(Collections.emptyList());
+        zmsImpl.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
+
+        // if the group is not audit enabled and the list is null then we're good
+
+        group.setAuditEnabled(false);
+        group.setGroupMembers(null);
         zmsImpl.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
 
         // if the group is audit enabled but the list is not empty then we're good

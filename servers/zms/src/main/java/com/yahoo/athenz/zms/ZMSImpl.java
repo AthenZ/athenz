@@ -10179,7 +10179,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (domain.getAuditEnabled() != Boolean.TRUE) {
                 throw ZMSUtils.requestError("Group cannot be set as audit-enabled if the domain is not audit-enabled", caller);
             }
-            if (group.getAuditEnabled() != Boolean.TRUE && !group.getGroupMembers().isEmpty()) {
+            if (group.getAuditEnabled() != Boolean.TRUE && group.getGroupMembers() != null && !group.getGroupMembers().isEmpty()) {
                 throw ZMSUtils.requestError("Only system admins can set the group as audit-enabled if it already has members", caller);
             }
         } else {

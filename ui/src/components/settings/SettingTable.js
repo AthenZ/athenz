@@ -119,8 +119,13 @@ class SettingTable extends React.Component {
             reviewEnabled: !!collection.reviewEnabled,
             auditEnabled: !!collection.auditEnabled,
             hasRoleMembers:
+                this.props.category === 'role' &&
                 collection.roleMembers &&
                 Object.keys(collection.roleMembers).length !== 0,
+            hasGroupMembers:
+                this.props.category === 'group' &&
+                collection.groupMembers &&
+                Object.keys(collection.groupMembers).length !== 0,
             selfServe: !!collection.selfServe,
             memberExpiryDays:
                 collection.memberExpiryDays === undefined
@@ -236,6 +241,8 @@ class SettingTable extends React.Component {
         if (this.props.category === 'role') {
             collectionMeta = this.state.copyCollectionDetails;
         } else if (this.props.category === 'group') {
+            collectionMeta.auditEnabled =
+                this.state.copyCollectionDetails.auditEnabled;
             collectionMeta.reviewEnabled =
                 this.state.copyCollectionDetails.reviewEnabled;
             collectionMeta.selfServe =
@@ -364,24 +371,24 @@ class SettingTable extends React.Component {
             this.props.category +
             ' updates require explicit auditing approval process';
         this.props.category === 'role' &&
-        this.props.justificationRequired &&
-        rows.push(
-            <StyledSettingRow
-                key={'setting-row-auditEnabled'}
-                disabled={
-                    this.state.originalCollectionDetails.auditEnabled ||
-                    this.state.copyCollectionDetails.hasRoleMembers
-                }
-                domain={this.props.domain}
-                name='auditEnabled'
-                label='Audit Enabled'
-                type='switch'
-                desc={auditEnabledDesc}
-                value={this.state.copyCollectionDetails.auditEnabled}
-                onValueChange={this.onValueChange}
-                _csrf={this.props._csrf}
-            />
-        );
+            this.props.justificationRequired &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-auditEnabled'}
+                    disabled={
+                        this.state.originalCollectionDetails.auditEnabled ||
+                        this.state.copyCollectionDetails.hasRoleMembers
+                    }
+                    domain={this.props.domain}
+                    name='auditEnabled'
+                    label='Audit Enabled'
+                    type='switch'
+                    desc={auditEnabledDesc}
+                    value={this.state.copyCollectionDetails.auditEnabled}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                />
+            );
 
         let selfServiceDesc =
             'Flag indicates whether or not ' +

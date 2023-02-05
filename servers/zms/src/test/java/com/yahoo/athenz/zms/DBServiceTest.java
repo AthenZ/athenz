@@ -11420,6 +11420,16 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testProcessGroupInsert() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Group group = new Group().setName("newGroup").setAuditEnabled(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        zms.dbService.processGroup(conn, null, "sys.auth", "testGroup1",
+                group, adminUser, auditRef, auditDetails);
+        assertTrue(group.getAuditEnabled());
+    }
+
+    @Test
     public void testProcessGroupWithTagsInsert() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
