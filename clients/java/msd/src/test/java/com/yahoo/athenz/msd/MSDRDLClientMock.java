@@ -41,7 +41,7 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
         TransportPolicyPort tpp1 = new TransportPolicyPort().setProtocol(TransportPolicyProtocol.TCP).setPort(1).setEndPort(1024);
         List<TransportPolicyPort> tppList1 = Collections.singletonList(tpp1);
         TransportPolicySubject tps1 = new TransportPolicySubject().setDomainName("dom1").setServiceName("svc1");
-        TransportPolicyCondition tpc1 = new TransportPolicyCondition().setEnforcementState(TransportPolicyEnforcementState.ENFORCE);
+        TransportPolicyCondition tpc1 = new TransportPolicyCondition().setEnforcementState(TransportPolicyEnforcementState.ENFORCE).setScope(Collections.singletonList(TransportPolicyScope.ONPREM));
         tpc1.setInstances(Collections.singletonList("host1"));
         List<TransportPolicyCondition> tpcList1 = Collections.singletonList(tpc1);
         TransportPolicyMatch tpm1 = new TransportPolicyMatch().setAthenzService(tps1).setConditions(tpcList1);

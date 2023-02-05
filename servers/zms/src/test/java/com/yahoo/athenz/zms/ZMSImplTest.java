@@ -31713,10 +31713,14 @@ public class ZMSImplTest {
         AssertionCondition ac1 = createAssertionConditionObject(1, "instances", "HOST1,host2,Host3");
         ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("ENFORCE")
                 .setOperator(AssertionConditionOperator.EQUALS));
+        ac1.getConditionsMap().put("scope", new AssertionConditionData().setValue("3")
+                .setOperator(AssertionConditionOperator.EQUALS));
         acs.getConditionsList().add(ac1);
 
         AssertionCondition ac2 = createAssertionConditionObject(2, "instances", "HOST21,host22");
         ac2.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("REPORT")
+                .setOperator(AssertionConditionOperator.EQUALS));
+        ac2.getConditionsMap().put("scope", new AssertionConditionData().setValue("3")
                 .setOperator(AssertionConditionOperator.EQUALS));
         acs.getConditionsList().add(ac2);
 
@@ -31731,6 +31735,8 @@ public class ZMSImplTest {
         .setValue("host1,host2,host3"));
         conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("enforce"));
+        conditionResp.getConditionsMap().put("scope", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("3"));
 
         AssertionCondition conditionResp2 = new AssertionCondition().setId(2).setConditionsMap(new HashMap<>());
         // zms is going to lowercase data
@@ -31738,6 +31744,8 @@ public class ZMSImplTest {
                 .setValue("host21,host22"));
         conditionResp2.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("report"));
+        conditionResp2.getConditionsMap().put("scope", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("3"));
 
         for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
@@ -31790,6 +31798,8 @@ public class ZMSImplTest {
         ac1.setId(null);//insert does not need id
         ac1.getConditionsMap().put("enforcementState", new AssertionConditionData().setValue("ENFORCE")
                 .setOperator(AssertionConditionOperator.EQUALS));
+        ac1.getConditionsMap().put("scope", new AssertionConditionData().setValue("3")
+                .setOperator(AssertionConditionOperator.EQUALS));
 
         zmsImpl.putAssertionCondition(ctx, domainName, polName, policyResp.getAssertions().get(0).getId(), auditRef, ac1);
 
@@ -31802,6 +31812,8 @@ public class ZMSImplTest {
                 .setValue("host1,host2,host3"));
         conditionResp.getConditionsMap().put("enforcementstate", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
                 .setValue("enforce"));
+        conditionResp.getConditionsMap().put("scope", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS)
+                .setValue("3"));
 
         for(Policy policy : sdoms.getDomains().get(0).getDomain().getPolicies().getContents().getPolicies()) {
             if ((domainName + ":policy." + polName).equals(policy.getName())) {
