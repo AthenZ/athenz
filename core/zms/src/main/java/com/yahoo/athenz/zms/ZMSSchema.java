@@ -464,7 +464,8 @@ public class ZMSSchema {
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
-            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1) or service(2)");
+            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1) or service(2)")
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("GroupMembership")
             .comment("The representation for a group membership.")
@@ -476,7 +477,8 @@ public class ZMSSchema {
             .field("approved", "Bool", true, "Flag to indicate whether membership is approved either by delegates ( in case of auditEnabled groups ) or by domain admins ( in case of selfserve groups )", true)
             .field("auditRef", "String", true, "audit reference string for the change as supplied by admin")
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
-            .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting");
+            .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("GroupMeta")
             .comment("Set of metadata attributes that all groups may have and can be changed by domain admins.")
@@ -488,7 +490,8 @@ public class ZMSSchema {
             .field("memberExpiryDays", "Int32", true, "all user members in the group will have specified max expiry days")
             .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
-            .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false);
+            .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
+            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled groups.", false);
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")

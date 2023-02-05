@@ -412,11 +412,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE domain.name=? AND principal_group.name=?;";
     private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve,"
-            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, service_expiry_days) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?);";
+            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, service_expiry_days, delete_protection) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_GROUP = "UPDATE principal_group SET audit_enabled=?, self_serve=?, "
             + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?,"
-            + "member_expiry_days=?, service_expiry_days=? WHERE group_id=?;";
+            + "member_expiry_days=?, service_expiry_days=?, delete_protection=?  WHERE group_id=?;";
     private static final String SQL_GET_GROUP_ID = "SELECT group_id FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
@@ -433,15 +433,19 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
             + "WHERE principal_group.group_id=? AND principal.name=? AND principal_group_member.expiration=?;";
     private static final String SQL_GET_PENDING_GROUP_MEMBER = "SELECT principal.principal_id, "
-            + "pending_principal_group_member.expiration, pending_principal_group_member.req_principal FROM principal "
+            + "pending_principal_group_member.expiration, pending_principal_group_member.req_principal, pending_principal_group_member.pending_state FROM principal "
             + "JOIN pending_principal_group_member ON pending_principal_group_member.principal_id=principal.principal_id "
             + "JOIN principal_group ON principal_group.group_id=pending_principal_group_member.group_id "
             + "WHERE principal_group.group_id=? AND principal.name=?;";
     private static final String SQL_GET_TEMP_PENDING_GROUP_MEMBER = "SELECT principal.principal_id, "
-            + "pending_principal_group_member.expiration, pending_principal_group_member.req_principal FROM principal "
+            + "pending_principal_group_member.expiration, pending_principal_group_member.req_principal, pending_principal_group_member.pending_state FROM principal "
             + "JOIN pending_principal_group_member ON pending_principal_group_member.principal_id=principal.principal_id "
             + "JOIN principal_group ON principal_group.group_id=pending_principal_group_member.group_id "
             + "WHERE principal_group.group_id=? AND principal.name=? AND pending_principal_group_member.expiration=?;";
+    private static final String SQL_GET_PENDING_GROUP_MEMBER_STATE = "SELECT pending_principal_group_member.pending_state FROM principal "
+            + "JOIN pending_principal_group_member ON pending_principal_group_member.principal_id=principal.principal_id "
+            + "JOIN principal_group ON principal_group.group_id=pending_principal_group_member.group_id "
+            + "WHERE principal_group.group_id=? AND principal.name=?;";
     private static final String SQL_LIST_GROUP_AUDIT_LOGS = "SELECT * FROM principal_group_audit_log WHERE group_id=?;";
     private static final String SQL_UPDATE_GROUP_REVIEW_TIMESTAMP = "UPDATE principal_group SET last_reviewed_time=CURRENT_TIMESTAMP(3) WHERE group_id=?;";
     private static final String SQL_LIST_GROUPS_WITH_RESTRICTIONS = "SELECT domain.name as domain_name, "
@@ -453,12 +457,12 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN principal_group_member ON principal_group_member.principal_id=principal.principal_id "
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id WHERE principal_group.group_id=?;";
     private static final String SQL_LIST_PENDING_GROUP_MEMBERS = "SELECT principal.name, pending_principal_group_member.expiration, "
-            + "pending_principal_group_member.req_time, pending_principal_group_member.audit_ref FROM principal "
+            + "pending_principal_group_member.req_time, pending_principal_group_member.audit_ref, pending_principal_group_member.pending_state FROM principal "
             + "JOIN pending_principal_group_member ON pending_principal_group_member.principal_id=principal.principal_id "
             + "JOIN principal_group ON principal_group.group_id=pending_principal_group_member.group_id WHERE principal_group.group_id=?;";
     private static final String SQL_COUNT_GROUP_MEMBERS = "SELECT COUNT(*) FROM principal_group_member WHERE group_id=?;";
     private static final String SQL_STD_GROUP_MEMBER_EXISTS = "SELECT principal_id FROM principal_group_member WHERE group_id=? AND principal_id=?;";
-    private static final String SQL_PENDING_GROUP_MEMBER_EXISTS = "SELECT principal_id FROM pending_principal_group_member WHERE group_id=? AND principal_id=?;";
+    private static final String SQL_PENDING_GROUP_MEMBER_EXISTS = "SELECT pending_state FROM pending_principal_group_member WHERE group_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_GROUP_MEMBER = "UPDATE principal_group_member "
             + "SET expiration=?, active=?, audit_ref=?, req_principal=? WHERE group_id=? AND principal_id=?;";
     private static final String SQL_UPDATE_GROUP_MEMBER_DISABLED_STATE = "UPDATE principal_group_member "
@@ -468,7 +472,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_GROUP_MEMBER = "INSERT INTO principal_group_member "
             + "(group_id, principal_id, expiration, active, audit_ref, req_principal) VALUES (?,?,?,?,?,?);";
     private static final String SQL_INSERT_PENDING_GROUP_MEMBER = "INSERT INTO pending_principal_group_member "
-            + "(group_id, principal_id, expiration, audit_ref, req_principal) VALUES (?,?,?,?,?);";
+            + "(group_id, principal_id, expiration, audit_ref, req_principal, pending_state) VALUES (?,?,?,?,?,?);";
     private static final String SQL_DELETE_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=?;";
     private static final String SQL_DELETE_EXPIRED_GROUP_MEMBER = "DELETE FROM principal_group_member WHERE group_id=? AND principal_id=? AND expiration=?;";
     private static final String SQL_DELETE_PENDING_GROUP_MEMBER = "DELETE FROM pending_principal_group_member WHERE group_id=? AND principal_id=?;";
@@ -491,21 +495,21 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
             + "WHERE principal_group.domain_id=?;";
     private static final String SQL_PENDING_ORG_AUDIT_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
-            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal, pgm.pending_state "
             + "FROM principal JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
             + "WHERE grp.audit_enabled=true AND grp.domain_id IN ( select domain_id FROM domain WHERE org IN ( "
             + "SELECT DISTINCT role.name AS org FROM role_member JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, grp.name, principal.name;";
     private static final String SQL_PENDING_DOMAIN_AUDIT_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
-            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal, pgm.pending_state "
             + "FROM principal JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
             + "WHERE grp.audit_enabled=true AND grp.domain_id IN ( select domain_id FROM domain WHERE name IN ( "
             + "SELECT DISTINCT role.name AS domain_name FROM role_member JOIN role ON role.role_id=role_member.role_id "
             + "WHERE role_member.principal_id=? AND role.domain_id=?) ) order by do.name, grp.name, principal.name;";
     private static final String SQL_PENDING_DOMAIN_ADMIN_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
-            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal, pgm.pending_state "
             + "FROM principal JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
             + "WHERE (grp.self_serve=true OR grp.review_enabled=true) AND grp.domain_id IN ( SELECT domain.domain_id FROM domain JOIN role "
@@ -513,18 +517,18 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin' ) "
             + "order by do.name, grp.name, principal.name;";
     private static final String SQL_PENDING_DOMAIN_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
-            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal, pgm.pending_state "
             + "FROM principal JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
             + "WHERE grp.domain_id=? AND (grp.self_serve=true OR grp.review_enabled=true OR grp.audit_enabled=true) "
             + "order by do.name, grp.name, principal.name;";
     private static final String SQL_PENDING_ALL_DOMAIN_GROUP_MEMBER_LIST = "SELECT do.name AS domain, grp.name AS group_name, "
-            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+            + "principal.name AS member, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal, pgm.pending_state "
             + "FROM principal JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=principal.principal_id JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain do ON grp.domain_id=do.domain_id "
             + "WHERE (grp.self_serve=true OR grp.review_enabled=true OR grp.audit_enabled=true) "
             + "order by do.name, grp.name, principal.name;";
-    private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, grp.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal "
+    private static final String SQL_GET_EXPIRED_PENDING_GROUP_MEMBERS = "SELECT d.name, grp.name, p.name, pgm.expiration, pgm.audit_ref, pgm.req_time, pgm.req_principal, pgm.pending_state "
             + "FROM principal p JOIN pending_principal_group_member pgm "
             + "ON pgm.principal_id=p.principal_id JOIN principal_group grp ON pgm.group_id=grp.group_id JOIN domain d ON d.domain_id=grp.domain_id "
             + "WHERE pgm.req_time < (CURRENT_TIME - INTERVAL ? DAY);";
@@ -5013,6 +5017,25 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     }
 
+    public String getPendingGroupMemberState(Integer groupId, String member) {
+
+        final String caller = "getPendingGroupMemberState";
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_PENDING_GROUP_MEMBER_STATE)) {
+            ps.setInt(1, groupId);
+            ps.setString(2, member);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    return rs.getString(1);
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+    }
+
     void processPendingMembers(final String domainName, final String query, int principalId,
             Map<String, List<DomainRoleMember>> domainRoleMembersMap, final String caller) {
 
@@ -5199,6 +5222,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             memberGroup.setRequestTime(Timestamp.fromMillis(expiration.getTime()));
         }
         memberGroup.setRequestPrincipal(rs.getString(7));
+        memberGroup.setPendingState(rs.getString(8));
         memberGroups.add(memberGroup);
 
         domainGroupMember.setMemberGroups(memberGroups);
@@ -5517,7 +5541,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
                 .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
-                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0));
+                .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
+                .setDeleteProtection(nullIfDefaultValue(rs.getBoolean(DB_COLUMN_DELETE_PROTECTION), false));
 
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
@@ -5570,6 +5595,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(8, processInsertValue(group.getUserAuthorityExpiration()));
             ps.setInt(9, processInsertValue(group.getMemberExpiryDays()));
             ps.setInt(10, processInsertValue(group.getServiceExpiryDays()));
+            ps.setBoolean(11, processInsertValue(group.getDeleteProtection(), false));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5606,7 +5632,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(6, processInsertValue(group.getUserAuthorityExpiration()));
             ps.setInt(7, processInsertValue(group.getMemberExpiryDays()));
             ps.setInt(8, processInsertValue(group.getServiceExpiryDays()));
-            ps.setInt(9, groupId);
+            ps.setBoolean(9, processInsertValue(group.getDeleteProtection(), false));
+            ps.setInt(10, groupId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -5777,6 +5804,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                         groupMember.setRequestTime(Timestamp.fromMillis(timestamp.getTime()));
                     }
                     groupMember.setAuditRef(rs.getString(4));
+                    groupMember.setPendingState(rs.getString(5));
                     groupMember.setActive(false);
                     groupMember.setApproved(false);
                     members.add(groupMember);
@@ -5860,6 +5888,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     membership.setRequestPrincipal(rs.getString(ZMSConsts.DB_COLUMN_REQ_PRINCIPAL));
                     if (disabledFlagCheck) {
                         membership.setSystemDisabled(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SYSTEM_DISABLED), 0));
+                    } else {
+                        membership.setPendingState(rs.getString(DB_COLUMN_PENDING_STATE));
                     }
                     return true;
                 }
@@ -5910,14 +5940,22 @@ public class JDBCConnection implements ObjectStoreConnection {
         return membership;
     }
 
-    boolean groupMemberExists(int groupId, int principalId, boolean pending, final String caller) {
+    boolean groupMemberExists(int groupId, int principalId, String principal, String pendingState, final String caller) {
 
+        boolean pending = pendingState != null;
         String statement = pending ? SQL_PENDING_GROUP_MEMBER_EXISTS : SQL_STD_GROUP_MEMBER_EXISTS;
         try (PreparedStatement ps = con.prepareStatement(statement)) {
             ps.setInt(1, groupId);
             ps.setInt(2, principalId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
+                    if (pending) {
+                        String currentState = rs.getString(1);
+                        // check current request doesn't contradict the existing one
+                        if (currentState != null && !currentState.equals(pendingState)) {
+                            throw ZMSUtils.requestError("The user " + principal + " already has a pending request in a different state", caller);
+                        }
+                    }
                     return true;
                 }
             }
@@ -5976,6 +6014,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 ps.setTimestamp(3, expiration);
                 ps.setString(4, processInsertValue(auditRef));
                 ps.setString(5, processInsertValue(admin));
+                ps.setString(6, processInsertValue(groupMember.getPendingState()));
                 affectedRows = executeUpdate(ps, caller);
             } catch (SQLException ex) {
                 throw sqlError(ex, caller);
@@ -6070,7 +6109,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         // need to check if entry already exists
 
         boolean pendingRequest = (groupMember.getApproved() == Boolean.FALSE);
-        boolean groupMemberExists = groupMemberExists(groupId, principalId, pendingRequest, caller);
+        boolean groupMemberExists = groupMemberExists(groupId, principalId, principal, groupMember.getPendingState(), caller);
 
         // process the request based on the type of the request
         // either pending request or standard insert
@@ -6269,17 +6308,20 @@ public class JDBCConnection implements ObjectStoreConnection {
         // need to check if the pending entry already exists
         // before doing any work
 
-        boolean groupMemberExists = groupMemberExists(groupId, principalId, true, caller);
-        if (!groupMemberExists) {
+        String state = getPendingGroupMemberState(groupId, principal);
+        if (state == null) {
             throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
         }
 
-        boolean result;
+        boolean result = false;
         if (groupMember.getApproved() == Boolean.TRUE) {
-            groupMemberExists = groupMemberExists(groupId, principalId, false, caller);
-            result = insertStandardGroupMember(groupId, principalId, groupMember, admin,
-                    principal, auditRef, groupMemberExists, true, caller);
-
+            if (ZMSConsts.PENDING_REQUEST_ADD_STATE.equals(state)) {
+                boolean groupMemberExists = groupMemberExists(groupId, principalId, principal, groupMember.getPendingState(), caller);
+                result = insertStandardGroupMember(groupId, principalId, groupMember, admin,
+                        principal, auditRef, groupMemberExists, true, caller);
+            } else if (ZMSConsts.PENDING_REQUEST_DELETE_STATE.equals(state)) {
+                result = deleteGroupMember(domainName, groupName, principal, admin, auditRef);
+            }
             if (result) {
                 executeDeletePendingGroupMember(groupId, principalId, admin, principal,
                         auditRef, false, caller);

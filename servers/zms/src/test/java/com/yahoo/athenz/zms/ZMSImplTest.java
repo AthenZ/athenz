@@ -29065,6 +29065,7 @@ public class ZMSImplTest {
                 for (GroupMember mr : mem.getMemberGroups()) {
                     assertNotNull(mr);
                     assertEquals(mr.getGroupName(), groupName);
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -29089,6 +29090,7 @@ public class ZMSImplTest {
                 for (GroupMember mr : mem.getMemberGroups()) {
                     assertNotNull(mr);
                     assertEquals(mr.getGroupName(), groupName);
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -29162,6 +29164,7 @@ public class ZMSImplTest {
                 for (GroupMember mr : mem.getMemberGroups()) {
                     assertNotNull(mr);
                     assertEquals(mr.getGroupName(), groupName);
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -29186,6 +29189,7 @@ public class ZMSImplTest {
                 for (GroupMember mr : mem.getMemberGroups()) {
                     assertNotNull(mr);
                     assertEquals(mr.getGroupName(), groupName);
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -29204,6 +29208,7 @@ public class ZMSImplTest {
                 for (GroupMember mr : mem.getMemberGroups()) {
                     assertNotNull(mr);
                     assertEquals(mr.getGroupName(), groupName);
+                    assertEquals(mr.getPendingState(), PENDING_REQUEST_ADD_STATE);
                 }
             }
         }
@@ -29524,7 +29529,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutGroupMembershipDecisionReviewEnabledGroupApprove() {
+    public void testPutGroupMembershipDecisionReviewEnabledGroupApproveAddState() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -29567,6 +29572,7 @@ public class ZMSImplTest {
         assertEquals(resgroup.getGroupMembers().size(), 1);
         assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
         assertFalse(resgroup.getGroupMembers().get(0).getApproved());
+        assertEquals(resgroup.getGroupMembers().get(0).getPendingState(), PENDING_REQUEST_ADD_STATE);
 
         // now try as the admin himself to approve this user and it must
         // be rejected since it has to be done by some other admin
@@ -29605,6 +29611,7 @@ public class ZMSImplTest {
         assertEquals(resgroup.getGroupMembers().size(), 1);
         assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
         assertTrue(resgroup.getGroupMembers().get(0).getApproved());
+        assertNull(resgroup.getGroupMembers().get(0).getPendingState());
 
         // trying to approve the same user should return 404
 
@@ -29623,6 +29630,139 @@ public class ZMSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutGroupMembershipDecisionReviewEnabledGroupApproveDeleteState() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "review-enabled-domain";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        final String groupName = "review-group";
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.bob", null);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+
+        GroupMeta gm = new GroupMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, gm);
+
+        // switch to user.user2 principal to add a member to a role
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=user2";
+        final Principal rsrcPrince = SimplePrincipal.create("user", "user2",
+                unsignedCreds + ";s=signature", 0, principalAuthority);
+        assertNotNull(rsrcPrince);
+        ((SimplePrincipal) rsrcPrince).setUnsignedCreds(unsignedCreds);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+        when(ctx.principal()).thenReturn(rsrcPrince);
+
+        zmsImpl.deleteGroupMembership(ctx, domainName, groupName, "user.bob", auditRef);
+
+        // verify the user is not been deleted and also verify the user is added as a pending member
+
+        Group resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false,true);
+        assertEquals(resgroup.getGroupMembers().size(), 2);
+        assertEquals(resgroup.getGroupMembers().get(0).getMemberName(), "user.bob");
+        assertTrue(resgroup.getGroupMembers().get(0).getApproved());
+        assertEquals(resgroup.getGroupMembers().get(1).getMemberName(), "user.bob");
+        assertFalse(resgroup.getGroupMembers().get(1).getApproved());
+        assertEquals(resgroup.getGroupMembers().get(1).getPendingState(), PENDING_REQUEST_DELETE_STATE);
+
+        // now try as the admin himself to approve this user and it must
+        // be rejected since it has to be done by some other admin
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        mbr.setApproved(true);
+        try {
+            zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("cannot approve his/her own request"));
+        }
+
+        // revert back to admin principal
+
+        Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String adminUnsignedCreds = "v=U1;d=user;n=user1";
+        final Principal rsrcAdminPrince = SimplePrincipal.create("user", "user1",
+                adminUnsignedCreds + ";s=signature", 0, adminPrincipalAuthority);
+        assertNotNull(rsrcAdminPrince);
+        ((SimplePrincipal) rsrcAdminPrince).setUnsignedCreds(adminUnsignedCreds);
+
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+        when(ctx.principal()).thenReturn(rsrcAdminPrince);
+
+        // approve the message which should be successful
+
+        zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
+
+        // verify the user is now been deleted from both tables (standard and pending)
+
+        resgroup = zmsImpl.getGroup(ctx, domainName, groupName, false, true);
+        assertEquals(resgroup.getGroupMembers().size(), 0);
+
+        // trying to approve the same user should return 404
+
+        try {
+            zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.bob", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // now try to approve another use which should also return 404
+
+        mbr.setMemberName("user.joe");
+        try {
+            zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.joe", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPendingGroupMembershipConflictRequests() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "review-enabled-domain";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval test Domain1",
+                "testOrg", "user.user1");
+        dom1.getAdminUsers().add("user.user2");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        final String groupName = "review-group";
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName, "user.bob", null);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+
+        GroupMeta gm = new GroupMeta().setReviewEnabled(true).setDeleteProtection(true);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, gm);
+
+        zmsImpl.deleteGroupMembership(ctx, domainName, groupName, "user.bob", auditRef);
+
+        GroupMembership mbr = new GroupMembership();
+        mbr.setMemberName("user.bob");
+        try {
+            zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.bob", auditRef, false, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("already has a pending request in a different state"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);

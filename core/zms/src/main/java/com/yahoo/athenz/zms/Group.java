@@ -41,6 +41,9 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean deleteProtection;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -118,6 +121,13 @@ public class Group {
     public Boolean getAuditEnabled() {
         return auditEnabled;
     }
+    public Group setDeleteProtection(Boolean deleteProtection) {
+        this.deleteProtection = deleteProtection;
+        return this;
+    }
+    public Boolean getDeleteProtection() {
+        return deleteProtection;
+    }
     public Group setName(String name) {
         this.name = name;
         return this;
@@ -186,6 +196,9 @@ public class Group {
                 return false;
             }
             if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
+                return false;
+            }
+            if (deleteProtection == null ? a.deleteProtection != null : !deleteProtection.equals(a.deleteProtection)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

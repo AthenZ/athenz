@@ -705,7 +705,8 @@ public class DBService implements RolesProvider {
 
             if (groupMembers != null) {
                 for (GroupMember member : groupMembers) {
-                    if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                    String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+                    if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), admin, auditRef)) {
                         return false;
                     }
                 }
@@ -889,7 +890,8 @@ public class DBService implements RolesProvider {
         auditLogGroupMembers(auditDetails, "deleted-members", delMembers);
 
         for (GroupMember member : newMembers) {
-            if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+            String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+            if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), admin, auditRef)) {
                 return false;
             }
         }
@@ -1765,7 +1767,8 @@ public class DBService implements RolesProvider {
                 // process our insert group member support. since this is a "single"
                 // operation, we are not using any transactions.
 
-                if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
+                String pendingState = groupMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+                if (!con.insertGroupMember(domainName, groupName, groupMember.setPendingState(pendingState), principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.requestError("unable to insert group member: " +
                             groupMember.getMemberName() + " to group: " + groupName, ctx.getApiName());
@@ -1992,7 +1995,22 @@ public class DBService implements RolesProvider {
 
                 // process our delete group member operation
 
-                if (!con.deleteGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
+                Group group = con.getGroup(domainName, groupName);
+                boolean pending = (group != null) &&
+                        (group.getDeleteProtection() == Boolean.TRUE) &&
+                        (group.getReviewEnabled() == Boolean.TRUE || group.getAuditEnabled() == Boolean.TRUE);
+
+                if (pending) {
+                    GroupMember groupMember = new GroupMember()
+                            .setApproved(Boolean.FALSE)
+                            .setMemberName(normalizedMember)
+                            .setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
+                    if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
+                        con.rollbackChanges();
+                        throw ZMSUtils.requestError("unable to insert group member: " +
+                                groupMember.getMemberName() + " to group: " + groupName, ctx.getApiName());
+                    }
+                } else if (!con.deleteGroupMember(domainName, groupName, normalizedMember, principal, auditRef)) {
                     con.rollbackChanges();
                     throw ZMSUtils.notFoundError("unable to delete group member: " +
                             normalizedMember + " from group: " + groupName, ctx.getApiName());
@@ -2006,7 +2024,7 @@ public class DBService implements RolesProvider {
 
                 // audit log the request
 
-                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_DELETE,
+                auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), pending ? ZMSConsts.HTTP_PUT : ZMSConsts.HTTP_DELETE,
                         groupName, "{\"member\": \"" + normalizedMember + "\"}");
 
                 // add domain change event
@@ -5925,6 +5943,9 @@ public class DBService implements RolesProvider {
         if (meta.getAuditEnabled() != null) {
             group.setAuditEnabled(meta.getAuditEnabled());
         }
+        if (meta.getDeleteProtection() != null) {
+            group.setDeleteProtection(meta.getDeleteProtection());
+        }
     }
 
     public Group executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,
@@ -5960,7 +5981,8 @@ public class DBService implements RolesProvider {
                         .setNotifyRoles(originalGroup.getNotifyRoles())
                         .setUserAuthorityFilter(originalGroup.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration())
-                        .setTags(originalGroup.getTags());
+                        .setTags(originalGroup.getTags())
+                        .setDeleteProtection(originalGroup.getDeleteProtection());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -7233,7 +7255,8 @@ public class DBService implements RolesProvider {
                     } else {
                         // if not marked for deletion, then we are going to extend the member
 
-                        if (!con.insertGroupMember(domainName, groupName, member, principal, auditRef)) {
+                        String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
+                        if (!con.insertGroupMember(domainName, groupName, member.setPendingState(pendingState), principal, auditRef)) {
                             con.rollbackChanges();
                             throw ZMSUtils.notFoundError("unable to extend group member: " +
                                     member.getMemberName() + " for the group: " + groupName, ctx.getApiName());
