@@ -7,6 +7,10 @@ Athenz v1.11.20 Release / Feb 03, 2023
 #2057 correct handling of token/role cert if dirs are not default
 #2061 missing primary key definition from principal_group_member table
 
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230124.sql
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230203.sql
+
 Athenz v1.11.19 Release / Jan 27, 2023
 --------------------------------------
 
