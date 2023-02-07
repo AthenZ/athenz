@@ -458,7 +458,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'admin-domains',
     read(req, resource, params, config, callback) {
-        let username = 'user.' + req.session.shortId;
+        let username = `${appConfig.userDomain}.${req.session.shortId}`;
         // this will allow non-human functional test identity to see domains
         if (req.session.shortId.indexOf('.') !== -1) {
             username = req.session.shortId;
@@ -519,7 +519,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'domain-list',
     read(req, resource, params, config, callback) {
-        let username = 'user.' + req.session.shortId;
+        let username = `${appConfig.userDomain}.${req.session.shortId}`;
         // this will allow non-human functional test identity to see domains
         if (req.session.shortId.indexOf('.') !== -1) {
             username = req.session.shortId;
@@ -1594,7 +1594,7 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'pending-approval',
     read(req, resource, params, config, callback) {
-        let username = 'user.' + req.session.shortId;
+        let username = `${appConfig.userDomain}.${req.session.shortId}`;
         // this will allow non-human functional test identity to see domains
         if (req.session.shortId.indexOf('.') !== -1) {
             username = req.session.shortId;
@@ -1720,7 +1720,7 @@ Fetchr.registerService({
         let adminDomains = [];
         let memberDomains = [];
         let searchResults = [];
-        let username = 'user.' + req.session.shortId;
+        let username = `${appConfig.userDomain}.${req.session.shortId}`;
         // this will allow non-human functional test identity to see domains
         if (req.session.shortId.indexOf('.') !== -1) {
             username = req.session.shortId;
@@ -3010,6 +3010,7 @@ module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,
         athenzDomainService: config.athenzDomainService,
+        userDomain: config.userDomain,
         userData: config.userData,
         headerLinks: config.headerLinks,
         allProviders: config.allProviders,
