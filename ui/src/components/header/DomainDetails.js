@@ -387,14 +387,6 @@ class DomainDetails extends React.Component {
                         <LabelDiv>AWS ACCOUNT ID</LabelDiv>
                     </SectionDiv>
                     <SectionDiv>
-                        <ValueDiv>
-                            {this.props.domainDetails.gcpProject
-                                ? this.props.domainDetails.gcpProject
-                                : 'N/A'}
-                        </ValueDiv>
-                        <LabelDiv>GCP ACCOUNT ID</LabelDiv>
-                    </SectionDiv>
-                    <SectionDiv>
                         <DivStyledBusinessService title={businessServiceTitle}>
                             <StyledAnchor onClick={businessServiceItem}>
                                 {businessServiceTitle}

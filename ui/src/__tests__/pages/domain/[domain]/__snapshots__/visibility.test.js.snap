@@ -662,7 +662,7 @@ exports[`VisibilityPage should render 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-76 {
+.emotion-70 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -672,7 +672,7 @@ exports[`VisibilityPage should render 1`] = `
   max-width: 400px;
 }
 
-.emotion-78 {
+.emotion-72 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -680,7 +680,7 @@ exports[`VisibilityPage should render 1`] = `
   font-weight: '';
 }
 
-.emotion-82 {
+.emotion-76 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -695,7 +695,7 @@ exports[`VisibilityPage should render 1`] = `
   position: relative;
 }
 
-.emotion-82.vertical {
+.emotion-76.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -711,7 +711,7 @@ exports[`VisibilityPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-83 {
+.emotion-77 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -735,11 +735,11 @@ exports[`VisibilityPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-83:hover {
+.emotion-77:hover {
   color: #3570f4;
 }
 
-.emotion-83.active {
+.emotion-77.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -747,11 +747,11 @@ exports[`VisibilityPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-83.active:hover {
+.emotion-77.active:hover {
   color: #303030;
 }
 
-.emotion-83.vertical {
+.emotion-77.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -763,25 +763,25 @@ exports[`VisibilityPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-83.vertical.active {
+.emotion-77.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-83.vertical.active:hover {
+.emotion-77.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-92 {
+.emotion-86 {
   margin: 20px;
 }
 
-.emotion-94 {
+.emotion-88 {
   vertical-align: middle;
 }
 
-.emotion-96 {
+.emotion-90 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -795,7 +795,7 @@ exports[`VisibilityPage should render 1`] = `
   position: relative;
 }
 
-.emotion-96::before {
+.emotion-90::before {
   background: #fff;
   border: 2px solid #0072df;
   border-radius: 2px;
@@ -809,7 +809,7 @@ exports[`VisibilityPage should render 1`] = `
   width: calc(50% + 4px);
 }
 
-.emotion-97 {
+.emotion-91 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -837,11 +837,11 @@ exports[`VisibilityPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-97:hover {
+.emotion-91:hover {
   color: #303030;
 }
 
-.emotion-98 {
+.emotion-92 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -869,11 +869,11 @@ exports[`VisibilityPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-98:hover {
+.emotion-92:hover {
   color: #3570f4;
 }
 
-.emotion-99 {
+.emotion-93 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -899,13 +899,13 @@ exports[`VisibilityPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-101 {
+.emotion-95 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-102 {
+.emotion-96 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -920,7 +920,7 @@ exports[`VisibilityPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-104 {
+.emotion-98 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -939,28 +939,28 @@ exports[`VisibilityPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-106 {
+.emotion-100 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-108 {
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-110 {
+.emotion-104 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-114 {
+.emotion-108 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-116 {
+.emotion-110 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -968,12 +968,12 @@ exports[`VisibilityPage should render 1`] = `
   display: flex;
 }
 
-.emotion-118 {
+.emotion-112 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-120 {
+.emotion-114 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1233,25 +1233,11 @@ exports[`VisibilityPage should render 1`] = `
                   class="emotion-37 emotion-38"
                 >
                   <div
-                    class="emotion-39 emotion-40"
-                  >
-                    N/A
-                  </div>
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    GCP ACCOUNT ID
-                  </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <div
-                    class="emotion-76 emotion-77"
+                    class="emotion-70 emotion-71"
                     title="add"
                   >
                     <a
-                      class="emotion-78 emotion-79"
+                      class="emotion-72 emotion-73"
                     >
                       add
                     </a>
@@ -1265,59 +1251,59 @@ exports[`VisibilityPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-82 denali-tab-group"
+              class="emotion-76 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-83 denali-tab active"
+                class="emotion-77 denali-tab active"
                 data-active="true"
               >
                 Visibility
               </div>
               <div
-                class="emotion-83 denali-tab"
+                class="emotion-77 denali-tab"
                 data-active="false"
               >
                 History
@@ -1325,25 +1311,25 @@ exports[`VisibilityPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-92 emotion-93"
+            class="emotion-86 emotion-87"
             data-testid="visibilitySection"
           >
             <div
-              class="emotion-94 emotion-95"
+              class="emotion-88 emotion-89"
             >
               <div
-                class="emotion-96 denali-button-group"
+                class="emotion-90 denali-button-group"
                 data-testid="buttongroup"
               >
                 <div
-                  class="emotion-97"
+                  class="emotion-91"
                   data-active="true"
                   id="button-dependencies"
                 >
                   Dependencies
                 </div>
                 <div
-                  class="emotion-98"
+                  class="emotion-92"
                   data-active="false"
                   id="button-auth"
                 >
@@ -1358,11 +1344,11 @@ exports[`VisibilityPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-99 emotion-100"
+          class="emotion-93 emotion-94"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-101"
+            class="emotion-95"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1377,45 +1363,45 @@ exports[`VisibilityPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-102 emotion-103"
+          class="emotion-96 emotion-97"
         >
           <div
-            class="emotion-104 emotion-105"
+            class="emotion-98 emotion-99"
           >
             <div
-              class="emotion-106 emotion-107"
+              class="emotion-100 emotion-101"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-108 emotion-109"
+                class="emotion-102 emotion-103"
               >
                 Create
               </a>
               <span
-                class="emotion-110 emotion-111"
+                class="emotion-104 emotion-105"
               >
                  | 
               </span>
               <a
-                class="emotion-108 emotion-109"
+                class="emotion-102 emotion-103"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-114 emotion-115"
+            class="emotion-108 emotion-109"
           >
             <div
-              class="emotion-116 emotion-117"
+              class="emotion-110 emotion-111"
             >
               <div
-                class="emotion-118 emotion-119"
+                class="emotion-112 emotion-113"
               >
                 <svg
-                  class="emotion-120"
+                  class="emotion-114"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1436,19 +1422,19 @@ exports[`VisibilityPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-108 emotion-109"
+                class="emotion-102 emotion-103"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-116 emotion-117"
+              class="emotion-110 emotion-111"
             >
               <div
-                class="emotion-118 emotion-119"
+                class="emotion-112 emotion-113"
               >
                 <svg
-                  class="emotion-120"
+                  class="emotion-114"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1469,7 +1455,7 @@ exports[`VisibilityPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-108 emotion-109"
+                class="emotion-102 emotion-103"
               >
                 athens.ci
               </a>
