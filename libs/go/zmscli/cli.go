@@ -1025,6 +1025,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetGroupReviewEnabled(dn, args[0], reviewEnabled)
 			}
+		case "set-group-delete-protection":
+			if argc == 2 {
+				deleteProtection, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetGroupDeleteProtection(dn, args[0], deleteProtection)
+			}
 		case "set-group-self-serve":
 			if argc == 2 {
 				selfServe, err := strconv.ParseBool(args[1])
@@ -2837,6 +2845,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   review-enabled : enable/disable review flag for the group\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-review-enabled readers true\n")
+	case "set-group-delete-protection":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-delete-protection group delete-protection\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   delete-protection : enable/disable protection flag for the group\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-delete-protection readers true\n")
 	case "set-group-member-expiry-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-member-expiry-days group days\n")
