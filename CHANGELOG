@@ -1,3 +1,12 @@
+Athenz v1.11.20 Release / Feb 03, 2023
+--------------------------------------
+
+#2052 update maven plugin versions
+#2053 Add a requirement for admin approval to delete members in review-enabled roles
+#2054 support multiple domains when requesting oidc id tokens
+#2057 correct handling of token/role cert if dirs are not default
+#2061 missing primary key definition from principal_group_member table
+
 Athenz v1.11.19 Release / Jan 27, 2023
 --------------------------------------
 
