@@ -662,7 +662,7 @@ exports[`DomainSettingsPage should render 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-70 {
+.emotion-76 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -672,7 +672,7 @@ exports[`DomainSettingsPage should render 1`] = `
   max-width: 400px;
 }
 
-.emotion-72 {
+.emotion-78 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -680,7 +680,7 @@ exports[`DomainSettingsPage should render 1`] = `
   font-weight: '';
 }
 
-.emotion-76 {
+.emotion-82 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -695,7 +695,7 @@ exports[`DomainSettingsPage should render 1`] = `
   position: relative;
 }
 
-.emotion-76.vertical {
+.emotion-82.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -711,7 +711,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-77 {
+.emotion-83 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -735,11 +735,11 @@ exports[`DomainSettingsPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-77:hover {
+.emotion-83:hover {
   color: #3570f4;
 }
 
-.emotion-77.active {
+.emotion-83.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -747,11 +747,11 @@ exports[`DomainSettingsPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-77.active:hover {
+.emotion-83.active:hover {
   color: #303030;
 }
 
-.emotion-77.vertical {
+.emotion-83.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -763,21 +763,21 @@ exports[`DomainSettingsPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-77.vertical.active {
+.emotion-83.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-77.vertical.active:hover {
+.emotion-83.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-86 {
+.emotion-92 {
   margin: 20px;
 }
 
-.emotion-88 {
+.emotion-94 {
   width: 100%;
   border-spacing: 0 20px;
   display: table;
@@ -785,7 +785,7 @@ exports[`DomainSettingsPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-90 {
+.emotion-96 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -797,7 +797,7 @@ exports[`DomainSettingsPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-92 {
+.emotion-98 {
   text-align: left;
   width: auto;
   padding: 5px 0 5px 15px;
@@ -805,14 +805,14 @@ exports[`DomainSettingsPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-96 {
+.emotion-102 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-98 {
+.emotion-104 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -829,7 +829,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-98 input {
+.emotion-104 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -855,42 +855,42 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-98.animated input {
+.emotion-104.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-98 input::-webkit-input-placeholder {
+.emotion-104 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-98 input::-moz-placeholder {
+.emotion-104 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-98 input:-ms-input-placeholder {
+.emotion-104 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-98 input::placeholder {
+.emotion-104 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-98 input.focused,
-.emotion-98 input:active,
-.emotion-98 input:focus {
+.emotion-104 input.focused,
+.emotion-104 input:active,
+.emotion-104 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-98 input:invalid {
+.emotion-104 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-98 .message {
+.emotion-104 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -898,22 +898,22 @@ exports[`DomainSettingsPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-98.error input,
-.emotion-98.error input.focused,
-.emotion-98.error input:active,
-.emotion-98.error input:focus {
+.emotion-104.error input,
+.emotion-104.error input.focused,
+.emotion-104.error input:active,
+.emotion-104.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-98.error .message {
+.emotion-104.error .message {
   color: #d01111;
 }
 
-.emotion-99 {
+.emotion-105 {
   margin-top: 5px;
 }
 
-.emotion-155 {
+.emotion-161 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -932,7 +932,7 @@ exports[`DomainSettingsPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-157 {
+.emotion-163 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -958,25 +958,25 @@ exports[`DomainSettingsPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-157:first-of-type {
+.emotion-163:first-of-type {
   margin-left: 0;
 }
 
-.emotion-157:disabled {
+.emotion-163:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-157:disabled {
+.emotion-163:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-157:hover:not(:disabled) {
+.emotion-163:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-159 {
+.emotion-165 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1002,13 +1002,13 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-161 {
+.emotion-167 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-162 {
+.emotion-168 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1023,7 +1023,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-164 {
+.emotion-170 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1042,28 +1042,28 @@ exports[`DomainSettingsPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-166 {
+.emotion-172 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-168 {
+.emotion-174 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-170 {
+.emotion-176 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-174 {
+.emotion-180 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-176 {
+.emotion-182 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1071,12 +1071,12 @@ exports[`DomainSettingsPage should render 1`] = `
   display: flex;
 }
 
-.emotion-178 {
+.emotion-184 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-180 {
+.emotion-186 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1336,11 +1336,25 @@ exports[`DomainSettingsPage should render 1`] = `
                   class="emotion-37 emotion-38"
                 >
                   <div
-                    class="emotion-70 emotion-71"
+                    class="emotion-39 emotion-40"
+                  >
+                    N/A
+                  </div>
+                  <div
+                    class="emotion-41 emotion-42"
+                  >
+                    GCP PROJECT ID
+                  </div>
+                </div>
+                <div
+                  class="emotion-37 emotion-38"
+                >
+                  <div
+                    class="emotion-76 emotion-77"
                     title="add"
                   >
                     <a
-                      class="emotion-72 emotion-73"
+                      class="emotion-78 emotion-79"
                     >
                       add
                     </a>
@@ -1354,59 +1368,59 @@ exports[`DomainSettingsPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-76 denali-tab-group"
+              class="emotion-82 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-77 denali-tab active"
+                class="emotion-83 denali-tab active"
                 data-active="true"
               >
                 Settings
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-77 denali-tab"
+                class="emotion-83 denali-tab"
                 data-active="false"
               >
                 History
@@ -1414,32 +1428,32 @@ exports[`DomainSettingsPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-86 emotion-87"
+            class="emotion-92 emotion-93"
           >
             <table
-              class="emotion-88 emotion-89"
+              class="emotion-94 emotion-95"
               data-testid="setting-table"
             >
               <tbody>
                 <tr
-                  class="emotion-90 emotion-91"
+                  class="emotion-96 emotion-97"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     User Expiry (Days)
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     <div
-                      class="emotion-96 emotion-97"
+                      class="emotion-102 emotion-103"
                     >
                       <div
-                        class="emotion-98 denali-input animated emotion-99 emotion-100"
+                        class="emotion-104 denali-input animated emotion-105 emotion-106"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1458,31 +1472,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     All user members in the domain will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-90 emotion-91"
+                  class="emotion-96 emotion-97"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     Group Expiry (Days)
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     <div
-                      class="emotion-96 emotion-97"
+                      class="emotion-102 emotion-103"
                     >
                       <div
-                        class="emotion-98 denali-input animated emotion-99 emotion-100"
+                        class="emotion-104 denali-input animated emotion-105 emotion-106"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1501,31 +1515,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     All group members in the domain will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-90 emotion-91"
+                  class="emotion-96 emotion-97"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     <div
-                      class="emotion-96 emotion-97"
+                      class="emotion-102 emotion-103"
                     >
                       <div
-                        class="emotion-98 denali-input animated emotion-99 emotion-100"
+                        class="emotion-104 denali-input animated emotion-105 emotion-106"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1544,31 +1558,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     All services in the domain will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-90 emotion-91"
+                  class="emotion-96 emotion-97"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     Token Expiry (Mins)
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     <div
-                      class="emotion-96 emotion-97"
+                      class="emotion-102 emotion-103"
                     >
                       <div
-                        class="emotion-98 denali-input animated emotion-99 emotion-100"
+                        class="emotion-104 denali-input animated emotion-105 emotion-106"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1587,31 +1601,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     Tokens issued for this domain will have specified max timeout in mins
                   </td>
                 </tr>
                 <tr
-                  class="emotion-90 emotion-91"
+                  class="emotion-96 emotion-97"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     Role Certificate Expiry (Mins)
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     <div
-                      class="emotion-96 emotion-97"
+                      class="emotion-102 emotion-103"
                     >
                       <div
-                        class="emotion-98 denali-input animated emotion-99 emotion-100"
+                        class="emotion-104 denali-input animated emotion-105 emotion-106"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1630,7 +1644,7 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-92 emotion-93"
+                    class="emotion-98 emotion-99"
                     width="auto"
                   >
                     Role Certs issued for this domain will have specified max timeout in mins
@@ -1639,17 +1653,17 @@ exports[`DomainSettingsPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-155 emotion-156"
+              class="emotion-161 emotion-162"
             >
               <div>
                 <button
-                  class="emotion-157 denali-button"
+                  class="emotion-163 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-157 denali-button"
+                  class="emotion-163 denali-button"
                 >
                   Reset
                 </button>
@@ -1662,11 +1676,11 @@ exports[`DomainSettingsPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-159 emotion-160"
+          class="emotion-165 emotion-166"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-161"
+            class="emotion-167"
             data-testid="icon"
             height="1em"
             viewBox="0 0 1024 1024"
@@ -1681,45 +1695,45 @@ exports[`DomainSettingsPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-162 emotion-163"
+          class="emotion-168 emotion-169"
         >
           <div
-            class="emotion-164 emotion-165"
+            class="emotion-170 emotion-171"
           >
             <div
-              class="emotion-166 emotion-167"
+              class="emotion-172 emotion-173"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-168 emotion-169"
+                class="emotion-174 emotion-175"
               >
                 Create
               </a>
               <span
-                class="emotion-170 emotion-171"
+                class="emotion-176 emotion-177"
               >
                  | 
               </span>
               <a
-                class="emotion-168 emotion-169"
+                class="emotion-174 emotion-175"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-174 emotion-175"
+            class="emotion-180 emotion-181"
           >
             <div
-              class="emotion-176 emotion-177"
+              class="emotion-182 emotion-183"
             >
               <div
-                class="emotion-178 emotion-179"
+                class="emotion-184 emotion-185"
               >
                 <svg
-                  class="emotion-180"
+                  class="emotion-186"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1740,19 +1754,19 @@ exports[`DomainSettingsPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-168 emotion-169"
+                class="emotion-174 emotion-175"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-176 emotion-177"
+              class="emotion-182 emotion-183"
             >
               <div
-                class="emotion-178 emotion-179"
+                class="emotion-184 emotion-185"
               >
                 <svg
-                  class="emotion-180"
+                  class="emotion-186"
                   data-testid="icon"
                   height="1em"
                   viewBox="0 0 1024 1024"
@@ -1773,7 +1787,7 @@ exports[`DomainSettingsPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-168 emotion-169"
+                class="emotion-174 emotion-175"
               >
                 athens.ci
               </a>

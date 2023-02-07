@@ -142,7 +142,7 @@ exports[`DomainDetails should render 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-37 {
+.emotion-43 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -152,7 +152,7 @@ exports[`DomainDetails should render 1`] = `
   max-width: 400px;
 }
 
-.emotion-39 {
+.emotion-45 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -255,11 +255,25 @@ exports[`DomainDetails should render 1`] = `
       class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-37 emotion-38"
+        class="emotion-6 emotion-7"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-8 emotion-9"
+      >
+        GCP PROJECT ID
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-43 emotion-44"
         title="add"
       >
         <a
-          class="emotion-39 emotion-40"
+          class="emotion-45 emotion-46"
         >
           add
         </a>
@@ -423,7 +437,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-39 {
+.emotion-45 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -433,7 +447,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   max-width: 400px;
 }
 
-.emotion-41 {
+.emotion-47 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -441,7 +455,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   font-weight: '';
 }
 
-.emotion-47 {
+.emotion-53 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -467,21 +481,21 @@ exports[`DomainDetails should render with mock data 1`] = `
   color: #3697f2;
 }
 
-.emotion-47:first-of-type {
+.emotion-53:first-of-type {
   margin-left: 0;
 }
 
-.emotion-47:disabled {
+.emotion-53:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-47:disabled {
+.emotion-53:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-47:hover:not(:disabled) {
+.emotion-53:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -586,11 +600,25 @@ exports[`DomainDetails should render with mock data 1`] = `
       class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-39 emotion-40"
+        class="emotion-6 emotion-7"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-8 emotion-9"
+      >
+        GCP PROJECT ID
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-45 emotion-46"
         title="add"
       >
         <a
-          class="emotion-41 emotion-42"
+          class="emotion-47 emotion-48"
         >
           add
         </a>
@@ -605,7 +633,7 @@ exports[`DomainDetails should render with mock data 1`] = `
       class="emotion-4 emotion-5"
     >
       <button
-        class="emotion-47 denali-button"
+        class="emotion-53 denali-button"
       >
         Onboard to AWS
       </button>
