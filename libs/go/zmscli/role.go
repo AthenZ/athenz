@@ -429,6 +429,27 @@ func (cli Zms) SetRoleReviewEnabled(dn string, rn string, reviewEnabled bool) (*
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetRoleDeleteProtection(dn string, rn string, deleteProtection bool) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.DeleteProtection = &deleteProtection
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " delete-protection attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 	return zms.RoleMeta{
 		MemberExpiryDays:        role.MemberExpiryDays,
@@ -438,6 +459,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		SignAlgorithm:           role.SignAlgorithm,
 		ReviewEnabled:           role.ReviewEnabled,
 		AuditEnabled:            role.AuditEnabled,
+		DeleteProtection:        role.DeleteProtection,
 		NotifyRoles:             role.NotifyRoles,
 		ServiceExpiryDays:       role.ServiceExpiryDays,
 		GroupExpiryDays:         role.GroupExpiryDays,

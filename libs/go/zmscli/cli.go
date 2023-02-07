@@ -895,6 +895,14 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetRoleReviewEnabled(dn, args[0], reviewEnabled)
 			}
+		case "set-role-delete-protection":
+			if argc == 2 {
+				deleteProtection, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleDeleteProtection(dn, args[0], deleteProtection)
+			}
 		case "set-role-self-serve":
 			if argc == 2 {
 				selfServe, err := strconv.ParseBool(args[1])
@@ -2622,6 +2630,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   review-enabled : enable/disable review flag for the role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-review-enabled readers true\n")
+	case "set-role-delete-protection":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-delete-protection role delete-protection\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   delete-protection : enable/disable protection flag for the role\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-delete-protection readers true\n")
 	case "set-role-member-expiry-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-member-expiry-days role days\n")
