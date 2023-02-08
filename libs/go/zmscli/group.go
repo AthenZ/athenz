@@ -302,6 +302,7 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 	return zms.GroupMeta{
 		SelfServe:               group.SelfServe,
 		ReviewEnabled:           group.ReviewEnabled,
+		DeleteProtection:        group.DeleteProtection,
 		AuditEnabled:            group.AuditEnabled,
 		NotifyRoles:             group.NotifyRoles,
 		UserAuthorityExpiration: group.UserAuthorityExpiration,
@@ -325,6 +326,27 @@ func (cli Zms) SetGroupReviewEnabled(dn string, gn string, reviewEnabled bool) (
 		return nil, err
 	}
 	s := "[domain " + dn + " group " + gn + " review-enabled attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetGroupDeleteProtection(dn string, gn string, deleteProtection bool) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.DeleteProtection = &deleteProtection
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + gn + " delete-protection attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

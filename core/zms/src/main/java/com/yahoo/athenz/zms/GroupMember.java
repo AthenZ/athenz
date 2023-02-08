@@ -51,6 +51,9 @@ public class GroupMember {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer principalType;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String pendingState;
 
     public GroupMember setMemberName(String memberName) {
         this.memberName = memberName;
@@ -143,6 +146,13 @@ public class GroupMember {
     public Integer getPrincipalType() {
         return principalType;
     }
+    public GroupMember setPendingState(String pendingState) {
+        this.pendingState = pendingState;
+        return this;
+    }
+    public String getPendingState() {
+        return pendingState;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -188,6 +198,9 @@ public class GroupMember {
                 return false;
             }
             if (principalType == null ? a.principalType != null : !principalType.equals(a.principalType)) {
+                return false;
+            }
+            if (pendingState == null ? a.pendingState != null : !pendingState.equals(a.pendingState)) {
                 return false;
             }
         }

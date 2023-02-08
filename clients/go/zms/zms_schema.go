@@ -539,6 +539,7 @@ func init() {
 	tGroupMember.Field("reviewLastNotifiedTime", "Timestamp", true, nil, "for pending membership requests, time when last notification was sent (for file store)")
 	tGroupMember.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured group setting")
 	tGroupMember.Field("principalType", "Int32", true, nil, "server use only - principal type: unknown(0), user(1) or service(2)")
+	tGroupMember.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	sb.AddType(tGroupMember.Build())
 
 	tGroupMembership := rdl.NewStructTypeBuilder("Struct", "GroupMembership")
@@ -552,6 +553,7 @@ func init() {
 	tGroupMembership.Field("auditRef", "String", true, nil, "audit reference string for the change as supplied by admin")
 	tGroupMembership.Field("requestPrincipal", "ResourceName", true, nil, "pending members only - name of the principal requesting the change")
 	tGroupMembership.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured group setting")
+	tGroupMembership.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
 	sb.AddType(tGroupMembership.Build())
 
 	tGroupMeta := rdl.NewStructTypeBuilder("Struct", "GroupMeta")
@@ -565,6 +567,7 @@ func init() {
 	tGroupMeta.Field("serviceExpiryDays", "Int32", true, nil, "all services in the group will have specified max expiry days")
 	tGroupMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tGroupMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
+	tGroupMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled groups.")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")

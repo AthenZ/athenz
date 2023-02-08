@@ -41,6 +41,9 @@ public class GroupMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean auditEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean deleteProtection;
 
     public GroupMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -105,6 +108,13 @@ public class GroupMeta {
     public Boolean getAuditEnabled() {
         return auditEnabled;
     }
+    public GroupMeta setDeleteProtection(Boolean deleteProtection) {
+        this.deleteProtection = deleteProtection;
+        return this;
+    }
+    public Boolean getDeleteProtection() {
+        return deleteProtection;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -138,6 +148,9 @@ public class GroupMeta {
                 return false;
             }
             if (auditEnabled == null ? a.auditEnabled != null : !auditEnabled.equals(a.auditEnabled)) {
+                return false;
+            }
+            if (deleteProtection == null ? a.deleteProtection != null : !deleteProtection.equals(a.deleteProtection)) {
                 return false;
             }
         }

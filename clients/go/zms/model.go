@@ -4844,6 +4844,11 @@ type GroupMember struct {
 	// server use only - principal type: unknown(0), user(1) or service(2)
 	//
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMember - creates an initialized GroupMember instance, returns a pointer to it
@@ -4916,6 +4921,12 @@ func (self *GroupMember) Validate() error {
 			return fmt.Errorf("GroupMember.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("GroupMember.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -4968,6 +4979,11 @@ type GroupMembership struct {
 	// user disabled by system based on configured group setting
 	//
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// for pending membership requests, the request state - e.g. add, delete
+	//
+	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMembership - creates an initialized GroupMembership instance, returns a pointer to it
@@ -5040,6 +5056,12 @@ func (self *GroupMembership) Validate() error {
 			return fmt.Errorf("GroupMembership.requestPrincipal does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
+	if self.PendingState != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
+		if !val.Valid {
+			return fmt.Errorf("GroupMembership.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -5096,6 +5118,11 @@ type GroupMeta struct {
 	// it
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled groups.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -5198,6 +5225,11 @@ type Group struct {
 	// it
 	//
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// If true, ask for delete confirmation in audit and review enabled groups.
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the group

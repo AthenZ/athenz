@@ -12178,18 +12178,19 @@ public class JDBCConnectionTest {
 
     @Test
     public void testConfirmGroupMemberApprove() throws Exception {
-
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(5) // domain id
                 .thenReturn(7) // group id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn(ZMSConsts.PENDING_REQUEST_ADD_STATE);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for group id
                 .thenReturn(true) // principal id
-                .thenReturn(true) // member exists - in pending table
+                .thenReturn(true) // this one is for pending state
                 .thenReturn(false); // member does not exist in std table
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
@@ -12209,8 +12210,11 @@ public class JDBCConnectionTest {
         //get principal
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.user1");
 
+        //get pending state
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "user.user1");
+
         Mockito.verify(mockPrepStmt, times(5)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(4)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(3)).setInt(2, 9);
 
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(3, null);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(4, true);
@@ -12235,6 +12239,8 @@ public class JDBCConnectionTest {
                 .thenReturn(5) // domain id
                 .thenReturn(7) // group id
                 .thenReturn(9); // principal id
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for group id
@@ -12261,7 +12267,7 @@ public class JDBCConnectionTest {
         // we need additional operation for the audit log
         // additional operation to check for groupMember exist using groupID and principal ID.
         Mockito.verify(mockPrepStmt, times(3)).setInt(1, 7);
-        Mockito.verify(mockPrepStmt, times(2)).setInt(2, 9);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 9);
 
         // the rest of the audit log details
 
@@ -12281,6 +12287,9 @@ public class JDBCConnectionTest {
 
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(0); // domain id
+
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn(ZMSConsts.PENDING_REQUEST_ADD_STATE);
 
         try {
             jdbcConn.confirmGroupMember("my-domain", "group", new GroupMember()

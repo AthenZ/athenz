@@ -60,6 +60,7 @@ public class GroupTest {
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
                 .setServiceExpiryDays(20)
+                .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         Result result = validator.validate(r, "Group");
@@ -78,6 +79,7 @@ public class GroupTest {
         assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(r.getMemberExpiryDays().intValue(), 10);
         assertEquals(r.getServiceExpiryDays().intValue(), 20);
+        assertFalse(r.getDeleteProtection());
         assertEquals(r.getTags().get("tagKey").getList().get(0), "tagValue");
 
         Group r2 = new Group()
@@ -94,6 +96,7 @@ public class GroupTest {
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
                 .setServiceExpiryDays(20)
+                .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(r2.equals(r));
@@ -132,6 +135,13 @@ public class GroupTest {
         r2.setSelfServe(null);
         assertFalse(r2.equals(r));
         r2.setSelfServe(false);
+        assertTrue(r2.equals(r));
+
+        r2.setDeleteProtection(true);
+        assertFalse(r2.equals(r));
+        r2.setDeleteProtection(null);
+        assertFalse(r2.equals(r));
+        r2.setDeleteProtection(false);
         assertTrue(r2.equals(r));
 
         r2.setUserAuthorityExpiration("attr11");
@@ -217,7 +227,8 @@ public class GroupTest {
                 .setRequestPrincipal("user.admin")
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
-                .setPrincipalType(1);
+                .setPrincipalType(1)
+                .setPendingState("ADD");
 
         assertTrue(rm.equals(rm));
 
@@ -237,6 +248,7 @@ public class GroupTest {
         assertEquals(rm.getReviewLastNotifiedTime().millis(), 123456789127L);
         assertEquals(rm.getSystemDisabled(), Integer.valueOf(1));
         assertEquals(rm.getPrincipalType(), Integer.valueOf(1));
+        assertEquals(rm.getPendingState(), "ADD");
 
         GroupMember rm2 = new GroupMember()
                 .setGroupName("group1")
@@ -251,7 +263,8 @@ public class GroupTest {
                 .setRequestPrincipal("user.admin")
                 .setReviewLastNotifiedTime(Timestamp.fromMillis(123456789127L))
                 .setSystemDisabled(1)
-                .setPrincipalType(1);
+                .setPrincipalType(1)
+                .setPendingState("ADD");
         assertTrue(rm2.equals(rm));
 
         rm2.setRequestPrincipal("user.test2");
@@ -336,6 +349,13 @@ public class GroupTest {
         rm2.setSystemDisabled(null);
         assertFalse(rm2.equals(rm));
         rm2.setSystemDisabled(1);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setPendingState("DELETE");
+        assertFalse(rm2.equals(rm));
+        rm2.setPendingState(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setPendingState("ADD");
         assertTrue(rm2.equals(rm));
 
         rm2.setPrincipalType(2);
@@ -472,6 +492,7 @@ public class GroupTest {
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
                 .setServiceExpiryDays(20)
+                .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));;
         assertTrue(rm.equals(rm));
 
@@ -479,6 +500,7 @@ public class GroupTest {
         assertEquals(rm.getNotifyRoles(), "role1,domain:role.role2");
         assertFalse(rm.getReviewEnabled());
         assertFalse(rm.getAuditEnabled());
+        assertFalse(rm.getDeleteProtection());
         assertEquals(rm.getUserAuthorityExpiration(), "attr1");
         assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(rm.getMemberExpiryDays().intValue(), 10);
@@ -494,6 +516,7 @@ public class GroupTest {
                 .setUserAuthorityFilter("attr2,attr3")
                 .setMemberExpiryDays(10)
                 .setServiceExpiryDays(20)
+                .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertTrue(rm2.equals(rm));
 
@@ -523,6 +546,13 @@ public class GroupTest {
         rm2.setSelfServe(null);
         assertFalse(rm2.equals(rm));
         rm2.setSelfServe(false);
+        assertTrue(rm2.equals(rm));
+
+        rm2.setDeleteProtection(true);
+        assertFalse(rm2.equals(rm));
+        rm2.setDeleteProtection(null);
+        assertFalse(rm2.equals(rm));
+        rm2.setDeleteProtection(false);
         assertTrue(rm2.equals(rm));
 
         rm2.setUserAuthorityExpiration("attr11");
@@ -585,7 +615,7 @@ public class GroupTest {
         ms.setMemberName("test.member").setIsMember(false).setGroupName("group1")
                 .setExpiration(Timestamp.fromMillis(100)).setAuditRef("audit-ref")
                 .setActive(true).setApproved(false).setRequestPrincipal("user.admin")
-                .setSystemDisabled(1);
+                .setSystemDisabled(1).setPendingState("ADD");
 
         // init second time does not change state
         ms.init();
@@ -605,11 +635,12 @@ public class GroupTest {
         assertEquals(ms.getAuditRef(), "audit-ref");
         assertEquals(ms.getRequestPrincipal(), "user.admin");
         assertEquals(ms.getSystemDisabled(), Integer.valueOf(1));
+        assertEquals(ms.getPendingState(), "ADD");
 
         GroupMembership ms2 = new GroupMembership().setMemberName("test.member").setIsMember(false)
                 .setExpiration(Timestamp.fromMillis(100)).setGroupName("group1")
                 .setActive(true).setAuditRef("audit-ref").setApproved(false)
-                .setRequestPrincipal("user.admin").setSystemDisabled(1);
+                .setRequestPrincipal("user.admin").setSystemDisabled(1).setPendingState("ADD");
 
         assertTrue(ms2.equals(ms));
         assertTrue(ms.equals(ms));
@@ -663,6 +694,13 @@ public class GroupTest {
         ms2.setSystemDisabled(null);
         assertFalse(ms2.equals(ms));
         ms2.setSystemDisabled(1);
+        assertTrue(ms2.equals(ms));
+
+        ms2.setPendingState("DELETE");
+        assertFalse(ms2.equals(ms));
+        ms2.setPendingState(null);
+        assertFalse(ms2.equals(ms));
+        ms2.setPendingState("ADD");
         assertTrue(ms2.equals(ms));
 
         assertFalse(ms2.equals(null));

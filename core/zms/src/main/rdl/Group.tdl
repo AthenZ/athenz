@@ -26,6 +26,7 @@ type GroupMember Struct {
     Timestamp reviewLastNotifiedTime (optional); //for pending membership requests, time when last notification was sent (for file store)
     Int32 systemDisabled (optional); //user disabled by system based on configured group setting
     Int32 principalType (optional); //server use only - principal type: unknown(0), user(1) or service(2)
+    String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
 //The representation for a group membership.
@@ -39,6 +40,7 @@ type GroupMembership Struct {
     String auditRef (optional); //audit reference string for the change as supplied by admin
     ResourceName requestPrincipal (optional); //pending members only - name of the principal requesting the change
     Int32 systemDisabled (optional); //user disabled by system based on configured group setting
+    String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
 }
 
 //Set of metadata attributes that all groups may have and can be changed by domain admins.
@@ -52,6 +54,7 @@ type GroupMeta Struct {
     Int32 serviceExpiryDays (optional); //all services in the group will have specified max expiry days
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
+    Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled groups.
 }
 
 //The representation for a Group with set of members.
