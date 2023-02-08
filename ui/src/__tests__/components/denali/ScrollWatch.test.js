@@ -27,21 +27,19 @@ function mockThrottle(func) {
 
     return invokeFunc;
 }
-
-const createRefSpy = jest.spyOn(React, 'createRef');
-
 describe('ScrollWatch', () => {
     beforeEach(() =>
-        createRefSpy.mockImplementation(() => {
+        jest.spyOn(React, 'createRef').mockImplementation(() => {
             return {};
         })
     );
 
-    afterEach(() => jest.resetAllMocks());
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
 
     it('should handle scrolling with throttling', async () => {
         throttle.mockImplementationOnce(jest.requireActual('lodash/throttle'));
-        createRefSpy;
 
         const { getByTestId } = render(
             <ScrollWatch watchScrolledToBottom>
@@ -177,6 +175,7 @@ describe('ScrollWatch', () => {
 
     it('should attach ref to child element', () => {
         throttle.mockImplementation(mockThrottle);
+        const createRefSpy = jest.spyOn(React, 'createRef');
         createRefSpy.mockImplementation(() => {
             return {
                 current: {
@@ -219,6 +218,7 @@ describe('ScrollWatch', () => {
 
     it('should attach ref to large child element', () => {
         throttle.mockImplementation(mockThrottle);
+        const createRefSpy = jest.spyOn(React, 'createRef');
         createRefSpy.mockImplementation(() => {
             return {
                 current: {
@@ -259,7 +259,6 @@ describe('ScrollWatch', () => {
 
     it('should ignore scrolledToBottom', () => {
         throttle.mockImplementationOnce(jest.requireActual('lodash/throttle'));
-        createRefSpy;
 
         const { getByTestId } = render(
             <ScrollWatch>
