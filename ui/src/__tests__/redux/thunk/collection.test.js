@@ -75,6 +75,7 @@ describe('deleteMember method', () => {
         jest.spyOn(utils, 'isExpired').mockRestore();
         jest.spyOn(groupSelector, 'thunkSelectGroup').mockRestore();
         jest.spyOn(roleSelector, 'thunkSelectRole').mockRestore();
+        jest.spyOn(roleSelector, 'thunkSelectRoleMember').mockRestore();
     });
 
     it('group category and get exception because member doesnt exist', async () => {
@@ -227,13 +228,23 @@ describe('deleteMember method', () => {
 
 it('role category successfully add a pending member with delete state', async () => {
     const getState = () => {};
-
+    let member = {
+        roleName: 'role1',
+        memberName: 'user.mjames',
+        approved: true,
+        active: true,
+        memberFullName: 'Mary James',
+    };
     jest.spyOn(roleSelector, 'thunkSelectRole').mockReturnValue({
         deleteProtection: true,
         reviewEnabled: true,
         roleMembers: {
-            member1: {},
+            'user.mjames': member,
         },
+    });
+
+    jest.spyOn(roleSelector, 'thunkSelectRoleMember').mockReturnValue({
+        ...member,
     });
 
     let myApiMock = {
@@ -247,7 +258,7 @@ it('role category successfully add a pending member with delete state', async ()
         domainName,
         'role1',
         'role',
-        'member1',
+        'user.mjames',
         'auditRef',
         false,
         'csrf'
@@ -260,7 +271,7 @@ it('role category successfully add a pending member with delete state', async ()
             .calledWith(
                 domainName,
                 'role1',
-                'member1',
+                'user.mjames',
                 'auditRef',
                 false,
                 'role',
@@ -268,9 +279,8 @@ it('role category successfully add a pending member with delete state', async ()
             )
     ).toBeTruthy();
     const expectedMember = {
-        memberName: 'member1',
+        ...member,
         pendingState: PENDING_STATE_ENUM.DELETE,
-        roleName: 'role1',
         active: false,
         approved: false,
     };
@@ -279,6 +289,72 @@ it('role category successfully add a pending member with delete state', async ()
     );
     expect(fakeDispatch.getCall(2).args[0]).toEqual(
         updateBellPendingMember(expectedMember.memberName, 'dom:role.role1')
+    );
+});
+
+it('group category successfully add a pending member with delete state', async () => {
+    const getState = () => {};
+    let member = {
+        groupName: 'group1',
+        memberName: 'user.mjames',
+        approved: true,
+        active: true,
+        memberFullName: 'Mary James',
+    };
+    jest.spyOn(groupSelector, 'thunkSelectGroup').mockReturnValue({
+        deleteProtection: true,
+        reviewEnabled: true,
+        groupMembers: {
+            'user.mjames': member,
+        },
+    });
+
+    jest.spyOn(groupSelector, 'thunkSelectGroupMember').mockReturnValue({
+        ...member,
+    });
+
+    let myApiMock = {
+        deleteMember: jest.fn().mockReturnValue(Promise.resolve([])),
+    };
+    MockApi.setMockApi(myApiMock);
+    sinon.spy(myApiMock, 'deleteMember');
+
+    const fakeDispatch = sinon.spy();
+    await deleteMember(
+        domainName,
+        'group1',
+        'group',
+        'user.mjames',
+        'auditRef',
+        false,
+        'csrf'
+    )(fakeDispatch, getState);
+
+    expect(fakeDispatch.getCall(0)).toBeTruthy();
+    expect(
+        myApiMock.deleteMember
+            .getCall(0)
+            .calledWith(
+                domainName,
+                'group1',
+                'user.mjames',
+                'auditRef',
+                false,
+                'group',
+                'csrf'
+            )
+    ).toBeTruthy();
+    const expectedMember = {
+        ...member,
+        pendingState: PENDING_STATE_ENUM.DELETE,
+        active: false,
+        approved: false,
+    };
+    expect(fakeDispatch.getCall(1).args[0]).toEqual(
+        addPendingMemberToStore(expectedMember, 'group', 'dom:group.group1')
+    );
+    expect(fakeDispatch.getCall(2).args[0]).toEqual(
+        updateBellPendingMember(expectedMember.memberName, 'dom:group.group1')
     );
 });
 

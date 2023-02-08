@@ -16,6 +16,7 @@
 
 import { getFullName, mapToList, membersMapsToList } from '../utils';
 import { roleDelimiter } from '../config';
+import { thunkSelectGroupMembers } from './group';
 
 export const thunkSelectRoles = (state) => {
     return state.roles.roles ? state.roles.roles : {};
@@ -32,7 +33,18 @@ export const thunkSelectRoleMembers = (state, domainName, roleName) => {
             .roleMembers
         ? state.roles.roles[getFullName(domainName, roleDelimiter, roleName)]
               .roleMembers
-        : [];
+        : {};
+};
+
+export const thunkSelectRoleMember = (
+    state,
+    domainName,
+    roleName,
+    memberName
+) => {
+    return (
+        thunkSelectRoleMembers(state, domainName, roleName)[memberName] || {}
+    );
 };
 
 export const selectRoles = (state) => {

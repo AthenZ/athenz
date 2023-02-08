@@ -70,6 +70,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: group.requestTime,
                     expiryDate: expiryDate,
+                    pendingState: group.pendingState,
                 };
             });
         });

@@ -135,8 +135,6 @@ export const ADD_ROLE_AUDIT_DESC =
     'Flag indicates whether or not role updates require explicit auditing approval process';
 export const ADD_ROLE_REVIEW_DESC =
     'Flag indicates whether or not role updates require another review and approval';
-export const ADD_ROLE_DELETE_PROTECTION_DESC =
-    'Flag indicates whether or not the role will be protected from accidental deletions';
 export const ADD_ROLE_SELF_SERVICE_DESC =
     'Flag indicates whether or not role allows self service';
 export const ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC =
@@ -180,6 +178,10 @@ export const WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER =
     'Select a Domain to View Pending Members';
 export const VIEW_PENDING_MEMBERS_BY_DOMAIN_TITLE =
     'View Pending Members by Domain';
+export const ADD_ROLE_DELETE_PROTECTION_DESC =
+    'Flag indicates whether or not the role will be protected from accidental deletions';
+export const ADD_GROUP_DELETE_PROTECTION_DESC =
+    'Flag indicates whether or not the group will be protected from accidental deletions';
 export const WORKFLOW_TABS = [
     {
         label: WORKFLOW_ADMIN_VIEW_TAB,

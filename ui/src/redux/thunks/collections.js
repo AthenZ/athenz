@@ -14,10 +14,10 @@
  *  limitations under the License.
  */
 
-import { thunkSelectGroup } from '../selectors/group';
+import { thunkSelectGroup, thunkSelectGroupMember } from '../selectors/group';
 import { getGroup } from './groups';
 import { getRole, marksRoleAsNeedRefresh } from './roles';
-import { thunkSelectRole } from '../selectors/roles';
+import { thunkSelectRole, thunkSelectRoleMember } from '../selectors/roles';
 import {
     addMemberToStore,
     addPendingMemberToStore,
@@ -184,17 +184,33 @@ const handlePendingMemberDeleted = (
     return Promise.resolve();
 };
 
-const handleMemberDeletedFromProtectedRole = (
+const handleMemberDeletedFromProtectedCollection = (
+    state,
     memberName,
     collectionName,
     dispatch,
     category,
     domainName
 ) => {
+    let memberFullName =
+        category === 'role'
+            ? thunkSelectRoleMember(
+                  state,
+                  domainName,
+                  collectionName,
+                  memberName
+              )['memberFullName']
+            : thunkSelectGroupMember(
+                  state,
+                  domainName,
+                  collectionName,
+                  memberName
+              )['memberFullName'];
     let member = {
         memberName: memberName,
+        memberFullName: memberFullName,
         pendingState: PENDING_STATE_ENUM.DELETE,
-        roleName: collectionName,
+        [category === 'role' ? 'roleName' : 'groupName']: collectionName,
         active: false,
         approved: false,
     };
@@ -250,7 +266,7 @@ export const deleteMember =
                     data[buildMembersMapName(category, pending)][memberName]
                         .approved === false
                 ) {
-                    handlePendingMemberDeleted(
+                    return handlePendingMemberDeleted(
                         dispatch,
                         memberName,
                         category,
@@ -259,11 +275,12 @@ export const deleteMember =
                     );
                 } else {
                     if (
-                        category === 'role' &&
+                        (category === 'role' || category === 'group') &&
                         data.deleteProtection &&
                         (data.auditEnabled || data.reviewEnabled)
                     ) {
-                        return handleMemberDeletedFromProtectedRole(
+                        return handleMemberDeletedFromProtectedCollection(
+                            getState(),
                             memberName,
                             collectionName,
                             dispatch,

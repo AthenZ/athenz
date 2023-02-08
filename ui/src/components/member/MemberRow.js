@@ -153,6 +153,9 @@ class MemberRow extends React.Component {
                         `Successfully added pending request to delete member ${name}`,
                         true
                     );
+                    this.setState({
+                        showDelete: false,
+                    });
                 } else if (this.props.pending) {
                     this.props.onUpdateSuccess(
                         `Successfully deleted pending member ${name}`,
@@ -314,7 +317,7 @@ class MemberRow extends React.Component {
                     {member.memberFullName}
                 </TDStyled>
 
-                {this.props.category === 'role' && this.props.pending && (
+                {this.props.pending && (
                     <TDStyled color={color} align={left}>
                         {member.pendingState}
                     </TDStyled>

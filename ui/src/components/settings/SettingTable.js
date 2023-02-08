@@ -22,6 +22,7 @@ import Alert from '../denali/Alert';
 import RequestUtils from '../utils/RequestUtils';
 import _ from 'lodash';
 import {
+    ADD_GROUP_DELETE_PROTECTION_DESC,
     ADD_ROLE_DELETE_PROTECTION_DESC,
     MODAL_TIME_OUT,
 } from '../constants/constants';
@@ -256,6 +257,8 @@ class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.userAuthorityFilter;
             collectionMeta.userAuthorityExpiration =
                 this.state.copyCollectionDetails.userAuthorityExpiration;
+            collectionMeta.deleteProtection =
+                this.state.copyCollectionDetails.deleteProtection;
         } else if (this.props.category === 'domain') {
             collectionMeta.memberExpiryDays =
                 this.state.copyCollectionDetails.memberExpiryDays;
@@ -392,15 +395,19 @@ class SettingTable extends React.Component {
             />
         );
 
-        this.props.category === 'role' &&
+        (this.props.category === 'role' || this.props.category === 'group') &&
             rows.push(
                 <StyledSettingRow
-                    key={'setting-row-deleteProtection'}
+                    key={`setting-row-${this.props.category}-deleteProtection`}
                     domain={this.props.domain}
                     name='deleteProtection'
                     label='Delete Protection'
                     type='switch'
-                    desc={ADD_ROLE_DELETE_PROTECTION_DESC}
+                    desc={
+                        this.props.category === 'role'
+                            ? ADD_ROLE_DELETE_PROTECTION_DESC
+                            : ADD_GROUP_DELETE_PROTECTION_DESC
+                    }
                     value={this.state.copyCollectionDetails.deleteProtection}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}

@@ -48,7 +48,7 @@ import {
     storeBusinessServicesAll,
 } from '../../config/config.test';
 import { getFullName } from '../../../redux/utils';
-import { roleDelimiter, subDomainDelimiter } from '../../../redux/config';
+import { subDomainDelimiter } from '../../../redux/config';
 
 const userDomains = [
     { name: 'userDomain1', adminDomain: true },

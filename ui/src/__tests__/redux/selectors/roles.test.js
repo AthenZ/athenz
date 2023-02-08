@@ -23,6 +23,7 @@ import {
     selectRoles,
     selectRoleTags,
     selectRoleUsers,
+    thunkSelectRoleMember,
     thunkSelectRoleMembers,
     thunkSelectRoles,
 } from '../../../redux/selectors/roles';
@@ -230,10 +231,10 @@ describe('test role selectors', () => {
                 thunkSelectRoleMembers(stateWithRoles, domainName, 'admin')
             ).toEqual(expectedRoleMembers);
         });
-        it('should return empty list', () => {
+        it('should return empty object', () => {
             expect(
                 thunkSelectRoleMembers(stateWithoutRoles, domainName, 'admin')
-            ).toEqual([]);
+            ).toEqual({});
         });
     });
     describe('test selectRoleMembers selector', () => {
@@ -260,6 +261,34 @@ describe('test role selectors', () => {
             expect(
                 selectRoleMembers(stateWithoutRoles, domainName, 'admin')
             ).toEqual([]);
+        });
+    });
+    describe('test thunkSelectRoleMember selector', () => {
+        const expectedRoleMember = {
+            memberName: 'user.user2',
+            expiration: expiry,
+            principalType: 1,
+            memberFullName: null,
+        };
+        it('should return user2 ', () => {
+            expect(
+                thunkSelectRoleMember(
+                    stateWithRoles,
+                    domainName,
+                    'admin',
+                    'user.user2'
+                )
+            ).toEqual(expectedRoleMember);
+        });
+        it('should return empty object', () => {
+            expect(
+                thunkSelectRoleMember(
+                    stateWithRoles,
+                    domainName,
+                    'admin',
+                    'user.unknown'
+                )
+            ).toEqual({});
         });
     });
     describe('test selectReviewRoleMembers selector', () => {

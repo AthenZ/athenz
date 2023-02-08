@@ -34,6 +34,7 @@ import {
 import produce from 'immer';
 import { PROCESS_GROUP_PENDING_MEMBERS_TO_STORE } from '../actions/domains';
 import { getFullCollectionName } from '../thunks/utils/collection';
+import { PENDING_STATE_ENUM } from '../../components/constants/constants';
 
 export const groups = (state = {}, action) => {
     const { type, payload } = action;
@@ -202,9 +203,15 @@ export const groups = (state = {}, action) => {
             if (state.groups && state.groups[groupFullName]) {
                 newState = produce(state, (draft) => {
                     if (member.approved) {
-                        draft.groups[groupFullName].groupMembers[
-                            member.memberName
-                        ] = member;
+                        if (member.pendingState === PENDING_STATE_ENUM.DELETE) {
+                            delete draft.groups[groupFullName].groupMembers[
+                                member.memberName
+                            ];
+                        } else {
+                            draft.groups[groupFullName].groupMembers[
+                                member.memberName
+                            ] = member;
+                        }
                     }
                     delete draft.groups[groupFullName].groupPendingMembers[
                         member.memberName

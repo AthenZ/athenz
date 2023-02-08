@@ -495,6 +495,11 @@ exports[`MemberList should render 1`] = `
         <th
           class="emotion-14 emotion-15"
         >
+          Pending State
+        </th>
+        <th
+          class="emotion-14 emotion-15"
+        >
           Expiration Date
         </th>
         <th
@@ -520,6 +525,10 @@ exports[`MemberList should render 1`] = `
         >
           user2
         </td>
+        <td
+          class="emotion-24 emotion-25"
+          color="#3570f40D"
+        />
         <td
           class="emotion-24 emotion-25"
           color="#3570f40D"
@@ -614,6 +623,10 @@ exports[`MemberList should render 1`] = `
         >
           user3
         </td>
+        <td
+          class="emotion-43 emotion-25"
+          color=""
+        />
         <td
           class="emotion-43 emotion-25"
           color=""

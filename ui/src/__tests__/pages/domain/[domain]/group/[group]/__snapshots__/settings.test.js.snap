@@ -782,14 +782,14 @@ exports[`GroupSettingPage should render 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-83 {
+.emotion-92 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-85 {
+.emotion-94 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -806,7 +806,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-85 input {
+.emotion-94 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -832,42 +832,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-85.animated input {
+.emotion-94.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-85 input::-webkit-input-placeholder {
+.emotion-94 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-85 input::-moz-placeholder {
+.emotion-94 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-85 input:-ms-input-placeholder {
+.emotion-94 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-85 input::placeholder {
+.emotion-94 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-85 input.focused,
-.emotion-85 input:active,
-.emotion-85 input:focus {
+.emotion-94 input.focused,
+.emotion-94 input:active,
+.emotion-94 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-85 input:invalid {
+.emotion-94 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-85 .message {
+.emotion-94 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -875,36 +875,36 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-85.error input,
-.emotion-85.error input.focused,
-.emotion-85.error input:active,
-.emotion-85.error input:focus {
+.emotion-94.error input,
+.emotion-94.error input.focused,
+.emotion-94.error input:active,
+.emotion-94.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-85.error .message {
+.emotion-94.error .message {
   color: #d01111;
 }
 
-.emotion-86 {
+.emotion-95 {
   margin-top: 5px;
 }
 
-.emotion-111 {
+.emotion-120 {
   position: relative;
   width: 100%;
 }
 
-.emotion-111 input {
+.emotion-120 input {
   cursor: inherit;
 }
 
-.emotion-112 {
+.emotion-121 {
   margin-top: 5px;
   display: block;
 }
 
-.emotion-114 {
+.emotion-123 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -921,7 +921,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-114 input {
+.emotion-123 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -947,42 +947,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-114.animated input {
+.emotion-123.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-114 input::-webkit-input-placeholder {
+.emotion-123 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input::-moz-placeholder {
+.emotion-123 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input:-ms-input-placeholder {
+.emotion-123 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input::placeholder {
+.emotion-123 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input.focused,
-.emotion-114 input:active,
-.emotion-114 input:focus {
+.emotion-123 input.focused,
+.emotion-123 input:active,
+.emotion-123 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-114 input:invalid {
+.emotion-123 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-114 .message {
+.emotion-123 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -990,22 +990,22 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-114.error input,
-.emotion-114.error input.focused,
-.emotion-114.error input:active,
-.emotion-114.error input:focus {
+.emotion-123.error input,
+.emotion-123.error input.focused,
+.emotion-123.error input:active,
+.emotion-123.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-114.error .message {
+.emotion-123.error .message {
   color: #d01111;
 }
 
-.emotion-114 input {
+.emotion-123 input {
   padding-right: 36px;
 }
 
-.emotion-114 .input-icon {
+.emotion-123 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1019,13 +1019,13 @@ exports[`GroupSettingPage should render 1`] = `
   right: 6px;
 }
 
-.emotion-115 {
+.emotion-124 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-133 {
+.emotion-142 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1044,7 +1044,7 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-135 {
+.emotion-144 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1070,25 +1070,25 @@ exports[`GroupSettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-135:first-of-type {
+.emotion-144:first-of-type {
   margin-left: 0;
 }
 
-.emotion-135:disabled {
+.emotion-144:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-135:disabled {
+.emotion-144:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-135:hover:not(:disabled) {
+.emotion-144:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-137 {
+.emotion-146 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1114,13 +1114,13 @@ exports[`GroupSettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-139 {
+.emotion-148 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-140 {
+.emotion-149 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1135,7 +1135,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-142 {
+.emotion-151 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1154,28 +1154,28 @@ exports[`GroupSettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-144 {
+.emotion-153 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-146 {
+.emotion-155 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-148 {
+.emotion-157 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-152 {
+.emotion-161 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-154 {
+.emotion-163 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1183,12 +1183,12 @@ exports[`GroupSettingPage should render 1`] = `
   display: flex;
 }
 
-.emotion-156 {
+.emotion-165 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-158 {
+.emotion-167 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1475,6 +1475,42 @@ exports[`GroupSettingPage should render 1`] = `
                     class="emotion-61 emotion-62"
                     width="auto"
                   >
+                    Delete Protection
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                    width="auto"
+                  >
+                    <div
+                      class="emotion-65 denali-switch"
+                      data-testid="switch-wrapper"
+                    >
+                      <input
+                        id="switch-settingdeleteProtection"
+                        name="settingdeleteProtection"
+                        type="checkbox"
+                        value="false"
+                      />
+                      <label
+                        for="switch-settingdeleteProtection"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                    width="auto"
+                  >
+                    Flag indicates whether or not the group will be protected from accidental deletions
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-59 emotion-60"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-61 emotion-62"
+                    width="auto"
+                  >
                     Self-Service
                   </td>
                   <td
@@ -1519,10 +1555,10 @@ exports[`GroupSettingPage should render 1`] = `
                     width="auto"
                   >
                     <div
-                      class="emotion-83 emotion-84"
+                      class="emotion-92 emotion-93"
                     >
                       <div
-                        class="emotion-85 denali-input animated emotion-86 emotion-87"
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1562,10 +1598,10 @@ exports[`GroupSettingPage should render 1`] = `
                     width="auto"
                   >
                     <div
-                      class="emotion-83 emotion-84"
+                      class="emotion-92 emotion-93"
                     >
                       <div
-                        class="emotion-85 denali-input animated emotion-86 emotion-87"
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1605,18 +1641,18 @@ exports[`GroupSettingPage should render 1`] = `
                     width="auto"
                   >
                     <div
-                      class="emotion-83 emotion-84"
+                      class="emotion-92 emotion-93"
                     >
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
                         aria-labelledby="downshift-2-label"
-                        class="emotion-111 denali-input-dropdown emotion-112 emotion-113"
+                        class="emotion-120 denali-input-dropdown emotion-121 emotion-122"
                         data-testid="input-dropdown"
                         role="combobox"
                       >
                         <div
-                          class="emotion-114 denali-input animated"
+                          class="emotion-123 denali-input animated"
                           data-testid="input-wrapper"
                         >
                           <input
@@ -1635,7 +1671,7 @@ exports[`GroupSettingPage should render 1`] = `
                             class="input-icon"
                           >
                             <svg
-                              class="emotion-115"
+                              class="emotion-124"
                               data-testid="icon"
                               height="24px"
                               id=""
@@ -1680,18 +1716,18 @@ exports[`GroupSettingPage should render 1`] = `
                     width="auto"
                   >
                     <div
-                      class="emotion-83 emotion-84"
+                      class="emotion-92 emotion-93"
                     >
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
                         aria-labelledby="downshift-3-label"
-                        class="emotion-111 denali-input-dropdown emotion-112 emotion-113"
+                        class="emotion-120 denali-input-dropdown emotion-121 emotion-122"
                         data-testid="input-dropdown"
                         role="combobox"
                       >
                         <div
-                          class="emotion-114 denali-input animated"
+                          class="emotion-123 denali-input animated"
                           data-testid="input-wrapper"
                         >
                           <input
@@ -1710,7 +1746,7 @@ exports[`GroupSettingPage should render 1`] = `
                             class="input-icon"
                           >
                             <svg
-                              class="emotion-115"
+                              class="emotion-124"
                               data-testid="icon"
                               height="24px"
                               id=""
@@ -1743,17 +1779,17 @@ exports[`GroupSettingPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-133 emotion-134"
+              class="emotion-142 emotion-143"
             >
               <div>
                 <button
-                  class="emotion-135 denali-button"
+                  class="emotion-144 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-135 denali-button"
+                  class="emotion-144 denali-button"
                 >
                   Reset
                 </button>
@@ -1766,11 +1802,11 @@ exports[`GroupSettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-137 emotion-138"
+          class="emotion-146 emotion-147"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-139"
+            class="emotion-148"
             data-testid="icon"
             height="1em"
             id=""
@@ -1786,45 +1822,45 @@ exports[`GroupSettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-140 emotion-141"
+          class="emotion-149 emotion-150"
         >
           <div
-            class="emotion-142 emotion-143"
+            class="emotion-151 emotion-152"
           >
             <div
-              class="emotion-144 emotion-145"
+              class="emotion-153 emotion-154"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-146 emotion-147"
+                class="emotion-155 emotion-156"
               >
                 Create
               </a>
               <span
-                class="emotion-148 emotion-149"
+                class="emotion-157 emotion-158"
               >
                  | 
               </span>
               <a
-                class="emotion-146 emotion-147"
+                class="emotion-155 emotion-156"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-152 emotion-153"
+            class="emotion-161 emotion-162"
           >
             <div
-              class="emotion-154 emotion-155"
+              class="emotion-163 emotion-164"
             >
               <div
-                class="emotion-156 emotion-157"
+                class="emotion-165 emotion-166"
               >
                 <svg
-                  class="emotion-158"
+                  class="emotion-167"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1846,19 +1882,19 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-146 emotion-147"
+                class="emotion-155 emotion-156"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-154 emotion-155"
+              class="emotion-163 emotion-164"
             >
               <div
-                class="emotion-156 emotion-157"
+                class="emotion-165 emotion-166"
               >
                 <svg
-                  class="emotion-158"
+                  class="emotion-167"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1880,7 +1916,7 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-146 emotion-147"
+                class="emotion-155 emotion-156"
               >
                 athens.ci
               </a>
