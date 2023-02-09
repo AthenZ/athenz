@@ -30,6 +30,7 @@ import produce from 'immer';
 import { processPendingMembers } from '../../redux/thunks/domains';
 import { connect } from 'react-redux';
 import { selectPendingMembersList } from '../../redux/selectors/domains';
+import NameUtils from '../utils/NameUtils';
 
 const TableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
@@ -404,7 +405,9 @@ class PendingApprovalTable extends React.Component {
                         requestedReviewReminder={
                             this.state.pendingMap[key].reviewReminder
                         }
-                        pendingState={this.state.pendingMap[key].pendingState}
+                        pendingState={NameUtils.getPendingStateToDisplay(
+                            this.state.pendingMap[key].pendingState
+                        )}
                         view={view}
                     />
                 );
@@ -445,7 +448,7 @@ class PendingApprovalTable extends React.Component {
                                 <TableHeaderDomain>Domain</TableHeaderDomain>
                             )}
                             <TableHeader>Type</TableHeader>
-                            <TableHeader>State</TableHeader>
+                            <TableHeader>Pending State</TableHeader>
                             <TableHeader>Name</TableHeader>
                             <TableHeader>Member</TableHeader>
                             <TableHeader colSpan={2}>User Comment</TableHeader>

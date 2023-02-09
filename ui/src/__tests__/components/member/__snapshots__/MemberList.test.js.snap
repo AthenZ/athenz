@@ -111,6 +111,7 @@ exports[`MemberList should render 1`] = `
 
 .emotion-12 {
   text-align: left;
+  width: 26%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -123,6 +124,20 @@ exports[`MemberList should render 1`] = `
 
 .emotion-14 {
   text-align: left;
+  width: 26%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  text-align: left;
+  width: 40%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -135,6 +150,7 @@ exports[`MemberList should render 1`] = `
 
 .emotion-20 {
   text-align: center;
+  width: 8%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -181,6 +197,19 @@ exports[`MemberList should render 1`] = `
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-75 {
+  text-align: left;
+  width: 14%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
   word-break: break-all;
 }
 
@@ -233,26 +262,31 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
+          width="26"
         >
           User Name
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Name of User
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-14 emotion-15"
+          class="emotion-18 emotion-15"
+          width="40"
         >
           Review Reminder Date
         </th>
         <th
           class="emotion-20 emotion-15"
+          width="8"
         >
           Delete
         </th>
@@ -484,31 +518,37 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
+          width="26"
         >
           User Name
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Name of User
         </th>
         <th
           class="emotion-14 emotion-15"
-        >
-          Pending State
-        </th>
-        <th
-          class="emotion-14 emotion-15"
+          width="26"
         >
           Expiration Date
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Review Reminder Date
         </th>
         <th
+          class="emotion-75 emotion-15"
+          width="14"
+        >
+          Pending State
+        </th>
+        <th
           class="emotion-20 emotion-15"
+          width="8"
         >
           Delete
         </th>
@@ -532,61 +572,61 @@ exports[`MemberList should render 1`] = `
         <td
           class="emotion-24 emotion-25"
           color="#3570f40D"
+        >
+          <div
+            class="emotion-30 emotion-31"
+          >
+            N/A
+            <span>
+              <svg
+                class="emotion-11"
+                data-testid="icon"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  edit
+                </title>
+                <path
+                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                />
+              </svg>
+            </span>
+          </div>
+        </td>
+        <td
+          class="emotion-24 emotion-25"
+          color="#3570f40D"
+        >
+          <div
+            class="emotion-30 emotion-31"
+          >
+            N/A
+            <span>
+              <svg
+                class="emotion-11"
+                data-testid="icon"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  edit
+                </title>
+                <path
+                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                />
+              </svg>
+            </span>
+          </div>
+        </td>
+        <td
+          class="emotion-24 emotion-25"
+          color="#3570f40D"
         />
-        <td
-          class="emotion-24 emotion-25"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-30 emotion-31"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-24 emotion-25"
-          color="#3570f40D"
-        >
-          <div
-            class="emotion-30 emotion-31"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
         <td
           class="emotion-38 emotion-25"
           color="#3570f40D"
@@ -630,61 +670,61 @@ exports[`MemberList should render 1`] = `
         <td
           class="emotion-43 emotion-25"
           color=""
+        >
+          <div
+            class="emotion-30 emotion-31"
+          >
+            N/A
+            <span>
+              <svg
+                class="emotion-11"
+                data-testid="icon"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  edit
+                </title>
+                <path
+                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                />
+              </svg>
+            </span>
+          </div>
+        </td>
+        <td
+          class="emotion-43 emotion-25"
+          color=""
+        >
+          <div
+            class="emotion-30 emotion-31"
+          >
+            N/A
+            <span>
+              <svg
+                class="emotion-11"
+                data-testid="icon"
+                height="1.25em"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="1.25em"
+              >
+                <title>
+                  edit
+                </title>
+                <path
+                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                />
+              </svg>
+            </span>
+          </div>
+        </td>
+        <td
+          class="emotion-43 emotion-25"
+          color=""
         />
-        <td
-          class="emotion-43 emotion-25"
-          color=""
-        >
-          <div
-            class="emotion-30 emotion-31"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
-        <td
-          class="emotion-43 emotion-25"
-          color=""
-        >
-          <div
-            class="emotion-30 emotion-31"
-          >
-            N/A
-            <span>
-              <svg
-                class="emotion-11"
-                data-testid="icon"
-                height="1.25em"
-                id=""
-                viewBox="0 0 1024 1024"
-                width="1.25em"
-              >
-                <title>
-                  edit
-                </title>
-                <path
-                  d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
-                />
-              </svg>
-            </span>
-          </div>
-        </td>
         <td
           class="emotion-57 emotion-25"
           color=""
@@ -827,6 +867,7 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-12 {
   text-align: left;
+  width: 26%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -839,6 +880,20 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-14 {
   text-align: left;
+  width: 26%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  text-align: left;
+  width: 40%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -851,6 +906,7 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-20 {
   text-align: center;
+  width: 8%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -949,26 +1005,31 @@ exports[`MemberList should render delegated role 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
+          width="26"
         >
           User Name
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Name of User
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-14 emotion-15"
+          class="emotion-18 emotion-15"
+          width="40"
         >
           Review Reminder Date
         </th>
         <th
           class="emotion-20 emotion-15"
+          width="8"
         >
           Delete
         </th>

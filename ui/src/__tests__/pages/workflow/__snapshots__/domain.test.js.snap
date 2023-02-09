@@ -1802,7 +1802,7 @@ exports[`PendingApprovalPage should render 1`] = `
                     <th
                       class="emotion-86 emotion-87"
                     >
-                      State
+                      Pending State
                     </th>
                     <th
                       class="emotion-86 emotion-87"

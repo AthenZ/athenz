@@ -55,6 +55,7 @@ const StyleDiv = styled.table`
 
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
+    width: ${(props) => `${props.width}%`};
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
@@ -67,6 +68,7 @@ const TableHeadStyled = styled.th`
 
 const TableHeadStyledRoleName = styled.th`
     text-align: ${(props) => props.align};
+    width: ${(props) => `${props.width}%`};
     border-bottom: 2px solid #d5d5d5;
     color: #9a9a9a;
     font-weight: 600;
@@ -118,7 +120,9 @@ export default class MemberTable extends React.Component {
         let expandMembers = this.expandMembers.bind(this);
         let rows = [];
         let length = this.props.members ? this.props.members.length : 0;
-
+        let columnWidthPercentages = this.props.category === 'role' ? 19.5 : 26;
+        let pendingStateColumnWidthPercentages = 14;
+        let deleteColumnWidthPercentages = 8;
         if (this.props.members && this.props.members.length > 0) {
             rows = this.props.members
                 .sort((a, b) => {
@@ -201,28 +205,57 @@ export default class MemberTable extends React.Component {
                         </TableThStyled>
                     </tr>
                     <tr>
-                        <TableHeadStyledRoleName align={left}>
+                        <TableHeadStyledRoleName
+                            width={columnWidthPercentages}
+                            align={left}
+                        >
                             User Name
                         </TableHeadStyledRoleName>
-                        <TableHeadStyled align={left}>
+                        <TableHeadStyled
+                            width={columnWidthPercentages}
+                            align={left}
+                        >
                             Name of User
                         </TableHeadStyled>
-
-                        {this.props.pending && (
-                            <TableHeadStyled align={left}>
-                                Pending State
-                            </TableHeadStyled>
-                        )}
-
-                        <TableHeadStyled align={left}>
+                        <TableHeadStyled
+                            width={
+                                this.props.category === 'group' &&
+                                !this.props.pending
+                                    ? columnWidthPercentages +
+                                      pendingStateColumnWidthPercentages
+                                    : columnWidthPercentages
+                            }
+                            align={left}
+                        >
                             Expiration Date
                         </TableHeadStyled>
                         {this.props.category !== 'group' && (
-                            <TableHeadStyled align={left}>
+                            <TableHeadStyled
+                                width={
+                                    this.props.pending
+                                        ? columnWidthPercentages
+                                        : columnWidthPercentages +
+                                          pendingStateColumnWidthPercentages
+                                }
+                                align={left}
+                            >
                                 Review Reminder Date
                             </TableHeadStyled>
                         )}
-                        <TableHeadStyled align={center}>Delete</TableHeadStyled>
+                        {this.props.pending && (
+                            <TableHeadStyled
+                                width={pendingStateColumnWidthPercentages}
+                                align={left}
+                            >
+                                Pending State
+                            </TableHeadStyled>
+                        )}
+                        <TableHeadStyled
+                            width={deleteColumnWidthPercentages}
+                            align={center}
+                        >
+                            Delete
+                        </TableHeadStyled>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>

@@ -32,6 +32,7 @@ import {
     ADD_ROLE_REMINDER_PLACEHOLDER,
     EDITABLE_DATE_ENUM,
 } from '../constants/constants';
+import NameUtils from '../utils/NameUtils';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -317,12 +318,6 @@ class MemberRow extends React.Component {
                     {member.memberFullName}
                 </TDStyled>
 
-                {this.props.pending && (
-                    <TDStyled color={color} align={left}>
-                        {member.pendingState}
-                    </TDStyled>
-                )}
-
                 <TDStyled color={color} align={left}>
                     <EditDiv>
                         {member.expiration
@@ -379,6 +374,13 @@ class MemberRow extends React.Component {
                                 <MenuDiv>Edit Review Reminder</MenuDiv>
                             </Menu>
                         </EditDiv>
+                    </TDStyled>
+                )}
+                {this.props.pending && (
+                    <TDStyled color={color} align={left}>
+                        {NameUtils.getPendingStateToDisplay(
+                            member.pendingState
+                        )}
                     </TDStyled>
                 )}
                 <TDStyled color={color} align={center}>
