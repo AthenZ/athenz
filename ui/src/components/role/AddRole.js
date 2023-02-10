@@ -413,6 +413,7 @@ class AddRole extends React.Component {
                     <StyledInputLabel>Role Name</StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            id={'role-name-input'}
                             placeholder={
                                 ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER
                             }

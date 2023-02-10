@@ -13,14 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 describe('Home page', () => {
+    
     it('should redirect to okta without credentials', async () => {
         await browser.url(`/`);
         await expect(browser).toHaveUrlContaining('okta');
     });
+    
     it('should login with valid credentials', async () => {
         await browser.newUser();
         await browser.url(`/`);
         await expect(browser).toHaveUrlContaining('athenz');
+    });
+
+    // TODO: Update test when able to create a new domain with unique name 'X' and create role against 'X'
+    it('should successfully add and delete role', async() => {
+        let testDomain = await $('a*=home.jtsang01.athenzui-functest');
+        let testRoleName = 'testrole';
+        await browser.waitUntil(async() => await testDomain.isClickable());
+        await testDomain.click();
+
+        let addRoleButton = await $('button*=Add Role');
+        await browser.waitUntil(async() => await addRoleButton.isClickable());
+        addRoleButton.click();
+        let roleNameInput = await $('#role-name-input');
+        await roleNameInput.addValue(testRoleName);
+        let submitButton = await $('button*=Submit');
+        await submitButton.click();
+
+        let testRole = await $(`span*= ${testRoleName}`);
+        await browser.waitUntil(async() => await testRole.isDisplayed());
+        await expect(testRole).toExist();
+
+        let deleteRoleButton = await $(`#${testRoleName}-delete-role-button`);
+        await deleteRoleButton.click();
+
+        let confirmDeleteRoleButton = await $('button[data-testid="delete-modal-delete"]');
+        await confirmDeleteRoleButton.click();
+        await expect(testRole).not.toExist();
     });
 })

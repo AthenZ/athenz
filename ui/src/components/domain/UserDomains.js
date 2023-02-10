@@ -178,7 +178,7 @@ class UserDomains extends React.Component {
                             </ManageDomainsTitleDiv>
                             <div>
                                 <Link href={PageUtils.createDomainPage()}>
-                                    <StyledAnchor>Create</StyledAnchor>
+                                    <StyledAnchor id='create-domain-button'>Create</StyledAnchor>
                                 </Link>
                                 <DividerSpan> | </DividerSpan>
                                 <Link href={PageUtils.manageDomainPage()}>

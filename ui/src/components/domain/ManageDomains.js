@@ -392,6 +392,7 @@ class ManageDomains extends React.Component {
                                       isLink
                                       size={'1.25em'}
                                       verticalAlign={'text-bottom'}
+                                      id={item.domain.name + '-delete-button'}
                                   />
                               ) : null}
                           </TDStyled>

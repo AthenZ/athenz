@@ -31,14 +31,17 @@ const TABS = [
     {
         label: 'Top Level',
         name: 'top-level',
+        id: 'top-level'
     },
     {
         label: 'Sub Domain',
         name: 'sub-domain',
+        id: 'sub-domain'
     },
     {
         label: 'Personal',
         name: 'personal',
+        id: 'personal'
     },
 ];
 
@@ -298,6 +301,7 @@ class CreateDomain extends React.Component {
                                 type={'button'}
                                 disabled={isDisabled}
                                 onClick={this.onSubmit}
+                                id={'submit-button'}
                             >
                                 Submit
                             </Button>
@@ -305,6 +309,7 @@ class CreateDomain extends React.Component {
                                 secondary={true}
                                 type={'button'}
                                 disabled={isDisabled}
+                                id={'cancel-button'}
                             >
                                 Cancel
                             </Button>
