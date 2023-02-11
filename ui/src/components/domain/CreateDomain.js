@@ -31,17 +31,17 @@ const TABS = [
     {
         label: 'Top Level',
         name: 'top-level',
-        id: 'top-level'
+        id: 'top-level',
     },
     {
         label: 'Sub Domain',
         name: 'sub-domain',
-        id: 'sub-domain'
+        id: 'sub-domain',
     },
     {
         label: 'Personal',
         name: 'personal',
-        id: 'personal'
+        id: 'personal',
     },
 ];
 

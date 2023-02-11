@@ -15,12 +15,11 @@
  */
 
 describe('Home page', () => {
-    
     it('should redirect to okta without credentials', async () => {
         await browser.url(`/`);
         await expect(browser).toHaveUrlContaining('okta');
     });
-    
+
     it('should login with valid credentials', async () => {
         await browser.newUser();
         await browser.url(`/`);
@@ -28,14 +27,14 @@ describe('Home page', () => {
     });
 
     // TODO: Update test when able to create a new domain with unique name 'X' and create role against 'X'
-    it('should successfully add and delete role', async() => {
+    it('should successfully add and delete role', async () => {
         let testDomain = await $('a*=home.jtsang01.athenzui-functest');
         let testRoleName = 'testrole';
-        await browser.waitUntil(async() => await testDomain.isClickable());
+        await browser.waitUntil(async () => await testDomain.isClickable());
         await testDomain.click();
 
         let addRoleButton = await $('button*=Add Role');
-        await browser.waitUntil(async() => await addRoleButton.isClickable());
+        await browser.waitUntil(async () => await addRoleButton.isClickable());
         addRoleButton.click();
         let roleNameInput = await $('#role-name-input');
         await roleNameInput.addValue(testRoleName);
@@ -43,14 +42,18 @@ describe('Home page', () => {
         await submitButton.click();
 
         let testRole = await $(`span*= ${testRoleName}`);
-        await browser.waitUntil(async() => await testRole.isDisplayed());
+        await browser.waitUntil(async () => await testRole.isDisplayed());
         await expect(testRole).toExist();
 
         let deleteRoleButton = await $(`#${testRoleName}-delete-role-button`);
         await deleteRoleButton.click();
 
-        let confirmDeleteRoleButton = await $('button[data-testid="delete-modal-delete"]');
+        let confirmDeleteRoleButton = await $(
+            'button[data-testid="delete-modal-delete"]'
+        );
         await confirmDeleteRoleButton.click();
         await expect(testRole).not.toExist();
+
+        await browser.debug();
     });
-})
+});

@@ -119,7 +119,9 @@ export default class CreateDomainPage extends React.Component {
                             <CreateDomainContainerDiv>
                                 <CreateDomainContentDiv>
                                     <PageHeaderDiv>
-                                        <TitleDiv id='create-domain-title'>Create New Domain</TitleDiv>
+                                        <TitleDiv id='create-domain-title'>
+                                            Create New Domain
+                                        </TitleDiv>
                                     </PageHeaderDiv>
                                     <CreateDomain
                                         userId={this.props.headerDetails.userId}
