@@ -16,6 +16,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import PendingApprovalTableRow from '../../../components/pending-approval/PendingApprovalTableRow';
+import {PENDING_STATE_ENUM} from "../../../components/constants/constants";
 
 describe('PendingApprovalTable', () => {
     it('should render', () => {
@@ -38,6 +39,7 @@ describe('PendingApprovalTable', () => {
                         userComment={userComment}
                         pendingDecision={() => {}}
                         auditRefMissing={false}
+                        pendingState={PENDING_STATE_ENUM.ADD}
                     />
                 </tbody>
             </table>

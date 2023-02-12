@@ -603,7 +603,7 @@ exports[`PendingApprovalPage should render 1`] = `
 }
 
 .emotion-33 {
-  width: calc(100vw - 25em);
+  width: calc(100vw - 15em);
   overflow-x: scroll;
   overflow-y: visible;
   box-sizing: content-box!important;
@@ -758,7 +758,6 @@ exports[`PendingApprovalPage should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
   text-align: center;
@@ -884,7 +883,6 @@ exports[`PendingApprovalPage should render 1`] = `
   color: #9a9a9a;
   font-weight: 600;
   font-size: 1.2rem;
-  padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
   padding: 5px 0 5px 0px;
@@ -896,7 +894,6 @@ exports[`PendingApprovalPage should render 1`] = `
   color: #9a9a9a;
   font-weight: 600;
   font-size: 1.2rem;
-  padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
   padding: 5px 0 5px 15px;
@@ -908,7 +905,6 @@ exports[`PendingApprovalPage should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 1.2rem;
-  padding-bottom: 5px;
   vertical-align: bottom;
   padding: 5px 0 5px 15px;
   text-align: left;
@@ -1012,7 +1008,7 @@ exports[`PendingApprovalPage should render 1`] = `
 .emotion-64>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  background-color: #d5d5d5;
+  background-color: rgba(48,48,48,0.05);
   box-shadow: none;
   color: rgb(48, 48, 48);
   height: 16px;
@@ -1026,8 +1022,7 @@ exports[`PendingApprovalPage should render 1`] = `
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
-  margin: 0px;
-  margin-top: 5px;
+  margin: 5px 7px 0px 0px;
   outline: none;
   padding: 0.6em 12px;
   -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
@@ -1043,34 +1038,38 @@ exports[`PendingApprovalPage should render 1`] = `
 }
 
 .emotion-68 {
+  margin-left: -7px;
+  margin-top: 10px!important;
+}
+
+.emotion-70 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-76 {
-  border-bottom: 2px solid #d5d5d5;
+.emotion-80 {
+  border-bottom: 1px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
   vertical-align: middle;
   text-transform: uppercase;
   text-align: center;
   position: absolute;
-  width: 12em;
-  right: 11em;
+  width: 6em;
+  right: 6em;
   z-index: 1;
   height: 42px;
   background-color: rgba(255, 255, 255, 1);
-  padding-bottom: 5px;
   padding: 5px 0 5px 15px;
 }
 
-.emotion-78 {
+.emotion-82 {
   margin-top: 10px;
 }
 
-.emotion-81 {
-  border-bottom: 2px solid #d5d5d5;
+.emotion-85 {
+  border-bottom: 1px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
   vertical-align: middle;
@@ -1078,16 +1077,15 @@ exports[`PendingApprovalPage should render 1`] = `
   text-align: center;
   border-right: none;
   position: absolute;
-  width: 11em;
+  width: 6em;
   right: 0em;
   z-index: 1;
   height: 42px;
   background-color: rgba(255, 255, 255, 1);
-  padding-bottom: 5px;
   padding: 5px 0 5px 15px;
 }
 
-.emotion-86 {
+.emotion-90 {
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -1100,27 +1098,31 @@ exports[`PendingApprovalPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-108 {
+.emotion-112 {
+  border-top: 1px solid #d5d5d5;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
+  background: #fff;
   font-weight: 600;
   font-size: 1.1rem;
   vertical-align: top;
   text-transform: uppercase;
   text-align: center;
   position: absolute;
-  width: 15.5em;
-  right: 13.5em;
+  width: 7.6em;
+  right: 7.6em;
   z-index: 1;
-  height: 15px;
+  height: 12.9px;
   padding-bottom: 5px;
   padding: 5px 0 5px 15px;
   white-space: nowrap;
 }
 
-.emotion-110 {
+.emotion-114 {
+  border-top: 1px solid #d5d5d5;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
+  background: #fff;
   font-weight: 600;
   font-size: 1.1rem;
   vertical-align: top;
@@ -1128,20 +1130,20 @@ exports[`PendingApprovalPage should render 1`] = `
   text-align: center;
   border-right: none;
   position: absolute;
-  width: 14em;
+  width: 7.6em;
   right: 0em;
   z-index: 1;
-  height: 15px;
+  height: 12.9px;
   padding-bottom: 5px;
   padding: 5px 0 5px 15px;
   white-space: nowrap;
 }
 
-.emotion-112 {
+.emotion-116 {
   background-color: #3570f40D;
 }
 
-.emotion-114 {
+.emotion-118 {
   text-align: left;
   vertical-align: middle;
   word-break: break-all;
@@ -1149,13 +1151,13 @@ exports[`PendingApprovalPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-123 {
+.emotion-127 {
   text-align: left;
   vertical-align: middle;
   padding: 5px 0px 5px 15px;
 }
 
-.emotion-133 {
+.emotion-137 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -1172,7 +1174,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-133>textarea {
+.emotion-137>textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1201,43 +1203,43 @@ exports[`PendingApprovalPage should render 1`] = `
   width: auto;
 }
 
-.emotion-133>textarea::-webkit-input-placeholder {
+.emotion-137>textarea::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-133>textarea::-moz-placeholder {
+.emotion-137>textarea::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-133>textarea:-ms-input-placeholder {
+.emotion-137>textarea:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-133>textarea::placeholder {
+.emotion-137>textarea::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-133>textarea:active,
-.emotion-133>textarea:focus {
+.emotion-137>textarea:active,
+.emotion-137>textarea:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-133>textarea:invalid {
+.emotion-137>textarea:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-133>textarea[disabled] {
+.emotion-137>textarea[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-133 .message {
+.emotion-137 .message {
   font-size: 12px;
   color: #303030;
   left: 0;
@@ -1246,7 +1248,7 @@ exports[`PendingApprovalPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-138>div input {
+.emotion-142>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   background-color: rgba(53, 112, 244, 0.05);
@@ -1263,8 +1265,7 @@ exports[`PendingApprovalPage should render 1`] = `
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
-  margin: 0px;
-  margin-top: 5px;
+  margin: 5px 7px 0px 0px;
   outline: none;
   padding: 0.6em 12px;
   -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
@@ -1272,73 +1273,73 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 10em;
 }
 
-.emotion-150 {
+.emotion-158 {
   vertical-align: middle;
   word-break: break-all;
   text-align: center;
   position: absolute;
-  width: 12em;
-  right: 11em;
+  width: 6em;
+  right: 6em;
   height: 96px;
   background-color: rgba(244, 248, 254, 1);
   padding: 5px 0px 5px 14px;
 }
 
-.emotion-152 {
+.emotion-160 {
   margin-top: 45px;
 }
 
-.emotion-154 {
+.emotion-162 {
   fill: #1dad51;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-155 {
+.emotion-163 {
   vertical-align: middle;
   word-break: break-all;
   text-align: center;
   border-right: none;
   position: absolute;
-  width: 11em;
+  width: 6em;
   right: 0em;
   height: 96px;
   background-color: rgba(244, 248, 254, 1);
   padding: 5px 0px 5px 0px;
 }
 
-.emotion-159 {
+.emotion-167 {
   fill: #ea0000;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-198 {
+.emotion-210 {
   vertical-align: middle;
   word-break: break-all;
   text-align: center;
   position: absolute;
-  width: 12em;
-  right: 11em;
+  width: 6em;
+  right: 6em;
   height: 96px;
   background-color: rgba(255, 255, 255, 1);
   padding: 5px 0px 5px 14px;
 }
 
-.emotion-203 {
+.emotion-215 {
   vertical-align: middle;
   word-break: break-all;
   text-align: center;
   border-right: none;
   position: absolute;
-  width: 11em;
+  width: 6em;
   right: 0em;
   height: 96px;
   background-color: rgba(255, 255, 255, 1);
   padding: 5px 0px 5px 0px;
 }
 
-.emotion-208 {
+.emotion-220 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1364,7 +1365,7 @@ exports[`PendingApprovalPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-210 {
+.emotion-222 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
@@ -1623,7 +1624,7 @@ exports[`PendingApprovalPage should render 1`] = `
                     />
                     <th
                       class="emotion-49 emotion-50"
-                      colspan="3"
+                      colspan="4"
                     />
                     <th
                       class="emotion-49 emotion-50"
@@ -1672,10 +1673,11 @@ exports[`PendingApprovalPage should render 1`] = `
                             type="text"
                           />
                           <a
+                            class="emotion-68 emotion-69"
                             data-clear=""
                           >
                             <svg
-                              class="emotion-68"
+                              class="emotion-70"
                               data-testid="icon"
                               height="1.25em"
                               id=""
@@ -1719,10 +1721,11 @@ exports[`PendingApprovalPage should render 1`] = `
                             type="text"
                           />
                           <a
+                            class="emotion-68 emotion-69"
                             data-clear=""
                           >
                             <svg
-                              class="emotion-68"
+                              class="emotion-70"
                               data-testid="icon"
                               height="1.25em"
                               id=""
@@ -1741,10 +1744,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-76 emotion-77"
+                      class="emotion-80 emotion-81"
                     >
                       <div
-                        class="emotion-78 emotion-79"
+                        class="emotion-82 emotion-83"
                       >
                         <svg
                           class="emotion-41"
@@ -1767,10 +1770,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </th>
                     <th
-                      class="emotion-81 emotion-82"
+                      class="emotion-85 emotion-86"
                     >
                       <div
-                        class="emotion-78 emotion-79"
+                        class="emotion-82 emotion-83"
                       >
                         <svg
                           class="emotion-41"
@@ -1792,66 +1795,66 @@ exports[`PendingApprovalPage should render 1`] = `
                   </tr>
                   <tr>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     />
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Type
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Pending State
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Name
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Member
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                       colspan="2"
                     >
                       User Comment
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Requester
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Request Time
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Audit Reference
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Expiration Date
                     </th>
                     <th
-                      class="emotion-86 emotion-87"
+                      class="emotion-90 emotion-91"
                     >
                       Reminder Date
                     </th>
                     <th
-                      class="emotion-108 emotion-109"
+                      class="emotion-112 emotion-113"
                     >
                       Approve
                     </th>
                     <th
-                      class="emotion-110 emotion-111"
+                      class="emotion-114 emotion-115"
                     >
                       Reject
                     </th>
@@ -1859,12 +1862,12 @@ exports[`PendingApprovalPage should render 1`] = `
                 </thead>
                 <tbody>
                   <tr
-                    class="emotion-112 emotion-113"
+                    class="emotion-116 emotion-117"
                     color="#3570f40D"
                     data-testid="pending-approval-table-row"
                   >
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
                         class="emotion-46 denali-checkbox"
@@ -1882,22 +1885,20 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       role
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
-                    >
-                      ADD
-                    </td>
+                      class="emotion-118 emotion-119"
+                    />
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       testrole1
                     </td>
                     <td
-                      class="emotion-123 emotion-124"
+                      class="emotion-127 emotion-128"
                     >
                       <p>
                         Test
@@ -1909,13 +1910,13 @@ exports[`PendingApprovalPage should render 1`] = `
                       </p>
                     </td>
                     <td
-                      class="emotion-123 emotion-124"
+                      class="emotion-127 emotion-128"
                       colspan="2"
                     >
                       testing1
                     </td>
                     <td
-                      class="emotion-123 emotion-124"
+                      class="emotion-127 emotion-128"
                     >
                       <p>
                         Test
@@ -1927,15 +1928,15 @@ exports[`PendingApprovalPage should render 1`] = `
                       </p>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       2022-02-15 18:14 UTC
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
-                        class="emotion-133 denali-textarea emotion-60 emotion-135"
+                        class="emotion-137 denali-textarea emotion-60 emotion-139"
                         data-testid="textarea-wrapper"
                       >
                         <textarea
@@ -1947,10 +1948,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
-                        class="emotion-138 emotion-139"
+                        class="emotion-142 emotion-143"
                       >
                         <div
                           class="fp-home_domain1user_test1testrole1expiry emotion-66 emotion-67"
@@ -1971,10 +1972,11 @@ exports[`PendingApprovalPage should render 1`] = `
                             type="text"
                           />
                           <a
+                            class="emotion-68 emotion-69"
                             data-clear=""
                           >
                             <svg
-                              class="emotion-68"
+                              class="emotion-70"
                               data-testid="icon"
                               height="1.25em"
                               id=""
@@ -1993,10 +1995,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
-                        class="emotion-138 emotion-139"
+                        class="emotion-142 emotion-143"
                       >
                         <div
                           class="fp-home_domain1user_test1testrole1reviewReminder emotion-66 emotion-67"
@@ -2017,10 +2019,11 @@ exports[`PendingApprovalPage should render 1`] = `
                             type="text"
                           />
                           <a
+                            class="emotion-68 emotion-69"
                             data-clear=""
                           >
                             <svg
-                              class="emotion-68"
+                              class="emotion-70"
                               data-testid="icon"
                               height="1.25em"
                               id=""
@@ -2039,14 +2042,14 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-150 emotion-151"
+                      class="emotion-158 emotion-159"
                       color="rgba(244, 248, 254, 1)"
                     >
                       <div
-                        class="emotion-152 emotion-153"
+                        class="emotion-160 emotion-161"
                       >
                         <svg
-                          class="emotion-154"
+                          class="emotion-162"
                           data-testid="icon"
                           height="1.25em"
                           id=""
@@ -2066,14 +2069,14 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-155 emotion-156"
+                      class="emotion-163 emotion-164"
                       color="rgba(244, 248, 254, 1)"
                     >
                       <div
-                        class="emotion-152 emotion-153"
+                        class="emotion-160 emotion-161"
                       >
                         <svg
-                          class="emotion-159"
+                          class="emotion-167"
                           data-testid="icon"
                           height="1.25em"
                           id=""
@@ -2091,12 +2094,12 @@ exports[`PendingApprovalPage should render 1`] = `
                     </td>
                   </tr>
                   <tr
-                    class="emotion-160 emotion-113"
+                    class="emotion-168 emotion-117"
                     color=""
                     data-testid="pending-approval-table-row"
                   >
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
                         class="emotion-46 denali-checkbox"
@@ -2114,22 +2117,20 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       role
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
-                    >
-                      ADD
-                    </td>
+                      class="emotion-118 emotion-119"
+                    />
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       add-test
                     </td>
                     <td
-                      class="emotion-123 emotion-124"
+                      class="emotion-127 emotion-128"
                     >
                       <p>
                         Test
@@ -2141,13 +2142,13 @@ exports[`PendingApprovalPage should render 1`] = `
                       </p>
                     </td>
                     <td
-                      class="emotion-123 emotion-124"
+                      class="emotion-127 emotion-128"
                       colspan="2"
                     >
                       test
                     </td>
                     <td
-                      class="emotion-123 emotion-124"
+                      class="emotion-127 emotion-128"
                     >
                       <p>
                         Test
@@ -2159,15 +2160,15 @@ exports[`PendingApprovalPage should render 1`] = `
                       </p>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       2022-02-16 16:02 UTC
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
-                        class="emotion-133 denali-textarea emotion-60 emotion-135"
+                        class="emotion-137 denali-textarea emotion-60 emotion-139"
                         data-testid="textarea-wrapper"
                       >
                         <textarea
@@ -2179,10 +2180,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
-                        class="emotion-138 emotion-139"
+                        class="emotion-142 emotion-143"
                       >
                         <div
                           class="fp-home_domain2user_test2add_testexpiry emotion-66 emotion-67"
@@ -2203,10 +2204,11 @@ exports[`PendingApprovalPage should render 1`] = `
                             type="text"
                           />
                           <a
+                            class="emotion-68 emotion-69"
                             data-clear=""
                           >
                             <svg
-                              class="emotion-68"
+                              class="emotion-70"
                               data-testid="icon"
                               height="1.25em"
                               id=""
@@ -2225,10 +2227,10 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-114 emotion-115"
+                      class="emotion-118 emotion-119"
                     >
                       <div
-                        class="emotion-138 emotion-139"
+                        class="emotion-142 emotion-143"
                       >
                         <div
                           class="fp-home_domain2user_test2add_testreviewReminder emotion-66 emotion-67"
@@ -2249,10 +2251,11 @@ exports[`PendingApprovalPage should render 1`] = `
                             type="text"
                           />
                           <a
+                            class="emotion-68 emotion-69"
                             data-clear=""
                           >
                             <svg
-                              class="emotion-68"
+                              class="emotion-70"
                               data-testid="icon"
                               height="1.25em"
                               id=""
@@ -2271,14 +2274,14 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-198 emotion-151"
+                      class="emotion-210 emotion-159"
                       color="rgba(255, 255, 255, 1)"
                     >
                       <div
-                        class="emotion-152 emotion-153"
+                        class="emotion-160 emotion-161"
                       >
                         <svg
-                          class="emotion-154"
+                          class="emotion-162"
                           data-testid="icon"
                           height="1.25em"
                           id=""
@@ -2298,14 +2301,14 @@ exports[`PendingApprovalPage should render 1`] = `
                       </div>
                     </td>
                     <td
-                      class="emotion-203 emotion-156"
+                      class="emotion-215 emotion-164"
                       color="rgba(255, 255, 255, 1)"
                     >
                       <div
-                        class="emotion-152 emotion-153"
+                        class="emotion-160 emotion-161"
                       >
                         <svg
-                          class="emotion-159"
+                          class="emotion-167"
                           data-testid="icon"
                           height="1.25em"
                           id=""
@@ -2332,11 +2335,11 @@ exports[`PendingApprovalPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-208 emotion-209"
+          class="emotion-220 emotion-221"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-210"
+            class="emotion-222"
             data-testid="icon"
             height="1em"
             id=""

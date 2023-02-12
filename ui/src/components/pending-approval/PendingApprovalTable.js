@@ -58,26 +58,30 @@ const TableHeaderDomain = styled.th`
 `;
 
 const ApproveTableHeader = styled.th`
+    border-top: 1px solid ${colors.grey500};
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
+    background: ${colors.white};
     font-weight: 600;
     font-size: 1.1rem;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
     position: absolute;
-    width: 15.5em;
-    right: 13.5em;
+    width: 7.6em;
+    right: 7.6em;
     z-index: 1;
-    height: 15px;
+    height: 12.9px;
     padding-bottom: 5px;
     padding: 5px 0 5px 15px;
     white-space: nowrap;
 `;
 
 const RejectTableHeader = styled.th`
+    border-top: 1px solid ${colors.grey500};
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
+    background: ${colors.white};
     font-weight: 600;
     font-size: 1.1rem;
     vertical-align: top;
@@ -85,10 +89,10 @@ const RejectTableHeader = styled.th`
     text-align: center;
     border-right: none;
     position: absolute;
-    width: 14em;
+    width: 7.6em;
     right: 0em;
     z-index: 1;
-    height: 15px;
+    height: 12.9px;
     padding-bottom: 5px;
     padding: 5px 0 5px 15px;
     white-space: nowrap;
@@ -405,9 +409,7 @@ class PendingApprovalTable extends React.Component {
                         requestedReviewReminder={
                             this.state.pendingMap[key].reviewReminder
                         }
-                        pendingState={NameUtils.getPendingStateToDisplay(
-                            this.state.pendingMap[key].pendingState
-                        )}
+                        pendingState={this.state.pendingMap[key].pendingState}
                         view={view}
                     />
                 );
