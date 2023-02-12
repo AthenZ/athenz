@@ -188,8 +188,22 @@ export const editMicrosegmentationHandler = async (
 
     if (assertionChanged || assertionConditionChanged) {
         for (const condition of data['conditionsList']) {
-            const { enforcementstate, id, instances } = condition;
-            conditionsList.push({ enforcementstate, id, instances });
+            const {
+                enforcementstate,
+                id,
+                instances,
+                scopeall,
+                scopeaws,
+                scopeonprem,
+            } = condition;
+            conditionsList.push({
+                enforcementstate,
+                id,
+                instances,
+                scopeall,
+                scopeaws,
+                scopeonprem,
+            });
         }
     }
 

@@ -2555,7 +2555,13 @@ Fetchr.registerService({
                     conditionsMap: {},
                 };
                 Object.keys(params.data['conditionsList'][i]).forEach((key) => {
-                    if (key === 'enforcementstate' || key === 'instances') {
+                    if (
+                        key === 'enforcementstate' ||
+                        key === 'instances' ||
+                        key === 'scopeonprem' ||
+                        key === 'scopeaws' ||
+                        key === 'scopeall'
+                    ) {
                         let copyAssertionConditionData = JSON.parse(
                             JSON.stringify(assertionConditionData)
                         );
