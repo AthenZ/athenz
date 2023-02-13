@@ -305,6 +305,7 @@ exports[`ManageDomains should render 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-0-switch-input"
               disabled=""
               id="switch-selfServe-0"
               name="selfServe-0"
@@ -372,6 +373,7 @@ exports[`ManageDomains should render 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-1-switch-input"
               disabled=""
               id="switch-selfServe-1"
               name="selfServe-1"
@@ -721,6 +723,7 @@ exports[`ManageDomains should render no domain 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-0-switch-input"
               disabled=""
               id="switch-selfServe-0"
               name="selfServe-0"
@@ -788,6 +791,7 @@ exports[`ManageDomains should render no domain 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-1-switch-input"
               disabled=""
               id="switch-selfServe-1"
               name="selfServe-1"
@@ -1149,6 +1153,7 @@ exports[`ManageDomains should render personal domain 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-0-switch-input"
               disabled=""
               id="switch-selfServe-0"
               name="selfServe-0"
@@ -1216,6 +1221,7 @@ exports[`ManageDomains should render personal domain 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-1-switch-input"
               disabled=""
               id="switch-selfServe-1"
               name="selfServe-1"
@@ -1559,6 +1565,7 @@ exports[`ManageDomains should render top level domain 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-0-switch-input"
               disabled=""
               id="switch-selfServe-0"
               name="selfServe-0"
@@ -1626,6 +1633,7 @@ exports[`ManageDomains should render top level domain 1`] = `
             data-testid="switch-wrapper"
           >
             <input
+              data-testid="selfServe-1-switch-input"
               disabled=""
               id="switch-selfServe-1"
               name="selfServe-1"

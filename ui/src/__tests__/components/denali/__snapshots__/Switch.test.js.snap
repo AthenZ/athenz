@@ -119,6 +119,7 @@ exports[`Switch should render checked state 1`] = `
 >
   <input
     checked=""
+    data-testid="test-switch-switch-input"
     id="switch-test-switch"
     name="test-switch"
     type="checkbox"
@@ -254,6 +255,7 @@ exports[`Switch should render unchecked state 1`] = `
   data-testid="switch-wrapper"
 >
   <input
+    data-testid="test-switch-switch-input"
     id="switch-test-switch"
     name="test-switch"
     type="checkbox"

@@ -137,7 +137,7 @@ class AddGroup extends React.Component {
     }
 
     getJustification() {
-        if (this.props.justificationRequired) {
+        if (this.props.isDomainAuditEnabled) {
             return (
                 <SectionDiv>
                     <StyledInputLabel>Justification</StyledInputLabel>
@@ -251,7 +251,7 @@ class AddGroup extends React.Component {
         }
 
         if (
-            this.props.justificationRequired &&
+            this.props.isDomainAuditEnabled &&
             (this.state.justification === undefined ||
                 this.state.justification.trim() === '')
         ) {

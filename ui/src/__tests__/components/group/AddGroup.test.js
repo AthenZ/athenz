@@ -23,10 +23,11 @@ import {
 } from '@testing-library/react';
 import AddGroup from '../../../components/group/AddGroup';
 import API from '../../../api';
-import { GROUP_MEMBER_PLACEHOLDER } from '../../../components/constants/constants';
+import {ADD_GROUP_AUDIT_ENABLED_TOOLTIP, GROUP_MEMBER_PLACEHOLDER} from '../../../components/constants/constants';
 import {
+    buildDomainDataForState,
     buildGroupsForState,
-    buildServicesForState,
+    getStateWithDomainData,
     getStateWithGroups,
     renderWithRedux,
 } from '../../../tests_utils/ComponentsTestUtils';
@@ -41,14 +42,18 @@ describe('AddGroup', () => {
 
     it('should render', () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const { getByTestId } = renderWithRedux(
             <AddGroup
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         const addGroupForm = getByTestId('add-group');
         expect(addGroupForm).toMatchSnapshot();
@@ -56,6 +61,10 @@ describe('AddGroup', () => {
 
     it('should throw error for group name 1', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -65,10 +74,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -95,6 +104,10 @@ describe('AddGroup', () => {
 
     it('should throw error for group name 2', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -104,10 +117,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -135,6 +148,10 @@ describe('AddGroup', () => {
 
     it('should throw error for group name 3', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -144,10 +161,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -175,6 +192,10 @@ describe('AddGroup', () => {
 
     it('should not throw error for group name', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -188,12 +209,11 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
                 groupNames={'group1'}
             />,
-            getStateWithGroups(groups)
+            getStateWithGroups(groups, {"domainData": domainData})
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -217,6 +237,10 @@ describe('AddGroup', () => {
 
     it('should throw error for group member name 1', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -226,10 +250,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         expect(
             screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER)
@@ -260,6 +284,10 @@ describe('AddGroup', () => {
 
     it('should throw error for group member name 2', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -269,10 +297,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         expect(
             screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER)
@@ -303,6 +331,10 @@ describe('AddGroup', () => {
 
     it('should throw error for group member name 3', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -312,10 +344,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
-            />
+            />,
+            getStateWithDomainData(domainData)
         );
         expect(
             screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER)
@@ -346,6 +378,10 @@ describe('AddGroup', () => {
 
     it('should not throw error for group member name', async () => {
         let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
@@ -359,11 +395,10 @@ describe('AddGroup', () => {
                 _csrf={_csrf}
                 onSubmit={onSubmit}
                 domain={domain}
-                justificationRequired={true}
                 showAddGroup={true}
                 onCancel={onClose}
             />,
-            getStateWithGroups(groups)
+            getStateWithGroups(groups, {"domainData": domainData})
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -389,5 +424,141 @@ describe('AddGroup', () => {
         await waitFor(() => {
             expect(onSubmit.mock.calls.length).toBe(1);
         });
+    });
+
+    it('should have auditEnabled switch', async () => {
+        let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const onClose = jest.fn();
+        const onSubmit = jest.fn();
+        const _csrf = '_csrf';
+
+        const {getByText} = renderWithRedux(
+            <AddGroup
+                _csrf={_csrf}
+                onSubmit={onSubmit}
+                domain={domain}
+                showAddGroup={true}
+                onCancel={onClose}
+            />,
+            getStateWithDomainData(domainData)
+        );
+
+        expect(
+            screen.getByTestId('auditEnabled-switch-input')
+        ).toBeInTheDocument();
+
+        expect(
+            screen.getAllByTestId('auditEnabled-switch-input')
+        ).toHaveLength(1);
+
+        fireEvent.click(
+            screen.getByTestId('auditEnabled-switch-input')
+        );
+
+        await waitFor(() => {
+            expect(
+                screen.getAllByTitle(ADD_GROUP_AUDIT_ENABLED_TOOLTIP)
+            ).toHaveLength(2);
+        });
+    });
+
+    it('should have auditEnabled switch disabled after user is added', async () => {
+        let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const onClose = jest.fn();
+        const onSubmit = jest.fn();
+        const _csrf = '_csrf';
+
+        const {getByText} = renderWithRedux(
+            <AddGroup
+                _csrf={_csrf}
+                onSubmit={onSubmit}
+                domain={domain}
+                showAddGroup={true}
+                onCancel={onClose}
+            />,
+            getStateWithDomainData(domainData)
+        );
+
+        fireEvent.change(
+            screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
+            {
+                target: { value: 'user.test' },
+            }
+        );
+
+        const button = getByText('Add');
+        fireEvent.click(button);
+
+        await waitFor(() => {
+            expect(
+                screen.getByTestId('auditEnabled-switch-input')
+            ).toBeDisabled();
+        });
+    });
+
+    it('should open modal with auditEnabled switch', async () => {
+        let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: true,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const onClose = jest.fn();
+        const onSubmit = jest.fn();
+        const _csrf = '_csrf';
+
+        const {getByTestId} = renderWithRedux(
+            <AddGroup
+                _csrf={_csrf}
+                onSubmit={onSubmit}
+                domain={domain}
+                showAddGroup={true}
+                onCancel={onClose}
+            />,
+            getStateWithDomainData(domainData)
+        );
+
+        await waitFor(() =>
+            expect(getByTestId('add-modal-message')).toBeInTheDocument()
+        );
+
+        const addRoleForm = getByTestId('add-modal-message');
+        expect(addRoleForm).toMatchSnapshot();
+    });
+
+    it('should open modal without auditEnabled switch', async () => {
+        let domain = 'domain';
+        const domainMetadata = {
+            auditEnabled: false,
+        };
+        const domainData = buildDomainDataForState(domainMetadata, domain);
+        const onClose = jest.fn();
+        const onSubmit = jest.fn();
+        const _csrf = '_csrf';
+
+        const {getByTestId} = renderWithRedux(
+            <AddGroup
+                _csrf={_csrf}
+                onSubmit={onSubmit}
+                domain={domain}
+                showAddGroup={true}
+                onCancel={onClose}
+            />,
+            getStateWithDomainData(domainData)
+        );
+
+        await waitFor(() =>
+            expect(getByTestId('add-modal-message')).toBeInTheDocument()
+        );
+
+        const addRoleForm = getByTestId('add-modal-message');
+        expect(addRoleForm).toMatchSnapshot();
     });
 });

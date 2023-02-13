@@ -158,8 +158,7 @@ class AddRole extends React.Component {
         this.dateUtils = new DateUtils();
 
         let role = {
-            selfServe: false,
-            auditEnabled: false,
+            auditEnabled: false
         };
 
         this.state = {

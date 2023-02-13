@@ -182,9 +182,6 @@ class GroupSettingsPage extends React.Component {
                                             groupDetails ? groupDetails : {}
                                         }
                                         _csrf={_csrf}
-                                        justificationRequired={
-                                            this.props.auditEnabled
-                                        }
                                         category={'group'}
                                     />
                                 </RolesContentDiv>

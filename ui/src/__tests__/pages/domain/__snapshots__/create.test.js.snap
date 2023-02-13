@@ -1135,6 +1135,7 @@ exports[`CreateDomainPage should render 1`] = `
                     data-testid="switch-wrapper"
                   >
                     <input
+                      data-testid="auditEnabled-switch-input"
                       disabled=""
                       id="switch-auditEnabled"
                       name="auditEnabled"
