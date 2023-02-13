@@ -1047,6 +1047,7 @@ exports[`DynamicInstancePage should render 1`] = `
                 class="emotion-10"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -1077,6 +1078,7 @@ exports[`DynamicInstancePage should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
+            id=""
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1094,6 +1096,7 @@ exports[`DynamicInstancePage should render 1`] = `
               class="emotion-14"
               data-testid="icon"
               height="25px"
+              id=""
               viewBox="0 0 1024 1024"
               width="25px"
             >
@@ -1148,6 +1151,7 @@ exports[`DynamicInstancePage should render 1`] = `
                   class="emotion-34"
                   data-testid="icon"
                   height="15px"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="15px"
                 >
@@ -1189,6 +1193,7 @@ exports[`DynamicInstancePage should render 1`] = `
                           class="emotion-34"
                           data-testid="icon"
                           height="15px"
+                          id=""
                           viewBox="0 0 1024 1024"
                           width="15px"
                         >
@@ -1226,6 +1231,7 @@ exports[`DynamicInstancePage should render 1`] = `
                           class="emotion-34"
                           data-testid="icon"
                           height="15px"
+                          id=""
                           viewBox="0 0 1024 1024"
                           width="15px"
                         >
@@ -1311,6 +1317,7 @@ exports[`DynamicInstancePage should render 1`] = `
                             class="emotion-72"
                             data-testid="icon"
                             height="24px"
+                            id=""
                             viewBox="0 0 1024 1024"
                             width="24px"
                           >
@@ -1350,6 +1357,7 @@ exports[`DynamicInstancePage should render 1`] = `
                           class="emotion-10"
                           data-testid="icon"
                           height="24px"
+                          id=""
                           viewBox="0 0 1024 1024"
                           width="24px"
                         >
@@ -1486,6 +1494,7 @@ exports[`DynamicInstancePage should render 1`] = `
                         class="emotion-111"
                         data-testid="icon"
                         height="1.25em"
+                        id=""
                         viewBox="0 0 1024 1024"
                         width="1.25em"
                       >
@@ -1518,6 +1527,7 @@ exports[`DynamicInstancePage should render 1`] = `
             class="emotion-114"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -1571,6 +1581,7 @@ exports[`DynamicInstancePage should render 1`] = `
                   class="emotion-133"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >
@@ -1604,6 +1615,7 @@ exports[`DynamicInstancePage should render 1`] = `
                   class="emotion-133"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >

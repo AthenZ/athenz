@@ -10,6 +10,7 @@ exports[`Icon should render default icon with svg 1`] = `
   class="emotion-0"
   data-testid="icon"
   height="1em"
+  id=""
   viewBox="0 0 1024 1024"
   width="1em"
 >

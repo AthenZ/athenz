@@ -28,7 +28,7 @@ describe('Home page', () => {
 
     // TODO: Update test when able to create a new domain with unique name 'X' and create role against 'X'
     it('should successfully add and delete role', async () => {
-        let testDomain = await $('a*=home.jtsang01.athenzui-functest');
+        let testDomain = await $('a*=athenz.dev.functional-test');
         let testRoleName = 'testrole';
         await browser.waitUntil(async () => await testDomain.isClickable());
         await testDomain.click();
@@ -53,7 +53,5 @@ describe('Home page', () => {
         );
         await confirmDeleteRoleButton.click();
         await expect(testRole).not.toExist();
-
-        await browser.debug();
     });
 });

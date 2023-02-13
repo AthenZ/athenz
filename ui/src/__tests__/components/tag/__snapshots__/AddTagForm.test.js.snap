@@ -426,6 +426,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
             class="emotion-41"
             data-testid="icon"
             height="20px"
+            id=""
             viewBox="0 0 1024 1024"
             width="20px"
           >
@@ -457,6 +458,7 @@ exports[`AddTagForm should render on edit tag 1`] = `
             class="emotion-41"
             data-testid="icon"
             height="20px"
+            id=""
             viewBox="0 0 1024 1024"
             width="20px"
           >

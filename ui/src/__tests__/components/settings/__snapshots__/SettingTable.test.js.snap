@@ -854,6 +854,7 @@ exports[`SettingTable should render setting table 1`] = `
                   class="emotion-136"
                   data-testid="icon"
                   height="24px"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="24px"
                 >
@@ -928,6 +929,7 @@ exports[`SettingTable should render setting table 1`] = `
                   class="emotion-136"
                   data-testid="icon"
                   height="24px"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="24px"
                 >

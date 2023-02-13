@@ -358,6 +358,7 @@ exports[`HistoryList should render 1`] = `
               class="emotion-15"
               data-testid="icon"
               height="24px"
+              id=""
               viewBox="0 0 1024 1024"
               width="24px"
             >

@@ -718,6 +718,7 @@ exports[`Input should render a small input with an icon 1`] = `
       class="emotion-1"
       data-testid="icon"
       height="20px"
+      id=""
       viewBox="0 0 1024 1024"
       width="20px"
     >
@@ -1025,6 +1026,7 @@ exports[`Input should render an input with an icon 1`] = `
       class="emotion-1"
       data-testid="icon"
       height="24px"
+      id=""
       viewBox="0 0 1024 1024"
       width="24px"
     >
@@ -1637,6 +1639,7 @@ exports[`Input should render icon with renderIcon function  1`] = `
       class="emotion-1"
       data-testid="icon"
       height="24px"
+      id=""
       viewBox="0 0 1024 1024"
       width="24px"
     >

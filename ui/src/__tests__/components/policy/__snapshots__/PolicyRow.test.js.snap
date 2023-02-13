@@ -244,6 +244,7 @@ exports[`PolicyRow should render 1`] = `
       class="emotion-19"
       data-testid="icon"
       height="1.25em"
+      id=""
       viewBox="0 0 1024 1024"
       width="1.25em"
     >
@@ -263,6 +264,7 @@ exports[`PolicyRow should render 1`] = `
       class="emotion-22"
       data-testid="icon"
       height="1.25em"
+      id=""
       viewBox="0 0 48 48"
       width="1.25em"
     >
@@ -282,6 +284,7 @@ exports[`PolicyRow should render 1`] = `
       class="emotion-22"
       data-testid="icon"
       height="1.25em"
+      id=""
       viewBox="0 0 48 48"
       width="1.25em"
     >

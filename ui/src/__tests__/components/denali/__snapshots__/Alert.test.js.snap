@@ -188,6 +188,7 @@ exports[`Alert should disable animations 1`] = `
               class="emotion-2"
               data-testid="icon"
               height="28px"
+              id=""
               viewBox="0 0 1024 1024"
               width="28px"
             >
@@ -223,6 +224,7 @@ exports[`Alert should disable animations 1`] = `
                 class="emotion-3"
                 data-testid="icon"
                 height="28px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="28px"
               >
@@ -434,6 +436,7 @@ exports[`Alert should render all alert types 1`] = `
               class="emotion-2"
               data-testid="icon"
               height="28px"
+              id=""
               viewBox="0 0 1024 1024"
               width="28px"
             >
@@ -469,6 +472,7 @@ exports[`Alert should render all alert types 1`] = `
                 class="emotion-3"
                 data-testid="icon"
                 height="28px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="28px"
               >
@@ -673,6 +677,7 @@ exports[`Alert should render all alert types 2`] = `
               class="emotion-2"
               data-testid="icon"
               height="28px"
+              id=""
               viewBox="0 0 1024 1024"
               width="28px"
             >
@@ -708,6 +713,7 @@ exports[`Alert should render all alert types 2`] = `
                 class="emotion-3"
                 data-testid="icon"
                 height="28px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="28px"
               >
@@ -912,6 +918,7 @@ exports[`Alert should render all alert types 3`] = `
               class="emotion-2"
               data-testid="icon"
               height="28px"
+              id=""
               viewBox="0 0 1024 1024"
               width="28px"
             >
@@ -947,6 +954,7 @@ exports[`Alert should render all alert types 3`] = `
                 class="emotion-3"
                 data-testid="icon"
                 height="28px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="28px"
               >
@@ -1151,6 +1159,7 @@ exports[`Alert should render all alert types 4`] = `
               class="emotion-2"
               data-testid="icon"
               height="28px"
+              id=""
               viewBox="0 0 1024 1024"
               width="28px"
             >
@@ -1186,6 +1195,7 @@ exports[`Alert should render all alert types 4`] = `
                 class="emotion-3"
                 data-testid="icon"
                 height="28px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="28px"
               >
@@ -1387,6 +1397,7 @@ exports[`Alert should render open state 1`] = `
               class="emotion-2"
               data-testid="icon"
               height="28px"
+              id=""
               viewBox="0 0 1024 1024"
               width="28px"
             >
@@ -1422,6 +1433,7 @@ exports[`Alert should render open state 1`] = `
                 class="emotion-3"
                 data-testid="icon"
                 height="28px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="28px"
               >

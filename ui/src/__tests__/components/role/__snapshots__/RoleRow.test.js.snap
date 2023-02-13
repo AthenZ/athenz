@@ -89,6 +89,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -116,6 +117,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -143,6 +145,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -164,6 +167,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -188,6 +192,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -212,6 +217,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -236,6 +242,7 @@ exports[`RoleRow should render 1`] = `
         class="emotion-12"
         data-testid="icon"
         height="1.25em"
+        id="ztssia_cert_rotate-delete-role-button"
         viewBox="0 0 1024 1024"
         width="1.25em"
       >

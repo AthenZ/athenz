@@ -683,6 +683,7 @@ exports[`AddPolicy should render 1`] = `
                 class="emotion-47"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -1444,6 +1445,7 @@ exports[`AddPolicy should render fail to submit policy name is required 1`] = `
                 class="emotion-47"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -2205,6 +2207,7 @@ exports[`AddPolicy should render failed to submit action is required 1`] = `
                 class="emotion-47"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -2966,6 +2969,7 @@ exports[`AddPolicy should render failed to submit role name is required 1`] = `
                 class="emotion-47"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
