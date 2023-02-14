@@ -26,6 +26,8 @@ require (
 	k8s.io/client-go v0.26.0
 )
 
+replace k8s.io/client-go => k8s.io/client-go v0.26.0
+
 require (
 	github.com/cncf/xds/go v0.0.0-20220520190051-1e77728a1eaa // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
