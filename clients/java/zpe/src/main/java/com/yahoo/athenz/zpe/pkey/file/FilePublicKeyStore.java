@@ -57,6 +57,9 @@ public class FilePublicKeyStore implements PublicKeyStore {
     public void init() {
         initAthenzConfig();
         initAthenzJWKConfig();
+        if (ztsPublicKeyMap.size() == 0 && zmsPublicKeyMap.size() == 0) {
+            LOG.error("Could not find any available public key");
+        }
         millisBetweenReloadAthenzConfig = Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_RELOAD_CONFIG, Long.toString(30 * 1000 * 60)));
     }
     
@@ -76,7 +79,7 @@ public class FilePublicKeyStore implements PublicKeyStore {
             loadPublicKeys(conf.getZmsPublicKeys(), zmsPublicKeyMap);
             
         } catch (Exception ex) {
-            LOG.error("Unable to extract ZMS Url from {} exc: {}",
+            LOG.warn("Unable to extract ZMS Url from {} exc: {}",
                     confFileName, ex.getMessage());
         }
     }
@@ -91,7 +94,7 @@ public class FilePublicKeyStore implements PublicKeyStore {
             loadJwkList(jwkConf.getZms().getKeys(), zmsPublicKeyMap);
             lastReloadAthenzConfigTime = System.currentTimeMillis();
         } catch (Exception ex) {
-            LOG.error("Unable to extract athenz jwk config {} exc: {}", jwkConfFileName, ex.getMessage(), ex);
+            LOG.warn("Unable to extract athenz jwk config {} exc: {}", jwkConfFileName, ex.getMessage(), ex);
         }
     }
 
