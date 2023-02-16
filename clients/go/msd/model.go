@@ -349,6 +349,80 @@ func (e *TransportPolicyTrafficDirection) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// TransportPolicyScope - Scope of transport policy
+type TransportPolicyScope int
+
+// TransportPolicyScope constants
+const (
+	_ TransportPolicyScope = iota
+	ALL
+	ONPREM
+	AWS
+	GCP
+)
+
+var namesTransportPolicyScope = []string{
+	ALL:    "ALL",
+	ONPREM: "ONPREM",
+	AWS:    "AWS",
+	GCP:    "GCP",
+}
+
+// NewTransportPolicyScope - return a string representation of the enum
+func NewTransportPolicyScope(init ...interface{}) TransportPolicyScope {
+	if len(init) == 1 {
+		switch v := init[0].(type) {
+		case TransportPolicyScope:
+			return v
+		case int:
+			return TransportPolicyScope(v)
+		case int32:
+			return TransportPolicyScope(v)
+		case string:
+			for i, s := range namesTransportPolicyScope {
+				if s == v {
+					return TransportPolicyScope(i)
+				}
+			}
+		default:
+			panic("Bad init value for TransportPolicyScope enum")
+		}
+	}
+	return TransportPolicyScope(0) //default to the first enum value
+}
+
+// String - return a string representation of the enum
+func (e TransportPolicyScope) String() string {
+	return namesTransportPolicyScope[e]
+}
+
+// SymbolSet - return an array of all valid string representations (symbols) of the enum
+func (e TransportPolicyScope) SymbolSet() []string {
+	return namesTransportPolicyScope
+}
+
+// MarshalJSON is defined for proper JSON encoding of a TransportPolicyScope
+func (e TransportPolicyScope) MarshalJSON() ([]byte, error) {
+	return json.Marshal(e.String())
+}
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyScope
+func (e *TransportPolicyScope) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err == nil {
+		s := string(j)
+		for v, s2 := range namesTransportPolicyScope {
+			if s == s2 {
+				*e = TransportPolicyScope(v)
+				return nil
+			}
+		}
+		err = fmt.Errorf("Bad enum symbol for type TransportPolicyScope: %s", s)
+	}
+	return err
+}
+
 // TransportPolicySubject - Subject for a transport policy
 type TransportPolicySubject struct {
 
@@ -423,6 +497,11 @@ type TransportPolicyCondition struct {
 	// restricted to only mentioned instances.
 	//
 	Instances []string `json:"instances,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Scope of transport policy
+	//
+	Scope []TransportPolicyScope `json:"scope,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTransportPolicyCondition - creates an initialized TransportPolicyCondition instance, returns a pointer to it
@@ -752,7 +831,7 @@ type TransportPolicyIngressRule struct {
 	LastModified rdl.Timestamp `json:"lastModified"`
 
 	//
-	// Describes the entity to which this transport policy applies
+	// Entity to which this transport policy applies
 	//
 	EntitySelector *TransportPolicyEntitySelector `json:"entitySelector"`
 

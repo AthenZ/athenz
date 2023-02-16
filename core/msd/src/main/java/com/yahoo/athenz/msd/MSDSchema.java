@@ -95,6 +95,13 @@ public class MSDSchema {
             .element("INGRESS")
             .element("EGRESS");
 
+        sb.enumType("TransportPolicyScope")
+            .comment("Scope of transport policy")
+            .element("ALL")
+            .element("ONPREM")
+            .element("AWS")
+            .element("GCP");
+
         sb.structType("TransportPolicySubject")
             .comment("Subject for a transport policy")
             .field("domainName", "TransportPolicySubjectDomainName", false, "Name of the domain")
@@ -103,7 +110,8 @@ public class MSDSchema {
         sb.structType("TransportPolicyCondition")
             .comment("Transport policy condition. Used to specify additional restrictions for the subject of a transport policy")
             .field("enforcementState", "TransportPolicyEnforcementState", false, "State of transport policy enforcement ( ENFORCE / REPORT )")
-            .arrayField("instances", "String", true, "Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.");
+            .arrayField("instances", "String", true, "Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.")
+            .arrayField("scope", "TransportPolicyScope", true, "Scope of transport policy");
 
         sb.structType("PolicyPort")
             .comment("generic policy port. Will be used by TransportPolicyPort and NetworkPolicyPort structs")
@@ -133,7 +141,7 @@ public class MSDSchema {
             .comment("Transport policy ingress rule")
             .field("id", "Int64", false, "Assertion id associated with this transport policy")
             .field("lastModified", "Timestamp", false, "Last modification timestamp of this transport policy")
-            .field("entitySelector", "TransportPolicyEntitySelector", false, "Describes the entity to which this transport policy applies")
+            .field("entitySelector", "TransportPolicyEntitySelector", false, "Entity to which this transport policy applies")
             .field("from", "TransportPolicyPeer", true, "Source of network traffic");
 
         sb.structType("TransportPolicyEgressRule")

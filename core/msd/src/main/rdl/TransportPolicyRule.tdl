@@ -28,6 +28,14 @@ type TransportPolicyTrafficDirection Enum {
    EGRESS
 }
 
+// Scope of transport policy
+type TransportPolicyScope Enum {
+   ALL,
+   ONPREM,
+   AWS,
+   GCP
+}
+
 // Subject for a transport policy
 type TransportPolicySubject Struct {
     TransportPolicySubjectDomainName domainName; // Name of the domain
@@ -38,6 +46,7 @@ type TransportPolicySubject Struct {
 type TransportPolicyCondition Struct {
     TransportPolicyEnforcementState enforcementState; // State of transport policy enforcement ( ENFORCE / REPORT )
     Array<String> instances (optional); // Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.
+    Array<TransportPolicyScope> scope (optional); // Scope of transport policy
 }
 
 // generic policy port. Will be used by TransportPolicyPort and NetworkPolicyPort structs
@@ -74,7 +83,7 @@ type TransportPolicyEntitySelector Struct {
 type TransportPolicyIngressRule Struct {
     Int64 id; // Assertion id associated with this transport policy
     Timestamp lastModified; // Last modification timestamp of this transport policy
-    TransportPolicyEntitySelector entitySelector; // Describes the entity to which this transport policy applies
+    TransportPolicyEntitySelector entitySelector; // Entity to which this transport policy applies
     TransportPolicyPeer from (optional); // Source of network traffic
 }
 

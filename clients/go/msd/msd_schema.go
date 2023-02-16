@@ -111,6 +111,14 @@ func init() {
 	tTransportPolicyTrafficDirection.Element("EGRESS", "")
 	sb.AddType(tTransportPolicyTrafficDirection.Build())
 
+	tTransportPolicyScope := rdl.NewEnumTypeBuilder("Enum", "TransportPolicyScope")
+	tTransportPolicyScope.Comment("Scope of transport policy")
+	tTransportPolicyScope.Element("ALL", "")
+	tTransportPolicyScope.Element("ONPREM", "")
+	tTransportPolicyScope.Element("AWS", "")
+	tTransportPolicyScope.Element("GCP", "")
+	sb.AddType(tTransportPolicyScope.Build())
+
 	tTransportPolicySubject := rdl.NewStructTypeBuilder("Struct", "TransportPolicySubject")
 	tTransportPolicySubject.Comment("Subject for a transport policy")
 	tTransportPolicySubject.Field("domainName", "TransportPolicySubjectDomainName", false, nil, "Name of the domain")
@@ -121,6 +129,7 @@ func init() {
 	tTransportPolicyCondition.Comment("Transport policy condition. Used to specify additional restrictions for the subject of a transport policy")
 	tTransportPolicyCondition.Field("enforcementState", "TransportPolicyEnforcementState", false, nil, "State of transport policy enforcement ( ENFORCE / REPORT )")
 	tTransportPolicyCondition.ArrayField("instances", "String", true, "Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.")
+	tTransportPolicyCondition.ArrayField("scope", "TransportPolicyScope", true, "Scope of transport policy")
 	sb.AddType(tTransportPolicyCondition.Build())
 
 	tPolicyPort := rdl.NewStructTypeBuilder("Struct", "PolicyPort")
@@ -156,7 +165,7 @@ func init() {
 	tTransportPolicyIngressRule.Comment("Transport policy ingress rule")
 	tTransportPolicyIngressRule.Field("id", "Int64", false, nil, "Assertion id associated with this transport policy")
 	tTransportPolicyIngressRule.Field("lastModified", "Timestamp", false, nil, "Last modification timestamp of this transport policy")
-	tTransportPolicyIngressRule.Field("entitySelector", "TransportPolicyEntitySelector", false, nil, "Describes the entity to which this transport policy applies")
+	tTransportPolicyIngressRule.Field("entitySelector", "TransportPolicyEntitySelector", false, nil, "Entity to which this transport policy applies")
 	tTransportPolicyIngressRule.Field("from", "TransportPolicyPeer", true, nil, "Source of network traffic")
 	sb.AddType(tTransportPolicyIngressRule.Build())
 

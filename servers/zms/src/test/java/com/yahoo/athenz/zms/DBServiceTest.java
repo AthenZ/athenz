@@ -11160,6 +11160,8 @@ public class DBServiceTest {
         m1.put("instances", cd11);
         AssertionConditionData cd12 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("ENFORCE");
         m1.put("enforcementState", cd12);
+        AssertionConditionData cd13 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("1");
+        m1.put("scope", cd13);
         AssertionCondition c1 = new AssertionCondition().setId(1).setConditionsMap(m1);
 
         Map<String, AssertionConditionData> m2 = new HashMap<>();
@@ -11167,6 +11169,8 @@ public class DBServiceTest {
         m2.put("instances", cd21);
         AssertionConditionData cd22 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("REPORT");
         m2.put("enforcementState", cd22);
+        AssertionConditionData cd23 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("1");
+        m2.put("scope", cd23);
         AssertionCondition c2 = new AssertionCondition().setId(2).setConditionsMap(m2);
 
         AssertionConditions ac1 = new AssertionConditions().setConditionsList(new ArrayList<>());
@@ -11227,6 +11231,8 @@ public class DBServiceTest {
         m1.put("instances", cd11);
         AssertionConditionData cd12 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("ENFORCE");
         m1.put("enforcementState", cd12);
+        AssertionConditionData cd13 = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("1");
+        m1.put("scope", cd13);
         AssertionCondition c1 = new AssertionCondition().setConditionsMap(m1);
 
         Mockito.when(conn.insertAssertionCondition( 1, c1))
