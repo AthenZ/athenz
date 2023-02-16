@@ -675,8 +675,6 @@ public class DBService implements RolesProvider {
 
         boolean requestSuccess;
         if (originalGroup == null) {
-            // auditEnabled can only be set with system admin privileges
-            group.setAuditEnabled(false);
             requestSuccess = con.insertGroup(domainName, group);
         } else {
             // carrying over auditEnabled from original group

@@ -1446,6 +1446,7 @@ exports[`GroupSettingPage should render 1`] = `
                       data-testid="switch-wrapper"
                     >
                       <input
+                        data-testid="settingreviewEnabled-switch-input"
                         id="switch-settingreviewEnabled"
                         name="settingreviewEnabled"
                         type="checkbox"
@@ -1482,6 +1483,7 @@ exports[`GroupSettingPage should render 1`] = `
                       data-testid="switch-wrapper"
                     >
                       <input
+                        data-testid="settingselfServe-switch-input"
                         id="switch-settingselfServe"
                         name="settingselfServe"
                         type="checkbox"

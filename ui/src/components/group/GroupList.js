@@ -127,7 +127,6 @@ class GroupList extends React.Component {
                 onCancel={this.toggleAddGroup}
                 _csrf={this.props._csrf}
                 showAddGroup={this.state.showAddGroup}
-                justificationRequired={this.props.isDomainAuditEnabled}
             />
         ) : (
             ''

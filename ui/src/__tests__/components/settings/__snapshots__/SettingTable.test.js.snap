@@ -409,6 +409,7 @@ exports[`SettingTable should render setting table 1`] = `
         >
           <input
             checked=""
+            data-testid="settingreviewEnabled-switch-input"
             id="switch-settingreviewEnabled"
             name="settingreviewEnabled"
             type="checkbox"
@@ -445,6 +446,7 @@ exports[`SettingTable should render setting table 1`] = `
           data-testid="switch-wrapper"
         >
           <input
+            data-testid="settingselfServe-switch-input"
             id="switch-settingselfServe"
             name="settingselfServe"
             type="checkbox"

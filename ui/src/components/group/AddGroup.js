@@ -23,6 +23,7 @@ import { colors } from '../denali/styles';
 import AddModal from '../modal/AddModal';
 import DateUtils from '../utils/DateUtils';
 import {
+    ADD_GROUP_AUDIT_ENABLED_TOOLTIP,
     GROUP_MEMBER_NAME_REGEX,
     GROUP_MEMBER_PLACEHOLDER,
     GROUP_NAME_REGEX,
@@ -31,6 +32,8 @@ import MemberUtils from '../utils/MemberUtils';
 import RegexUtils from '../utils/RegexUtils';
 import { connect } from 'react-redux';
 import { addGroup } from '../../redux/thunks/groups';
+import Switch from '../denali/Switch';
+import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -89,11 +92,23 @@ const StyledButton = styled(Button)`
     width: 125px;
 `;
 
+const SliderDiv = styled.div`
+    vertical-align: middle;
+`;
+
+const AuditEnabledLabel = styled.label`
+    color: ${colors.grey600};
+    margin-left: 5px;
+    white-space: nowrap;
+    font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+`;
+
 class AddGroup extends React.Component {
     constructor(props) {
         super(props);
         this.addMember = this.addMember.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.toggleAuditEnabled = this.toggleAuditEnabled.bind(this);
         this.dateUtils = new DateUtils();
         this.state = {
             saving: 'nope',
@@ -101,7 +116,14 @@ class AddGroup extends React.Component {
             newMemberName: '',
             members: [],
             justification: '',
+            auditEnabled: false,
         };
+    }
+
+    toggleAuditEnabled() {
+        this.setState({
+            auditEnabled: !this.state.auditEnabled,
+        });
     }
 
     inputChanged(key, evt) {
@@ -115,7 +137,7 @@ class AddGroup extends React.Component {
     }
 
     getJustification() {
-        if (this.props.justificationRequired) {
+        if (this.props.isDomainAuditEnabled) {
             return (
                 <SectionDiv>
                     <StyledInputLabel>Justification</StyledInputLabel>
@@ -196,35 +218,40 @@ class AddGroup extends React.Component {
             return;
         }
 
-        let group = { name: groupName };
-        group.groupMembers =
-            this.state.members.filter((member) => {
-                return member != null || member != undefined;
-            }) || [];
+        let group = {
+            name: groupName,
+            auditEnabled: this.state.auditEnabled,
+        };
+        if (!this.state.auditEnabled) {
+            group.groupMembers =
+                this.state.members.filter((member) => {
+                    return member != null || member != undefined;
+                }) || [];
 
-        if (this.state.newMemberName && this.state.newMemberName !== '') {
-            let names = MemberUtils.getUserNames(
-                this.state.newMemberName,
-                GROUP_MEMBER_NAME_REGEX
-            );
-            names.validUsers.forEach((name) => {
-                group.groupMembers.push({
-                    memberName: name,
+            if (this.state.newMemberName && this.state.newMemberName !== '') {
+                let names = MemberUtils.getUserNames(
+                    this.state.newMemberName,
+                    GROUP_MEMBER_NAME_REGEX
+                );
+                names.validUsers.forEach((name) => {
+                    group.groupMembers.push({
+                        memberName: name,
+                    });
                 });
-            });
-            if (names.invalidUsers.length !== 0) {
-                this.setState({
-                    newMemberName: names.invalidUsers.toString(),
-                    errorMessage:
-                        "Member name doesn't match regex: " +
-                        GROUP_MEMBER_NAME_REGEX,
-                });
-                return;
+                if (names.invalidUsers.length !== 0) {
+                    this.setState({
+                        newMemberName: names.invalidUsers.toString(),
+                        errorMessage:
+                            "Member name doesn't match regex: " +
+                            GROUP_MEMBER_NAME_REGEX,
+                    });
+                    return;
+                }
             }
         }
 
         if (
-            this.props.justificationRequired &&
+            this.props.isDomainAuditEnabled &&
             (this.state.justification === undefined ||
                 this.state.justification.trim() === '')
         ) {
@@ -277,6 +304,12 @@ class AddGroup extends React.Component {
                   );
               })
             : '';
+        let auditToolTip = this.state.auditEnabled
+            ? ADD_GROUP_AUDIT_ENABLED_TOOLTIP
+            : null;
+        let auditTriggerStyle = this.state.auditEnabled
+            ? { pointerEvents: 'none', opacity: '0.4' }
+            : {};
         let sections = (
             <SectionsDiv>
                 <SectionDiv>
@@ -292,11 +325,11 @@ class AddGroup extends React.Component {
                     </ContentDiv>
                 </SectionDiv>
                 {
-                    <SectionDiv>
-                        <StyledInputLabelPadding>
+                    <SectionDiv title={auditToolTip}>
+                        <StyledInputLabelPadding style={auditTriggerStyle}>
                             Add Member(s)
                         </StyledInputLabelPadding>
-                        <ContentDiv>
+                        <ContentDiv style={auditTriggerStyle}>
                             <AddMemberDiv>
                                 <StyledInputUser
                                     placeholder={GROUP_MEMBER_PLACEHOLDER}
@@ -305,7 +338,7 @@ class AddGroup extends React.Component {
                                     noanim
                                     fluid
                                 />
-                                <ButtonDiv>
+                                <ButtonDiv style={auditTriggerStyle}>
                                     <StyledButton
                                         secondary
                                         onClick={this.addMember}
@@ -317,13 +350,26 @@ class AddGroup extends React.Component {
                         </ContentDiv>
                     </SectionDiv>
                 }
-                <SectionDiv>
+                <SectionDiv title={auditToolTip}>
                     <StyledInputLabel />
                     <StyledIncludedMembersDiv>
                         {members}
                     </StyledIncludedMembersDiv>
                 </SectionDiv>
                 {this.getJustification()}
+                {this.props.isDomainAuditEnabled && (
+                    <SectionDiv>
+                        <SliderDiv>
+                            <Switch
+                                checked={this.state.auditEnabled}
+                                disabled={members.length > 0}
+                                onChange={this.toggleAuditEnabled}
+                                name={'auditEnabled'}
+                            />
+                            <AuditEnabledLabel>Audit Enabled</AuditEnabledLabel>
+                        </SliderDiv>
+                    </SectionDiv>
+                )}
             </SectionsDiv>
         );
         return (
@@ -341,9 +387,16 @@ class AddGroup extends React.Component {
     }
 }
 
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        isDomainAuditEnabled: selectDomainAuditEnabled(state),
+    };
+};
+
 const mapDispatchToProps = (dispatch) => ({
-    addGroup: (groupName, auditRef, role, _csrf) =>
-        dispatch(addGroup(groupName, auditRef, role, _csrf)),
+    addGroup: (groupName, auditRef, group, _csrf) =>
+        dispatch(addGroup(groupName, auditRef, group, _csrf)),
 });
 
-export default connect(null, mapDispatchToProps)(AddGroup);
+export default connect(mapStateToProps, mapDispatchToProps)(AddGroup);

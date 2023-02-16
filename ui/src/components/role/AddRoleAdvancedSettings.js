@@ -30,6 +30,8 @@ import {
     ADD_ROLE_AUTHORITY_EXPIRY_DESC,
     ADD_ROLE_AUTHORITY_FILTER_PLACEHOLDER,
     ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER,
+    ADD_ROLE_AUDIT_DESC,
+    ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
 } from '../constants/constants';
 import SettingRow from '../settings/SettingRow';
 
@@ -39,6 +41,7 @@ export default class AddRoleAdvancedSettings extends React.Component {
 
         this.advancedSettingsChanged = this.props.advancedSettingsChanged;
         this.reviewEnabledChanged = this.props.reviewEnabledChanged;
+        this.auditEnabledChanged = this.props.auditEnabledChanged;
 
         let boolUserAuthorityAttributes = [];
         let dateUserAuthorityAttributes = [];
@@ -75,6 +78,22 @@ export default class AddRoleAdvancedSettings extends React.Component {
 
     render() {
         return [
+            <SettingRow
+                key={'setting-row-auditEnabled'}
+                name='auditEnabled'
+                label='Audit'
+                type='switch'
+                disabled={
+                    !this.props.isDomainAuditEnabled ||
+                    this.props.members.length > 0
+                }
+                desc={ADD_ROLE_AUDIT_DESC}
+                onValueChange={this.auditEnabledChanged}
+                value={this.props.role.auditEnabled}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
+                tooltip={ADD_ROLE_AUDIT_ENABLED_TOOLTIP}
+            />,
             <SettingRow
                 key={'setting-row-reviewEnabled'}
                 name='reviewEnabled'

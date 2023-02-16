@@ -220,6 +220,7 @@ exports[`DomainDetails should render 1`] = `
           data-testid="switch-wrapper"
         >
           <input
+            data-testid="auditDomainDetails-switch-input"
             disabled=""
             id="switch-auditDomainDetails"
             name="auditDomainDetails"
@@ -565,6 +566,7 @@ exports[`DomainDetails should render with mock data 1`] = `
         >
           <input
             checked=""
+            data-testid="auditDomainDetails-switch-input"
             disabled=""
             id="switch-auditDomainDetails"
             name="auditDomainDetails"

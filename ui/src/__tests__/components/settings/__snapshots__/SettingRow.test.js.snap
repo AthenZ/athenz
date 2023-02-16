@@ -326,6 +326,7 @@ exports[`SettingRow should render switch type setting row 1`] = `
     >
       <input
         checked=""
+        data-testid="settingtest-switch-input"
         id="switch-settingtest"
         name="settingtest"
         type="checkbox"

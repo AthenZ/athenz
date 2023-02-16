@@ -173,7 +173,6 @@ class SettingPage extends React.Component {
                                         collection={roleName}
                                         collectionDetails={roleDetails}
                                         _csrf={_csrf}
-                                        justificationRequired={auditEnabled}
                                         category={'role'}
                                     />
                                 </RolesContentDiv>

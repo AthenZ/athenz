@@ -1169,6 +1169,7 @@ exports[`GroupPage should render 1`] = `
                       data-testid="switch-wrapper"
                     >
                       <input
+                        data-testid="auditDomainDetails-switch-input"
                         disabled=""
                         id="switch-auditDomainDetails"
                         name="auditDomainDetails"
