@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import {screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import SettingTable from '../../../components/settings/SettingTable';
 import {
     buildDomainDataForState,
@@ -77,9 +77,10 @@ describe('SettingTable', () => {
             />,
             getStateWithDomainData(domainData)
         );
-        const settingTable = getByTestId('setting-table');
 
-        expect(settingTable).toMatchSnapshot();
+        expect(
+            screen.queryByText("Audit Enabled")
+        ).toBeInTheDocument();
     });
 
     it('should render setting table for audit enabled domain with disabled role audit enabled when role audit enable is false and role has members', () => {

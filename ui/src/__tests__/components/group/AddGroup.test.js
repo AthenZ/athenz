@@ -19,7 +19,7 @@ import {
     fireEvent,
     waitFor,
     screen,
-    cleanup,
+    cleanup, getByTestId,
 } from '@testing-library/react';
 import AddGroup from '../../../components/group/AddGroup';
 import API from '../../../api';
@@ -525,12 +525,11 @@ describe('AddGroup', () => {
             getStateWithDomainData(domainData)
         );
 
-        await waitFor(() =>
-            expect(getByTestId('add-modal-message')).toBeInTheDocument()
-        );
-
-        const addRoleForm = getByTestId('add-modal-message');
-        expect(addRoleForm).toMatchSnapshot();
+        await waitFor(() => {
+            expect(
+                screen.queryByTestId('auditEnabled-switch-input')
+            ).toBeEnabled();
+        });
     });
 
     it('should open modal without auditEnabled switch', async () => {
@@ -554,11 +553,7 @@ describe('AddGroup', () => {
             getStateWithDomainData(domainData)
         );
 
-        await waitFor(() =>
-            expect(getByTestId('add-modal-message')).toBeInTheDocument()
-        );
-
-        const addRoleForm = getByTestId('add-modal-message');
-        expect(addRoleForm).toMatchSnapshot();
+        const auditEnabledSwitch = screen.queryByText("Audit Enabled")
+        expect(auditEnabledSwitch).toBeNull()
     });
 });
