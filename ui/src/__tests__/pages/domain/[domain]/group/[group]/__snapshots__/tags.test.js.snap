@@ -1001,6 +1001,7 @@ exports[`Groups Tag Page should render 1`] = `
                 class="emotion-10"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -1031,6 +1032,7 @@ exports[`Groups Tag Page should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
+            id=""
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1048,6 +1050,7 @@ exports[`Groups Tag Page should render 1`] = `
               class="emotion-14"
               data-testid="icon"
               height="25px"
+              id=""
               viewBox="0 0 1024 1024"
               width="25px"
             >
@@ -1253,6 +1256,7 @@ exports[`Groups Tag Page should render 1`] = `
                           class="emotion-81"
                           data-testid="icon"
                           height="20px"
+                          id=""
                           viewBox="0 0 1024 1024"
                           width="20px"
                         >
@@ -1284,6 +1288,7 @@ exports[`Groups Tag Page should render 1`] = `
                           class="emotion-81"
                           data-testid="icon"
                           height="20px"
+                          id=""
                           viewBox="0 0 1024 1024"
                           width="20px"
                         >
@@ -1306,6 +1311,7 @@ exports[`Groups Tag Page should render 1`] = `
                         class="emotion-90"
                         data-testid="icon"
                         height="1.25em"
+                        id=""
                         viewBox="0 0 1024 1024"
                         width="1.25em"
                       >
@@ -1327,6 +1333,7 @@ exports[`Groups Tag Page should render 1`] = `
                         class="emotion-90"
                         data-testid="icon"
                         height="1.25em"
+                        id=""
                         viewBox="0 0 1024 1024"
                         width="1.25em"
                       >
@@ -1359,6 +1366,7 @@ exports[`Groups Tag Page should render 1`] = `
             class="emotion-96"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -1412,6 +1420,7 @@ exports[`Groups Tag Page should render 1`] = `
                   class="emotion-115"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >
@@ -1445,6 +1454,7 @@ exports[`Groups Tag Page should render 1`] = `
                   class="emotion-115"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >

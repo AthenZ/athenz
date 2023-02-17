@@ -24,6 +24,7 @@ const Icon = (props) => {
     const height = props.size ? props.size : props.height;
     const viewBoxDimensions =
         '0 0 ' + props.viewBoxWidth + ' ' + props.viewBoxHeight;
+    const id = props.id || '';
     return (
         <svg
             viewBox={viewBoxDimensions}
@@ -37,6 +38,7 @@ const Icon = (props) => {
             onClick={props.onClick}
             ref={props.innerRef}
             data-testid='icon'
+            id={id}
         >
             {props.enableTitle && (
                 <title>{props.title ? props.title : props.icon}</title>
@@ -70,6 +72,7 @@ Icon.propTypes = {
     enableTitle: PropTypes.bool,
     /*Tooltip that will appear instead of the icon name on hover*/
     title: PropTypes.string,
+    id: PropTypes.string,
 };
 
 Icon.defaultProps = {

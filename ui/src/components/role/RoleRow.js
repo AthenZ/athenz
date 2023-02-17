@@ -402,6 +402,7 @@ class RoleRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    id={`${this.state.name}-delete-role-button`}
                                     icon={'trash'}
                                     onClick={clickDelete}
                                     color={colors.icons}

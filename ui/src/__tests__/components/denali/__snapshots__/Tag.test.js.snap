@@ -287,6 +287,7 @@ exports[`Tag should render a removable Tag 1`] = `
       class="emotion-1"
       data-testid="icon"
       height="20px"
+      id=""
       viewBox="0 0 1024 1024"
       width="20px"
     >
@@ -452,6 +453,7 @@ exports[`Tag should render a small Tag 1`] = `
       class="emotion-1"
       data-testid="icon"
       height="16px"
+      id=""
       viewBox="0 0 1024 1024"
       width="16px"
     >

@@ -44,6 +44,7 @@ exports[`UserDomains should hide domains on click of arrow 1`] = `
       class="emotion-2"
       data-testid="icon"
       height="1em"
+      id=""
       viewBox="0 0 1024 1024"
       width="1em"
     >
@@ -176,6 +177,7 @@ exports[`UserDomains should render 1`] = `
       class="emotion-2"
       data-testid="icon"
       height="1em"
+      id=""
       viewBox="0 0 1024 1024"
       width="1em"
     >
@@ -229,6 +231,7 @@ exports[`UserDomains should render 1`] = `
             class="emotion-21"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -262,6 +265,7 @@ exports[`UserDomains should render 1`] = `
             class="emotion-21"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -389,6 +393,7 @@ exports[`UserDomains should render with no domains 1`] = `
       class="emotion-2"
       data-testid="icon"
       height="1em"
+      id=""
       viewBox="0 0 1024 1024"
       width="1em"
     >

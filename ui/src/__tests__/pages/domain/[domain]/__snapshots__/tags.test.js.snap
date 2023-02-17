@@ -996,6 +996,7 @@ exports[`Tag Page should render 1`] = `
                 class="emotion-10"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -1026,6 +1027,7 @@ exports[`Tag Page should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
+            id=""
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1043,6 +1045,7 @@ exports[`Tag Page should render 1`] = `
               class="emotion-14"
               data-testid="icon"
               height="25px"
+              id=""
               viewBox="0 0 1024 1024"
               width="25px"
             >
@@ -1094,6 +1097,7 @@ exports[`Tag Page should render 1`] = `
                   class="emotion-32"
                   data-testid="icon"
                   height="25px"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="25px"
                 >
@@ -1332,6 +1336,7 @@ exports[`Tag Page should render 1`] = `
             class="emotion-102"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -1385,6 +1390,7 @@ exports[`Tag Page should render 1`] = `
                   class="emotion-121"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >
@@ -1418,6 +1424,7 @@ exports[`Tag Page should render 1`] = `
                   class="emotion-121"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >

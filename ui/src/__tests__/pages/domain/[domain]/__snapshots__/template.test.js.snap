@@ -1014,6 +1014,7 @@ exports[`Template Page should render 1`] = `
                 class="emotion-10"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -1044,6 +1045,7 @@ exports[`Template Page should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
+            id=""
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1061,6 +1063,7 @@ exports[`Template Page should render 1`] = `
               class="emotion-14"
               data-testid="icon"
               height="25px"
+              id=""
               viewBox="0 0 1024 1024"
               width="25px"
             >
@@ -1112,6 +1115,7 @@ exports[`Template Page should render 1`] = `
                   class="emotion-32"
                   data-testid="icon"
                   height="25px"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="25px"
                 >
@@ -1426,6 +1430,7 @@ exports[`Template Page should render 1`] = `
             class="emotion-131"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -1479,6 +1484,7 @@ exports[`Template Page should render 1`] = `
                   class="emotion-150"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >
@@ -1512,6 +1518,7 @@ exports[`Template Page should render 1`] = `
                   class="emotion-150"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >

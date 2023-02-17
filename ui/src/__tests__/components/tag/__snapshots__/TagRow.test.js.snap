@@ -138,6 +138,7 @@ exports[`TagRow should click edit and delete 1`] = `
           class="emotion-11"
           data-testid="icon"
           height="20px"
+          id=""
           viewBox="0 0 1024 1024"
           width="20px"
         >
@@ -169,6 +170,7 @@ exports[`TagRow should click edit and delete 1`] = `
           class="emotion-11"
           data-testid="icon"
           height="20px"
+          id=""
           viewBox="0 0 1024 1024"
           width="20px"
         >
@@ -190,6 +192,7 @@ exports[`TagRow should click edit and delete 1`] = `
         class="emotion-20"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -210,6 +213,7 @@ exports[`TagRow should click edit and delete 1`] = `
         class="emotion-20"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -366,6 +370,7 @@ exports[`TagRow should render tag row 1`] = `
           class="emotion-11"
           data-testid="icon"
           height="20px"
+          id=""
           viewBox="0 0 1024 1024"
           width="20px"
         >
@@ -397,6 +402,7 @@ exports[`TagRow should render tag row 1`] = `
           class="emotion-11"
           data-testid="icon"
           height="20px"
+          id=""
           viewBox="0 0 1024 1024"
           width="20px"
         >
@@ -418,6 +424,7 @@ exports[`TagRow should render tag row 1`] = `
         class="emotion-20"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -438,6 +445,7 @@ exports[`TagRow should render tag row 1`] = `
         class="emotion-20"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >

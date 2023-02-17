@@ -516,6 +516,7 @@ exports[`AddRole should open add model with justification input 1`] = `
           <input
             autocomplete="off"
             data-testid="input-node"
+            id="role-name-input"
             placeholder="Enter New Role Name"
             value=""
           />
@@ -593,6 +594,7 @@ exports[`AddRole should open add model with justification input 1`] = `
               class="emotion-47"
               data-testid="icon"
               height="1.25em"
+              id=""
               viewBox="0 0 1024 1024"
               width="1.25em"
             >
@@ -635,6 +637,7 @@ exports[`AddRole should open add model with justification input 1`] = `
               class="emotion-47"
               data-testid="icon"
               height="1.25em"
+              id=""
               viewBox="0 0 1024 1024"
               width="1.25em"
             >
@@ -712,6 +715,7 @@ exports[`AddRole should open add model with justification input 1`] = `
         class="emotion-47"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >
@@ -1154,6 +1158,7 @@ exports[`AddRole should open add model without justification input 1`] = `
           <input
             autocomplete="off"
             data-testid="input-node"
+            id="role-name-input"
             placeholder="Enter New Role Name"
             value=""
           />
@@ -1231,6 +1236,7 @@ exports[`AddRole should open add model without justification input 1`] = `
               class="emotion-47"
               data-testid="icon"
               height="1.25em"
+              id=""
               viewBox="0 0 1024 1024"
               width="1.25em"
             >
@@ -1273,6 +1279,7 @@ exports[`AddRole should open add model without justification input 1`] = `
               class="emotion-47"
               data-testid="icon"
               height="1.25em"
+              id=""
               viewBox="0 0 1024 1024"
               width="1.25em"
             >
@@ -1320,6 +1327,7 @@ exports[`AddRole should open add model without justification input 1`] = `
         class="emotion-47"
         data-testid="icon"
         height="1.25em"
+        id=""
         viewBox="0 0 1024 1024"
         width="1.25em"
       >

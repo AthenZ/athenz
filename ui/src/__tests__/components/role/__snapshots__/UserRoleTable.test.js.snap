@@ -134,6 +134,7 @@ exports[`UserRoleTable should render 1`] = `
                 class="emotion-22"
                 data-testid="icon"
                 height="1.5em"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="1.5em"
               >
@@ -160,6 +161,7 @@ exports[`UserRoleTable should render 1`] = `
               class="emotion-22"
               data-testid="icon"
               height="1.25em"
+              id=""
               viewBox="0 0 1024 1024"
               width="1.25em"
             >
@@ -200,6 +202,7 @@ exports[`UserRoleTable should render 1`] = `
                 class="emotion-22"
                 data-testid="icon"
                 height="1.5em"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="1.5em"
               >
@@ -226,6 +229,7 @@ exports[`UserRoleTable should render 1`] = `
               class="emotion-22"
               data-testid="icon"
               height="1.25em"
+              id=""
               viewBox="0 0 1024 1024"
               width="1.25em"
             >

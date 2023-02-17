@@ -999,6 +999,7 @@ exports[`GroupPage should render 1`] = `
                 class="emotion-10"
                 data-testid="icon"
                 height="24px"
+                id=""
                 viewBox="0 0 1024 1024"
                 width="24px"
               >
@@ -1029,6 +1030,7 @@ exports[`GroupPage should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
+            id=""
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1046,6 +1048,7 @@ exports[`GroupPage should render 1`] = `
               class="emotion-14"
               data-testid="icon"
               height="25px"
+              id=""
               viewBox="0 0 1024 1024"
               width="25px"
             >
@@ -1097,6 +1100,7 @@ exports[`GroupPage should render 1`] = `
                   class="emotion-32"
                   data-testid="icon"
                   height="25px"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="25px"
                 >
@@ -1330,6 +1334,7 @@ exports[`GroupPage should render 1`] = `
             class="emotion-101"
             data-testid="icon"
             height="1em"
+            id=""
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -1383,6 +1388,7 @@ exports[`GroupPage should render 1`] = `
                   class="emotion-120"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >
@@ -1416,6 +1422,7 @@ exports[`GroupPage should render 1`] = `
                   class="emotion-120"
                   data-testid="icon"
                   height="1em"
+                  id=""
                   viewBox="0 0 1024 1024"
                   width="1em"
                 >
