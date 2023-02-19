@@ -1,3 +1,23 @@
+Athenz v1.11.21 Release / Feb 18, 2023
+--------------------------------------
+
+#2055 UI: add audit enabled setting to role
+#2062 update rdl install step for latest go
+#2063 add scope to the AssertionCondition for MSD
+#2065 UI: add gcp project id to domain ui
+#2066 UI: override the nested dependencies got and qs
+#2067 extends group with deleteProtection attribute and pending group membership
+#2068 extend zms-cli to set delete-protection flag for roles
+#2070 UI: fix ScrollWatch test
+#2071 UI: Add delete role functional tests
+#2074 change zpe log level to warn when it fails to get keys from preconfigured sources
+#2076 update go dependencies to their latest releases
+#2077 UI: update dev jest dependency version
+#2078 clarify the deprecation of role members attribute in rdl
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230207.sql
+
 Athenz v1.11.20 Release / Feb 03, 2023
 --------------------------------------
 
