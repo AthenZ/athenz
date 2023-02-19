@@ -1179,7 +1179,13 @@ func (self *RoleMeta) Validate() error {
 	return nil
 }
 
-// Role - The representation for a Role with set of members.
+// Role - The representation for a Role with set of members. The members
+// (Array<MemberName>) field is deprecated and not used in role objects since it
+// incorrectly lists all the members in the role without taking into account if
+// the member is expired or possibly disabled. Thus, using this attribute will
+// result in incorrect authorization checks by the client and, thus, it's no
+// longer being populated. All applications must use the roleMembers field and
+// take into account all the attributes of the member.
 type Role struct {
 
 	//
@@ -1288,12 +1294,13 @@ type Role struct {
 	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// an explicit list of members. Might be empty or null, if trust is set
+	// deprecated and not used
 	//
 	Members []MemberName `json:"members,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// members with expiration
+	// members with expiration and other member attributes. might be empty or
+	// null, if trust is set
 	//
 	RoleMembers []*RoleMember `json:"roleMembers,omitempty" rdl:"optional" yaml:",omitempty"`
 

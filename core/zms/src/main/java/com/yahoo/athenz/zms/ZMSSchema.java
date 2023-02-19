@@ -201,11 +201,11 @@ public class ZMSSchema {
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false);
 
         sb.structType("Role", "RoleMeta")
-            .comment("The representation for a Role with set of members.")
+            .comment("The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.")
             .field("name", "ResourceName", false, "name of the role")
             .field("modified", "Timestamp", true, "last modification timestamp of the role")
-            .arrayField("members", "MemberName", true, "an explicit list of members. Might be empty or null, if trust is set")
-            .arrayField("roleMembers", "RoleMember", true, "members with expiration")
+            .arrayField("members", "MemberName", true, "deprecated and not used")
+            .arrayField("roleMembers", "RoleMember", true, "members with expiration and other member attributes. might be empty or null, if trust is set")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
             .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role");

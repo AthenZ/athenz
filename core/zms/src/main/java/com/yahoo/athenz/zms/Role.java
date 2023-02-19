@@ -10,7 +10,13 @@ import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
-// Role - The representation for a Role with set of members.
+// Role - The representation for a Role with set of members. The members
+// (Array<MemberName>) field is deprecated and not used in role objects since it
+// incorrectly lists all the members in the role without taking into account if
+// the member is expired or possibly disabled. Thus, using this attribute will
+// result in incorrect authorization checks by the client and, thus, it's no
+// longer being populated. All applications must use the roleMembers field and
+// take into account all the attributes of the member.
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Role {
