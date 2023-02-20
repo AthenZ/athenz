@@ -107,8 +107,10 @@ public class ZTSTestUtils {
 
         com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
         signedPolicies.setContents(domainPolicies);
-        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
-        signedPolicies.setKeyId("0");
+        if (privateKey != null) {
+            signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+            signedPolicies.setKeyId("0");
+        }
 
         DomainData domain = new DomainData();
         domain.setName(domainName);
@@ -120,8 +122,10 @@ public class ZTSTestUtils {
 
         signedDomain.setDomain(domain);
 
-        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
-        signedDomain.setKeyId("0");
+        if (privateKey != null) {
+            signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+            signedDomain.setKeyId("0");
+        }
 
         return signedDomain;
     }
@@ -540,5 +544,53 @@ public class ZTSTestUtils {
             }
         }
         return false;
+    }
+
+    public static SignedDomain setupDomainWithGroupMemberState(final String domainName, final String groupName,
+            final String roleName, final String memberName, boolean disabledState) {
+
+        List<GroupMember> members = new ArrayList<>();
+        members.add(new GroupMember().setMemberName(memberName)
+                    .setGroupName(ResourceUtils.groupResourceName(domainName, groupName))
+                    .setSystemDisabled(disabledState ? 2 : 0));
+        members.add(new GroupMember().setMemberName("user_domain.addl_member")
+                    .setGroupName(ResourceUtils.groupResourceName(domainName, groupName)));
+        Group group = createGroupObject(domainName, groupName, members);
+
+        List<Group> groups = new ArrayList<>();
+        groups.add(group);
+
+        List<RoleMember> adminRoleMembers = new ArrayList<>();
+        adminRoleMembers.add(new RoleMember().setMemberName("user_domain.admin_member"));
+        Role adminRole = createRoleObject(domainName, "admin", null, adminRoleMembers);
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName(memberName)
+                .setSystemDisabled(disabledState ? 2 : 0));
+        Role role = createRoleObject(domainName, roleName, null, roleMembers);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(adminRole);
+        roles.add(role);
+
+        return ZTSTestUtils.createSignedDomain(domainName, roles, null, null, groups, null);
+    }
+
+    public static SignedDomain setupDomainWithRoleGroupMember(final String domainName, final String roleName,
+            final String memberName, final String groupName, boolean disabledState) {
+
+        List<RoleMember> adminRoleMembers = new ArrayList<>();
+        adminRoleMembers.add(new RoleMember().setMemberName("user_domain.admin_member"));
+        adminRoleMembers.add(new RoleMember().setMemberName(memberName)
+                .setSystemDisabled(disabledState ? 2 : 0));
+        Role adminRole = createRoleObject(domainName, "admin", null, adminRoleMembers);
+
+        Role role = createRoleObject(domainName, roleName, groupName);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(adminRole);
+        roles.add(role);
+
+        return ZTSTestUtils.createSignedDomain(domainName, roles, null, null, null, null);
     }
 }
