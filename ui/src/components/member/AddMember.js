@@ -205,8 +205,8 @@ class AddMember extends React.Component {
                             placeholder={
                                 this.props.category === 'role' &&
                                 this.props.collection !== 'admin'
-                                    ? 'user.<shortid> or <domain>.<service> or unix.<group> or <domain>:group.<group>'
-                                    : 'user.<shortid> or <domain>.<service> or unix.<group>'
+                                    ? `${process.env.NEXT_PUBLIC_USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group> or <domain>:group.<group>`
+                                    : `${process.env.NEXT_PUBLIC_USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group>`
                             }
                         />
                     </ContentDiv>

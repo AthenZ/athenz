@@ -259,7 +259,7 @@ class AddMemberToRoles extends React.Component {
                                 this,
                                 'memberName'
                             )}
-                            placeholder='user.<shortid> or <domain>.<service>'
+                            placeholder={process.env.NEXT_PUBLIC_USER_DOMAIN + '.<shortid> or <domain>.<service>'}
                         />
                         <FlatPickrInputDiv>
                             <FlatPicker

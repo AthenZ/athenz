@@ -22,7 +22,7 @@ export const GROUP_MEMBER_NAME_REGEX =
 export const MICROSEGMENTATION_SERVICE_NAME_REGEX =
     '\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const GROUP_ROLES_CATEGORY = 'group-roles';
-export const GROUP_MEMBER_PLACEHOLDER = 'user.<userid> or <domain>.<service>';
+export const GROUP_MEMBER_PLACEHOLDER = `${process.env.NEXT_PUBLIC_USER_DOMAIN}.<userid> or <domain>.<service>`;
 export const DISPLAY_SPACE = '\u23b5';
 
 export const SERVICE_TYPE_DYNAMIC = 'dynamic';
@@ -163,7 +163,7 @@ export const ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER =
     'User Authority Expiration';
 export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
 export const ADD_ROLE_MEMBER_PLACEHOLDER =
-    'user.<userid> or <domain>.<service> or <domain>:group.<group>';
+    `${process.env.NEXT_PUBLIC_USER_DOMAIN}.<userid> or <domain>.<service> or <domain>:group.<group>`;
 export const ADD_ROLE_EXPIRATION_PLACEHOLDER = 'Expiration (Optional)';
 export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
 export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
