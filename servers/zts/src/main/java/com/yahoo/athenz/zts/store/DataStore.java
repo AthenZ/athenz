@@ -727,7 +727,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
             /* if we get a failure when processing a local domain then it
              * indicates that we had an invalid domain file (possibly
-             * corrupted or hacked. In this case we're going to drop
+             * corrupted or hacked). In this case we're going to drop
              * everything and request a full refresh from ZMS only if the
              * change log store supports that functionality. Otherwise,
              * we're going to just skip the domain and continue. */
@@ -898,6 +898,10 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     void processGroup(Group group) {
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Processing group: {}", group.getName());
+        }
+
         // if the group has null members we'll replace it with an empty set
 
         if (group.getGroupMembers() == null) {
@@ -974,16 +978,22 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 if (AuthzHelper.shouldSkipGroupMember(member, currentTime)) {
                     groupMembers.removeIf(item -> item.getGroupName().equalsIgnoreCase(group.getName()));
                 } else {
-                    // we need to find our entry and update details
+                    // we need to find our entry and update details. if we don't
+                    // find our member in the list, then we need to add it
 
+                    boolean memberNotFound = true;
                     for (GroupMember mbr : groupMembers) {
                         if (mbr.getGroupName().equalsIgnoreCase(group.getName())) {
                             mbr.setExpiration(member.getExpiration());
                             mbr.setSystemDisabled(member.getSystemDisabled());
                             mbr.setActive(member.getActive());
                             mbr.setApproved(member.getApproved());
+                            memberNotFound = false;
                             break;
                         }
+                    }
+                    if (memberNotFound) {
+                        groupMembers.add(member);
                     }
                 }
             }
@@ -1441,8 +1451,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             return;
         }
 
-        // go through the group list and see if the any of the groups
-        // the user is included in the given domain role
+        // go through the group list and see if any of the groups
+        // the user is included in applies to the given domain role
 
         long currentTime = System.currentTimeMillis();
         for (GroupMember member : groupMembers) {
@@ -1678,7 +1688,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             Set<MemberRole> memberRoles, Set<String> accessibleRoles, boolean keepFullName) {
 
         /* since our member role set can include wildcard domains we
-         * need to match the role as oppose to a direct check if the
+         * need to match the role as opposed to a direct check if the
          * set contains the name */
 
         if (!roleMatchInSet(roleName, memberRoles)) {

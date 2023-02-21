@@ -41,6 +41,7 @@ import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSTestUtils;
@@ -5211,5 +5212,84 @@ public class DataStoreTest {
         JWSDomain jwsDomain = signJwsDomain(signedDomain.getDomain(), "0");
 
         assertFalse(store.processJWSDomain(jwsDomain, true));
+    }
+
+    @Test
+    public void testProcessSysDisabledGroupMember() {
+
+        final String roleDomainName = "role-domain";
+        final String group1DomainName = "group1-domain";
+        final String group2DomainName = "group2-domain";
+        final String roleName = "readers";
+        final String groupName = "readers-team";
+        final String memberName = "user_domain.user";
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.loadAthenzPublicKeys();
+
+        SignedDomain group1SignedDomain = ZTSTestUtils.setupDomainWithGroupMemberState(group1DomainName, groupName,
+                roleName, memberName, false);
+        JWSDomain group1JwsDomain = signJwsDomain(group1SignedDomain.getDomain(), "0");
+        store.processJWSDomain(group1JwsDomain, true);
+
+        SignedDomain roleSignedDomain = ZTSTestUtils.setupDomainWithRoleGroupMember(roleDomainName, roleName,
+                memberName, ResourceUtils.groupResourceName(group1DomainName, groupName), false);
+        JWSDomain roleJwsDomain = signJwsDomain(roleSignedDomain.getDomain(), "0");
+        store.processJWSDomain(roleJwsDomain, true);
+
+        SignedDomain group2SignedDomain = ZTSTestUtils.setupDomainWithGroupMemberState(group2DomainName, groupName,
+                roleName, memberName, false);
+        JWSDomain group2JwsDomain = signJwsDomain(group2SignedDomain.getDomain(), "0");
+        store.processJWSDomain(group2JwsDomain, true);
+
+        Set<String> accessibleRoles = new HashSet<>();
+        DataCache data = store.getDataCache(roleDomainName);
+        store.getAccessibleRoles(data, roleDomainName, memberName, null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("admin"));
+        assertTrue(accessibleRoles.contains("readers"));
+
+        // now let's disable the user
+
+        roleSignedDomain = ZTSTestUtils.setupDomainWithRoleGroupMember(roleDomainName, roleName,
+                memberName, ResourceUtils.groupResourceName(group1DomainName, groupName), true);
+        roleJwsDomain = signJwsDomain(roleSignedDomain.getDomain(), "0");
+        store.processJWSDomain(roleJwsDomain, true);
+
+        group1SignedDomain = ZTSTestUtils.setupDomainWithGroupMemberState(group1DomainName, groupName,
+                roleName, memberName, true);
+        group1JwsDomain = signJwsDomain(group1SignedDomain.getDomain(), "0");
+        store.processJWSDomain(group1JwsDomain, true);
+
+        // this time around we should not get any roles for the user
+
+        data = store.getDataCache(roleDomainName);
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, roleDomainName, memberName, null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 0);
+
+        // now let's enable our user and verify we get back the role
+
+        roleSignedDomain = ZTSTestUtils.setupDomainWithRoleGroupMember(roleDomainName, roleName,
+                memberName, ResourceUtils.groupResourceName(group1DomainName, groupName), false);
+        roleJwsDomain = signJwsDomain(roleSignedDomain.getDomain(), "0");
+        store.processJWSDomain(roleJwsDomain, true);
+
+        group1SignedDomain = ZTSTestUtils.setupDomainWithGroupMemberState(group1DomainName, groupName,
+                roleName, memberName, false);
+        group1JwsDomain = signJwsDomain(group1SignedDomain.getDomain(), "0");
+        store.processJWSDomain(group1JwsDomain, true);
+
+        data = store.getDataCache(roleDomainName);
+        accessibleRoles.clear();
+        store.getAccessibleRoles(data, roleDomainName, memberName, null, accessibleRoles, false);
+
+        assertEquals(accessibleRoles.size(), 2);
+        assertTrue(accessibleRoles.contains("admin"));
+        assertTrue(accessibleRoles.contains("readers"));
     }
 }
