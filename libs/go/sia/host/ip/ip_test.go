@@ -91,9 +91,6 @@ func TestGetIps(t *testing.T) {
 
 	log.Printf("IPs: %+v", ips)
 
-	//ips2, err := hostname.GetIPs()
-	//log.Printf("IPs from yakl-client hostname package function: %+v", ips2)
-
 	// Test independently using 'ifconfig -a'
 	ifIps, err := getIpsFromIfConfig(t)
 	log.Printf("IPs from ifconfig function: %+v", ifIps)
