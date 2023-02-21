@@ -446,6 +446,7 @@ exports[`SettingTable should render setting table 1`] = `
           data-testid="switch-wrapper"
         >
           <input
+            data-testid="settingdeleteProtection-switch-input"
             id="switch-settingdeleteProtection"
             name="settingdeleteProtection"
             type="checkbox"
