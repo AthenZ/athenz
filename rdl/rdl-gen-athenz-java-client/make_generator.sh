@@ -24,8 +24,8 @@ command -v go >/dev/null 2>&1 || {
 }
 
 if [ -z "${GOPATH}" ]; then
-    echo >&2 "GOPATH is not set. please configure this environment variable"
-    exit 1;
+    export GOPATH=$(go env GOPATH)
+    echo >&2 "[INFO] GOPATH is not set, setting to ${GOPATH} (from 'go env GOPATH)."
 fi
 
 go install github.com/ardielle/ardielle-go/...
