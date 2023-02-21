@@ -42,7 +42,7 @@ import {
     selectAuthorityAttributes,
     selectUserLink,
 } from '../../redux/selectors/domains';
-import produce from "immer";
+import produce from 'immer';
 
 const CATEGORIES = [
     {
@@ -158,7 +158,7 @@ class AddRole extends React.Component {
         this.dateUtils = new DateUtils();
 
         let role = {
-            auditEnabled: false
+            auditEnabled: false,
         };
 
         this.state = {
@@ -177,7 +177,7 @@ class AddRole extends React.Component {
     }
 
     toggleAuditEnabled() {
-        let newRole = produce(this.state.role, draft => {
+        let newRole = produce(this.state.role, (draft) => {
             draft.auditEnabled = !this.state.role.auditEnabled;
         });
 
@@ -305,12 +305,11 @@ class AddRole extends React.Component {
             return;
         }
 
-        let role = produce(this.state.role, draft => {
+        let role = produce(this.state.role, (draft) => {
             draft.name = roleName;
             draft.reviewEnabled = this.state.reviewEnabled;
             draft.auditEnabled = this.state.role.auditEnabled;
             draft.deleteProtection = this.state.deleteProtection;
-
 
             // Add members to role only if role isn't review enabled.
             // If it is - we want all added members to be reviewed including the first members
@@ -323,7 +322,10 @@ class AddRole extends React.Component {
                     this.state.members.filter((member) => {
                         return member != null || member != undefined;
                     }) || [];
-                if (this.state.newMemberName && this.state.newMemberName !== '') {
+                if (
+                    this.state.newMemberName &&
+                    this.state.newMemberName !== ''
+                ) {
                     draft.roleMembers.push({
                         memberName: this.state.newMemberName,
                         expiration: this.dateUtils.uxDatetimeToRDLTimestamp(
@@ -422,8 +424,8 @@ class AddRole extends React.Component {
         let reviewToolTip =
             this.state.reviewEnabled || this.state.role.auditEnabled
                 ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP +
-                '\n' +
-                ADD_ROLE_AUDIT_ENABLED_TOOLTIP
+                  '\n' +
+                  ADD_ROLE_AUDIT_ENABLED_TOOLTIP
                 : null;
         let reviewTriggerStyle =
             this.state.reviewEnabled || this.state.role.auditEnabled
@@ -549,26 +551,26 @@ class AddRole extends React.Component {
                 {this.state.showSettings && (
                     <StyleTable data-testid='advanced-setting-table'>
                         <tbody>
-                        <AddRoleAdvancedSettings
-                            userAuthorityAttributes={
-                                this.props.userAuthorityAttributes
-                            }
-                            userProfileLink={this.props.userProfileLink}
-                            advancedSettingsChanged={
-                                advancedSettingsChanged
-                            }
-                            reviewEnabledChanged={reviewEnabledChanged}
-                            deleteProtectionChanged={
-                                deleteProtectionChanged
-                            }
-                            auditEnabledChanged={this.toggleAuditEnabled}
-                            isDomainAuditEnabled={
-                                this.props.isDomainAuditEnabled
-                            }
-                            members={members}
-                            role={this.state.role}
-                            reviewEnabled={this.state.reviewEnabled}
-                        />
+                            <AddRoleAdvancedSettings
+                                userAuthorityAttributes={
+                                    this.props.userAuthorityAttributes
+                                }
+                                userProfileLink={this.props.userProfileLink}
+                                advancedSettingsChanged={
+                                    advancedSettingsChanged
+                                }
+                                reviewEnabledChanged={reviewEnabledChanged}
+                                deleteProtectionChanged={
+                                    deleteProtectionChanged
+                                }
+                                auditEnabledChanged={this.toggleAuditEnabled}
+                                isDomainAuditEnabled={
+                                    this.props.isDomainAuditEnabled
+                                }
+                                members={members}
+                                role={this.state.role}
+                                reviewEnabled={this.state.reviewEnabled}
+                            />
                         </tbody>
                     </StyleTable>
                 )}

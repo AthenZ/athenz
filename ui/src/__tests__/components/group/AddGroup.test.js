@@ -19,11 +19,15 @@ import {
     fireEvent,
     waitFor,
     screen,
-    cleanup, getByTestId,
+    cleanup,
+    getByTestId,
 } from '@testing-library/react';
 import AddGroup from '../../../components/group/AddGroup';
 import API from '../../../api';
-import {ADD_GROUP_AUDIT_ENABLED_TOOLTIP, GROUP_MEMBER_PLACEHOLDER} from '../../../components/constants/constants';
+import {
+    ADD_GROUP_AUDIT_ENABLED_TOOLTIP,
+    GROUP_MEMBER_PLACEHOLDER,
+} from '../../../components/constants/constants';
 import {
     buildDomainDataForState,
     buildGroupsForState,
@@ -48,11 +52,7 @@ describe('AddGroup', () => {
         const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const { getByTestId } = renderWithRedux(
-            <AddGroup
-                domain={domain}
-                showAddGroup={true}
-                onCancel={onClose}
-            />,
+            <AddGroup domain={domain} showAddGroup={true} onCancel={onClose} />,
             getStateWithDomainData(domainData)
         );
         const addGroupForm = getByTestId('add-group');
@@ -213,7 +213,7 @@ describe('AddGroup', () => {
                 onCancel={onClose}
                 groupNames={'group1'}
             />,
-            getStateWithGroups(groups, {"domainData": domainData})
+            getStateWithGroups(groups, { domainData: domainData })
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -398,7 +398,7 @@ describe('AddGroup', () => {
                 showAddGroup={true}
                 onCancel={onClose}
             />,
-            getStateWithGroups(groups, {"domainData": domainData})
+            getStateWithGroups(groups, { domainData: domainData })
         );
         expect(
             screen.getByPlaceholderText('Enter New Group Name')
@@ -436,7 +436,7 @@ describe('AddGroup', () => {
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
 
-        const {getByText} = renderWithRedux(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
                 onSubmit={onSubmit}
@@ -451,13 +451,11 @@ describe('AddGroup', () => {
             screen.getByTestId('auditEnabled-switch-input')
         ).toBeInTheDocument();
 
-        expect(
-            screen.getAllByTestId('auditEnabled-switch-input')
-        ).toHaveLength(1);
-
-        fireEvent.click(
-            screen.getByTestId('auditEnabled-switch-input')
+        expect(screen.getAllByTestId('auditEnabled-switch-input')).toHaveLength(
+            1
         );
+
+        fireEvent.click(screen.getByTestId('auditEnabled-switch-input'));
 
         await waitFor(() => {
             expect(
@@ -476,7 +474,7 @@ describe('AddGroup', () => {
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
 
-        const {getByText} = renderWithRedux(
+        const { getByText } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
                 onSubmit={onSubmit}
@@ -514,7 +512,7 @@ describe('AddGroup', () => {
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
 
-        const {getByTestId} = renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
                 onSubmit={onSubmit}
@@ -542,7 +540,7 @@ describe('AddGroup', () => {
         const onSubmit = jest.fn();
         const _csrf = '_csrf';
 
-        const {getByTestId} = renderWithRedux(
+        const { getByTestId } = renderWithRedux(
             <AddGroup
                 _csrf={_csrf}
                 onSubmit={onSubmit}
@@ -553,7 +551,7 @@ describe('AddGroup', () => {
             getStateWithDomainData(domainData)
         );
 
-        const auditEnabledSwitch = screen.queryByText("Audit Enabled")
-        expect(auditEnabledSwitch).toBeNull()
+        const auditEnabledSwitch = screen.queryByText('Audit Enabled');
+        expect(auditEnabledSwitch).toBeNull();
     });
 });

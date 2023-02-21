@@ -16,7 +16,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import PendingApprovalTableRow from '../../../components/pending-approval/PendingApprovalTableRow';
-import {PENDING_STATE_ENUM} from "../../../components/constants/constants";
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 
 describe('PendingApprovalTable', () => {
     it('should render', () => {
