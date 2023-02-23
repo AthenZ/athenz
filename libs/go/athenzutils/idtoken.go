@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType string, fullArn *bool, proxy bool) (string, error) {
+func FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType string, fullArn *bool, proxy bool, expireTime *int32) (string, error) {
 
 	client, err := ZtsClient(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, proxy)
 	if err != nil {
@@ -23,7 +23,7 @@ func FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redi
 	client.DisableRedirect = true
 
 	// request an id token
-	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce), zts.SimpleName(keyType), fullArn)
+	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce), zts.SimpleName(keyType), fullArn, expireTime)
 	if err != nil {
 		return "", err
 	}

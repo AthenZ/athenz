@@ -71,7 +71,6 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.ServletContext;
-import org.eclipse.jetty.util.StringUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -2558,9 +2557,19 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testDetermineIdTokenTimeout() {
-        assertEquals(zts.determineIdTokenTimeout(3600), 3600);
-        assertEquals(zts.determineIdTokenTimeout(360000), zts.idTokenMaxTimeout);
+    public void testDetermineAccessIdTokenTimeout() {
+        assertEquals(zts.determineAccessIdTokenTimeout(3600), 3600);
+        assertEquals(zts.determineAccessIdTokenTimeout(360000), zts.idTokenMaxTimeout);
+    }
+
+    @Test
+    public void testDetermineOIDCIdTokenTimeout() {
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", null), zts.idTokenMaxTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", zts.idTokenMaxTimeout + 1), zts.idTokenMaxTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", zts.idTokenMaxTimeout - 1), zts.idTokenMaxTimeout - 1);
+        assertEquals(zts.determineOIDCIdTokenTimeout("user", null), zts.idTokenDefaultTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("user", zts.idTokenDefaultTimeout + 1), zts.idTokenDefaultTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("user", zts.idTokenDefaultTimeout - 1), zts.idTokenDefaultTimeout - 1);
     }
 
     @Test
@@ -13346,7 +13355,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech", "https://localhost:4443", "openid",
-                    null, "nonce", "RSA", null);
+                    null, "nonce", "RSA", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13357,7 +13366,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "unknown-domain.api", "https://localhost:4443",
-                    "openid", null, "nonce", "EC", null);
+                    "openid", null, "nonce", "EC", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13373,7 +13382,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech.backup", "https://localhost:4443/zts",
-                    "openid", null, "nonce", "RSA", null);
+                    "openid", null, "nonce", "RSA", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13383,7 +13392,7 @@ public class ZTSImplTest {
 
         try {
             zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443",
-                    "openid", "state", "nonce", null, null);
+                    "openid", "state", "nonce", null, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -13392,7 +13401,7 @@ public class ZTSImplTest {
         // invalid response type
 
         Response response = zts.getOIDCResponse(context, "token", "coretech.api", "https://localhost:4443/zts",
-                "openid", null, "nonce", "", null);
+                "openid", null, "nonce", "", null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=invalid+response+type");
@@ -13400,13 +13409,13 @@ public class ZTSImplTest {
         // empty scope
 
         response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "", null, "nonce", "rsa", null);
+                "", null, "nonce", "rsa", null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=no+scope+provided");
 
         response = zts.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                null, null, "nonce", "unknown", Boolean.FALSE);
+                null, null, "nonce", "unknown", Boolean.FALSE, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         assertEquals(response.getHeaderString("Location"),
                 "https://localhost:4443/zts?error=invalid_request&error_description=no+scope+provided");
@@ -13431,20 +13440,8 @@ public class ZTSImplTest {
         store.processSignedDomain(signedDomain, false);
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid", null, "nonce", "RSA", Boolean.FALSE);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        String location = response.getHeaderString("Location");
-
-        int idx = location.indexOf("#id_token=");
-        String idToken = location.substring(idx + 10);
-
-        Jws<Claims> claims;
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
+                "openid", null, "nonce", "RSA", Boolean.FALSE, null);
+        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13481,20 +13478,8 @@ public class ZTSImplTest {
         // get all the groups
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid groups", null, "nonce", "EC", null);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        String location = response.getHeaderString("Location");
-
-        int idx = location.indexOf("#id_token=");
-        String idToken = location.substring(idx + 10);
-
-        Jws<Claims> claims;
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
+                "openid groups", null, "nonce", "EC", null, null);
+        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13509,14 +13494,14 @@ public class ZTSImplTest {
         // get only one of the groups and include state
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid coretech:group.dev-team", "valid-state", "nonce", "RSA", null);
+                "openid coretech:group.dev-team", "valid-state", "nonce", "RSA", null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
-        location = response.getHeaderString("Location");
+        String location = response.getHeaderString("Location");
         final String stateComp = "&state=valid-state";
         assertTrue(location.endsWith(stateComp));
 
-        idx = location.indexOf("#id_token=");
-        idToken = location.substring(idx + 10, location.length() - stateComp.length());
+        int idx = location.indexOf("#id_token=");
+        String idToken = location.substring(idx + 10, location.length() - stateComp.length());
 
         try {
             claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
@@ -13537,7 +13522,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid coretech:group.eng-team", null, "nonce", null, Boolean.FALSE);
+                    "openid coretech:group.eng-team", null, "nonce", null, Boolean.FALSE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -13576,20 +13561,8 @@ public class ZTSImplTest {
         // get all the groups from the coretech domain
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid groups weather:domain", null, "nonce", "EC", null);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        String location = response.getHeaderString("Location");
-
-        int idx = location.indexOf("#id_token=");
-        String idToken = location.substring(idx + 10);
-
-        Jws<Claims> claims;
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
+                "openid groups weather:domain", null, "nonce", "EC", null, null);
+        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13605,7 +13578,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid groups unknown-domain:domain", null, "nonce", "EC", null);
+                    "openid groups unknown-domain:domain", null, "nonce", "EC", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13676,7 +13649,7 @@ public class ZTSImplTest {
         // get all the groups
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid groups coretech:domain weather:domain homepage:domain", null, "nonce", "EC", null);
+                "openid groups coretech:domain weather:domain homepage:domain", null, "nonce", "EC", null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         String location = response.getHeaderString("Location");
 
@@ -13706,7 +13679,7 @@ public class ZTSImplTest {
         // get only one of the groups and include state
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid coretech:group.dev-team weather:group.pe-team", "valid-state", "nonce", "RSA", null);
+                "openid coretech:group.dev-team weather:group.pe-team", "valid-state", "nonce", "RSA", null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         location = response.getHeaderString("Location");
         String stateComp = "&state=valid-state";
@@ -13735,7 +13708,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid coretech:group.eng-team weather:group.eng-team", null, "nonce", null, Boolean.FALSE);
+                    "openid coretech:group.eng-team weather:group.eng-team", null, "nonce", null, Boolean.FALSE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -13746,7 +13719,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid coretech:group.eng finance:group.eng", null, "nonce", "EC", Boolean.FALSE);
+                    "openid coretech:group.eng finance:group.eng", null, "nonce", "EC", Boolean.FALSE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13756,7 +13729,7 @@ public class ZTSImplTest {
         // requests from domains where the user is not part of any groups
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid groups homepage:domain fantasy:domain", "valid-state", "nonce", "RSA", null);
+                "openid groups homepage:domain fantasy:domain", "valid-state", "nonce", "RSA", null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
         location = response.getHeaderString("Location");
         stateComp = "&state=valid-state";
@@ -13787,6 +13760,8 @@ public class ZTSImplTest {
         CloudStore cloudStore = new CloudStore();
         cloudStore.setHttpClient(null);
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.userDomain = "user_domain";
+
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
 
@@ -13800,20 +13775,8 @@ public class ZTSImplTest {
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid roles", null, "nonce", "", null);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        String location = response.getHeaderString("Location");
-
-        int idx = location.indexOf("#id_token=");
-        String idToken = location.substring(idx + 10);
-
-        Jws<Claims> claims;
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
+                "openid roles", null, "nonce", "", null, null);
+        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13824,22 +13787,12 @@ public class ZTSImplTest {
         assertEquals(userRoles.size(), 1);
         assertTrue(userRoles.contains("writers"));
 
-        // get only one of the roles
+        // get only one of the roles with a 30-min timeout
+        // which should be honored
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        location = response.getHeaderString("Location");
-
-        idx = location.indexOf("#id_token=");
-        idToken = location.substring(idx + 10);
-
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
+                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 30 * 60);
+        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13848,16 +13801,57 @@ public class ZTSImplTest {
         assertNotNull(userRoles);
         assertEquals(userRoles.size(), 1);
         assertTrue(userRoles.contains("writers"));
+        assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 30 * 60 * 1000);
+
+        // repeat the same request with 120 minutes and make sure the
+        // expiry is still set to 1 hour
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60);
+        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
+        assertNotNull(claims);
+        assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 60 * 60 * 1000);
+
+        // let's set the user domain to a different value so the
+        // principal will be treated as a service thus the 120-min
+        // value will be allowed
+
+        ztsImpl.userDomain = "user-other-domain";
+
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+                "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60);
+        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
+        assertNotNull(claims);
+        assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 120 * 60 * 1000);
+
+        // reset the domain value
+
+        ztsImpl.userDomain = "user_domain";
 
         // requesting a role that the user is not part of
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid coretech:role.eng-team", null, "nonce", "EC", Boolean.FALSE);
+                "openid coretech:role.eng-team", null, "nonce", "EC", Boolean.FALSE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("principal not included in requested roles"));
+        }
+    }
+
+    private Jws<Claims> getClaimsFromResponse(Response response, PrivateKey privateKey) {
+        assertEquals(response.getStatus(), ResourceException.FOUND);
+        String location = response.getHeaderString("Location");
+
+        int idx = location.indexOf("#id_token=");
+        String idToken = location.substring(idx + 10);
+
+        try {
+            return Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey))
+                    .build().parseClaimsJws(idToken);
+        } catch (SignatureException e) {
+            throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
     }
 
@@ -13885,20 +13879,9 @@ public class ZTSImplTest {
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid roles weather:domain", null, "nonce", "", null);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        String location = response.getHeaderString("Location");
+                "openid roles weather:domain", null, "nonce", "", null, null);
+        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
 
-        int idx = location.indexOf("#id_token=");
-        String idToken = location.substring(idx + 10);
-
-        Jws<Claims> claims;
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13913,7 +13896,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid roles unknown-domain:domain", null, "nonce", "EC", null);
+                    "openid roles unknown-domain:domain", null, "nonce", "EC", null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -13952,20 +13935,9 @@ public class ZTSImplTest {
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid roles coretech:domain weather:domain homepage:domain", null, "nonce", "", null);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        String location = response.getHeaderString("Location");
+                "openid roles coretech:domain weather:domain homepage:domain", null, "nonce", "", null, null);
+        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
 
-        int idx = location.indexOf("#id_token=");
-        String idToken = location.substring(idx + 10);
-
-        Jws<Claims> claims;
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13980,19 +13952,10 @@ public class ZTSImplTest {
         // specific the roles explicitly
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid coretech:role.writers weather:role.writers", null, "nonce", "RSA", Boolean.FALSE);
+                "openid coretech:role.writers weather:role.writers", null, "nonce", "RSA", Boolean.FALSE, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
-        location = response.getHeaderString("Location");
+        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
 
-        idx = location.indexOf("#id_token=");
-        idToken = location.substring(idx + 10);
-
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -14007,7 +13970,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid coretech:role.eng weather:role.eng", null, "nonce", "EC", Boolean.FALSE);
+                    "openid coretech:role.eng weather:role.eng", null, "nonce", "EC", Boolean.FALSE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -14018,7 +13981,7 @@ public class ZTSImplTest {
 
         try {
             ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                    "openid coretech:role.eng finance:role.eng", null, "nonce", "EC", Boolean.FALSE);
+                    "openid coretech:role.eng finance:role.eng", null, "nonce", "EC", Boolean.FALSE, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
@@ -14028,19 +13991,9 @@ public class ZTSImplTest {
         // requests from domains where the user is not part of any role
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
-                "openid roles homepage:domain fantasy:domain", null, "nonce", "RSA", null);
-        assertEquals(response.getStatus(), ResourceException.FOUND);
-        location = response.getHeaderString("Location");
+                "openid roles homepage:domain fantasy:domain", null, "nonce", "RSA", null, null);
+        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey());
 
-        idx = location.indexOf("#id_token=");
-        idToken = location.substring(idx + 10);
-
-        try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
-                    .build().parseClaimsJws(idToken);
-        } catch (SignatureException e) {
-            throw new ResourceException(ResourceException.UNAUTHORIZED);
-        }
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());

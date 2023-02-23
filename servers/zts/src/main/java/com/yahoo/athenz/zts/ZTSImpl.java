@@ -1438,8 +1438,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
     }
 
-    long determineIdTokenTimeout(long tokenTimeout) {
+    long determineAccessIdTokenTimeout(long tokenTimeout) {
         return (tokenTimeout > idTokenMaxTimeout) ? idTokenMaxTimeout : tokenTimeout;
+    }
+
+    long determineOIDCIdTokenTimeout(final String domainName, Integer tokenTimeout) {
+        int defaultTimeout = userDomain.equals(domainName) ? idTokenDefaultTimeout : idTokenMaxTimeout;
+        return (tokenTimeout == null || tokenTimeout > defaultTimeout) ? defaultTimeout : tokenTimeout;
     }
 
     long determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
@@ -1926,7 +1931,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
     @Override
     public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
-                                    String scope, String state, String nonce, String keyType, Boolean fullArn) {
+                                    String scope, String state, String nonce, String keyType, Boolean fullArn,
+                                    Integer timeout) {
 
         final String caller = ctx.getApiName();
 
@@ -2026,7 +2032,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
-        idToken.setExpiryTime(iat + idTokenDefaultTimeout);
+
+        // for user principals we're going to use the default 1 hour while for
+        // service principals 12 hours as the max timeout, unless the client
+        // is explicitly asking for something smaller.
+
+        idToken.setExpiryTime(iat + determineOIDCIdTokenTimeout(principalDomain, timeout));
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(keyType);
         String location = redirectUri + "#id_token=" +
@@ -2525,7 +2536,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             idToken.setIssueTime(iat);
             idToken.setAuthTime(iat);
-            idToken.setExpiryTime(iat + determineIdTokenTimeout(tokenTimeout));
+            idToken.setExpiryTime(iat + determineAccessIdTokenTimeout(tokenTimeout));
 
             idJwts = idToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
         }
