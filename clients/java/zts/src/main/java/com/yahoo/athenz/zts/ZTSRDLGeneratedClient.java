@@ -930,7 +930,7 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/auth");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (responseType != null) {
@@ -956,6 +956,9 @@ public class ZTSRDLGeneratedClient {
         }
         if (fullArn != null) {
             uriBuilder.setParameter("fullArn", String.valueOf(fullArn));
+        }
+        if (expiryTime != null) {
+            uriBuilder.setParameter("expiryTime", String.valueOf(expiryTime));
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())
