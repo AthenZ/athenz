@@ -151,7 +151,7 @@ class InstanceRow extends React.Component {
         let center = 'center';
         let color = this.props.color;
         let details = this.props.details;
-        let ipAddresses = [];
+        let ipAddresses = details.ipAddresses ? [] : ['N/A'];
         let clickDelete = this.onClickDelete.bind(this);
         let submitDelete = this.onSubmitDelete.bind(
             this,
@@ -162,7 +162,7 @@ class InstanceRow extends React.Component {
         );
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
 
-        details.ipAddresses.forEach((ipAddress, idx) => {
+        details.ipAddresses?.forEach((ipAddress, idx) => {
             ipAddresses.push(
                 <DivIpStyled key={this.state.key + ipAddress}>
                     {ipAddress}
