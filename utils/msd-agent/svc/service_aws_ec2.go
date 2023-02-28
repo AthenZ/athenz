@@ -23,7 +23,7 @@ type EC2Fetcher struct {
 
 func (fetcher *EC2Fetcher) Fetch(host MsdHost, accountId string) (ServicesData, error) {
 
-	config, configAccount, _, err := sia.GetEC2Config(SIA_CONFIG, PROFILE_CONFIG, Ec2MetaEndPoint, false, "", accountId)
+	config, configAccount, _, err := sia.GetEC2Config(SIA_CONFIG, PROFILE_CONFIG, PROFILE_TAG_KEY, Ec2MetaEndPoint, false, "", accountId)
 	if err != nil {
 		log.Fatalf("Unable to formulate config, error: %v\n", err)
 	}

@@ -107,7 +107,8 @@ type Config struct {
 }
 
 type AccessProfileConfig struct {
-	Profile string `json:"profile,omitempty"` // map of role name to token attributes
+	Profile    string `json:"profile,omitempty"`
+	ProfileTag string `json:"profile_tag,omitempty"`
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -190,6 +191,7 @@ type Options struct {
 	TokenDir           string            //Access tokens directory
 	AccessTokens       []ac.AccessToken  //Access tokens object
 	Profile            string            //Access profile name
+	ProfileTag         string            //Tag associated with access profile roles
 	Threshold          float64           //threshold in number of days for cert expiry checks
 	SshThreshold       float64           //threshold in number of days for ssh cert expiry checks
 	FileDirectUpdate   bool              //update key/cert files directly instead of using rename
@@ -200,6 +202,11 @@ const (
 	DefaultTokenExpiry = 28800       // 8 hrs
 	DefaultThreshold   = float64(15) // 15 days
 )
+
+func GetInstanceTagValue(metaEndPoint, tagKey string) (string, error) {
+	tagValue, err := meta.GetData(metaEndPoint, "/latest/meta-data/tags/instance/"+tagKey)
+	return string(tagValue), err
+}
 
 func GetAccountId(metaEndPoint string, useRegionalSTS bool, region string) (string, error) {
 	// first try to get the account from our creds and if
@@ -228,7 +235,8 @@ func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS b
 			Threshold:    DefaultThreshold,
 			SshThreshold: DefaultThreshold,
 		}, &AccessProfileConfig{
-			Profile: profile,
+			Profile:    profile,
+			ProfileTag: "",
 		}, nil
 }
 
@@ -254,7 +262,8 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 			Threshold:    DefaultThreshold,
 			SshThreshold: DefaultThreshold,
 		}, &AccessProfileConfig{
-			Profile: profile,
+			Profile:    profile,
+			ProfileTag: "",
 		}, nil
 }
 
@@ -312,7 +321,8 @@ func InitAccessProfileFileConfig(fileName string) (*AccessProfileConfig, error) 
 	}
 
 	return &AccessProfileConfig{
-		Profile: config.Profile,
+		Profile:    config.Profile,
+		ProfileTag: config.ProfileTag,
 	}, nil
 }
 
@@ -433,7 +443,8 @@ func InitAccessProfileEnvConfig() (*AccessProfileConfig, error) {
 	}
 
 	return &AccessProfileConfig{
-		Profile: accessProfile,
+		Profile:    accessProfile,
+		ProfileTag: "",
 	}, nil
 }
 
@@ -455,6 +466,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	ztsRegion := ""
 	dropPrivileges := false
 	profile := ""
+	profileTag := ""
 	fileDirectUpdate := false
 	tokenDir := fmt.Sprintf("%s/tokens", siaDir)
 	certDir := fmt.Sprintf("%s/certs", siaDir)
@@ -622,6 +634,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 
 	if profileConfig != nil {
 		profile = profileConfig.Profile
+		profileTag = profileConfig.ProfileTag
 	}
 
 	return &Options{
@@ -651,6 +664,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		DropPrivileges:   dropPrivileges,
 		AccessTokens:     accessTokens,
 		Profile:          profile,
+		ProfileTag:       profileTag,
 		Threshold:        account.Threshold,
 		SshThreshold:     account.SshThreshold,
 		FileDirectUpdate: fileDirectUpdate,

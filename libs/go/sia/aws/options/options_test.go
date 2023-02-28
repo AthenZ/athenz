@@ -110,6 +110,7 @@ func getAccessProfileConfig(fileName, metaEndPoint string) (*ConfigAccount, *Acc
 			return nil, nil, fmt.Errorf("config non-parsable and unable to determine profile name from profile arn, error: %v", err)
 		}
 	}
+
 	return configAccount, profileConfig, nil
 }
 
@@ -241,6 +242,35 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 
 	// Make sure profile is correct
 	assert.True(t, opts.Profile == "zts-profile")
+	assert.True(t, opts.ProfileTag == "")
+
+	// Make sure services are set
+	assert.True(t, len(opts.Services) == 3)
+	assert.True(t, opts.Domain == "athenz")
+	assert.True(t, opts.Name == "athenz.api")
+
+	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
+	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DefaultThreshold}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "ui", User: "root", Uid: 0, Gid: 0, FileMode: 288, Threshold: DefaultThreshold}))
+	assert.True(t, assertInServices(opts.Services[1:], Service{Name: "yamas", User: "nobody", Uid: getUid("nobody"), Group: "sys", Gid: getGid(t, "sys"), Threshold: DefaultThreshold}))
+
+	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
+	assert.Equal(t, DefaultThreshold, opts.Threshold)
+}
+
+// TestOptionsWithProfileConfigAndProfileTag test the scenario when profile config file is present anbd has profile tag key
+func TestOptionsWithProfileConfigAndProfileTag(t *testing.T) {
+	_, profileConfig, _ := getAccessProfileConfig("data/profile_config_tag_key", "http://localhost:80")
+	cfg, cfgAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
+	opts, e := setOptions(cfg, cfgAccount, profileConfig, "/tmp", "1.0.0")
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+	assert.True(t, opts.RefreshInterval == 1440)
+	assert.True(t, opts.ZTSRegion == "")
+
+	// Make sure profile is correct
+	assert.True(t, opts.Profile == "zts-profile")
+	assert.True(t, opts.ProfileTag == "zts:RestrictTo")
 
 	// Make sure services are set
 	assert.True(t, len(opts.Services) == 3)

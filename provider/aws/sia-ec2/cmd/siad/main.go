@@ -50,7 +50,7 @@ func main() {
 	udsPath := flag.String("uds", "", "uds path")
 	noSysLog := flag.Bool("nosyslog", false, "turn off syslog, log to stdout")
 	accessProfileConf := flag.String("profileconfig", "/etc/sia/profile_config", "The access profile config file")
-
+	accessProfileTagKey := flag.String("profiletagkey", "profile:Tag", "The tag associated with access profile roles")
 	flag.Parse()
 
 	if *displayVersion {
@@ -92,7 +92,7 @@ func main() {
 		log.Fatalf("Unable to extract document details: %v\n", err)
 	}
 
-	config, configAccount, accessProfileConfig, err := sia.GetEC2Config(*pConf, *accessProfileConf, *ec2MetaEndPoint, *useRegionalSTS, region, account)
+	config, configAccount, accessProfileConfig, err := sia.GetEC2Config(*pConf, *accessProfileConf, *accessProfileTagKey, *ec2MetaEndPoint, *useRegionalSTS, region, account)
 	if err != nil {
 		log.Fatalf("Unable to formulate configuration objects, error: %v\n", err)
 	}

@@ -35,10 +35,11 @@ type ServicesData struct {
 }
 
 const (
-	PROFILE_CONFIG = "/etc/sia/profile_config"
-	SIA_CONFIG     = "/etc/sia/sia_config"
-	SIA_DIR        = "/var/lib/sia"
-	HOST_DOCUMENT  = "host_document"
+	PROFILE_CONFIG  = "/etc/sia/profile_config"
+	SIA_CONFIG      = "/etc/sia/sia_config"
+	SIA_DIR         = "/var/lib/sia"
+	HOST_DOCUMENT   = "host_document"
+	PROFILE_TAG_KEY = "profile:Tag"
 )
 
 var cloudFetcher Fetcher
