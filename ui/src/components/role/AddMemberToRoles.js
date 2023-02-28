@@ -30,6 +30,7 @@ import { addMemberToRoles, getRoles } from '../../redux/thunks/roles';
 import { getDomainData } from '../../redux/thunks/domain';
 import { connect } from 'react-redux';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import { USER_DOMAIN } from '../constants/constants';
 
 const SectionsDiv = styled.div`
     width: 800px;
@@ -259,7 +260,7 @@ class AddMemberToRoles extends React.Component {
                                 this,
                                 'memberName'
                             )}
-                            placeholder={process.env.NEXT_PUBLIC_USER_DOMAIN + '.<shortid> or <domain>.<service>'}
+                            placeholder={USER_DOMAIN + '.<shortid> or <domain>.<service>'}
                         />
                         <FlatPickrInputDiv>
                             <FlatPicker

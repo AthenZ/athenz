@@ -15,4 +15,3 @@
  */
 
 process.env.APP_ENV = 'unittest';
-process.env.NEXT_PUBLIC_USER_DOMAIN = 'user';
