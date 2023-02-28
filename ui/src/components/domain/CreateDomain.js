@@ -26,6 +26,7 @@ import { withRouter } from 'next/router';
 import { connect } from 'react-redux';
 import { createSubDomain, createUserDomain } from '../../redux/thunks/domains';
 import { selectPersonalDomain } from '../../redux/selectors/domains';
+import { USER_DOMAIN } from '../constants/constants';
 
 const TABS = [
     {
@@ -146,7 +147,7 @@ class CreateDomain extends React.Component {
             .createSubDomain(
                 this.state.domain,
                 this.state.subDomain,
-                'user.' + this.props.userId,
+                `${USER_DOMAIN}.${this.props.userId}`,
                 this.props._csrf
             )
             .then(() => {

@@ -25,7 +25,7 @@ import DateUtils from '../utils/DateUtils';
 import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
 import MemberUtils from '../utils/MemberUtils';
-import { GROUP_MEMBER_NAME_REGEX } from '../constants/constants';
+import { GROUP_MEMBER_NAME_REGEX, USER_DOMAIN } from '../constants/constants';
 import RegexUtils from '../utils/RegexUtils';
 import { connect } from 'react-redux';
 import { addMember } from '../../redux/thunks/collections';
@@ -205,8 +205,8 @@ class AddMember extends React.Component {
                             placeholder={
                                 this.props.category === 'role' &&
                                 this.props.collection !== 'admin'
-                                    ? 'user.<shortid> or <domain>.<service> or unix.<group> or <domain>:group.<group>'
-                                    : 'user.<shortid> or <domain>.<service> or unix.<group>'
+                                    ? `${USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group> or <domain>:group.<group>`
+                                    : `${USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group>`
                             }
                         />
                     </ContentDiv>

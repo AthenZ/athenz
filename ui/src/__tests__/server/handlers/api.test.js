@@ -35,6 +35,7 @@ const config = {
     servicePageConfig: '',
     productMasterLink: '',
     userData: () => {},
+    userDomain: 'test-user-domain',
     serviceHeaderLinks: [],
     templates: ['openhouse'],
 };
@@ -86,12 +87,20 @@ describe('Fetchr Server API Test', () => {
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, { success: 'true' }),
-                        getDomainList: (params, callback) =>
+                        getDomainList: (params, callback) => {
+                            if (params.roleMember && params.roleMember != `${config.userDomain}.testuser`) {
+                                // If the specified member is not included in any role in all domains, an empty array is responded.
+                                callback(undefined, {
+                                    names: []
+                                });
+                                return;
+                            }
                             params.forcefail
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
                                       names: ['dom1', 'domabc1'],
-                                  }),
+                                  })
+                        },
                         getSignedDomains: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)

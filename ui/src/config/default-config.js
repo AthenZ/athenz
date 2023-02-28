@@ -102,6 +102,7 @@ const config = {
         userFilePath: process.env.UI_CONF_PATH || 'src/config',
         cookieSession:
             process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
+        userDomain: 'user',
         userDomains: 'user,unix',
         port: parseInt(process.env.PORT, 10) || 443,
         allProviders: [
