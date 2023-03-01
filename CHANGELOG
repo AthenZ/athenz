@@ -1,3 +1,15 @@
+Athenz v1.11.22 Release / Feb 28, 2023
+--------------------------------------
+
+#2079 set GOPATH from 'go env GOPATH' if not set
+#2080 correct handling of group members that are system disabled and then enabled
+#2081 UI: use user domain of config value when making requests to zms
+#2082 Add profileTag support to sia-aws
+#2083 add delete-protection commands to help list
+#2084 allow services to get id token with max 12 hr expiry
+#2085 UI: handle case where details.ipAddresses is undefined
+#2086 update jetty and other java dependencies to their latest release
+
 Athenz v1.11.21 Release / Feb 18, 2023
 --------------------------------------
 
