@@ -2508,6 +2508,7 @@ public class ZMSImplTest {
         role1.setMemberReviewDays(70);
         role1.setServiceReviewDays(80);
         role1.setGroupReviewDays(90);
+        role1.setDescription("testroledescription");
         zmsImpl.putRole(ctx, "GetRoleDom1", "Role1", auditRef, false, role1);
 
         Role role = zmsImpl.getRole(ctx, "GetRoleDom1", "Role1", false, false, false);
@@ -22675,6 +22676,7 @@ public class ZMSImplTest {
         rm.setServiceReviewDays(80);
         rm.setGroupReviewDays(90);
         rm.setSignAlgorithm("ec");
+        rm.setDescription("testroledescription");
         zmsImpl.putRoleMeta(ctx, "rolemetadom1", "role1", auditRef, rm);
 
         Role resRole1 = zmsImpl.getRole(ctx, "rolemetadom1", "role1", true, false, false);
@@ -22689,6 +22691,7 @@ public class ZMSImplTest {
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(resRole1.getGroupReviewDays(), Integer.valueOf(90));
+        assertEquals(resRole1.getDescription(), "testroledescription");
         assertEquals(resRole1.getSignAlgorithm(), "ec");
 
         // if we pass a null for the expiry days (e.g. old client)
