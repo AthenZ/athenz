@@ -986,6 +986,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1,role2").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
@@ -1000,6 +1001,7 @@ public class JDBCConnectionTest {
         assertNull(role.getGroupReviewDays());
         assertNull(role.getUserAuthorityExpiration());
         assertNull(role.getUserAuthorityFilter());
+        assertNull(role.getDescription());
         assertEquals(role.getSignAlgorithm(), "ec");
         assertEquals(role.getNotifyRoles(), "role1,role2");
         assertTrue(role.getReviewEnabled());
@@ -1034,6 +1036,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1,role2").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES);
         Mockito.doReturn("expiry").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION);
         Mockito.doReturn("filter").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
+        Mockito.doReturn("description").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
@@ -1046,6 +1049,7 @@ public class JDBCConnectionTest {
         assertEquals(role.getServiceExpiryDays(), Integer.valueOf(40));
         assertEquals(role.getUserAuthorityExpiration(), "expiry");
         assertEquals(role.getUserAuthorityFilter(), "filter");
+        assertEquals(role.getDescription(), "description");
         assertEquals(role.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(role.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(role.getGroupReviewDays(), Integer.valueOf(90));
@@ -1072,6 +1076,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1,role2").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
@@ -1081,6 +1086,7 @@ public class JDBCConnectionTest {
         assertNull(role.getSelfServe());
         assertNull(role.getUserAuthorityExpiration());
         assertNull(role.getUserAuthorityFilter());
+        assertNull(role.getDescription());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
@@ -1113,6 +1119,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("role1,role2").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
@@ -1315,7 +1322,9 @@ public class JDBCConnectionTest {
                 .setMemberReviewDays(70).setServiceReviewDays(80).setGroupExpiryDays(50)
                 .setGroupReviewDays(90).setDeleteProtection(true)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
-                .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry");
+                .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry")
+                .setDescription("description");
+
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -1346,9 +1355,10 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(13, "role1,role2");
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "filter");
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "expiry");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 50);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(17, true);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(18, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(16, "description");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 50);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(18, true);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(19, 4);
         jdbcConn.close();
     }
 
@@ -1390,9 +1400,10 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(13, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(14, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(15, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(16, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(17, false);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(18, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(16, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(17, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(18, false);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(19, 7);
         jdbcConn.close();
     }
 
@@ -8484,6 +8495,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_DESCRIPTION);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Role role = jdbcConn.getRole("my-domain", "role1");
@@ -8496,6 +8508,7 @@ public class JDBCConnectionTest {
         assertNull(role.getNotifyRoles());
         assertNull(role.getUserAuthorityExpiration());
         assertNull(role.getUserAuthorityFilter());
+        assertNull(role.getDescription());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
