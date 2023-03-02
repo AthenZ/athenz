@@ -5824,6 +5824,9 @@ public class DBService implements RolesProvider {
         if (meta.getUserAuthorityExpiration() != null) {
             role.setUserAuthorityExpiration(meta.getUserAuthorityExpiration());
         }
+        if (meta.getDescription() != null) {
+            role.setDescription(meta.getDescription());
+        }
         if (meta.getTags() != null) {
             role.setTags(meta.getTags());
         }
@@ -5865,6 +5868,7 @@ public class DBService implements RolesProvider {
                         .setNotifyRoles(originalRole.getNotifyRoles())
                         .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())
+                        .setDescription(originalRole.getDescription())
                         .setTags(originalRole.getTags());
 
                 // then we're going to apply the updated fields
