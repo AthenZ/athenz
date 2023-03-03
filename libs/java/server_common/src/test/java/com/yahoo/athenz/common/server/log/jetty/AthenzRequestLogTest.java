@@ -15,10 +15,10 @@
  */
 package com.yahoo.athenz.common.server.log.jetty;
 
-import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 import org.eclipse.jetty.http.MetaData;
 import org.eclipse.jetty.server.*;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -29,6 +29,7 @@ import javax.net.ssl.SSLSession;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Locale;
 
 import static org.testng.Assert.*;
 
@@ -42,11 +43,21 @@ public class AthenzRequestLogTest {
 
     private static final String TEST_FILE = "./unit-test-athenz.log";
 
+    private Locale defaultLocale;
+
     @BeforeMethod
     public void setup() throws IOException {
         // remove test file in case left over from previous runs
         File file = new File(TEST_FILE);
         Files.deleteIfExists(file.toPath());
+
+        defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.ENGLISH);
+    }
+
+    @AfterMethod
+    public void cleanup() {
+        Locale.setDefault(defaultLocale);
     }
 
     @Test
