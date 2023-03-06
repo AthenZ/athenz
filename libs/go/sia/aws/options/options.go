@@ -107,8 +107,8 @@ type Config struct {
 }
 
 type AccessProfileConfig struct {
-	Profile    string `json:"profile,omitempty"`
-	ProfileTag string `json:"profile_tag,omitempty"`
+	Profile           string `json:"profile,omitempty"`
+	ProfileRestrictTo string `json:"profile_restrict_to,omitempty"`
 }
 
 // Role contains role details. Attributes are set based on the config values
@@ -191,7 +191,7 @@ type Options struct {
 	TokenDir           string            //Access tokens directory
 	AccessTokens       []ac.AccessToken  //Access tokens object
 	Profile            string            //Access profile name
-	ProfileTag         string            //Tag associated with access profile roles
+	ProfileRestrictTo  string            //Tag associated with access profile roles
 	Threshold          float64           //threshold in number of days for cert expiry checks
 	SshThreshold       float64           //threshold in number of days for ssh cert expiry checks
 	FileDirectUpdate   bool              //update key/cert files directly instead of using rename
@@ -235,8 +235,8 @@ func InitCredsConfig(roleSuffix, accessProfileSeparator string, useRegionalSTS b
 			Threshold:    DefaultThreshold,
 			SshThreshold: DefaultThreshold,
 		}, &AccessProfileConfig{
-			Profile:    profile,
-			ProfileTag: "",
+			Profile:           profile,
+			ProfileRestrictTo: "",
 		}, nil
 }
 
@@ -262,8 +262,8 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 			Threshold:    DefaultThreshold,
 			SshThreshold: DefaultThreshold,
 		}, &AccessProfileConfig{
-			Profile:    profile,
-			ProfileTag: "",
+			Profile:           profile,
+			ProfileRestrictTo: "",
 		}, nil
 }
 
@@ -321,8 +321,8 @@ func InitAccessProfileFileConfig(fileName string) (*AccessProfileConfig, error) 
 	}
 
 	return &AccessProfileConfig{
-		Profile:    config.Profile,
-		ProfileTag: config.ProfileTag,
+		Profile:           config.Profile,
+		ProfileRestrictTo: config.ProfileRestrictTo,
 	}, nil
 }
 
@@ -443,8 +443,8 @@ func InitAccessProfileEnvConfig() (*AccessProfileConfig, error) {
 	}
 
 	return &AccessProfileConfig{
-		Profile:    accessProfile,
-		ProfileTag: "",
+		Profile:           accessProfile,
+		ProfileRestrictTo: "",
 	}, nil
 }
 
@@ -466,7 +466,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	ztsRegion := ""
 	dropPrivileges := false
 	profile := ""
-	profileTag := ""
+	profileRestrictTo := ""
 	fileDirectUpdate := false
 	tokenDir := fmt.Sprintf("%s/tokens", siaDir)
 	certDir := fmt.Sprintf("%s/certs", siaDir)
@@ -634,40 +634,40 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 
 	if profileConfig != nil {
 		profile = profileConfig.Profile
-		profileTag = profileConfig.ProfileTag
+		profileRestrictTo = profileConfig.ProfileRestrictTo
 	}
 
 	return &Options{
-		Name:             account.Name,
-		User:             account.User,
-		Group:            account.Group,
-		Domain:           account.Domain,
-		Account:          account.Account,
-		Zts:              account.Zts,
-		Version:          fmt.Sprintf("SIA-AWS %s", version),
-		UseRegionalSTS:   useRegionalSTS,
-		SanDnsWildcard:   sanDnsWildcard,
-		SanDnsHostname:   sanDnsHostname,
-		HostnameSuffix:   hostnameSuffix,
-		Services:         services,
-		Roles:            roles,
-		TokenDir:         tokenDir,
-		CertDir:          certDir,
-		KeyDir:           keyDir,
-		AthenzCACertFile: fmt.Sprintf("%s/ca.cert.pem", certDir),
-		GenerateRoleKey:  generateRoleKey,
-		RotateKey:        rotateKey,
-		BackupDir:        backupDir,
-		SDSUdsPath:       sdsUdsPath,
-		RefreshInterval:  refreshInterval,
-		ZTSRegion:        ztsRegion,
-		DropPrivileges:   dropPrivileges,
-		AccessTokens:     accessTokens,
-		Profile:          profile,
-		ProfileTag:       profileTag,
-		Threshold:        account.Threshold,
-		SshThreshold:     account.SshThreshold,
-		FileDirectUpdate: fileDirectUpdate,
+		Name:              account.Name,
+		User:              account.User,
+		Group:             account.Group,
+		Domain:            account.Domain,
+		Account:           account.Account,
+		Zts:               account.Zts,
+		Version:           fmt.Sprintf("SIA-AWS %s", version),
+		UseRegionalSTS:    useRegionalSTS,
+		SanDnsWildcard:    sanDnsWildcard,
+		SanDnsHostname:    sanDnsHostname,
+		HostnameSuffix:    hostnameSuffix,
+		Services:          services,
+		Roles:             roles,
+		TokenDir:          tokenDir,
+		CertDir:           certDir,
+		KeyDir:            keyDir,
+		AthenzCACertFile:  fmt.Sprintf("%s/ca.cert.pem", certDir),
+		GenerateRoleKey:   generateRoleKey,
+		RotateKey:         rotateKey,
+		BackupDir:         backupDir,
+		SDSUdsPath:        sdsUdsPath,
+		RefreshInterval:   refreshInterval,
+		ZTSRegion:         ztsRegion,
+		DropPrivileges:    dropPrivileges,
+		AccessTokens:      accessTokens,
+		Profile:           profile,
+		ProfileRestrictTo: profileRestrictTo,
+		Threshold:         account.Threshold,
+		SshThreshold:      account.SshThreshold,
+		FileDirectUpdate:  fileDirectUpdate,
 	}, nil
 }
 

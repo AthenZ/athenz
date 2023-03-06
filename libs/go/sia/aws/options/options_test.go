@@ -242,7 +242,7 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 
 	// Make sure profile is correct
 	assert.True(t, opts.Profile == "zts-profile")
-	assert.True(t, opts.ProfileTag == "")
+	assert.True(t, opts.ProfileRestrictTo == "")
 
 	// Make sure services are set
 	assert.True(t, len(opts.Services) == 3)
@@ -259,7 +259,7 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 }
 
 // TestOptionsWithProfileConfigAndProfileTag test the scenario when profile config file is present anbd has profile tag key
-func TestOptionsWithProfileConfigAndProfileTag(t *testing.T) {
+func TestOptionsWithProfileConfigAndProfileRestrictTo(t *testing.T) {
 	_, profileConfig, _ := getAccessProfileConfig("data/profile_config_tag_key", "http://localhost:80")
 	cfg, cfgAccount, _ := getConfig("data/sia_config", "-service", "http://localhost:80", false, "us-west-2")
 	opts, e := setOptions(cfg, cfgAccount, profileConfig, "/tmp", "1.0.0")
@@ -270,7 +270,7 @@ func TestOptionsWithProfileConfigAndProfileTag(t *testing.T) {
 
 	// Make sure profile is correct
 	assert.True(t, opts.Profile == "zts-profile")
-	assert.True(t, opts.ProfileTag == "zts:RestrictTo")
+	assert.True(t, opts.ProfileRestrictTo == "zts:RestrictTo")
 
 	// Make sure services are set
 	assert.True(t, len(opts.Services) == 3)

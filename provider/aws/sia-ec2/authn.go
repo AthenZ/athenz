@@ -84,7 +84,7 @@ func GetECSOnEC2TaskId() string {
 	return taskId
 }
 
-func GetEC2Config(configFile, profileConfigFile, profileTagKey, metaEndpoint string, useRegionalSTS bool, region, account string) (*options.Config, *options.ConfigAccount, *options.AccessProfileConfig, error) {
+func GetEC2Config(configFile, profileConfigFile, profileRestrictToKey, metaEndpoint string, useRegionalSTS bool, region, account string) (*options.Config, *options.ConfigAccount, *options.AccessProfileConfig, error) {
 	config, configAccount, err := options.InitFileConfig(configFile, metaEndpoint, useRegionalSTS, region, account)
 	if err != nil {
 		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
@@ -107,7 +107,7 @@ func GetEC2Config(configFile, profileConfigFile, profileTagKey, metaEndpoint str
 		}
 	}
 
-	profileConfig, err := GetEC2AccessProfile(profileConfigFile, profileTagKey, metaEndpoint, useRegionalSTS, region)
+	profileConfig, err := GetEC2AccessProfile(profileConfigFile, profileRestrictToKey, metaEndpoint, useRegionalSTS, region)
 	if err != nil {
 		log.Printf("Unable to determine profile information: %v\n", err)
 	}
@@ -115,7 +115,7 @@ func GetEC2Config(configFile, profileConfigFile, profileTagKey, metaEndpoint str
 	return config, configAccount, profileConfig, nil
 }
 
-func GetEC2AccessProfile(configFile, profileTagKey, metaEndpoint string, useRegionalSTS bool, region string) (*options.AccessProfileConfig, error) {
+func GetEC2AccessProfile(configFile, profileRestrictToKey, metaEndpoint string, useRegionalSTS bool, region string) (*options.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process configuration file '%s': %v\n", configFile, err)
@@ -142,11 +142,11 @@ func GetEC2AccessProfile(configFile, profileTagKey, metaEndpoint string, useRegi
 	}
 
 	// If tags is not provided through file then check if value is provided through ec2 instance tags
-	if accessProfileConfig.ProfileTag == "" && profileTagKey != "" {
-		log.Printf("Trying to determine profile tag value %v from instance tags\n", profileTagKey)
-		value, err := options.GetInstanceTagValue(metaEndpoint, profileTagKey)
+	if accessProfileConfig.ProfileRestrictTo == "" && profileRestrictToKey != "" {
+		log.Printf("Trying to determine profile tag value %v from instance tags\n", profileRestrictToKey)
+		value, err := options.GetInstanceTagValue(metaEndpoint, profileRestrictToKey)
 		if err == nil {
-			accessProfileConfig.ProfileTag = value
+			accessProfileConfig.ProfileRestrictTo = value
 		}
 	}
 
