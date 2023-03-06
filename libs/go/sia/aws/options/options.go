@@ -107,8 +107,8 @@ type Config struct {
 }
 
 type AccessProfileConfig struct {
-	Profile    string `json:"profile,omitempty"`
-	ProfileTag string `json:"profile_tag,omitempty"`
+	Profile           string `json:"profile,omitempty"`
+	ProfileRestrictTo string `json:"profile_restrict_to,omitempty"`
 }
 
 // Role contains role details. Attributes are set based on the config values

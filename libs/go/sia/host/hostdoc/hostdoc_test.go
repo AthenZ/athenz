@@ -53,7 +53,7 @@ const HOSTDOC_STR_PROFILE_TAG_KEY = `
    "domain": "sports",
    "service": "soccer",
    "profile": "prod",
-   "profile_tag": "deploy",
+   "profile_restrict_to": "deploy",
    "uuid": "3e4c2da84a264d718b218ce58b1b3b8f",
    "zone": "west"
 }

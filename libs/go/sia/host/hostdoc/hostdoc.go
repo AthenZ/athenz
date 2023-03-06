@@ -28,15 +28,15 @@ import (
 )
 
 const (
-	DOMAIN      = "domain"
-	SERVICE     = "service"
-	SERVICES    = "services"
-	PROFILE     = "profile"
-	PROFILE_TAG = "profile_tag"
-	PROVIDER    = "provider"
-	IP          = "ip"
-	UUID        = "uuid"
-	ZONE        = "zone"
+	DOMAIN              = "domain"
+	SERVICE             = "service"
+	SERVICES            = "services"
+	PROFILE             = "profile"
+	PROFILE_RESTRICT_TO = "profile_restrict_to"
+	PROVIDER            = "provider"
+	IP                  = "ip"
+	UUID                = "uuid"
+	ZONE                = "zone"
 )
 
 type Doc struct {
