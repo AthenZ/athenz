@@ -132,6 +132,9 @@ public final class ZMSConsts {
 
     public static final String ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS    = "athenz.zms.auth_history_store_factory_class";
 
+    public static final String ZMS_PROP_AWS_ASSUME_ROLE_ACTION = "athenz.zms.aws_assume_role_action";
+    public static final String ZMS_PROP_GCP_ASSUME_ROLE_ACTION = "athenz.zms.gcp_assume_role_action";
+
     // properties for our default quota limits
 
     public static final String ZMS_PROP_QUOTA_CHECK        = "athenz.zms.quota_check";
