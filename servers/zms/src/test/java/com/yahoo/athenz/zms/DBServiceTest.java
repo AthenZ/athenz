@@ -9112,6 +9112,7 @@ public class DBServiceTest {
         assertTrue(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "testnotify-role");
         assertEquals(role.getUserAuthorityFilter(), "none");
+        assertEquals(role.getDescription(), "testroledescription");
         assertNull(role.getUserAuthorityExpiration());
 
         // verify that our policy collections includes the policies defined in the template
@@ -9199,6 +9200,7 @@ public class DBServiceTest {
         assertTrue(role.getReviewEnabled()); //Existing Value
         assertEquals(role.getNotifyRoles(), "testnotify-role"); //Existing Value
         assertEquals(role.getUserAuthorityFilter(), "none"); //Existing Value
+        assertEquals(role.getDescription(), "testroledescription"); //Existing Value
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }

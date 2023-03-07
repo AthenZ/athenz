@@ -808,6 +808,9 @@ public class DBService implements RolesProvider {
         if (templateRole.getUserAuthorityFilter() == null) {
             templateRole.setUserAuthorityFilter(originalRole.getUserAuthorityFilter());
         }
+        if (templateRole.getDescription() == null) {
+            templateRole.setDescription(originalRole.getDescription());
+        }
         if (templateRole.getUserAuthorityExpiration() == null) {
             templateRole.setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
         }
@@ -4438,6 +4441,7 @@ public class DBService implements RolesProvider {
                 .setReviewEnabled(role.getReviewEnabled())
                 .setNotifyRoles(role.getNotifyRoles())
                 .setUserAuthorityFilter(role.getUserAuthorityFilter())
+                .setDescription(role.getDescription())
                 .setUserAuthorityExpiration(role.getUserAuthorityExpiration());
 
         List<RoleMember> roleMembers = role.getRoleMembers();

@@ -418,6 +418,7 @@
                   "reviewEnabled": true,
                   "notifyRoles": "testnotify-role",
                   "userAuthorityFilter": "none",
+                  "description": "testroledescription",
                   "userAuthorityExpiration": ""
               }
           ],
