@@ -2531,6 +2531,7 @@ public class ZMSImplTest {
         assertEquals(role.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(role.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(role.getGroupReviewDays(), Integer.valueOf(90));
+        assertEquals(role.getDescription(), "testroledescription");
         assertTrue(role.getSelfServe());
 
         zmsImpl.deleteTopLevelDomain(ctx, "GetRoleDom1", auditRef);
