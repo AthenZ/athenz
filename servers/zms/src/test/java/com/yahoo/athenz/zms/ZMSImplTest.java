@@ -18374,6 +18374,7 @@ public class ZMSImplTest {
         rm.setServiceReviewDays(80);
         rm.setGroupReviewDays(90);
         rm.setSignAlgorithm("ec");
+        rm.setDescription("testroledescription");
         zmsImpl.putRoleMeta(ctx, domainName, "role4", auditRef, rm);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
@@ -18419,6 +18420,7 @@ public class ZMSImplTest {
                     assertEquals(role.getServiceReviewDays().intValue(), 80);
                     assertEquals(role.getGroupReviewDays().intValue(), 90);
                     assertNotNull(role.getSignAlgorithm());
+                    assertNotNull(role.getDescription());
                     assertTrue(role.getReviewEnabled());
                     assertTrue(role.getDeleteProtection());
                     assertTrue(role.getSelfServe());
