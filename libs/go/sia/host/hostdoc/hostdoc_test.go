@@ -48,12 +48,12 @@ const HOSTDOC_STR_SVCS = `
 }
 `
 
-const HOSTDOC_STR_PROFILE_TAG_KEY = `
+const HOSTDOC_STR_PROFILE_RESTRICT_TO = `
 {
    "domain": "sports",
    "service": "soccer",
    "profile": "prod",
-   "profile_tag": "deploy",
+   "profile_restrict_to": "deploy",
    "uuid": "3e4c2da84a264d718b218ce58b1b3b8f",
    "zone": "west"
 }
@@ -81,17 +81,17 @@ func TestNewHostDoc(t *testing.T) {
 	a.Equal("west", hostDoc.Zone, "service should match")
 }
 
-func TestNewHostDocProfileTag(t *testing.T) {
+func TestNewHostDocProfileRestrictTo(t *testing.T) {
 	a := assert.New(t)
 
-	hostDoc, _, err := NewPlainDoc([]byte(HOSTDOC_STR_PROFILE_TAG_KEY))
+	hostDoc, _, err := NewPlainDoc([]byte(HOSTDOC_STR_PROFILE_RESTRICT_TO))
 	a.Nil(err)
 	a.Equal("sports", hostDoc.Domain, "domain should match")
 	a.Equal("soccer", hostDoc.Services[0], "service should match")
 	a.Equal("prod", hostDoc.Profile, "profile should match")
 	a.Equal("3e4c2da8-4a26-4d71-8b21-8ce58b1b3b8f", hostDoc.Uuid, "Uuid should match")
 	a.Equal("west", hostDoc.Zone, "service should match")
-	a.Equal("deploy", hostDoc.ProfileTag, "profile tag should match")
+	a.Equal("deploy", hostDoc.ProfileRestrictTo, "profile restrict to tag should match")
 }
 
 func TestNewHostDocServices(t *testing.T) {

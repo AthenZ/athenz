@@ -1,4 +1,4 @@
 {
     "profile": "zts-profile",
-    "profile_tag": "zts:RestrictTo"
+    "profile_restrict_to": "zts:RestrictTo"
 }

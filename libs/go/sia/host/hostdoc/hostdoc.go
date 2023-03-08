@@ -28,27 +28,27 @@ import (
 )
 
 const (
-	DOMAIN      = "domain"
-	SERVICE     = "service"
-	SERVICES    = "services"
-	PROFILE     = "profile"
-	PROFILE_TAG = "profile_tag"
-	PROVIDER    = "provider"
-	IP          = "ip"
-	UUID        = "uuid"
-	ZONE        = "zone"
+	DOMAIN              = "domain"
+	SERVICE             = "service"
+	SERVICES            = "services"
+	PROFILE             = "profile"
+	PROFILE_RESTRICT_TO = "profile_restrict_to"
+	PROVIDER            = "provider"
+	IP                  = "ip"
+	UUID                = "uuid"
+	ZONE                = "zone"
 )
 
 type Doc struct {
-	Provider   provider.Provider
-	Domain     string
-	Profile    string
-	ProfileTag string
-	Services   []string
-	Uuid       string
-	Ip         map[string]bool
-	Zone       string
-	Bytes      []byte
+	Provider          provider.Provider
+	Domain            string
+	Profile           string
+	ProfileRestrictTo string
+	Services          []string
+	Uuid              string
+	Ip                map[string]bool
+	Zone              string
+	Bytes             []byte
 }
 
 // NewPlainDoc returns Doc, the provider string from the host_document, and an error
@@ -88,14 +88,14 @@ func NewPlainDoc(bytes []byte) (*Doc, string, error) {
 	}
 
 	return &Doc{
-		Domain:     d.Domain,
-		Services:   strings.Split(svcs, ","),
-		Profile:    d.Profile,
-		ProfileTag: d.ProfileTag,
-		Uuid:       uuid,
-		Zone:       d.Zone,
-		Ip:         ip,
-		Bytes:      bytes,
+		Domain:            d.Domain,
+		Services:          strings.Split(svcs, ","),
+		Profile:           d.Profile,
+		ProfileRestrictTo: d.ProfileRestrictTo,
+		Uuid:              uuid,
+		Zone:              d.Zone,
+		Ip:                ip,
+		Bytes:             bytes,
 	}, d.Provider, nil
 }
 
