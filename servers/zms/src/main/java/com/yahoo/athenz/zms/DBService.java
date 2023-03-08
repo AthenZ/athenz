@@ -63,6 +63,8 @@ public class DBService implements RolesProvider {
     int defaultOpTimeout;
     ZMSConfig zmsConfig;
     private final int maxPolicyVersions;
+    final String awsAssumeRoleAction;
+    final String gcpAssumeRoleAction;
 
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
@@ -88,13 +90,19 @@ public class DBService implements RolesProvider {
     protected DynamicConfigInteger purgeMembersLimitPerCall;
     protected DynamicConfigInteger purgeMemberExpiryDays;
 
-    public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig, AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
+    public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig,
+                     AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
 
         this.store = store;
         this.zmsConfig = zmsConfig;
         this.auditLogger = auditLogger;
         this.authHistoryStore = authHistoryStore;
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
+
+        awsAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_AWS_ASSUME_ROLE_ACTION,
+                ZMSConsts.ACTION_ASSUME_AWS_ROLE);
+        gcpAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_ROLE_ACTION,
+                ZMSConsts.ACTION_ASSUME_GCP_ROLE);
 
         // default timeout in seconds for object store commands
 
@@ -2902,9 +2910,9 @@ public class DBService implements RolesProvider {
         // update the resources accordingly if the action is designed for one
         // of our cloud providers
 
-        if (ZMSConsts.ACTION_ASSUME_AWS_ROLE.equals(action)) {
+        if (awsAssumeRoleAction.equals(action)) {
             generateAWSResources(accessList);
-        } else if (ZMSConsts.ACTION_ASSUME_GCP_ROLE.equals(action)) {
+        } else if (gcpAssumeRoleAction.equals(action)) {
             generateGCPResources(accessList);
         }
 
