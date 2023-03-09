@@ -3454,6 +3454,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setMemberReviewDays(role.getMemberReviewDays())
                         .setServiceReviewDays(role.getServiceReviewDays())
                         .setSignAlgorithm(role.getSignAlgorithm())
+                        .setDescription(role.getDescription())
                         .setReviewEnabled(role.getReviewEnabled())
                         .setDeleteProtection(role.getDeleteProtection())
                         .setLastReviewedDate(role.getLastReviewedDate())

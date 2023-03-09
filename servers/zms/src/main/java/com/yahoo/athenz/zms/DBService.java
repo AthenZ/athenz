@@ -816,6 +816,9 @@ public class DBService implements RolesProvider {
         if (templateRole.getUserAuthorityFilter() == null) {
             templateRole.setUserAuthorityFilter(originalRole.getUserAuthorityFilter());
         }
+        if (templateRole.getDescription() == null) {
+            templateRole.setDescription(originalRole.getDescription());
+        }
         if (templateRole.getUserAuthorityExpiration() == null) {
             templateRole.setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
         }
@@ -4446,6 +4449,7 @@ public class DBService implements RolesProvider {
                 .setReviewEnabled(role.getReviewEnabled())
                 .setNotifyRoles(role.getNotifyRoles())
                 .setUserAuthorityFilter(role.getUserAuthorityFilter())
+                .setDescription(role.getDescription())
                 .setUserAuthorityExpiration(role.getUserAuthorityExpiration());
 
         List<RoleMember> roleMembers = role.getRoleMembers();
@@ -5832,6 +5836,9 @@ public class DBService implements RolesProvider {
         if (meta.getUserAuthorityExpiration() != null) {
             role.setUserAuthorityExpiration(meta.getUserAuthorityExpiration());
         }
+        if (meta.getDescription() != null) {
+            role.setDescription(meta.getDescription());
+        }
         if (meta.getTags() != null) {
             role.setTags(meta.getTags());
         }
@@ -5873,6 +5880,7 @@ public class DBService implements RolesProvider {
                         .setNotifyRoles(originalRole.getNotifyRoles())
                         .setUserAuthorityFilter(originalRole.getUserAuthorityFilter())
                         .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())
+                        .setDescription(originalRole.getDescription())
                         .setTags(originalRole.getTags());
 
                 // then we're going to apply the updated fields
