@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
 public class CryptoTest {
 
     private final File rsaPrivateKey = new File("./src/test/resources/unit_test_rsa_private.key");
+    private final File rsaPkcs8PrivateKey = new File("./src/test/resources/unit_test_rsa_pkcs8_private.key");
     private final File rsaPublicKey = new File("./src/test/resources/rsa_public.key");
     private final File rsaPublicX590Cert = new File("./src/test/resources/rsa_public_x509.cert");
     private final File rsaPublicInvalidKey = new File("./src/test/resources/rsa_public_invalid.key");
@@ -95,6 +96,20 @@ public class CryptoTest {
         assertEquals(signature, serviceRSASignature);
 
         PublicKey publicKey = Crypto.extractPublicKey(privateKey);
+        assertNotNull(publicKey);
+
+        assertTrue(Crypto.verify(serviceToken, publicKey, signature));
+    }
+
+    @Test
+    public void testSignVerifyPKCS8RsaKey() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPkcs8PrivateKey);
+        assertNotNull(privateKey);
+
+        String signature = Crypto.sign(serviceToken, privateKey);
+        assertEquals(signature, serviceRSASignature);
+
+        PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
         assertNotNull(publicKey);
 
         assertTrue(Crypto.verify(serviceToken, publicKey, signature));

@@ -862,6 +862,11 @@ public class Crypto {
                 PrivateKeyInfo privateKeyInfo = pKeyInfo.decryptPrivateKeyInfo(pkcs8Prov);
                 JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
                 privKey = pemConverter.getPrivateKey(privateKeyInfo);
+            } else if (pemObj instanceof PrivateKeyInfo) {
+
+                PrivateKeyInfo pKeyInfo = (PrivateKeyInfo) pemObj;
+                JcaPEMKeyConverter pemConverter = new JcaPEMKeyConverter();
+                privKey = pemConverter.getPrivateKey(pKeyInfo);
             }
 
             // if our private key is EC type and we have parameters specified
