@@ -164,3 +164,17 @@ module.exports.getMicrosegmentationActionRegex = () => {
         '^(TCP|UDP)-(IN|OUT):(\\d{1,5}-\\d{1,5}|\\d{1,5}):((?:\\d{1,5}|\\d{1,5}-\\d{1,5})(?:,\\d{1,5}|\\d{1,5}-\\d{1,5})*)$'
     );
 };
+
+module.exports.getProjectName = (project) => {
+    let projectNameAndRole = project.split(':');
+    let projectName = projectNameAndRole[0];
+    if (!projectName) return '';
+    return projectName;
+};
+
+module.exports.getProjectRoleName = (project) => {
+    let projectNameAndRole = project.split(':');
+    if (projectNameAndRole.length < 1) return '';
+    let projectRoleName = projectNameAndRole[1].replace('role.', '');
+    return projectRoleName;
+};

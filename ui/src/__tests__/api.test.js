@@ -1893,4 +1893,18 @@ describe('Fetchr Client API Test', () => {
         });
         afterEach(() => fetchrStub.restore());
     });
+    describe('getResourceAccessList test', () => {
+        it('getResourceAccessList test success', async () => {
+            myDataService = {
+                name: 'resource-access',
+                read: function (req, resource, params, config, callback) {
+                    callback(null, DATA);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.getResourceAccessList('dummy');
+            expect(result).toEqual(DATA);
+        });
+    });
 });

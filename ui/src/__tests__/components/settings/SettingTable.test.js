@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import React from 'react';
-import {screen, waitFor} from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import SettingTable from '../../../components/settings/SettingTable';
 import {
     buildDomainDataForState,
     getStateWithDomainData,
-    renderWithRedux
+    renderWithRedux,
 } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('SettingTable', () => {
@@ -78,9 +78,7 @@ describe('SettingTable', () => {
             getStateWithDomainData(domainData)
         );
 
-        expect(
-            screen.queryByText("Audit Enabled")
-        ).toBeInTheDocument();
+        expect(screen.queryByText('Audit Enabled')).toBeInTheDocument();
     });
 
     it('should render setting table for audit enabled domain with disabled role audit enabled when role audit enable is false and role has members', () => {
@@ -99,9 +97,11 @@ describe('SettingTable', () => {
             serviceExpiryDays: 3,
             tokenExpiryMins: 15,
             certExpiryMins: 15,
-            roleMembers: [{
-                'memberName': 'user.test'
-            }]
+            roleMembers: [
+                {
+                    memberName: 'user.test',
+                },
+            ],
         };
 
         const { theRender } = renderWithRedux(

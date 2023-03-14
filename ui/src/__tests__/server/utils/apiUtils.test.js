@@ -175,4 +175,14 @@ describe('apiUtils test', () => {
             })
             .catch((err) => {});
     });
+    test('should return project name from projectId', () => {
+        let project = 'dummy.project:role.gcp.fed.power.user';
+        let projectName = apiUtils.getProjectName(project);
+        expect(projectName).toEqual('dummy.project');
+    });
+    test('should return project role name from projectId', () => {
+        let project = 'dummy.project:role.gcp.fed.power.user';
+        let projectName = apiUtils.getProjectRoleName(project);
+        expect(projectName).toEqual('gcp.fed.power.user');
+    });
 });
