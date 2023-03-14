@@ -5,7 +5,6 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
-  padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
   text-align: center;
@@ -131,7 +130,6 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   color: #9a9a9a;
   font-weight: 600;
   font-size: 1.2rem;
-  padding-bottom: 5px;
   vertical-align: middle;
   text-transform: uppercase;
   padding: 5px 0 5px 0px;
@@ -143,7 +141,6 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   color: #9a9a9a;
   font-weight: 600;
   font-size: 1.2rem;
-  padding-bottom: 5px;
   vertical-align: top;
   text-transform: uppercase;
   padding: 5px 0 5px 15px;
@@ -155,7 +152,6 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   border-bottom: 2px solid #d5d5d5;
   font-weight: 600;
   font-size: 1.2rem;
-  padding-bottom: 5px;
   vertical-align: bottom;
   padding: 5px 0 5px 15px;
   text-align: left;
@@ -259,7 +255,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
 .emotion-20>div input {
   position: relative;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  background-color: #d5d5d5;
+  background-color: rgba(48,48,48,0.05);
   box-shadow: none;
   color: rgb(48, 48, 48);
   height: 16px;
@@ -273,8 +269,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
-  margin: 0px;
-  margin-top: 5px;
+  margin: 5px 7px 0px 0px;
   outline: none;
   padding: 0.6em 12px;
   -webkit-transition: background-color 0.2s ease-in-out 0s,color 0.2s ease-in-out 0s,border 0.2s ease-in-out 0s;
@@ -290,40 +285,44 @@ exports[`PendingApprovalTableHeader should render 1`] = `
 }
 
 .emotion-24 {
+  margin-left: -7px;
+  margin-top: 10px!important;
+}
+
+.emotion-26 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-32 {
-  border-bottom: 2px solid #d5d5d5;
+.emotion-36 {
+  border-bottom: 1px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
   vertical-align: middle;
   text-transform: uppercase;
   text-align: center;
   position: absolute;
-  width: 12em;
-  right: 11em;
+  width: 6em;
+  right: 6em;
   z-index: 1;
   height: 42px;
   background-color: rgba(255, 255, 255, 1);
-  padding-bottom: 5px;
   padding: 5px 0 5px 15px;
 }
 
-.emotion-34 {
+.emotion-38 {
   margin-top: 10px;
 }
 
-.emotion-36 {
+.emotion-40 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-37 {
-  border-bottom: 2px solid #d5d5d5;
+.emotion-41 {
+  border-bottom: 1px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
   vertical-align: middle;
@@ -331,12 +330,11 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   text-align: center;
   border-right: none;
   position: absolute;
-  width: 11em;
+  width: 6em;
   right: 0em;
   z-index: 1;
   height: 42px;
   background-color: rgba(255, 255, 255, 1);
-  padding-bottom: 5px;
   padding: 5px 0 5px 15px;
 }
 
@@ -373,7 +371,7 @@ exports[`PendingApprovalTableHeader should render 1`] = `
   />
   <th
     class="emotion-5 emotion-6"
-    colspan="3"
+    colspan="4"
   />
   <th
     class="emotion-5 emotion-6"
@@ -422,10 +420,11 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           type="text"
         />
         <a
+          class="emotion-24 emotion-25"
           data-clear=""
         >
           <svg
-            class="emotion-24"
+            class="emotion-26"
             data-testid="icon"
             height="1.25em"
             id=""
@@ -469,10 +468,11 @@ exports[`PendingApprovalTableHeader should render 1`] = `
           type="text"
         />
         <a
+          class="emotion-24 emotion-25"
           data-clear=""
         >
           <svg
-            class="emotion-24"
+            class="emotion-26"
             data-testid="icon"
             height="1.25em"
             id=""
@@ -491,13 +491,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-32 emotion-33"
+    class="emotion-36 emotion-37"
   >
     <div
-      class="emotion-34 emotion-35"
+      class="emotion-38 emotion-39"
     >
       <svg
-        class="emotion-36"
+        class="emotion-40"
         data-testid="icon"
         height="1.25em"
         id=""
@@ -517,13 +517,13 @@ exports[`PendingApprovalTableHeader should render 1`] = `
     </div>
   </th>
   <th
-    class="emotion-37 emotion-38"
+    class="emotion-41 emotion-42"
   >
     <div
-      class="emotion-34 emotion-35"
+      class="emotion-38 emotion-39"
     >
       <svg
-        class="emotion-36"
+        class="emotion-40"
         data-testid="icon"
         height="1.25em"
         id=""

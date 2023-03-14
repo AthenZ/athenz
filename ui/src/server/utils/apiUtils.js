@@ -42,6 +42,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: role.requestTime,
                     expiryDate: expiryDate,
+                    pendingState: role.pendingState,
                 };
             });
         });
@@ -69,6 +70,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: group.requestTime,
                     expiryDate: expiryDate,
+                    pendingState: group.pendingState,
                 };
             });
         });

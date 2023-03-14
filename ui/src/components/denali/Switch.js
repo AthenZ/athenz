@@ -163,7 +163,16 @@ class Switch extends React.PureComponent {
 
         return (
             <div className={classes} data-testid='switch-wrapper'>
-                <input {...rest} id={this.switchId} ref={innerRef} data-testid={this.props.name ? this.props.name + '-switch-input' : 'switch-input'} />
+                <input
+                    {...rest}
+                    id={this.switchId}
+                    ref={innerRef}
+                    data-testid={
+                        this.props.name
+                            ? this.props.name + '-switch-input'
+                            : 'switch-input'
+                    }
+                />
                 <label htmlFor={this.switchId}>
                     {this.label && (
                         <div className='label-content'>{this.label}</div>

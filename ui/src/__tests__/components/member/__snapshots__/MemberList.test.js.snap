@@ -111,6 +111,7 @@ exports[`MemberList should render 1`] = `
 
 .emotion-12 {
   text-align: left;
+  width: 26%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -123,6 +124,20 @@ exports[`MemberList should render 1`] = `
 
 .emotion-14 {
   text-align: left;
+  width: 26%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  text-align: left;
+  width: 40%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -135,6 +150,7 @@ exports[`MemberList should render 1`] = `
 
 .emotion-20 {
   text-align: center;
+  width: 8%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -181,6 +197,19 @@ exports[`MemberList should render 1`] = `
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-75 {
+  text-align: left;
+  width: 14%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
   word-break: break-all;
 }
 
@@ -233,26 +262,31 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
+          width="26"
         >
           User Name
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Name of User
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-14 emotion-15"
+          class="emotion-18 emotion-15"
+          width="40"
         >
           Review Reminder Date
         </th>
         <th
           class="emotion-20 emotion-15"
+          width="8"
         >
           Delete
         </th>
@@ -484,26 +518,37 @@ exports[`MemberList should render 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
+          width="26"
         >
           User Name
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Name of User
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Expiration Date
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Review Reminder Date
         </th>
         <th
+          class="emotion-75 emotion-15"
+          width="14"
+        >
+          Pending State
+        </th>
+        <th
           class="emotion-20 emotion-15"
+          width="8"
         >
           Delete
         </th>
@@ -578,6 +623,10 @@ exports[`MemberList should render 1`] = `
             </span>
           </div>
         </td>
+        <td
+          class="emotion-24 emotion-25"
+          color="#3570f40D"
+        />
         <td
           class="emotion-38 emotion-25"
           color="#3570f40D"
@@ -672,6 +721,10 @@ exports[`MemberList should render 1`] = `
             </span>
           </div>
         </td>
+        <td
+          class="emotion-43 emotion-25"
+          color=""
+        />
         <td
           class="emotion-57 emotion-25"
           color=""
@@ -814,6 +867,7 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-12 {
   text-align: left;
+  width: 26%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -826,6 +880,20 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-14 {
   text-align: left;
+  width: 26%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  text-align: left;
+  width: 40%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -838,6 +906,7 @@ exports[`MemberList should render delegated role 1`] = `
 
 .emotion-20 {
   text-align: center;
+  width: 8%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -936,26 +1005,31 @@ exports[`MemberList should render delegated role 1`] = `
       <tr>
         <th
           class="emotion-12 emotion-13"
+          width="26"
         >
           User Name
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Name of User
         </th>
         <th
           class="emotion-14 emotion-15"
+          width="26"
         >
           Expiration Date
         </th>
         <th
-          class="emotion-14 emotion-15"
+          class="emotion-18 emotion-15"
+          width="40"
         >
           Review Reminder Date
         </th>
         <th
           class="emotion-20 emotion-15"
+          width="8"
         >
           Delete
         </th>

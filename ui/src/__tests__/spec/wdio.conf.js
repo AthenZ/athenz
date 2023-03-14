@@ -17,94 +17,107 @@
 const exec = require('child_process').exec;
 const appConfig = require('../../config/config')();
 const {
-  BUILD_NUMBER,
-  SD_JOB_NAME,
-  WORK_DIR,
-  TUNNEL_IDENTIFIER = appConfig.tunnelIdentifier,
-  PARENT_TUNNEL = appConfig.parentTunnel,
+    BUILD_NUMBER,
+    SD_JOB_NAME,
+    WORK_DIR,
+    TUNNEL_IDENTIFIER = appConfig.tunnelIdentifier,
+    PARENT_TUNNEL = appConfig.parentTunnel,
 } = process.env;
 let athenzDomain;
 let athenzService;
 let sdv4FunctionalJob = SD_JOB_NAME && SD_JOB_NAME === appConfig.devSdJobName;
 
-if (process.env.INSTANCE) { // executing functional test pointing at dev environment
-  athenzDomain = 'athenz.k8s';
-  athenzService = 'athenz-ui-development';
-} else { // executing functional test pointing at local environment
-  athenzDomain = 'athenz.dev';
-  athenzService = 'devui';
+if (process.env.INSTANCE) {
+    // executing functional test pointing at dev environment
+    athenzDomain = 'athenz.k8s';
+    athenzService = 'athenz-ui-development';
+} else {
+    // executing functional test pointing at local environment
+    athenzDomain = 'athenz.dev';
+    athenzService = 'devui';
 }
 
 let sdAthenzKeyFilePath = WORK_DIR + '/func.key.pem';
 let sdAthenzCertFiledPath = WORK_DIR + '/func.cert.pem';
-let localAthenzKeyFilePath = '~/.athenz/keys/' + athenzDomain + '.' + athenzService + '.key.pem';
-let localAthenzCertFilePath = '~/.athenz/certs/' + athenzDomain + '.' + athenzService + '.cert.pem';
+let localAthenzKeyFilePath =
+    '~/.athenz/keys/' + athenzDomain + '.' + athenzService + '.key.pem';
+let localAthenzCertFilePath =
+    '~/.athenz/certs/' + athenzDomain + '.' + athenzService + '.cert.pem';
 
 let functionalConfig = {
-  'athensZtsAPI': appConfig.ztsOnPrem,
-  'athenzService': athenzService,
-  'athenzDomain': athenzDomain,
-  'athenzKeyFile': sdv4FunctionalJob ? sdAthenzKeyFilePath : localAthenzKeyFilePath,
-  'athenzCertFile': sdv4FunctionalJob ? sdAthenzCertFiledPath : localAthenzCertFilePath,
-  'sauceUser': sdv4FunctionalJob ? appConfig.sauceUser : process.env.SAUCE_USERNAME,
-  'sauceKey': process.env.SAUCE_KEY,
-  'instance': process.env.INSTANCE || appConfig.localUrl,
-  'cookieDomain': process.env.COOKIE || appConfig.cookieDomain,
-  'sauceSeleniumAddress': appConfig.sauceSeleniumAddress,
-  'screenResolution': '1600x1200'
+    athensZtsAPI: appConfig.ztsOnPrem,
+    athenzService: athenzService,
+    athenzDomain: athenzDomain,
+    athenzKeyFile: sdv4FunctionalJob
+        ? sdAthenzKeyFilePath
+        : localAthenzKeyFilePath,
+    athenzCertFile: sdv4FunctionalJob
+        ? sdAthenzCertFiledPath
+        : localAthenzCertFilePath,
+    sauceUser: sdv4FunctionalJob
+        ? appConfig.sauceUser
+        : process.env.SAUCE_USERNAME,
+    sauceKey: process.env.SAUCE_KEY,
+    instance: process.env.INSTANCE || appConfig.localUrl,
+    cookieDomain: process.env.COOKIE || appConfig.cookieDomain,
+    sauceSeleniumAddress: appConfig.sauceSeleniumAddress,
+    screenResolution: '1600x1200',
 };
 
 const sauceLabsKey = functionalConfig.sauceKey || '';
 const sauceLabsUser = functionalConfig.sauceUser || '';
-const localOrRemote = { };
+const localOrRemote = {};
 if (!sauceLabsUser) {
-  //
-  // Test runner services
-  // Services take over a specific job you don't want to take care of. They enhance
-  // your test setup with almost no effort. Unlike plugins, they don't add new
-  // commands. Instead, they hook themselves up into the test process.
-  localOrRemote.saucelabs = {
-    runner: 'local',
-    services: ['chromedriver']
-  };
-  localOrRemote.capabilities = [
-    {
-      browserName: 'chrome',
-      browserVersion: 'latest',
-      acceptInsecureCerts: true
-    }
-  ];
+    //
+    // Test runner services
+    // Services take over a specific job you don't want to take care of. They enhance
+    // your test setup with almost no effort. Unlike plugins, they don't add new
+    // commands. Instead, they hook themselves up into the test process.
+    localOrRemote.saucelabs = {
+        runner: 'local',
+        services: ['chromedriver'],
+    };
+    localOrRemote.capabilities = [
+        {
+            browserName: 'chrome',
+            browserVersion: 'latest',
+            acceptInsecureCerts: true,
+        },
+    ];
 } else {
-  // SauceLabs Settings
-  localOrRemote.saucelabs = {
-    user: sauceLabsUser,
-    key: sauceLabsKey,
-    services: ['sauce'],
-    sauceConnect: true,
-    region: 'us',
-    updateJob: true,
-    sauceSeleniumAddress: functionalConfig.sauceSeleniumAddress,
-    setJobName: (config, capabilities, suiteTitle) => {
-      capabilities.name = suiteTitle + ':' + 'Athenz UI Tests';
-    }
-  };
-  // Capabilities - These are the browsers to use in SauceLabs
-  localOrRemote.capabilities = [
-    {
-      browserName: 'chrome',
-      acceptInsecureCerts: true,
-      browserVersion: 'latest',
-      platformName: 'OS X 12',
-      maxInstances: 7,
-      'sauce:options': {
-        tunnelIdentifier: TUNNEL_IDENTIFIER + '-' + (Math.floor(Math.random() * 8) + 1),
-        parentTunnel: process.env.SAUCE_TUNNEL || PARENT_TUNNEL,
-        name: process.env.npm_package_name || 'Athenz UI Tests',
-        build: BUILD_NUMBER,
-        screenResolution: functionalConfig.screenResolution
-      }
-    }
-  ];
+    // SauceLabs Settings
+    localOrRemote.saucelabs = {
+        user: sauceLabsUser,
+        key: sauceLabsKey,
+        services: ['sauce'],
+        sauceConnect: true,
+        region: 'us',
+        updateJob: true,
+        sauceSeleniumAddress: functionalConfig.sauceSeleniumAddress,
+        setJobName: (config, capabilities, suiteTitle) => {
+            capabilities.name = suiteTitle + ':' + 'Athenz UI Tests';
+        },
+    };
+    // Capabilities - These are the browsers to use in SauceLabs
+    localOrRemote.capabilities = [
+        {
+            browserName: 'chrome',
+            acceptInsecureCerts: true,
+            browserVersion: 'latest',
+            platformName: 'OS X 12',
+            maxInstances: 7,
+            'sauce:options': {
+                tunnelIdentifier:
+                    TUNNEL_IDENTIFIER +
+                    '-' +
+                    (Math.floor(Math.random() * 8) + 1),
+                parentTunnel: process.env.SAUCE_TUNNEL || PARENT_TUNNEL,
+                name: process.env.npm_package_name || 'Athenz UI Tests',
+                build: BUILD_NUMBER,
+                screenResolution: functionalConfig.screenResolution,
+            },
+        },
+    ];
 }
 let config = {
     ...localOrRemote.saucelabs,
@@ -114,7 +127,7 @@ let config = {
     // ====================
     // WebdriverIO supports running e2e tests as well as unit and component tests.
     runner: 'local',
-    
+
     //
     // =================
     // Service Providers
@@ -145,9 +158,7 @@ let config = {
     // then the current working directory is where your `package.json` resides, so `wdio`
     // will be called from there.
     //
-    specs: [
-        './tests/*.spec.js'
-    ],
+    specs: ['./tests/*.spec.js'],
     // Patterns to exclude.
     exclude: [
         // 'path/to/excluded/files'
@@ -174,9 +185,7 @@ let config = {
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [
-      ...localOrRemote.capabilities
-    ],
+    capabilities: [...localOrRemote.capabilities],
     //
     // ===================
     // Test Configurations
@@ -196,8 +205,8 @@ let config = {
     // - @wdio/cli, @wdio/config, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     logLevels: {
-      webdriver: 'error',
-      '@wdio/local-runner': 'info',
+        webdriver: 'error',
+        '@wdio/local-runner': 'info',
     },
     //
     // If you only want to run your tests until a specific amount of tests have failed use
@@ -224,7 +233,7 @@ let config = {
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
-    
+
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: https://webdriver.io/docs/frameworks
@@ -247,8 +256,6 @@ let config = {
     // see also: https://webdriver.io/docs/dot-reporter
     reporters: ['spec'],
 
-
-    
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
@@ -309,72 +316,78 @@ let config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {Object}         browser      instance of created browser/device session
      */
-     before: function(capabilities, specs, browser) {
-        let getAccessToken = function(callback) {
-          let command = 'zts-accesstoken' +
-                                ' -domain ' + functionalConfig.athenzDomain +
-                                ' -service ' + functionalConfig.athenzService +
-                                ' -svc-key-file ' + functionalConfig.athenzKeyFile +
-                                ' -svc-cert-file ' + functionalConfig.athenzCertFile +
-                                ' -zts ' + functionalConfig.athensZtsAPI;
-          console.log('Fetching access token using command: ', command);
-          exec(command, (err, stdout, stderr) => {
-            let value = {};
-            if (err) {
-              console.log('Fetching tokens failed: ', err, stderr);
-            }
-            if (stdout) {
-              try {
-                value = JSON.parse(stdout);
-              } catch(e) {
-                console.log('Parsing JSON failed: ', e);
-                callback(e, value);
-              }
-            }
-            callback(err, value);
-          });
-        };
-    
-        browser.addCommand('newUser', function() {
-          return new Promise(function(fulfill, reject) {
-            getAccessToken(async function(err, tokens) {
-              if (err) {
-                reject(err);
-                return;
-              } else {
-                await browser.url('/akamai');
-                await browser.setCookies({
-                  name: 'okta_at',
-                  value: tokens.access_token,
-                  path: '/',
-                  domain: functionalConfig.cookieDomain,
-                  secure: true,
-                  httpOnly: true
-                });
-        
-                await browser.setCookies({
-                  name: 'okta_it',
-                  value: tokens.id_token,
-                  path: '/',
-                  domain: functionalConfig.cookieDomain,
-                  secure: true,
-                  httpOnly: true
-                });
-        
-                await browser.setCookies({
-                  name: 'okta_rt',
-                  value: '',
-                  path: '/',
-                  domain: functionalConfig.cookieDomain,
-                  secure: true,
-                  httpOnly: true
-                });
-                fulfill();
-              }
+    before: function (capabilities, specs, browser) {
+        let getAccessToken = function (callback) {
+            let command =
+                'zts-accesstoken' +
+                ' -domain ' +
+                functionalConfig.athenzDomain +
+                ' -service ' +
+                functionalConfig.athenzService +
+                ' -svc-key-file ' +
+                functionalConfig.athenzKeyFile +
+                ' -svc-cert-file ' +
+                functionalConfig.athenzCertFile +
+                ' -zts ' +
+                functionalConfig.athensZtsAPI;
+            console.log('Fetching access token using command: ', command);
+            exec(command, (err, stdout, stderr) => {
+                let value = {};
+                if (err) {
+                    console.log('Fetching tokens failed: ', err, stderr);
+                }
+                if (stdout) {
+                    try {
+                        value = JSON.parse(stdout);
+                    } catch (e) {
+                        console.log('Parsing JSON failed: ', e);
+                        callback(e, value);
+                    }
+                }
+                callback(err, value);
             });
-          });
+        };
+
+        browser.addCommand('newUser', function () {
+            return new Promise(function (fulfill, reject) {
+                getAccessToken(async function (err, tokens) {
+                    if (err) {
+                        reject(err);
+                        return;
+                    } else {
+                        await browser.url('/akamai');
+                        await browser.setCookies({
+                            name: 'okta_at',
+                            value: tokens.access_token,
+                            path: '/',
+                            domain: functionalConfig.cookieDomain,
+                            secure: true,
+                            httpOnly: true,
+                        });
+
+                        await browser.setCookies({
+                            name: 'okta_it',
+                            value: tokens.id_token,
+                            path: '/',
+                            domain: functionalConfig.cookieDomain,
+                            secure: true,
+                            httpOnly: true,
+                        });
+
+                        await browser.setCookies({
+                            name: 'okta_rt',
+                            value: '',
+                            path: '/',
+                            domain: functionalConfig.cookieDomain,
+                            secure: true,
+                            httpOnly: true,
+                        });
+                        fulfill();
+                    }
+                });
+            });
         });
-      }
+    },
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param {String} commandName hook command name
@@ -417,7 +430,6 @@ let config = {
      */
     // afterTest: function(test, context, { error, result, duration, passed, retries }) {
     // },
-
 
     /**
      * Hook that gets executed after the suite has ended
@@ -462,13 +474,13 @@ let config = {
     // onComplete: function(exitCode, config, capabilities, results) {
     // },
     /**
-    * Gets executed when a refresh happens.
-    * @param {String} oldSessionId session ID of the old session
-    * @param {String} newSessionId session ID of the new session
-    */
+     * Gets executed when a refresh happens.
+     * @param {String} oldSessionId session ID of the old session
+     * @param {String} newSessionId session ID of the new session
+     */
     // onReload: function(oldSessionId, newSessionId) {
     // }
-}
+};
 
 console.log('final config object: %O', config);
 

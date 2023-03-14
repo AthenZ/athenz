@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { modified, expiry, domainName } from '../../config/config.test';
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 
 describe('Groups Config', () => {
     it('should get default config', () => {
@@ -201,11 +202,24 @@ export const configStoreGroupsWithPendingMembers = {
                 groupName: 'dom:group.group1',
                 expiration: '2022-09-02T08:14:08.131Z',
             },
+            'user.user6': {
+                memberName: 'user.user6',
+                groupName: 'dom:group.group1',
+                expiration: '2022-09-02T08:14:08.131Z',
+            },
         },
         groupPendingMembers: {
             'user.user4': {
+                pendingState: PENDING_STATE_ENUM.ADD,
                 approved: false,
                 memberName: 'user.user4',
+                groupName: 'dom:group.group1',
+                expiration: '2022-09-02T08:14:08.131Z',
+            },
+            'user.user6': {
+                pendingState: PENDING_STATE_ENUM.DELETE,
+                approved: false,
+                memberName: 'user.user6',
                 groupName: 'dom:group.group1',
                 expiration: '2022-09-02T08:14:08.131Z',
             },
