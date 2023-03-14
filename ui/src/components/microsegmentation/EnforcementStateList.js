@@ -66,12 +66,34 @@ class EnforcementStateList extends React.Component {
     constructor(props) {
         super(props);
         this.localDate = new DateUtils();
+        this.getScopeString = this.getScopeString.bind(this);
     }
 
     onClickDelete(assertionId, conditionId, policyName) {
         if (this.props.list.length > 1) {
             this.props.deleteCondition(assertionId, conditionId, policyName);
         }
+    }
+
+    getScopeString(item) {
+        let scopeStr = '';
+        if (item['scopeall'] === 'true') {
+            scopeStr += 'All';
+        } else if (
+            item['scopeonprem'] === 'true' ||
+            item['scopeaws'] === 'true'
+        ) {
+            if (item['scopeonprem'] === 'true') {
+                scopeStr += 'OnPrem ';
+            }
+            if (item['scopeaws'] === 'true') {
+                scopeStr += 'AWS ';
+            }
+        } else {
+            // Backward compatability - if no scope, assume on-prem
+            scopeStr += 'OnPrem';
+        }
+        return scopeStr;
     }
 
     render() {
@@ -87,12 +109,14 @@ class EnforcementStateList extends React.Component {
                     item['id'],
                     policyName[1]
                 );
+                let scopeString = this.getScopeString(item);
                 return (
                     <StyledTr key={item + i + new Date().getTime()}>
                         <StyledTd>{item['enforcementstate']}</StyledTd>
                         <StyledTd>
                             {item['instances'].replace(/,/g, '\n')}
                         </StyledTd>
+                        <StyledTd>{scopeString}</StyledTd>
                         <StyledTd>
                             <Menu
                                 placement='bottom-start'
@@ -120,6 +144,16 @@ class EnforcementStateList extends React.Component {
                 );
             });
 
+        if (rows === '' || rows === undefined || rows === null) {
+            rows = [
+                <StyledTr key={'EMPTY' + new Date().getTime()}>
+                    <StyledTd>{'report'}</StyledTd>
+                    <StyledTd>{'*'}</StyledTd>
+                    <StyledTd>{'OnPrem'}</StyledTd>
+                    <StyledTd>{'Default Condition'}</StyledTd>
+                </StyledTr>,
+            ];
+        }
         return (
             <StyledDiv
                 key={'enforcement-state-list'}
@@ -130,6 +164,7 @@ class EnforcementStateList extends React.Component {
                         <StyledTr>
                             <StyledTh> Enforcement State </StyledTh>
                             <StyledTh> Hosts </StyledTh>
+                            <StyledTh> Scope </StyledTh>
                             <StyledTh> Action </StyledTh>
                         </StyledTr>
                     </thead>

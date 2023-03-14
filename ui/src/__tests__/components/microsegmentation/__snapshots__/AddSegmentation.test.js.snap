@@ -522,28 +522,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
 }
 
 .emotion-56 {
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  margin-right: 1px;
-}
-
-.emotion-74 {
-  width: 65%;
-}
-
-.emotion-83 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.emotion-103 {
   padding-top: 15px;
 }
 
-.emotion-105 {
+.emotion-58 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -556,7 +538,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   vertical-align: middle;
 }
 
-.emotion-105>input[type='checkbox'] {
+.emotion-58>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -565,7 +547,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   visibility: hidden;
 }
 
-.emotion-105>input[type='checkbox']+label {
+.emotion-58>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -578,7 +560,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   white-space: nowrap;
 }
 
-.emotion-105>input[type='checkbox']+label:before {
+.emotion-58>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -594,33 +576,33 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 16px;
 }
 
-.emotion-105>input[type='checkbox']:hover+label:before {
+.emotion-58>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-105>input[type='checkbox']:focus+label:before {
+.emotion-58>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-105>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-105>input[type='checkbox']:checked+label:before {
+.emotion-58>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-58>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-105>input[type='checkbox']:disabled+label {
+.emotion-58>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-105>input[type='checkbox']:disabled+label:before {
+.emotion-58>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-105>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-58>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-105>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-58>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -635,7 +617,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8px;
 }
 
-.emotion-105>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-58>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -653,6 +635,24 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
   width: 4.5px;
+}
+
+.emotion-72 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+  margin-right: 1px;
+}
+
+.emotion-90 {
+  width: 65%;
+}
+
+.emotion-99 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 
 <div
@@ -771,94 +771,158 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         </div>
       </div>
     </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <label
-        class="emotion-6 denali-input-label emotion-7 emotion-8"
-      >
-        Policy Enforcement State
-      </label>
+    <div>
       <div
-        class="emotion-37 denali-radiobutton-group emotion-38 emotion-39"
-        data-testid="radiobuttongroup"
+        class="emotion-4 emotion-5"
       >
+        <label
+          class="emotion-6 denali-input-label emotion-7 emotion-8"
+        >
+          Policy Enforcement State
+        </label>
         <div
-          class="emotion-40 denali-radiobutton"
-          data-testid="radiobutton-wrapper"
+          class="emotion-37 denali-radiobutton-group emotion-38 emotion-39"
+          data-testid="radiobuttongroup"
+        >
+          <div
+            class="emotion-40 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              checked=""
+              id="radiobutton-enforcementStateRadioButton0-report"
+              name="enforcementStateRadioButton0"
+              type="radio"
+              value="report"
+            />
+            <label
+              for="radiobutton-enforcementStateRadioButton0-report"
+            >
+              Report
+            </label>
+          </div>
+          <div
+            class="emotion-40 denali-radiobutton"
+            data-testid="radiobutton-wrapper"
+          >
+            <input
+              id="radiobutton-enforcementStateRadioButton0-enforce"
+              name="enforcementStateRadioButton0"
+              type="radio"
+              value="enforce"
+            />
+            <label
+              for="radiobutton-enforcementStateRadioButton0-enforce"
+            >
+              Enforce
+            </label>
+          </div>
+        </div>
+        <label
+          class="emotion-6 denali-input-label emotion-43 emotion-295"
+        >
+          Hosts
+        </label>
+        <div
+          class="emotion-19 denali-input emotion-46 emotion-292"
+          data-testid="input-wrapper"
         >
           <input
-            checked=""
-            id="radiobutton-enforcementStateRadioButton0-report"
-            name="enforcementStateRadioButton0"
-            type="radio"
-            value="report"
+            autocomplete="off"
+            data-testid="input-node"
+            name="instances0"
+            placeholder="Comma separated list, Leave blank to apply to all hosts"
+            value=""
           />
-          <label
-            for="radiobutton-enforcementStateRadioButton0-report"
-          >
-            Report
-          </label>
+          <div
+            class="message"
+            data-testid="message"
+          />
         </div>
         <div
-          class="emotion-40 denali-radiobutton"
-          data-testid="radiobutton-wrapper"
+          class="emotion-48 emotion-291"
         >
-          <input
-            id="radiobutton-enforcementStateRadioButton0-enforce"
-            name="enforcementStateRadioButton0"
-            type="radio"
-            value="enforce"
-          />
-          <label
-            for="radiobutton-enforcementStateRadioButton0-enforce"
+          <svg
+            class="emotion-50"
+            data-testid="icon"
+            height="1.75em"
+            id=""
+            viewBox="0 0 1024 1024"
+            width="1.75em"
           >
-            Enforce
-          </label>
+            <title>
+              add-circle
+            </title>
+            <path
+              d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
+            />
+            <path
+              d="M725.333 469.333h-170.667v-170.667c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 170.667h-170.667c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h170.667v170.667c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-170.667h170.667c23.564 0 42.667-19.103 42.667-42.667s-19.103-42.667-42.667-42.667v0z"
+            />
+          </svg>
         </div>
       </div>
-      <label
-        class="emotion-6 denali-input-label emotion-43 emotion-295"
-      >
-        Hosts
-      </label>
       <div
-        class="emotion-19 denali-input emotion-46 emotion-292"
-        data-testid="input-wrapper"
+        class="emotion-4 emotion-5"
       >
-        <input
-          autocomplete="off"
-          data-testid="input-node"
-          name="instances0"
-          placeholder="Comma separated list, Leave blank to apply to all hosts"
-          value=""
-        />
-        <div
-          class="message"
-          data-testid="message"
-        />
-      </div>
-      <div
-        class="emotion-48 emotion-291"
-      >
-        <svg
-          class="emotion-50"
-          data-testid="icon"
-          height="1.75em"
-          id=""
-          viewBox="0 0 1024 1024"
-          width="1.75em"
+        <label
+          class="emotion-6 denali-input-label emotion-7 emotion-8"
         >
-          <title>
-            add-circle
-          </title>
-          <path
-            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0.003-0.635 0.005-1.387 0.005-2.138 0-258.027-209.173-467.2-467.2-467.2-0.752 0-1.504 0.002-2.255 0.005l0.117-0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001z"
-          />
-          <path
-            d="M725.333 469.333h-170.667v-170.667c0-23.564-19.103-42.667-42.667-42.667s-42.667 19.103-42.667 42.667v0 170.667h-170.667c-23.564 0-42.667 19.103-42.667 42.667s19.103 42.667 42.667 42.667v0h170.667v170.667c0 23.564 19.103 42.667 42.667 42.667s42.667-19.103 42.667-42.667v0-170.667h170.667c23.564 0 42.667-19.103 42.667-42.667s-19.103-42.667-42.667-42.667v0z"
-          />
-        </svg>
+          Scope
+        </label>
+        <div
+          class="emotion-56 emotion-297"
+        >
+          <div
+            class="emotion-58 denali-checkbox emotion-59 emotion-60"
+            data-testid="checkbox-wrapper"
+          >
+            <input
+              data-partial="false"
+              id="scopeallCheckBox0"
+              name="scopeallCheckBox0"
+              type="checkbox"
+            />
+            <label
+              for="scopeallCheckBox0"
+            >
+              All
+            </label>
+          </div>
+          <div
+            class="emotion-58 denali-checkbox emotion-59 emotion-60"
+            data-testid="checkbox-wrapper"
+          >
+            <input
+              checked=""
+              data-partial="false"
+              id="scopeonpremCheckBox0"
+              name="scopeonpremCheckBox0"
+              type="checkbox"
+            />
+            <label
+              for="scopeonpremCheckBox0"
+            >
+              On-Prem
+            </label>
+          </div>
+          <div
+            class="emotion-58 denali-checkbox emotion-59 emotion-60"
+            data-testid="checkbox-wrapper"
+          >
+            <input
+              data-partial="false"
+              id="scopeawsCheckBox0"
+              name="scopeawsCheckBox0"
+              type="checkbox"
+            />
+            <label
+              for="scopeawsCheckBox0"
+            >
+              AWS
+            </label>
+          </div>
+        </div>
       </div>
     </div>
     <div
@@ -870,7 +934,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Destination Port(s)
       </label>
       <div
-        class="emotion-56 emotion-57"
+        class="emotion-72 emotion-73"
       >
         <div
           class="emotion-19 denali-input emotion-20 emotion-21"
@@ -920,7 +984,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         class="emotion-6 denali-input-label emotion-7 emotion-8"
       />
       <div
-        class="emotion-74 emotion-75"
+        class="emotion-90 emotion-91"
       />
     </div>
     <div
@@ -932,10 +996,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Source Port(s)
       </label>
       <div
-        class="emotion-56 emotion-57"
+        class="emotion-72 emotion-73"
       >
         <div
-          class="emotion-83 emotion-84"
+          class="emotion-99 emotion-100"
         >
           <div
             class="emotion-19 denali-input emotion-20 emotion-21"
@@ -1022,10 +1086,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Validation
       </label>
       <div
-        class="emotion-103 emotion-297"
+        class="emotion-56 emotion-297"
       >
         <div
-          class="emotion-105 denali-checkbox emotion-106 emotion-107"
+          class="emotion-58 denali-checkbox emotion-59 emotion-60"
           data-testid="checkbox-wrapper"
         >
           <input

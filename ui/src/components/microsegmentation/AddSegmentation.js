@@ -171,6 +171,33 @@ class AddSegmentation extends React.Component {
             this.validateMicrosegmentationPolicy.bind(this);
         this.validateFields = this.validateFields.bind(this);
         this.validateServiceNames = this.validateServiceNames.bind(this);
+        this.scopeIsSet = this.scopeIsSet.bind(this);
+
+        let pesList = [
+            {
+                enforcementstate: 'report',
+                instances: '',
+                scopeonprem: 'true',
+                scopeaws: 'false',
+                scopeall: 'false',
+                id: 1,
+            },
+        ];
+        if (this.props.editMode && this.props.data['conditionsList']) {
+            pesList = JSON.parse(
+                JSON.stringify(this.props.data['conditionsList'])
+            );
+            // for backward compatatbility, policies without scope are assumed to be onprem
+            for (var i = 0; i < pesList.length; i++) {
+                if (
+                    pesList[i].scopeonprem !== 'true' &&
+                    pesList[i].scopeaws !== 'true' &&
+                    pesList[i].scopeall !== 'true'
+                ) {
+                    pesList[i].scopeonprem = 'true';
+                }
+            }
+        }
 
         this.state = {
             category: this.props.editMode
@@ -219,12 +246,7 @@ class AddSegmentation extends React.Component {
                 ? this.props.data['identifier']
                 : '',
             justification: '',
-            PESList:
-                this.props.editMode && this.props.data['conditionsList']
-                    ? JSON.parse(
-                          JSON.stringify(this.props.data['conditionsList'])
-                      )
-                    : [{ enforcementstate: 'report', instances: '', id: 1 }],
+            PESList: pesList,
             data: props.data,
             validationCheckbox: false,
             saving: 'todo',
@@ -281,6 +303,19 @@ class AddSegmentation extends React.Component {
             validationStatus: '',
             validationError: 'none',
         });
+    }
+
+    scopeIsSet(pesList) {
+        for (var i = 0; i < pesList.length; i++) {
+            if (
+                pesList[i].scopeonprem != 'true' &&
+                pesList[i].scopeaws != 'true' &&
+                pesList[i].scopeall != 'true'
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     addMember() {
@@ -653,6 +688,14 @@ class AddSegmentation extends React.Component {
             return 1;
         }
 
+        if (!this.scopeIsSet(this.state.PESList)) {
+            this.setState({
+                errorMessage: 'Please select at least one scope.',
+                saving: 'todo',
+            });
+            return 1;
+        }
+
         return 0;
     }
 
@@ -944,6 +987,9 @@ class AddSegmentation extends React.Component {
                     (other) =>
                         other.instances == current.instances &&
                         other.enforcementstate == current.enforcementstate &&
+                        other.scopeall == current.scopeall &&
+                        other.scopeonprem == current.scopeonprem &&
+                        other.scopeaws == current.scopeaws &&
                         other.id == current.id
                 ).length == 0;
 
@@ -1061,9 +1107,9 @@ class AddSegmentation extends React.Component {
     }
 
     handleInputChange(e, index) {
-        const { name, value } = e.target;
+        const { name, value, checked } = e.target;
         const list = [...this.state.PESList];
-
+        const checkedStr = checked ? 'true' : 'false';
         if (name.includes('enforcementStateRadioButton')) {
             list[index]['enforcementstate'] = value;
             if (list.length == 2) {
@@ -1073,8 +1119,16 @@ class AddSegmentation extends React.Component {
                     list[1]['enforcementstate'] = 'report';
                 }
             }
-        } else {
+        } else if (name.includes('instances')) {
             list[index]['instances'] = value;
+        } else if (name.includes('scopeall')) {
+            list[index]['scopeall'] = checkedStr;
+            list[index]['scopeaws'] = checkedStr;
+            list[index]['scopeonprem'] = checkedStr;
+        } else if (name.includes('scopeonprem')) {
+            list[index]['scopeonprem'] = checkedStr;
+        } else if (name.includes('scopeaws')) {
+            list[index]['scopeaws'] = checkedStr;
         }
         this.setState({
             PESList: list,
@@ -1089,7 +1143,14 @@ class AddSegmentation extends React.Component {
         this.setState({
             PESList: [
                 ...this.state.PESList,
-                { enforcementstate: enforcementstate, instances: '', id: 2 },
+                {
+                    enforcementstate: enforcementstate,
+                    instances: '',
+                    id: 2,
+                    scopeonprem: 'true',
+                    scopeaws: 'false',
+                    scopeall: 'false',
+                },
             ],
         });
     }
@@ -1194,60 +1255,101 @@ class AddSegmentation extends React.Component {
                         disabled={this.props.editMode}
                     />
                 </SectionDiv>
-
                 {this.state.PESList.map((x, i) => {
                     return (
-                        <SectionDiv>
-                            <StyledInputLabel>
-                                Policy Enforcement State
-                            </StyledInputLabel>
-                            <StyledRadioButtonGroup
-                                name={'enforcementStateRadioButton' + i}
-                                inputs={inputs}
-                                selectedValue={x.enforcementstate}
-                                onChange={(e) => this.handleInputChange(e, i)}
-                                disabled={i == 1}
-                            />
-
-                            <StyledInputLabelHost>Hosts</StyledInputLabelHost>
-                            <StyledInputHost
-                                placeholder='Comma separated list, Leave blank to apply to all hosts'
-                                value={x.instances}
-                                name={'instances' + i}
-                                onChange={(e) => this.handleInputChange(e, i)}
-                                noanim
-                                error={x.instances.length > 2048}
-                                message={
-                                    x.instances.length > 2048
-                                        ? 'Limit is 2048 characters. Contact #athenz channel on slack'
-                                        : ''
-                                }
-                                fluid
-                            />
-                            {this.state.PESList.length < 2 ? (
-                                <AddCircleDiv>
-                                    <Icon
-                                        icon={'add-circle'}
-                                        isLink
-                                        color={colors.icons}
-                                        size='1.75em'
-                                        onClick={this.handleAddClick}
-                                    />
-                                </AddCircleDiv>
-                            ) : (
-                                <RemoveCircleDiv>
-                                    <Icon
-                                        icon={'minus'}
-                                        isLink
-                                        color={colors.icons}
-                                        size='1.75em'
-                                        onClick={() =>
-                                            this.handleRemoveClick(i)
+                        <div>
+                            <SectionDiv>
+                                <StyledInputLabel>
+                                    Policy Enforcement State
+                                </StyledInputLabel>
+                                <StyledRadioButtonGroup
+                                    name={'enforcementStateRadioButton' + i}
+                                    inputs={inputs}
+                                    selectedValue={x.enforcementstate}
+                                    onChange={(e) =>
+                                        this.handleInputChange(e, i)
+                                    }
+                                    disabled={i == 1}
+                                />
+                                <StyledInputLabelHost>
+                                    Hosts
+                                </StyledInputLabelHost>
+                                <StyledInputHost
+                                    placeholder='Comma separated list, Leave blank to apply to all hosts'
+                                    value={x.instances}
+                                    name={'instances' + i}
+                                    onChange={(e) =>
+                                        this.handleInputChange(e, i)
+                                    }
+                                    noanim
+                                    error={x.instances.length > 2048}
+                                    message={
+                                        x.instances.length > 2048
+                                            ? 'Limit is 2048 characters. Contact #athenz channel on slack'
+                                            : ''
+                                    }
+                                    fluid
+                                />
+                                {this.state.PESList.length < 2 ? (
+                                    <AddCircleDiv>
+                                        <Icon
+                                            icon={'add-circle'}
+                                            isLink
+                                            color={colors.icons}
+                                            size='1.75em'
+                                            onClick={this.handleAddClick}
+                                        />
+                                    </AddCircleDiv>
+                                ) : (
+                                    <RemoveCircleDiv>
+                                        <Icon
+                                            icon={'minus'}
+                                            isLink
+                                            color={colors.icons}
+                                            size='1.75em'
+                                            onClick={() =>
+                                                this.handleRemoveClick(i)
+                                            }
+                                        />
+                                    </RemoveCircleDiv>
+                                )}
+                            </SectionDiv>
+                            <SectionDiv>
+                                <StyledInputLabel>Scope</StyledInputLabel>
+                                <CheckBoxSectionDiv>
+                                    <StyledCheckBox
+                                        checked={x.scopeall === 'true'}
+                                        name={'scopeallCheckBox' + i}
+                                        id={'scopeallCheckBox' + i}
+                                        key={'scopeallCheckBox' + i}
+                                        label='All'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
                                         }
                                     />
-                                </RemoveCircleDiv>
-                            )}
-                        </SectionDiv>
+                                    <StyledCheckBox
+                                        checked={x.scopeonprem === 'true'}
+                                        name={'scopeonpremCheckBox' + i}
+                                        id={'scopeonpremCheckBox' + i}
+                                        key={'scopeonpremCheckBox' + i}
+                                        label='On-Prem'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                    />
+                                    <StyledCheckBox
+                                        checked={x.scopeaws === 'true'}
+                                        name={'scopeawsCheckBox' + i}
+                                        id={'scopeawsCheckBox' + i}
+                                        key={'scopeawsCheckBox' + i}
+                                        label='AWS'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                    />
+                                </CheckBoxSectionDiv>
+                            </SectionDiv>
+                        </div>
                     );
                 })}
 
