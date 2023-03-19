@@ -15,9 +15,16 @@
  */
 
 import { getExpiryTime, isExpired } from '../utils';
-import { selectUserPendingMembers } from '../selectors/user';
+import {
+    selectUserPendingMembers,
+    selectUserResourceAccessList,
+} from '../selectors/user';
 import API from '../../api';
-import { loadUserPendingMembers } from '../actions/user';
+import {
+    loadUserPendingMembers,
+    loadUserResourceAccessList,
+    returnUserResourceAccessList,
+} from '../actions/user';
 
 export const getUserPendingMembers = () => async (dispatch, getState) => {
     let userPendingMembers = selectUserPendingMembers(getState());
@@ -25,5 +32,25 @@ export const getUserPendingMembers = () => async (dispatch, getState) => {
         let userPendingMembersList = await API().getPendingDomainMembersList();
         const expiry = getExpiryTime();
         dispatch(loadUserPendingMembers(userPendingMembersList, expiry));
+    }
+};
+
+export const getUserResourceAccessList = () => async (dispatch, getState) => {
+    if (getState().user.userResourceAccessList) {
+        dispatch(returnUserResourceAccessList());
+    } else {
+        let userResourceAccessList = selectUserResourceAccessList(getState());
+        if (
+            userResourceAccessList === undefined ||
+            isExpired(getState().user.expiry)
+        ) {
+            userResourceAccessList = await API().getResourceAccessList({
+                action: 'gcp.assume_role',
+            });
+            const expiry = getExpiryTime();
+            dispatch(
+                loadUserResourceAccessList(userResourceAccessList, expiry)
+            );
+        }
     }
 };

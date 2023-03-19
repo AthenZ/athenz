@@ -14,7 +14,10 @@
  *  limitations under the License.
  */
 
-import { LOAD_PENDING_MEMBERS } from '../actions/user';
+import {
+    LOAD_PENDING_MEMBERS,
+    LOAD_RESOURCE_ACCESS_LIST,
+} from '../actions/user';
 import {
     PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
     PROCESS_ROLE_PENDING_MEMBERS_TO_STORE,
@@ -27,6 +30,10 @@ export const user = (state = {}, action) => {
         case LOAD_PENDING_MEMBERS: {
             const { pendingMembers, expiry } = payload;
             return { ...state, pendingMembers, expiry };
+        }
+        case LOAD_RESOURCE_ACCESS_LIST: {
+            const { resourceAccessList, expiry } = payload;
+            return { ...state, resourceAccessList, expiry };
         }
         case PROCESS_ROLE_PENDING_MEMBERS_TO_STORE: {
             const { member, domainName, roleName } = payload;
