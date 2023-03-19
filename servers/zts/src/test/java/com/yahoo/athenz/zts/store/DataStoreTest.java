@@ -933,7 +933,7 @@ public class DataStoreTest {
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null, ztsMetric);
         Set<String> accessibleRoles = new HashSet<>();
-        store.addRoleToList("sports:role.admin", "coretech:role.", null, accessibleRoles, false);
+        store.addRoleToList("sports:role.admin", "coretech:role.", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -945,7 +945,7 @@ public class DataStoreTest {
         DataStore store = new DataStore(clogStore, null, ztsMetric);
         
         Set<String> accessibleRoles = new HashSet<>();
-        store.addRoleToList("coretech:role.admin", "coretech:role.", null, accessibleRoles, false);
+        store.addRoleToList("coretech:role.admin", "coretech:role.", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
     }
@@ -959,9 +959,33 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String[] requestedRoleList = { "admin" };
-        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
+
+        accessibleRoles.clear();
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, true, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("admin"));
+
+        accessibleRoles.clear();
+        store.addRoleToList("coretech:role.cluster-admin", "coretech:role.", requestedRoleList, true, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
+
+        accessibleRoles.clear();
+        String[] updatedRequestedRoleList = { "admin", "cluster-admin" };
+        store.addRoleToList("coretech:role.cluster-admin", "coretech:role.", updatedRequestedRoleList, true, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("cluster-admin"));
+
+        accessibleRoles.clear();
+        store.addRoleToList("coretech:role.admin", "coretech:role.", updatedRequestedRoleList, true, accessibleRoles, false);
+        assertEquals(accessibleRoles.size(), 1);
+        assertTrue(accessibleRoles.contains("admin"));
+
+        accessibleRoles.clear();
+        store.addRoleToList("coretech:role.cluster-reader", "coretech:role.", requestedRoleList, true, accessibleRoles, false);
+        assertTrue(accessibleRoles.isEmpty());
     }
     
     @Test
@@ -973,7 +997,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String[] requestedRoleList = { "admin2" };
-        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -986,7 +1010,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String[] requestedRoleList = { "admin2", "admin3", "admin" };
-        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
     }
@@ -1000,7 +1024,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String[] requestedRoleList = { "admin2", "admin3", "admin4" };
-        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, accessibleRoles, false);
+        store.addRoleToList("coretech:role.admin", "coretech:role.", requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -1866,7 +1890,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("writers"));
@@ -1884,14 +1908,14 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("writers"));
         assertTrue(accessibleRoles.contains("all"));
         
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user3", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user3", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 3);
         assertTrue(accessibleRoles.contains("readers"));
@@ -1899,14 +1923,14 @@ public class DataStoreTest {
         assertTrue(accessibleRoles.contains("all"));
         
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user5", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user5", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("writers"));
         assertTrue(accessibleRoles.contains("all"));
         
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "coretech", "athenz.service", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "athenz.service", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("all"));
@@ -1914,7 +1938,7 @@ public class DataStoreTest {
         // make sure the prefix is fully matched
         
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "coretech", "athenz.use", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "athenz.use", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("all"));
@@ -1931,7 +1955,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 0);
     }
@@ -1949,7 +1973,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
         String[] requestedRoleList = { "coretech:role.admin" };
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", requestedRoleList, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user", requestedRoleList, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
@@ -1967,7 +1991,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.nonexistentuser", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.nonexistentuser", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 0);
     }
@@ -1984,7 +2008,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
@@ -2043,14 +2067,14 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
         
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -2128,17 +2152,17 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
         accessibleRoles = new HashSet<>();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -2180,7 +2204,7 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
         File file = new File("/tmp/zts_server_unit_tests/zts_root/coretech");
@@ -2188,7 +2212,7 @@ public class DataStoreTest {
         
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -3590,7 +3614,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         
-        store.processStandardMembership(null, prefix, null, accessibleRoles, false);
+        store.processStandardMembership(null, prefix, null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3607,7 +3631,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, null, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("readers"));
@@ -3628,7 +3652,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3647,7 +3671,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", System.currentTimeMillis() - 1000));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, false, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
     }
     
@@ -3666,7 +3690,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
     }
     
@@ -3684,7 +3708,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3703,7 +3727,7 @@ public class DataStoreTest {
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
         memberRoles.add(new MemberRole("coretech:role.readers", 0));
         
-        store.processStandardMembership(memberRoles, prefix, requestedRoleList, accessibleRoles, false);
+        store.processStandardMembership(memberRoles, prefix, requestedRoleList, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
     }
     
@@ -3863,17 +3887,17 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
         accessibleRoles = new HashSet<>();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -3925,17 +3949,17 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
         
         accessibleRoles = new HashSet<>();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
         
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -3949,17 +3973,17 @@ public class DataStoreTest {
 
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
 
         accessibleRoles = new HashSet<>();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
 
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -4619,14 +4643,14 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("access-domain1");
-        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("role1"));
         assertTrue(accessibleRoles.contains("role2"));
 
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain1", "user.user2", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain1", "user.user2", null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 4);
         assertTrue(accessibleRoles.contains("role1"));
@@ -4635,7 +4659,7 @@ public class DataStoreTest {
         assertTrue(accessibleRoles.contains("role4"));
 
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 4);
         assertTrue(accessibleRoles.contains("role1"));
@@ -4645,13 +4669,13 @@ public class DataStoreTest {
 
         data = store.getDataCache("access-domain3");
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain3", "user.user4", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain3", "user.user4", null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("role5"));
 
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain3", "user.user5", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain3", "user.user5", null, false, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
 
         // sleep for a couple of seconds so user6 becomes expired
@@ -4659,7 +4683,7 @@ public class DataStoreTest {
         ZTSTestUtils.sleep(2000);
 
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain3", "user.user6", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain3", "user.user6", null, false, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
 
         // now we're going to delete group1, group4 and group6 so user1 will no longer have access to role1
@@ -4671,11 +4695,11 @@ public class DataStoreTest {
         data = store.getDataCache("access-domain1");
 
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain1", "user.user1", null, false, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
 
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "access-domain1", "user.user3", null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 3);
         assertTrue(accessibleRoles.contains("role1"));
@@ -4736,7 +4760,7 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("writers"));
@@ -4749,7 +4773,7 @@ public class DataStoreTest {
 
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertTrue(accessibleRoles.isEmpty());
     }
 
@@ -4909,17 +4933,17 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
 
         accessibleRoles = new HashSet<>();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
 
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -4933,17 +4957,17 @@ public class DataStoreTest {
 
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("coretech");
-        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user1", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
 
         accessibleRoles = new HashSet<>();
-        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "coretech", "user_domain.user8", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 1);
         assertTrue(accessibleRoles.contains("admin"));
 
         accessibleRoles = new HashSet<>();
         data = store.getDataCache("sports");
-        store.getAccessibleRoles(data, "sports", "user_domain.user", null, accessibleRoles, false);
+        store.getAccessibleRoles(data, "sports", "user_domain.user", null, false, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
@@ -5246,7 +5270,7 @@ public class DataStoreTest {
 
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache(roleDomainName);
-        store.getAccessibleRoles(data, roleDomainName, memberName, null, accessibleRoles, false);
+        store.getAccessibleRoles(data, roleDomainName, memberName, null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
@@ -5268,7 +5292,7 @@ public class DataStoreTest {
 
         data = store.getDataCache(roleDomainName);
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, roleDomainName, memberName, null, accessibleRoles, false);
+        store.getAccessibleRoles(data, roleDomainName, memberName, null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 0);
 
@@ -5286,7 +5310,7 @@ public class DataStoreTest {
 
         data = store.getDataCache(roleDomainName);
         accessibleRoles.clear();
-        store.getAccessibleRoles(data, roleDomainName, memberName, null, accessibleRoles, false);
+        store.getAccessibleRoles(data, roleDomainName, memberName, null, false, accessibleRoles, false);
 
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
