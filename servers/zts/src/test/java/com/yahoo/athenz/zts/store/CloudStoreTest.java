@@ -1097,6 +1097,19 @@ public class CloudStoreTest {
         assertNull(cloudStore.getAzureSubscription("athenz"));
         cloudStore.updateAzureSubscription("athenz", "12345");
         assertEquals("12345", cloudStore.getAzureSubscription("athenz"));
+        cloudStore.updateAzureSubscription("athenz", "");
+        assertNull(cloudStore.getAzureSubscription("athenz"));
+        cloudStore.close();
+    }
+
+    @Test
+    public void testGetGcpProject() {
+        CloudStore cloudStore = new CloudStore();
+        assertNull(cloudStore.getGCPProject("athenz"));
+        cloudStore.updateGCPProject("athenz", "athenz-gcp-xsdc");
+        assertEquals(cloudStore.getGCPProject("athenz"), "athenz-gcp-xsdc");
+        cloudStore.updateGCPProject("athenz", "");
+        assertNull(cloudStore.getGCPProject("athenz"));
         cloudStore.close();
     }
 }

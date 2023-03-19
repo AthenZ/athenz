@@ -74,6 +74,8 @@
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
     <aws.version>1.12.416</aws.version>
     <aws2.version>2.20.13</aws2.version>
+    <gcp.bom.version>25.4.0</gcp.bom.version>
+    <gcp.api-client.version>2.2.0</gcp.api-client.version>
     <bouncycastle.version>1.70</bouncycastle.version>
     <commons.daemon.version>1.3.3</commons.daemon.version>
     <guava.version>31.1-jre</guava.version>

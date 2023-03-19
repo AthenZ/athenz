@@ -62,4 +62,10 @@ public class TransportRulesProcessorTest {
                 {"TCP-IN:AA:WE", null},
         };
     }
+
+    @Test
+    public void testTransportRulesProcessorConstructor() {
+        TransportRulesProcessor trp = new TransportRulesProcessor();
+        assertNotNull(trp);
+    }
 }

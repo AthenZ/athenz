@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9927</code.coverage.min>
+    <code.coverage.min>0.9949</code.coverage.min>
   </properties>
 
   <dependencyManagement>
@@ -39,6 +39,13 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-bom</artifactId>
         <version>${aws.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>libraries-bom</artifactId>
+        <version>${gcp.bom.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -137,6 +144,11 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
       <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api-client</groupId>
+      <artifactId>google-api-client</artifactId>
+      <version>${gcp.api-client.version}</version>
     </dependency>
   </dependencies>
 

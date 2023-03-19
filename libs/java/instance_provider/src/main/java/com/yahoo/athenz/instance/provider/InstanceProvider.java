@@ -53,7 +53,6 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_SAN_IP             = "sanIP";
     String ZTS_INSTANCE_SAN_URI            = "sanURI";
     String ZTS_INSTANCE_CLIENT_IP          = "clientIP";
-    String ZTS_INSTANCE_CLOUD_ACCOUNT      = "cloudAccount";
     String ZTS_INSTANCE_ID                 = "instanceId";
     String ZTS_INSTANCE_CSR_PUBLIC_KEY     = "csrPublicKey";
     String ZTS_INSTANCE_HOSTNAME           = "hostname";
@@ -61,10 +60,12 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_PRIVATE_IP         = "instancePrivateIp";
     String ZTS_INSTANCE_AWS_ACCOUNT        = "awsAccount";
     String ZTS_INSTANCE_AZURE_SUBSCRIPTION = "azureSubscription";
+    String ZTS_INSTANCE_GCP_PROJECT        = "gcpProject";
     String ZTS_INSTANCE_CERT_HOSTNAME      = "certHostname";
     String ZTS_INSTANCE_CERT_RSA_MOD_HASH  = "certRsaModHash";
     String ZTS_INSTANCE_CERT_SUBJECT_DN    = "certSubjectDn";
     String ZTS_INSTANCE_CERT_ISSUER_DN     = "certIssuerDn";
+
 
     enum Scheme {
         HTTP,
