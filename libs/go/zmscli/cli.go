@@ -1241,9 +1241,9 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   lookup-domain-by-azure-subscription 12345678-1234-1234-1234-1234567890\n")
 	case "lookup-domain-by-gcp-project":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] lookup-domain-by-gcp-project project-name\n")
+		buf.WriteString("   [-o json] lookup-domain-by-gcp-project project-id\n")
 		buf.WriteString(" parameters:\n")
-		buf.WriteString("   project-name  : lookup domain with specified project name\n")
+		buf.WriteString("   project-id  : lookup domain with specified project id\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   lookup-domain-by-gcp-project sports-prod\n")
 	case "lookup-domain-by-product-id":
@@ -1332,12 +1332,12 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-azure-subscription \"12345678-1234-1234-1234-1234567890\"\n")
 	case "set-gcp-project", "set-domain-project":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-gcp-project project-name\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-gcp-project project-id\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
-		buf.WriteString("   project-name    : set the gcp project name for the domain\n")
+		buf.WriteString("   project-id    : set the gcp project id for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-gcp-project \"sports-prod\"\n")
 	case "set-audit-enabled":
@@ -3025,7 +3025,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-domain [domain]\n")
 	buf.WriteString("   lookup-domain-by-aws-account account-id\n")
 	buf.WriteString("   lookup-domain-by-azure-subscription subscription-id\n")
-	buf.WriteString("   lookup-domain-by-gcp-project project-name\n")
+	buf.WriteString("   lookup-domain-by-gcp-project project-id\n")
 	buf.WriteString("   lookup-domain-by-product-id product-id\n")
 	buf.WriteString("   lookup-domain-by-role role-member role-name\n")
 	buf.WriteString("   lookup-domain-by-tag [tag_key] [tag_value]\n")
@@ -3036,7 +3036,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-audit-enabled audit-enabled\n")
 	buf.WriteString("   set-aws-account account-id\n")
 	buf.WriteString("   set-azure-subscription subscription-id\n")
-	buf.WriteString("   set-gcp-project project-name\n")
+	buf.WriteString("   set-gcp-project project-id\n")
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
 	buf.WriteString("   set-business-service business-service\n")
