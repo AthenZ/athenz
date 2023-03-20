@@ -65,6 +65,8 @@ public class CloudStore {
     BasicSessionCredentials credentials;
     final private Map<String, String> awsAccountCache;
     final private Map<String, String> azureSubscriptionCache;
+
+    final private Map<String, String> gcpProjectCache;
     ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
     ConcurrentHashMap<String, Long> awsInvalidCredsCache;
     private HttpClient httpClient;
@@ -82,6 +84,10 @@ public class CloudStore {
         // initialize azure cache
 
         azureSubscriptionCache = new ConcurrentHashMap<>();
+
+        // initialize gcp cache
+
+        gcpProjectCache = new ConcurrentHashMap<>();
 
         // Instantiate and start our HttpClient
 
@@ -600,11 +606,15 @@ public class CloudStore {
         return azureSubscriptionCache.get(domainName);
     }
 
+    public String getGCPProject(String domainName) {
+        return gcpProjectCache.get(domainName);
+    }
+
     void updateAwsAccount(final String domainName, final String awsAccount) {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
-         * the new value is not present and we had a value stored before
+         * the new value is not present, and we had a value stored before
          * then let's remove it */
 
         if (!StringUtil.isEmpty(awsAccount)) {
@@ -618,13 +628,27 @@ public class CloudStore {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
-         * the new value is not present and we had a value stored before
+         * the new value is not present, and we had a value stored before
          * then let's remove it */
 
         if (!StringUtil.isEmpty(azureSubscription)) {
             azureSubscriptionCache.put(domainName, azureSubscription);
-        } else if (awsAccountCache.get(domainName) != null) {
+        } else if (azureSubscriptionCache.get(domainName) != null) {
             azureSubscriptionCache.remove(domainName);
+        }
+    }
+
+    void updateGCPProject(final String domainName, final String gcpProject) {
+
+        /* if we have a value specified for the domain, then we're just
+         * going to insert it into our map and update the record. If
+         * the new value is not present, and we had a value stored before
+         * then let's remove it */
+
+        if (!StringUtil.isEmpty(gcpProject)) {
+            gcpProjectCache.put(domainName, gcpProject);
+        } else if (gcpProjectCache.get(domainName) != null) {
+            gcpProjectCache.remove(domainName);
         }
     }
 

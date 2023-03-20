@@ -3914,6 +3914,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
         }
 
+        final String gcpProject = cloudStore.getGCPProject(domain);
+        if (gcpProject != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, gcpProject);
+        }
+
         // if this is a class based provider then we're also going
         // to provide the public key in the CSR
 
