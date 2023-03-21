@@ -1,3 +1,20 @@
+Athenz v1.11.23 Release / Mar 21, 2023
+--------------------------------------
+
+#2056 pending request for delete member from protected role
+#2064 UI: Add scope to MSD policies
+#2087 set the locale to be used for log testing
+#2090 make aws/gcp assume role action values configurable
+#2091 Add optional 'description' to role
+#2092 rename profile_tag to profile_restrict_to
+#2094 update zms server schema to set tag key column with utf8-bin collation
+#2102 for id token requests, carry out full role name match and not suffix
+#2103 GCP GCE & GKE provider
+#2104 zms-cli online help - correctly identify gcp project id and not name
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230308.sql
+
 Athenz v1.11.22 Release / Feb 28, 2023
 --------------------------------------
 
