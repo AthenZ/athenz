@@ -26,6 +26,15 @@ import { getUserResourceAccessList } from '../../redux/thunks/user';
 import { connect } from 'react-redux';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
+import {
+    getRolesFromResourceAccessList,
+    getProjectName,
+    getProjectRoleName,
+} from '../../server/utils/apiUtils';
+import {
+    USER_DOMAIN,
+    GENERIC_GCP_ERROR,
+} from '../../components/constants/constants';
 
 const GcpHeader = styled.header`
     border-bottom: 1px solid lightgray;
@@ -82,24 +91,26 @@ const SubmitContainer = styled.div`
 
 export async function getServerSideProps(context) {
     const api = API(context.req);
+    let reload = false;
+    let notFound = false;
+    let error = null;
     const domains = await Promise.all([api.getForm()]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
         return [{}];
     });
-    let reload = false;
-    let notFound = false;
-    let error = null;
 
     let queryParams = context.query || {};
     let isAdmin = queryParams.isAdmin === 'true';
     let projectDomainName = queryParams.projectDomainName || '';
+    let serverSideError = queryParams.error || '';
     return {
         props: {
             reload,
             notFound,
             error,
+            serverSideError,
             isAdmin,
             projectDomainName,
             _csrf: domains[0],
@@ -110,20 +121,19 @@ export async function getServerSideProps(context) {
 class GCPLoginPage extends React.Component {
     constructor(props) {
         super(props);
+        this.api = API();
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
         });
         this.state = {
             errorMessage: '',
-            showError: false,
             projectRoleMap: {},
             projectName: '',
             projectRole: '',
             projectRoleName: '',
             isFetching: true,
         };
-        this.showError = this.showError.bind(this);
         this.populateProjects = this.populateProjects.bind(this);
         this.populateProjectRoleMap = this.populateProjectRoleMap.bind(this);
     }
@@ -140,35 +150,17 @@ class GCPLoginPage extends React.Component {
         }
     }
 
-    showError(errorMessage) {
-        this.setState((prevState) => ({
-            ...prevState,
-            showError: true,
-            errorMessage: errorMessage,
-        }));
-    }
-
     populateProjects() {
         const { resourceAccessList, isAdmin, projectDomainName } = this.props;
-        let projects = [];
-        if (resourceAccessList.resources) {
-            resourceAccessList.resources.forEach(function (resources) {
-                resources.assertions.forEach(function (assertion) {
-                    if (assertion.role.toLowerCase().indexOf('admin') > -1) {
-                        if (isAdmin) {
-                            projects.push(assertion.role);
-                        }
-                    } else if (!isAdmin) {
-                        projects.push(assertion.role);
-                    }
-                });
-                // filter project list if projectDomainName is specified in the query
-                if (projectDomainName) {
-                    projects = projects.filter(
-                        (project) => project.indexOf(projectDomainName) > -1
-                    );
-                }
-            });
+        let projects = getRolesFromResourceAccessList(
+            resourceAccessList,
+            isAdmin
+        );
+        // filter project list if projectDomainName is specified in the query
+        if (projectDomainName) {
+            projects = projects.filter(
+                (project) => project.indexOf(projectDomainName) > -1
+            );
         }
         return projects;
     }
@@ -176,17 +168,12 @@ class GCPLoginPage extends React.Component {
     populateProjectRoleMap(projects) {
         let projectRoleMap = {};
         projects.forEach((projectId) => {
-            let projectNameAndRole = projectId.split(':');
-            let projectName =
-                projectNameAndRole.length > 1 ? projectNameAndRole[0] : '';
-            let projectRoleName =
-                projectNameAndRole.length > 1
-                    ? projectNameAndRole[1].replace('role.', '')
-                    : '';
+            let projectName = getProjectName(projectId);
+            let projectRoleName = getProjectRoleName(projectId);
             let projectObject = {
-                projectId,
-                projectRoleName,
-                projectName,
+                projectId, // value passed to gcp
+                projectRoleName, // For UI readability
+                projectName, // For UI readability
             };
             if (!projectRoleMap[projectName]) {
                 projectRoleMap[projectName] = [projectObject];
@@ -211,12 +198,16 @@ class GCPLoginPage extends React.Component {
     }
 
     render() {
+        let serverSideError = this.props.error || this.props.serverSideError;
         if (this.props.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        if (serverSideError) {
+            if (this.props.serverSideError) {
+                serverSideError = GENERIC_GCP_ERROR;
+            }
+            return <Error err={serverSideError} />;
         }
         if (this.state.isFetching) {
             return <ReduxPageLoader message={'Loading resource access list'} />;
@@ -280,7 +271,7 @@ class GCPLoginPage extends React.Component {
                                 <br />
                                 E.g., if your account is 'jdoe', then{' '}
                                 <tt>gcp.fed.admin.user</tt> should have{' '}
-                                <tt>user.jdoe</tt> as a member.
+                                <tt>{USER_DOMAIN}.jdoe</tt> as a member.
                             </p>
                             <p>
                                 If that does not work, please ask your Athenz

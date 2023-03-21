@@ -42,6 +42,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: role.requestTime,
                     expiryDate: expiryDate,
+                    pendingState: role.pendingState,
                 };
             });
         });
@@ -69,6 +70,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: group.requestTime,
                     expiryDate: expiryDate,
+                    pendingState: group.pendingState,
                 };
             });
         });
@@ -165,16 +167,37 @@ module.exports.getMicrosegmentationActionRegex = () => {
     );
 };
 
+module.exports.getRolesFromResourceAccessList = (
+    resourceAccessList,
+    isAdmin
+) => {
+    let roles = [];
+    if (resourceAccessList.resources) {
+        resourceAccessList.resources.forEach(function (resources) {
+            resources.assertions.forEach(function (assertion) {
+                if (assertion.role.toLowerCase().indexOf('admin') > -1) {
+                    if (isAdmin) {
+                        roles.push(assertion.role);
+                    }
+                } else if (!isAdmin) {
+                    roles.push(assertion.role);
+                }
+            });
+        });
+    }
+    return roles;
+};
+
 module.exports.getProjectName = (project) => {
-    let projectNameAndRole = project.split(':');
+    let projectNameAndRole = project.split(':role.');
     let projectName = projectNameAndRole[0];
     if (!projectName) return '';
     return projectName;
 };
 
 module.exports.getProjectRoleName = (project) => {
-    let projectNameAndRole = project.split(':');
+    let projectNameAndRole = project.split(':role.');
     if (projectNameAndRole.length < 1) return '';
-    let projectRoleName = projectNameAndRole[1].replace('role.', '');
+    let projectRoleName = projectNameAndRole[1];
     return projectRoleName;
 };

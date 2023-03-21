@@ -44,7 +44,8 @@ exports[`GCP Login Page should render error no gcp project when api returns no r
        should have
        
       <tt>
-        user.jdoe
+        user
+        .jdoe
       </tt>
        as a member.
     </p>
@@ -212,6 +213,7 @@ exports[`GCP Login Page should render projects api returns results 1`] = `
           class="emotion-6 emotion-7"
         >
           Project: 
+          dummy.project
         </div>
         <div
           class="emotion-8 emotion-9"
@@ -222,11 +224,13 @@ exports[`GCP Login Page should render projects api returns results 1`] = `
               name="project"
               required=""
               type="radio"
-              value="dummy.role.user.dev"
+              value="dummy.project:role.user.dev"
             />
             <label
               class="emotion-12 emotion-13"
-            />
+            >
+              user.dev
+            </label>
           </div>
         </div>
       </div>

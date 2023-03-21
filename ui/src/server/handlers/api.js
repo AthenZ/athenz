@@ -3016,7 +3016,7 @@ Fetchr.registerService({
                     debug(
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
-                        } Error from ZMS while calling getRole API: ${JSON.stringify(
+                        } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
                             err
                         )}`
                     );
