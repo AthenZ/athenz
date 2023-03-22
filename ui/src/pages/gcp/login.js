@@ -27,13 +27,7 @@ import { connect } from 'react-redux';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
 import {
-    getRolesFromResourceAccessList,
-    getProjectName,
-    getProjectRoleName,
-} from '../../server/utils/apiUtils';
-import {
     USER_DOMAIN,
-    GENERIC_GCP_ERROR,
 } from '../../components/constants/constants';
 
 const GcpHeader = styled.header`
@@ -89,6 +83,38 @@ const SubmitContainer = styled.div`
     display: flex;
 `;
 
+function getRolesFromResourceAccessList(resourceAccessList, isAdmin) {
+    let roles = [];
+    if (resourceAccessList.resources) {
+        resourceAccessList.resources.forEach(function (resources) {
+            resources.assertions.forEach(function (assertion) {
+                if (assertion.role.toLowerCase().indexOf('admin') > -1) {
+                    if (isAdmin) {
+                        roles.push(assertion.role);
+                    }
+                } else if (!isAdmin) {
+                    roles.push(assertion.role);
+                }
+            });
+        });
+    }
+    return roles;
+}
+
+function getProjectDomainName(project) {
+    let projectDomainNameAndRole = project.split(':role.');
+    let projectDomainName = projectDomainNameAndRole[0];
+    if (!projectDomainName) return '';
+    return projectDomainName;
+}
+
+function getRoleName(project) {
+    let projectDomainNameAndRole = project.split(':role.');
+    if (projectDomainNameAndRole.length < 1) return '';
+    let roleName = projectDomainNameAndRole[1];
+    return roleName;
+}
+
 export async function getServerSideProps(context) {
     const api = API(context.req);
     let reload = false;
@@ -104,15 +130,17 @@ export async function getServerSideProps(context) {
     let queryParams = context.query || {};
     let isAdmin = queryParams.isAdmin === 'true';
     let projectDomainName = queryParams.projectDomainName || '';
-    let serverSideError = queryParams.error || '';
+    let roleName = queryParams.roleName || '';
+    let validationError = queryParams.validationError || '';
     return {
         props: {
             reload,
             notFound,
             error,
-            serverSideError,
+            validationError,
             isAdmin,
             projectDomainName,
+            roleName,
             _csrf: domains[0],
         },
     };
@@ -168,8 +196,8 @@ class GCPLoginPage extends React.Component {
     populateProjectRoleMap(projects) {
         let projectRoleMap = {};
         projects.forEach((projectId) => {
-            let projectName = getProjectName(projectId);
-            let projectRoleName = getProjectRoleName(projectId);
+            let projectName = getProjectDomainName(projectId);
+            let projectRoleName = getRoleName(projectId);
             let projectObject = {
                 projectId, // value passed to gcp
                 projectRoleName, // For UI readability
@@ -198,14 +226,14 @@ class GCPLoginPage extends React.Component {
     }
 
     render() {
-        let serverSideError = this.props.error || this.props.serverSideError;
+        let serverSideError = this.props.error || this.props.validationError;
         if (this.props.reload) {
             window.location.reload();
             return <div />;
         }
         if (serverSideError) {
-            if (this.props.serverSideError) {
-                serverSideError = GENERIC_GCP_ERROR;
+            if (this.props.validationError) {
+                serverSideError = `Validation Error: you do not have permission to GCP Project Domain: ${this.props.projectDomainName} and Role: ${this.props.roleName}`;
             }
             return <Error err={serverSideError} />;
         }

@@ -166,38 +166,3 @@ module.exports.getMicrosegmentationActionRegex = () => {
         '^(TCP|UDP)-(IN|OUT):(\\d{1,5}-\\d{1,5}|\\d{1,5}):((?:\\d{1,5}|\\d{1,5}-\\d{1,5})(?:,\\d{1,5}|\\d{1,5}-\\d{1,5})*)$'
     );
 };
-
-module.exports.getRolesFromResourceAccessList = (
-    resourceAccessList,
-    isAdmin
-) => {
-    let roles = [];
-    if (resourceAccessList.resources) {
-        resourceAccessList.resources.forEach(function (resources) {
-            resources.assertions.forEach(function (assertion) {
-                if (assertion.role.toLowerCase().indexOf('admin') > -1) {
-                    if (isAdmin) {
-                        roles.push(assertion.role);
-                    }
-                } else if (!isAdmin) {
-                    roles.push(assertion.role);
-                }
-            });
-        });
-    }
-    return roles;
-};
-
-module.exports.getProjectName = (project) => {
-    let projectNameAndRole = project.split(':role.');
-    let projectName = projectNameAndRole[0];
-    if (!projectName) return '';
-    return projectName;
-};
-
-module.exports.getProjectRoleName = (project) => {
-    let projectNameAndRole = project.split(':role.');
-    if (projectNameAndRole.length < 1) return '';
-    let projectRoleName = projectNameAndRole[1];
-    return projectRoleName;
-};

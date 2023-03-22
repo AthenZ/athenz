@@ -203,5 +203,3 @@ export const EDITABLE_DATE_ENUM = Object.freeze({
     EXPIRATION: 'Expiration',
     REMINDER: 'Reminder',
 });
-export const GENERIC_GCP_ERROR =
-    'Error logging into GCP. Please contact #athenz channel on slack.';
