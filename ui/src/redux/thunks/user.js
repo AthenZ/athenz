@@ -35,6 +35,8 @@ export const getUserPendingMembers = () => async (dispatch, getState) => {
     }
 };
 
+// TODO: Refactor getUserResourceAccessList redux fetching/storing to include mapping between action and resource accesslist
+// consider case getUserResourceAccessList({action: 'abc'}) and getUserResourceAccessList({action: 'xyz'})
 export const getUserResourceAccessList =
     (action) => async (dispatch, getState) => {
         let userResourceAccessList = selectUserResourceAccessList(getState());
