@@ -37,7 +37,7 @@ public class IPPrefixesTest {
         IPPrefixes prefixes = JSON.fromBytes(Files.readAllBytes(Paths.get(ipFile.toURI())), IPPrefixes.class);
         
         List<IPPrefix> prefixList = prefixes.getPrefixes();
-        assertEquals(prefixList.size(), 7);
+        assertEquals(prefixList.size(), 8);
         
         assertEquals(prefixes.getCreateDate(), "2018-03-17-01-16-14");
         assertEquals(prefixes.getSyncToken(), "123456");
@@ -47,5 +47,11 @@ public class IPPrefixesTest {
         assertEquals(ipPrefix.getRegion(), "GLOBAL");
         assertEquals(ipPrefix.getService(), "ATHENZ");
         assertNull(ipPrefix.getIpv6Prefix());
+
+        ipPrefix = prefixList.get(1);
+        assertEquals(ipPrefix.getIpv4Prefix(), "20.1.0.0/16");
+        assertEquals(ipPrefix.getIpv6Prefix(), "2a05:d07f:8000::/40");
+        assertEquals(ipPrefix.getRegion(), "us-west-2");
+        assertEquals(ipPrefix.getService(), "ATHENZ");
     }
 }
