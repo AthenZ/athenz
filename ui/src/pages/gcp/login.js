@@ -128,7 +128,6 @@ export async function getServerSideProps(context) {
     let queryParams = context.query || {};
     let isAdmin = queryParams.isAdmin === 'true';
     let projectDomainName = queryParams.projectDomainName || '';
-    let roleName = queryParams.roleName || '';
     let validationError = queryParams.validationError || '';
     return {
         props: {
@@ -138,7 +137,6 @@ export async function getServerSideProps(context) {
             validationError,
             isAdmin,
             projectDomainName,
-            roleName,
             _csrf: domains[0],
         },
     };
@@ -226,16 +224,12 @@ class GCPLoginPage extends React.Component {
     }
 
     render() {
-        let serverSideError = this.props.error || this.props.validationError;
         if (this.props.reload) {
             window.location.reload();
             return <div />;
         }
-        if (serverSideError) {
-            if (this.props.validationError) {
-                serverSideError = `Validation Error: you do not have permission to GCP Project Domain: ${this.props.projectDomainName} and Role: ${this.props.roleName}`;
-            }
-            return <Error err={serverSideError} />;
+        if (this.props.error) {
+            return <Error err={this.props.error} />;
         }
         if (this.state.isFetching) {
             return <ReduxPageLoader message={'Loading resource access list'} />;
