@@ -26,9 +26,7 @@ import { getUserResourceAccessList } from '../../redux/thunks/user';
 import { connect } from 'react-redux';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
-import {
-    USER_DOMAIN,
-} from '../../components/constants/constants';
+import { USER_DOMAIN } from '../../components/constants/constants';
 
 const GcpHeader = styled.header`
     border-bottom: 1px solid lightgray;
@@ -167,7 +165,9 @@ class GCPLoginPage extends React.Component {
     }
 
     componentDidMount() {
-        this.props.getResourceAccessList();
+        this.props.getResourceAccessList({
+            action: 'gcp.assume_role',
+        });
     }
 
     componentDidUpdate(prevProps) {
@@ -351,7 +351,8 @@ const mapStateToProps = (state, props) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    getResourceAccessList: () => dispatch(getUserResourceAccessList()),
+    getResourceAccessList: (action) =>
+        dispatch(getUserResourceAccessList(action)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(GCPLoginPage);

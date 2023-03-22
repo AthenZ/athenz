@@ -35,18 +35,19 @@ export const getUserPendingMembers = () => async (dispatch, getState) => {
     }
 };
 
-export const getUserResourceAccessList = () => async (dispatch, getState) => {
-    let userResourceAccessList = selectUserResourceAccessList(getState());
-    let isUserResourceAccessListEmpty =
-        Array.isArray(userResourceAccessList) &&
-        userResourceAccessList.length < 1;
-    if (isExpired(getState().user.expiry)) {
-        userResourceAccessList = await API().getResourceAccessList({
-            action: 'gcp.assume_role',
-        });
-        const expiry = getExpiryTime();
-        dispatch(loadUserResourceAccessList(userResourceAccessList, expiry));
-    } else if (!isUserResourceAccessListEmpty) {
-        dispatch(returnUserResourceAccessList());
-    }
-};
+export const getUserResourceAccessList =
+    (action) => async (dispatch, getState) => {
+        let userResourceAccessList = selectUserResourceAccessList(getState());
+        let isUserResourceAccessListEmpty =
+            Array.isArray(userResourceAccessList) &&
+            userResourceAccessList.length < 1;
+        if (isExpired(getState().user.expiry)) {
+            userResourceAccessList = await API().getResourceAccessList(action);
+            const expiry = getExpiryTime();
+            dispatch(
+                loadUserResourceAccessList(userResourceAccessList, expiry)
+            );
+        } else if (!isUserResourceAccessListEmpty) {
+            dispatch(returnUserResourceAccessList());
+        }
+    };
