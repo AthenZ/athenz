@@ -3010,7 +3010,10 @@ Fetchr.registerService({
     name: 'resource-access',
     read(req, resource, params, config, callback) {
         req.clients.zms.getResourceAccessList(
-            { action: params.action, principal: 'user.' + req.session.shortId },
+            {
+                action: params.action,
+                principal: `${appConfig.userDomain}'.'${req.session.shortId}`,
+            },
             (err, list) => {
                 if (err) {
                     debug(
