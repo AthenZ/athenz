@@ -25,7 +25,7 @@ class QuotaChecker {
 
     private final Quota defaultQuota;
     private boolean quotaCheckEnabled;
-    int assertionConditionsQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ASSERTION_CONDITIONS, "10"));
+    int assertionConditionsQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ASSERTION_CONDITIONS, "14"));
 
     public QuotaChecker() {
         
