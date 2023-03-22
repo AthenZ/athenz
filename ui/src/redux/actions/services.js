@@ -119,13 +119,13 @@ export const DELETE_SERVICE_INSTANCE_FROM_STORE =
     'DELETE_SERVICE_INSTANCE_FROM_STORE';
 export const deleteServiceInstanceFromStore = (
     serviceFullName,
-    uuid,
+    instanceId,
     category
 ) => ({
     type: DELETE_SERVICE_INSTANCE_FROM_STORE,
     payload: {
         serviceFullName: serviceFullName,
-        uuid: uuid,
+        instanceId: instanceId,
         category: category,
     },
 });

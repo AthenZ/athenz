@@ -887,13 +887,13 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-74 {
+.emotion-76 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
 }
 
-.emotion-76 {
+.emotion-78 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -930,13 +930,13 @@ exports[`StaticInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-84 {
+.emotion-89 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-85 {
+.emotion-90 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -951,7 +951,7 @@ exports[`StaticInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-87 {
+.emotion-92 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -970,28 +970,28 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-89 {
+.emotion-94 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-91 {
+.emotion-96 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-93 {
+.emotion-98 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-97 {
+.emotion-102 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-99 {
+.emotion-104 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -999,12 +999,12 @@ exports[`StaticInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-101 {
+.emotion-106 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-103 {
+.emotion-108 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1337,19 +1337,24 @@ exports[`StaticInstancePage should render 1`] = `
                   >
                     Date Added
                   </th>
+                  <th
+                    class="emotion-68 emotion-69"
+                  >
+                    Delete
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  class="emotion-72 emotion-73"
+                  class="emotion-74 emotion-75"
                   data-testid="instance-row"
                 >
                   <td
-                    class="emotion-74 emotion-75"
+                    class="emotion-76 emotion-77"
                     color=""
                   >
                     <div
-                      class="emotion-76 emotion-77"
+                      class="emotion-78 emotion-79"
                     />
                   </td>
                   <td
@@ -1360,7 +1365,26 @@ exports[`StaticInstancePage should render 1`] = `
                     class="emotion-74 emotion-75"
                     color=""
                   >
-                    2021-05-15 01:17 UTC
+                    <span>
+                      <svg
+                        class="emotion-86"
+                        data-testid="icon"
+                        height="1.25em"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="1.25em"
+                      >
+                        <title>
+                          trash
+                        </title>
+                        <path
+                          d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                        />
+                        <path
+                          d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                        />
+                      </svg>
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -1372,11 +1396,11 @@ exports[`StaticInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-82 emotion-83"
+          class="emotion-87 emotion-88"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-84"
+            class="emotion-89"
             data-testid="icon"
             height="1em"
             id=""
@@ -1392,45 +1416,45 @@ exports[`StaticInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-85 emotion-86"
+          class="emotion-90 emotion-91"
         >
           <div
-            class="emotion-87 emotion-88"
+            class="emotion-92 emotion-93"
           >
             <div
-              class="emotion-89 emotion-90"
+              class="emotion-94 emotion-95"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-91 emotion-92"
+                class="emotion-96 emotion-97"
               >
                 Create
               </a>
               <span
-                class="emotion-93 emotion-94"
+                class="emotion-98 emotion-99"
               >
                  | 
               </span>
               <a
-                class="emotion-91 emotion-92"
+                class="emotion-96 emotion-97"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-97 emotion-98"
+            class="emotion-102 emotion-103"
           >
             <div
-              class="emotion-99 emotion-100"
+              class="emotion-104 emotion-105"
             >
               <div
-                class="emotion-101 emotion-102"
+                class="emotion-106 emotion-107"
               >
                 <svg
-                  class="emotion-103"
+                  class="emotion-108"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1452,19 +1476,19 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-91 emotion-92"
+                class="emotion-96 emotion-97"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-99 emotion-100"
+              class="emotion-104 emotion-105"
             >
               <div
-                class="emotion-101 emotion-102"
+                class="emotion-106 emotion-107"
               >
                 <svg
-                  class="emotion-103"
+                  class="emotion-108"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1486,7 +1510,7 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-91 emotion-92"
+                class="emotion-96 emotion-97"
               >
                 athens.ci
               </a>

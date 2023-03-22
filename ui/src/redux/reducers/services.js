@@ -30,6 +30,7 @@ import {
 } from '../actions/services';
 import { deleteInstanceFromWorkloadDataDraft, getExpiryTime } from '../utils';
 import produce from 'immer';
+import { SERVICE_TYPE_DYNAMIC } from '../../components/constants/constants';
 
 export const services = (state = {}, action) => {
     const { type, payload } = action;
@@ -57,8 +58,8 @@ export const services = (state = {}, action) => {
             return newState;
         }
         case DELETE_SERVICE_INSTANCE_FROM_STORE: {
-            const { serviceFullName, uuid, category } = payload;
-            if (category === 'dynamic') {
+            const { serviceFullName, instanceId, category } = payload;
+            if (category === SERVICE_TYPE_DYNAMIC) {
                 let newState = produce(state, (draft) => {
                     let originalLen =
                         draft.services[serviceFullName].dynamicInstances
@@ -66,10 +67,11 @@ export const services = (state = {}, action) => {
                     deleteInstanceFromWorkloadDataDraft(
                         draft.services[serviceFullName].dynamicInstances
                             .workLoadData,
-                        uuid
+                        instanceId,
+                        category
                     );
                     if (
-                        originalLen ==
+                        originalLen ===
                         draft.services[serviceFullName].dynamicInstances
                             .workLoadData.length +
                             1
@@ -94,14 +96,18 @@ export const services = (state = {}, action) => {
                     deleteInstanceFromWorkloadDataDraft(
                         draft.services[serviceFullName].staticInstances
                             .workLoadData,
-                        uuid
+                        instanceId,
+                        category
                     );
                     if (
-                        originalLen ==
+                        originalLen ===
                         draft.services[serviceFullName].staticInstances
                             .workLoadData.length +
                             1
                     ) {
+                        draft.services[
+                            serviceFullName
+                        ].staticInstances.workLoadMeta.totalStatic -= 1;
                         draft.services[
                             serviceFullName
                         ].staticInstances.workLoadMeta.totalRecords -= 1;
@@ -149,7 +155,7 @@ export const services = (state = {}, action) => {
         case LOAD_INSTANCES_TO_STORE:
             const { serviceFullName, category, instances } = payload;
             let newState = state;
-            if (category === 'dynamic') {
+            if (category === SERVICE_TYPE_DYNAMIC) {
                 newState = produce(state, (draft) => {
                     draft.services[serviceFullName].dynamicInstances =
                         instances;

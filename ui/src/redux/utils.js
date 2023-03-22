@@ -19,6 +19,7 @@ import * as debugConsole from 'next/dist/build/output/log';
 import { expiryTimeInMilliseconds } from './config';
 import produce from 'immer';
 import { getFullCollectionName } from './thunks/utils/collection';
+import { SERVICE_TYPE_DYNAMIC } from '../components/constants/constants';
 
 export const listToMap = (list, keyVal = 'name', delimiter) => {
     let newMap = { list: list ? list : [] };
@@ -151,11 +152,16 @@ export const createBellPendingMembers = (pendingMembers) => {
     return bellPendingList;
 };
 
-export const deleteInstanceFromWorkloadDataDraft = (workLoadData, uuid) => {
+export const deleteInstanceFromWorkloadDataDraft = (
+    workLoadData,
+    instanceId,
+    category
+) => {
     let originalLen = workLoadData.length;
     let indexToDelete = -1;
+    let instanceIdKey = category === SERVICE_TYPE_DYNAMIC ? 'uuid' : 'name';
     for (let i = 0; i < originalLen; i++) {
-        if (workLoadData[i].uuid == uuid) {
+        if (workLoadData[i][instanceIdKey] === instanceId) {
             indexToDelete = i;
         }
     }

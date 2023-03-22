@@ -54,6 +54,10 @@ import {
 import { thunkSelectRoles } from '../selectors/roles';
 import { deleteRoleFromStore } from '../actions/roles';
 import { getRoles } from './roles';
+import {
+    SERVICE_TYPE_DYNAMIC,
+    SERVICE_TYPE_STATIC,
+} from '../../components/constants/constants';
 
 export const addService =
     (domainName, service, _csrf) => async (dispatch, getState) => {
@@ -336,12 +340,16 @@ export const addServiceHost =
                 auditRef,
                 _csrf
             );
-            details.updateTime = getCurrentTime();
-            details.ipAddresses = [details.name];
+            const staticInstances = await API().getInstances(
+                domainName,
+                serviceName,
+                'static'
+            );
             dispatch(
-                addServiceHostToStore(
+                loadInstancesToStore(
                     getFullName(domainName, serviceDelimiter, serviceName),
-                    details
+                    'static',
+                    staticInstances
                 )
             );
             return Promise.resolve();
@@ -351,7 +359,15 @@ export const addServiceHost =
     };
 
 export const deleteInstance =
-    (category, provider, domain, service, uuid, deleteJustification, _csrf) =>
+    (
+        category,
+        provider,
+        domain,
+        service,
+        instanceId,
+        deleteJustification,
+        _csrf
+    ) =>
     async (dispatch, getState) => {
         await dispatch(getServiceInstances(domain, service, category));
         let instancesData = selectInstancesWorkLoadData(
@@ -360,13 +376,14 @@ export const deleteInstance =
             service,
             category
         );
-
+        let instanceIdKey = category === SERVICE_TYPE_DYNAMIC ? 'uuid' : 'name';
         let instance = instancesData.filter((instance) => {
-            return instance.uuid == uuid;
+            return instance[instanceIdKey] === instanceId;
         });
+
         if (!Array.isArray(instance) || !instance.length) {
             return Promise.reject(
-                buildErrorForDoesntExistCase('Service Instance', uuid)
+                buildErrorForDoesntExistCase('Service Instance', instanceId)
             );
         } else {
             try {
@@ -374,14 +391,15 @@ export const deleteInstance =
                     provider,
                     domain,
                     service,
-                    uuid,
+                    instanceId,
+                    category,
                     deleteJustification,
                     _csrf
                 );
                 dispatch(
                     deleteServiceInstanceFromStore(
                         getFullName(domain, serviceDelimiter, service),
-                        uuid,
+                        instanceId,
                         category
                     )
                 );

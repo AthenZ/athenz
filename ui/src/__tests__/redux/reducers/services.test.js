@@ -99,7 +99,7 @@ describe('Services Reducer', () => {
         const newState = services(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
     });
-    it('should delete service instance', () => {
+    it('should delete dynamic instance', () => {
         const initialState = {
             services: configStoreServices,
             domainName: domainName,
@@ -110,7 +110,7 @@ describe('Services Reducer', () => {
             payload: {
                 serviceFullName: 'dom.service2',
                 category: 'dynamic',
-                uuid: '11111111-1111-1111-1111-111111111111',
+                instanceId: '11111111-1111-1111-1111-111111111111',
             },
         };
         const expectedState = AppUtils.deepClone(initialState);
@@ -132,6 +132,43 @@ describe('Services Reducer', () => {
             _.isEqual(
                 Object.keys(
                     expectedState.services['dom.service2'].dynamicInstances
+                        .workLoadData
+                ).length,
+                1
+            )
+        ).toBeTruthy();
+    });
+    it('should delete static instance', () => {
+        const initialState = {
+            services: configStoreServices,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: DELETE_SERVICE_INSTANCE_FROM_STORE,
+            payload: {
+                serviceFullName: 'dom.service2',
+                category: 'static',
+                instanceId: '100.100.100.2',
+            },
+        };
+        const expectedState = AppUtils.deepClone(initialState);
+        expectedState.services['dom.service2'].staticInstances.workLoadData =
+            expectedState.services[
+                'dom.service2'
+            ].staticInstances.workLoadData.filter((instance) => {
+                return instance.name !== '100.100.100.2';
+            });
+        expectedState.services['dom.service2'].staticInstances.workLoadMeta
+            .totalStatic--;
+        expectedState.services['dom.service2'].staticInstances.workLoadMeta
+            .totalRecords--;
+        const newState = services(initialState, action);
+        expect(newState).toEqual(expectedState);
+        expect(
+            _.isEqual(
+                Object.keys(
+                    expectedState.services['dom.service2'].staticInstances
                         .workLoadData
                 ).length,
                 1

@@ -25,6 +25,10 @@ import Menu from '../denali/Menu/Menu';
 import RequestUtils from '../utils/RequestUtils';
 import { deleteInstance } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
+import {
+    SERVICE_TYPE_DYNAMIC,
+    SERVICE_TYPE_STATIC,
+} from '../constants/constants';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -79,7 +83,10 @@ class InstanceRow extends React.Component {
         this.onClickDeleteCancel = this.onClickDeleteCancel.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
         this.state = {
-            key: this.props.details.hostname + this.props.details.uuid,
+            key:
+                this.props.category === SERVICE_TYPE_DYNAMIC
+                    ? this.props.details.hostname + this.props.details.uuid
+                    : this.props.details.name,
             showDelete: false,
             deleteJustification: '',
             errorMessage: null,
@@ -97,7 +104,7 @@ class InstanceRow extends React.Component {
         });
     }
 
-    onSubmitDelete(provider, domain, service, uuid) {
+    onSubmitDelete(provider, domain, service, instanceId) {
         if (
             this.props.justificationRequired &&
             (this.state.deleteJustification === undefined ||
@@ -115,7 +122,7 @@ class InstanceRow extends React.Component {
                 provider,
                 domain,
                 service,
-                uuid,
+                instanceId,
                 this.state.deleteJustification
                     ? this.state.deleteJustification
                     : 'deleted using Athenz UI',
@@ -128,7 +135,9 @@ class InstanceRow extends React.Component {
                     errorMessage: null,
                 });
                 this.props.onUpdateSuccess(
-                    `Successfully deleted instance for host ${this.props.details.hostname}`
+                    this.props.category === SERVICE_TYPE_DYNAMIC
+                        ? `Successfully deleted instance for host ${this.props.details.hostname}`
+                        : `Successfully deleted instance ${this.props.details.name}`
                 );
             })
             .catch((err) => {
@@ -157,12 +166,15 @@ class InstanceRow extends React.Component {
                 ? details.name.toUpperCase()
                 : ['N/A'];
         let clickDelete = this.onClickDelete.bind(this);
+        let isDynamic = this.props.category === SERVICE_TYPE_DYNAMIC;
+        let isStatic = this.props.category === SERVICE_TYPE_STATIC;
+
         let submitDelete = this.onSubmitDelete.bind(
             this,
             details.provider,
             this.props.domain,
             this.props.service,
-            details.uuid
+            isDynamic ? details.uuid : details.name
         );
         let clickDeleteCancel = this.onClickDeleteCancel.bind(this);
 
@@ -178,22 +190,22 @@ class InstanceRow extends React.Component {
                 <TDStyled color={color} align={left}>
                     {ipAddresses}
                 </TDStyled>
-                {this.props.category === 'dynamic' && (
+                {isDynamic && (
                     <TDStyled color={color} align={left}>
                         {details.hostname}
                     </TDStyled>
                 )}
-                {this.props.category === 'dynamic' && (
+                {isDynamic && (
                     <TDStyled color={color} align={left}>
                         {details.provider}
                     </TDStyled>
                 )}
-                {this.props.category === 'dynamic' && (
+                {isDynamic && (
                     <TDStyled color={color} align={left}>
                         {details.uuid}
                     </TDStyled>
                 )}
-                {this.props.category === 'dynamic' && (
+                {isDynamic && (
                     <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.certExpiryTime,
@@ -202,7 +214,7 @@ class InstanceRow extends React.Component {
                         )}
                     </TDStyled>
                 )}
-                {this.props.category === 'dynamic' && (
+                {isDynamic && (
                     <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.updateTime,
@@ -211,33 +223,12 @@ class InstanceRow extends React.Component {
                         )}
                     </TDStyled>
                 )}
-                {this.props.category === 'dynamic' && (
-                    <TDStyled color={color} align={center}>
-                        <Menu
-                            placement='bottom-start'
-                            trigger={
-                                <span>
-                                    <Icon
-                                        icon={'trash'}
-                                        onClick={clickDelete}
-                                        color={colors.icons}
-                                        isLink
-                                        size={'1.25em'}
-                                        verticalAlign={'text-bottom'}
-                                    />
-                                </span>
-                            }
-                        >
-                            <MenuDiv>Delete</MenuDiv>
-                        </Menu>
-                    </TDStyled>
-                )}
-                {this.props.category === 'static' && (
+                {isStatic && (
                     <TDStyled color={color} align={left}>
                         {details.type}
                     </TDStyled>
                 )}
-                {this.props.category === 'static' && (
+                {isStatic && (
                     <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.updateTime,
@@ -246,24 +237,51 @@ class InstanceRow extends React.Component {
                         )}
                     </TDStyled>
                 )}
+                <TDStyled color={color} align={center}>
+                    <Menu
+                        placement='bottom-start'
+                        trigger={
+                            <span>
+                                <Icon
+                                    icon={'trash'}
+                                    onClick={clickDelete}
+                                    color={colors.icons}
+                                    isLink
+                                    size={'1.25em'}
+                                    verticalAlign={'text-bottom'}
+                                />
+                            </span>
+                        }
+                    >
+                        <MenuDiv>Delete</MenuDiv>
+                    </Menu>
+                </TDStyled>
             </TrStyled>
         );
 
         if (this.state.showDelete) {
             rows.push(
                 <DeleteModal
-                    name={this.props.details.hostname}
+                    name={
+                        isDynamic
+                            ? this.props.details.hostname
+                            : this.props.details.name
+                    }
                     isOpen={this.state.showDelete}
                     cancel={clickDeleteCancel}
                     submit={submitDelete}
                     key={
-                        this.props.details.hostname +
-                        this.props.details.uuid +
-                        '-delete'
+                        isDynamic
+                            ? this.props.details.hostname +
+                              this.props.details.uuid +
+                              '-delete'
+                            : this.props.details.name + '-delete'
                     }
                     showJustification={this.props.justificationRequired}
                     message={
-                        'Are you sure you want to permanently delete the host record '
+                        isDynamic
+                            ? 'Are you sure you want to permanently delete the host record '
+                            : 'Are you sure you want to permanently delete the instance record '
                     }
                     onJustification={this.saveJustification}
                     errorMessage={this.state.errorMessage}

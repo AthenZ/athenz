@@ -107,9 +107,45 @@ const deleteInstanceUms = (domainName, service, instanceId, auditRef, req) => {
     });
 };
 
-const deleteInstanceMsd = (domainName, service, instanceId, auditRef, req) => {
+const deleteDynamicInstanceMsd = (
+    domainName,
+    service,
+    instanceId,
+    auditRef,
+    req
+) => {
     return new Promise((resolve, reject) => {
         req.clients.msd.deleteDynamicWorkload(
+            {
+                domainName: domainName,
+                serviceName: service,
+                instanceId: instanceId,
+                auditRef: auditRef,
+            },
+            (err, json) => {
+                if (err) {
+                    if (err.status === 404) {
+                        resolve();
+                    } else {
+                        reject(errorHandler.fetcherError(err, 'MSD'));
+                    }
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+};
+
+const deleteStaticInstanceMsd = (
+    domainName,
+    service,
+    instanceId,
+    auditRef,
+    req
+) => {
+    return new Promise((resolve, reject) => {
+        req.clients.msd.deleteStaticWorkload(
             {
                 domainName: domainName,
                 serviceName: service,
@@ -2896,45 +2932,62 @@ Fetchr.registerService({
         let domainName = params.domainName;
         let service = params.service;
         let instanceId = params.instanceId;
+        let category = params.category;
         let auditRef = params.auditRef;
-        deleteInstanceZts(
-            provider,
-            domainName,
-            service,
-            instanceId,
-            auditRef,
-            req
-        )
-            .then(() => {
-                deleteInstanceUms(
-                    domainName,
-                    service,
-                    instanceId,
-                    auditRef,
-                    req
-                )
-                    .then(() => {
-                        deleteInstanceMsd(
-                            domainName,
-                            service,
-                            instanceId,
-                            auditRef,
-                            req
-                        )
-                            .then(() => {
-                                callback(null, []);
-                            })
-                            .catch((err) => {
-                                callback(err);
-                            });
-                    })
-                    .catch((err) => {
-                        callback(err);
-                    });
-            })
-            .catch((err) => {
-                callback(err);
-            });
+        if (category === 'static') {
+            deleteStaticInstanceMsd(
+                domainName,
+                service,
+                instanceId,
+                auditRef,
+                req
+            )
+                .then(() => {
+                    callback(null, []);
+                })
+                .catch((err) => {
+                    callback(err);
+                });
+        } else {
+            deleteInstanceZts(
+                provider,
+                domainName,
+                service,
+                instanceId,
+                auditRef,
+                req
+            )
+                .then(() => {
+                    deleteInstanceUms(
+                        domainName,
+                        service,
+                        instanceId,
+                        auditRef,
+                        req
+                    )
+                        .then(() => {
+                            deleteDynamicInstanceMsd(
+                                domainName,
+                                service,
+                                instanceId,
+                                auditRef,
+                                req
+                            )
+                                .then(() => {
+                                    callback(null, []);
+                                })
+                                .catch((err) => {
+                                    callback(err);
+                                });
+                        })
+                        .catch((err) => {
+                            callback(err);
+                        });
+                })
+                .catch((err) => {
+                    callback(err);
+                });
+        }
     },
 });
 
