@@ -157,7 +157,6 @@ class GCPLoginPage extends React.Component {
             projectRole: '',
             projectRoleName: '',
             isFetching: true,
-            errorMessage: '',
         };
         this.populateProjects = this.populateProjects.bind(this);
         this.populateProjectRoleMap = this.populateProjectRoleMap.bind(this);
@@ -187,6 +186,7 @@ class GCPLoginPage extends React.Component {
         this.setState((prevState) => ({
             ...prevState,
             errorMessage: errorMessage,
+            isFetching: false,
         }));
     }
 
@@ -247,7 +247,7 @@ class GCPLoginPage extends React.Component {
             return <Error err={errorMessage} />;
         }
         if (this.state.isFetching) {
-            return <ReduxPageLoader message={'Loading resource access list'} />;
+            return <ReduxPageLoader message={'Loading GCP Projects'} />;
         }
         let displayProjects = [];
         for (let pName in this.state.projectRoleMap) {
