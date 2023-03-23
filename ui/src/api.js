@@ -2134,6 +2134,20 @@ const Api = (req) => {
                     });
             });
         },
+        getResourceAccessList(action) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('resource-access')
+                    .params(action)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
     };
 };
 

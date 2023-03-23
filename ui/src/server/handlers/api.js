@@ -3012,6 +3012,36 @@ Fetchr.registerService({
     },
 });
 
+Fetchr.registerService({
+    name: 'resource-access',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getResourceAccessList(
+            {
+                action: params.action,
+                principal: `${appConfig.userDomain}.${req.session.shortId}`,
+            },
+            (err, list) => {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
+                            err
+                        )}`
+                    );
+                    callback(errorHandler.fetcherError(err));
+                } else {
+                    if (!list || !list.resources) {
+                        callback(null, []);
+                    } else {
+                        callback(null, list);
+                    }
+                }
+            }
+        );
+    },
+});
+
 module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,

@@ -86,6 +86,8 @@ class Error extends React.Component {
         if (this.props.err) {
             if (this.props.err.message) {
                 errorMsg = this.props.err.message;
+            } else if (typeof this.props.err === 'string') {
+                errorMsg = this.props.err;
             }
         }
         if (this.props.statusCode === 404) {

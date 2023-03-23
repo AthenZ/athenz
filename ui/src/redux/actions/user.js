@@ -22,3 +22,16 @@ export const loadUserPendingMembers = (pendingMembers, expiry) => ({
         expiry,
     },
 });
+export const LOAD_RESOURCE_ACCESS_LIST = 'LOAD_RESOURCE_ACCESS_LIST';
+export const loadUserResourceAccessList = (resourceAccessList, expiry) => ({
+    type: LOAD_RESOURCE_ACCESS_LIST,
+    payload: {
+        resourceAccessList,
+        expiry,
+    },
+});
+export const RETURN_USER_RESOURCE_ACCESS_LIST =
+    'RETURN_USER_RESOURCE_ACCESS_LIST';
+export const returnUserResourceAccessList = () => ({
+    type: RETURN_USER_RESOURCE_ACCESS_LIST,
+});

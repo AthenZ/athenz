@@ -88,10 +88,14 @@ describe('Fetchr Server API Test', () => {
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, { success: 'true' }),
                         getDomainList: (params, callback) => {
-                            if (params.roleMember && params.roleMember != `${config.userDomain}.testuser`) {
+                            if (
+                                params.roleMember &&
+                                params.roleMember !=
+                                    `${config.userDomain}.testuser`
+                            ) {
                                 // If the specified member is not included in any role in all domains, an empty array is responded.
                                 callback(undefined, {
-                                    names: []
+                                    names: [],
                                 });
                                 return;
                             }
@@ -99,7 +103,7 @@ describe('Fetchr Server API Test', () => {
                                 ? callback({ status: 404 }, null)
                                 : callback(undefined, {
                                       names: ['dom1', 'domabc1'],
-                                  })
+                                  });
                         },
                         getSignedDomains: (params, callback) =>
                             params.forcefail
@@ -294,6 +298,32 @@ describe('Fetchr Server API Test', () => {
                                               autoUpdate: false,
                                           },
                                       ],
+                                  }),
+                        getResourceAccessList: (params, callback) =>
+                            params.forcefail
+                                ? callback({ status: 404 }, null)
+                                : callback(undefined, {
+                                      resources: {
+                                          principal: 'user.dummy1',
+                                          assertions: [
+                                              {
+                                                  role: 'dummy.project:role.gcp.fed.power.user',
+                                                  resource:
+                                                      'dummy.project:fed.power.user',
+                                                  action: 'gcp.assume_role',
+                                                  effect: 'ALLOW',
+                                                  id: 1,
+                                              },
+                                              {
+                                                  role: 'dummy.project2:role.gcp.fed.admin.user',
+                                                  resource:
+                                                      'dummy.project2:fed.admin.user',
+                                                  action: 'gcp.assume_role',
+                                                  effect: 'ALLOW',
+                                                  id: 2,
+                                              },
+                                          ],
+                                      },
                                   }),
                     },
                 };
@@ -1250,6 +1280,33 @@ describe('Fetchr Server API Test', () => {
                 .set('Content-Type', 'application/json')
                 .then((res) => {
                     expect(res.status).toEqual(404);
+                });
+        });
+        it('getResourceAccessList test success', async () => {
+            await request(expressApp)
+                .get('/api/v1/resource-access')
+                .then((res) => {
+                    expect(res.body).toEqual({
+                        resources: {
+                            principal: 'user.dummy1',
+                            assertions: [
+                                {
+                                    role: 'dummy.project:role.gcp.fed.power.user',
+                                    resource: 'dummy.project:fed.power.user',
+                                    action: 'gcp.assume_role',
+                                    effect: 'ALLOW',
+                                    id: 1,
+                                },
+                                {
+                                    role: 'dummy.project2:role.gcp.fed.admin.user',
+                                    resource: 'dummy.project2:fed.admin.user',
+                                    action: 'gcp.assume_role',
+                                    effect: 'ALLOW',
+                                    id: 2,
+                                },
+                            ],
+                        },
+                    });
                 });
         });
     });

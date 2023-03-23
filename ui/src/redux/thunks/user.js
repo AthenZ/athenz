@@ -15,9 +15,16 @@
  */
 
 import { getExpiryTime, isExpired } from '../utils';
-import { selectUserPendingMembers } from '../selectors/user';
+import {
+    selectUserPendingMembers,
+    selectUserResourceAccessList,
+} from '../selectors/user';
 import API from '../../api';
-import { loadUserPendingMembers } from '../actions/user';
+import {
+    loadUserPendingMembers,
+    loadUserResourceAccessList,
+    returnUserResourceAccessList,
+} from '../actions/user';
 
 export const getUserPendingMembers = () => async (dispatch, getState) => {
     let userPendingMembers = selectUserPendingMembers(getState());
@@ -27,3 +34,29 @@ export const getUserPendingMembers = () => async (dispatch, getState) => {
         dispatch(loadUserPendingMembers(userPendingMembersList, expiry));
     }
 };
+
+// TODO: Refactor getUserResourceAccessList redux fetching/storing to include mapping between action and resource accesslist
+// consider case getUserResourceAccessList({action: 'abc'}) and getUserResourceAccessList({action: 'xyz'})
+export const getUserResourceAccessList =
+    (action) => async (dispatch, getState) => {
+        let userResourceAccessList = selectUserResourceAccessList(getState());
+        let isUserResourceAccessListEmpty =
+            Array.isArray(userResourceAccessList) &&
+            userResourceAccessList.length < 1;
+        if (isExpired(getState().user.expiry)) {
+            try {
+                userResourceAccessList = await API().getResourceAccessList(
+                    action
+                );
+                const expiry = getExpiryTime();
+                dispatch(
+                    loadUserResourceAccessList(userResourceAccessList, expiry)
+                );
+                return Promise.resolve();
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        } else if (!isUserResourceAccessListEmpty) {
+            dispatch(returnUserResourceAccessList());
+        }
+    };
