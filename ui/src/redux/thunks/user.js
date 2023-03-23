@@ -44,11 +44,18 @@ export const getUserResourceAccessList =
             Array.isArray(userResourceAccessList) &&
             userResourceAccessList.length < 1;
         if (isExpired(getState().user.expiry)) {
-            userResourceAccessList = await API().getResourceAccessList(action);
-            const expiry = getExpiryTime();
-            dispatch(
-                loadUserResourceAccessList(userResourceAccessList, expiry)
-            );
+            try {
+                userResourceAccessList = await API().getResourceAccessList(
+                    action
+                );
+                const expiry = getExpiryTime();
+                dispatch(
+                    loadUserResourceAccessList(userResourceAccessList, expiry)
+                );
+                return Promise.resolve();
+            } catch (e) {
+                return Promise.reject(e);
+            }
         } else if (!isUserResourceAccessListEmpty) {
             dispatch(returnUserResourceAccessList());
         }

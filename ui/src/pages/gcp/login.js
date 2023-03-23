@@ -157,14 +157,21 @@ class GCPLoginPage extends React.Component {
             projectRole: '',
             projectRoleName: '',
             isFetching: true,
+            errorMessage: '',
         };
         this.populateProjects = this.populateProjects.bind(this);
         this.populateProjectRoleMap = this.populateProjectRoleMap.bind(this);
+        this.showError = this.showError.bind(this);
     }
 
     componentDidMount() {
-        this.props.getResourceAccessList({
-            action: 'gcp.assume_role',
+        const { getResourceAccessList } = this.props;
+        Promise.all([
+            getResourceAccessList({
+                action: 'gcp.assume_role',
+            }),
+        ]).catch((err) => {
+            this.showError(RequestUtils.fetcherErrorCheckHelper(err));
         });
     }
 
@@ -174,6 +181,13 @@ class GCPLoginPage extends React.Component {
             let projects = this.populateProjects();
             this.populateProjectRoleMap(projects);
         }
+    }
+
+    showError(errorMessage) {
+        this.setState((prevState) => ({
+            ...prevState,
+            errorMessage: errorMessage,
+        }));
     }
 
     populateProjects() {
@@ -224,12 +238,13 @@ class GCPLoginPage extends React.Component {
     }
 
     render() {
+        let errorMessage = this.props.error || this.state.errorMessage;
         if (this.props.reload) {
             window.location.reload();
             return <div />;
         }
-        if (this.props.error) {
-            return <Error err={this.props.error} />;
+        if (errorMessage) {
+            return <Error err={errorMessage} />;
         }
         if (this.state.isFetching) {
             return <ReduxPageLoader message={'Loading resource access list'} />;
