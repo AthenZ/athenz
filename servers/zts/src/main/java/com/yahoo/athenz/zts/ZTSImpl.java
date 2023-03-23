@@ -1584,7 +1584,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         Set<String> roles = new HashSet<>();
 
         dataStore.getAccessibleRoles(data, providerDomainName, userName,
-                requestedRoleList, roles, false);
+                requestedRoleList, false, roles, false);
 
         // we are going to process the list and only keep the tenant
         // domains - this is based on the role names since our tenant
@@ -1794,7 +1794,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Set<String> roles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList,
-                roles, false);
+                false, roles, false);
 
         if (roles.isEmpty()) {
             throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
@@ -1809,7 +1809,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (proxyForPrincipal != null) {
             Set<String> rolesForProxy = new HashSet<>();
             dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal,
-                    requestedRoleList, rolesForProxy, false);
+                    requestedRoleList, false, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
             // check again in case we removed all the roles and ended up
@@ -2182,7 +2182,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, roleNames, roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principalName, roleNames, true, roles, false);
         return getIdTokenGroupsFromRoles(roles, domainName, fullArn);
     }
 
@@ -2431,7 +2431,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, false, roles, false);
 
         // we return failure if we don't have access to any roles
 
@@ -2458,7 +2458,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // process the role lookup for the proxy principal
 
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoles, rolesForProxy, false);
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoles, false, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
             // check again in case we removed all the roles and ended up
@@ -2702,8 +2702,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, null,
-                roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principal, null, false, roles, false);
 
         return new RoleAccess().setRoles(new ArrayList<>(roles));
     }
@@ -2829,7 +2828,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         String[] requestedRoleList = { roleName };
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList, roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList, false, roles, false);
 
         if (roles.isEmpty()) {
             throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
@@ -2844,7 +2843,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (proxyForPrincipal != null) {
 
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList, rolesForProxy, false);
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList, false, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
             // check again in case we removed all the roles and ended up
@@ -3374,7 +3373,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, null, roles, true);
+        dataStore.getAccessibleRoles(data, domainName, principal, null, false, roles, true);
 
         if (roles.isEmpty()) {
             LOGGER.error("verifyAWSAssumeRole: Principal: {} has no access to any roles in domain: {}",
@@ -3913,6 +3912,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String azureSubscription = cloudStore.getAzureSubscription(domain);
         if (azureSubscription != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
+        }
+
+        final String gcpProject = cloudStore.getGCPProject(domain);
+        if (gcpProject != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, gcpProject);
         }
 
         // if this is a class based provider then we're also going
@@ -4849,8 +4853,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // process our request and retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principal, null,
-                roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principal, null, false, roles, false);
 
         // create our response object and set the flag whether
         // or not the principal has access to the role

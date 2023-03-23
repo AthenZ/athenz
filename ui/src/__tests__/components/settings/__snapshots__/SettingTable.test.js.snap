@@ -141,14 +141,14 @@ exports[`SettingTable should render setting table 1`] = `
   background: #d5d5d5;
 }
 
-.emotion-26 {
+.emotion-35 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-28 {
+.emotion-37 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -165,7 +165,7 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-28 input {
+.emotion-37 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -191,42 +191,42 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-28.animated input {
+.emotion-37.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-28 input::-webkit-input-placeholder {
+.emotion-37 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input::-moz-placeholder {
+.emotion-37 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input:-ms-input-placeholder {
+.emotion-37 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input::placeholder {
+.emotion-37 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-28 input.focused,
-.emotion-28 input:active,
-.emotion-28 input:focus {
+.emotion-37 input.focused,
+.emotion-37 input:active,
+.emotion-37 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-28 input:invalid {
+.emotion-37 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-28 .message {
+.emotion-37 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -234,36 +234,36 @@ exports[`SettingTable should render setting table 1`] = `
   top: 2.571rem;
 }
 
-.emotion-28.error input,
-.emotion-28.error input.focused,
-.emotion-28.error input:active,
-.emotion-28.error input:focus {
+.emotion-37.error input,
+.emotion-37.error input.focused,
+.emotion-37.error input:active,
+.emotion-37.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-28.error .message {
+.emotion-37.error .message {
   color: #d01111;
 }
 
-.emotion-29 {
+.emotion-38 {
   margin-top: 5px;
 }
 
-.emotion-132 {
+.emotion-141 {
   position: relative;
   width: 100%;
 }
 
-.emotion-132 input {
+.emotion-141 input {
   cursor: inherit;
 }
 
-.emotion-133 {
+.emotion-142 {
   margin-top: 5px;
   display: block;
 }
 
-.emotion-135 {
+.emotion-144 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -280,7 +280,7 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-135 input {
+.emotion-144 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -306,42 +306,42 @@ exports[`SettingTable should render setting table 1`] = `
   width: 100%;
 }
 
-.emotion-135.animated input {
+.emotion-144.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-135 input::-webkit-input-placeholder {
+.emotion-144 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-135 input::-moz-placeholder {
+.emotion-144 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-135 input:-ms-input-placeholder {
+.emotion-144 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-135 input::placeholder {
+.emotion-144 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-135 input.focused,
-.emotion-135 input:active,
-.emotion-135 input:focus {
+.emotion-144 input.focused,
+.emotion-144 input:active,
+.emotion-144 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-135 input:invalid {
+.emotion-144 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-135 .message {
+.emotion-144 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -349,22 +349,22 @@ exports[`SettingTable should render setting table 1`] = `
   top: 2.571rem;
 }
 
-.emotion-135.error input,
-.emotion-135.error input.focused,
-.emotion-135.error input:active,
-.emotion-135.error input:focus {
+.emotion-144.error input,
+.emotion-144.error input.focused,
+.emotion-144.error input:active,
+.emotion-144.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-135.error .message {
+.emotion-144.error .message {
   color: #d01111;
 }
 
-.emotion-135 input {
+.emotion-144 input {
   padding-right: 36px;
 }
 
-.emotion-135 .input-icon {
+.emotion-144 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -378,7 +378,7 @@ exports[`SettingTable should render setting table 1`] = `
   right: 6px;
 }
 
-.emotion-136 {
+.emotion-145 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -435,6 +435,43 @@ exports[`SettingTable should render setting table 1`] = `
         class="emotion-4 emotion-5"
         width="auto"
       >
+        Delete Protection
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        <div
+          class="emotion-8 denali-switch"
+          data-testid="switch-wrapper"
+        >
+          <input
+            data-testid="settingdeleteProtection-switch-input"
+            id="switch-settingdeleteProtection"
+            name="settingdeleteProtection"
+            type="checkbox"
+            value="false"
+          />
+          <label
+            for="switch-settingdeleteProtection"
+          />
+        </div>
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        Flag indicates whether or not the role will be protected from accidental deletions
+      </td>
+    </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
+    >
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
         Self-Service
       </td>
       <td
@@ -479,10 +516,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -522,10 +559,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -565,10 +602,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -608,10 +645,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -651,10 +688,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -694,10 +731,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -737,10 +774,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -780,10 +817,10 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
-            class="emotion-28 denali-input animated emotion-29 emotion-30"
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
             data-testid="input-wrapper"
           >
             <input
@@ -823,18 +860,18 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-labelledby="downshift-0-label"
-            class="emotion-132 denali-input-dropdown emotion-133 emotion-134"
+            class="emotion-141 denali-input-dropdown emotion-142 emotion-143"
             data-testid="input-dropdown"
             role="combobox"
           >
             <div
-              class="emotion-135 denali-input animated"
+              class="emotion-144 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -853,7 +890,7 @@ exports[`SettingTable should render setting table 1`] = `
                 class="input-icon"
               >
                 <svg
-                  class="emotion-136"
+                  class="emotion-145"
                   data-testid="icon"
                   height="24px"
                   id=""
@@ -898,18 +935,18 @@ exports[`SettingTable should render setting table 1`] = `
         width="auto"
       >
         <div
-          class="emotion-26 emotion-27"
+          class="emotion-35 emotion-36"
         >
           <div
             aria-expanded="false"
             aria-haspopup="listbox"
             aria-labelledby="downshift-1-label"
-            class="emotion-132 denali-input-dropdown emotion-133 emotion-134"
+            class="emotion-141 denali-input-dropdown emotion-142 emotion-143"
             data-testid="input-dropdown"
             role="combobox"
           >
             <div
-              class="emotion-135 denali-input animated"
+              class="emotion-144 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -928,7 +965,7 @@ exports[`SettingTable should render setting table 1`] = `
                 class="input-icon"
               >
                 <svg
-                  class="emotion-136"
+                  class="emotion-145"
                   data-testid="icon"
                   height="24px"
                   id=""

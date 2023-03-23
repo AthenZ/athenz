@@ -1458,6 +1458,40 @@ const Api = (req) => {
             });
         },
 
+        deleteAssertionConditions(
+            domainName,
+            policyName,
+            assertionId,
+            auditRef,
+            _csrf
+        ) {
+            return new Promise((resolve, reject) => {
+                fetchr.updateOptions({
+                    context: {
+                        _csrf: _csrf,
+                    },
+                });
+
+                let params = {
+                    domainName,
+                    policyName,
+                    assertionId,
+                    auditRef,
+                };
+
+                fetchr
+                    .delete('assertionConditions')
+                    .params(params)
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         deleteAssertionCondition(
             domainName,
             policyName,

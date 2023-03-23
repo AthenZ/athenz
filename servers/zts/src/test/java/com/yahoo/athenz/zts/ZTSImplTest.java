@@ -4948,6 +4948,7 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null, ztsMetric);
         Mockito.when(mockCloudStore.getAzureSubscription("athenz")).thenReturn("12345");
+        Mockito.when(mockCloudStore.getGCPProject("athenz")).thenReturn("my-gcp-project-xsdc");
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         SignedDomain providerDomain = signedAuthorizedProviderDomain();
@@ -9452,7 +9453,6 @@ public class ZTSImplTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_HOSTNAME, "server1.athenz");
         assertEquals("server1.athenz", ZTSImpl.getServerHostName());
-
         System.clearProperty(ZTSConsts.ZTS_PROP_HOSTNAME);
     }
 
@@ -14054,6 +14054,7 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null, ztsMetric);
         Mockito.when(mockCloudStore.getAzureSubscription("athenz")).thenReturn("12345");
+        Mockito.when(mockCloudStore.getGCPProject("athenz")).thenReturn(null);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
         Path path = Paths.get("src/test/resources//athenz.instanceid.hostname.pem");

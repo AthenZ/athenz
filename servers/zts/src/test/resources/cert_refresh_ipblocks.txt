@@ -8,6 +8,12 @@
       "service": "ATHENZ"
     },
     {
+      "ipv4Prefix": "20.1.0.0/16",
+      "ipv6Prefix": "2a05:d07f:8000::/40",
+      "service": "ATHENZ",
+      "scope": "us-west-2"
+    },
+    {
       "ip_prefix": "10.1.0.0/21",
       "service": "ATHENZ"
     },

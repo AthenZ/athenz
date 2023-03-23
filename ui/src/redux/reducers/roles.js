@@ -5,15 +5,14 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 import {
     ADD_ROLE_TO_STORE,
     DELETE_ROLE_FROM_STORE,
@@ -36,6 +35,7 @@ import produce from 'immer';
 import { PROCESS_ROLE_PENDING_MEMBERS_TO_STORE } from '../actions/domains';
 import { getExpiredTime } from '../utils';
 import { getFullCollectionName } from '../thunks/utils/collection';
+import { PENDING_STATE_ENUM } from '../../components/constants/constants';
 
 export const roles = (state = {}, action) => {
     const { type, payload } = action;
@@ -67,26 +67,6 @@ export const roles = (state = {}, action) => {
             const { roleData, roleName } = payload;
             let newState = produce(state, (draft) => {
                 draft.roles[roleName] = roleData;
-            });
-            return newState;
-        }
-        case ADD_MEMBER_TO_STORE: {
-            const { member, category, collectionName } = payload;
-            let newState = produce(state, (draft) => {
-                if (category === 'role') {
-                    if (
-                        draft.roles[collectionName] &&
-                        draft.roles[collectionName].roleMembers
-                    ) {
-                        draft.roles[collectionName].roleMembers[
-                            member.memberName
-                        ] = member;
-                    } else {
-                        draft.roles[collectionName].roleMembers = {
-                            [member.memberName]: member,
-                        };
-                    }
-                }
             });
             return newState;
         }
@@ -216,9 +196,15 @@ export const roles = (state = {}, action) => {
             if (state.roles && state.roles[roleFullName]) {
                 newState = produce(state, (draft) => {
                     if (member.approved) {
-                        draft.roles[roleFullName].roleMembers[
-                            member.memberName
-                        ] = member;
+                        if (member.pendingState === PENDING_STATE_ENUM.DELETE) {
+                            delete draft.roles[roleFullName].roleMembers[
+                                member.memberName
+                            ];
+                        } else {
+                            draft.roles[roleFullName].roleMembers[
+                                member.memberName
+                            ] = member;
+                        }
                     }
                     delete draft.roles[roleFullName].rolePendingMembers[
                         member.memberName

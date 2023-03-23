@@ -748,6 +748,7 @@ exports[`MemberPage should render 1`] = `
 
 .emotion-67 {
   text-align: left;
+  width: 19.5%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -760,6 +761,20 @@ exports[`MemberPage should render 1`] = `
 
 .emotion-69 {
   text-align: left;
+  width: 19.5%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-73 {
+  text-align: left;
+  width: 33.5%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -772,6 +787,7 @@ exports[`MemberPage should render 1`] = `
 
 .emotion-75 {
   text-align: center;
+  width: 8%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -1165,26 +1181,31 @@ exports[`MemberPage should render 1`] = `
                 <tr>
                   <th
                     class="emotion-67 emotion-68"
+                    width="19.5"
                   >
                     User Name
                   </th>
                   <th
                     class="emotion-69 emotion-70"
+                    width="19.5"
                   >
                     Name of User
                   </th>
                   <th
                     class="emotion-69 emotion-70"
+                    width="19.5"
                   >
                     Expiration Date
                   </th>
                   <th
-                    class="emotion-69 emotion-70"
+                    class="emotion-73 emotion-70"
+                    width="33.5"
                   >
                     Review Reminder Date
                   </th>
                   <th
                     class="emotion-75 emotion-70"
+                    width="8"
                   >
                     Delete
                   </th>

@@ -309,6 +309,7 @@ class AddRole extends React.Component {
             draft.name = roleName;
             draft.reviewEnabled = this.state.reviewEnabled;
             draft.auditEnabled = this.state.role.auditEnabled;
+            draft.deleteProtection = this.state.deleteProtection;
 
             // Add members to role only if role isn't review enabled.
             // If it is - we want all added members to be reviewed including the first members
@@ -400,6 +401,7 @@ class AddRole extends React.Component {
         let nameChanged = this.inputChanged.bind(this, 'name');
         let advancedSettingsChanged = this.advancedSettingsChanged.bind(this);
         let reviewEnabledChanged = this.inputChanged.bind(this);
+        let deleteProtectionChanged = this.inputChanged.bind(this);
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
                   // dummy place holder so that it can be be used in the form
@@ -558,6 +560,9 @@ class AddRole extends React.Component {
                                     advancedSettingsChanged
                                 }
                                 reviewEnabledChanged={reviewEnabledChanged}
+                                deleteProtectionChanged={
+                                    deleteProtectionChanged
+                                }
                                 auditEnabledChanged={this.toggleAuditEnabled}
                                 isDomainAuditEnabled={
                                     this.props.isDomainAuditEnabled

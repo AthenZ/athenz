@@ -30,6 +30,7 @@ import produce from 'immer';
 import { processPendingMembers } from '../../redux/thunks/domains';
 import { connect } from 'react-redux';
 import { selectPendingMembersList } from '../../redux/selectors/domains';
+import NameUtils from '../utils/NameUtils';
 
 const TableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
@@ -57,26 +58,30 @@ const TableHeaderDomain = styled.th`
 `;
 
 const ApproveTableHeader = styled.th`
+    border-top: 1px solid ${colors.grey500};
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
+    background: ${colors.white};
     font-weight: 600;
     font-size: 1.1rem;
     vertical-align: top;
     text-transform: uppercase;
     text-align: center;
     position: absolute;
-    width: 15.5em;
-    right: 13.5em;
+    width: 7.6em;
+    right: 7.6em;
     z-index: 1;
-    height: 15px;
+    height: 12.9px;
     padding-bottom: 5px;
     padding: 5px 0 5px 15px;
     white-space: nowrap;
 `;
 
 const RejectTableHeader = styled.th`
+    border-top: 1px solid ${colors.grey500};
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
+    background: ${colors.white};
     font-weight: 600;
     font-size: 1.1rem;
     vertical-align: top;
@@ -84,10 +89,10 @@ const RejectTableHeader = styled.th`
     text-align: center;
     border-right: none;
     position: absolute;
-    width: 14em;
+    width: 7.6em;
     right: 0em;
     z-index: 1;
-    height: 15px;
+    height: 12.9px;
     padding-bottom: 5px;
     padding: 5px 0 5px 15px;
     white-space: nowrap;
@@ -253,6 +258,7 @@ class PendingApprovalTable extends React.Component {
                         approved,
                         expiration: this.state.selectAllDateExpiry,
                         reviewReminder: this.state.selectAllDateReviewReminder,
+                        pendingState: this.state.pendingMap[key].pendingState,
                     };
                     this.props
                         .processPending(
@@ -308,6 +314,7 @@ class PendingApprovalTable extends React.Component {
                     approved,
                     expiration: this.state.pendingMap[key].expiryDate,
                     reviewReminder: this.state.pendingMap[key].reviewReminder,
+                    pendingState: this.state.pendingMap[key].pendingState,
                 };
                 this.props
                     .processPending(
@@ -402,6 +409,7 @@ class PendingApprovalTable extends React.Component {
                         requestedReviewReminder={
                             this.state.pendingMap[key].reviewReminder
                         }
+                        pendingState={this.state.pendingMap[key].pendingState}
                         view={view}
                     />
                 );
@@ -442,6 +450,7 @@ class PendingApprovalTable extends React.Component {
                                 <TableHeaderDomain>Domain</TableHeaderDomain>
                             )}
                             <TableHeader>Type</TableHeader>
+                            <TableHeader>Pending State</TableHeader>
                             <TableHeader>Name</TableHeader>
                             <TableHeader>Member</TableHeader>
                             <TableHeader colSpan={2}>User Comment</TableHeader>

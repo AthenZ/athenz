@@ -23,9 +23,11 @@ import {
     selectRoles,
     selectRoleTags,
     selectRoleUsers,
+    thunkSelectRoleMember,
     thunkSelectRoleMembers,
     thunkSelectRoles,
 } from '../../../redux/selectors/roles';
+import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 
 describe('test role selectors', () => {
     const stateWithRoles = {
@@ -77,6 +79,7 @@ describe('test role selectors', () => {
                             expiration: expiry,
                             memberFullName: 'user.user3',
                             requestedTime: expiry,
+                            pendingState: PENDING_STATE_ENUM.ADD,
                         },
                     },
                     lastReviewedDate: '2022-07-18T13:42:54.907Z',
@@ -143,6 +146,15 @@ describe('test role selectors', () => {
                             approved: false,
                             principalType: 1,
                             memberFullName: null,
+                            pendingState: PENDING_STATE_ENUM.ADD,
+                        },
+                        'user.user6': {
+                            memberName: 'user.user6',
+                            expiration: null,
+                            approved: false,
+                            principalType: 1,
+                            memberFullName: null,
+                            pendingState: PENDING_STATE_ENUM.DELETE,
                         },
                     },
                     roleMembers: {
@@ -153,7 +165,7 @@ describe('test role selectors', () => {
                             memberFullName: null,
                         },
                         'user.user2': {
-                            memberName: 'user.user6',
+                            memberName: 'user.user2',
                             expiration: expiry,
                             principalType: 1,
                             memberFullName: null,
@@ -219,10 +231,10 @@ describe('test role selectors', () => {
                 thunkSelectRoleMembers(stateWithRoles, domainName, 'admin')
             ).toEqual(expectedRoleMembers);
         });
-        it('should return empty list', () => {
+        it('should return empty object', () => {
             expect(
                 thunkSelectRoleMembers(stateWithoutRoles, domainName, 'admin')
-            ).toEqual([]);
+            ).toEqual({});
         });
     });
     describe('test selectRoleMembers selector', () => {
@@ -249,6 +261,34 @@ describe('test role selectors', () => {
             expect(
                 selectRoleMembers(stateWithoutRoles, domainName, 'admin')
             ).toEqual([]);
+        });
+    });
+    describe('test thunkSelectRoleMember selector', () => {
+        const expectedRoleMember = {
+            memberName: 'user.user2',
+            expiration: expiry,
+            principalType: 1,
+            memberFullName: null,
+        };
+        it('should return user2 ', () => {
+            expect(
+                thunkSelectRoleMember(
+                    stateWithRoles,
+                    domainName,
+                    'admin',
+                    'user.user2'
+                )
+            ).toEqual(expectedRoleMember);
+        });
+        it('should return empty object', () => {
+            expect(
+                thunkSelectRoleMember(
+                    stateWithRoles,
+                    domainName,
+                    'admin',
+                    'user.unknown'
+                )
+            ).toEqual({});
         });
     });
     describe('test selectReviewRoleMembers selector', () => {

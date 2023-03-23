@@ -21,9 +21,10 @@ import Icon from '../denali/icons/Icon';
 import FlatPicker from '../flatpicker/FlatPicker';
 import CheckBox from '../denali/CheckBox';
 import { PENDING_APPROVAL_KEY_ENUM } from '../constants/constants';
+import { rgba } from 'polished';
 
 const SelectAllRejectTableHeader = styled.th`
-    border-bottom: 2px solid ${colors.grey500};
+    border-bottom: 1px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
     vertical-align: middle;
@@ -31,12 +32,11 @@ const SelectAllRejectTableHeader = styled.th`
     text-align: center;
     border-right: none;
     position: absolute;
-    width: 11em;
+    width: 6em;
     right: 0em;
     z-index: 1;
     height: 42px;
     background-color: rgba(255, 255, 255, 1);
-    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
 `;
 
@@ -49,7 +49,6 @@ const SelectAllRejectTableHeaderCheckBox = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
-    padding-bottom: 5px;
     vertical-align: middle;
     text-transform: uppercase;
     text-align: center;
@@ -65,19 +64,18 @@ const StyledTextArea = styled(TextArea)`
 `;
 
 const SelectAllApproveTableHeader = styled.th`
-    border-bottom: 2px solid ${colors.grey500};
+    border-bottom: 1px solid ${colors.grey500};
     color: ${colors.grey600};
     font-weight: 600;
     vertical-align: middle;
     text-transform: uppercase;
     text-align: center;
     position: absolute;
-    width: 12em;
-    right: 11em;
+    width: 6em;
+    right: 6em;
     z-index: 1;
     height: 42px;
     background-color: rgba(255, 255, 255, 1);
-    padding-bottom: 5px;
     padding: 5px 0 5px 15px;
 `;
 
@@ -86,7 +84,7 @@ const FlatPickrInputDiv = styled.div`
         position: relative;
         font: 300 14px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
         background-color: ${(props) =>
-            props.disabled ? colors.grey500 : 'rgba(53, 112, 244, 0.05)'};
+            props.disabled ? rgba(48, 48, 48, 0.05) : rgba(48, 48, 48, 0.25)};
         box-shadow: none;
         color: rgb(48, 48, 48);
         height: 16px;
@@ -98,8 +96,7 @@ const FlatPickrInputDiv = styled.div`
         border-image: initial;
         border-radius: 2px;
         flex: 1 0 auto;
-        margin: 0px;
-        margin-top: 5px;
+        margin: 5px 7px 0px 0px;
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
@@ -113,7 +110,6 @@ const TableHeader = styled.th`
     color: ${colors.grey600};
     font-weight: 600;
     font-size: 1.2rem;
-    padding-bottom: 5px;
     vertical-align: top;
     text-transform: uppercase;
     padding: 5px 0 5px 15px;
@@ -126,7 +122,6 @@ const TableHeaderSelectAll = styled.th`
     color: ${colors.grey600};
     font-weight: 600;
     font-size: 1.2rem;
-    padding-bottom: 5px;
     vertical-align: middle;
     text-transform: uppercase;
     padding: 5px 0 5px 0px;
@@ -137,7 +132,6 @@ const SelectAllBoxTableHeader = styled.th`
     border-bottom: 2px solid ${colors.grey500};
     font-weight: 600;
     font-size: 1.2rem;
-    padding-bottom: 5px;
     vertical-align: bottom;
     padding: 5px 0 5px 15px;
     text-align: left;
@@ -197,7 +191,7 @@ export default class PendingApprovalTableHeader extends React.Component {
                 </TableHeaderSelectAll>
                 {this.props.view === 'admin' && <TableHeader />}
                 <TableHeader />
-                <TableHeader colSpan={3} />
+                <TableHeader colSpan={4} />
                 <TableHeader />
                 <TableHeader />
                 <SelectAllBoxTableHeader>
@@ -230,7 +224,6 @@ export default class PendingApprovalTableHeader extends React.Component {
                             }}
                             clearExpiry={this.props.clearExpiry}
                             id='workflowHeaderExpiry'
-                            nomargin={true}
                         />
                     </FlatPickrInputDiv>
                 </SelectAllBoxTableHeader>
@@ -247,7 +240,6 @@ export default class PendingApprovalTableHeader extends React.Component {
                             placeholder={'Reminder (Optional)'}
                             clearReviewReminder={this.props.clearReviewReminder}
                             id='workflowHeaderReviewReminder'
-                            nomargin={true}
                         />
                     </FlatPickrInputDiv>
                 </SelectAllBoxTableHeader>

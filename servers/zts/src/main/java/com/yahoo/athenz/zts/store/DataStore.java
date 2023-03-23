@@ -1378,6 +1378,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         if (getCloudStore() != null) {
             getCloudStore().updateAwsAccount(name, dataCache.getDomainData().getAccount());
             getCloudStore().updateAzureSubscription(name, dataCache.getDomainData().getAzureSubscription());
+            getCloudStore().updateGCPProject(name, dataCache.getDomainData().getGcpProject());
         }
 
         /* update the cache for the given domain */
@@ -1415,7 +1416,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     // Internal
     void processStandardMembership(Set<MemberRole> memberRoles, String rolePrefix, String[] requestedRoleList,
-            Set<String> accessibleRoles, boolean keepFullName) {
+            boolean fullNameMatch, Set<String> accessibleRoles, boolean keepFullName) {
 
         /* if we have no member roles, then we haven't added anything
          * to our return result list */
@@ -1435,7 +1436,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 continue;
             }
 
-            addRoleToList(memberRole.getRole(), rolePrefix, requestedRoleList,
+            addRoleToList(memberRole.getRole(), rolePrefix, requestedRoleList, fullNameMatch,
                     accessibleRoles, keepFullName);
         }
     }
@@ -1474,7 +1475,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
             if (trustedResources == null) {
                 processStandardMembership(groupMemberRoleSet, rolePrefix, requestedRoleList,
-                        accessibleRoles, keepFullName);
+                        false, accessibleRoles, keepFullName);
             } else {
                 for (String resource : trustedResources) {
 
@@ -1561,7 +1562,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     // API
     public void getAccessibleRoles(DataCache data, String domainName, String identity,
-            String[] requestedRoleList, Set<String> accessibleRoles, boolean keepFullName) {
+            String[] requestedRoleList, boolean fullNameMatch, Set<String> accessibleRoles, boolean keepFullName) {
 
         /* if the domain hasn't been processed then we don't have anything to do */
 
@@ -1575,13 +1576,13 @@ public class DataStore implements DataCacheProvider, RolesProvider {
          * included in the list explicitly */
 
         processStandardMembership(data.getMemberRoleSet(identity),
-                rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
+                rolePrefix, requestedRoleList, fullNameMatch, accessibleRoles, keepFullName);
 
         /* next look at all * wildcard roles that are configured
          * for all members to access */
 
         processStandardMembership(data.getAllMemberRoleSet(),
-                rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
+                rolePrefix, requestedRoleList, fullNameMatch, accessibleRoles, keepFullName);
 
         /* then look at the prefix wildcard roles. in this map
          * we only process those where the key in the map is
@@ -1591,7 +1592,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         for (String identityPrefix : roleSetMap.keySet()) {
             if (identity.startsWith(identityPrefix)) {
                 processStandardMembership(roleSetMap.get(identityPrefix),
-                        rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
+                        rolePrefix, requestedRoleList, fullNameMatch, accessibleRoles, keepFullName);
             }
         }
 
@@ -1617,21 +1618,31 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     // Internal
     void addRoleToList(String role, String rolePrefix, String[] requestedRoleList,
-            Set<String> accessibleRoles, boolean keepFullName) {
+            boolean fullNameMatch, Set<String> accessibleRoles, boolean keepFullName) {
 
-        /* any roles we return must start with the domain role prefix */
+        // any roles we return must start with the domain role prefix
 
         if (!role.startsWith(rolePrefix)) {
             return;
         }
 
-        /* and it must end with the suffix if requested */
+        // and it must end with the suffix if requested unless we've been
+        // asked to carry out a full name match
 
         if (requestedRoleList != null) {
             boolean matchFound = false;
             for (String requestedRole : requestedRoleList) {
-                if (role.endsWith(requestedRole)) {
-                    matchFound = true;
+
+                // if we're asked for a full role name match then our requested role
+                // only includes the role name, so we need to match against the role
+                // name component only
+
+                matchFound = fullNameMatch ? requestedRole.equals(role.substring(rolePrefix.length())) :
+                        role.endsWith(requestedRole);
+
+                // as soon as we find a match we should stop looking
+
+                if (matchFound) {
                     break;
                 }
             }
@@ -1640,7 +1651,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
             }
         }
 
-        /* when returning the value we're going to skip the prefix */
+        // when returning the value we're going to skip the prefix
 
         if (keepFullName) {
             accessibleRoles.add(role);
@@ -1697,7 +1708,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         /* now check if the role is in the resource list as well */
 
-        addRoleToList(roleName, rolePrefix, requestedRoleList, accessibleRoles, keepFullName);
+        addRoleToList(roleName, rolePrefix, requestedRoleList, false, accessibleRoles, keepFullName);
     }
 
     // Internal

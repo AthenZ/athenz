@@ -748,6 +748,7 @@ exports[`GroupMemberPage should render 1`] = `
 
 .emotion-67 {
   text-align: left;
+  width: 26%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -760,6 +761,20 @@ exports[`GroupMemberPage should render 1`] = `
 
 .emotion-69 {
   text-align: left;
+  width: 26%;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-71 {
+  text-align: left;
+  width: 40%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -772,6 +787,7 @@ exports[`GroupMemberPage should render 1`] = `
 
 .emotion-73 {
   text-align: center;
+  width: 8%;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -1165,21 +1181,25 @@ exports[`GroupMemberPage should render 1`] = `
                 <tr>
                   <th
                     class="emotion-67 emotion-68"
+                    width="26"
                   >
                     User Name
                   </th>
                   <th
                     class="emotion-69 emotion-70"
+                    width="26"
                   >
                     Name of User
                   </th>
                   <th
-                    class="emotion-69 emotion-70"
+                    class="emotion-71 emotion-70"
+                    width="40"
                   >
                     Expiration Date
                   </th>
                   <th
                     class="emotion-73 emotion-70"
+                    width="8"
                   >
                     Delete
                   </th>

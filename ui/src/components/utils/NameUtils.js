@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PENDING_STATE_ENUM } from '../constants/constants';
+
 class NameUtils {
     static getShortName(key, name) {
         const idx = name.lastIndexOf(key);
@@ -42,6 +44,17 @@ class NameUtils {
             .split(',')
             .map((n) => n.trim())
             .filter((n) => n);
+    }
+
+    static getPendingStateToDisplay(pendingState) {
+        switch (pendingState) {
+            case PENDING_STATE_ENUM.ADD:
+                return 'adding member';
+            case PENDING_STATE_ENUM.DELETE:
+                return 'deleting member';
+            default:
+                return '';
+        }
     }
 }
 

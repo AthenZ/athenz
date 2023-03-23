@@ -38,6 +38,10 @@ export const selectGroup = (state, domainName, groupName) => {
         : {};
 };
 
+export const thunkSelectGroupMembers = (state, domainName, groupName) => {
+    return selectGroup(state, domainName, groupName).groupMembers || {};
+};
+
 export const selectGroupMembers = (state, domainName, groupName) => {
     return state.groups.groups &&
         state.groups.groups[getFullName(domainName, groupDelimiter, groupName)]
@@ -50,6 +54,17 @@ export const selectGroupMembers = (state, domainName, groupName) => {
               ].groupPendingMembers
           )
         : [];
+};
+
+export const thunkSelectGroupMember = (
+    state,
+    domainName,
+    groupName,
+    memberName
+) => {
+    return (
+        thunkSelectGroupMembers(state, domainName, groupName)[memberName] || {}
+    );
 };
 
 export const selectReviewGroupMembers = (state, domainName, groupName) => {

@@ -22,6 +22,8 @@ import {
     selectGroups,
     selectGroupTags,
     selectReviewGroupMembers,
+    thunkSelectGroupMember,
+    thunkSelectGroupMembers,
     thunkSelectGroups,
 } from '../../../redux/selectors/group';
 
@@ -129,6 +131,30 @@ describe('test group selectors', () => {
             expect(selectGroup(stateWithoutGroups)).toEqual({});
         });
     });
+    describe('test thunkSelectGroupMembers selector', () => {
+        it('should return group members', () => {
+            const expectedGroupMembers = {
+                'user.user4': {
+                    memberName: 'user.user4',
+                    groupName: 'dom:group.group1',
+                    expiration: '2022-09-02T08:14:08.131Z',
+                },
+                'user.user1': {
+                    memberName: 'user.user1',
+                    groupName: 'dom:group.group1',
+                    expiration: '2022-09-02T08:14:08.131Z',
+                },
+            };
+            expect(
+                thunkSelectGroupMembers(stateWithGroups, domainName, 'group1')
+            ).toEqual(expectedGroupMembers);
+        });
+        it('should return empty object', () => {
+            expect(
+                thunkSelectGroupMembers(stateWithoutGroups, domainName, 'admin')
+            ).toEqual({});
+        });
+    });
     describe('test selectGroupMembers selector', () => {
         it('should return group members', () => {
             const expectedGroupMembersList = [
@@ -200,6 +226,33 @@ describe('test group selectors', () => {
                     'group1'
                 )
             ).toEqual([]);
+        });
+    });
+    describe('test thunkSelectGroupMember selector', () => {
+        it('should return group member', () => {
+            const expectedGroupMember = {
+                memberName: 'user.user4',
+                groupName: 'dom:group.group1',
+                expiration: '2022-09-02T08:14:08.131Z',
+            };
+            expect(
+                thunkSelectGroupMember(
+                    stateWithGroups,
+                    domainName,
+                    'group1',
+                    'user.user4'
+                )
+            ).toEqual(expectedGroupMember);
+        });
+        it('should return empty object', () => {
+            expect(
+                thunkSelectGroupMember(
+                    stateWithGroups,
+                    domainName,
+                    'group1',
+                    'user.notfound'
+                )
+            ).toEqual({});
         });
     });
     describe('test selectGroupHistory selector', () => {

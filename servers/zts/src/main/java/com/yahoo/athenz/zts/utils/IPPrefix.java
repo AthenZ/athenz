@@ -15,33 +15,39 @@
  */
 package com.yahoo.athenz.zts.utils;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public class IPPrefix {
 
-    private String ipv4Prefix;
-    private String ipv6Prefix;
-    private String region;
-    private String service;
-    
     @JsonProperty("ip_prefix")
+    @JsonAlias("ipv4Prefix")
+    private String ipv4Prefix;
+
+    @JsonProperty("ipv6_prefix")
+    @JsonAlias("ipv6Prefix")
+    private String ipv6Prefix;
+
+    @JsonProperty("region")
+    @JsonAlias("scope")
+    private String region;
+
+    private String service;
+
     public String getIpv4Prefix() {
         return ipv4Prefix;
     }
 
-    @JsonProperty("ip_prefix")
     public void setIpv4Prefix(String ipv4Prefix) {
         this.ipv4Prefix = ipv4Prefix;
     }
 
-    @JsonProperty("ipv6_prefix")
     public String getIpv6Prefix() {
         return ipv6Prefix;
     }
 
-    @JsonProperty("ipv6_prefix")
     public void setIpv6Prefix(String ipv6Prefix) {
         this.ipv6Prefix = ipv6Prefix;
     }

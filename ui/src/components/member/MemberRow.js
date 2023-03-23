@@ -32,6 +32,7 @@ import {
     ADD_ROLE_REMINDER_PLACEHOLDER,
     EDITABLE_DATE_ENUM,
 } from '../constants/constants';
+import NameUtils from '../utils/NameUtils';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -147,8 +148,16 @@ class MemberRow extends React.Component {
                 this.props.pending,
                 this.props._csrf
             )
-            .then(() => {
-                if (this.props.pending) {
+            .then((deleteProtection) => {
+                if (deleteProtection) {
+                    this.props.onUpdateSuccess(
+                        `Successfully added pending request to delete member ${name}`,
+                        true
+                    );
+                    this.setState({
+                        showDelete: false,
+                    });
+                } else if (this.props.pending) {
                     this.props.onUpdateSuccess(
                         `Successfully deleted pending member ${name}`,
                         true
@@ -289,6 +298,7 @@ class MemberRow extends React.Component {
                         <StyledMenu
                             placement='right'
                             boundary='scrollParent'
+                            triggerOn='click'
                             trigger={
                                 <StyledSpan>{member.memberName}</StyledSpan>
                             }
@@ -364,6 +374,13 @@ class MemberRow extends React.Component {
                                 <MenuDiv>Edit Review Reminder</MenuDiv>
                             </Menu>
                         </EditDiv>
+                    </TDStyled>
+                )}
+                {this.props.pending && (
+                    <TDStyled color={color} align={left}>
+                        {NameUtils.getPendingStateToDisplay(
+                            member.pendingState
+                        )}
                     </TDStyled>
                 )}
                 <TDStyled color={color} align={center}>

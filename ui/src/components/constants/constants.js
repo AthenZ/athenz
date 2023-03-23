@@ -178,6 +178,10 @@ export const WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER =
     'Select a Domain to View Pending Members';
 export const VIEW_PENDING_MEMBERS_BY_DOMAIN_TITLE =
     'View Pending Members by Domain';
+export const ADD_ROLE_DELETE_PROTECTION_DESC =
+    'Flag indicates whether or not the role will be protected from accidental deletions';
+export const ADD_GROUP_DELETE_PROTECTION_DESC =
+    'Flag indicates whether or not the group will be protected from accidental deletions';
 export const WORKFLOW_TABS = [
     {
         label: WORKFLOW_ADMIN_VIEW_TAB,
@@ -202,4 +206,8 @@ export const PENDING_APPROVAL_KEY_ENUM = Object.freeze({
 export const EDITABLE_DATE_ENUM = Object.freeze({
     EXPIRATION: 'Expiration',
     REMINDER: 'Reminder',
+});
+export const PENDING_STATE_ENUM = Object.freeze({
+    ADD: 'ADD',
+    DELETE: 'DELETE',
 });
