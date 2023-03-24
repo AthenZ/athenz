@@ -213,7 +213,10 @@ exports[`GCP Login Page should render projects api returns results 1`] = `
           class="emotion-6 emotion-7"
         >
           Project: 
+          dummy-project-id
+           (
           dummy.project
+          )
         </div>
         <div
           class="emotion-8 emotion-9"

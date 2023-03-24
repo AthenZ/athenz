@@ -81,36 +81,43 @@ const SubmitContainer = styled.div`
     display: flex;
 `;
 
-function getRolesFromResourceAccessList(resourceAccessList, isAdmin) {
-    let roles = [];
+function getAssertionsFromResourceAccessList(resourceAccessList, isAdmin) {
+    let assertionsList = [];
     if (resourceAccessList.resources) {
         resourceAccessList.resources.forEach(function (resources) {
             resources.assertions.forEach(function (assertion) {
                 if (assertion.role.toLowerCase().indexOf('admin') > -1) {
                     if (isAdmin) {
-                        roles.push(assertion.role);
+                        assertionsList.push(assertion);
                     }
                 } else if (!isAdmin) {
-                    roles.push(assertion.role);
+                    assertionsList.push(assertion);
                 }
             });
         });
     }
-    return roles;
+    return assertionsList;
 }
 
-function getProjectDomainName(project) {
-    let projectDomainNameAndRole = project.split(':role.');
+function getProjectDomainName(role) {
+    let projectDomainNameAndRole = role.split(':role.');
     let projectDomainName = projectDomainNameAndRole[0];
     if (!projectDomainName) return '';
     return projectDomainName;
 }
 
-function getRoleName(project) {
-    let projectDomainNameAndRole = project.split(':role.');
+function getRoleName(role) {
+    let projectDomainNameAndRole = role.split(':role.');
     if (projectDomainNameAndRole.length < 1) return '';
     let roleName = projectDomainNameAndRole[1];
     return roleName;
+}
+
+function getProjectID(resource) {
+    let splitStrings = resource.split('/');
+    if (splitStrings.length < 1) return '';
+    let projectID = splitStrings[1];
+    return projectID;
 }
 
 export async function getServerSideProps(context) {
@@ -153,9 +160,7 @@ class GCPLoginPage extends React.Component {
         this.state = {
             errorMessage: '',
             projectRoleMap: {},
-            projectName: '',
-            projectRole: '',
-            projectRoleName: '',
+            roleName: '',
             isFetching: true,
         };
         this.populateProjects = this.populateProjects.bind(this);
@@ -192,33 +197,35 @@ class GCPLoginPage extends React.Component {
 
     populateProjects() {
         const { resourceAccessList, isAdmin, projectDomainName } = this.props;
-        let projects = getRolesFromResourceAccessList(
+        let assertionsList = getAssertionsFromResourceAccessList(
             resourceAccessList,
             isAdmin
         );
         // filter project list if projectDomainName is specified in the query
         if (projectDomainName) {
-            projects = projects.filter(
-                (project) => project.indexOf(projectDomainName) > -1
+            assertionsList = assertionsList.filter(
+                (assertion) => assertion.role.indexOf(projectDomainName) > -1
             );
         }
-        return projects;
+        return assertionsList;
     }
 
-    populateProjectRoleMap(projects) {
+    populateProjectRoleMap(assertionsList) {
         let projectRoleMap = {};
-        projects.forEach((projectId) => {
-            let projectName = getProjectDomainName(projectId);
-            let projectRoleName = getRoleName(projectId);
-            let projectObject = {
-                projectId, // value passed to gcp
+        assertionsList.forEach((assertion) => {
+            let projectName = getProjectDomainName(assertion.role);
+            let projectRoleName = getRoleName(assertion.role);
+            let projectID = getProjectID(assertion.resource);
+            let project = {
+                roleName: assertion.role, // value passed to gcp
                 projectRoleName, // For UI readability
                 projectName, // For UI readability
+                projectID, // For UI readability
             };
             if (!projectRoleMap[projectName]) {
-                projectRoleMap[projectName] = [projectObject];
+                projectRoleMap[projectName] = [project];
             } else {
-                projectRoleMap[projectName].push(projectObject);
+                projectRoleMap[projectName].push(project);
             }
         });
         this.setState((prevState) => ({
@@ -231,9 +238,7 @@ class GCPLoginPage extends React.Component {
     handleRadioButton(projectObject) {
         this.setState((prevState) => ({
             ...prevState,
-            projectRole: projectObject.projectId,
-            projectRoleName: projectObject.projectRoleName,
-            projectName: projectObject.projectName,
+            roleName: projectObject.roleName,
         }));
     }
 
@@ -252,24 +257,24 @@ class GCPLoginPage extends React.Component {
         let displayProjects = [];
         for (let pName in this.state.projectRoleMap) {
             let projectRoleNames = [];
+            let projectID = this.state.projectRoleMap[pName][0].projectID;
             this.state.projectRoleMap[pName].forEach((projectObject, index) => {
                 projectRoleNames.push(
                     <div key={index}>
                         <RadioButton
                             type={'radio'}
-                            key={'button-' + projectObject.projectId}
-                            value={projectObject.projectId}
+                            key={'button-' + projectObject.roleName}
+                            value={projectObject.roleName}
                             name={'project'}
                             checked={
-                                this.state.projectRole ===
-                                projectObject.projectId
+                                this.state.roleName === projectObject.roleName
                             }
                             onChange={() =>
                                 this.handleRadioButton(projectObject)
                             }
                             required={true}
                         />
-                        <ProjectLabel key={'label-' + projectObject.projectId}>
+                        <ProjectLabel key={'label-' + projectObject.roleName}>
                             {projectObject.projectRoleName}
                         </ProjectLabel>
                     </div>
@@ -279,7 +284,7 @@ class GCPLoginPage extends React.Component {
             displayProjects.push(
                 <div>
                     <ProjectTitleDiv key={'project-name-' + pName}>
-                        Project: {pName}
+                        Project: {projectID} ({pName})
                     </ProjectTitleDiv>
                     <RadioButtonsContainer
                         key={'radio-button-container-' + pName}

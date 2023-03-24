@@ -44,6 +44,7 @@ describe('GCP Login Page', () => {
                     assertions: [
                         {
                             role: 'dummy.project:role.user.dev',
+                            resource: 'project/dummy-project-id'
                         },
                     ],
                 },
