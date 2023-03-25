@@ -216,6 +216,9 @@ class GCPLoginPage extends React.Component {
             let projectName = getProjectDomainName(assertion.role);
             let projectRoleName = getRoleName(assertion.role);
             let projectID = getProjectID(assertion.resource);
+            if (!projectName || !projectRoleName || !projectID) {
+                return;
+            }
             let project = {
                 roleName: assertion.role, // value passed to gcp
                 projectRoleName, // For UI readability
