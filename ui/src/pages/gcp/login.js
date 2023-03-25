@@ -115,7 +115,12 @@ function getRoleName(role) {
 
 function getProjectID(resource) {
     let splitStrings = resource.split('/');
-    if (splitStrings.length < 1 || splitStrings[0] !== 'projects') return '';
+    if (
+        splitStrings.length < 4 ||
+        splitStrings[0] !== 'projects' ||
+        splitStrings[2] !== 'roles'
+    )
+        return '';
     let projectID = splitStrings[1];
     return projectID;
 }
