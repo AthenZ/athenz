@@ -873,43 +873,43 @@ exports[`ServicePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-116 {
+.emotion-114 {
   background-color: #3570f40D;
   text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-118 {
+  background-color: #3570f40D;
+  text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
 .emotion-120 {
-  background-color: #3570f40D;
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-  word-break: break-all;
-}
-
-.emotion-122 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-134 {
+.emotion-129 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-138 {
+.emotion-133 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-150 {
+.emotion-142 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -935,13 +935,13 @@ exports[`ServicePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-152 {
+.emotion-144 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-153 {
+.emotion-145 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -956,7 +956,7 @@ exports[`ServicePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-155 {
+.emotion-147 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -975,28 +975,28 @@ exports[`ServicePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-157 {
+.emotion-149 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-159 {
+.emotion-151 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-161 {
+.emotion-153 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-165 {
+.emotion-157 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-167 {
+.emotion-159 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1004,12 +1004,12 @@ exports[`ServicePage should render 1`] = `
   display: flex;
 }
 
-.emotion-169 {
+.emotion-161 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-171 {
+.emotion-163 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1407,11 +1407,6 @@ exports[`ServicePage should render 1`] = `
                   <th
                     class="emotion-106 emotion-103"
                   >
-                    Instances
-                  </th>
-                  <th
-                    class="emotion-106 emotion-103"
-                  >
                     Public Keys
                   </th>
                   <th
@@ -1428,47 +1423,27 @@ exports[`ServicePage should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-114 emotion-115"
+                  class="emotion-112 emotion-113"
                   data-testid="service-row"
                 >
                   <td
-                    class="emotion-116 emotion-117"
+                    class="emotion-114 emotion-115"
                     color="#3570f40D"
                   >
                     bastion
                   </td>
                   <td
-                    class="emotion-116 emotion-117"
+                    class="emotion-114 emotion-115"
                     color="#3570f40D"
                   >
                     2017-12-21 18:59 UTC
                   </td>
                   <td
-                    class="emotion-120 emotion-117"
+                    class="emotion-118 emotion-115"
                     color="#3570f40D"
                   >
                     <svg
-                      class="emotion-122"
-                      data-testid="icon"
-                      height="1.25em"
-                      id=""
-                      viewBox="0 0 1024 1024"
-                      width="1.25em"
-                    >
-                      <title>
-                        data-source
-                      </title>
-                      <path
-                        d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
-                      />
-                    </svg>
-                  </td>
-                  <td
-                    class="emotion-120 emotion-117"
-                    color="#3570f40D"
-                  >
-                    <svg
-                      class="emotion-122"
+                      class="emotion-120"
                       data-testid="icon"
                       height="1.25em"
                       id=""
@@ -1484,11 +1459,11 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-120 emotion-117"
+                    class="emotion-118 emotion-115"
                     color="#3570f40D"
                   >
                     <svg
-                      class="emotion-122"
+                      class="emotion-120"
                       data-testid="icon"
                       height="1.25em"
                       id=""
@@ -1504,11 +1479,11 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-120 emotion-117"
+                    class="emotion-118 emotion-115"
                     color="#3570f40D"
                   >
                     <svg
-                      class="emotion-122"
+                      class="emotion-120"
                       data-testid="icon"
                       height="1.25em"
                       id=""
@@ -1528,47 +1503,27 @@ exports[`ServicePage should render 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="emotion-114 emotion-115"
+                  class="emotion-112 emotion-113"
                   data-testid="service-row"
                 >
                   <td
-                    class="emotion-134 emotion-117"
+                    class="emotion-129 emotion-115"
                     color=""
                   >
                     openhouse
                   </td>
                   <td
-                    class="emotion-134 emotion-117"
+                    class="emotion-129 emotion-115"
                     color=""
                   >
                     2017-12-19 20:24 UTC
                   </td>
                   <td
-                    class="emotion-138 emotion-117"
+                    class="emotion-133 emotion-115"
                     color=""
                   >
                     <svg
-                      class="emotion-122"
-                      data-testid="icon"
-                      height="1.25em"
-                      id=""
-                      viewBox="0 0 1024 1024"
-                      width="1.25em"
-                    >
-                      <title>
-                        data-source
-                      </title>
-                      <path
-                        d="M981.333 192c0-145.067-420.267-149.333-469.333-149.333s-469.333 4.267-469.333 149.333v640c0 145.067 420.267 149.333 469.333 149.333s469.333-4.267 469.333-149.333v-633.6zM896 401.067c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM896 614.4c-21.333 25.6-162.133 68.267-384 68.267s-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467zM512 128c209.067 0 347.733 38.4 379.733 64-32 25.6-170.667 64-379.733 64s-347.733-38.4-379.733-64c32-25.6 170.667-64 379.733-64zM512 896c-221.867 0-362.667-42.667-384-68.267v-115.2c125.867 53.333 349.867 55.467 384 55.467s258.133-2.133 384-55.467v115.2c-21.333 25.6-162.133 68.267-384 68.267z"
-                      />
-                    </svg>
-                  </td>
-                  <td
-                    class="emotion-138 emotion-117"
-                    color=""
-                  >
-                    <svg
-                      class="emotion-122"
+                      class="emotion-120"
                       data-testid="icon"
                       height="1.25em"
                       id=""
@@ -1584,11 +1539,11 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-138 emotion-117"
+                    class="emotion-133 emotion-115"
                     color=""
                   >
                     <svg
-                      class="emotion-122"
+                      class="emotion-120"
                       data-testid="icon"
                       height="1.25em"
                       id=""
@@ -1604,11 +1559,11 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-138 emotion-117"
+                    class="emotion-133 emotion-115"
                     color=""
                   >
                     <svg
-                      class="emotion-122"
+                      class="emotion-120"
                       data-testid="icon"
                       height="1.25em"
                       id=""
@@ -1636,11 +1591,11 @@ exports[`ServicePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-150 emotion-151"
+          class="emotion-142 emotion-143"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-152"
+            class="emotion-144"
             data-testid="icon"
             height="1em"
             id=""
@@ -1656,45 +1611,45 @@ exports[`ServicePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-153 emotion-154"
+          class="emotion-145 emotion-146"
         >
           <div
-            class="emotion-155 emotion-156"
+            class="emotion-147 emotion-148"
           >
             <div
-              class="emotion-157 emotion-158"
+              class="emotion-149 emotion-150"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-159 emotion-160"
+                class="emotion-151 emotion-152"
               >
                 Create
               </a>
               <span
-                class="emotion-161 emotion-162"
+                class="emotion-153 emotion-154"
               >
                  | 
               </span>
               <a
-                class="emotion-159 emotion-160"
+                class="emotion-151 emotion-152"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-165 emotion-166"
+            class="emotion-157 emotion-158"
           >
             <div
-              class="emotion-167 emotion-168"
+              class="emotion-159 emotion-160"
             >
               <div
-                class="emotion-169 emotion-170"
+                class="emotion-161 emotion-162"
               >
                 <svg
-                  class="emotion-171"
+                  class="emotion-163"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1716,19 +1671,19 @@ exports[`ServicePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-159 emotion-160"
+                class="emotion-151 emotion-152"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-167 emotion-168"
+              class="emotion-159 emotion-160"
             >
               <div
-                class="emotion-169 emotion-170"
+                class="emotion-161 emotion-162"
               >
                 <svg
-                  class="emotion-171"
+                  class="emotion-163"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1750,7 +1705,7 @@ exports[`ServicePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-159 emotion-160"
+                class="emotion-151 emotion-152"
               >
                 athens.ci
               </a>

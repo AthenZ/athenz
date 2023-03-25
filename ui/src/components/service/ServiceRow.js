@@ -113,16 +113,18 @@ class ServiceRow extends React.Component {
                         'UTC'
                     )}
                 </TdStyled>
-                <TdStyled color={color} align={center}>
-                    <Icon
-                        icon={'data-source'}
-                        onClick={this.toggleInstances}
-                        color={colors.icons}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
-                </TdStyled>
+                {this.props.featureFlag ? (
+                    <TdStyled color={color} align={center}>
+                        <Icon
+                            icon={'data-source'}
+                            onClick={this.toggleInstances}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </TdStyled>
+                ) : null}
                 <TdStyled color={color} align={center}>
                     <Icon
                         icon={'key'}
