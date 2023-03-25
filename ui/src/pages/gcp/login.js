@@ -115,7 +115,7 @@ function getRoleName(role) {
 
 function getProjectID(resource) {
     let splitStrings = resource.split('/');
-    if (splitStrings.length < 1) return '';
+    if (splitStrings.length < 1 || splitStrings[0] !== 'projects') return '';
     let projectID = splitStrings[1];
     return projectID;
 }
@@ -163,7 +163,7 @@ class GCPLoginPage extends React.Component {
             roleName: '',
             isFetching: true,
         };
-        this.populateProjects = this.populateProjects.bind(this);
+        this.getAssertionList = this.getAssertionList.bind(this);
         this.populateProjectRoleMap = this.populateProjectRoleMap.bind(this);
         this.showError = this.showError.bind(this);
     }
@@ -182,8 +182,8 @@ class GCPLoginPage extends React.Component {
     componentDidUpdate(prevProps) {
         const { resourceAccessList } = this.props;
         if (prevProps && prevProps.resourceAccessList !== resourceAccessList) {
-            let projects = this.populateProjects();
-            this.populateProjectRoleMap(projects);
+            let assertionList = this.getAssertionList();
+            this.populateProjectRoleMap(assertionList);
         }
     }
 
@@ -195,7 +195,7 @@ class GCPLoginPage extends React.Component {
         }));
     }
 
-    populateProjects() {
+    getAssertionList() {
         const { resourceAccessList, isAdmin, projectDomainName } = this.props;
         let assertionsList = getAssertionsFromResourceAccessList(
             resourceAccessList,
