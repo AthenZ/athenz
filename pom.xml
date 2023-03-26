@@ -166,6 +166,8 @@
     <module>provider/aws/sia-eks</module>
     <module>provider/aws/sia-fargate</module>
     <module>provider/azure/sia-vm</module>
+    <module>provider/gcp/sia-gce</module>
+    <module>provider/gcp/sia-gke</module>
     <module>utils/zms-cli</module>
     <module>utils/athenz-conf</module>
     <module>utils/zms-svctoken</module>

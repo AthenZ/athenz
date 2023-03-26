@@ -287,7 +287,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         validateAthenzService(derivedAttestationData, instanceService, gcpProject);
 
         // set the attributes to be returned to the ZTS server
-        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData().getInstanceId() != null);
+        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData() != null);
 
 
         return confirmation;

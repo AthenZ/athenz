@@ -76,3 +76,15 @@ func (fargate FargateProvider) GetSanIp(docIp map[string]bool, ips []net.IP, opt
 func (fargate FargateProvider) GetSuffix() string {
 	return ""
 }
+
+func (eks FargateProvider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+func (eks FargateProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+	return "", "", "", fmt.Errorf("not implemented")
+}
+
+func (tp FargateProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}

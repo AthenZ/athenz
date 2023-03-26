@@ -1,0 +1,8 @@
+{
+    "version": "1.0.0",
+    "gcp_project": "my-gcp-project",
+    "domain": "athenz",
+    "service": "api",
+    "generate_role_key": true,
+    "user": "nobody"
+}

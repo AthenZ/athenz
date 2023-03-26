@@ -1,0 +1,16 @@
+{
+    "version": "1.0.0",
+    "gcp_project": "my-gcp-project",
+    "domain": "athenz",
+    "service": "api",
+    "services": {
+        "api": {},
+        "ui": {},
+        "yamas": {
+            "user": "nobody",
+            "group": "sys"
+        }
+    },
+    "user": "nobody",
+    "access_management": true
+}

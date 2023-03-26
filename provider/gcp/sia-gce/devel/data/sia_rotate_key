@@ -1,0 +1,7 @@
+{
+    "version": "1.0.0",
+    "domain": "athenz",
+    "service": "api",
+    "rotate_key": true,
+    "user": "nobody"
+}
