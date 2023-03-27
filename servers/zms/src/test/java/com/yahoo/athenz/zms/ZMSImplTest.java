@@ -553,6 +553,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1",
                 "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setGcpProject("gcp1");
+        dom1.setGcpProjectNumber("1238");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
@@ -2255,9 +2256,11 @@ public class ZMSImplTest {
         assertEquals(resDom3.getAccount(), "aws");
         assertEquals(resDom3.getAzureSubscription(), "azure");
         assertNull(resDom3.getGcpProject());
+        assertNull(resDom3.getGcpProjectNumber());
         assertNull(resDom3.getBusinessService());
 
         meta.setGcpProject("gcp");
+        meta.setGcpProjectNumber("1239");
         zmsImpl.putDomainSystemMeta(ctx, domainName, "gcpproject", auditRef, meta);
         resDom3 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom3);
@@ -2265,6 +2268,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getAccount(), "aws");
         assertEquals(resDom3.getAzureSubscription(), "azure");
         assertEquals(resDom3.getGcpProject(), "gcp");
+        assertEquals(resDom3.getGcpProjectNumber(), "1239");
         assertNull(resDom3.getBusinessService());
 
         meta.setBusinessService("123:business service");
@@ -2275,6 +2279,7 @@ public class ZMSImplTest {
         assertEquals(resDom3.getAccount(), "aws");
         assertEquals(resDom3.getAzureSubscription(), "azure");
         assertEquals(resDom3.getGcpProject(), "gcp");
+        assertEquals(resDom3.getGcpProjectNumber(), "1239");
         assertEquals(resDom3.getBusinessService(), "123:business service");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -20258,6 +20263,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setGcpProject("gcp-1234");
+        dom1.setGcpProjectNumber("1234");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
@@ -21648,7 +21654,7 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         Domain domainMeta = new Domain().setName("dom1").setYpmId(123).setModified(Timestamp.fromCurrentTime())
                 .setAccount("1234").setAuditEnabled(true).setOrg("org").setAzureSubscription("4567")
-                .setBusinessService("123:business service").setGcpProject("gcp");
+                .setBusinessService("123:business service").setGcpProject("gcp").setGcpProjectNumber("1240");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
@@ -21656,6 +21662,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
@@ -21665,6 +21672,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -21674,6 +21682,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
@@ -21683,6 +21692,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
@@ -21692,10 +21702,12 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "gcpproject");
         assertEquals(domain.getDomain().getGcpProject(), "gcp");
+        assertEquals(domain.getDomain().getGcpProjectNumber(), "1240");
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
@@ -21711,11 +21723,13 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
         assertEquals(domain.getDomain().getAzureSubscription(), "4567");
         assertEquals(domain.getDomain().getGcpProject(), "gcp");
+        assertEquals(domain.getDomain().getGcpProjectNumber(), "1240");
         assertEquals(domain.getDomain().getYpmId().intValue(), 123);
         assertEquals(domain.getDomain().getOrg(), "org");
         assertTrue(domain.getDomain().getAuditEnabled());
@@ -21730,6 +21744,7 @@ public class ZMSImplTest {
         assertNull(domain);
 
         domainMeta.setGcpProject(null);
+        domainMeta.setGcpProjectNumber(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "gcpproject");
         assertNull(domain);
 
@@ -22451,18 +22466,21 @@ public class ZMSImplTest {
         dom1.setAzureSubscription("azure");
         dom1.setAccount("aws");
         dom1.setGcpProject("gcp");
+        dom1.setGcpProjectNumber("1250");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         Domain dom1Res = zmsImpl.getDomain(ctx, domainName);
         assertEquals(dom1Res.getAccount(), "aws");
         assertEquals(dom1Res.getAzureSubscription(), "azure");
         assertEquals(dom1Res.getGcpProject(), "gcp");
+        assertEquals(dom1Res.getGcpProjectNumber(), "1250");
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("sub", domainName, "Test Domain2",
                 "testOrg", zmsTestInitializer.getAdminUser());
         dom2.setAzureSubscription("azure");
         dom2.setAccount("aws");
         dom2.setGcpProject("gcp");
+        dom2.setGcpProjectNumber("1251");
 
         // system meta attributes are automatically skipped
 
@@ -22471,6 +22489,7 @@ public class ZMSImplTest {
         assertNull(dom2Res.getAccount());
         assertNull(dom2Res.getAzureSubscription());
         assertNull(dom2Res.getGcpProject());
+        assertNull(dom2Res.getGcpProjectNumber());
 
         zmsImpl.deleteSubDomain(ctx, domainName, "sub", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -30889,6 +30908,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1, "Test Domain1",
                 "testOrg", "user.user1");
         dom1.setGcpProject("gcp1");
+        dom1.setGcpProjectNumber("1234");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         // create another domain with the same project which should be rejected
@@ -30896,6 +30916,7 @@ public class ZMSImplTest {
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2, "Test Domain1",
                 "testOrg", "user.user1");
         dom2.setGcpProject("gcp1");
+        dom2.setGcpProjectNumber("1235");
         try {
             zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
             fail();
@@ -31657,6 +31678,7 @@ public class ZMSImplTest {
             dom1.setAccount("valid-aws-account");
             dom1.setAzureSubscription("valid-azure-subscription");
             dom1.setGcpProject("invalid-gcp-project");
+            dom1.setGcpProjectNumber("1200");
             zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
             fail();
         } catch (ResourceException ex) {
@@ -31666,6 +31688,7 @@ public class ZMSImplTest {
         zmsImpl.productIdSupport = true;
         try {
             dom1.setGcpProject("valid-gcp-project");
+            dom1.setGcpProjectNumber("1200");
             dom1.setYpmId(100);
             zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
             fail();
@@ -31673,7 +31696,21 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("invalid product id"));
         }
 
+        // specify gcp project but no project number
+
+        try {
+            dom1.setYpmId(101);
+            dom1.setGcpProject("valid-gcp-project");
+            dom1.setGcpProjectNumber(null);
+            zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid gcp project"));
+        }
+
         dom1.setYpmId(101);
+        dom1.setGcpProject("valid-gcp-project");
+        dom1.setGcpProjectNumber("1200");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
@@ -31788,6 +31825,18 @@ public class ZMSImplTest {
 
         try {
             meta.setGcpProject("invalid-gcp-project");
+            meta.setGcpProjectNumber("1200");
+            zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_GCP_PROJECT, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid gcp project"));
+        }
+
+        // next gcp project without project number
+
+        try {
+            meta.setGcpProject("valid-gcp-project");
+            meta.setGcpProjectNumber(null);
             zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_GCP_PROJECT, auditRef, meta);
             fail();
         } catch (ResourceException ex) {
@@ -31795,11 +31844,24 @@ public class ZMSImplTest {
         }
 
         meta.setGcpProject("valid-gcp-project");
+        meta.setGcpProjectNumber("1200");
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_GCP_PROJECT, auditRef, meta);
 
         domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
         assertEquals(domain.getGcpProject(), "valid-gcp-project");
+        assertEquals(domain.getGcpProjectNumber(), "1200");
+
+        // now keep the gcp project but update the project number
+
+        meta.setGcpProject("valid-gcp-project");
+        meta.setGcpProjectNumber("1201");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_GCP_PROJECT, auditRef, meta);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getGcpProject(), "valid-gcp-project");
+        assertEquals(domain.getGcpProjectNumber(), "1201");
 
         // second time no-op since nothing has changed
 
@@ -33529,5 +33591,22 @@ public class ZMSImplTest {
         group.setAuditEnabled(true);
         zmsImpl.validateGroupMetaAuditEnabledFlag(meta, group, domain, "validateGroupAuditEnabledFlag");
         assertTrue(meta.getAuditEnabled());
+    }
+
+    @Test
+    public void testValidateGcpProjectDetails() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        assertTrue(zmsImpl.validateGcpProjectDetails("", ""));
+        assertTrue(zmsImpl.validateGcpProjectDetails(null, ""));
+        assertTrue(zmsImpl.validateGcpProjectDetails("", null));
+        assertTrue(zmsImpl.validateGcpProjectDetails(null, null));
+        assertTrue(zmsImpl.validateGcpProjectDetails("gcp", "123400"));
+
+        assertFalse(zmsImpl.validateGcpProjectDetails("", "1234"));
+        assertFalse(zmsImpl.validateGcpProjectDetails(null, "1234"));
+        assertFalse(zmsImpl.validateGcpProjectDetails("1234", ""));
+        assertFalse(zmsImpl.validateGcpProjectDetails("1234", null));
     }
 }

@@ -70,13 +70,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
-            + " member_purge_expiry_days, gcp_project) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " member_purge_expiry_days, gcp_project, gcp_project_number) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
-            + " gcp_project=? WHERE name=?;";
+            + " gcp_project=?, gcp_project_number=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -790,7 +790,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setId(saveUuidValue(rs.getString(ZMSConsts.DB_COLUMN_UUID)))
                 .setAccount(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ACCOUNT)))
                 .setAzureSubscription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)))
-                .setGcpProject(saveValue(rs.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT)))
+                .setGcpProject(saveValue(rs.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID)))
+                .setGcpProjectNumber(saveValue(rs.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)))
                 .setYpmId(rs.getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID))
                 .setCertDnsDomain(saveValue(rs.getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
@@ -866,6 +867,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(20, processInsertValue(domain.getBusinessService()));
             ps.setInt(21, processInsertValue(domain.getMemberPurgeExpiryDays()));
             ps.setString(22, processInsertValue(domain.getGcpProject()));
+            ps.setString(23, processInsertValue(domain.getGcpProjectNumber()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -983,7 +985,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(19, processInsertValue(domain.getBusinessService()));
             ps.setInt(20, processInsertValue(domain.getMemberPurgeExpiryDays()));
             ps.setString(21, processInsertValue(domain.getGcpProject()));
-            ps.setString(22, domain.getName());
+            ps.setString(22, processInsertValue(domain.getGcpProjectNumber()));
+            ps.setString(23, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1197,7 +1200,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             case ObjectStoreConnection.PROVIDER_AZURE:
                 return DB_COLUMN_AZURE_SUBSCRIPTION;
             case ObjectStoreConnection.PROVIDER_GCP:
-                return DB_COLUMN_GCP_PROJECT;
+                return DB_COLUMN_GCP_PROJECT_ID;
         }
         return null;
     }

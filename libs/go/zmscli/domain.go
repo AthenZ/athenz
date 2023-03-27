@@ -1035,9 +1035,10 @@ func (cli Zms) SetDomainSubscription(dn string, subscription string) (*string, e
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) SetDomainProject(dn string, project string) (*string, error) {
+func (cli Zms) SetDomainProject(dn, projectId, projectNumber string) (*string, error) {
 	meta := zms.DomainMeta{
-		GcpProject: project,
+		GcpProject:       projectId,
+		GcpProjectNumber: projectNumber,
 	}
 	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "gcpproject", cli.AuditRef, &meta)
 	if err != nil {

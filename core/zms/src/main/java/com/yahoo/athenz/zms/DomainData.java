@@ -70,6 +70,9 @@ public class DomainData {
     public String gcpProject;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String gcpProjectNumber;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -211,6 +214,13 @@ public class DomainData {
     public String getGcpProject() {
         return gcpProject;
     }
+    public DomainData setGcpProjectNumber(String gcpProjectNumber) {
+        this.gcpProjectNumber = gcpProjectNumber;
+        return this;
+    }
+    public String getGcpProjectNumber() {
+        return gcpProjectNumber;
+    }
     public DomainData setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
@@ -341,6 +351,9 @@ public class DomainData {
                 return false;
             }
             if (gcpProject == null ? a.gcpProject != null : !gcpProject.equals(a.gcpProject)) {
+                return false;
+            }
+            if (gcpProjectNumber == null ? a.gcpProjectNumber != null : !gcpProjectNumber.equals(a.gcpProjectNumber)) {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
