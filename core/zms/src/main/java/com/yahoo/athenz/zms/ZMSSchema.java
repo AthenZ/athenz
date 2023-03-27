@@ -131,7 +131,8 @@ public class ZMSSchema {
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
             .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
-            .field("gcpProject", "String", true, "associated gcp project name (system attribute - uniqueness check)")
+            .field("gcpProject", "String", true, "associated gcp project id (system attribute - uniqueness check)")
+            .field("gcpProjectNumber", "String", true, "associated gcp project number (system attribute)")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("businessService", "String", true, "associated business service with domain")
             .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past");

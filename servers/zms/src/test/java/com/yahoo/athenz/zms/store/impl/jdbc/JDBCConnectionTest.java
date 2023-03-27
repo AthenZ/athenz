@@ -77,7 +77,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
         Mockito.doReturn(90).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
-        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER);
         Mockito.doReturn("service1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
@@ -116,7 +117,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn("OnShore").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
-        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
@@ -395,7 +397,8 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn("OnShore").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
-        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
@@ -472,7 +475,8 @@ public class JDBCConnectionTest {
                 .setAccount("123456789")
                 .setYpmId(1011)
                 .setAzureSubscription("1234")
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1234");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertDomain(domain);
@@ -489,6 +493,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(8, 1011);
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "1234");
         Mockito.verify(mockPrepStmt, times(1)).setString(22, "gcp");
+        Mockito.verify(mockPrepStmt, times(1)).setString(23, "1234");
         jdbcConn.close();
     }
 
@@ -618,7 +623,8 @@ public class JDBCConnectionTest {
                 .setAzureSubscription("azure")
                 .setBusinessService("service1")
                 .setMemberPurgeExpiryDays(90)
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1235");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -645,7 +651,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "service1");
         Mockito.verify(mockPrepStmt, times(1)).setInt(20, 90);
         Mockito.verify(mockPrepStmt, times(1)).setString(21, "gcp");
-        Mockito.verify(mockPrepStmt, times(1)).setString(22, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(22, "1235");
+        Mockito.verify(mockPrepStmt, times(1)).setString(23, "my-domain");
         jdbcConn.close();
     }
 
@@ -683,7 +690,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(20, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(21, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(22, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(22, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(23, "my-domain");
         jdbcConn.close();
     }
 
@@ -6008,7 +6016,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)).thenReturn("");
-        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
@@ -6157,7 +6166,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION)).thenReturn("");
-        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
@@ -6936,7 +6946,7 @@ public class JDBCConnectionTest {
                 .thenReturn("dom1")
                 .thenReturn("dom2")
                 .thenReturn("dom3");
-        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT))
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID))
                 .thenReturn("101")
                 .thenReturn("102")
                 .thenReturn("103");

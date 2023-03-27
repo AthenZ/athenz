@@ -820,7 +820,7 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure").setGcpProject("gcp")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10);
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -829,6 +829,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getAccount(), "aws");
         assertEquals(dd.getAzureSubscription(), "azure");
         assertEquals(dd.getGcpProject(), "gcp");
+        assertEquals(dd.getGcpProjectNumber(), "1235");
         assertEquals((int) dd.getYpmId(), 1);
         assertEquals(dd.getRoles(), rl);
         assertEquals(dd.getGroups(), gl);
@@ -862,7 +863,8 @@ public class ZMSCoreTest {
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1235");
 
         assertTrue(dd.equals(dd2));
         assertFalse(dd.equals(null));
@@ -902,6 +904,13 @@ public class ZMSCoreTest {
         dd2.setGcpProject(null);
         assertFalse(dd2.equals(dd));
         dd2.setGcpProject("gcp");
+        assertTrue(dd2.equals(dd));
+
+        dd2.setGcpProjectNumber("12356");
+        assertFalse(dd2.equals(dd));
+        dd2.setGcpProjectNumber(null);
+        assertFalse(dd2.equals(dd));
+        dd2.setGcpProjectNumber("1235");
         assertTrue(dd2.equals(dd));
 
         dd2.setUserAuthorityFilter("NotOnShore");
@@ -1215,7 +1224,8 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1237");
 
         Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1230,6 +1240,7 @@ public class ZMSCoreTest {
         assertEquals(d.getAccount(), "aws");
         assertEquals(d.getAzureSubscription(), "azure");
         assertEquals(d.getGcpProject(), "gcp");
+        assertEquals(d.getGcpProjectNumber(), "1237");
         assertEquals((int) d.getYpmId(), 1);
         assertEquals(d.getApplicationId(), "101");
         assertEquals(d.getCertDnsDomain(), "athenz.cloud");
@@ -1254,7 +1265,8 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1237");
 
         assertTrue(d2.equals(d));
         assertTrue(d.equals(d));
@@ -1285,6 +1297,13 @@ public class ZMSCoreTest {
         d2.setGcpProject(null);
         assertFalse(d2.equals(d));
         d2.setGcpProject("gcp");
+        assertTrue(d2.equals(d));
+
+        d2.setGcpProjectNumber("12378");
+        assertFalse(d2.equals(d));
+        d2.setGcpProjectNumber(null);
+        assertFalse(d2.equals(d));
+        d2.setGcpProjectNumber("1237");
         assertTrue(d2.equals(d));
 
         d2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
@@ -1461,7 +1480,7 @@ public class ZMSCoreTest {
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10);
+                .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240");
 
         Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -1473,6 +1492,7 @@ public class ZMSCoreTest {
         assertEquals(dm.getAccount(), "aws");
         assertEquals(dm.getAzureSubscription(), "azure");
         assertEquals(dm.getGcpProject(), "gcp");
+        assertEquals(dm.getGcpProjectNumber(), "1240");
         assertEquals((int) dm.getYpmId(), 10);
         assertEquals(dm.getApplicationId(), "101");
         assertEquals(dm.getCertDnsDomain(), "athenz.cloud");
@@ -1497,7 +1517,7 @@ public class ZMSCoreTest {
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10);
+                .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240");
 
         assertTrue(dm2.equals(dm));
         assertTrue(dm.equals(dm));
@@ -1528,6 +1548,13 @@ public class ZMSCoreTest {
         dm2.setGcpProject(null);
         assertFalse(dm2.equals(dm));
         dm2.setGcpProject("gcp");
+        assertTrue(dm2.equals(dm));
+
+        dm2.setGcpProjectNumber("12401");
+        assertFalse(dm2.equals(dm));
+        dm2.setGcpProjectNumber(null);
+        assertFalse(dm2.equals(dm));
+        dm2.setGcpProjectNumber("1240");
         assertTrue(dm2.equals(dm));
 
         dm2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
@@ -1653,7 +1680,8 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1242");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -1665,6 +1693,7 @@ public class ZMSCoreTest {
         assertEquals(tld.getAccount(), "aws");
         assertEquals(tld.getAzureSubscription(), "azure");
         assertEquals(tld.getGcpProject(), "gcp");
+        assertEquals(tld.getGcpProjectNumber(), "1242");
         assertEquals((int) tld.getYpmId(), 10);
         assertEquals(tld.getName(), "testdomain");
         assertEquals(tld.getAdminUsers(), admins);
@@ -1690,7 +1719,8 @@ public class ZMSCoreTest {
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1242");
 
         assertTrue(tld2.equals(tld));
         assertTrue(tld.equals(tld));
@@ -1721,6 +1751,13 @@ public class ZMSCoreTest {
         tld2.setGcpProject(null);
         assertFalse(tld2.equals(tld));
         tld2.setGcpProject("gcp");
+        assertTrue(tld2.equals(tld));
+
+        tld2.setGcpProjectNumber("12421");
+        assertFalse(tld2.equals(tld));
+        tld2.setGcpProjectNumber(null);
+        assertFalse(tld2.equals(tld));
+        tld2.setGcpProjectNumber("1242");
         assertTrue(tld2.equals(tld));
 
         tld2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
@@ -1834,7 +1871,8 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1244");
 
         Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -1846,6 +1884,7 @@ public class ZMSCoreTest {
         assertEquals(sd.getAccount(), "aws");
         assertEquals(sd.getAzureSubscription(), "azure");
         assertEquals(sd.getGcpProject(), "gcp");
+        assertEquals(sd.getGcpProjectNumber(), "1244");
         assertEquals((int) sd.getYpmId(), 10);
         assertEquals(sd.getName(), "testdomain");
         assertEquals(sd.getAdminUsers(), admins);
@@ -1874,7 +1913,8 @@ public class ZMSCoreTest {
                 .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
+                .setGcpProjectNumber("1244");
 
         assertTrue(sd2.equals(sd));
         assertTrue(sd.equals(sd));
@@ -1905,6 +1945,13 @@ public class ZMSCoreTest {
         sd2.setGcpProject(null);
         assertFalse(sd2.equals(sd));
         sd2.setGcpProject("gcp");
+        assertTrue(sd2.equals(sd));
+
+        sd2.setGcpProjectNumber("12441");
+        assertFalse(sd2.equals(sd));
+        sd2.setGcpProjectNumber(null);
+        assertFalse(sd2.equals(sd));
+        sd2.setGcpProjectNumber("1244");
         assertTrue(sd2.equals(sd));
 
         sd2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
@@ -2017,7 +2064,7 @@ public class ZMSCoreTest {
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246");
 
         Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -2029,6 +2076,7 @@ public class ZMSCoreTest {
         assertEquals(ud.getAccount(), "aws");
         assertEquals(ud.getAzureSubscription(), "azure");
         assertEquals(ud.getGcpProject(), "gcp");
+        assertEquals(ud.getGcpProjectNumber(), "1246");
         assertEquals((int) ud.getYpmId(), 10);
         assertEquals(ud.getName(), "testuser");
         assertEquals(ud.getApplicationId(), "101");
@@ -2055,7 +2103,7 @@ public class ZMSCoreTest {
                 .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10).setGcpProject("gcp");
+                .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246");
 
         assertTrue(ud2.equals(ud));
         assertTrue(ud.equals(ud));
@@ -2086,6 +2134,13 @@ public class ZMSCoreTest {
         ud2.setGcpProject(null);
         assertFalse(ud2.equals(ud));
         ud2.setGcpProject("gcp");
+        assertTrue(ud2.equals(ud));
+
+        ud2.setGcpProjectNumber("12461");
+        assertFalse(ud2.equals(ud));
+        ud2.setGcpProjectNumber(null);
+        assertFalse(ud2.equals(ud));
+        ud2.setGcpProjectNumber("1246");
         assertTrue(ud2.equals(ud));
 
         ud2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));

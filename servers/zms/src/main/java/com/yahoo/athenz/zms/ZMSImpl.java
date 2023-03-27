@@ -1508,6 +1508,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setAccount(detail.getAccount())
                 .setAzureSubscription(detail.getAzureSubscription())
                 .setGcpProject(detail.getGcpProject())
+                .setGcpProjectNumber(detail.getGcpProjectNumber())
                 .setYpmId(productId)
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
@@ -2140,6 +2141,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getGcpProject(), TYPE_COMPOUND_NAME, caller);
+        validateString(domain.getGcpProjectNumber(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
 
         // we're going to check the meta values for our new domain
@@ -2157,9 +2159,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!domainMetaStore.isValidGcpProject(domain.getName(), domain.getGcpProject())) {
             throw ZMSUtils.requestError("invalid gcp project for domain", caller);
         }
+        // validate that gcp project details are specified correctly
+        if (!validateGcpProjectDetails(domain.getGcpProject(), domain.getGcpProjectNumber())) {
+            throw ZMSUtils.requestError("invalid gcp project details for domain, both id and number must be specified", caller);
+        }
         if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
             throw ZMSUtils.requestError("invalid product id for domain", caller);
         }
+    }
+
+    boolean validateGcpProjectDetails(final String gcpProjectId, final String gcpProjectNumber) {
+        // for gcp project we must have both project id and project number specified,
+        // so we're going to check to make sure both are empty or have values
+        boolean gcpIdEmpty = StringUtil.isEmpty(gcpProjectId);
+        boolean gcpNumberEmpty = StringUtil.isEmpty(gcpProjectNumber);
+        return (gcpIdEmpty && gcpNumberEmpty) || (!gcpIdEmpty && !gcpNumberEmpty);
     }
 
     BitSet validateDomainSystemMetaStoreValues(Domain domain, DomainMeta meta, final String attributeName) {
@@ -2188,7 +2202,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 }
                 break;
             case ZMSConsts.SYSTEM_META_GCP_PROJECT:
-                if (ZMSUtils.metaValueChanged(domain.getGcpProject(), meta.getGcpProject())) {
+                if (!validateGcpProjectDetails(meta.getGcpProject(), meta.getGcpProjectNumber())) {
+                    throw ZMSUtils.requestError("invalid gcp project details for domain, both id and number must be specified", caller);
+                }
+                if (ZMSUtils.metaValueChanged(domain.getGcpProject(), meta.getGcpProject()) ||
+                        ZMSUtils.metaValueChanged(domain.getGcpProjectNumber(), meta.getGcpProjectNumber())) {
                     if (!domainMetaStore.isValidGcpProject(domain.getName(), meta.getGcpProject())) {
                         throw ZMSUtils.requestError("invalid gcp project for domain", caller);
                     }
@@ -6085,6 +6103,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         return null;
                     }
                     signedDomain.getDomain().setGcpProject(gcpProject);
+                    signedDomain.getDomain().setGcpProjectNumber(domain.getGcpProjectNumber());
                     break;
                 case META_ATTR_YPM_ID:
                     final Integer ypmId = domain.getYpmId();
@@ -6113,6 +6132,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setAccount(domain.getAccount());
         domainData.setAzureSubscription(domain.getAzureSubscription());
         domainData.setGcpProject(domain.getGcpProject());
+        domainData.setGcpProjectNumber(domain.getGcpProjectNumber());
         domainData.setYpmId(domain.getYpmId());
         domainData.setApplicationId(domain.getApplicationId());
         domainData.setMemberExpiryDays(domain.getMemberExpiryDays());

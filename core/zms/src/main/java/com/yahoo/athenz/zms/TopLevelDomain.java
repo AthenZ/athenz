@@ -71,6 +71,9 @@ public class TopLevelDomain {
     public String gcpProject;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String gcpProjectNumber;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -210,6 +213,13 @@ public class TopLevelDomain {
     public String getGcpProject() {
         return gcpProject;
     }
+    public TopLevelDomain setGcpProjectNumber(String gcpProjectNumber) {
+        this.gcpProjectNumber = gcpProjectNumber;
+        return this;
+    }
+    public String getGcpProjectNumber() {
+        return gcpProjectNumber;
+    }
     public TopLevelDomain setTags(Map<String, TagValueList> tags) {
         this.tags = tags;
         return this;
@@ -312,6 +322,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (gcpProject == null ? a.gcpProject != null : !gcpProject.equals(a.gcpProject)) {
+                return false;
+            }
+            if (gcpProjectNumber == null ? a.gcpProjectNumber != null : !gcpProjectNumber.equals(a.gcpProjectNumber)) {
                 return false;
             }
             if (tags == null ? a.tags != null : !tags.equals(a.tags)) {

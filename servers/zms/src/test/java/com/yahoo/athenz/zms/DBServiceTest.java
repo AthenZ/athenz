@@ -3826,6 +3826,7 @@ public class DBServiceTest {
         TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", adminUser);
         dom1.setGcpProject("gcp");
+        dom1.setGcpProjectNumber("1234");
         zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
 
         DomainList list = zms.dbService.lookupDomainByGcpProject("gcp");
@@ -4979,7 +4980,8 @@ public class DBServiceTest {
                 .setCertDnsDomain("athenz.cloud")
                 .setAzureSubscription("azure")
                 .setBusinessService("123:business service")
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1234");
         zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain, "productid", true, meta);
@@ -5008,7 +5010,8 @@ public class DBServiceTest {
                 .setCertDnsDomain("athenz.cloud")
                 .setAzureSubscription("azure")
                 .setBusinessService("123:business service")
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1235");
         zms.dbService.updateSystemMetaFields(domain1, "account", false, meta1);
         assertEquals(domain1.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain1, "productid", false, meta1);
@@ -5030,14 +5033,16 @@ public class DBServiceTest {
                 .setCertDnsDomain("athenz.cloud")
                 .setAzureSubscription("azure")
                 .setBusinessService("123:business service")
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1236");
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct-new")
                 .setYpmId(1235)
                 .setCertDnsDomain("athenz.cloud.new")
                 .setAzureSubscription("azure.new")
                 .setBusinessService("1234:business service2")
-                .setGcpProject("gcp.new");
+                .setGcpProject("gcp.new")
+                .setGcpProjectNumber("1236");
 
         // setting from the old value to new value with
         // no delete flag should be rejected
@@ -5092,14 +5097,16 @@ public class DBServiceTest {
                 .setCertDnsDomain("athenz.cloud")
                 .setAzureSubscription("azure")
                 .setBusinessService("123:business service")
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1237");
         DomainMeta meta3 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
                 .setAzureSubscription("azure")
                 .setBusinessService("123:business service")
-                .setGcpProject("gcp");
+                .setGcpProject("gcp")
+                .setGcpProjectNumber("1237");
         zms.dbService.updateSystemMetaFields(domain3, "account", false, meta3);
         assertEquals(domain3.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain3, "productid", false, meta3);
