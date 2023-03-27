@@ -17,8 +17,10 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertEquals;
@@ -26,6 +28,12 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 
 public class InstanceUtilsTest {
+
+    @Test
+    public void testClassConstructor() {
+        InstanceUtils utils = new InstanceUtils();
+        assertNull(utils.getInstanceProperty(null,  "cloudAccount"));
+    }
 
     @Test
     public void testGetInstanceProperty() {
@@ -181,7 +189,7 @@ public class InstanceUtilsTest {
         // now let's set the hostname to a non-matching value
 
         id.setLength(0);
-        attributes.put("hostname", "i-1235.api.athenz.athenz.cloud");
+        attributes.put("hostname", "i-1235.api2.athenz.athenz.cloud");
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
                 Collections.singleton("athenz.cloud"), true, id));
     }
@@ -205,5 +213,36 @@ public class InstanceUtilsTest {
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
                 Collections.singleton("athenz.cloud"), true, id));
         assertEquals(id.toString(), "i-1234");
+    }
+
+    @Test
+    public void testDnsSuffixMatchIndex() {
+        List<String> dnsSuffixes = Arrays.asList(".athenz.cloud", ".athenz.us");
+        assertEquals(InstanceUtils.dnsSuffixMatchIndex("abc.athenz.cloud", dnsSuffixes), 3);
+        assertEquals(InstanceUtils.dnsSuffixMatchIndex("test.athenz.us", dnsSuffixes), 4);
+        assertEquals(InstanceUtils.dnsSuffixMatchIndex("test.athenza.cloud", dnsSuffixes), -1);
+    }
+
+    @Test
+    public void testValidateSanDnsName() {
+        List<String> dnsSuffixes = Arrays.asList(".athenz.cloud", ".athenz.us");
+
+        assertFalse(InstanceUtils.validateSanDnsName("test.athenza.cloud", "api", dnsSuffixes));
+        assertFalse(InstanceUtils.validateSanDnsName("test.api2.athenz.cloud", "api", dnsSuffixes));
+        assertFalse(InstanceUtils.validateSanDnsName("test.api2.athenz.us", "api", dnsSuffixes));
+        assertFalse(InstanceUtils.validateSanDnsName("api2.athenz.us", "api", dnsSuffixes));
+        assertFalse(InstanceUtils.validateSanDnsName("api2.test.athenz.cloud", "api", dnsSuffixes));
+
+        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.cloud", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.athenz.cloud", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test2.athenz.cloud", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("api.test3.test2.athenz.cloud", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test3.test4.athenz.cloud", "api", dnsSuffixes));
+
+        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.us", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.athenz.us", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test2.athenz.us", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("api.test3.test2.athenz.us", "api", dnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test3.test4.athenz.us", "api", dnsSuffixes));
     }
 }
