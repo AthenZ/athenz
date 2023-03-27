@@ -183,15 +183,15 @@ public class InstanceGCPProvider implements InstanceProvider {
         return true;
     }
 
-    private boolean validateInstanceBootTime(BigDecimal bootTimestamp, StringBuilder errMsg) {
+    boolean validateInstanceBootTime(BigDecimal bootTimestamp, StringBuilder errMsg) {
 
         // first check to see if the boot time enforcement is enabled
 
         if (getTimeOffsetInMilli() <= 0) {
             return true;
         }
-
-        Timestamp bootTime = Timestamp.fromMillis(bootTimestamp.longValue());
+        // bootTimestamp is in seconds
+        Timestamp bootTime = Timestamp.fromMillis(bootTimestamp.longValue() * 1000);
         if (bootTime.millis() < System.currentTimeMillis() - getTimeOffsetInMilli()) {
             errMsg.append("Instance boot time is not recent enough: ");
             errMsg.append(bootTime);
