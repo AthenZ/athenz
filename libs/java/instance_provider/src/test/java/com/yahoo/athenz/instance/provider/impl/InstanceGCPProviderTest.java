@@ -696,4 +696,37 @@ public class InstanceGCPProviderTest {
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
         provider.close();
     }
+
+    @Test
+    public void testValidateInstanceBootTime() {
+        InstanceGCPProvider provider = new InstanceGCPProvider();
+        System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "60");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider", null, null);
+
+        // offset is 60s and our instance was bootstrapped 59s ago
+        BigDecimal b = new BigDecimal((System.currentTimeMillis() / 1000) - 59);
+        assertTrue(provider.validateInstanceBootTime(b, new StringBuilder()));
+
+        // offset is 60s and our instance was bootstrapped 61 seconds ago
+        BigDecimal b2 = new BigDecimal((System.currentTimeMillis() / 1000) - 61);
+        assertFalse(provider.validateInstanceBootTime(b2, new StringBuilder()));
+
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
+        provider.close();
+    }
+
+    @Test
+    public void testValidateInstanceBootTimeDisabled() {
+        InstanceGCPProvider provider = new InstanceGCPProvider();
+        System.setProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET, "0");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider", null, null);
+
+        // offset is disabled by setting property value to 0 above. so doesn't make a diff how far in
+        // the past instance was booted
+        BigDecimal b = new BigDecimal((System.currentTimeMillis() / 1000) - 500);
+        assertTrue(provider.validateInstanceBootTime(b, new StringBuilder()));
+
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
+        provider.close();
+    }
 }
