@@ -98,7 +98,13 @@ public class EmailNotificationService implements NotificationService {
         final String subject = notificationAsEmail.getSubject();
         final String body = notificationAsEmail.getBody();
         Set<String> recipients = notificationAsEmail.getFullyQualifiedRecipientsEmail();
-        return sendEmail(recipients, subject, body);
+            if (sendEmail(recipients, subject, body)) {
+            LOGGER.info("Successfully sent email notification. Subject={}, Recipients={}", subject, recipients);
+            return true;
+        } else {
+            LOGGER.error("Failed sending email notification. Subject={}, Recipients={}", subject, recipients);
+            return false;
+        }
     }
 
     boolean sendEmail(Set<String> recipients, String subject, String body) {
