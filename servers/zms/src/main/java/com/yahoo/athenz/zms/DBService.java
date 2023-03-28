@@ -2975,8 +2975,8 @@ public class DBService implements RolesProvider {
                 }
 
                 final String resourceObject = resource.substring(resourceDomain.length() + 1);
-                final String resourceComp = (resourceObject.startsWith("roles/") || resourceObject.startsWith("groups/"))
-                        ? "/" : "/roles/";
+                final String resourceComp = (resourceObject.startsWith("roles/") || resourceObject.startsWith("groups/")
+                        || resourceObject.startsWith("services/")) ? "/" : "/roles/";
                 assertion.setResource(GCP_ARN_PREFIX + gcpProject + resourceComp + resourceObject);
             }
         }

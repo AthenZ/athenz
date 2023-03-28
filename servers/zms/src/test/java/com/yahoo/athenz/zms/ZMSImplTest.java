@@ -20339,11 +20339,15 @@ public class ZMSImplTest {
                 "assume_gcp_role", domainName1 + ":groups/group1-resource", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, domainName1, "policy3", auditRef, false, policy3);
 
+        Policy policy4 = zmsTestInitializer.createPolicyObject(domainName1, "policy4", "gcp-role3",
+                "assume_gcp_role", domainName1 + ":services/service1-resource", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName1, "policy4", auditRef, false, policy4);
+
         // this should be excluded due to domain mismatch for gcp check
 
-        Policy policy4 = zmsTestInitializer.createPolicyObject(domainName1, "policy4", "gcp-role2",
+        Policy policy5 = zmsTestInitializer.createPolicyObject(domainName1, "policy5", "gcp-role2",
                 "assume_gcp_role", domainName4 + ":role3-resource", AssertionEffect.ALLOW);
-        zmsImpl.putPolicy(ctx, domainName1, "policy4", auditRef, false, policy4);
+        zmsImpl.putPolicy(ctx, domainName1, "policy5", auditRef, false, policy5);
 
         // same policies in domain 2 without gcp access
 
@@ -20371,7 +20375,7 @@ public class ZMSImplTest {
         assertEquals(resources.size(), 1);
         ResourceAccess rsrcAccess = resources.get(0);
         assertEquals(rsrcAccess.getPrincipal(), "user.joe");
-        assertEquals(rsrcAccess.getAssertions().size(), 3);
+        assertEquals(rsrcAccess.getAssertions().size(), 4);
         Set<String> resourceCheck = new HashSet<>();
         for (Assertion assertion : rsrcAccess.getAssertions()) {
             resourceCheck.add(assertion.getResource());
@@ -20379,6 +20383,7 @@ public class ZMSImplTest {
         assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role1-resource"));
         assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role2-resource"));
         assertTrue(resourceCheck.contains("projects/gcp-1234/groups/group1-resource"));
+        assertTrue(resourceCheck.contains("projects/gcp-1234/services/service1-resource"));
 
         // get the list of resources for user.jane with assume_gcp_role action
 
@@ -20438,7 +20443,7 @@ public class ZMSImplTest {
         assertEquals(resources.size(), 1);
         rsrcAccess = resources.get(0);
         assertEquals(rsrcAccess.getPrincipal(), "user.joe");
-        assertEquals(rsrcAccess.getAssertions().size(), 6);
+        assertEquals(rsrcAccess.getAssertions().size(), 7);
         resourceCheck = new HashSet<>();
         for (Assertion assertion : rsrcAccess.getAssertions()) {
             resourceCheck.add(assertion.getResource());
@@ -20446,6 +20451,7 @@ public class ZMSImplTest {
         assertTrue(resourceCheck.contains(domainName1 + ":roles/role1-resource"));
         assertTrue(resourceCheck.contains(domainName1 + ":role2-resource"));
         assertTrue(resourceCheck.contains(domainName1 + ":groups/group1-resource"));
+        assertTrue(resourceCheck.contains(domainName1 + ":services/service1-resource"));
         assertTrue(resourceCheck.contains(domainName2 + ":role1-resource"));
         assertTrue(resourceCheck.contains(domainName2 + ":role2-resource"));
         assertTrue(resourceCheck.contains(domainName4 + ":role3-resource"));
