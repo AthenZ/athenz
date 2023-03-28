@@ -172,6 +172,9 @@ class AddSegmentation extends React.Component {
         this.validateFields = this.validateFields.bind(this);
         this.validateServiceNames = this.validateServiceNames.bind(this);
         this.scopeIsSet = this.scopeIsSet.bind(this);
+        this.noSharedHostsBetweenModes =
+            this.noSharedHostsBetweenModes.bind(this);
+        this.getPolicyName = this.getPolicyName.bind(this);
 
         let pesList = [
             {
@@ -187,8 +190,8 @@ class AddSegmentation extends React.Component {
             pesList = JSON.parse(
                 JSON.stringify(this.props.data['conditionsList'])
             );
-            // for backward compatatbility, policies without scope are assumed to be onprem
             for (var i = 0; i < pesList.length; i++) {
+                // for backward compatatbility, policies without scope are assumed to be onprem
                 if (
                     pesList[i].scopeonprem !== 'true' &&
                     pesList[i].scopeaws !== 'true' &&
@@ -196,6 +199,8 @@ class AddSegmentation extends React.Component {
                 ) {
                     pesList[i].scopeonprem = 'true';
                 }
+                // policyName is not needed and its structure is invalid for an assertionCondition value. So we'll remove it.
+                delete pesList[i].policyName;
             }
         }
 
@@ -303,6 +308,34 @@ class AddSegmentation extends React.Component {
             validationStatus: '',
             validationError: 'none',
         });
+    }
+
+    noSharedHostsBetweenModes(pesList) {
+        if (pesList.length <= 1) {
+            return true;
+        }
+
+        const firstConditionInstances = pesList[0].instances.split(',');
+        const secondConditionInstances = pesList[1].instances.split(',');
+        if (
+            firstConditionInstances.length <= 0 ||
+            secondConditionInstances.length <= 0
+        ) {
+            // If one condition doesn't have any hosts - no risk of common hosts
+            return true;
+        }
+        if (
+            firstConditionInstances.includes('*') ||
+            secondConditionInstances.includes('*')
+        ) {
+            // If one condition has the wild card, any host listed on the second condition will be shared with it.
+            return false;
+        }
+
+        const sharedInstances = firstConditionInstances.filter((value) =>
+            secondConditionInstances.includes(value)
+        );
+        return sharedInstances.length == 0;
     }
 
     scopeIsSet(pesList) {
@@ -696,6 +729,15 @@ class AddSegmentation extends React.Component {
             return 1;
         }
 
+        if (!this.noSharedHostsBetweenModes(this.state.PESList)) {
+            this.setState({
+                errorMessage:
+                    'The same host can not exist in both "Report" and "Enforce" modes.',
+                saving: 'todo',
+            });
+            return 1;
+        }
+
         return 0;
     }
 
@@ -779,6 +821,24 @@ class AddSegmentation extends React.Component {
         });
     }
 
+    getPolicyName() {
+        if (this.state.isCategory) {
+            return (
+                'acl.' +
+                this.state.inboundDestinationService +
+                '.' +
+                SEGMENTATION_CATEGORIES[0].name
+            );
+        } else {
+            return (
+                'acl.' +
+                this.state.outboundSourceService +
+                '.' +
+                SEGMENTATION_CATEGORIES[1].name
+            );
+        }
+    }
+
     onSubmit(evt, skipValidation = false) {
         this.setState({
             saving: 'saving',
@@ -803,8 +863,8 @@ class AddSegmentation extends React.Component {
         const destinationPort = destination.port;
 
         //set the policy and assertion values based on ACL category
-        var roleName, action, policyName, resource;
-
+        var roleName, action, resource;
+        var policyName = this.getPolicyName();
         if (this.state.isCategory) {
             roleName =
                 'acl.' +
@@ -821,11 +881,6 @@ class AddSegmentation extends React.Component {
                 sourcePort +
                 ':' +
                 destinationPort;
-            policyName =
-                'acl.' +
-                this.state.inboundDestinationService +
-                '.' +
-                SEGMENTATION_CATEGORIES[0].name;
             resource = this.state.inboundDestinationService;
         } else {
             roleName =
@@ -843,11 +898,6 @@ class AddSegmentation extends React.Component {
                 sourcePort +
                 ':' +
                 destinationPort;
-            policyName =
-                'acl.' +
-                this.state.outboundSourceService +
-                '.' +
-                SEGMENTATION_CATEGORIES[1].name;
             resource = this.state.outboundSourceService;
         }
 
@@ -993,7 +1043,7 @@ class AddSegmentation extends React.Component {
                         other.id == current.id
                 ).length == 0;
 
-            if (this.props.data['conditionList']) {
+            if (this.props.data['conditionsList']) {
                 let x = this.props.data['conditionsList'].filter(
                     comparer(this.state.PESList)
                 );
@@ -1028,7 +1078,8 @@ class AddSegmentation extends React.Component {
                 if (
                     roleChanged ||
                     assertionChanged ||
-                    assertionConditionChanged
+                    (assertionConditionChanged &&
+                        this.props.data['conditionsList'])
                 ) {
                     this.props
                         .editMicrosegmentation(
@@ -1037,6 +1088,29 @@ class AddSegmentation extends React.Component {
                             assertionChanged,
                             assertionConditionChanged,
                             updatedData,
+                            this.props._csrf
+                        )
+                        .then(() => {
+                            this.props.onSubmit();
+                        })
+                        .catch((err) => {
+                            this.setState({
+                                errorMessage:
+                                    RequestUtils.fetcherErrorCheckHelper(err),
+                                saving: 'todo',
+                                validationError: 'none',
+                            });
+                        });
+                } else if (assertionConditionChanged) {
+                    this.props
+                        .addAssertionConditions(
+                            this.props.domain,
+                            this.getPolicyName(),
+                            this.props.data['assertionIdx'],
+                            this.state.PESList,
+                            this.state.justification
+                                ? this.state.justification
+                                : 'Microsegmentaion Assertion Condition using Athenz UI',
                             this.props._csrf
                         )
                         .then(() => {
@@ -1123,8 +1197,8 @@ class AddSegmentation extends React.Component {
             list[index]['instances'] = value;
         } else if (name.includes('scopeall')) {
             list[index]['scopeall'] = checkedStr;
-            list[index]['scopeaws'] = checkedStr;
-            list[index]['scopeonprem'] = checkedStr;
+            list[index]['scopeaws'] = 'false';
+            list[index]['scopeonprem'] = 'false';
         } else if (name.includes('scopeonprem')) {
             list[index]['scopeonprem'] = checkedStr;
         } else if (name.includes('scopeaws')) {
@@ -1329,6 +1403,7 @@ class AddSegmentation extends React.Component {
                                     />
                                     <StyledCheckBox
                                         checked={x.scopeonprem === 'true'}
+                                        disabled={x.scopeall === 'true'}
                                         name={'scopeonpremCheckBox' + i}
                                         id={'scopeonpremCheckBox' + i}
                                         key={'scopeonpremCheckBox' + i}
@@ -1339,6 +1414,7 @@ class AddSegmentation extends React.Component {
                                     />
                                     <StyledCheckBox
                                         checked={x.scopeaws === 'true'}
+                                        disabled={x.scopeall === 'true'}
                                         name={'scopeawsCheckBox' + i}
                                         id={'scopeawsCheckBox' + i}
                                         key={'scopeawsCheckBox' + i}
