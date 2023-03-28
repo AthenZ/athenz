@@ -875,16 +875,6 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 5px 0 5px 25px;
 }
 
-.emotion-68 {
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-}
-
 .emotion-72 {
   box-sizing: border-box;
   margin-top: 10px;
@@ -912,12 +902,6 @@ exports[`StaticInstancePage should render 1`] = `
   -ms-flex-direction: column;
   flex-direction: column;
   padding-bottom: 10px;
-}
-
-.emotion-78 {
-  text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
 }
 
 .emotion-82 {
@@ -1327,25 +1311,13 @@ exports[`StaticInstancePage should render 1`] = `
             >
               <colgroup>
                 <col
-                  style="width: 14%;"
+                  style="width: 34%;"
                 />
                 <col
-                  style="width: 20%;"
+                  style="width: 33%;"
                 />
                 <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 20%;"
-                />
-                <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 4%;"
+                  style="width: 33%;"
                 />
               </colgroup>
               <thead>
@@ -1356,12 +1328,12 @@ exports[`StaticInstancePage should render 1`] = `
                     Instance
                   </th>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-66 emotion-67"
                   >
                     Type
                   </th>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-66 emotion-67"
                   >
                     Date Added
                   </th>
@@ -1381,13 +1353,11 @@ exports[`StaticInstancePage should render 1`] = `
                     />
                   </td>
                   <td
-                    class="emotion-78 emotion-75"
+                    class="emotion-74 emotion-75"
                     color=""
-                  >
-                    ips
-                  </td>
+                  />
                   <td
-                    class="emotion-78 emotion-75"
+                    class="emotion-74 emotion-75"
                     color=""
                   >
                     2021-05-15 01:17 UTC
