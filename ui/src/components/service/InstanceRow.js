@@ -48,8 +48,8 @@ const TrStyled = styled.tr`
     border-image: initial;
     padding: 5px 0 5px 15px;
     ${(props) =>
-    props.isSuccess &&
-    css`
+        props.isSuccess &&
+        css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -163,8 +163,8 @@ class InstanceRow extends React.Component {
         let ipAddresses = details.ipAddresses
             ? []
             : details.name
-                ? details.name.toUpperCase()
-                : ['N/A'];
+            ? details.name.toUpperCase()
+            : ['N/A'];
         let clickDelete = this.onClickDelete.bind(this);
         let isDynamic = this.props.category === SERVICE_TYPE_DYNAMIC;
         let isStatic = this.props.category === SERVICE_TYPE_STATIC;

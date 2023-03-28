@@ -875,7 +875,7 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 5px 0 5px 25px;
 }
 
-.emotion-72 {
+.emotion-74 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -904,7 +904,19 @@ exports[`StaticInstancePage should render 1`] = `
   padding-bottom: 10px;
 }
 
-.emotion-82 {
+.emotion-84 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+}
+
+.emotion-86 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-87 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1311,13 +1323,16 @@ exports[`StaticInstancePage should render 1`] = `
             >
               <colgroup>
                 <col
-                  style="width: 34%;"
+                  style="width: 32%;"
                 />
                 <col
-                  style="width: 33%;"
+                  style="width: 31%;"
                 />
                 <col
-                  style="width: 33%;"
+                  style="width: 31%;"
+                />
+                <col
+                  style="width: 6%;"
                 />
               </colgroup>
               <thead>
@@ -1338,7 +1353,7 @@ exports[`StaticInstancePage should render 1`] = `
                     Date Added
                   </th>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-66 emotion-67"
                   >
                     Delete
                   </th>
@@ -1358,11 +1373,17 @@ exports[`StaticInstancePage should render 1`] = `
                     />
                   </td>
                   <td
-                    class="emotion-74 emotion-75"
+                    class="emotion-76 emotion-77"
                     color=""
                   />
                   <td
-                    class="emotion-74 emotion-75"
+                    class="emotion-76 emotion-77"
+                    color=""
+                  >
+                    2021-05-15 01:17 UTC
+                  </td>
+                  <td
+                    class="emotion-84 emotion-77"
                     color=""
                   >
                     <span>

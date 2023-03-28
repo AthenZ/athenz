@@ -106,51 +106,55 @@ export default class InstanceTable extends React.Component {
                 )}
                 {this.props.category === 'dynamic' && (
                     <thead>
-                    <tr>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Instance
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Hostname
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Provider
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            ID
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Expires On
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Last Certificate Refresh
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Delete
-                        </TableHeadStyledGroupName>
-                    </tr>
+                        <tr>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Instance
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Hostname
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Provider
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                ID
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Expires On
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Last Certificate Refresh
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Delete
+                            </TableHeadStyledGroupName>
+                        </tr>
                     </thead>
                 )}
                 {this.props.category === 'static' && (
                     <colgroup>
-                        <col style={{ width: 34 + '%' }} />
-                        <col style={{ width: 33 + '%' }} />
-                        <col style={{ width: 33 + '%' }} />
+                        <col style={{ width: 32 + '%' }} />
+                        <col style={{ width: 31 + '%' }} />
+                        <col style={{ width: 31 + '%' }} />
+                        <col style={{ width: 6 + '%' }} />
                     </colgroup>
                 )}
                 {this.props.category === 'static' && (
                     <thead>
-                    <tr>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Instance
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Type
-                        </TableHeadStyledGroupName>
-                        <TableHeadStyledGroupName align={'left'}>
-                            Date Added
-                        </TableHeadStyledGroupName>
-                    </tr>
+                        <tr>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Instance
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Type
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Date Added
+                            </TableHeadStyledGroupName>
+                            <TableHeadStyledGroupName align={'left'}>
+                                Delete
+                            </TableHeadStyledGroupName>
+                        </tr>
                     </thead>
                 )}
                 <tbody>{rows}</tbody>
