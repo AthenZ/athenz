@@ -44,8 +44,8 @@ const TrStyled = styled.tr`
     border-image: initial;
     padding: 5px 0 5px 15px;
     ${(props) =>
-        props.isSuccess &&
-        css`
+    props.isSuccess &&
+    css`
             animation: ${colorTransition} 3s ease;
         `}
 `;
@@ -151,7 +151,11 @@ class InstanceRow extends React.Component {
         let center = 'center';
         let color = this.props.color;
         let details = this.props.details;
-        let ipAddresses = details.ipAddresses ? [] : ['N/A'];
+        let ipAddresses = details.ipAddresses
+            ? []
+            : details.name
+                ? details.name.toUpperCase()
+                : ['N/A'];
         let clickDelete = this.onClickDelete.bind(this);
         let submitDelete = this.onSubmitDelete.bind(
             this,
@@ -229,12 +233,12 @@ class InstanceRow extends React.Component {
                     </TDStyled>
                 )}
                 {this.props.category === 'static' && (
-                    <TDStyled color={color} align={center}>
-                        {'ips'}
+                    <TDStyled color={color} align={left}>
+                        {details.type}
                     </TDStyled>
                 )}
                 {this.props.category === 'static' && (
-                    <TDStyled color={color} align={center}>
+                    <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.updateTime,
                             'UTC',

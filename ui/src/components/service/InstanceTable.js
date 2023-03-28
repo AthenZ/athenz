@@ -93,51 +93,64 @@ export default class InstanceTable extends React.Component {
 
         return (
             <StyleTable key='instance-table' data-testid='instancetable'>
-                <colgroup>
-                    <col style={{ width: 14 + '%' }} />
-                    <col style={{ width: 20 + '%' }} />
-                    <col style={{ width: 14 + '%' }} />
-                    <col style={{ width: 20 + '%' }} />
-                    <col style={{ width: 14 + '%' }} />
-                    <col style={{ width: 14 + '%' }} />
-                    <col style={{ width: 4 + '%' }} />
-                </colgroup>
+                {this.props.category === 'dynamic' && (
+                    <colgroup>
+                        <col style={{ width: 14 + '%' }} />
+                        <col style={{ width: 20 + '%' }} />
+                        <col style={{ width: 14 + '%' }} />
+                        <col style={{ width: 20 + '%' }} />
+                        <col style={{ width: 14 + '%' }} />
+                        <col style={{ width: 14 + '%' }} />
+                        <col style={{ width: 4 + '%' }} />
+                    </colgroup>
+                )}
                 {this.props.category === 'dynamic' && (
                     <thead>
-                        <tr>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Instance
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Hostname
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Provider
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyledGroupName align={'left'}>
-                                ID
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Expires On
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Last Certificate Refresh
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Delete
-                            </TableHeadStyledGroupName>
-                        </tr>
+                    <tr>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Instance
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Hostname
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Provider
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            ID
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Expires On
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Last Certificate Refresh
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Delete
+                        </TableHeadStyledGroupName>
+                    </tr>
                     </thead>
                 )}
                 {this.props.category === 'static' && (
+                    <colgroup>
+                        <col style={{ width: 34 + '%' }} />
+                        <col style={{ width: 33 + '%' }} />
+                        <col style={{ width: 33 + '%' }} />
+                    </colgroup>
+                )}
+                {this.props.category === 'static' && (
                     <thead>
-                        <tr>
-                            <TableHeadStyledGroupName align={'left'}>
-                                Instance
-                            </TableHeadStyledGroupName>
-                            <TableHeadStyled>Type</TableHeadStyled>
-                            <TableHeadStyled>Date Added</TableHeadStyled>
-                        </tr>
+                    <tr>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Instance
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Type
+                        </TableHeadStyledGroupName>
+                        <TableHeadStyledGroupName align={'left'}>
+                            Date Added
+                        </TableHeadStyledGroupName>
+                    </tr>
                     </thead>
                 )}
                 <tbody>{rows}</tbody>
