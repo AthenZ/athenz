@@ -106,6 +106,9 @@ describe('PendingApprovalPage', () => {
                 value: 'home.domain1',
             },
         ];
+
+        const timeZone = 'UTC';
+
         const mockApi = {
             ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
             listUserDomains: jest.fn().mockReturnValue(
@@ -122,6 +125,9 @@ describe('PendingApprovalPage', () => {
             getPendingDomainMembersList: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(pendingData)),
+            getTimeZone: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(timeZone)),
         };
         // const pendingUserData = buildUserForState(pendingData);
         // const domainData = buildDomainDataForState(pendingData, domain);

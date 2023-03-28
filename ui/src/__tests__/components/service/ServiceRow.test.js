@@ -39,6 +39,7 @@ describe('ServiceRow', () => {
         const modified = '2017-12-19T20:24:41.195Z';
         const color = '';
         const newService = false;
+        const timeZone = 'UTC';
         const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
@@ -48,6 +49,7 @@ describe('ServiceRow', () => {
                         color={color}
                         modified={modified}
                         newService={newService}
+                        timeZone={timeZone}
                     />
                 </tbody>
             </table>
@@ -81,6 +83,7 @@ describe('ServiceRow', () => {
 
         const color = '';
         const newService = false;
+        const timeZone = 'UTC';
         const { getByText, getByTitle } = renderWithRedux(
             <table>
                 <tbody>
@@ -90,6 +93,7 @@ describe('ServiceRow', () => {
                         color={color}
                         modified={modified}
                         newService={newService}
+                        timeZone={timeZone}
                     />
                 </tbody>
             </table>,
@@ -147,6 +151,7 @@ describe('ServiceRow', () => {
         MockApi.setMockApi(api);
         const color = '';
         const newService = false;
+        const timeZone = 'UTC';
         const { getByText, getByTitle } = renderWithRedux(
             <table>
                 <tbody>
@@ -157,6 +162,7 @@ describe('ServiceRow', () => {
                         color={color}
                         modified={modified}
                         newService={newService}
+                        timeZone={timeZone}
                     />
                 </tbody>
             </table>,

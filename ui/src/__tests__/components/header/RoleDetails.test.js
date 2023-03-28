@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';;
 import CollectionDetails from '../../../components/header/CollectionDetails';
 
 describe('RoleDetails', () => {
-    it('should render', () => {
+    it('should renderWithRedux', () => {
         const roleMetadata = {
             modified: '2020-02-12T21:44:37.792Z',
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <CollectionDetails collectionDetails={roleMetadata} />
         );
         const domainDetails = getByTestId('collection-details');
         expect(domainDetails).toMatchSnapshot();
     });
-    it('should render with mock data', () => {
+    it('should renderWithRedux with mock data', () => {
         const roleMetadata = {
             modified: '2020-12-01T21:44:37.792Z',
             lastReviewedDate: '2020-12-01T21:44:37.792Z',
         };
 
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <CollectionDetails collectionDetails={roleMetadata} />
         );
         const roleDetails = getByTestId('collection-details');

@@ -2296,6 +2296,13 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'time-zone',
+    read(req, resource, params, config, callback) {
+        callback(null, appConfig.timeZone);
+    },
+});
+
+Fetchr.registerService({
     name: 'feature-flag',
     read(req, resource, params, config, callback) {
         callback(null, appConfig.featureFlag);
@@ -3055,6 +3062,7 @@ module.exports.load = function (config, secrets) {
         productMasterLink: config.productMasterLink,
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
+        timeZone: config.timeZone,
         featureFlag: config.featureFlag,
         pageFeatureFlag: config.pageFeatureFlag,
         serviceHeaderLinks: config.serviceHeaderLinks,

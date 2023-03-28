@@ -28,7 +28,7 @@ import { deleteService } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
 import { selectServices } from '../../redux/selectors/services';
 import { selectIsLoading } from '../../redux/selectors/loading';
-import { selectFeatureFlag } from '../../redux/selectors/domains';
+import { selectTimeZone, selectFeatureFlag } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const ServicesSectionDiv = styled.div`
@@ -138,6 +138,7 @@ class ServiceList extends React.Component {
                           newService={newService}
                           color={color}
                           key={item.name}
+                          timeZone={this.props.timeZone}
                           featureFlag={this.props.featureFlag}
                           _csrf={this.props._csrf}
                           onClickDeleteService={onClickDeleteService}
@@ -277,6 +278,7 @@ const mapStateToProps = (state, props) => {
         isLoading: selectIsLoading(state),
         services: selectServices(state),
         featureFlag: selectFeatureFlag(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

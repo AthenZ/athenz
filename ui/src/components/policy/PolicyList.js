@@ -36,6 +36,7 @@ import { connect } from 'react-redux';
 import AddPolicy from './AddPolicy';
 import { selectPolicies } from '../../redux/selectors/policies';
 import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { arrayEquals } from '../utils/ArrayUtils';
 
@@ -337,6 +338,7 @@ export class PolicyList extends React.Component {
                         this.state.policiesMap[policyName].length < 3
                     }
                     isChild={false}
+                    timeZone={this.props.timeZone}
                 />
             );
         });
@@ -451,6 +453,7 @@ const mapStateToProps = (state, props) => {
         ...props,
         isLoading: selectIsLoading(state),
         policies: selectPolicies(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

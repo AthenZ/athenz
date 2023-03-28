@@ -1853,6 +1853,21 @@ const Api = (req) => {
             });
         },
 
+        getTimeZone() {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('time-zone')
+                    .params()
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getFeatureFlag() {
             return new Promise((resolve, reject) => {
                 fetchr

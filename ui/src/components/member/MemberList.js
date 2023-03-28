@@ -21,6 +21,7 @@ import { MODAL_TIME_OUT } from '../constants/constants';
 import AddMember from './AddMember';
 import MemberTable from './MemberTable';
 import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { arrayEquals } from '../utils/ArrayUtils';
@@ -149,6 +150,7 @@ class MemberList extends React.Component {
                     collection={collection}
                     members={approvedMembers}
                     caption='Approved'
+                    timeZone={this.props.timeZone}
                     _csrf={this.props._csrf}
                     onSubmit={this.reloadMembers}
                     justificationRequired={justificationReq}
@@ -163,6 +165,7 @@ class MemberList extends React.Component {
                         members={pendingMembers}
                         pending={true}
                         caption='Pending'
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadMembers}
                         justificationRequired={justificationReq}
@@ -186,6 +189,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
+        timeZone: selectTimeZone(state)
     };
 };
 

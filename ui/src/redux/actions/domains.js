@@ -47,6 +47,17 @@ export const loadHeaderDetails = (headerDetails) => ({
     payload: { headerDetails: headerDetails },
 });
 
+export const RETURN_TIME_ZONE = 'RETURN_TIME_ZONE';
+export const returnTimeZone = () => ({
+    type: RETURN_TIME_ZONE,
+});
+
+export const LOAD_TIME_ZONE = 'LOAD_TIME_ZONE';
+export const loadTimeZone = (timeZone) => ({
+    type: LOAD_TIME_ZONE,
+    payload: { timeZone },
+});
+
 export const RETURN_AUTHORITY_ATTRIBUTES = 'RETURN_AUTHORITY_ATTRIBUTES';
 export const returnAuthorityAttributes = () => ({
     type: RETURN_AUTHORITY_ATTRIBUTES,

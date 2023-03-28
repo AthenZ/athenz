@@ -73,6 +73,7 @@ export default class GroupTable extends React.Component {
                             color={color}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
+                            timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                             justificationRequired={
                                 this.props.justificationRequired

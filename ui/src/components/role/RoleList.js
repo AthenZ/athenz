@@ -30,7 +30,7 @@ import { selectRoles } from '../../redux/selectors/roles';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import AddMemberToRoles from './AddMemberToRoles';
 import { selectIsLoading } from '../../redux/selectors/loading';
-import { selectHeaderDetails } from '../../redux/selectors/domains';
+import { selectHeaderDetails, selectTimeZone } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const RolesSectionDiv = styled.div`
@@ -213,6 +213,7 @@ class RoleList extends React.Component {
                     <UserRoleTable
                         searchText={this.state.searchText}
                         domain={this.props.domainName}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         newMember={this.state.successMessage}
                     />
@@ -220,6 +221,7 @@ class RoleList extends React.Component {
                     <RoleTable
                         domain={this.props.domainName}
                         prefixes={this.props.prefixes}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadRoles}
                         newRole={this.state.successMessage}
@@ -246,6 +248,7 @@ const mapStateToProps = (state, props) => {
         roles: selectRoles(state),
         users: selectHeaderDetails(state),
         isDomainAuditEnabled: selectDomainAuditEnabled(state),
+        timeZone: selectTimeZone(state),
     };
 };
 
