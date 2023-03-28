@@ -1,3 +1,19 @@
+Athenz v1.11.24 Release / Mar 27, 2023
+--------------------------------------
+
+#2095 UI: add related changes for gcp support
+#2097 Add support for loading unencrypted pkcs8 keys
+#2106 define ipv4Prefix (gcp) as alias for ip_prefix (aws) for ip documents
+#2108 update ddb-local version. 1.20.0 in maven is missing classes
+#2109 UI: hide the link to INSTANCES when featureFlag is set to false
+#2110 Rename variables and include project id in view
+#2113 store GCP project number along with project id in athenz domain metadata
+#2114 convert boot timestamp from seconds to milliseconds
+#2115 special resource for gcp starting with services/
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230326.sql
+
 Athenz v1.11.23 Release / Mar 21, 2023
 --------------------------------------
 
