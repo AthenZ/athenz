@@ -25,7 +25,10 @@ import Error from '../../../../../_error';
 import ServiceTabs from '../../../../../../components/header/ServiceTabs';
 import ServiceNameHeader from '../../../../../../components/header/ServiceNameHeader';
 import ServiceInstanceDetails from '../../../../../../components/header/ServiceInstanceDetails';
-import { SERVICE_TYPE_STATIC } from '../../../../../../components/constants/constants';
+import {
+    MODAL_TIME_OUT,
+    SERVICE_TYPE_STATIC,
+} from '../../../../../../components/constants/constants';
 import { connect } from 'react-redux';
 import {
     selectInstancesWorkLoadMeta,
@@ -37,6 +40,7 @@ import { selectIsLoading } from '../../../../../../redux/selectors/loading';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../../components/denali/ReduxPageLoader';
+import Alert from '../../../../../../components/denali/Alert';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -96,6 +100,8 @@ export async function getServerSideProps(context) {
 class StaticInstancePage extends React.Component {
     constructor(props) {
         super(props);
+        this.onInstancesUpdated = this.onInstancesUpdated.bind(this);
+        this.closeModal = this.closeModal.bind(this);
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
@@ -103,6 +109,8 @@ class StaticInstancePage extends React.Component {
         this.state = {
             error: null,
             reload: false,
+            showSuccess: false,
+            successMessage: '',
         };
     }
 
@@ -121,6 +129,25 @@ class StaticInstancePage extends React.Component {
                 reload: response.reload,
             });
         });
+    }
+
+    onInstancesUpdated(successMessage, showSuccess = true) {
+        this.setState({
+            showSuccess: showSuccess,
+            successMessage: successMessage,
+        });
+        setTimeout(
+            () =>
+                this.setState({
+                    showSuccess: false,
+                    successMessage: '',
+                }),
+            MODAL_TIME_OUT
+        );
+    }
+
+    closeModal() {
+        this.setState({ showSuccess: null });
     }
 
     render() {
@@ -172,15 +199,30 @@ class StaticInstancePage extends React.Component {
                                         <ServiceTabs
                                             domain={domainName}
                                             service={serviceName}
-                                            selectedName={'static'}
+                                            selectedName={SERVICE_TYPE_STATIC}
                                         />
                                     </PageHeaderDiv>
                                     <InstanceList
-                                        category={'static'}
+                                        category={SERVICE_TYPE_STATIC}
                                         domain={domainName}
                                         _csrf={_csrf}
+                                        showSuccess={this.state.showSuccess}
+                                        successMessage={
+                                            this.state.successMessage
+                                        }
+                                        onInstancesUpdated={
+                                            this.onInstancesUpdated
+                                        }
                                         service={serviceName}
                                     />
+                                    {this.state.showSuccess ? (
+                                        <Alert
+                                            isOpen={this.state.showSuccess}
+                                            title={this.state.successMessage}
+                                            onClose={this.closeModal}
+                                            type='success'
+                                        />
+                                    ) : null}
                                 </ServiceContentDiv>
                             </ServiceContainerDiv>
                             <UserDomains domain={domainName} />

@@ -818,9 +818,28 @@ describe('addServiceHost method', () => {
 
     it('add service host successfully', async () => {
         const fakeDispatch = sinon.spy();
+        const instances = {
+            workLoadData: [
+                {
+                    domainName: 'dom',
+                    serviceName: 'ows',
+                    type: 'EXTERNAL_APPLIANCE',
+                    ipAddresses: ['101.101.101.2'],
+                    name: '101.101.101.2',
+                    updateTime: '2022-08-03T11:07:02.416Z',
+                },
+            ],
+            workLoadMeta: {
+                totalDynamic: 0,
+                totalStatic: 2,
+                totalRecords: 2,
+                totalHealthyDynamic: 0,
+            },
+        };
         const getState = () => {};
         let myMockApi = {
             addServiceHost: jest.fn().mockReturnValue({ data: 'host' }),
+            getInstances: jest.fn().mockReturnValue(instances),
         };
         MockApi.setMockApi(myMockApi);
         sinon.spy(myMockApi, 'addServiceHost');
@@ -837,11 +856,7 @@ describe('addServiceHost method', () => {
         expect(
             _.isEqual(
                 fakeDispatch.getCall(0).args[0],
-                addServiceHostToStore('dom.service1', {
-                    name: 'host',
-                    updateTime: 5,
-                    ipAddresses: ['host'],
-                })
+                loadInstancesToStore('dom.service1', 'static', instances)
             )
         ).toBeTruthy();
     });

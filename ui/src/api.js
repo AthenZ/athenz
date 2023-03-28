@@ -1953,6 +1953,7 @@ const Api = (req) => {
             domainName,
             service,
             instanceId,
+            category,
             auditRef,
             _csrf
         ) {
@@ -1969,6 +1970,7 @@ const Api = (req) => {
                         domainName,
                         service,
                         instanceId,
+                        category,
                         auditRef,
                     })
                     .end((err, data) => {
