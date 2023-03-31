@@ -37,6 +37,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/sds"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/cenkalti/backoff"
@@ -228,14 +229,18 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
-	var sshCsr string
-	if opts.Ssh && opts.Services[0].Name == svc.Name {
-		sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, svc.Name, opts.PrivateIp, opts.ZTSAWSDomains)
-		if err != nil {
-			return err
-		}
-	}
 	hostname := getServiceHostname(opts, svc)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
+	if err != nil {
+		return err
+	}
+
+	//if the user hasn't configured to include the san dns hostname
+	//then we're going to reset the hostname value to an empty string
+	if !opts.SanDnsHostname {
+		hostname = ""
+	}
+
 	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		return err
@@ -254,6 +259,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		Service:           zts.SimpleName(svc.Name),
 		Csr:               csr,
 		Ssh:               sshCsr,
+		SshCertRequest:    sshCertRequest,
 		AttestationData:   string(attestData),
 		AthenzJWK:         &athenzJwk,
 		AthenzJWKModified: &athenzJwkModified,
@@ -315,37 +321,34 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 
-	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile)
-	if err != nil {
-		log.Printf("Unable to get ZTS Client for %s, err: %v\n", ztsUrl, err)
-		return err
-	}
-	client.AddCredentials("User-Agent", opts.Version)
-
-	attestData, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
 	key, err := util.PrivateKey(keyFile, opts.RotateKey)
 	if err != nil {
 		log.Printf("Unable to read private key from %s, err: %v\n", keyFile, err)
 		return err
 	}
+
+	//if ssh support is enabled then we need to generate the csr
+	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
+	if err != nil {
+		return err
+	}
+
+	//if the user hasn't configured to include the san dns hostname
+	//then we're going to reset the hostname value to an empty string
+	if !opts.SanDnsHostname {
+		hostname = ""
+	}
+
 	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
 	}
-	//if ssh support is enabled then we need to generate the csr
-	//it is also generated for the primary service only
-	var sshCsr string
-	if opts.Ssh && opts.Services[0].Name == svc.Name {
-		sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, svc.Name, opts.PrivateIp, opts.ZTSAWSDomains)
-		if err != nil {
-			return err
-		}
+	attestData, err := json.Marshal(data)
+	if err != nil {
+		return err
 	}
 
 	athenzJwk := true
@@ -355,6 +358,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		AttestationData:   string(attestData),
 		Csr:               csr,
 		Ssh:               sshCsr,
+		SshCertRequest:    sshCertRequest,
 		AthenzJWK:         &athenzJwk,
 		AthenzJWKModified: &athenzJwkModified,
 		Hostname:          zts.DomainName(hostname),
@@ -363,6 +367,13 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		expiryTime := int32(svc.ExpiryTime)
 		info.ExpiryTime = &expiryTime
 	}
+
+	client, err := util.ZtsClient(ztsUrl, opts.ZTSServerName, keyFile, certFile, opts.ZTSCACertFile)
+	if err != nil {
+		log.Printf("Unable to get ZTS Client for %s, err: %v\n", ztsUrl, err)
+		return err
+	}
+	client.AddCredentials("User-Agent", opts.Version)
 
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider.GetName()), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
@@ -400,6 +411,20 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		}
 	}
 	return nil
+}
+
+func generateSshRequest(opts *options.Options, primaryServiceName, hostname string) (*zts.SSHCertRequest, string, error) {
+	var err error
+	var sshCsr string
+	var sshCertRequest *zts.SSHCertRequest
+	if opts.Ssh && opts.Services[0].Name == primaryServiceName {
+		if opts.SshHostKeyType == hostkey.Rsa {
+			sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSAWSDomains)
+		} else {
+			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, opts.SshPrincipals, opts.ZTSAWSDomains)
+		}
+	}
+	return sshCertRequest, sshCsr, err
 }
 
 func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options) error {

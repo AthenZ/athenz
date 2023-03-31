@@ -36,26 +36,27 @@ func getDocValue(docMap map[string]interface{}, key string) string {
 	}
 }
 
-func GetEC2DocumentDetails(metaEndPoint string) ([]byte, []byte, string, string, string, *time.Time, error) {
+func GetEC2DocumentDetails(metaEndPoint string) ([]byte, []byte, string, string, string, string, *time.Time, error) {
 	document, err := meta.GetData(metaEndPoint, "/latest/dynamic/instance-identity/document")
 	if err != nil {
-		return nil, nil, "", "", "", nil, err
+		return nil, nil, "", "", "", "", nil, err
 	}
 	signature, err := meta.GetData(metaEndPoint, "/latest/dynamic/instance-identity/pkcs7")
 	if err != nil {
-		return nil, nil, "", "", "", nil, err
+		return nil, nil, "", "", "", "", nil, err
 	}
 	var docMap map[string]interface{}
 	err = json.Unmarshal(document, &docMap)
 	if err != nil {
-		return nil, nil, "", "", "", nil, err
+		return nil, nil, "", "", "", "", nil, err
 	}
 	account := getDocValue(docMap, "accountId")
 	region := getDocValue(docMap, "region")
 	instanceId := getDocValue(docMap, "instanceId")
+	privateIp := getDocValue(docMap, "privateIp")
 
 	timeCheck, _ := time.Parse(time.RFC3339, getDocValue(docMap, "pendingTime"))
-	return document, signature, account, instanceId, region, &timeCheck, err
+	return document, signature, account, instanceId, region, privateIp, &timeCheck, err
 }
 
 func GetECSOnEC2TaskId() string {

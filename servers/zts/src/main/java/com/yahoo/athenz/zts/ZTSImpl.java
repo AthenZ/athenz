@@ -4226,8 +4226,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("unable to generate identity", caller, domain, principalDomain);
         }
 
-        // if we're asked then we should also generate a ssh
-        // certificate for the instance as well
+        // if we're asked then we should also generate an ssh certificate for the instance as well.
+        // for instance based ssh certificates, we do not pass any principal details.
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
@@ -4236,7 +4236,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
-            instanceCertManager.generateSSHIdentity(principal, identity, info.getHostname(), info.getSsh(),
+            instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
                     info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
