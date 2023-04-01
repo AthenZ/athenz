@@ -83,6 +83,7 @@ type Config struct {
 	Services         map[string]ConfigService `json:"services,omitempty"`           //names of the multiple services for the identity
 	Ssh              *bool                    `json:"ssh,omitempty"`                //ssh certificate support
 	SshHostKeyType   hostkey.KeyType          `json:"ssh_host_key_type,omitempty"`  //ssh host key type - rsa, ecdsa, etc
+	SshPrincipals    string                   `json:"ssh_principals,omitempty"`     //ssh additional principals
 	SanDnsWildcard   bool                     `json:"sandns_wildcard,omitempty"`    //san dns wildcard support
 	SanDnsHostname   bool                     `json:"sandns_hostname,omitempty"`    //san dns hostname support
 	UseRegionalSTS   bool                     `json:"regionalsts,omitempty"`        //whether to use a regional STS endpoint (default is false)
@@ -177,6 +178,7 @@ type Options struct {
 	SshPubKeyFile      string            //ssh host public key file path
 	SshCertFile        string            //ssh host certificate file path
 	SshConfigFile      string            //sshd config file path
+	SshHostKeyType     hostkey.KeyType   //ssh host key type - rsa or ecdsa
 	PrivateIp          string            //instance private ip
 	EC2Document        string            //EC2 instance identity document
 	EC2Signature       string            //EC2 instance identity document pkcs7 signature
@@ -196,6 +198,7 @@ type Options struct {
 	SshThreshold       float64           //threshold in number of days for ssh cert expiry checks
 	FileDirectUpdate   bool              //update key/cert files directly instead of using rename
 	HostnameSuffix     string            //hostname suffix in case we need to auto-generate hostname
+	SshPrincipals      string            //ssh additional principals
 }
 
 const (
@@ -399,6 +402,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.SiaBackupDir == "" {
 		config.SiaBackupDir = os.Getenv("ATHENZ_SIA_BACKUP_DIR")
 	}
+	if config.SshPrincipals == "" {
+		config.SshPrincipals = os.Getenv("ATHENZ_SIA_SSH_PRINCIPALS")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -472,6 +478,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	certDir := fmt.Sprintf("%s/certs", siaDir)
 	keyDir := fmt.Sprintf("%s/keys", siaDir)
 	backupDir := fmt.Sprintf("%s/backup", siaDir)
+	sshHostKeyType := hostkey.Rsa
+	sshPrincipals := ""
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -506,6 +514,12 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 		if account.Group == "" && config.Group != "" {
 			account.Group = config.Group
+		}
+		if config.SshHostKeyType != 0 {
+			sshHostKeyType = config.SshHostKeyType
+		}
+		if config.SshPrincipals != "" {
+			sshPrincipals = config.SshPrincipals
 		}
 
 		//update generate role and rotate key options if config is provided
@@ -668,6 +682,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		Threshold:         account.Threshold,
 		SshThreshold:      account.SshThreshold,
 		FileDirectUpdate:  fileDirectUpdate,
+		SshHostKeyType:    sshHostKeyType,
+		SshPrincipals:     sshPrincipals,
 	}, nil
 }
 

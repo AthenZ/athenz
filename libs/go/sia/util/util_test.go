@@ -1053,3 +1053,47 @@ func TestSetupSIADir(t *testing.T) {
 	assert.True(t, FileExists("/tmp/sia-test-dir"))
 	os.RemoveAll("/tmp/sia-test-dir")
 }
+
+func TestGenerateSSHHostRequest(t *testing.T) {
+
+	// using invalid key file which should return nil
+
+	req, err := GenerateSSHHostRequest("unknown-file", "athenz", "api", "hostname.athenz.io", "10.11.12.13", "i-0123", "host1.athenz.io,host2.athenz.io", []string{"athenz.cloud"})
+	assert.NotNil(t, err)
+
+	// now let's test with real ssh pub key file
+
+	req, err = GenerateSSHHostRequest("data/ssh-pub-key", "athenz", "api", "hostname.athenz.io", "10.11.12.13", "i-0123", "host1.athenz.io,host2.athenz.io", []string{"athenz.cloud"})
+	assert.Nil(t, err)
+
+	assert.Equal(t, "host", req.CertRequestMeta.CertType)
+	assert.Equal(t, "10.11.12.13", req.CertRequestMeta.Origin)
+	assert.Equal(t, zts.PathElement("i-0123"), req.CertRequestMeta.InstanceId)
+	assert.Equal(t, zts.EntityName("athenz.api"), req.CertRequestMeta.AthenzService)
+	assert.Equal(t, "athenz.api", req.CertRequestMeta.Requestor)
+
+	assert.Equal(t, int32(x509.ECDSA), *req.CertRequestData.CaPubKeyAlgo)
+	assert.Equal(t, "ssh-pub-key", req.CertRequestData.PublicKey)
+	assert.Equal(t, 5, len(req.CertRequestData.Principals))
+	assert.Equal(t, "hostname.athenz.io", req.CertRequestData.Principals[0])
+	assert.Equal(t, "host1.athenz.io", req.CertRequestData.Principals[1])
+	assert.Equal(t, "host2.athenz.io", req.CertRequestData.Principals[2])
+	assert.Equal(t, "10.11.12.13", req.CertRequestData.Principals[3])
+	assert.Equal(t, "api.athenz.athenz.cloud", req.CertRequestData.Principals[4])
+
+	// now let's test with without any optional arguments
+
+	req, err = GenerateSSHHostRequest("data/ssh-pub-key", "athenz", "api", "", "", "i-0123", "", []string{"athenz.cloud"})
+	assert.Nil(t, err)
+
+	assert.Equal(t, "host", req.CertRequestMeta.CertType)
+	assert.Empty(t, req.CertRequestMeta.Origin)
+	assert.Equal(t, zts.PathElement("i-0123"), req.CertRequestMeta.InstanceId)
+	assert.Equal(t, zts.EntityName("athenz.api"), req.CertRequestMeta.AthenzService)
+	assert.Equal(t, "athenz.api", req.CertRequestMeta.Requestor)
+
+	assert.Equal(t, int32(x509.ECDSA), *req.CertRequestData.CaPubKeyAlgo)
+	assert.Equal(t, "ssh-pub-key", req.CertRequestData.PublicKey)
+	assert.Equal(t, 1, len(req.CertRequestData.Principals))
+	assert.Equal(t, "api.athenz.athenz.cloud", req.CertRequestData.Principals[0])
+}

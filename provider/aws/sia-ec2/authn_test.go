@@ -51,7 +51,7 @@ func TestGetECSonEC2TaskId(t *testing.T) {
 }
 
 func TestGetEC2DocumentDetails(t *testing.T) {
-	document, signature, account, instanceId, region, time, err := GetEC2DocumentDetails("http://127.0.0.1:5080")
+	document, signature, account, instanceId, region, privateIp, time, err := GetEC2DocumentDetails("http://127.0.0.1:5080")
 	assert.Nil(t, err)
 	assert.NotNil(t, document)
 	assert.NotNil(t, signature)
@@ -60,4 +60,5 @@ func TestGetEC2DocumentDetails(t *testing.T) {
 	assert.True(t, instanceId == "i-03d1ae7035f931a90")
 	assert.True(t, region == "us-west-2")
 	assert.True(t, time.String() == "2016-05-02 22:23:14 +0000 UTC")
+	assert.Equal(t, "172.31.30.74", privateIp)
 }

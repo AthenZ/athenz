@@ -87,7 +87,7 @@ func main() {
 	log.Printf("SIA-EC2 version: %s \n", Version)
 
 	//obtain the ec2 document details
-	document, signature, account, instanceId, region, startTime, err := sia.GetEC2DocumentDetails(*ec2MetaEndPoint)
+	document, signature, account, instanceId, region, privateIp, startTime, err := sia.GetEC2DocumentDetails(*ec2MetaEndPoint)
 	if err != nil {
 		log.Fatalf("Unable to extract document details: %v\n", err)
 	}
@@ -105,6 +105,7 @@ func main() {
 	opts.Ssh = false
 	opts.EC2Document = string(document)
 	opts.EC2Signature = string(signature)
+	opts.PrivateIp = privateIp
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")

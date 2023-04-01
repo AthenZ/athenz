@@ -376,6 +376,52 @@ func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsAws
 	return string(csr), err
 }
 
+func GenerateSSHHostRequest(sshPubKeyFile string, domain, service, hostname, ip, instanceId, sshPrincipals string, ztsAwsDomains []string) (*zts.SSHCertRequest, error) {
+
+	log.Println("Generating SSH Host Certificate Request...")
+
+	pubkey, err := os.ReadFile(sshPubKeyFile)
+	if err != nil {
+		log.Printf("Unable to read SSH Public Key File: %v\n", err)
+		return nil, err
+	}
+	identity := domain + "." + service
+	hyphenDomain := strings.Replace(domain, ".", "-", -1)
+	var principals []string
+	if hostname != "" {
+		principals = append(principals, hostname)
+	}
+	if sshPrincipals != "" {
+		principals = append(principals, strings.Split(sshPrincipals, ",")...)
+	}
+	if ip != "" {
+		principals = append(principals, ip)
+	}
+	for _, ztsDomain := range ztsAwsDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		principals = append(principals, host)
+	}
+	pubKeyAlgo := int32(x509.ECDSA)
+	dataRequest := &zts.SSHCertRequestData{
+		Principals:   principals,
+		PublicKey:    string(pubkey),
+		CaPubKeyAlgo: &pubKeyAlgo,
+	}
+	metaRequest := &zts.SSHCertRequestMeta{
+		TransId:       fmt.Sprintf("%x", time.Now().Unix()),
+		Requestor:     identity,
+		AthenzService: zts.EntityName(identity),
+		Origin:        ip,
+		InstanceId:    zts.PathElement(instanceId),
+		CertType:      "host",
+	}
+	req := &zts.SSHCertRequest{
+		CertRequestData: dataRequest,
+		CertRequestMeta: metaRequest,
+	}
+	return req, nil
+}
+
 func AppendUri(uriList []*url.URL, uriValue string) []*url.URL {
 	uri, err := url.Parse(uriValue)
 	if err == nil {

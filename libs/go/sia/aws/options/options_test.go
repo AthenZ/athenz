@@ -237,17 +237,17 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 	opts, e := setOptions(cfg, cfgAccount, profileConfig, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
-	assert.True(t, opts.RefreshInterval == 1440)
-	assert.True(t, opts.ZTSRegion == "")
+	assert.Equal(t, 1440, opts.RefreshInterval)
+	assert.Empty(t, opts.ZTSRegion)
 
 	// Make sure profile is correct
-	assert.True(t, opts.Profile == "zts-profile")
-	assert.True(t, opts.ProfileRestrictTo == "")
+	assert.Equal(t, "zts-profile", opts.Profile)
+	assert.Empty(t, opts.ProfileRestrictTo)
 
 	// Make sure services are set
-	assert.True(t, len(opts.Services) == 3)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.api")
+	assert.Equal(t, 3, len(opts.Services))
+	assert.Equal(t, "athenz", opts.Domain)
+	assert.Equal(t, "athenz.api", opts.Name)
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
 	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: DefaultThreshold}))
@@ -256,6 +256,7 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 
 	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
 	assert.Equal(t, DefaultThreshold, opts.Threshold)
+	assert.Equal(t, "host1.athenz.io,host2.athenz.io", opts.SshPrincipals)
 }
 
 // TestOptionsWithProfileConfigAndProfileTag test the scenario when profile config file is present anbd has profile tag key
@@ -356,6 +357,7 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.Equal(t, "/var/lib/sia/certs", opts.CertDir)
 	assert.Equal(t, "/var/lib/sia/tokens", opts.TokenDir)
 	assert.Equal(t, "/var/lib/sia/backup", opts.BackupDir)
+	assert.Equal(t, "host1.athenz.io,host2.athenz.io", opts.SshPrincipals)
 
 	// Make sure services are set
 	assert.Equal(t, 3, len(opts.Services))
@@ -658,6 +660,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_KEY_DIR", "/var/athenz/keys")
 	os.Setenv("ATHENZ_SIA_CERT_DIR", "/var/athenz/certs")
 	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
+	os.Setenv("ATHENZ_SIA_SSH_PRINCIPALS", "host1.athenz.io")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -685,6 +688,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "api", cfgAccount.Service)
 	assert.Equal(t, "athenz.api", cfgAccount.Name)
 	assert.Equal(t, 2, len(cfgAccount.Roles))
+	assert.Equal(t, "host1.athenz.io", cfg.SshPrincipals)
 
 	os.Clearenv()
 }

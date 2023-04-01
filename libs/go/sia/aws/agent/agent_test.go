@@ -21,6 +21,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"log"
 	"net"
 	"net/url"
@@ -539,4 +540,42 @@ func TestServiceAlreadyRegistered(test *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateSshRequest(test *testing.T) {
+
+	opts := options.Options{
+		Ssh: false,
+	}
+	// ssh option false we should get success with nils and empty csr
+	sshReq, sshCsr, err := generateSshRequest(&opts, "backend", "hostname.athenz.io")
+	assert.Nil(test, sshReq)
+	assert.Equal(test, "", sshCsr)
+	assert.Nil(test, err)
+	// ssh enabled but not for primary service we should get success with nils and empty csr
+	opts.Ssh = true
+	opts.Services = []options.Service{
+		{
+			Name: "api",
+		},
+	}
+	sshReq, sshCsr, err = generateSshRequest(&opts, "backend", "hostname.athenz.io")
+	assert.Nil(test, sshReq)
+	assert.Equal(test, "", sshCsr)
+	assert.Nil(test, err)
+	// ssh enabled with primary service and key type is rsa - null cert request but valid csr
+	opts.SshPubKeyFile = "devel/data/cert.pem"
+	opts.Domain = "athenz"
+	opts.ZTSAWSDomains = []string{"athenz.io"}
+	opts.SshHostKeyType = hostkey.Rsa
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	assert.Nil(test, sshReq)
+	assert.NotEmpty(test, sshCsr)
+	assert.Nil(test, err)
+	// ssh enabled with primary service and key type is ecdsa - empty csr but not-nil cert request
+	opts.SshHostKeyType = hostkey.Ecdsa
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	assert.NotNil(test, sshReq)
+	assert.Empty(test, sshCsr)
+	assert.Nil(test, err)
 }
