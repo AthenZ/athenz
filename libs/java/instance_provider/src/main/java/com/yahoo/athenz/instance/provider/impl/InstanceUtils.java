@@ -82,7 +82,7 @@ public class InstanceUtils {
             }
         }
 
-        LOGGER.error("{} does not end include required service name {} component", hostname, service);
+        LOGGER.error("{} does not include required service name {} component", hostname, service);
         return false;
     }
 
