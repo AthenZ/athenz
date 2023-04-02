@@ -20,9 +20,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class InstanceUtils {
 
@@ -49,6 +47,43 @@ public class InstanceUtils {
         }
 
         return value;
+    }
+
+    static int dnsSuffixMatchIndex(final String hostname, final List<String> dnsSuffixes) {
+        for (String dnsSuffix : dnsSuffixes) {
+            if (hostname.endsWith(dnsSuffix)) {
+                return hostname.length() - dnsSuffix.length();
+            }
+        }
+        return -1;
+    }
+
+    static boolean validateSanDnsName(final String hostname, final String service, final List<String> dnsSuffixes) {
+
+        // for hostnames that are included in the sanDNS entry in the certificate we have
+        // a couple of requirements:
+        // a) the sanDNS entry must end with <domain-with-dashes>.<dnsSuffix>
+        // b) one of the prefix components must be the <service> name
+
+        // let's first verify that we have an expected dns-suffix
+
+        int suffixIdx = dnsSuffixMatchIndex(hostname, dnsSuffixes);
+        if (suffixIdx == -1) {
+            LOGGER.error("{} does not end with expected dns suffix value", hostname);
+            return false;
+        }
+
+        // extract the prefix component of the dns name
+
+        final String prefix = hostname.substring(0, suffixIdx);
+        for (String comp : prefix.split("\\.")) {
+            if (service.equals(comp)) {
+                return true;
+            }
+        }
+
+        LOGGER.error("{} does not include required service name {} component", hostname, service);
+        return false;
     }
 
     public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes, final String domain,
@@ -79,24 +114,22 @@ public class InstanceUtils {
             return false;
         }
 
-        // generate the expected hostname(s) for check. we support two formats:
-        // service based hostname: <service>.<domain-with-dashes>.<dnsSuffix>
-        // instance id based hostname: <instance-id>.<service>.<domain-with-dashes>.<dnsSuffix>
+        // for hostnames that are included in the sanDNS entry in the certificate we have
+        // a couple of requirements:
+        // a) the sanDNS entry must end with <domain-with-dashes>.<dnsSuffix>
+        // b) one of the prefix components must be the <service> name
 
-        Set<String> hostNameChecks = new HashSet<>();
+        List<String> hostNameSuffixList = new ArrayList<>();
         final String dashDomain = domain.replace('.', '-');
         for (String dnsSuffix : dnsSuffixes) {
-            final String hostname = service + "." + dashDomain + "." + dnsSuffix;
-            hostNameChecks.add(hostname);
-            hostNameChecks.add(instanceId + "." + hostname);
+            hostNameSuffixList.add("." + dashDomain + "." + dnsSuffix);
         }
 
         // if we have a hostname configured then verify it matches one of formats
 
         if (validateHostname) {
             final String hostname = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_HOSTNAME);
-            if (!StringUtil.isEmpty(hostname) && !hostNameChecks.contains(hostname)) {
-                LOGGER.error("Request contains an invalid hostname: {}", hostname);
+            if (!StringUtil.isEmpty(hostname) && !validateSanDnsName(hostname, service, hostNameSuffixList)) {
                 return false;
             }
         }
@@ -113,8 +146,7 @@ public class InstanceUtils {
                 continue;
             }
 
-            if (!hostNameChecks.contains(host)) {
-                LOGGER.error("Unable to verify SAN DNS entry: {}", host);
+            if (!validateSanDnsName(host, service, hostNameSuffixList)) {
                 return false;
             }
 
