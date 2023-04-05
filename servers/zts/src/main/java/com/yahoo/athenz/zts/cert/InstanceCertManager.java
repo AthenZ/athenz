@@ -766,7 +766,8 @@ public class InstanceCertManager {
     }
 
     public boolean generateSSHIdentity(Principal principal, InstanceIdentity identity, final String hostname,
-            final String csr, SSHCertRequest sshCertRequest, SSHCertRecord sshCertRecord, final String certType) {
+            final String csr, SSHCertRequest sshCertRequest, SSHCertRecord sshCertRecord,
+            final String certType, boolean refreshRequest) {
 
         // in addition to our ssh signer, we must either have a non-empty
         // ssh csr or a cert request object
@@ -803,11 +804,9 @@ public class InstanceCertManager {
 
             } else {
 
-                if (!StringUtil.isEmpty(hostname) && hostnameResolver != null) {
-                    if (!validPrincipals(hostname, sshCertRecord, sshCertRequest)) {
-                        LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
-                        return false;
-                    }
+                if (!validPrincipals(hostname, sshCertRecord, sshCertRequest)) {
+                    LOGGER.error("SSH Host CSR validation failed, principal: {}, hostname: {}, csr: {}", principal, hostname, csr);
+                    return false;
                 }
 
                 // update our ssh record object
@@ -844,7 +843,7 @@ public class InstanceCertManager {
         // is null then it's a register operation otherwise
         // we're handling a refresh operation
 
-        updateSSHCertRecord(sshCertRecord, principal != null);
+        updateSSHCertRecord(sshCertRecord, refreshRequest);
 
         // update our identity object with ssh cert details
 
@@ -963,36 +962,44 @@ public class InstanceCertManager {
             return true;
         }
 
-        LOGGER.debug("CSR principals: {}, xPrincipals: {}", principals, xPrincipals);
+        LOGGER.debug("Validate CSR principals: {}, xPrincipals: {}", principals, xPrincipals);
         return validateSSHHostnames(hostname, Arrays.asList(xPrincipals), sshCertRecord);
     }
 
     public boolean validPrincipals(final String hostname, SSHCertRecord sshCertRecord, SSHCertRequest sshCertRequest) {
 
-        SSHCertRequestMeta requestMeta = sshCertRequest.getCertRequestMeta();
         SSHCertRequestData requestData = sshCertRequest.getCertRequestData();
 
-        if (requestData == null || requestMeta == null) {
-            return false;
-        }
+        // if there are no principals specified, then we have nothing to check
 
-        List<String> principals = requestData.getPrincipals();
-        List<String> keyIdPrincipals = requestMeta.getKeyIdPrincipals();
-
-        // Pass through when no principals are specified
-
-        if (principals == null) {
-            LOGGER.error("CSR has no principals to verify, hostname: {}, keyIdPrincipals: {}", hostname, keyIdPrincipals);
+        if (requestData == null) {
             return true;
         }
 
-        LOGGER.debug("CSR principals: {}, keyIdPrincipals: {}", principals, keyIdPrincipals);
+        List<String> principals = requestData.getPrincipals();
+
+        // pass through when no principals are specified
+
+        if (principals == null || principals.isEmpty()) {
+            return true;
+        }
+
+        LOGGER.debug("Validate CSR principals: {}", principals);
         return validateSSHHostnames(hostname, principals, sshCertRecord);
     }
 
     boolean validateSSHHostnames(final String hostname, List<String> principals, SSHCertRecord sshCertRecord) {
+
+        // if we don't have a hostname resolver then we won't be able
+        // to validate any values, so we'll return failure right away
+
+        if (hostnameResolver == null) {
+            LOGGER.error("Hostname resolver not configured to validate ssh hostnames");
+            return false;
+        }
+
         List<String> cnames = new ArrayList<>();
-        for (String name: principals) {
+        for (String name : principals) {
             // Skip IPs
             if (InetAddresses.isInetAddress(name)) {
                 continue;
@@ -1000,8 +1007,8 @@ public class InstanceCertManager {
             // Skip direct hostname principals
             if (name.equals(hostname)) {
                 // verify that the hostname is a known name
-                if (hostnameResolver != null && !hostnameResolver.isValidHostname(hostname)) {
-                    LOGGER.error("{} is not a valid name", hostname);
+                if (!hostnameResolver.isValidHostname(hostname)) {
+                    LOGGER.error("{} is not a valid hostname", hostname);
                     return false;
                 }
                 continue;
@@ -1009,18 +1016,20 @@ public class InstanceCertManager {
 
             cnames.add(name);
         }
+
         // If there are no custom cnames, return right away
         if (cnames.isEmpty()) {
             return true;
         }
 
         LOGGER.debug("validating principals in the ssh request/csr: {}", cnames);
-        if (hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)) {
-            return true;
+
+        if (!hostnameResolver.isValidHostCnameList(sshCertRecord.getService(), hostname, cnames, CertType.SSH_HOST)) {
+            LOGGER.error("{} does not map to some cnames {}", hostname, cnames);
+            return false;
         }
 
-        LOGGER.error("{} does not map to some cnames {}", hostname, String.join(",", cnames));
-        return false;
+        return true;
     }
 
     private boolean verifyIPAddressAccess(final String ipAddress, final List<IPBlock> ipBlocks) {

@@ -3722,7 +3722,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4237,7 +4237,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4323,7 +4323,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
         if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, sshCertRequest,
-                null, ZTSConsts.ZTS_SSH_USER)) {
+                null, ZTSConsts.ZTS_SSH_USER, true)) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);
