@@ -113,7 +113,7 @@ func GetService(metaEndpoint string) (string, error) {
 }
 
 func GetProfile(metaEndpoint string) (string, error) {
-	profileBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/attributes/calypsoProfile")
+	profileBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/attributes/accessProfile")
 	if err != nil {
 		return "", err
 	}

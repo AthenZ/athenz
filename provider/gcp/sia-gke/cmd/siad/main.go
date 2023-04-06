@@ -94,6 +94,7 @@ func main() {
 		Zts:          config.Zts,
 		Threshold:    config.Threshold,
 		SshThreshold: config.SshThreshold,
+		Roles:        config.Roles,
 	}
 	opts, err := options.NewOptions(config, configAccount, accessProfileConfig, siaMainDir, Version, false, region)
 	if err != nil {

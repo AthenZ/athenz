@@ -147,8 +147,8 @@ func TestGetService(test *testing.T) {
 func TestGetProfile(test *testing.T) {
 	// Mock the metadata endpoints
 	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/attributes/calypsoProfile", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Println("Called /computeMetadata/v1/instance/attributes/calypsoProfile")
+	router.GET("/computeMetadata/v1/instance/attributes/accessProfile", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/instance/attributes/accessProfile")
 		io.WriteString(w, "access-profile")
 	})
 

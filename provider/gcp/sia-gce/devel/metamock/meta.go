@@ -47,7 +47,7 @@ func StartMetaServer(EndPoint string) {
 	http.HandleFunc("/computeMetadata/v1/instance/id", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, instanceId)
 	})
-	http.HandleFunc("/computeMetadata/v1/instance/attributes/calypsoProfile", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/computeMetadata/v1/instance/attributes/accessProfile", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, accessProfile)
 	})
 

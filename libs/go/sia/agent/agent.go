@@ -149,10 +149,10 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
 			failures += 1
 			continue
 		}
-
 		roleKeyBytes := util.PrivatePem(key)
 		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), role, opts)
 		if err != nil {
+			log.Printf("Unable to save role cert key for role %s, err: %v\n", role.Name, err)
 			failures += 1
 			continue
 		}

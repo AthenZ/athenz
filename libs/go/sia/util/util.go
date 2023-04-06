@@ -748,12 +748,14 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 		log.Printf("taking back up of cert: %s to %s and key: %s to %s\n", certFile, backUpCertFile, keyFile, backUpKeyFile)
 		err = CopyCertKeyFile(keyFile, backUpKeyFile, certFile, backUpCertFile, 0400)
 		if err != nil {
+			log.Printf("Error while taking back up %v\n", err)
 			return err
 		}
 		//write the new key and x509KeyPair to disk
 		log.Printf("writing new key file: %s to disk\n", keyFile)
 		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), fileDirectUpdate)
 		if err != nil {
+			log.Printf("Error while writing key file during rotate %v\n", err)
 			return err
 		}
 	} else if createKey && !FileExists(keyFile) {
@@ -761,14 +763,17 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 		log.Printf("writing new key file: %s to disk\n", keyFile)
 		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), fileDirectUpdate)
 		if err != nil {
+			log.Printf("Error while writing key file during create %v\n", err)
 			return err
 		}
 	} else if FileExists(keyFile) {
+		log.Printf("Updating existing key file %s", keyFile)
 		UpdateKey(keyFile, uid, gid)
 	}
-
+	log.Printf("Updating the cert file %s", certFile)
 	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), fileDirectUpdate)
 	if err != nil {
+		log.Printf("Error while writing cert file %v\n", err)
 		return err
 	}
 

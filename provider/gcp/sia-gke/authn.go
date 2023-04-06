@@ -48,7 +48,7 @@ func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
 			// to use fallback to retrieve values from the context ( metadata etc )
-			config, _, err = options.InitGenericProfileConfig(metaEndpoint, "-service", "@", provider)
+			config, _, err = options.InitGenericProfileConfig(metaEndpoint, "", "", provider)
 			if err != nil && config == nil {
 				log.Printf("Unable to determine project, domain, service etc. from context err=%v\n", err)
 				return nil, nil, err
@@ -57,7 +57,7 @@ func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 	}
 
 	if config.AccessManagement {
-		profileConfig, err := GetGKEAccessProfile(profileConfigFile, metaEndpoint, false, region)
+		profileConfig, err := GetGKEAccessProfile(profileConfigFile, metaEndpoint, provider)
 		if err != nil {
 			log.Printf("Unable to determine user access management profile information: %v\n", err)
 		}
@@ -66,7 +66,7 @@ func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 	return config, nil, nil
 }
 
-func GetGKEAccessProfile(configFile, metaEndpoint string, useRegionalSTS bool, region string) (*options.AccessProfileConfig, error) {
+func GetGKEAccessProfile(configFile, metaEndpoint string, provider provider.Provider) (*options.AccessProfileConfig, error) {
 	accessProfileConfig, err := options.InitAccessProfileFileConfig(configFile)
 	if err != nil {
 		log.Printf("Unable to process user access management configuration file '%s': %v\n", configFile, err)
@@ -75,19 +75,11 @@ func GetGKEAccessProfile(configFile, metaEndpoint string, useRegionalSTS bool, r
 		if err != nil {
 			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
-			// to use fallback to <domain>.<service>-service@access-profile naming structure
-			log.Println("Trying to determine user access management profile name from security credentials...")
-			_, accessProfileConfig, err = options.InitCredsConfig("-service", "@", useRegionalSTS, region)
-			// if the profile is empty try to determine access profile info from instance profile
-			if accessProfileConfig == nil || accessProfileConfig.Profile == "" {
-				if err != nil {
-					log.Printf("Unable to obtain user access management profile info from security credentials, err: %v\n", err)
-				}
-				log.Println("Trying to determine user access management profile details from instance profile arn...")
-				_, accessProfileConfig, err = options.InitProfileConfig(metaEndpoint, "-service", "@")
-				if err != nil {
-					return nil, err
-				}
+			// to use fallback to retrieving access profile from meta
+			log.Println("Trying to determine user access management profile details from GCP context")
+			_, accessProfileConfig, err = options.InitGenericProfileConfig(metaEndpoint, "", "", provider)
+			if err != nil {
+				return nil, err
 			}
 		}
 	}

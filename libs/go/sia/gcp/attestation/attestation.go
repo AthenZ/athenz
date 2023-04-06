@@ -27,10 +27,10 @@ type GoogleAttestationData struct {
 
 // New creates a new AttestationData by getting instance identity token
 // from the Google metadata server
-func New(base, service, ztsServerName string) (string, error) {
+func New(base, service, ztsUrl string) (string, error) {
 
 	tok, err := meta.GetData(base,
-		"/computeMetadata/v1/instance/service-accounts/default/identity?audience="+ztsServerName+"&format=full")
+		"/computeMetadata/v1/instance/service-accounts/default/identity?audience="+ztsUrl+"&format=full")
 	if err != nil {
 		return "", err
 	}
