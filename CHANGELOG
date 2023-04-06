@@ -1,3 +1,16 @@
+Athenz v1.11.25 Release / Apr 06, 2023
+--------------------------------------
+
+#2107 UI: Add support delete static instance
+#2116 UI: fix static instance view
+#2117 Log notification email sent details - subject and recipients
+#2118 UI: Fix UI MSD policy validation
+#2119 Update DB Dockerfile to fix deploy-dev
+#2120 relax sandns check for aws instances to require configured suffix with domain/service values
+#2121 support ssh_principals field in sia_config with cert_request object for ecdsa
+#2122 allow ssh-principals with service name based dns cnames
+#2123 gcp sia
+
 Athenz v1.11.24 Release / Mar 27, 2023
 --------------------------------------
 
