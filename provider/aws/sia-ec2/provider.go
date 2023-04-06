@@ -83,3 +83,15 @@ func (ec2 EC2Provider) GetSanIp(docIp map[string]bool, ips []net.IP, opts ip.Opt
 func (ec2 EC2Provider) GetSuffix() string {
 	return ""
 }
+
+func (eks EC2Provider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+func (eks EC2Provider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+	return "", "", "", fmt.Errorf("not implemented")
+}
+
+func (tp EC2Provider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}

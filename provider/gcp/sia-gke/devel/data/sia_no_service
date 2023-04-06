@@ -1,0 +1,10 @@
+{
+    "version": "1.0.0",
+    "gcp_project": "my-gcp-project",
+    "domain": "athenz",
+    "services": {
+        "api": {},
+        "ui": {}
+    },
+    "user": "nobody"
+}

@@ -1,0 +1,1 @@
+systemctl enable sia > /dev/null 2>&1

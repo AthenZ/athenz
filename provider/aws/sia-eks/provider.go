@@ -83,3 +83,15 @@ func (eks EKSProvider) GetSanIp(docIp map[string]bool, ips []net.IP, opts ip.Opt
 func (eks EKSProvider) GetSuffix() string {
 	return ""
 }
+
+func (eks EKSProvider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+func (eks EKSProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+	return "", "", "", fmt.Errorf("not implemented")
+}
+
+func (tp EKSProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+	return "", fmt.Errorf("not implemented")
+}

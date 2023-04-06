@@ -1,0 +1,5 @@
+Package: sia-gce
+Version: SIA_PACKAGE_VERSION
+Maintainer: cncf-athenz-maintainers@lists.cncf.io
+Architecture: amd64
+Description: GCE Athenz Service Identity Agent

@@ -20,6 +20,7 @@ import (
 	"crypto"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"log"
@@ -102,6 +103,22 @@ func (tp TestProvider) GetSanIp(docIp map[string]bool, ips []net.IP, opts ip.Opt
 
 func (tp TestProvider) GetSuffix() string {
 	return ""
+}
+
+func (tp TestProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
+	a, _ := json.Marshal(&attestation.AttestationData{
+		Role: "athenz.hockey",
+	})
+
+	return string(a), nil
+}
+
+func (tp TestProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+	return "testAcct", "testDom", "testSvc", nil
+}
+
+func (tp TestProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+	return "testProf", nil
 }
 
 func TestUpdateFileNew(test *testing.T) {

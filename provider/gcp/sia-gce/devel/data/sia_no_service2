@@ -1,0 +1,9 @@
+{
+    "version": "1.0.0",
+    "domain": "athenz",
+    "service": "api",
+    "services": {
+        "ui": {}
+    },
+    "user": "nobody"
+}

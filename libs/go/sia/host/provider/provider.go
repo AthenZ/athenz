@@ -63,4 +63,13 @@ type Provider interface {
 
 	// GetSuffix returns the suffix for the current provider
 	GetSuffix() string
+
+	// CloudAttestationData gets the attestation data to prove the identity from metadata of the respective cloud
+	CloudAttestationData(string, string, string) (string, error)
+
+	// GetAccountDomainServiceFromMeta gets the account, domain and service info from the respective cloud
+	GetAccountDomainServiceFromMeta(string) (string, string, string, error)
+
+	// GetAccessManagementProfileFromMeta gets the profile info from the respective cloud
+	GetAccessManagementProfileFromMeta(string) (string, error)
 }
