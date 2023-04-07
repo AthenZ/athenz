@@ -41,6 +41,8 @@ public class InstanceAzureProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceAzureProvider.class);
 
+    static final String AZURE_PROP_AKS_DNS_SUFFIX          = "athenz.zts.azure_aks_dns_suffix";
+
     static final String AZURE_PROP_PROVIDER                = "athenz.zts.azure_provider";
     static final String AZURE_PROP_ZTS_RESOURCE_URI        = "athenz.zts.azure_resource_uri";
     static final String AZURE_PROP_DNS_SUFFIX              = "athenz.zts.azure_dns_suffix";
@@ -60,6 +62,7 @@ public class InstanceAzureProvider implements InstanceProvider {
 
     String azureProvider = null;
     Set<String> dnsSuffixes = null;
+    List<String> aksDnsSuffixes = null;
     String azureJwksUri = null;
     HttpDriver httpDriver = null;
     ObjectMapper jsonMapper = null;
@@ -114,6 +117,8 @@ public class InstanceAzureProvider implements InstanceProvider {
         } else {
             dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
         }
+
+        aksDnsSuffixes = InstanceUtils.processK8SDnsSuffixList(AZURE_PROP_AKS_DNS_SUFFIX);
 
         ztsResourceUri = System.getProperty(AZURE_PROP_ZTS_RESOURCE_URI);
         if (StringUtil.isEmpty(ztsResourceUri)) {
@@ -210,7 +215,7 @@ public class InstanceAzureProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, false, instanceId)) {
+                instanceService, dnsSuffixes, aksDnsSuffixes, false, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
 
