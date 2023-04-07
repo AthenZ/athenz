@@ -40,6 +40,8 @@ public class InstanceGCPProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceGCPProvider.class);
 
+    static final String GCP_PROP_GKE_DNS_SUFFIX   = "athenz.zts.gcp_gke_dns_suffix";
+
     static final String GCP_PROP_BOOT_TIME_OFFSET = "athenz.zts.gcp_boot_time_offset";
     static final String GCP_PROP_DNS_SUFFIX       = "athenz.zts.gcp_dns_suffix";
     static final String GCP_PROP_REGION_NAME      = "athenz.zts.gcp_region_name";
@@ -51,6 +53,7 @@ public class InstanceGCPProvider implements InstanceProvider {
     boolean supportRefresh = false;
     String gcpRegion;
     Set<String> dnsSuffixes = null;
+    List<String> gkeDnsSuffixes = null;
     InstanceGCPUtils gcpUtils = null;
 
     public long getTimeOffsetInMilli() {
@@ -84,6 +87,8 @@ public class InstanceGCPProvider implements InstanceProvider {
         } else {
             dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
         }
+
+        gkeDnsSuffixes = InstanceUtils.processK8SDnsSuffixList(GCP_PROP_GKE_DNS_SUFFIX);
 
         // default certificate expiry for requests without instance
         // identity document
@@ -224,7 +229,7 @@ public class InstanceGCPProvider implements InstanceProvider {
 
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), true, instanceId)) {
+                instanceService, getDnsSuffixes(), gkeDnsSuffixes, true, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
 

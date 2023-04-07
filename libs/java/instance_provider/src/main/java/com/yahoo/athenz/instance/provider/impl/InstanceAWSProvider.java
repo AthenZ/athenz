@@ -55,6 +55,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
     static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
     static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
+    static final String AWS_PROP_EKS_DNS_SUFFIX   = "athenz.zts.aws_eks_dns_suffix";
 
     static final String AWS_PROP_CERT_VALIDITY_STS_ONLY = "athenz.zts.aws_cert_validity_sts_only";
 
@@ -63,6 +64,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     boolean supportRefresh = false;
     String awsRegion;
     Set<String> dnsSuffixes = null;
+    List<String> eksDnsSuffixes = null;
     InstanceAWSUtils awsUtils = null;
 
     public long getTimeOffsetInMilli() {
@@ -98,6 +100,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         } else {
             dnsSuffixes.addAll(Arrays.asList(dnsSuffix.split(",")));
         }
+
+        eksDnsSuffixes = InstanceUtils.processK8SDnsSuffixList(AWS_PROP_EKS_DNS_SUFFIX);
 
         // default certificate expiry for requests without instance
         // identity document
@@ -261,7 +265,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), true, instanceId)) {
+                instanceService, getDnsSuffixes(), eksDnsSuffixes, true, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
         

@@ -58,14 +58,73 @@ public class InstanceUtils {
         return -1;
     }
 
-    static boolean validateSanDnsName(final String hostname, final String service, final List<String> dnsSuffixes) {
+    static List<String> processK8SDnsSuffixList(final String propertyName) {
+
+        List<String> k8sDnsSuffixes = new ArrayList<>();
+        final String k8sDnsSuffix = System.getProperty(propertyName);
+        if (StringUtil.isEmpty(k8sDnsSuffix)) {
+            LOGGER.error("K8S DNS Suffix not specified - all requests must satisfy standard dns suffix checks");
+        } else {
+            // in our checks we're going to match against the given suffix so
+            // when generating the list we'll verify if the suffix starts with
+            // . or not. If not, we'll automatically add one
+            String[] k8sDnsList = k8sDnsSuffix.split(",");
+            for (String k8sDns : k8sDnsList) {
+                if (StringUtil.isEmpty(k8sDns)) {
+                    continue;
+                }
+                if (k8sDns.charAt(0) == '.') {
+                    k8sDnsSuffixes.add(k8sDns);
+                } else {
+                    k8sDnsSuffixes.add("." + k8sDns);
+                }
+            }
+        }
+        return k8sDnsSuffixes;
+    }
+
+    static boolean k8sDnsSuffixCheck(final String hostname, final List<String> dnsSuffixes) {
+
+        // it's possible that we don't have k8s dns suffix list provided
+
+        if (dnsSuffixes == null) {
+            return false;
+        }
+
+        // a) the sanDNS entry must one with <k8sDnsSuffix> e.g. svc.cluster.local
+        // b) the prefix must contain at least 2 components based on k8s dns spec
+
+        for (String dnsSuffix : dnsSuffixes) {
+            if (hostname.endsWith(dnsSuffix)) {
+                int idx = hostname.length() - dnsSuffix.length();
+                final String prefix = hostname.substring(0, idx);
+                if (prefix.chars().filter(ch -> ch == '.').count() > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean validateSanDnsName(final String hostname, final String service, final List<String> dnsSuffixes,
+                                      final List<String> k8sDnsSuffixes) {
 
         // for hostnames that are included in the sanDNS entry in the certificate we have
         // a couple of requirements:
+        // Option 1: k8s dns entry
+        // a) the sanDNS entry must end with <k8sDnsSuffix> e.g. svc.cluster.local
+        // b) the prefix must contain at least 2 components based on k8s dns spec
+        // Option 2
         // a) the sanDNS entry must end with <domain-with-dashes>.<dnsSuffix>
         // b) one of the prefix components must be the <service> name
 
-        // let's first verify that we have an expected dns-suffix
+        // let's first verify if this is a k8s dns entry
+
+        if (k8sDnsSuffixCheck(hostname, k8sDnsSuffixes)) {
+            return true;
+        }
+
+        // if not, then let's verify that we have an expected dns-suffix
 
         int suffixIdx = dnsSuffixMatchIndex(hostname, dnsSuffixes);
         if (suffixIdx == -1) {
@@ -87,7 +146,8 @@ public class InstanceUtils {
     }
 
     public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes, final String domain,
-            final String service, final Set<String> dnsSuffixes, boolean validateHostname, StringBuilder instanceId) {
+            final String service, final Set<String> dnsSuffixes, final List<String> k8sDnsSuffixes,
+            boolean validateHostname, StringBuilder instanceId) {
 
         // make sure we have valid dns suffix specified
 
@@ -129,7 +189,7 @@ public class InstanceUtils {
 
         if (validateHostname) {
             final String hostname = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_HOSTNAME);
-            if (!StringUtil.isEmpty(hostname) && !validateSanDnsName(hostname, service, hostNameSuffixList)) {
+            if (!StringUtil.isEmpty(hostname) && !validateSanDnsName(hostname, service, hostNameSuffixList, k8sDnsSuffixes)) {
                 return false;
             }
         }
@@ -146,7 +206,7 @@ public class InstanceUtils {
                 continue;
             }
 
-            if (!validateSanDnsName(host, service, hostNameSuffixList)) {
+            if (!validateSanDnsName(host, service, hostNameSuffixList, k8sDnsSuffixes)) {
                 return false;
             }
 
