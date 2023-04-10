@@ -753,7 +753,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 		}
 		//write the new key and x509KeyPair to disk
 		log.Printf("writing new key file: %s to disk\n", keyFile)
-		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), fileDirectUpdate)
+		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), fileDirectUpdate, true)
 		if err != nil {
 			log.Printf("Error while writing key file during rotate %v\n", err)
 			return err
@@ -761,7 +761,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 	} else if createKey && !FileExists(keyFile) {
 		//write the new key and x509KeyPair to disk
 		log.Printf("writing new key file: %s to disk\n", keyFile)
-		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), fileDirectUpdate)
+		err = UpdateFile(keyFile, key, uid, gid, os.FileMode(fileMode), fileDirectUpdate, true)
 		if err != nil {
 			log.Printf("Error while writing key file during create %v\n", err)
 			return err
@@ -771,7 +771,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 		UpdateKey(keyFile, uid, gid)
 	}
 	log.Printf("Updating the cert file %s", certFile)
-	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), fileDirectUpdate)
+	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), fileDirectUpdate, true)
 	if err != nil {
 		log.Printf("Error while writing cert file %v\n", err)
 		return err
@@ -864,7 +864,7 @@ func WriteAthenzJWKFile(athenzJwk *zts.AthenzJWKConfig, siaDir string, uid int, 
 		return err
 	}
 	jwkConfFile := fmt.Sprintf("%s/"+JwkConfFile, siaDir)
-	err = UpdateFile(jwkConfFile, confJson, uid, gid, 0444, false)
+	err = UpdateFile(jwkConfFile, confJson, uid, gid, 0444, false, true)
 	if err != nil {
 		return err
 	}
@@ -907,11 +907,13 @@ func GetUtilPath(command string) string {
 	}
 }
 
-func UpdateFileContents(fileName string, contents []byte, perm os.FileMode, fileDirectUpdate bool) error {
+func UpdateFileContents(fileName string, contents []byte, perm os.FileMode, fileDirectUpdate, verbose bool) error {
 	// verify we have valid contents otherwise we're just
 	// going to skip and return success without doing anything
 	if len(contents) == 0 {
-		log.Printf("Contents is empty. Skipping writing to file %s\n", fileName)
+		if verbose {
+			log.Printf("Contents is empty. Skipping writing to file %s\n", fileName)
+		}
 		return nil
 	}
 	// if the original file does not exist then we
@@ -919,7 +921,9 @@ func UpdateFileContents(fileName string, contents []byte, perm os.FileMode, file
 	// directly
 	_, err := os.Stat(fileName)
 	if err != nil && os.IsNotExist(err) {
-		log.Printf("Updating file %s...\n", fileName)
+		if verbose {
+			log.Printf("Updating file %s...\n", fileName)
+		}
 		err = os.WriteFile(fileName, contents, perm)
 		if err != nil {
 			log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
@@ -927,9 +931,9 @@ func UpdateFileContents(fileName string, contents []byte, perm os.FileMode, file
 		}
 	} else {
 		if fileDirectUpdate {
-			err = updateFileDirectly(fileName, contents, perm)
+			err = updateFileDirectly(fileName, contents, perm, verbose)
 		} else {
-			err = updateFileUsingRename(fileName, contents, perm)
+			err = updateFileUsingRename(fileName, contents, perm, verbose)
 		}
 		if err != nil {
 			return err
@@ -938,11 +942,13 @@ func UpdateFileContents(fileName string, contents []byte, perm os.FileMode, file
 	return nil
 }
 
-func updateFileUsingRename(fileName string, contents []byte, perm os.FileMode) error {
+func updateFileUsingRename(fileName string, contents []byte, perm os.FileMode, verbose bool) error {
 	timeNano := time.Now().UnixNano()
 	// write the new contents to a temporary file
 	newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
-	log.Printf("Writing contents to temporary file %s...\n", newFileName)
+	if verbose {
+		log.Printf("Writing contents to temporary file %s...\n", newFileName)
+	}
 	err := os.WriteFile(newFileName, contents, perm)
 	if err != nil {
 		log.Printf("Unable to write new file %s, err: %v\n", newFileName, err)
@@ -950,14 +956,18 @@ func updateFileUsingRename(fileName string, contents []byte, perm os.FileMode) e
 	}
 	// move the contents of the old file to a backup file
 	bakFileName := fmt.Sprintf("%s.bak%d", fileName, timeNano)
-	log.Printf("Renaming original file %s to backup file %s...\n", fileName, bakFileName)
+	if verbose {
+		log.Printf("Renaming original file %s to backup file %s...\n", fileName, bakFileName)
+	}
 	err = os.Rename(fileName, bakFileName)
 	if err != nil {
 		log.Printf("Unable to rename file %s to %s, err: %v\n", fileName, bakFileName, err)
 		return err
 	}
 	// move the new contents to the original location
-	log.Printf("Renaming temporary file %s to requested file %s...\n", newFileName, fileName)
+	if verbose {
+		log.Printf("Renaming temporary file %s to requested file %s...\n", newFileName, fileName)
+	}
 	err = os.Rename(newFileName, fileName)
 	if err != nil {
 		log.Printf("Unable to rename file %s to %s, err: %v\n", newFileName, fileName, err)
@@ -966,16 +976,20 @@ func updateFileUsingRename(fileName string, contents []byte, perm os.FileMode) e
 		return err
 	}
 	// remove the temporary backup file
-	log.Printf("Removing backup file %s...\n", bakFileName)
+	if verbose {
+		log.Printf("Removing backup file %s...\n", bakFileName)
+	}
 	os.Remove(bakFileName)
 	return nil
 }
 
-func updateFileDirectly(fileName string, contents []byte, perm os.FileMode) error {
+func updateFileDirectly(fileName string, contents []byte, perm os.FileMode, verbose bool) error {
 	timeNano := time.Now().UnixNano()
 	// move the contents of the old file to a backup file
 	bakFileName := fmt.Sprintf("%s.bak%d", fileName, timeNano)
-	log.Printf("Copying original file %s to backup file %s...\n", fileName, bakFileName)
+	if verbose {
+		log.Printf("Copying original file %s to backup file %s...\n", fileName, bakFileName)
+	}
 	origContents, err := os.ReadFile(fileName)
 	if err != nil {
 		log.Printf("Unable to read original file %s contents, err: %v\n", fileName, err)
@@ -987,7 +1001,9 @@ func updateFileDirectly(fileName string, contents []byte, perm os.FileMode) erro
 		return err
 	}
 	// write the new contents to the original location
-	log.Printf("Writing new contents to the original file %s...\n", fileName)
+	if verbose {
+		log.Printf("Writing new contents to the original file %s...\n", fileName)
+	}
 	err = os.WriteFile(fileName, contents, perm)
 	if err != nil {
 		log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
@@ -995,7 +1011,9 @@ func updateFileDirectly(fileName string, contents []byte, perm os.FileMode) erro
 		return err
 	}
 	// remove the temporary backup file
-	log.Printf("Removing backup file %s...\n", bakFileName)
+	if verbose {
+		log.Printf("Removing backup file %s...\n", bakFileName)
+	}
 	os.Remove(bakFileName)
 	return nil
 }

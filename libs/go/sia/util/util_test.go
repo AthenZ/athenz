@@ -139,7 +139,7 @@ func testInternalUpdateFileNew(test *testing.T, fileDirectUpdate bool) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := UpdateFile(fileName, []byte(testContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644, fileDirectUpdate)
+	err := UpdateFile(fileName, []byte(testContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644, fileDirectUpdate, true)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -174,7 +174,7 @@ func testInternalUpdateFileExisting(test *testing.T, fileDirectUpdate bool) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = UpdateFile(fileName, []byte(testNewContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644, fileDirectUpdate)
+	err = UpdateFile(fileName, []byte(testNewContents), ExecIdCommand("-u"), ExecIdCommand("-g"), 0644, fileDirectUpdate, true)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -203,7 +203,7 @@ func TestPrivateKeySupport(test *testing.T) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	uid := ExecIdCommand("-u")
 	gid := ExecIdCommand("-g")
-	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644, false)
+	err = UpdateFile(fileName, []byte(PrivatePem(key)), uid, gid, 0644, false, true)
 	if err != nil {
 		test.Errorf("Unable to save private key file - %v", err)
 		return

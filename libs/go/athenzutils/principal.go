@@ -51,3 +51,11 @@ func ExtractServicePrincipal(x509Cert x509.Certificate) (string, error) {
 
 	return principal, nil
 }
+
+func ParsePrincipal(principal string) (string, string, error) {
+	idx := strings.LastIndex(principal, ".")
+	if idx == -1 || idx == 0 || idx == len(principal)-1 {
+		return "", "", fmt.Errorf("invalid principal format - must be <domain>.<service>")
+	}
+	return principal[:idx], principal[idx+1:], nil
+}

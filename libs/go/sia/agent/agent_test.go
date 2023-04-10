@@ -127,7 +127,7 @@ func testInternalUpdateFileNew(test *testing.T, fileDirectUpdate bool) {
 	fileName := fmt.Sprintf("sia-test.tmp%d", timeNano)
 	_ = os.Remove(fileName)
 	testContents := "sia-unit-test"
-	err := util.UpdateFile(fileName, []byte(testContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644, fileDirectUpdate)
+	err := util.UpdateFile(fileName, []byte(testContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644, fileDirectUpdate, true)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
@@ -163,7 +163,7 @@ func testInternalUpdateFileExisting(test *testing.T, fileDirectUpdate bool) {
 		return
 	}
 	testNewContents := "sia-unit"
-	err = util.UpdateFile(fileName, []byte(testNewContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644, fileDirectUpdate)
+	err = util.UpdateFile(fileName, []byte(testNewContents), util.ExecIdCommand("-u"), util.ExecIdCommand("-g"), 0644, fileDirectUpdate, true)
 	if err != nil {
 		test.Errorf("Cannot create new file: %v", err)
 		return
