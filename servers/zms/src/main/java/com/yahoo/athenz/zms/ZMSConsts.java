@@ -132,8 +132,9 @@ public final class ZMSConsts {
 
     public static final String ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS    = "athenz.zms.auth_history_store_factory_class";
 
-    public static final String ZMS_PROP_AWS_ASSUME_ROLE_ACTION = "athenz.zms.aws_assume_role_action";
-    public static final String ZMS_PROP_GCP_ASSUME_ROLE_ACTION = "athenz.zms.gcp_assume_role_action";
+    public static final String ZMS_PROP_AWS_ASSUME_ROLE_ACTION    = "athenz.zms.aws_assume_role_action";
+    public static final String ZMS_PROP_GCP_ASSUME_ROLE_ACTION    = "athenz.zms.gcp_assume_role_action";
+    public static final String ZMS_PROP_GCP_ASSUME_SERVICE_ACTION = "athenz.zms.gcp_assume_service_action";
 
     // properties for our default quota limits
 
@@ -281,11 +282,12 @@ public final class ZMSConsts {
     public static final String ADMIN_POLICY_NAME = "admin";
     public static final String ADMIN_ROLE_NAME   = "admin";
 
-    public static final String ASSERTION_EFFECT_ALLOW = "ALLOW";
-    public static final String ACTION_ASSUME_ROLE     = "assume_role";
-    public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
-    public static final String ACTION_ASSUME_GCP_ROLE = "assume_gcp_role";
-    public static final String ACTION_UPDATE          = "update";
+    public static final String ASSERTION_EFFECT_ALLOW    = "ALLOW";
+    public static final String ACTION_ASSUME_ROLE        = "assume_role";
+    public static final String ACTION_ASSUME_AWS_ROLE    = "assume_aws_role";
+    public static final String ACTION_ASSUME_GCP_ROLE    = "assume_gcp_role";
+    public static final String ACTION_ASSUME_GCP_SERVICE = "assume_gcp_service";
+    public static final String ACTION_UPDATE             = "update";
 
     public static final String OBJECT_DOMAIN    = "domain";
     public static final String OBJECT_ROLE      = "role";

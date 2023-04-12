@@ -65,6 +65,7 @@ public class DBService implements RolesProvider {
     private final int maxPolicyVersions;
     final String awsAssumeRoleAction;
     final String gcpAssumeRoleAction;
+    final String gcpAssumeServiceAction;
 
     private static final Logger LOG = LoggerFactory.getLogger(DBService.class);
 
@@ -103,6 +104,8 @@ public class DBService implements RolesProvider {
                 ZMSConsts.ACTION_ASSUME_AWS_ROLE);
         gcpAssumeRoleAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_ROLE_ACTION,
                 ZMSConsts.ACTION_ASSUME_GCP_ROLE);
+        gcpAssumeServiceAction = System.getProperty(ZMSConsts.ZMS_PROP_GCP_ASSUME_SERVICE_ACTION,
+                ZMSConsts.ACTION_ASSUME_GCP_SERVICE);
 
         // default timeout in seconds for object store commands
 
@@ -2912,7 +2915,7 @@ public class DBService implements RolesProvider {
 
         if (awsAssumeRoleAction.equals(action)) {
             generateAWSResources(accessList);
-        } else if (gcpAssumeRoleAction.equals(action)) {
+        } else if (gcpAssumeRoleAction.equals(action) || gcpAssumeServiceAction.equals(action)) {
             generateGCPResources(accessList);
         }
 
