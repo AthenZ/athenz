@@ -10,8 +10,8 @@ func NewSysLogger() (io.Writer, error) {
 	return os.Stdout, nil
 }
 
-func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode, directUpdate bool) error {
-	return UpdateFileContents(fileName, contents, perm, directUpdate)
+func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode, directUpdate, verbose bool) error {
+	return UpdateFileContents(fileName, contents, perm, directUpdate, verbose)
 }
 
 func SvcAttrs(username, groupname string) (int, int, int) {

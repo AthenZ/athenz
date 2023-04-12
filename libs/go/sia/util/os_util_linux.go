@@ -20,8 +20,8 @@ func NewSysLogger() (io.Writer, error) {
 	return syslog.New(syslog.LOG_INFO|syslog.LOG_DAEMON, "siad")
 }
 
-func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode, directUpdate bool) error {
-	err := UpdateFileContents(fileName, contents, perm, directUpdate)
+func UpdateFile(fileName string, contents []byte, uid, gid int, perm os.FileMode, directUpdate, verbose bool) error {
+	err := UpdateFileContents(fileName, contents, perm, directUpdate, verbose)
 	if err != nil {
 		return err
 	}
