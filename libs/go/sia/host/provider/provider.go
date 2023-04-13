@@ -41,7 +41,7 @@ type Provider interface {
 	GetName() string
 
 	// GetHostname returns the name of the hostname as recognized by the provider
-	GetHostname() string
+	GetHostname(bool) string
 
 	// GetCsrDn returns the x.509 Distinguished Name for use in the CSR
 	GetCsrDn() pkix.Name

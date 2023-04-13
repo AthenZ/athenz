@@ -63,15 +63,15 @@ func (tp TestProvider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (tp TestProvider) GetHostname() string {
+func (tp TestProvider) GetHostname(bool) string {
 	return tp.Hostname
 }
 
-func (tp TestProvider) AttestationData(svc string, key crypto.PrivateKey, sigInfo *signature.SignatureInfo) (string, error) {
+func (tp TestProvider) AttestationData(string, crypto.PrivateKey, *signature.SignatureInfo) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (tp TestProvider) PrepareKey(file string) (crypto.PrivateKey, error) {
+func (tp TestProvider) PrepareKey(string) (crypto.PrivateKey, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
@@ -79,23 +79,23 @@ func (tp TestProvider) GetCsrDn() pkix.Name {
 	return pkix.Name{}
 }
 
-func (tp TestProvider) GetSanDns(service string, includeHost bool, wildcard bool, cnames []string) []string {
+func (tp TestProvider) GetSanDns(string, bool, bool, []string) []string {
 	return nil
 }
 
-func (tp TestProvider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (tp TestProvider) GetSanUri(string, ip.Opts) []*url.URL {
 	return nil
 }
 
-func (tp TestProvider) GetEmail(service string) []string {
+func (tp TestProvider) GetEmail(string) []string {
 	return nil
 }
 
-func (tp TestProvider) GetRoleDnsNames(cert *x509.Certificate, service string) []string {
+func (tp TestProvider) GetRoleDnsNames(*x509.Certificate, string) []string {
 	return nil
 }
 
-func (tp TestProvider) GetSanIp(docIp map[string]bool, ips []net.IP, opts ip.Opts) []net.IP {
+func (tp TestProvider) GetSanIp(map[string]bool, []net.IP, ip.Opts) []net.IP {
 	return nil
 }
 
@@ -103,15 +103,15 @@ func (tp TestProvider) GetSuffix() string {
 	return ""
 }
 
-func (tp TestProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
+func (tp TestProvider) CloudAttestationData(string, string, string) (string, error) {
 	return "abc", nil
 }
 
-func (tp TestProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+func (tp TestProvider) GetAccountDomainServiceFromMeta(string) (string, string, string, error) {
 	return "testAcct", "testDom", "testSvc", nil
 }
 
-func (tp TestProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+func (tp TestProvider) GetAccessManagementProfileFromMeta(string) (string, error) {
 	return "testProf", nil
 }
 
@@ -490,7 +490,7 @@ func TestGetServiceHostname(test *testing.T) {
 			svc := options.Service{
 				Name: tt.service,
 			}
-			hostname := getServiceHostname(&opts, svc)
+			hostname := getServiceHostname(&opts, svc, false)
 			if tt.result != hostname {
 				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, hostname)
 			}

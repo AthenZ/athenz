@@ -23,10 +23,9 @@ import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
-	"log"
+	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 	"net"
 	"net/url"
-	"os"
 )
 
 type EC2Provider struct {
@@ -39,13 +38,8 @@ func (ec2 EC2Provider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (ec2 EC2Provider) GetHostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Printf("Unable to obtain os hostname: %v\n", err)
-		return ""
-	}
-	return hostname
+func (ec2 EC2Provider) GetHostname(fqdn bool) string {
+	return utils.GetHostname(fqdn)
 }
 
 func (ec2 EC2Provider) AttestationData(svc string, key crypto.PrivateKey, sigInfo *signature.SignatureInfo) (string, error) {
