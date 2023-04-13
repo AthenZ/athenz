@@ -20340,7 +20340,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName1, "policy3", auditRef, false, policy3);
 
         Policy policy4 = zmsTestInitializer.createPolicyObject(domainName1, "policy4", "gcp-role3",
-                "assume_gcp_role", domainName1 + ":services/service1-resource", AssertionEffect.ALLOW);
+                "assume_gcp_service", domainName1 + ":services/service1-resource", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, domainName1, "policy4", auditRef, false, policy4);
 
         // this should be excluded due to domain mismatch for gcp check
@@ -20375,7 +20375,7 @@ public class ZMSImplTest {
         assertEquals(resources.size(), 1);
         ResourceAccess rsrcAccess = resources.get(0);
         assertEquals(rsrcAccess.getPrincipal(), "user.joe");
-        assertEquals(rsrcAccess.getAssertions().size(), 4);
+        assertEquals(rsrcAccess.getAssertions().size(), 3);
         Set<String> resourceCheck = new HashSet<>();
         for (Assertion assertion : rsrcAccess.getAssertions()) {
             resourceCheck.add(assertion.getResource());
@@ -20383,7 +20383,18 @@ public class ZMSImplTest {
         assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role1-resource"));
         assertTrue(resourceCheck.contains("projects/gcp-1234/roles/role2-resource"));
         assertTrue(resourceCheck.contains("projects/gcp-1234/groups/group1-resource"));
-        assertTrue(resourceCheck.contains("projects/gcp-1234/services/service1-resource"));
+
+        // get the list of resources for user.joe with assume_gcp_service action
+
+        resourceAccessList = zmsImpl.getResourceAccessList(ctx, "user.joe", "assume_gcp_service");
+        assertNotNull(resourceAccessList);
+
+        resources = resourceAccessList.getResources();
+        assertEquals(resources.size(), 1);
+        rsrcAccess = resources.get(0);
+        assertEquals(rsrcAccess.getPrincipal(), "user.joe");
+        assertEquals(rsrcAccess.getAssertions().size(), 1);
+        assertEquals(rsrcAccess.getAssertions().get(0).getResource(), "projects/gcp-1234/services/service1-resource");
 
         // get the list of resources for user.jane with assume_gcp_role action
 
