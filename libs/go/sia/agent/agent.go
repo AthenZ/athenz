@@ -191,11 +191,11 @@ func RefreshInstance(ztsUrl, metaEndpoint string, opts *options.Options) error {
 	return nil
 }
 
-func getServiceHostname(opts *options.Options, svc options.Service) string {
+func getServiceHostname(opts *options.Options, svc options.Service, fqdn bool) string {
 	if !opts.SanDnsHostname {
 		return ""
 	}
-	hostname := opts.Provider.GetHostname()
+	hostname := opts.Provider.GetHostname(fqdn)
 	if hostname == "" {
 		log.Println("No hostname configured for the instance")
 		return ""
@@ -210,8 +210,15 @@ func getServiceHostname(opts *options.Options, svc options.Service) string {
 	//suffix is properly configured since we might be having
 	//multiple suffix values
 	if opts.HostnameSuffix == "" {
-		log.Printf("No hostname suffix configured for the instance: %s\n", hostname)
-		return ""
+		// if our initial request was without fqdn then we're
+		// going to retry with the fqdn otherwise we'll just
+		// return an empty string
+		if fqdn {
+			log.Printf("No hostname suffix configured for the instance: %s\n", hostname)
+			return ""
+		} else {
+			return getServiceHostname(opts, svc, true)
+		}
 	}
 
 	hyphenDomain := strings.Replace(opts.Domain, ".", "-", -1)
@@ -227,7 +234,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
-	hostname := getServiceHostname(opts, svc)
+	hostname := getServiceHostname(opts, svc, false)
 	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
 	if err != nil {
 		return err
@@ -326,7 +333,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
-	hostname := getServiceHostname(opts, svc)
+	hostname := getServiceHostname(opts, svc, false)
 	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
 	if err != nil {
 		return err

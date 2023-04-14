@@ -37,7 +37,7 @@ func (fargate FargateProvider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (fargate FargateProvider) GetHostname() string {
+func (fargate FargateProvider) GetHostname(fqdn bool) string {
 	return ""
 }
 

@@ -23,10 +23,9 @@ import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
-	"log"
+	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 	"net"
 	"net/url"
-	"os"
 )
 
 type EKSProvider struct {
@@ -39,13 +38,8 @@ func (eks EKSProvider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (eks EKSProvider) GetHostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Printf("Unable to obtain os hostname: %v\n", err)
-		return os.Getenv("HOSTNAME")
-	}
-	return hostname
+func (eks EKSProvider) GetHostname(fqdn bool) string {
+	return utils.GetHostname(fqdn)
 }
 
 func (eks EKSProvider) AttestationData(svc string, key crypto.PrivateKey, sigInfo *signature.SignatureInfo) (string, error) {

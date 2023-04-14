@@ -25,10 +25,9 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/host/ip"
 	"github.com/AthenZ/athenz/libs/go/sia/host/signature"
-	"log"
+	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 	"net"
 	"net/url"
-	"os"
 )
 
 type GCEProvider struct {
@@ -41,13 +40,8 @@ func (gke GCEProvider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (gke GCEProvider) GetHostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Printf("Unable to obtain os hostname: %v\n", err)
-		return os.Getenv("HOSTNAME")
-	}
-	return hostname
+func (gke GCEProvider) GetHostname(fqdn bool) string {
+	return utils.GetHostname(fqdn)
 }
 
 func (gke GCEProvider) AttestationData(svc string, key crypto.PrivateKey, sigInfo *signature.SignatureInfo) (string, error) {
