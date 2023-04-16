@@ -46,10 +46,9 @@ func TestGetConfigNoConfig(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, config)
 	require.NotNil(t, configAccount)
-	require.NotNil(t, accessProfileConfig)
+	require.Nil(t, accessProfileConfig)
 	assert.True(t, configAccount.Domain == "athenz")
 	assert.True(t, configAccount.Service == "hockey")
-	assert.True(t, accessProfileConfig.Profile == "stage")
 }
 
 // TestGetConfigWithConfig test the scenario when /etc/sia/sia_config is present

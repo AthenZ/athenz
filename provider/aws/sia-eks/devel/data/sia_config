@@ -15,5 +15,6 @@
             "user": "nobody",
             "account": "123456789012"
         }
-    ]
+    ],
+    "access_management": true
 }

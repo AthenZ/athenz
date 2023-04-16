@@ -55,12 +55,15 @@ func GetEKSConfig(configFile, profileConfigFile, metaEndpoint string, useRegiona
 			}
 		}
 	}
-	profileConfig, err := GetEKSAccessProfile(profileConfigFile, metaEndpoint, useRegionalSTS, region)
-	if err != nil {
-		log.Printf("Unable to determine user access management profile information: %v\n", err)
-	}
+	if config.AccessManagement {
+		profileConfig, err := GetEKSAccessProfile(profileConfigFile, metaEndpoint, useRegionalSTS, region)
+		if err != nil {
+			log.Printf("Unable to determine user access management profile information: %v\n", err)
+		}
 
-	return config, configAccount, profileConfig, nil
+		return config, configAccount, profileConfig, nil
+	}
+	return config, configAccount, nil, nil
 }
 
 func GetEKSAccessProfile(configFile, metaEndpoint string, useRegionalSTS bool, region string) (*options.AccessProfileConfig, error) {

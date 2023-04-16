@@ -105,6 +105,7 @@ type Config struct {
 	SiaTokenDir      string                   `json:"sia_token_dir,omitempty"`      //sia tokens directory to override /var/lib/sia/tokens
 	SiaBackupDir     string                   `json:"sia_backup_dir,omitempty"`     //sia backup directory to override /var/lib/sia/backup
 	HostnameSuffix   string                   `json:"hostname_suffix,omitempty"`    //hostname suffix in case we need to auto-generate hostname
+	AccessManagement bool                     `json:"access_management"`            // access management support
 }
 
 type AccessProfileConfig struct {
@@ -199,6 +200,7 @@ type Options struct {
 	FileDirectUpdate   bool              //update key/cert files directly instead of using rename
 	HostnameSuffix     string            //hostname suffix in case we need to auto-generate hostname
 	SshPrincipals      string            //ssh additional principals
+	AccessManagement   bool              //access management support
 }
 
 const (
@@ -405,6 +407,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if config.SshPrincipals == "" {
 		config.SshPrincipals = os.Getenv("ATHENZ_SIA_SSH_PRINCIPALS")
 	}
+	if !config.AccessManagement {
+		config.AccessManagement = util.ParseEnvBooleanFlag("ATHENZ_SIA_ACCESS_MANAGEMENT")
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -480,6 +485,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	backupDir := fmt.Sprintf("%s/backup", siaDir)
 	sshHostKeyType := hostkey.Rsa
 	sshPrincipals := ""
+	accessManagement := false
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -492,6 +498,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		ztsRegion = config.ZTSRegion
 		dropPrivileges = config.DropPrivileges
 		fileDirectUpdate = config.FileDirectUpdate
+		accessManagement = config.AccessManagement
+
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
@@ -684,6 +692,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		FileDirectUpdate:  fileDirectUpdate,
 		SshHostKeyType:    sshHostKeyType,
 		SshPrincipals:     sshPrincipals,
+		AccessManagement:  accessManagement,
 	}, nil
 }
 
