@@ -105,7 +105,7 @@ type Config struct {
 	SiaTokenDir      string                   `json:"sia_token_dir,omitempty"`      //sia tokens directory to override /var/lib/sia/tokens
 	SiaBackupDir     string                   `json:"sia_backup_dir,omitempty"`     //sia backup directory to override /var/lib/sia/backup
 	HostnameSuffix   string                   `json:"hostname_suffix,omitempty"`    //hostname suffix in case we need to auto-generate hostname
-	AccessManagement bool                     `json:"access_management"`            // access management support
+	AccessManagement bool                     `json:"access_management"`            //access management support
 }
 
 type AccessProfileConfig struct {
@@ -201,6 +201,7 @@ type Options struct {
 	HostnameSuffix     string            //hostname suffix in case we need to auto-generate hostname
 	SshPrincipals      string            //ssh additional principals
 	AccessManagement   bool              //access management support
+	AddlSanDNSEntries  []string          //additional san dns entries to be added to the CSR
 }
 
 const (

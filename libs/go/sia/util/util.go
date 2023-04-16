@@ -261,7 +261,7 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, hostname string, ztsDomains []string, wildCardDnsName, instanceIdSanDNS bool) (string, error) {
+func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, hostname string, addlSanDNSEntries, ztsDomains []string, wildCardDnsName, instanceIdSanDNS bool) (string, error) {
 
 	log.Println("Generating X.509 Service Certificate CSR...")
 
@@ -279,20 +279,25 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, servi
 	csrDetails.HostList = []string{}
 	for _, ztsDomain := range ztsDomains {
 		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
-		csrDetails.HostList = append(csrDetails.HostList, host)
+		csrDetails.HostList = AppendHostname(csrDetails.HostList, host)
 		if wildCardDnsName {
 			host = fmt.Sprintf("*.%s.%s.%s", service, hyphenDomain, ztsDomain)
-			csrDetails.HostList = append(csrDetails.HostList, host)
+			csrDetails.HostList = AppendHostname(csrDetails.HostList, host)
 		}
 	}
 	// include hostname if requested
 	if hostname != "" {
-		csrDetails.HostList = append(csrDetails.HostList, hostname)
+		csrDetails.HostList = AppendHostname(csrDetails.HostList, hostname)
+	}
+	if len(addlSanDNSEntries) > 0 {
+		for _, host := range addlSanDNSEntries {
+			csrDetails.HostList = AppendHostname(csrDetails.HostList, host)
+		}
 	}
 	// for backward compatibility a sanDNS entry with instance id in the hostname
 	if instanceIdSanDNS {
 		instanceIdHost := fmt.Sprintf("%s.instanceid.athenz.%s", instanceId, ztsDomains[0])
-		csrDetails.HostList = append(csrDetails.HostList, instanceIdHost)
+		csrDetails.HostList = AppendHostname(csrDetails.HostList, instanceIdHost)
 	}
 
 	csrDetails.URIs = []*url.URL{}
@@ -428,6 +433,15 @@ func AppendUri(uriList []*url.URL, uriValue string) []*url.URL {
 		uriList = append(uriList, uri)
 	}
 	return uriList
+}
+
+func AppendHostname(hostList []string, hostname string) []string {
+	for _, host := range hostList {
+		if host == hostname {
+			return hostList
+		}
+	}
+	return append(hostList, hostname)
 }
 
 func GetRoleCertFileName(certDir, fileName, certName string) string {
@@ -972,14 +986,14 @@ func updateFileUsingRename(fileName string, contents []byte, perm os.FileMode, v
 	if err != nil {
 		log.Printf("Unable to rename file %s to %s, err: %v\n", newFileName, fileName, err)
 		// before returning try to restore the original file
-		os.Rename(bakFileName, fileName)
+		_ = os.Rename(bakFileName, fileName)
 		return err
 	}
 	// remove the temporary backup file
 	if verbose {
 		log.Printf("Removing backup file %s...\n", bakFileName)
 	}
-	os.Remove(bakFileName)
+	_ = os.Remove(bakFileName)
 	return nil
 }
 
@@ -1007,14 +1021,14 @@ func updateFileDirectly(fileName string, contents []byte, perm os.FileMode, verb
 	err = os.WriteFile(fileName, contents, perm)
 	if err != nil {
 		log.Printf("Unable to write new file %s, err: %v\n", fileName, err)
-		os.Rename(bakFileName, fileName)
+		_ = os.Rename(bakFileName, fileName)
 		return err
 	}
 	// remove the temporary backup file
 	if verbose {
 		log.Printf("Removing backup file %s...\n", bakFileName)
 	}
-	os.Remove(bakFileName)
+	_ = os.Remove(bakFileName)
 	return nil
 }
 

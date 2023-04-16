@@ -92,27 +92,28 @@ type Service struct {
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider         string                //name of the provider
-	Name             string                //name of the service identity
-	User             string                //the user name to chown the cert/key dirs to. If absent, then root
-	Group            string                //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain           string                //name of the domain for the identity
-	Account          string                //name of the account
-	Services         []Service             //array of configured services
-	Ssh              bool                  //ssh certificate support
-	Zts              string                //the ZTS to contact
-	Roles            map[string]ConfigRole //list of configured roles
-	Version          string                //sia version number
-	KeyDir           string                //private key directory path
-	CertDir          string                //x.509 certificate directory path
-	CountryName      string                //country name
-	AthenzCACertFile string                //filename to store Athenz CA certs
-	ZTSCACertFile    string                //filename for CA certs when communicating with ZTS
-	ZTSServerName    string                //ZTS server name, if necessary for tls
-	ZTSAzureDomains  []string              //list of domain prefixes for sanDNS entries
-	SanDnsWildcard   bool                  //san dns wildcard support
-	SanDnsHostname   bool                  //san dns hostname support
-	FileDirectUpdate bool                  //update key/cert files directly instead of using rename
+	Provider          string                //name of the provider
+	Name              string                //name of the service identity
+	User              string                //the user name to chown the cert/key dirs to. If absent, then root
+	Group             string                //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain            string                //name of the domain for the identity
+	Account           string                //name of the account
+	Services          []Service             //array of configured services
+	Ssh               bool                  //ssh certificate support
+	Zts               string                //the ZTS to contact
+	Roles             map[string]ConfigRole //list of configured roles
+	Version           string                //sia version number
+	KeyDir            string                //private key directory path
+	CertDir           string                //x.509 certificate directory path
+	CountryName       string                //country name
+	AthenzCACertFile  string                //filename to store Athenz CA certs
+	ZTSCACertFile     string                //filename for CA certs when communicating with ZTS
+	ZTSServerName     string                //ZTS server name, if necessary for tls
+	ZTSAzureDomains   []string              //list of domain prefixes for sanDNS entries
+	SanDnsWildcard    bool                  //san dns wildcard support
+	SanDnsHostname    bool                  //san dns hostname support
+	FileDirectUpdate  bool                  //update key/cert files directly instead of using rename
+	AddlSanDNSEntries []string              //additional san dns entries to be added to the CSR
 }
 
 func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigAccount, error) {

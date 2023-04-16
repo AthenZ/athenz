@@ -113,7 +113,7 @@ type Config struct {
 	Roles            map[string]ConfigRole    `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
 	Threshold        float64                  `json:"cert_threshold_to_check,omitempty"`    //Threshold to verify for all certs
 	SshThreshold     float64                  `json:"sshcert_threshold_to_check,omitempty"` //Threshold to verify for ssh certs
-	AccessManagement bool                     `json:"access_management"`                    // access management support
+	AccessManagement bool                     `json:"access_management"`                    //access management support
 }
 
 type AccessProfileConfig struct {
@@ -210,6 +210,7 @@ type Options struct {
 	SshPrincipals      string            //ssh additional principals
 	AccessManagement   bool              //access management support
 	ZTSCloudDomains    []string          //list of domain prefixes for sanDNS entries
+	AddlSanDNSEntries  []string          //additional san dns entries to be added to the CSR
 }
 
 const (

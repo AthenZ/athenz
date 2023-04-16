@@ -247,8 +247,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
-
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.AddlSanDNSEntries, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		return err
 	}
@@ -347,8 +346,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
-
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.AddlSanDNSEntries, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

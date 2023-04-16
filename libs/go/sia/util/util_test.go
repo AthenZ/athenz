@@ -224,7 +224,7 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 		return
 	}
 
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", "", []string{"athenz.cloud"}, false, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", "", nil, []string{"athenz.cloud"}, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -372,7 +372,7 @@ func TestGenerateWithWildCardHostname(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", []string{"athenz.cloud"}, true, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", []string{}, []string{"athenz.cloud"}, true, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -406,7 +406,7 @@ func TestGenerateWithHostname(test *testing.T) {
 		return
 	}
 	hostname, _ := os.Hostname()
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", hostname, []string{"athenz.cloud"}, false, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", hostname, nil, []string{"athenz.cloud"}, false, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -441,7 +441,7 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", ztsDomains, true, false)
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", nil, ztsDomains, true, false)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -471,6 +471,48 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	if parsedcertreq.DNSNames[3] != "*.service.domain.athenz2.cloud" {
 		test.Errorf("CSR does not have expected wildcard dns name: %s", parsedcertreq.DNSNames[1])
+		return
+	}
+}
+
+func TestGenerateWithAddlSanDNSEntries(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	hostname, _ := os.Hostname()
+	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", hostname, []string{"10-11-12-13.ns.pod.cluster.local", "svc1.ns.svc.cluster.local"}, []string{"athenz.cloud"}, false, false)
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+	if len(parsedcertreq.DNSNames) != 4 {
+		test.Errorf("CSR does not have 4 expected san dns names: %d", len(parsedcertreq.DNSNames))
+		return
+	}
+	if parsedcertreq.DNSNames[0] != "service.domain.athenz.cloud" {
+		test.Errorf("CSR does not have expected dns name: %s", parsedcertreq.DNSNames[0])
+		return
+	}
+	if parsedcertreq.DNSNames[1] != hostname {
+		test.Errorf("CSR does not have expected dns hostname: %s", parsedcertreq.DNSNames[1])
+		return
+	}
+	if parsedcertreq.DNSNames[2] != "10-11-12-13.ns.pod.cluster.local" {
+		test.Errorf("CSR does not have expected dns hostname: %s", parsedcertreq.DNSNames[1])
+		return
+	}
+	if parsedcertreq.DNSNames[3] != "svc1.ns.svc.cluster.local" {
+		test.Errorf("CSR does not have expected dns hostname: %s", parsedcertreq.DNSNames[1])
 		return
 	}
 }
@@ -1096,4 +1138,25 @@ func TestGenerateSSHHostRequest(t *testing.T) {
 	assert.Equal(t, "ssh-pub-key", req.CertRequestData.PublicKey)
 	assert.Equal(t, 1, len(req.CertRequestData.Principals))
 	assert.Equal(t, "api.athenz.athenz.cloud", req.CertRequestData.Principals[0])
+}
+
+func TestAppendHostname(t *testing.T) {
+	list := []string{}
+	list = AppendHostname(list, "host1.athenz.io")
+	assert.Equal(t, len(list), 1)
+	assert.Equal(t, list[0], "host1.athenz.io")
+
+	list = AppendHostname(list, "host1.athenz.io")
+	assert.Equal(t, len(list), 1)
+	assert.Equal(t, list[0], "host1.athenz.io")
+
+	list = AppendHostname(list, "host2.athenz.io")
+	assert.Equal(t, len(list), 2)
+	assert.Equal(t, list[0], "host1.athenz.io")
+	assert.Equal(t, list[1], "host2.athenz.io")
+
+	list = AppendHostname(list, "host2.athenz.io")
+	assert.Equal(t, len(list), 2)
+	assert.Equal(t, list[0], "host1.athenz.io")
+	assert.Equal(t, list[1], "host2.athenz.io")
 }
