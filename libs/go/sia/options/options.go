@@ -290,11 +290,12 @@ func InitGenericProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator s
 	}
 	profile, err := provider.GetAccessManagementProfileFromMeta(metaEndPoint)
 	if err != nil {
+		// access profile error can be ignored for now.
 		return &Config{
 			Account: account,
 			Domain:  domain,
 			Service: service,
-		}, nil, err
+		}, nil, nil
 	}
 	return &Config{
 			Account: account,
