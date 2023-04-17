@@ -1,3 +1,14 @@
+Athenz v1.11.26 Release / Apr 17, 2023
+--------------------------------------
+
+#2125 relax san dns check rules for k8s suffixes - svc.cluster.local/pod.cluster.local
+#2126 zms/utils helper methods in athenzutils go library
+#2127 designate separate action for assertions when assuming gcp service accounts
+#2128 sia: use hostname -f if os.Hostname does not return fqdn
+#2130 making access_management optional based on a config for EKS
+#2131 for eks/gke generate san dns entries based on k8s dns spec
+#2132 same openjdk version in doc as ci/cd
+
 Athenz v1.11.25 Release / Apr 06, 2023
 --------------------------------------
 
