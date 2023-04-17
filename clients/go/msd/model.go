@@ -1721,6 +1721,117 @@ func (self *Workloads) Validate() error {
 	return nil
 }
 
+// StaticWorkloadService - static workload service
+type StaticWorkloadService struct {
+
+	//
+	// value representing one of the StaticWorkloadType enum
+	//
+	Type StaticWorkloadType `json:"type"`
+
+	//
+	// name of the service
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// service instance
+	//
+	Instance EntityName `json:"instance"`
+}
+
+// NewStaticWorkloadService - creates an initialized StaticWorkloadService instance, returns a pointer to it
+func NewStaticWorkloadService(init ...*StaticWorkloadService) *StaticWorkloadService {
+	var o *StaticWorkloadService
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(StaticWorkloadService)
+	}
+	return o
+}
+
+type rawStaticWorkloadService StaticWorkloadService
+
+// UnmarshalJSON is defined for proper JSON decoding of a StaticWorkloadService
+func (self *StaticWorkloadService) UnmarshalJSON(b []byte) error {
+	var m rawStaticWorkloadService
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := StaticWorkloadService(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *StaticWorkloadService) Validate() error {
+	if self.ServiceName == "" {
+		return fmt.Errorf("StaticWorkloadService.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("StaticWorkloadService.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Instance == "" {
+		return fmt.Errorf("StaticWorkloadService.instance is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Instance)
+		if !val.Valid {
+			return fmt.Errorf("StaticWorkloadService.instance does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// StaticWorkloadServices - list of services
+type StaticWorkloadServices struct {
+	StaticWorkloadServices []*StaticWorkloadService `json:"staticWorkloadServices"`
+}
+
+// NewStaticWorkloadServices - creates an initialized StaticWorkloadServices instance, returns a pointer to it
+func NewStaticWorkloadServices(init ...*StaticWorkloadServices) *StaticWorkloadServices {
+	var o *StaticWorkloadServices
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(StaticWorkloadServices)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *StaticWorkloadServices) Init() *StaticWorkloadServices {
+	if self.StaticWorkloadServices == nil {
+		self.StaticWorkloadServices = make([]*StaticWorkloadService, 0)
+	}
+	return self
+}
+
+type rawStaticWorkloadServices StaticWorkloadServices
+
+// UnmarshalJSON is defined for proper JSON decoding of a StaticWorkloadServices
+func (self *StaticWorkloadServices) UnmarshalJSON(b []byte) error {
+	var m rawStaticWorkloadServices
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := StaticWorkloadServices(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *StaticWorkloadServices) Validate() error {
+	if self.StaticWorkloadServices == nil {
+		return fmt.Errorf("StaticWorkloadServices: Missing required field: staticWorkloadServices")
+	}
+	return nil
+}
+
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
 // will interfere with workings of one or more transport policies NO_IMAPCT
 // indicates that a change in network policy will not interfere with workings of

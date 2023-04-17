@@ -72,5 +72,9 @@ public class MsdStoreConnectionTest {
 
         msdStoreConnection.deleteDynamicWorkload("athenz", "api", "1234-rsaq-422dcz");
         msdStoreConnection.deleteStaticWorkload("athenz", "api", "1234-rsaq-422dcz");
+
+        StaticWorkloadServices staticWorkloadServices = msdStoreConnection.getStaticWorkloadServices(null, null);
+        assertEquals(staticWorkloadServices.getStaticWorkloadServices().size(), 0);
+        
     }
 }

@@ -53,3 +53,15 @@ type Workloads Struct {
     Array<DynamicWorkload> dynamicWorkloadList (optional); // list of dynamic workloads
     Array<StaticWorkload> staticWorkloadList (optional); // list of static workloads
 }
+
+// static workload service
+type StaticWorkloadService Struct {
+    StaticWorkloadType type; // value representing one of the StaticWorkloadType enum
+    EntityName serviceName; // name of the service
+    EntityName instance; // service instance
+}
+
+// list of services
+type StaticWorkloadServices Struct {
+    Array<StaticWorkloadService> staticWorkloadServices;
+} 
