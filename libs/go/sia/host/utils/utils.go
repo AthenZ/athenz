@@ -49,9 +49,8 @@ func GetHostname(fqdn bool) string {
 	}
 }
 
-// GetK8SHostnames Generate pod hostname based on k8s spec:
-//
-//	https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pods
+// GetK8SHostnames Generate pod/svc hostnames based on k8s spec:
+// https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pods
 func GetK8SHostnames() []string {
 	k8sDnsEntries := []string{}
 	// we're going to generate two additional sanDNS entries for our
@@ -61,10 +60,6 @@ func GetK8SHostnames() []string {
 	// the pod name and namespace may already be available through other
 	// variables/settings, but we'll give preference to our env settings
 	// if they have been configured.
-	podName := os.Getenv("ATHENZ_SIA_POD_NAME")
-	if podName == "" {
-		podName = os.Getenv("HOSTNAME")
-	}
 	podNamespace := os.Getenv("ATHENZ_SIA_POD_NAMESPACE")
 	if podNamespace == "" {
 		// use namespace associated with the service account
@@ -72,23 +67,36 @@ func GetK8SHostnames() []string {
 			podNamespace = strings.TrimSpace(string(ns))
 		}
 	}
+	// in all of our components we need our namespace so if we don't
+	// have one configured there is no need to fetch other settings
+	if podNamespace == "" {
+		return k8sDnsEntries
+	}
+
+	podName := os.Getenv("ATHENZ_SIA_POD_NAME")
+	if podName == "" {
+		podName = os.Getenv("HOSTNAME")
+	}
 	podIP := os.Getenv("ATHENZ_SIA_POD_IP")
 	podService := os.Getenv("ATHENZ_SIA_POD_SERVICE")
 	podSubdomain := os.Getenv("ATHENZ_SIA_POD_SUBDOMAIN")
 
-	if podIP != "" && podNamespace != "" {
+	if podIP != "" {
 		podIPWithDashes := strings.ReplaceAll(podIP, ".", "-")
 		k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.%s", podIPWithDashes, podNamespace, PodClusterLocalDNSSuffix))
 		if podService != "" {
 			k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.%s.%s", podIPWithDashes, podService, podNamespace, PodClusterLocalDNSSuffix))
 		}
 	}
-	if podName != "" && podNamespace != "" {
+	if podName != "" {
 		podSubdomainComp := ""
 		if podSubdomain != "" {
 			podSubdomainComp = "." + podSubdomain
 		}
 		k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s%s.%s.%s", podName, podSubdomainComp, podNamespace, ServiceClusterLocalDNSSuffix))
+	}
+	if podService != "" {
+		k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.%s", podService, podNamespace, ServiceClusterLocalDNSSuffix))
 	}
 	return k8sDnsEntries
 }
