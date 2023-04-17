@@ -20,7 +20,7 @@ development tools you need to have installed on your system.
 
 You can replicate the container environment that Athenz users within
 Screwdriver to build and deploy Athenz packages. You can start a new
-container using the `openjdk:8` image. Once you check out the Athenz
+container using the `openjdk:11` image. Once you check out the Athenz
 source tree, you can execute the `install_deps.sh` script
 to install the required development tools:
 
