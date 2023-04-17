@@ -25,6 +25,7 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/provider/gcp/sia-gke"
 )
@@ -105,6 +106,7 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
+	opts.AddlSanDNSEntries = utils.GetK8SHostnames()
 	opts.InstanceId = sia.GetGKEPodId()
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath

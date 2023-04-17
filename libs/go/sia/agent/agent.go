@@ -22,7 +22,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"log"
 	"os"
 	"os/exec"
@@ -36,6 +35,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/libs/go/sia/sds"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/cenkalti/backoff"
@@ -245,7 +245,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, opts.Domain+"."+svc.Name, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSCloudDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, opts.Domain+"."+svc.Name, opts.InstanceId, opts.Provider.GetName(), hostname, opts.AddlSanDNSEntries, opts.ZTSCloudDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		return err
 	}
@@ -344,8 +344,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
-
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, opts.Domain+"."+svc.Name, opts.InstanceId, opts.Provider.GetName(), hostname, opts.ZTSCloudDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, opts.Domain+"."+svc.Name, opts.InstanceId, opts.Provider.GetName(), hostname, opts.AddlSanDNSEntries, opts.ZTSCloudDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

@@ -26,6 +26,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
+	"github.com/AthenZ/athenz/libs/go/sia/host/utils"
 	"github.com/AthenZ/athenz/provider/aws/sia-eks"
 )
 
@@ -89,6 +90,7 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
+	opts.AddlSanDNSEntries = utils.GetK8SHostnames()
 	opts.InstanceId = sia.GetEKSPodId()
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
