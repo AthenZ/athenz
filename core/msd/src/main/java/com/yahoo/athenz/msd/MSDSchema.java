@@ -216,6 +216,16 @@ public class MSDSchema {
             .arrayField("dynamicWorkloadList", "DynamicWorkload", true, "list of dynamic workloads")
             .arrayField("staticWorkloadList", "StaticWorkload", true, "list of static workloads");
 
+        sb.structType("StaticWorkloadService")
+            .comment("static workload service")
+            .field("type", "StaticWorkloadType", false, "value representing one of the StaticWorkloadType enum")
+            .field("serviceName", "EntityName", false, "name of the service")
+            .field("instance", "EntityName", false, "service instance");
+
+        sb.structType("StaticWorkloadServices")
+            .comment("list of services")
+            .arrayField("staticWorkloadServices", "StaticWorkloadService", false, "");
+
         sb.enumType("NetworkPolicyChangeEffect")
             .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy")
             .element("IMPACT")
@@ -600,6 +610,24 @@ public class MSDSchema {
             .pathParam("name", "String", "name associated with the workload. In most cases will be a FQDN")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("StaticWorkloadServices", "GET", "/services/{serviceType}")
+            .comment("Api to retrieve static workload services by its type. type=StaticWorkloadType in String representation")
+            .name("getStaticWorkloadServicesByType")
+            .pathParam("serviceType", "EntityName", "type of the service")
+            .queryParam("value", "serviceValue", "EntityName", null, "specific service value")
+            .auth("", "", true)
+            .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

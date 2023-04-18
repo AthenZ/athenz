@@ -100,3 +100,18 @@ resource StaticWorkload DELETE "/domain/{domainName}/service/{serviceName}/name/
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+// Api to retrieve static workload services by its type. type=StaticWorkloadType in String representation 
+resource StaticWorkloadServices GET "/services/{serviceType}?value={serviceValue}" (name=getStaticWorkloadServicesByType) {
+    EntityName serviceType;  // type of the service
+    EntityName serviceValue (optional); // specific service value
+    expected OK, NOT_MODIFIED;
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

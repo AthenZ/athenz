@@ -589,6 +589,40 @@ func (client MSDClient) DeleteStaticWorkload(domainName DomainName, serviceName 
 	}
 }
 
+func (client MSDClient) GetStaticWorkloadServicesByType(serviceType EntityName, serviceValue EntityName) (*StaticWorkloadServices, error) {
+	var data *StaticWorkloadServices
+	url := client.URL + "/services/" + fmt.Sprint(serviceType) + encodeParams(encodeStringParam("value", string(serviceValue), ""))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return data, err
+			}
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeImpactRequest) (*NetworkPolicyChangeImpactResponse, error) {
 	var data *NetworkPolicyChangeImpactResponse
 	url := client.URL + "/transportpolicy/evaluatenetworkpolicychange"

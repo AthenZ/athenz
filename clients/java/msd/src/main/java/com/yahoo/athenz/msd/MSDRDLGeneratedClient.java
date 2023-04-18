@@ -412,6 +412,41 @@ public class MSDRDLGeneratedClient {
         }
     }
 
+    public StaticWorkloadServices getStaticWorkloadServicesByType(String serviceType, String serviceValue) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/services/{serviceType}")
+            .resolveTemplate("serviceType", serviceType);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (serviceValue != null) {
+            uriBuilder.setParameter("value", serviceValue);
+        }
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+            case 304:
+                if (code == 304) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), StaticWorkloadServices.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public NetworkPolicyChangeImpactResponse evaluateNetworkPolicyChange(NetworkPolicyChangeImpactRequest detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/transportpolicy/evaluatenetworkpolicychange");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());

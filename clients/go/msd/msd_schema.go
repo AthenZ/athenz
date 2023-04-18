@@ -252,6 +252,18 @@ func init() {
 	tWorkloads.ArrayField("staticWorkloadList", "StaticWorkload", true, "list of static workloads")
 	sb.AddType(tWorkloads.Build())
 
+	tStaticWorkloadService := rdl.NewStructTypeBuilder("Struct", "StaticWorkloadService")
+	tStaticWorkloadService.Comment("static workload service")
+	tStaticWorkloadService.Field("type", "StaticWorkloadType", false, nil, "value representing one of the StaticWorkloadType enum")
+	tStaticWorkloadService.Field("serviceName", "EntityName", false, nil, "name of the service")
+	tStaticWorkloadService.Field("instance", "EntityName", false, nil, "service instance")
+	sb.AddType(tStaticWorkloadService.Build())
+
+	tStaticWorkloadServices := rdl.NewStructTypeBuilder("Struct", "StaticWorkloadServices")
+	tStaticWorkloadServices.Comment("list of services")
+	tStaticWorkloadServices.ArrayField("staticWorkloadServices", "StaticWorkloadService", false, "")
+	sb.AddType(tStaticWorkloadServices.Build())
+
 	tNetworkPolicyChangeEffect := rdl.NewEnumTypeBuilder("Enum", "NetworkPolicyChangeEffect")
 	tNetworkPolicyChangeEffect.Comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy")
 	tNetworkPolicyChangeEffect.Element("IMPACT", "")
@@ -639,6 +651,19 @@ func init() {
 	mDeleteStaticWorkload.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mDeleteStaticWorkload.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mDeleteStaticWorkload.Build())
+
+	mGetStaticWorkloadServicesByType := rdl.NewResourceBuilder("StaticWorkloadServices", "GET", "/services/{serviceType}")
+	mGetStaticWorkloadServicesByType.Comment("Api to retrieve static workload services by its type. type=StaticWorkloadType in String representation")
+	mGetStaticWorkloadServicesByType.Name("getStaticWorkloadServicesByType")
+	mGetStaticWorkloadServicesByType.Input("serviceType", "EntityName", true, "", "", false, nil, "type of the service")
+	mGetStaticWorkloadServicesByType.Input("serviceValue", "EntityName", false, "value", "", true, nil, "specific service value")
+	mGetStaticWorkloadServicesByType.Auth("", "", true, "")
+	mGetStaticWorkloadServicesByType.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetStaticWorkloadServicesByType.Exception("FORBIDDEN", "ResourceError", "")
+	mGetStaticWorkloadServicesByType.Exception("NOT_FOUND", "ResourceError", "")
+	mGetStaticWorkloadServicesByType.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mGetStaticWorkloadServicesByType.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mGetStaticWorkloadServicesByType.Build())
 
 	mEvaluateNetworkPolicyChange := rdl.NewResourceBuilder("NetworkPolicyChangeImpactResponse", "POST", "/transportpolicy/evaluatenetworkpolicychange")
 	mEvaluateNetworkPolicyChange.Comment("API to evaluate network policies change impact on transport policies")

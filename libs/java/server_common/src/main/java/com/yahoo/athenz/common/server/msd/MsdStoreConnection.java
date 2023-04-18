@@ -103,6 +103,18 @@ public interface MsdStoreConnection extends Closeable {
     }
 
     /**
+     * retrieve static workload services by its type 
+     * @param serviceType StaticWorkloadType in String representation 
+     * @param serviceValue specific service value
+     * @return StaticWorkloadServices object contains list of StaticWorkloadService
+     */
+    default StaticWorkloadServices getStaticWorkloadServices(String serviceType, String serviceValue) {
+        StaticWorkloadServices staticWorkloadServices = new StaticWorkloadServices();
+        staticWorkloadServices.setStaticWorkloadServices(new ArrayList<>());
+        return staticWorkloadServices;
+    }
+
+    /**
      * getServiceModifiedTag returns a tag to indicate the change in workloads of the service.
      * The change could be an addition of an IP to an existing workload, or a new workload getting added
      * The tag itself could be a hash value or last modified timestamp
