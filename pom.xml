@@ -72,9 +72,9 @@
 
   <properties>
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
-    <aws.version>1.12.416</aws.version>
-    <aws2.version>2.20.13</aws2.version>
-    <gcp.bom.version>25.4.0</gcp.bom.version>
+    <aws.version>1.12.452</aws.version>
+    <aws2.version>2.20.49</aws2.version>
+    <gcp.bom.version>26.13.0</gcp.bom.version>
     <gcp.api-client.version>2.2.0</gcp.api-client.version>
     <bouncycastle.version>1.70</bouncycastle.version>
     <commons.daemon.version>1.3.3</commons.daemon.version>
@@ -89,11 +89,11 @@
     <jaxb.api.version>3.0.1</jaxb.api.version>
     <jaxb.impl.version>3.0.2</jaxb.impl.version>
     <jersey.version>3.1.1</jersey.version>
-    <jetty.version>11.0.14</jetty.version>
+    <jetty.version>11.0.15</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
     <jmockit.version>1.49</jmockit.version>
     <logback.client.version>1.2.11</logback.client.version>
-    <logback.server.version>1.4.5</logback.server.version>
+    <logback.server.version>1.4.7</logback.server.version>
     <maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <maven-checkstyle-plugin.version>3.2.1</maven-checkstyle-plugin.version>
@@ -107,16 +107,16 @@
     <maven-release-plugin.version>3.0.0-M7</maven-release-plugin.version>
     <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-    <maven-surefire-plugin.version>3.0.0-M9</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
     <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
-    <mockito.version>5.1.1</mockito.version>
-    <mysql.connector.version>8.0.32</mysql.connector.version>
+    <mockito.version>5.2.0</mockito.version>
+    <mysql.connector.version>8.0.33</mysql.connector.version>
     <nimbus.jose.version>9.31</nimbus.jose.version>
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
-    <slf4j.server.version>2.0.6</slf4j.server.version>
+    <slf4j.server.version>2.0.7</slf4j.server.version>
     <testng.version>7.7.1</testng.version>
-    <swagger.version>2.2.8</swagger.version>
+    <swagger.version>2.2.9</swagger.version>
     <commons.logging.version>1.2</commons.logging.version>
 
     <code.coverage.min>0.95</code.coverage.min>
@@ -237,7 +237,6 @@
             <phase>process-sources</phase>
             <configuration>
               <configLocation>athenz-checkstyle.xml</configLocation>
-              <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
               <failsOnError>false</failsOnError>
               <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
