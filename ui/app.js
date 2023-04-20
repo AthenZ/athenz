@@ -28,6 +28,7 @@ const handlers = {
     secure: require('./src/server/handlers/secure'),
     status: require('./src/server/handlers/status'),
 };
+const AuthStrategy = require('./src/server/handlers/AuthStrategy');
 const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev });
 const debug = require('debug')('AthenzUI:server:app');
@@ -37,6 +38,7 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
     .then(
         () => {
             const expressApp = express();
+            const okta = AuthStrategy.okta(appConfig, secrets, 120);
 
             handlers.status(expressApp, appConfig);
             handlers.body(expressApp);
@@ -67,6 +69,10 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                     req.query
                 );
             });
+            expressApp.get('/gcp/login', okta.protect(), (req, res) => {
+                return nextApp.render(req, res, '/gcp/login', req.query);
+            });
+
             expressApp.get('/', (req, res) => {
                 return nextApp.render(req, res, `/index`, req.query);
             });
