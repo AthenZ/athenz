@@ -37,7 +37,7 @@ func TestGetK8SHostnames(test *testing.T) {
 
 	tests := []struct {
 		name            string
-		siaPodName      string
+		siaPodHostname  string
 		siaPodIP        string
 		siaPodNamespace string
 		siaPodService   string
@@ -56,35 +56,21 @@ func TestGetK8SHostnames(test *testing.T) {
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
-			_ = os.Setenv("ATHENZ_SIA_POD_NAME", tt.siaPodName)
+			_ = os.Setenv("ATHENZ_SIA_POD_HOSTNAME", tt.siaPodHostname)
 			_ = os.Setenv("ATHENZ_SIA_POD_IP", tt.siaPodIP)
 			_ = os.Setenv("ATHENZ_SIA_POD_NAMESPACE", tt.siaPodNamespace)
 			_ = os.Setenv("ATHENZ_SIA_POD_SERVICE", tt.siaPodService)
 			_ = os.Setenv("ATHENZ_SIA_POD_SUBDOMAIN", tt.siaPodSubdomain)
-			sanList := GetK8SHostnames()
+			sanList := GetK8SHostnames("cluster.local")
 			assert.Equal(t, len(sanList), len(tt.sanDNSList))
 			for i := 0; i < len(sanList); i++ {
 				assert.Equal(t, sanList[i], tt.sanDNSList[i])
 			}
-			_ = os.Unsetenv("ATHENZ_SIA_POD_NAME")
+			_ = os.Unsetenv("ATHENZ_SIA_POD_HOSTNAME")
 			_ = os.Unsetenv("ATHENZ_SIA_POD_IP")
 			_ = os.Unsetenv("ATHENZ_SIA_POD_NAMESPACE")
 			_ = os.Unsetenv("ATHENZ_SIA_POD_SERVICE")
 			_ = os.Unsetenv("ATHENZ_SIA_POD_SUBDOMAIN")
 		})
 	}
-}
-
-func TestGetK8SHostnamesWithHostname(test *testing.T) {
-
-	hostname := os.Getenv("HOSTNAME")
-	_ = os.Setenv("HOSTNAME", "pod-1")
-	_ = os.Setenv("ATHENZ_SIA_POD_NAMESPACE", "pod-ns")
-
-	sanList := GetK8SHostnames()
-	assert.Equal(test, len(sanList), 1)
-	assert.Equal(test, sanList[0], "pod-1.pod-ns.svc.cluster.local")
-
-	_ = os.Setenv("HOSTNAME", hostname)
-	_ = os.Unsetenv("ATHENZ_SIA_POD_NAMESPACE")
 }

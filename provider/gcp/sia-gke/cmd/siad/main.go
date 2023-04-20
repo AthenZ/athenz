@@ -106,7 +106,7 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
-	opts.AddlSanDNSEntries = utils.GetK8SHostnames()
+	opts.AddlSanDNSEntries = utils.GetK8SHostnames("cluster.local")
 	opts.InstanceId = sia.GetGKEPodId()
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
