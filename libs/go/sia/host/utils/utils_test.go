@@ -61,7 +61,7 @@ func TestGetK8SHostnames(test *testing.T) {
 			_ = os.Setenv("ATHENZ_SIA_POD_NAMESPACE", tt.siaPodNamespace)
 			_ = os.Setenv("ATHENZ_SIA_POD_SERVICE", tt.siaPodService)
 			_ = os.Setenv("ATHENZ_SIA_POD_SUBDOMAIN", tt.siaPodSubdomain)
-			sanList := GetK8SHostnames()
+			sanList := GetK8SHostnames("cluster.local")
 			assert.Equal(t, len(sanList), len(tt.sanDNSList))
 			for i := 0; i < len(sanList); i++ {
 				assert.Equal(t, sanList[i], tt.sanDNSList[i])
