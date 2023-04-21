@@ -1160,3 +1160,24 @@ func TestAppendHostname(t *testing.T) {
 	assert.Equal(t, list[0], "host1.athenz.io")
 	assert.Equal(t, list[1], "host2.athenz.io")
 }
+
+func TestRequiredFilePerm(t *testing.T) {
+	tests := []struct {
+		name         string
+		perm         int
+		directUpdate bool
+		resultPerm   int
+	}{
+		{"read-only-direct", 0400, true, 0600},
+		{"read-only-non-direct", 0400, false, 0400},
+		{"read-group-direct", 0440, true, 0640},
+		{"read-group-non-direct", 0440, false, 0440},
+		{"read-all-direct", 0444, true, 0644},
+		{"read-all-non-direct", 0444, false, 0444},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, os.FileMode(tt.resultPerm), requiredFilePerm(os.FileMode(tt.perm), tt.directUpdate))
+		})
+	}
+}

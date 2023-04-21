@@ -534,14 +534,16 @@ func Copy(sourceFile, destFile string, perm os.FileMode) error {
 	return os.WriteFile(destFile, sourceBytes, perm)
 }
 
-func CopyCertKeyFile(srcKey, destKey, srcCert, destCert string, keyPerm int) error {
-	if err := Copy(srcCert, destCert, 0444); err != nil {
+func CopyCertKeyFile(srcKey, destKey, srcCert, destCert string, keyFileMode os.FileMode, fileDirectUpdate bool) error {
+	certFileMode := requiredFilePerm(0444, fileDirectUpdate)
+	if err := Copy(srcCert, destCert, certFileMode); err != nil {
 		return err
 	}
-	return Copy(srcKey, destKey, os.FileMode(keyPerm))
+	keyFileMode = requiredFilePerm(keyFileMode, fileDirectUpdate)
+	return Copy(srcKey, destKey, keyFileMode)
 }
 
-func UpdateKey(keyFile string, uid, gid int) {
+func UpdateKeyOwnership(keyFile string, uid, gid int, fileMode os.FileMode, fileDirectUpdate bool) {
 	if uid != 0 || gid != 0 {
 		// Change the ownership on keyfile
 		log.Printf("Changing file %s ownership to %d:%d...\n", keyFile, uid, gid)
@@ -551,10 +553,11 @@ func UpdateKey(keyFile string, uid, gid int) {
 		}
 	}
 	if gid != 0 {
-		log.Printf("Changing file %s permission to 0440\n", keyFile)
-		err := os.Chmod(keyFile, 0440)
+		fileMode = requiredFilePerm(fileMode, fileDirectUpdate)
+		log.Printf("Changing file %s permission to %v\n", keyFile, fileMode)
+		err := os.Chmod(keyFile, fileMode)
 		if err != nil {
-			log.Fatalf("Cannot chmod file %s to 0440, err: %v", keyFile, err)
+			log.Fatalf("Cannot chmod file %s to %v, err: %v", keyFile, fileMode, err)
 		}
 	}
 }
@@ -760,7 +763,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 		}
 		// taking back up of key and cert
 		log.Printf("taking back up of cert: %s to %s and key: %s to %s\n", certFile, backUpCertFile, keyFile, backUpKeyFile)
-		err = CopyCertKeyFile(keyFile, backUpKeyFile, certFile, backUpCertFile, 0400)
+		err = CopyCertKeyFile(keyFile, backUpKeyFile, certFile, backUpCertFile, os.FileMode(fileMode), fileDirectUpdate)
 		if err != nil {
 			log.Printf("Error while taking back up %v\n", err)
 			return err
@@ -782,7 +785,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 		}
 	} else if FileExists(keyFile) {
 		log.Printf("Updating existing key file %s", keyFile)
-		UpdateKey(keyFile, uid, gid)
+		UpdateKeyOwnership(keyFile, uid, gid, os.FileMode(fileMode), fileDirectUpdate)
 	}
 	log.Printf("Updating the cert file %s", certFile)
 	err = UpdateFile(certFile, cert, uid, gid, os.FileMode(0444), fileDirectUpdate, true)
@@ -795,7 +798,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 	x509KeyPair, err = tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		log.Printf("x509KeyPair: %s, key: %s do not match, error: %v\n", certFile, keyFile, err)
-		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
+		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, os.FileMode(fileMode), fileDirectUpdate)
 		if err != nil {
 			return err
 		}
@@ -804,7 +807,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 	_, err = x509.ParseCertificate(x509KeyPair.Certificate[0])
 	if err != nil {
 		log.Printf("x509KeyPair: %s, key: %s, unable to parse cert, error: %v\n", certFile, keyFile, err)
-		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, fileMode)
+		err = CopyCertKeyFile(backUpKeyFile, keyFile, backUpCertFile, certFile, os.FileMode(fileMode), fileDirectUpdate)
 		if err != nil {
 			return err
 		}
@@ -930,6 +933,9 @@ func UpdateFileContents(fileName string, contents []byte, perm os.FileMode, file
 		}
 		return nil
 	}
+	// if the file direct update flag is enabled then we need to make
+	// sure the permissions for the file include write option set
+	perm = requiredFilePerm(perm, fileDirectUpdate)
 	// if the original file does not exist then we
 	// just write the contents to the given file
 	// directly
@@ -1044,4 +1050,15 @@ func SetupSIADir(siaDir string, ownerUid, ownerGid int) error {
 	// update our main and then subdirectories
 	setupDirOwnership(siaDir, ownerUid, ownerGid)
 	return nil
+}
+
+func requiredFilePerm(defaultPerm os.FileMode, directUpdateRequested bool) os.FileMode {
+	// if the direct update option is not requested then we'll
+	// return the default perm as specified, otherwise, we need
+	// to enable the write flag for the owner
+	if directUpdateRequested {
+		return defaultPerm | 0200
+	} else {
+		return defaultPerm
+	}
 }
