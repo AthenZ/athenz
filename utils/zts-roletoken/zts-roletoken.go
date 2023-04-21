@@ -55,7 +55,7 @@ func main() {
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
-	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
+	flag.IntVar(&expireTime, "expire-time", 0, "token expire time in minutes")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.BoolVar(&validate, "validate", false, "validate role token")
 	flag.StringVar(&roleToken, "role-token", "", "role token to validate")
@@ -115,11 +115,17 @@ func fetchRoleToken(domain, role, ztsURL, svcKeyFile, svcCertFile, svcCACertFile
 		log.Fatalf("unable to create zts client: %v\n", err)
 	}
 
-	// zts timeout is in seconds so we'll convert our value
-	expireTimeMs := int32(expireTime * 60)
+	// zts timeout is in seconds, so we'll convert our value
+	// if one is provided otherwise we'll pass nil to get the
+	// server default timeout based token
+	var ptrExpireTime *int32
+	if expireTime > 0 {
+		expireTimeMs := int32(expireTime * 60)
+		ptrExpireTime = &expireTimeMs
+	}
 
 	// request a roletoken
-	roleToken, err := client.GetRoleToken(zts.DomainName(domain), zts.EntityList(role), &expireTimeMs, &expireTimeMs, "")
+	roleToken, err := client.GetRoleToken(zts.DomainName(domain), zts.EntityList(role), ptrExpireTime, ptrExpireTime, "")
 	if err != nil {
 		log.Fatalln(err)
 	}

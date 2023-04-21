@@ -69,7 +69,12 @@ func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, prox
 
 	params := url.Values{}
 	params.Add("grant_type", "client_credentials")
-	params.Add("expires_in", strconv.Itoa(expiryTime))
+	// do not include the expiry param if the client is asking
+	// for the server default setting (expiryTime == 0) or any
+	// invalid values (expiryTime < 0)
+	if expiryTime > 0 {
+		params.Add("expires_in", strconv.Itoa(expiryTime))
+	}
 
 	var scope string
 	if roles == "" {

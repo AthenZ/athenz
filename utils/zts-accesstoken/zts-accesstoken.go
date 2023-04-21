@@ -54,7 +54,7 @@ func main() {
 	flag.StringVar(&svcCertFile, "svc-cert-file", "", "service identity certificate file")
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&hdr, "hdr", "Athenz-Principal-Auth", "Header name")
-	flag.IntVar(&expireTime, "expire-time", 120, "token expire time in minutes")
+	flag.IntVar(&expireTime, "expire-time", 0, "token expire time in minutes")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.BoolVar(&validate, "validate", false, "validate role token")
 	flag.BoolVar(&claims, "claims", false, "display all claims from access token")
