@@ -272,9 +272,10 @@ func TestRefreshInstance(test *testing.T) {
 		Domain: "athenz",
 		Services: []options.Service{
 			{
-				Name: "hockey",
-				Uid:  util.ExecIdCommand("-u"),
-				Gid:  util.ExecIdCommand("-g"),
+				Name:     "hockey",
+				Uid:      util.ExecIdCommand("-u"),
+				Gid:      util.ExecIdCommand("-g"),
+				FileMode: 0400,
 			},
 		},
 		KeyDir:           siaDir,
@@ -329,9 +330,10 @@ func TestRoleCertificateRequest(test *testing.T) {
 		Domain: "athenz",
 		Services: []options.Service{
 			{
-				Name: "hockey",
-				Uid:  util.ExecIdCommand("-u"),
-				Gid:  util.ExecIdCommand("-g"),
+				Name:     "hockey",
+				Uid:      util.ExecIdCommand("-u"),
+				Gid:      util.ExecIdCommand("-g"),
+				FileMode: 0400,
 			},
 		},
 		Roles: []options.Role{
@@ -341,6 +343,7 @@ func TestRoleCertificateRequest(test *testing.T) {
 				Uid:      util.ExecIdCommand("-u"),
 				Gid:      util.ExecIdCommand("-g"),
 				Filename: roleCertFile,
+				FileMode: 0400,
 			},
 		},
 		KeyDir:           siaDir,
