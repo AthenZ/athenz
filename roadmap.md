@@ -3,6 +3,12 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q2 2023
+
+- Athenz Integration with Google Cloud Platform (GCP)
+- Integration with Cert-Manager
+- K8S operator for Athenz to manage Athenz resources using CRDs
+
 # Q1 2023
 
 - Athenz Integration with Google Cloud Platform (GCP)
