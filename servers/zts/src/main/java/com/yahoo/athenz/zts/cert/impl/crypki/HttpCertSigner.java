@@ -375,12 +375,21 @@ public class HttpCertSigner implements CertSigner {
     public Object getX509CertSigningRequest(String provider, String csr, String keyUsage, int expireMins, Priority priority) {
 
         // Key Usage value used in Go - https://golang.org/src/crypto/x509/x509.go?s=18153:18173#L558
-        // we're only interested in ExtKeyUsageClientAuth - with value of 2
 
         List<Integer> extKeyUsage = null;
         if (InstanceProvider.ZTS_CERT_USAGE_CLIENT.equals(keyUsage)) {
             extKeyUsage = new ArrayList<>();
             extKeyUsage.add(2);
+        }
+
+        if (InstanceProvider.ZTS_CERT_USAGE_CODE_SIGNING.equals(keyUsage)) {
+            extKeyUsage = new ArrayList<>();
+            extKeyUsage.add(3);
+        }
+
+        if (InstanceProvider.ZTS_CERT_USAGE_TIMESTAMPING.equals(keyUsage)) {
+            extKeyUsage = new ArrayList<>();
+            extKeyUsage.add(8);
         }
 
         X509CertificateSigningRequest csrCert = new X509CertificateSigningRequest();

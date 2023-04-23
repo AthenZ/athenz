@@ -176,6 +176,18 @@ public class HttpCertSignerTest {
         assertEquals(pem, "pem-value");
         Mockito.verify(httpClient, times(3)).execute(Mockito.any(HttpPost.class));
 
+        response = mockRequest(201, pemResponse);
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_CODE_SIGNING, 15);
+        assertEquals(pem, "pem-value");
+        Mockito.verify(httpClient, times(4)).execute(Mockito.any(HttpPost.class));
+
+        response = mockRequest(201, pemResponse);
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(response);
+        pem = certSigner.generateX509Certificate("aws", null, "csr", InstanceProvider.ZTS_CERT_USAGE_TIMESTAMPING, 30);
+        assertEquals(pem, "pem-value");
+        Mockito.verify(httpClient, times(5)).execute(Mockito.any(HttpPost.class));
+
         certSigner.close();
     }
 
