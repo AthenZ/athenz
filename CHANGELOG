@@ -1,3 +1,14 @@
+Athenz v1.11.27 Release / Apr 22, 2023
+--------------------------------------
+
+#2133 msd static services by type api
+#2134 fix k8s dns svc.cluster.local entry use of spec.hostname
+#2135 update jetty to latest 11.0.15 + other dependencies
+#2137 remove default 120 min token expiry from access/role-token tools
+#2138 if direct update option is set for go util.Update, file must be writeable by owner
+#2139 update svc/role cert tests cases for macos
+#2140 update zms expiry notification unit test
+
 Athenz v1.11.26 Release / Apr 17, 2023
 --------------------------------------
 
