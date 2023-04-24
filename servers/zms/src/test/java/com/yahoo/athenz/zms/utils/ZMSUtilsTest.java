@@ -15,12 +15,6 @@
  */
 package com.yahoo.athenz.zms.utils;
 
-import static org.testng.Assert.*;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
@@ -30,10 +24,18 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import jakarta.servlet.http.HttpServletRequestWrapper;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static com.yahoo.athenz.zms.utils.ZMSUtils.emptyIfNull;
+import static org.testng.Assert.*;
 
 public class ZMSUtilsTest {
 
@@ -385,5 +387,17 @@ public class ZMSUtilsTest {
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
         millis = ZMSUtils.configuredDueDateMillis(10, 0);
         assertTrue(ZMSTestUtils.validateDueDate(millis, extMillis));
+    }
+
+    @Test
+    public void testEmptyIfNull() {
+        Collection<String> l = emptyIfNull(null);
+        assertEquals(l.size(), 0);
+
+        l = emptyIfNull(Collections.emptyList());
+        assertEquals(l.size(), 0);
+
+        l = emptyIfNull(Collections.singletonList("s"));
+        assertEquals(l.size(), 1);
     }
 }
