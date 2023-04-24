@@ -8923,7 +8923,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // go through all role members and if we have any groups validate
         // that the group has the requested filters set
 
-        for (RoleMember roleMember : role.getRoleMembers()) {
+        for (RoleMember roleMember : ZMSUtils.emptyIfNull(role.getRoleMembers())) {
 
             final String memberName = roleMember.getMemberName();
             if (ZMSUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList) != Principal.Type.GROUP) {
