@@ -42,6 +42,8 @@ public interface InstanceProvider {
      */
     String ZTS_CERT_USAGE_CLIENT = "client";
     String ZTS_CERT_USAGE_SERVER = "server";
+    String ZTS_CERT_USAGE_CODE_SIGNING = "codeSigning";
+    String ZTS_CERT_USAGE_TIMESTAMPING = "timestamping";
 
     /**
      * Instance specific attribute names. The san entries
