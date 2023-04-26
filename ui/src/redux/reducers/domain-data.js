@@ -85,14 +85,18 @@ export const domainData = (state = {}, action) => {
         case LOAD_DOMAIN_HISTORY_TO_STORE: {
             const { history } = payload;
             const newState = produce(state, (draft) => {
-                draft.domainData.history = history;
+                if (draft.domainData) {
+                    draft.domainData.history = history;
+                }
             });
             return newState;
         }
         case UPDATE_BUSINESS_SERVICE_IN_STORE: {
             const { businessServiceName } = payload;
             const newState = produce(state, (draft) => {
-                draft.domainData.businessService = businessServiceName;
+                if (draft.domainData) {
+                    draft.domainData.businessService = businessServiceName;
+                }
             });
             return newState;
         }
