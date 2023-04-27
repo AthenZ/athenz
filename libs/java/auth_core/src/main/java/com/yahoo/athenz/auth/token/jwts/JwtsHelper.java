@@ -67,6 +67,7 @@ public class JwtsHelper {
         try {
             URLConnection con = getUrlConnection(serverUri);
             con.setRequestProperty("Accept", "application/json");
+            con.setConnectTimeout(10000);
             con.setReadTimeout(15000);
             con.setDoOutput(true);
             if (con instanceof HttpURLConnection) {
