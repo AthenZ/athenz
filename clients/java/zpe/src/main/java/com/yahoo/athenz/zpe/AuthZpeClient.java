@@ -73,9 +73,9 @@ public class AuthZpeClient {
     private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
 
     private static long lastZtsJwkFetchTime;
-    
     private static long millisBetweenZtsCalls;
-    
+    private static int maxTokenCacheSize = 10240;
+
     public enum AccessCheckStatus {
         ALLOW {
             public String toString() {
@@ -168,6 +168,10 @@ public class AuthZpeClient {
         
         setTokenAllowedOffset(Integer.parseInt(System.getProperty(ZpeConsts.ZPE_PROP_TOKEN_OFFSET, "300")));
 
+        // set the max role token and access token cache values
+
+        setTokenCacheMaxValue(Integer.parseInt(System.getProperty(ZpeConsts.ZPE_PROP_MAX_TOKEN_CACHE, "10240")));
+
         // load the x509 issuers
         
         setX509CAIssuers(System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS));
@@ -180,7 +184,6 @@ public class AuthZpeClient {
 
         lastZtsJwkFetchTime = System.currentTimeMillis();
         setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
-
     }
 
     public static void init() {
@@ -196,16 +199,35 @@ public class AuthZpeClient {
      * @param offset value in seconds
      */
     public static void setTokenAllowedOffset(int offset) {
-        
-        allowedOffset = offset;
-        
-        // case of invalid value, we'll default back to 5 minutes
-
-        if (allowedOffset < 0) {
-            allowedOffset = 300;
+        // skip any invalid values
+        if (offset > 0) {
+            allowedOffset = offset;
         }
     }
-    
+
+    /**
+     * Set the limit of role and access tokens that are cached to
+     * improve the performance of validating signatures since the
+     * tokens must be re-used by clients until they're about to be
+     * expired. However, incorrectly configured client might generate
+     * a new token for every request and eventually cause the server
+     * to run out of memory. Once the limit is reached, the library
+     * will no longer cache any tokens until the expiry thread cleans
+     * up the expired tokens and the size of the cache is smaller than
+     * the configured number. The value of 0 indicates no limit. The
+     * default value of cached tokens is 10K. The value can also be
+     * configured by using the athenz.zpe.max_token_cache_entries
+     * system property.
+     * @param maxCacheSize maximum number of tokens cached
+     */
+    public static void setTokenCacheMaxValue(int maxCacheSize) {
+        // skip any invalid values. value 0 indicates no limit
+        // while any other positive integer enforces the limit
+        if (maxCacheSize > -1) {
+            maxTokenCacheSize = maxCacheSize;
+        }
+    }
+
     /**
      * Set the list of Athenz CA issuers with their full DNs that
      * ZPE should honor.
@@ -548,7 +570,8 @@ public class AuthZpeClient {
                         rToken.getUnsignedToken());
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
-            tokenCache.put(roleToken, rToken);
+
+            addTokenToCache(tokenCache, roleToken, rToken);
         }
 
         return allowAccess(rToken, resource, action, matchRoleName);
@@ -567,7 +590,7 @@ public class AuthZpeClient {
         Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();
         AccessToken acsToken = tokenCache.get(accessToken);
 
-        // if we have a x.509 certificate provided then we need to
+        // if we have an x.509 certificate provided then we need to
         // validate our mtls client certificate confirmation value
         // before accepting the token from the cache
 
@@ -598,12 +621,12 @@ public class AuthZpeClient {
                 return AccessCheckStatus.DENY_ROLETOKEN_INVALID;
             }
 
-            tokenCache.put(accessToken, acsToken);
-
+            addTokenToCache(tokenCache, accessToken, acsToken);
         }
 
         return allowAccess(acsToken, resource, action, matchRoleName);
     }
+
     /**
      * Determine if access(action) is allowed against the specified resource by
      * a user represented by the RoleToken.
@@ -777,7 +800,7 @@ public class AuthZpeClient {
         Map<String, AccessToken> tokenCache = zpeClt.getAccessTokenCacheMap();
         AccessToken acsToken = tokenCache.get(accessToken);
 
-        // if we have a x.509 certificate provided then we need to
+        // if we have an x.509 certificate provided then we need to
         // validate our mtls client certificate confirmation value
         // before accepting the token from the cache
 
@@ -800,7 +823,7 @@ public class AuthZpeClient {
                 return null;
             }
 
-            tokenCache.put(accessToken, acsToken);
+            addTokenToCache(tokenCache, accessToken, acsToken);
         }
 
         return acsToken;
@@ -838,7 +861,7 @@ public class AuthZpeClient {
             if (!rToken.validate(getZtsPublicKey(rToken.getKeyId()), allowedOffset, false, null)) {
                 return null;
             }
-            tokenCache.put(roleToken, rToken);
+            addTokenToCache(tokenCache, roleToken, rToken);
         }
         
         return rToken;
@@ -1212,6 +1235,12 @@ public class AuthZpeClient {
         }
 
         return false;
+    }
+
+    static <T> void addTokenToCache(Map<String, T> tokenCache, final String tokenKey, T tokenValue) {
+        if (maxTokenCacheSize == 0 || tokenCache.size() < maxTokenCacheSize) {
+            tokenCache.put(tokenKey, tokenValue);
+        }
     }
 
     public static void main(String[] args) {
