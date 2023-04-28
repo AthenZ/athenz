@@ -45,8 +45,7 @@ public class InstanceGCPProvider implements InstanceProvider {
     static final String GCP_PROP_BOOT_TIME_OFFSET = "athenz.zts.gcp_boot_time_offset";
     static final String GCP_PROP_DNS_SUFFIX       = "athenz.zts.gcp_dns_suffix";
     static final String GCP_PROP_REGION_NAME      = "athenz.zts.gcp_region_name";
-
-    static final String GCP_PROP_CERT_VALIDITY_NO_ADDITIONAL_INFO = "athenz.zts.gcp_cert_validity_no_additional_info";
+    static final String GCP_PROP_CERT_VALIDITY    = "athenz.zts.gcp_cert_validity";
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     long certValidityTime;                   // cert validity for STS creds only case
@@ -93,7 +92,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         // default certificate expiry for requests without instance
         // identity document
 
-        int certValidityDays = Integer.parseInt(System.getProperty(GCP_PROP_CERT_VALIDITY_NO_ADDITIONAL_INFO, "7"));
+        int certValidityDays = Integer.parseInt(System.getProperty(GCP_PROP_CERT_VALIDITY, "7"));
         certValidityTime = TimeUnit.MINUTES.convert(certValidityDays, TimeUnit.DAYS);
 
         // get the gcp region
@@ -326,9 +325,7 @@ public class InstanceGCPProvider implements InstanceProvider {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceProvider.ZTS_CERT_SSH, Boolean.toString(additionalMetadataAvailable));
-        if (!additionalMetadataAvailable) {
-            attributes.put(InstanceProvider.ZTS_CERT_EXPIRY_TIME, Long.toString(certValidityTime));
-        }
+        attributes.put(InstanceProvider.ZTS_CERT_EXPIRY_TIME, Long.toString(certValidityTime));
         confirmation.setAttributes(attributes);
     }
 

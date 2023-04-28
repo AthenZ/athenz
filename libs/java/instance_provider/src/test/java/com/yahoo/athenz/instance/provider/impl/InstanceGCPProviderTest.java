@@ -510,9 +510,9 @@ public class InstanceGCPProviderTest {
 
         provider.confirmInstance(confirmation);
 
-        assertEquals(confirmation.getAttributes().size(), 1);
+        assertEquals(confirmation.getAttributes().size(), 2);
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_SSH), "true");
-
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
 
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
         provider.close();
@@ -588,9 +588,9 @@ public class InstanceGCPProviderTest {
 
         provider.refreshInstance(confirmation);
 
-        assertEquals(confirmation.getAttributes().size(), 1);
+        assertEquals(confirmation.getAttributes().size(), 2);
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_SSH), "true");
-
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_CERT_EXPIRY_TIME), "10080");
 
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
         provider.close();
