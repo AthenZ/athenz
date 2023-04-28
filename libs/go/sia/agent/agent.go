@@ -426,7 +426,7 @@ func generateSshRequest(opts *options.Options, primaryServiceName, hostname stri
 		if opts.SshHostKeyType == hostkey.Rsa {
 			sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSCloudDomains)
 		} else {
-			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, opts.SshPrincipals, opts.ZTSAWSDomains)
+			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, opts.SshPrincipals, opts.ZTSCloudDomains)
 		}
 	}
 	return sshCertRequest, sshCsr, err
