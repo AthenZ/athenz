@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import org.eclipse.jetty.util.StringUtil;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -51,13 +50,13 @@ public class InstanceUtilsTest {
     @Test
     public void testValidateCertRequestHostnamesNullSuffix() {
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(null,  null,  null,  null,
-                null, false, new StringBuilder(256)));
+                null, null, false, new StringBuilder(256)));
     }
 
     @Test
     public void testValidateCertRequestHostnamesEmptySuffix() {
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(null,  null,  null,
-                Collections.emptySet(), null, false, new StringBuilder(256)));
+                Collections.emptySet(), null, null, false, new StringBuilder(256)));
     }
 
     @Test
@@ -66,7 +65,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "service.athenz.athenz.cloud,service2.athenz.athenz.cloud,service3.athenz.athenz.cloud");
 
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, new StringBuilder(256)));
+                Collections.singleton("athenz.cloud"), null, null, false, new StringBuilder(256)));
     }
 
     @Test
@@ -75,7 +74,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz2.cloud");
 
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, new StringBuilder(256)));
+                Collections.singleton("athenz.cloud"), null, null, false, new StringBuilder(256)));
     }
 
     @Test
@@ -84,7 +83,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "storage.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
 
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, new StringBuilder(256)));
+                Collections.singleton("athenz.cloud"), null, null, false, new StringBuilder(256)));
     }
 
     @Test
@@ -93,7 +92,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "api.athenz.athenz.cloud,api.athenz.athenz.cloud");
 
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, new StringBuilder(256)));
+                Collections.singleton("athenz.cloud"), null, null, false, new StringBuilder(256)));
     }
 
     @Test
@@ -102,7 +101,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "i-1234.instanceid.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
 
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, new StringBuilder(256)));
+                Collections.singleton("athenz.cloud"), null, null, false, new StringBuilder(256)));
     }
 
     @Test
@@ -111,7 +110,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         StringBuilder id = new StringBuilder(256);
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, id));
+                Collections.singleton("athenz.cloud"), null, null, false, id));
         assertEquals(id.toString(), "i-1234");
     }
 
@@ -122,7 +121,7 @@ public class InstanceUtilsTest {
         attributes.put("sanURI", "spiffe://athenz/sa/cloud,athenz://instanceid/zts/i-1234");
         StringBuilder id = new StringBuilder(256);
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, id));
+                Collections.singleton("athenz.cloud"), null, null, false, id));
         assertEquals(id.toString(), "i-1234");
     }
 
@@ -133,7 +132,7 @@ public class InstanceUtilsTest {
         attributes.put("sanURI", "spiffe://athenz/sa/cloud,athenz://instanceid/zts");
         StringBuilder id = new StringBuilder(256);
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, id));
+                Collections.singleton("athenz.cloud"), null, null, false, id));
     }
 
     @Test
@@ -143,7 +142,7 @@ public class InstanceUtilsTest {
         attributes.put("sanURI", "spiffe://athenz/sa/cloud,athenz://instanceid/zts/");
         StringBuilder id = new StringBuilder(256);
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, id));
+                Collections.singleton("athenz.cloud"), null, null, false, id));
     }
 
     @Test
@@ -151,7 +150,7 @@ public class InstanceUtilsTest {
         HashMap<String, String> attributes = new HashMap<>();
         StringBuilder id = new StringBuilder(256);
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, id));
+                Collections.singleton("athenz.cloud"), null, null, false, id));
     }
 
     @Test
@@ -160,7 +159,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "");
         StringBuilder id = new StringBuilder(256);
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, false, id));
+                Collections.singleton("athenz.cloud"), null, null, false, id));
     }
 
     @Test
@@ -172,7 +171,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         StringBuilder id = new StringBuilder(256);
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, true, id));
+                Collections.singleton("athenz.cloud"), null, null, true, id));
         assertEquals(id.toString(), "i-1234");
 
         // now let's set the hostname to a valid value and verify
@@ -181,7 +180,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         attributes.put("hostname", "i-1234.api.athenz.athenz.cloud");
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, true, id));
+                Collections.singleton("athenz.cloud"), null, null, true, id));
         assertEquals(id.toString(), "i-1234");
 
         // now let's set the hostname to a non-matching value
@@ -189,7 +188,7 @@ public class InstanceUtilsTest {
         id.setLength(0);
         attributes.put("hostname", "i-1235.api2.athenz.athenz.cloud");
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, true, id));
+                Collections.singleton("athenz.cloud"), null, null, true, id));
     }
 
     @Test
@@ -201,7 +200,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "i-1234.instanceid.athenz.athenz.cloud");
         StringBuilder id = new StringBuilder(256);
         assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, true, id));
+                Collections.singleton("athenz.cloud"), null, null, true, id));
 
         // now let's set the hostname to a valid value and verify
 
@@ -209,7 +208,7 @@ public class InstanceUtilsTest {
         attributes.put("sanDNS", "i-1234.api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
         attributes.put("hostname", "i-1234.api.athenz.athenz.cloud");
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
-                Collections.singleton("athenz.cloud"), null, true, id));
+                Collections.singleton("athenz.cloud"), null, null, true, id));
         assertEquals(id.toString(), "i-1234");
     }
 
@@ -225,23 +224,23 @@ public class InstanceUtilsTest {
     public void testValidateSanDnsName() {
         List<String> dnsSuffixes = Arrays.asList(".athenz.cloud", ".athenz.us");
 
-        assertFalse(InstanceUtils.validateSanDnsName("test.athenza.cloud", "api", dnsSuffixes, null));
-        assertFalse(InstanceUtils.validateSanDnsName("test.api2.athenz.cloud", "api", dnsSuffixes, null));
-        assertFalse(InstanceUtils.validateSanDnsName("test.api2.athenz.us", "api", dnsSuffixes, null));
-        assertFalse(InstanceUtils.validateSanDnsName("api2.athenz.us", "api", dnsSuffixes, null));
-        assertFalse(InstanceUtils.validateSanDnsName("api2.test.athenz.cloud", "api", dnsSuffixes, null));
+        assertFalse(InstanceUtils.validateSanDnsName("test.athenza.cloud", "api", dnsSuffixes, null, null));
+        assertFalse(InstanceUtils.validateSanDnsName("test.api2.athenz.cloud", "api", dnsSuffixes, null, null));
+        assertFalse(InstanceUtils.validateSanDnsName("test.api2.athenz.us", "api", dnsSuffixes, null, null));
+        assertFalse(InstanceUtils.validateSanDnsName("api2.athenz.us", "api", dnsSuffixes, null, null));
+        assertFalse(InstanceUtils.validateSanDnsName("api2.test.athenz.cloud", "api", dnsSuffixes, null, null));
 
-        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.cloud", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("test.api.athenz.cloud", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("test.api.test2.athenz.cloud", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("api.test3.test2.athenz.cloud", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("test.api.test3.test4.athenz.cloud", "api", dnsSuffixes, null));
+        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.cloud", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.athenz.cloud", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test2.athenz.cloud", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("api.test3.test2.athenz.cloud", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test3.test4.athenz.cloud", "api", dnsSuffixes, null, null));
 
-        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.us", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("test.api.athenz.us", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("test.api.test2.athenz.us", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("api.test3.test2.athenz.us", "api", dnsSuffixes, null));
-        assertTrue(InstanceUtils.validateSanDnsName("test.api.test3.test4.athenz.us", "api", dnsSuffixes, null));
+        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.us", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.athenz.us", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test2.athenz.us", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("api.test3.test2.athenz.us", "api", dnsSuffixes, null, null));
+        assertTrue(InstanceUtils.validateSanDnsName("test.api.test3.test4.athenz.us", "api", dnsSuffixes, null, null));
     }
 
     @Test
@@ -251,14 +250,34 @@ public class InstanceUtilsTest {
         List<String> k8sDnsSuffixes = InstanceUtils.processK8SDnsSuffixList("test-key");
 
         List<String> dnsSuffixes = Arrays.asList(".athenz.cloud", ".athenz.us");
-        assertFalse(InstanceUtils.validateSanDnsName("test.athenza.cloud", "api", dnsSuffixes, k8sDnsSuffixes));
+        assertFalse(InstanceUtils.validateSanDnsName("test.athenza.cloud", "api", dnsSuffixes, k8sDnsSuffixes, null));
 
         // now valid values
 
-        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.us", "api", dnsSuffixes, k8sDnsSuffixes));
-        assertTrue(InstanceUtils.validateSanDnsName("pod-1.default.pod.cluster.local", "api", dnsSuffixes, k8sDnsSuffixes));
+        assertTrue(InstanceUtils.validateSanDnsName("api.athenz.us", "api", dnsSuffixes, k8sDnsSuffixes, null));
+        assertTrue(InstanceUtils.validateSanDnsName("pod-1.default.pod.cluster.local", "api", dnsSuffixes,
+                k8sDnsSuffixes, null));
 
         System.clearProperty("test-key");
+    }
+
+    @Test
+    public void testValidateSanDnsNameWithK8SClusterList() {
+
+        assertFalse(InstanceUtils.validateSanDnsName("test.athenz.cloud", "api", Collections.emptyList(),
+                null, null));
+        assertFalse(InstanceUtils.validateSanDnsName("test.athenz.cloud", "api", Collections.emptyList(),
+                null, Collections.emptySet()));
+        Set<String> clusterNames = new HashSet<>();
+        clusterNames.add("test.athenz1.cloud");
+        assertFalse(InstanceUtils.validateSanDnsName("test.athenz.cloud", "api", Collections.emptyList(),
+                null, clusterNames));
+
+        // now valid values
+
+        clusterNames.add("test.athenz.cloud");
+        assertTrue(InstanceUtils.validateSanDnsName("test.athenz.cloud", "api", Collections.emptyList(),
+                null, clusterNames));
     }
 
     @Test
@@ -321,5 +340,33 @@ public class InstanceUtilsTest {
         assertFalse(InstanceUtils.k8sDnsSuffixCheck("pod1.namespace.example.cluster.local", k8sDnsSuffixes));
 
         System.clearProperty("test-key");
+    }
+
+    @Test
+    public void testValidateCertRequestSanDnsNamesWithClusterNames() {
+
+        // with only instance id dns name, we should get failure
+
+        StringBuilder id = new StringBuilder(256);
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.cluster-us-west-2.athenz.cloud");
+        attributes.put("sanURI", "athenz://instanceid/aws/id-1");
+        assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
+                Collections.singleton("athenz.io"), null, null, true, id));
+        assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
+                Collections.singleton("athenz.io"), null, Collections.emptyList(), true, id));
+
+        // let's include a cluster name list without our cluster
+
+        List<String> clusterNames = new ArrayList<>();
+        clusterNames.add("cluster-us-east-1");
+        assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
+                Collections.singleton("athenz.cloud"), null, clusterNames, true, id));
+
+        // now finally let's add our cluster name
+
+        clusterNames.add("cluster-us-west-2");
+        assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
+                Collections.singleton("athenz.cloud"), null, clusterNames, true, id));
     }
 }

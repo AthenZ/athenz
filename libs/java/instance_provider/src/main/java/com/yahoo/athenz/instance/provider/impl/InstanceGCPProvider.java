@@ -229,7 +229,7 @@ public class InstanceGCPProvider implements InstanceProvider {
 
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), gkeDnsSuffixes, true, instanceId)) {
+                instanceService, getDnsSuffixes(), gkeDnsSuffixes, null, true, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
 
