@@ -26,5 +26,6 @@
                 }
             }
         }
-    ]
+    ],
+    "fail_count_for_exit": 5
 }

@@ -241,7 +241,7 @@ func copyFile(src, dst string) error {
 	return os.WriteFile(dst, data, 0644)
 }
 
-func TestRefreshInstance(test *testing.T) {
+func refreshServiceCertSetup(test *testing.T) (*options.Options, string) {
 
 	siaDir := test.TempDir()
 
@@ -252,17 +252,17 @@ func TestRefreshInstance(test *testing.T) {
 	err := copyFile("devel/data/key.pem", keyFile)
 	if err != nil {
 		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/key.pem", keyFile, err)
-		return
+		return nil, ""
 	}
 	err = copyFile("devel/data/cert.pem", certFile)
 	if err != nil {
 		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/cert.pem", certFile, err)
-		return
+		return nil, ""
 	}
 	err = copyFile("devel/data/ca.cert.pem", caCertFile)
 	if err != nil {
 		test.Errorf("Unable to copy file %s to %s - %v\n", "devel/data/ca.cert..pem", caCertFile, err)
-		return
+		return nil, ""
 	}
 
 	tp := TestProvider{
@@ -287,7 +287,18 @@ func TestRefreshInstance(test *testing.T) {
 		InstanceId:       "pod-1234",
 	}
 
-	err = RefreshInstance("http://127.0.0.1:5084/zts/v1", "", opts)
+	return opts, certFile
+}
+
+func TestRefreshInstance(test *testing.T) {
+
+	opts, certFile := refreshServiceCertSetup(test)
+	if opts == nil {
+		test.Errorf("Certificate setup was not completed successfully")
+		return
+	}
+
+	err := RefreshInstance("http://127.0.0.1:5084/zts/v1", "", opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := os.ReadFile("devel/data/cert.pem")
@@ -584,4 +595,39 @@ func TestGenerateSshRequest(test *testing.T) {
 	assert.NotNil(test, sshReq)
 	assert.Empty(test, sshCsr)
 	assert.Nil(test, err)
+}
+
+func TestShouldExitRightAwayCountsOnly(test *testing.T) {
+
+	opts := &options.Options{
+		FailCountForExit: 2,
+	}
+
+	assert.True(test, shouldExitRightAway(2, opts))
+	assert.True(test, shouldExitRightAway(3, opts))
+	assert.False(test, shouldExitRightAway(0, opts))
+	assert.False(test, shouldExitRightAway(1, opts))
+}
+
+func TestShouldExitRightAwayCertificate(test *testing.T) {
+
+	opts, _ := refreshServiceCertSetup(test)
+	if opts == nil {
+		test.Errorf("Certificate setup was not completed successfully")
+		return
+	}
+
+	err := RefreshInstance("http://127.0.0.1:5084/zts/v1", "", opts)
+	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
+
+	// our certs are valid for 30 days, so we'll set the refresh
+	// interval to 31 days, it should fail, but if we set it
+	// to 28 days, it should be ok
+
+	opts.FailCountForExit = 2
+	opts.RefreshInterval = 28 * 24 * 60
+	assert.False(test, shouldExitRightAway(1, opts))
+
+	opts.RefreshInterval = 31 * 24 * 60
+	assert.True(test, shouldExitRightAway(1, opts))
 }

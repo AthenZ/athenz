@@ -111,9 +111,10 @@ type Config struct {
 	HostnameSuffix   string                   `json:"hostname_suffix,omitempty"`            //hostname suffix in case we need to auto-generate hostname
 	Zts              string                   `json:"zts,omitempty"`                        //the ZTS to contact
 	Roles            map[string]ConfigRole    `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
-	Threshold        float64                  `json:"cert_threshold_to_check,omitempty"`    //Threshold to verify for all certs
-	SshThreshold     float64                  `json:"sshcert_threshold_to_check,omitempty"` //Threshold to verify for ssh certs
-	AccessManagement bool                     `json:"access_management"`                    //access management support
+	Threshold        float64                  `json:"cert_threshold_to_check,omitempty"`    //threshold to verify for all certs
+	SshThreshold     float64                  `json:"sshcert_threshold_to_check,omitempty"` //threshold to verify for ssh certs
+	AccessManagement bool                     `json:"access_management,omitempty"`          //access management support
+	FailCountForExit int                      `json:"fail_count_for_exit,omitempty"`        //number of failed counts before exiting program
 }
 
 type AccessProfileConfig struct {
@@ -211,6 +212,7 @@ type Options struct {
 	AccessManagement   bool              //access management support
 	ZTSCloudDomains    []string          //list of domain prefixes for sanDNS entries
 	AddlSanDNSEntries  []string          //additional san dns entries to be added to the CSR
+	FailCountForExit   int               //number of failed counts before exiting program
 }
 
 const (
@@ -431,6 +433,12 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 			config.RefreshInterval = refreshInterval
 		}
 	}
+	if config.FailCountForExit == 0 {
+		failCount := util.ParseEnvIntFlag("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", 0)
+		if failCount > 0 {
+			config.FailCountForExit = failCount
+		}
+	}
 	if config.ZTSRegion == "" {
 		config.ZTSRegion = os.Getenv("ATHENZ_SIA_ZTS_REGION")
 	}
@@ -547,6 +555,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	sshHostKeyType := hostkey.Rsa
 	sshPrincipals := ""
 	accessManagement := false
+	failCountForExit := 2
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -590,6 +599,9 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 		if config.SshPrincipals != "" {
 			sshPrincipals = config.SshPrincipals
+		}
+		if config.FailCountForExit > 0 {
+			failCountForExit = config.FailCountForExit
 		}
 
 		//update generate role and rotate key options if config is provided
@@ -761,6 +773,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		SshHostKeyType:    sshHostKeyType,
 		SshPrincipals:     sshPrincipals,
 		AccessManagement:  accessManagement,
+		FailCountForExit:  failCountForExit,
 	}, nil
 }
 

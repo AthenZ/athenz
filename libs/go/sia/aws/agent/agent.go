@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
@@ -633,6 +634,12 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		errors := make(chan error, 1)
 		certUpdates := make(chan bool, 1)
 
+		// keep track of failed counts for refresh operations. Since we typically
+		// get certs valid for several days, there is no need to exit immediately
+		// and keep retrying. instead, we'll just skip this run and retry again
+		// in the configured number of minutes (based on the refresh interval)
+		failedRefreshCount := 0
+
 		go func() {
 			for {
 				// if we just did our initial setup there is no point
@@ -647,10 +654,17 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 					}
 					err = RefreshInstance(data, ztsUrl, opts)
 					if err != nil {
-						errors <- fmt.Errorf("refresh identity failed: %v\n", err)
-						return
+						failedRefreshCount++
+						if shouldExitRightAway(failedRefreshCount, opts) {
+							errors <- fmt.Errorf("refresh identity failed: %v\n", err)
+							return
+						} else {
+							log.Printf("refresh identity failed for svcs %s, error: %v\n", svcs, err)
+							log.Printf("refresh will be retried in %d minutes, failure %d of %d\n", opts.RefreshInterval, failedRefreshCount, opts.FailCountForExit)
+						}
+					} else {
+						log.Printf("identity successfully refreshed for services: %s\n", svcs)
 					}
-					log.Printf("identity successfully refreshed for services: %s\n", svcs)
 				}
 				initialSetup = false
 				if tokenOpts != nil {
@@ -796,4 +810,27 @@ func serviceAlreadyRegistered(opts *options.Options, svc options.Service) bool {
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 	return util.FileExists(keyFile) && util.FileExists(certFile)
+}
+
+func shouldExitRightAway(failedRefreshCount int, opts *options.Options) bool {
+	// if the failed count already matches or exceeds our configured
+	// value then we return right away
+	if failedRefreshCount >= opts.FailCountForExit {
+		return true
+	}
+	// if the count hasn't reached the limit, we will skip this
+	// failure only if all the certificates that we're refreshing
+	// are not going to expire before the next refresh happens
+	for _, svc := range opts.Services {
+		svcCertFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
+		// if we're not able to parse/load the certificate file, we'll exit right away
+		x509Cert, err := athenzutils.LoadX509Certificate(svcCertFile)
+		if err != nil {
+			return true
+		}
+		if x509Cert.NotAfter.Unix()-time.Now().Unix() < int64(opts.RefreshInterval*60) {
+			return true
+		}
+	}
+	return false
 }
