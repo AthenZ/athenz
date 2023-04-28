@@ -95,7 +95,12 @@ export const getBusinessServicesAll = () => async (dispatch, getState) => {
     if (getState().domains.businessServicesAll) {
         dispatch(returnBusinessServicesAll());
     } else {
-        const allBusinessServices = await API().getMeta(bServicesParamsAll);
+        let allBusinessServices = {};
+        try {
+            allBusinessServices = await API().getMeta(bServicesParamsAll);
+        } catch (getMetaError) {
+            console.error(getMetaError);
+        }
         let businessServiceOptionsAll = [];
         if (allBusinessServices && allBusinessServices.validValues) {
             allBusinessServices.validValues.forEach((businessService) => {

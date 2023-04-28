@@ -1643,9 +1643,8 @@ const Api = (req) => {
                     .read('meta')
                     .params(params)
                     .end((err, data) => {
-                        // this error can be ignored
                         if (err) {
-                            resolve({});
+                            reject(err);
                         } else {
                             resolve(data);
                         }
