@@ -170,7 +170,7 @@ public class SecureBootProvider implements InstanceProvider {
         // validate the certificate san DNS names
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, null, false, instanceId)) {
+                instanceService, dnsSuffixes, null, null, false, instanceId)) {
             throw forbiddenError("Unable to validate certificate request DNS", logTxt(confirmation));
         }
 

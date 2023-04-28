@@ -215,7 +215,7 @@ public class InstanceAzureProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, aksDnsSuffixes, false, instanceId)) {
+                instanceService, dnsSuffixes, aksDnsSuffixes, null, false, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
 

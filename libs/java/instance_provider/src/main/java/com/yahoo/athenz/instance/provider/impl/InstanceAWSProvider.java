@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -52,14 +53,17 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String ATTR_INSTANCE_ID  = "instanceId";
     static final String ATTR_PRIVATE_IP   = "privateIp";
 
-    static final String AWS_PROP_BOOT_TIME_OFFSET = "athenz.zts.aws_boot_time_offset";
-    static final String AWS_PROP_DNS_SUFFIX       = "athenz.zts.aws_dns_suffix";
-    static final String AWS_PROP_REGION_NAME      = "athenz.zts.aws_region_name";
-    static final String AWS_PROP_EKS_DNS_SUFFIX   = "athenz.zts.aws_eks_dns_suffix";
+    static final String AWS_PROP_BOOT_TIME_OFFSET  = "athenz.zts.aws_boot_time_offset";
+    static final String AWS_PROP_DNS_SUFFIX        = "athenz.zts.aws_dns_suffix";
+    static final String AWS_PROP_REGION_NAME       = "athenz.zts.aws_region_name";
+    static final String AWS_PROP_EKS_DNS_SUFFIX    = "athenz.zts.aws_eks_dns_suffix";
+    static final String AWS_PROP_EKS_CLUSTER_NAMES = "athenz.zts.aws_eks_cluster_names";
 
     static final String AWS_PROP_CERT_VALIDITY_STS_ONLY = "athenz.zts.aws_cert_validity_sts_only";
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
+    DynamicConfigCsv eksClusterNames;        // list of eks cluster names
+
     long certValidityTime;                   // cert validity for STS creds only case
     boolean supportRefresh = false;
     String awsRegion;
@@ -89,6 +93,10 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
         bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, AWS_PROP_BOOT_TIME_OFFSET, timeout);
+
+        // get our dynamic list of eks cluster names
+
+        eksClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, AWS_PROP_EKS_CLUSTER_NAMES, null);
 
         // determine the dns suffix. if this is not specified we'll
         // be rejecting all entries
@@ -121,10 +129,6 @@ public class InstanceAWSProvider implements InstanceProvider {
     public ResourceException error(int errorCode, String message) {
         LOGGER.error(message);
         return new ResourceException(errorCode, message);
-    }
-
-    protected Set<String> getDnsSuffixes() {
-        return dnsSuffixes;
     }
 
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
@@ -265,7 +269,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), eksDnsSuffixes, true, instanceId)) {
+                instanceService, dnsSuffixes, eksDnsSuffixes, eksClusterNames.getStringsList(),
+                true, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
         

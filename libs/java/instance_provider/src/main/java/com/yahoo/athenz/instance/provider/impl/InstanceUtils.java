@@ -107,18 +107,27 @@ public class InstanceUtils {
     }
 
     static boolean validateSanDnsName(final String hostname, final String service, final List<String> dnsSuffixes,
-                                      final List<String> k8sDnsSuffixes) {
+                                      final List<String> k8sDnsSuffixes, final Set<String> clusterNameSet) {
 
         // for hostnames that are included in the sanDNS entry in the certificate we have
         // a couple of requirements:
-        // Option 1: k8s dns entry
+        // Option 1: cluster based san dns entry
+        // a) the format is <service>.<domain-with-dashes>.<cluster>.<dnsSuffix>
+        // Option 2: k8s dns entry
         // a) the sanDNS entry must end with <k8sDnsSuffix> e.g. svc.cluster.local
         // b) the prefix must contain at least 2 components based on k8s dns spec
-        // Option 2
+        // Option 3
         // a) the sanDNS entry must end with <domain-with-dashes>.<dnsSuffix>
         // b) one of the prefix components must be the <service> name
 
-        // let's first verify if this is a k8s dns entry
+        // let's first verify if this is a cluster based san dns entry since
+        // that is a quick check against our set
+
+        if (clusterNameSet != null && clusterNameSet.contains(hostname)) {
+            return true;
+        }
+
+        // next, let's verify if this is a k8s dns entry
 
         if (k8sDnsSuffixCheck(hostname, k8sDnsSuffixes)) {
             return true;
@@ -147,7 +156,7 @@ public class InstanceUtils {
 
     public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes, final String domain,
             final String service, final Set<String> dnsSuffixes, final List<String> k8sDnsSuffixes,
-            boolean validateHostname, StringBuilder instanceId) {
+            final List<String> k8sClusterNames, boolean validateHostname, StringBuilder instanceId) {
 
         // make sure we have valid dns suffix specified
 
@@ -185,11 +194,23 @@ public class InstanceUtils {
             hostNameSuffixList.add("." + dashDomain + "." + dnsSuffix);
         }
 
+        // generate our cluster based names if we have clusters configured
+
+        Set<String> clusterNameSet = null;
+        if (k8sClusterNames != null && !k8sClusterNames.isEmpty()) {
+            clusterNameSet = new HashSet<>();
+            for (String clusterName : k8sClusterNames) {
+                for (String dnsSuffix : dnsSuffixes) {
+                    clusterNameSet.add(service + "." + dashDomain + "." + clusterName + "." + dnsSuffix);
+                }
+            }
+        }
+
         // if we have a hostname configured then verify it matches one of formats
 
         if (validateHostname) {
             final String hostname = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_HOSTNAME);
-            if (!StringUtil.isEmpty(hostname) && !validateSanDnsName(hostname, service, hostNameSuffixList, k8sDnsSuffixes)) {
+            if (!StringUtil.isEmpty(hostname) && !validateSanDnsName(hostname, service, hostNameSuffixList, k8sDnsSuffixes, clusterNameSet)) {
                 return false;
             }
         }
@@ -206,7 +227,7 @@ public class InstanceUtils {
                 continue;
             }
 
-            if (!validateSanDnsName(host, service, hostNameSuffixList, k8sDnsSuffixes)) {
+            if (!validateSanDnsName(host, service, hostNameSuffixList, k8sDnsSuffixes, clusterNameSet)) {
                 return false;
             }
 
