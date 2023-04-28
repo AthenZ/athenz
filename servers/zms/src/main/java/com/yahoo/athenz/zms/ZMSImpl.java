@@ -48,6 +48,7 @@ import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
@@ -212,6 +213,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int serviceNameMinLength;
     protected Status successServerStatus = null;
     protected Set<String> reservedSystemDomains = null;
+    protected DynamicConfigCsv reservedDomainNames = null;
     protected File healthCheckFile = null;
     protected AuditReferenceValidator auditReferenceValidator = null;
     protected NotificationManager notificationManager = null;
@@ -928,7 +930,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         reservedSystemDomains.add(userDomain);
         reservedSystemDomains.add(homeDomain);
 
-        // setup our health check file
+        // set up our reserved top level domain names. we will not allow any top level
+        // domains to be created with these values
+
+        reservedDomainNames = new DynamicConfigCsv(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_RESERVED_DOMAIN_NAMES, null);
+
+        // set up our health check file
 
         final String healthCheckPath = System.getProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
         if (!StringUtil.isEmpty(healthCheckPath)) {
@@ -1446,6 +1453,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
+
+        // first verify that this is not a reserved domain name
+
+        if (reservedDomainNames.hasItem(domainName)) {
+            throw ZMSUtils.requestError("Domain name is reserved", caller);
+        }
+
+        // next check to make sure the domain does not contain an underscore
+        // since it's not a valid character for our sanDNS hostname entry
+        // in the service identity x.509 certificate, unless it's being
+        // executed by a system admin
 
         if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
             throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);

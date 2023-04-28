@@ -92,6 +92,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PROVIDER_ENDPOINTS      = "athenz.zms.provider_endpoints";
     public static final String ZMS_PROP_PRODUCT_ID_SUPPORT      = "athenz.zms.product_id_support";
     public static final String ZMS_PROP_SECURE_REQUESTS_ONLY    = "athenz.zms.secure_requests_only";
+    public static final String ZMS_PROP_RESERVED_DOMAIN_NAMES   = "athenz.zms.reserved_domain_names";
     public static final String ZMS_PROP_RESERVED_SERVICE_NAMES  = "athenz.zms.reserved_service_names";
     public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS     = "athenz.zms.max_policy_versions";

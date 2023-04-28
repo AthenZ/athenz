@@ -350,6 +350,48 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPostTopLevelDomainReservedName() {
+
+        // set up our configured setting for reserved domain names
+
+        System.setProperty(ZMS_PROP_RESERVED_DOMAIN_NAMES, "athenz,system,home");
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom = new TopLevelDomain();
+        dom.setName("athenz");
+
+        List<String> admins = new ArrayList<>();
+        admins.add(zmsTestInitializer.getAdminUser());
+        dom.setAdminUsers(admins);
+
+        try {
+            zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+            fail("request error not thrown.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Domain name is reserved"));
+        }
+
+        try {
+            dom.setName("home");
+            zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+            fail("request error not thrown.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Domain name is reserved"));
+        }
+
+        dom.setName("not-reserved-name");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
+        zmsImpl.deleteTopLevelDomain(ctx, dom.getName(), auditRef);
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_DOMAIN_NAMES);
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
     public void testPostTopLevelDomainNameTooLong() {
 
         // have 129 chars - default is 128
