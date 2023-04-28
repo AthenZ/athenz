@@ -43,20 +43,18 @@ const loadAllDomainData = async (domainName, userName, dispatch) => {
             userName: userName,
         };
         const domainData = await API().getDomain(domainName);
-        let businessServices = {};
-        const [isAwsTemplateApplied, domainPendingMembersList] =
-            await Promise.all([
-                API().isAWSTemplateApplied(domainName),
-                API().getPendingDomainMembersListByDomain(domainName),
-                dispatch(getHeaderDetails()),
-                dispatch(getAuthorityAttributes()),
-                dispatch(getFeatureFlag()),
-            ]);
-        try {
-            businessServices = API().getMeta(bServicesParams);
-        } catch (getMetaError) {
-            console.error(getMetaError);
-        }
+        const [
+            isAwsTemplateApplied,
+            domainPendingMembersList,
+            businessServices,
+        ] = await Promise.all([
+            API().isAWSTemplateApplied(domainName),
+            API().getPendingDomainMembersListByDomain(domainName),
+            API().getMeta(bServicesParams),
+            dispatch(getHeaderDetails()),
+            dispatch(getAuthorityAttributes()),
+            dispatch(getFeatureFlag()),
+        ]);
         domainData.isAWSTemplateApplied = isAwsTemplateApplied;
         domainData.bellPendingMembers = createBellPendingMembers(
             domainPendingMembersList
@@ -84,7 +82,7 @@ const loadAllDomainData = async (domainName, userName, dispatch) => {
         dispatch(loadingSuccess('getDomainData'));
     } catch (e) {
         dispatch(loadingFailed('getDomainData'));
-        throw e;
+        console.error(e);
     }
 };
 

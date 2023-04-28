@@ -95,29 +95,29 @@ export const getBusinessServicesAll = () => async (dispatch, getState) => {
     if (getState().domains.businessServicesAll) {
         dispatch(returnBusinessServicesAll());
     } else {
-        let allBusinessServices = {};
         try {
-            allBusinessServices = await API().getMeta(bServicesParamsAll);
-        } catch (getMetaError) {
-            console.error(getMetaError);
-        }
-        let businessServiceOptionsAll = [];
-        if (allBusinessServices && allBusinessServices.validValues) {
-            allBusinessServices.validValues.forEach((businessService) => {
-                let bServiceOnlyId = businessService.substring(
-                    0,
-                    businessService.indexOf(':')
-                );
-                let bServiceOnlyName = businessService.substring(
-                    businessService.indexOf(':') + 1
-                );
-                businessServiceOptionsAll.push({
-                    value: bServiceOnlyId,
-                    name: bServiceOnlyName,
+            const allBusinessServices = await API().getMeta(bServicesParamsAll);
+            let businessServiceOptionsAll = [];
+            if (allBusinessServices && allBusinessServices.validValues) {
+                allBusinessServices.validValues.forEach((businessService) => {
+                    let bServiceOnlyId = businessService.substring(
+                        0,
+                        businessService.indexOf(':')
+                    );
+                    let bServiceOnlyName = businessService.substring(
+                        businessService.indexOf(':') + 1
+                    );
+                    businessServiceOptionsAll.push({
+                        value: bServiceOnlyId,
+                        name: bServiceOnlyName,
+                    });
                 });
-            });
+            }
+            dispatch(loadBusinessServicesAll(businessServiceOptionsAll));
+        } catch (e) {
+            dispatch(loadingFailed('getBusinessServicesAll'));
+            console.error(e);
         }
-        dispatch(loadBusinessServicesAll(businessServiceOptionsAll));
     }
 };
 
