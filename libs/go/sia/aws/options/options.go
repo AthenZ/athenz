@@ -72,40 +72,41 @@ type ConfigAccount struct {
 	Zts          string                `json:"zts,omitempty"`                        //the ZTS to contact
 	Roles        map[string]ConfigRole `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
 	Version      string                `json:"version,omitempty"`                    //sia version number
-	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    //Threshold to verify for all certs
-	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` //Threshold to verify for ssh certs
+	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    //threshold to verify for all certs
+	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` //threshold to verify for ssh certs
 }
 
 // Config represents entire sia_config file
 type Config struct {
-	Version          string                   `json:"version,omitempty"`            //name of the provider
-	Service          string                   `json:"service,omitempty"`            //name of the service for the identity
-	Services         map[string]ConfigService `json:"services,omitempty"`           //names of the multiple services for the identity
-	Ssh              *bool                    `json:"ssh,omitempty"`                //ssh certificate support
-	SshHostKeyType   hostkey.KeyType          `json:"ssh_host_key_type,omitempty"`  //ssh host key type - rsa, ecdsa, etc
-	SshPrincipals    string                   `json:"ssh_principals,omitempty"`     //ssh additional principals
-	SanDnsWildcard   bool                     `json:"sandns_wildcard,omitempty"`    //san dns wildcard support
-	SanDnsHostname   bool                     `json:"sandns_hostname,omitempty"`    //san dns hostname support
-	UseRegionalSTS   bool                     `json:"regionalsts,omitempty"`        //whether to use a regional STS endpoint (default is false)
-	Accounts         []ConfigAccount          `json:"accounts,omitempty"`           //array of configured accounts
-	GenerateRoleKey  bool                     `json:"generate_role_key,omitempty"`  //private key to be generated for role certificate
-	RotateKey        bool                     `json:"rotate_key,omitempty"`         //rotate private key support
-	User             string                   `json:"user,omitempty"`               //the username to chown the cert/key dirs to. If absent, then root
-	Group            string                   `json:"group,omitempty"`              //the group name to chown the cert/key dirs to. If absent, then athenz
-	SDSUdsPath       string                   `json:"sds_uds_path,omitempty"`       //uds path if the agent should support uds connections
-	SDSUdsUid        int                      `json:"sds_uds_uid,omitempty"`        //uds connections must be from the given user uid
-	ExpiryTime       int                      `json:"expiry_time,omitempty"`        //service and role certificate expiry in minutes
-	RefreshInterval  int                      `json:"refresh_interval,omitempty"`   //specifies refresh interval in minutes
-	ZTSRegion        string                   `json:"zts_region,omitempty"`         //specifies zts region for the requests
-	DropPrivileges   bool                     `json:"drop_privileges,omitempty"`    //drop privileges to configured user instead of running as root
-	AccessTokens     map[string]ac.Role       `json:"access_tokens,omitempty"`      //map of role name to token attributes
-	FileDirectUpdate bool                     `json:"file_direct_update,omitempty"` //update key/cert files directly instead of using rename
-	SiaKeyDir        string                   `json:"sia_key_dir,omitempty"`        //sia keys directory to override /var/lib/sia/keys
-	SiaCertDir       string                   `json:"sia_cert_dir,omitempty"`       //sia certs directory to override /var/lib/sia/certs
-	SiaTokenDir      string                   `json:"sia_token_dir,omitempty"`      //sia tokens directory to override /var/lib/sia/tokens
-	SiaBackupDir     string                   `json:"sia_backup_dir,omitempty"`     //sia backup directory to override /var/lib/sia/backup
-	HostnameSuffix   string                   `json:"hostname_suffix,omitempty"`    //hostname suffix in case we need to auto-generate hostname
-	AccessManagement bool                     `json:"access_management"`            //access management support
+	Version          string                   `json:"version,omitempty"`             //name of the provider
+	Service          string                   `json:"service,omitempty"`             //name of the service for the identity
+	Services         map[string]ConfigService `json:"services,omitempty"`            //names of the multiple services for the identity
+	Ssh              *bool                    `json:"ssh,omitempty"`                 //ssh certificate support
+	SshHostKeyType   hostkey.KeyType          `json:"ssh_host_key_type,omitempty"`   //ssh host key type - rsa, ecdsa, etc
+	SshPrincipals    string                   `json:"ssh_principals,omitempty"`      //ssh additional principals
+	SanDnsWildcard   bool                     `json:"sandns_wildcard,omitempty"`     //san dns wildcard support
+	SanDnsHostname   bool                     `json:"sandns_hostname,omitempty"`     //san dns hostname support
+	UseRegionalSTS   bool                     `json:"regionalsts,omitempty"`         //whether to use a regional STS endpoint (default is false)
+	Accounts         []ConfigAccount          `json:"accounts,omitempty"`            //array of configured accounts
+	GenerateRoleKey  bool                     `json:"generate_role_key,omitempty"`   //private key to be generated for role certificate
+	RotateKey        bool                     `json:"rotate_key,omitempty"`          //rotate private key support
+	User             string                   `json:"user,omitempty"`                //the username to chown the cert/key dirs to. If absent, then root
+	Group            string                   `json:"group,omitempty"`               //the group name to chown the cert/key dirs to. If absent, then athenz
+	SDSUdsPath       string                   `json:"sds_uds_path,omitempty"`        //uds path if the agent should support uds connections
+	SDSUdsUid        int                      `json:"sds_uds_uid,omitempty"`         //uds connections must be from the given user uid
+	ExpiryTime       int                      `json:"expiry_time,omitempty"`         //service and role certificate expiry in minutes
+	RefreshInterval  int                      `json:"refresh_interval,omitempty"`    //specifies refresh interval in minutes
+	ZTSRegion        string                   `json:"zts_region,omitempty"`          //specifies zts region for the requests
+	DropPrivileges   bool                     `json:"drop_privileges,omitempty"`     //drop privileges to configured user instead of running as root
+	AccessTokens     map[string]ac.Role       `json:"access_tokens,omitempty"`       //map of role name to token attributes
+	FileDirectUpdate bool                     `json:"file_direct_update,omitempty"`  //update key/cert files directly instead of using rename
+	SiaKeyDir        string                   `json:"sia_key_dir,omitempty"`         //sia keys directory to override /var/lib/sia/keys
+	SiaCertDir       string                   `json:"sia_cert_dir,omitempty"`        //sia certs directory to override /var/lib/sia/certs
+	SiaTokenDir      string                   `json:"sia_token_dir,omitempty"`       //sia tokens directory to override /var/lib/sia/tokens
+	SiaBackupDir     string                   `json:"sia_backup_dir,omitempty"`      //sia backup directory to override /var/lib/sia/backup
+	HostnameSuffix   string                   `json:"hostname_suffix,omitempty"`     //hostname suffix in case we need to auto-generate hostname
+	AccessManagement bool                     `json:"access_management,omitempty"`   //access management support
+	FailCountForExit int                      `json:"fail_count_for_exit,omitempty"` //number of failed counts before exiting program
 }
 
 type AccessProfileConfig struct {
@@ -202,6 +203,7 @@ type Options struct {
 	SshPrincipals      string            //ssh additional principals
 	AccessManagement   bool              //access management support
 	AddlSanDNSEntries  []string          //additional san dns entries to be added to the CSR
+	FailCountForExit   int               //number of failed counts before exiting program
 }
 
 const (
@@ -384,6 +386,12 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 			config.RefreshInterval = refreshInterval
 		}
 	}
+	if config.FailCountForExit == 0 {
+		failCount := util.ParseEnvIntFlag("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", 0)
+		if failCount > 0 {
+			config.FailCountForExit = failCount
+		}
+	}
 	if config.ZTSRegion == "" {
 		config.ZTSRegion = os.Getenv("ATHENZ_SIA_ZTS_REGION")
 	}
@@ -487,6 +495,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	sshHostKeyType := hostkey.Rsa
 	sshPrincipals := ""
 	accessManagement := false
+	failCountForExit := 2
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -529,6 +538,9 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 		if config.SshPrincipals != "" {
 			sshPrincipals = config.SshPrincipals
+		}
+		if config.FailCountForExit > 0 {
+			failCountForExit = config.FailCountForExit
 		}
 
 		//update generate role and rotate key options if config is provided
@@ -694,6 +706,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		SshHostKeyType:    sshHostKeyType,
 		SshPrincipals:     sshPrincipals,
 		AccessManagement:  accessManagement,
+		FailCountForExit:  failCountForExit,
 	}, nil
 }
 
