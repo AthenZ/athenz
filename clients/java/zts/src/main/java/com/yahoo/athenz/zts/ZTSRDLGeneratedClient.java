@@ -975,7 +975,7 @@ public class ZTSRDLGeneratedClient {
                 if (headers != null) {
                     headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
                 }
-                return jsonMapper.readValue(httpResponseEntity.getContent(), OIDCResponse.class);
+                return null;
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

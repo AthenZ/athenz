@@ -337,6 +337,7 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	expected = append(expected, rdl.StatusCode(r.Expected))
 	couldBeNoContent := "NO_CONTENT" == r.Expected
 	couldBeNotModified := "NOT_MODIFIED" == r.Expected
+	couldBeRedirect := "FOUND" == r.Expected
 	noContent := couldBeNoContent && r.Alternatives == nil
 	for _, e := range r.Alternatives {
 		if "NO_CONTENT" == e {
@@ -357,7 +358,7 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 		}
 		s += "                }\n"
 	}
-	if noContent {
+	if noContent || couldBeRedirect {
 		s += "                return null;\n"
 	} else {
 		if couldBeNoContent || couldBeNotModified {
