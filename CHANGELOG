@@ -1,3 +1,15 @@
+Athenz v1.11.28 Release / Apr 28, 2023
+--------------------------------------
+
+#2141 feat: code signing provider
+#2142 fix NPE while setting User Authority Expiration for role without members
+#2144 Set a connect timeout when fetching JWT signing keys
+#2145 limit the number of entries in the zpe client library token cache
+#2146 allow use of cluster names in san dns entries for eks
+#2147 config setting for reserved top level domains
+#2148 sia agent - exit when refresh fails after configured number of attempts
+#2149 gce fix for host cert principals and x509 cert expiry
+
 Athenz v1.11.27 Release / Apr 22, 2023
 --------------------------------------
 
