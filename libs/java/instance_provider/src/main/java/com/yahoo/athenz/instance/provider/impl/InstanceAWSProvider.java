@@ -122,6 +122,14 @@ public class InstanceAWSProvider implements InstanceProvider {
         awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
     }
 
+    protected Set<String> getDnsSuffixes() {
+        return dnsSuffixes;
+    }
+
+    protected List<String> getEksDnsSuffixes() {
+        return eksDnsSuffixes;
+    }
+
     public ResourceException error(String message) {
         return error(ResourceException.FORBIDDEN, message);
     }
@@ -269,7 +277,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, dnsSuffixes, eksDnsSuffixes, eksClusterNames.getStringsList(),
+                instanceService, getDnsSuffixes(), getEksDnsSuffixes(), eksClusterNames.getStringsList(),
                 true, instanceId)) {
             throw error("Unable to validate certificate request hostnames");
         }
@@ -285,7 +293,6 @@ public class InstanceAWSProvider implements InstanceProvider {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId.toString(), true, privateIp, errMsg)) {
-                LOGGER.error("validateAWSDocument: {}", errMsg);
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
@@ -358,7 +365,6 @@ public class InstanceAWSProvider implements InstanceProvider {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId, false, privateIp, errMsg)) {
-                LOGGER.error("validateAWSDocument: {}", errMsg);
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
