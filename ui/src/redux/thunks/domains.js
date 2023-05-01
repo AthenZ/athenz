@@ -43,6 +43,7 @@ import { subDomainDelimiter } from '../config';
 import { selectPersonalDomain } from '../selectors/domains';
 import { updateBellPendingMember } from '../actions/domain-data';
 import { getFullCollectionName } from './utils/collection';
+const debug = require('debug')('AthenzUI:redux:domains');
 
 export const getUserDomainsList = () => async (dispatch, getState) => {
     try {
@@ -116,7 +117,7 @@ export const getBusinessServicesAll = () => async (dispatch, getState) => {
             dispatch(loadBusinessServicesAll(businessServiceOptionsAll));
         } catch (e) {
             dispatch(loadingFailed('getBusinessServicesAll'));
-            console.error(e);
+            debug('Failed getBusinessServicesAll:', e);
         }
     }
 };
