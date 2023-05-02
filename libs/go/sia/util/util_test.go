@@ -1181,3 +1181,19 @@ func TestRequiredFilePerm(t *testing.T) {
 		})
 	}
 }
+
+func TestCopy(t *testing.T) {
+
+	timeNano := time.Now().UnixNano()
+	fileName := fmt.Sprintf("copy-test.tmp%d", timeNano)
+	testContents := "xx-yy-zz"
+	err := os.WriteFile(fileName, []byte(testContents), 0644)
+	defer os.Remove(fileName)
+
+	siaDir, err := os.MkdirTemp("", "sia_bkup.")
+	assert.Nil(t, err, "should be able to create backup folder for sia")
+	defer os.RemoveAll(siaDir)
+	assert.Nil(t, Copy(fileName, siaDir+"/"+fileName, os.FileMode(0644)))
+	//non-existent file
+	assert.Nil(t, Copy("./abcd", siaDir+"/abcd", os.FileMode(0644)))
+}

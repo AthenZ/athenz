@@ -179,3 +179,39 @@ func TestGetInstanceId(test *testing.T) {
 		test.Errorf("want instanceId=3692465022399257023 got instanceId=%s", instanceId)
 	}
 }
+
+func TestGetInstancePrivateIp(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/computeMetadata/v1/instance/network-interfaces/0/ip", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/instance/network-interfaces/0/ip")
+		io.WriteString(w, "10.10.10.10")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	instanceIp, _ := GetInstancePrivateIp(metaServer.httpUrl())
+	if instanceIp != "10.10.10.10" {
+		test.Errorf("want instanceIp=10.10.10.10 got instanceIp=%s", instanceIp)
+	}
+}
+
+func TestGetInstancePublicIp(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip")
+		io.WriteString(w, "20.20.20.20")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	instancePubIp, _ := GetInstancePublicIp(metaServer.httpUrl())
+	if instancePubIp != "20.20.20.20" {
+		test.Errorf("want instancePubIp=20.20.20.20 got instancePubIp=%s", instancePubIp)
+	}
+}

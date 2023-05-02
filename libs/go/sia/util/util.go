@@ -522,16 +522,20 @@ func EnsureBackUpDir(backUpDir string) error {
 }
 
 func Copy(sourceFile, destFile string, perm os.FileMode) error {
-	sourceBytes, err := os.ReadFile(sourceFile)
-	if err != nil {
-		return err
-	}
-	if FileExists(destFile) {
-		if err := os.Remove(destFile); err != nil {
-			log.Printf("Unable to delete file %s\n", destFile)
+	if FileExists(sourceFile) {
+		sourceBytes, err := os.ReadFile(sourceFile)
+		if err != nil {
+			return err
 		}
+		if FileExists(destFile) {
+			if err := os.Remove(destFile); err != nil {
+				log.Printf("Unable to delete file %s\n", destFile)
+			}
+		}
+		return os.WriteFile(destFile, sourceBytes, perm)
 	}
-	return os.WriteFile(destFile, sourceBytes, perm)
+	// source file does not exist to take back up of. so no error
+	return nil
 }
 
 func CopyCertKeyFile(srcKey, destKey, srcCert, destCert string, keyFileMode os.FileMode, fileDirectUpdate bool) error {
