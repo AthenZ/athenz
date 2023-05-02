@@ -2012,7 +2012,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         List<String> idTokenGroups = null;
         if (tokenRequest.isGroupsScope()) {
 
-            idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName, fullArn,
+            idTokenGroups = processIdTokenGroups(principalName, tokenRequest, domainName, true,
                     principalDomain, caller);
 
         } else if (tokenRequest.isRolesScope()) {

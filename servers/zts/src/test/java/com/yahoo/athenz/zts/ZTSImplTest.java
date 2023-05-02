@@ -13488,8 +13488,8 @@ public class ZTSImplTest {
         List<String> userGroups = (List<String>) claims.getBody().get("groups");
         assertNotNull(userGroups);
         assertEquals(userGroups.size(), 2);
-        assertTrue(userGroups.contains("dev-team"));
-        assertTrue(userGroups.contains("pe-team"));
+        assertTrue(userGroups.contains("coretech:group.dev-team"));
+        assertTrue(userGroups.contains("coretech:group.pe-team"));
 
         // get only one of the groups and include state
 
@@ -13516,7 +13516,7 @@ public class ZTSImplTest {
         userGroups = (List<String>) claims.getBody().get("groups");
         assertNotNull(userGroups);
         assertEquals(userGroups.size(), 1);
-        assertTrue(userGroups.contains("dev-team"));
+        assertTrue(userGroups.contains("coretech:group.dev-team"));
 
         // requesting a group that the user is not part of
 
