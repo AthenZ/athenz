@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"log"
 	"os"
@@ -35,6 +36,7 @@ import (
 var Version string
 
 const siaMainDir = "/var/lib/sia"
+const sshDir = "/etc/ssh"
 
 func main() {
 	cmd := flag.String("cmd", "", "optional sub command to run")
@@ -120,6 +122,11 @@ func main() {
 		log.Fatalf("Unable to get instance id, error: %v\n", err)
 	}
 
+	privateIp, err := meta.GetInstancePrivateIp(*gceMetaEndPoint)
+	if err != nil {
+		log.Fatalf("Unable to get instance private ip, error: %v\n", err)
+	}
+
 	if *udsPath != "" {
 		opts.SDSUdsPath = *udsPath
 	}
@@ -130,11 +137,14 @@ func main() {
 	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
 	opts.InstanceId = instanceId
 	opts.Provider = provider
+	opts.PrivateIp = privateIp
 
 	// Better defaults
 	opts.RotateKey = true
 	opts.GenerateRoleKey = true
-	// opts.SshHostKeyType = hostkey.Ecdsa
+	opts.SshHostKeyType = hostkey.Ecdsa
+	opts.SshCertFile = hostkey.CertFile(sshDir, opts.SshHostKeyType)
+	opts.SshPubKeyFile = hostkey.PubKeyFile(sshDir, opts.SshHostKeyType)
 
 	agent.SetupAgent(opts, siaMainDir, "")
 	agent.RunAgent(*cmd, ztsUrl, *gceMetaEndPoint, opts)

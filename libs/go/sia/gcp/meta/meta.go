@@ -127,3 +127,18 @@ func GetInstanceId(metaEndpoint string) (string, error) {
 	}
 	return string(instanceIdBytes), nil
 }
+func GetInstancePrivateIp(metaEndpoint string) (string, error) {
+	instanceIdBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/network-interfaces/0/ip")
+	if err != nil {
+		return "", err
+	}
+	return string(instanceIdBytes), nil
+}
+
+func GetInstancePublicIp(metaEndpoint string) (string, error) {
+	pubIpBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip")
+	if err != nil {
+		return "", err
+	}
+	return string(pubIpBytes), nil
+}
