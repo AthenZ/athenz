@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -45,6 +46,7 @@ import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
+import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
@@ -167,6 +169,7 @@ public class ZTSClient implements Closeable {
     final static ConcurrentHashMap<String, RoleToken> ROLE_TOKEN_CACHE = new ConcurrentHashMap<>();
     final static ConcurrentHashMap<String, AccessTokenResponseCacheEntry> ACCESS_TOKEN_CACHE = new ConcurrentHashMap<>();
     final static ConcurrentHashMap<String, AWSTemporaryCredentials> AWS_CREDS_CACHE = new ConcurrentHashMap<>();
+    final static ConcurrentHashMap<String, IdTokenCacheEntry> ID_TOKEN_CACHE = new ConcurrentHashMap<>();
 
     private static final Queue<PrefetchTokenScheduledItem> PREFETCH_SCHEDULED_ITEMS = new ConcurrentLinkedQueue<>();
     private static Timer FETCH_TIMER;
@@ -185,7 +188,8 @@ public class ZTSClient implements Closeable {
         ROLE,
         ACCESS,
         AWS,
-        SVC_ROLE
+        SVC_ROLE,
+        ID
     }
 
     static boolean initConfigValues() {
@@ -686,7 +690,7 @@ public class ZTSClient implements Closeable {
             PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
         //apache http client expects in milliseconds
         HttpHost proxy = null;
-        if (proxyUrl != null && !proxyUrl.isEmpty()) {
+        if (!isEmpty(proxyUrl)) {
             final URI u = URI.create(proxyUrl);
             proxy = new HttpHost(u.getHost(), u.getPort(), u.getScheme());
         }
@@ -1584,7 +1588,7 @@ public class ZTSClient implements Closeable {
                 return true;
             }
 
-            // if we are still half way before the token expires then
+            // if we are still halfway before the token expires then
             // there is no need to refresh it
 
             if ((expiryTime - lastFetchTime) / 2 + lastFetchTime > currentTime) {
@@ -1599,8 +1603,8 @@ public class ZTSClient implements Closeable {
             }
 
             // otherwise we're going to do the same check to make sure
-            // we're half way since the last failed time so we'll
-            // progressively try to refresh frequently until we
+            // we're halfway since the last failed time, so we'll
+            // progressively try to refresh frequently until we have
             // a successful response from ZTS Server
 
             return (expiryTime - lastFailTime) / 2 + lastFailTime <= currentTime;
@@ -1745,6 +1749,16 @@ public class ZTSClient implements Closeable {
                         PREFETCH_SCHEDULED_ITEMS.remove(item);
                     }
                     break;
+
+                case ID:
+
+                    String idToken = itemZtsClient.getIDToken(item.responseType, item.idTokenServiceName,
+                            item.redirectUri, item.scope, item.state, item.keyType, item.fullArn,
+                            item.maxDuration, true);
+
+                    if (!idToken.isEmpty()) {
+                        item.setExpiresAtUTC(extractIdTokenExpiry(idToken));
+                    }
             }
 
             // update the fetch/fail times
@@ -1796,7 +1810,7 @@ public class ZTSClient implements Closeable {
                     item.expiresAtUTC,
                     item.isInvalid,
                     item.domainName);
-            item.lastNotificationTime = currentTime;
+            item.setLastNotificationTime(currentTime);
             item.notificationSender.sendNotification(ztsClientNotification);
         }
 
@@ -1863,7 +1877,8 @@ public class ZTSClient implements Closeable {
         long expiryTimeUTC = token.getExpiryTime();
         
         return prefetchToken(domainName, roleName, null, minExpiryTime, maxExpiryTime,
-                proxyForPrincipal, null, null, null, expiryTimeUTC, TokenType.ROLE);
+                proxyForPrincipal, null, null, null, null, null, null, null, null,
+                null, expiryTimeUTC, TokenType.ROLE);
     }
     
     boolean prefetchAwsCreds(String domainName, String roleName, String externalId,
@@ -1883,7 +1898,8 @@ public class ZTSClient implements Closeable {
         long expiryTimeUTC = awsCred.getExpiration().millis() / 1000;
 
         return prefetchToken(domainName, roleName, null, minExpiryTime, maxExpiryTime, null,
-                externalId, null, null, expiryTimeUTC, TokenType.AWS);
+                externalId, null, null, null, null, null, null, null, null,
+                expiryTimeUTC, TokenType.AWS);
     }
 
     public boolean prefetchAccessToken(String domainName, List<String> roleNames,
@@ -1904,13 +1920,41 @@ public class ZTSClient implements Closeable {
 
         return prefetchToken(domainName, null, roleNames, null, (int) expiryTime,
                 proxyForPrincipal, null, idTokenServiceName, authorizationDetails,
-                expiryTimeUTC, TokenType.ACCESS);
+                null, null, null, null, null, null, expiryTimeUTC, TokenType.ACCESS);
+    }
+
+    public boolean prefetchIdToken(String responseType, String clientId, String redirectUri, String scope,
+            String state, String keyType, Boolean fullArn, Integer expiryTime) {
+
+        String idToken = getIDToken(responseType, clientId, redirectUri, scope, state,
+                keyType, fullArn, expiryTime, true);
+        if (isEmpty(idToken)) {
+            LOG.error("PrefetchToken: No id token fetchable for client id={} and scope={}", clientId, scope);
+            return false;
+        }
+
+        return prefetchToken(null, null, null, null, expiryTime, null, null, clientId, null,
+                responseType, redirectUri, scope, state, keyType, fullArn,
+                extractIdTokenExpiry(idToken), TokenType.ID);
+    }
+
+    protected static long extractIdTokenExpiry(final String idToken) {
+
+        // strip out the signature part
+        int idx = idToken.lastIndexOf('.');
+        if (idx == -1) {
+            return 0;
+        }
+
+        IdToken token = new IdToken(idToken.substring(0, idx + 1), (PublicKey) null);
+        return token.getExpiryTime();
     }
 
     boolean prefetchToken(String domainName, String roleName, List<String> roleNames,
             Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal,
             String externalId, String idTokenServiceName, String authorizationDetails,
-            long expiryTimeUTC, TokenType tokenType) {
+            String responseType, String redirectUri, String scope, String state,
+            String keyType, Boolean fullArn, long expiryTimeUTC, TokenType tokenType) {
         
         // if we're given a ssl context then we don't have domain/service
         // settings configured otherwise those are required
@@ -1945,6 +1989,12 @@ public class ZTSClient implements Closeable {
                 .setSiaIdentityProvider(siaProvider)
                 .setSslContext(sslContext)
                 .setProxyUrl(proxyUrl)
+                .setKeyType(keyType)
+                .setResponseType(responseType)
+                .setRedirectUri(redirectUri)
+                .setScope(scope)
+                .setState(state)
+                .setFullArn(fullArn)
                 .setNotificationSender(notificationSender);
         
         // include our zts client only if it was overridden by
@@ -1955,9 +2005,9 @@ public class ZTSClient implements Closeable {
         }
 
         // we need to make sure we don't have duplicates in
-        // our prefetch list so since we got a brand new
+        // our prefetch list so since we got a brand-new
         // token now we're going to remove any others we have
-        // in the list and add this one. Our items equals
+        // in the list and add this one. Our item's equals
         // method defines what attributes we're looking for
         // when comparing two items.
 
@@ -2063,7 +2113,7 @@ public class ZTSClient implements Closeable {
         cacheKey.append(";d=");
         cacheKey.append(domainName);
 
-        if (roleName != null && !roleName.isEmpty()) {
+        if (!isEmpty(roleName)) {
             cacheKey.append(";r=");
             
             // check to see if we have multiple roles in the values
@@ -2077,14 +2127,52 @@ public class ZTSClient implements Closeable {
             }
         }
         
-        if (proxyForPrincipal != null && !proxyForPrincipal.isEmpty()) {
+        if (!isEmpty(proxyForPrincipal)) {
             cacheKey.append(";u=");
             cacheKey.append(proxyForPrincipal);
         }
         
         return cacheKey.toString();
     }
-    
+
+    String getIdTokenCacheKey(String responseType, String clientId, String redirectUri, String scope,
+            String state, String keyType, Boolean fullArn) {
+
+        if (responseType == null || clientId == null || scope == null || redirectUri == null) {
+            return null;
+        }
+
+        StringBuilder cacheKey = new StringBuilder(256);
+        cacheKey.append("t=");
+        cacheKey.append(responseType);
+
+        cacheKey.append(";c=");
+        cacheKey.append(clientId);
+
+        cacheKey.append(";s=");
+        cacheKey.append(scope);
+
+        cacheKey.append(";r=");
+        cacheKey.append(redirectUri);
+
+        if (!isEmpty(state)) {
+            cacheKey.append(";a=");
+            cacheKey.append(state);
+        }
+
+        if (!isEmpty(keyType)) {
+            cacheKey.append(";k=");
+            cacheKey.append(keyType);
+        }
+
+        if (fullArn != null) {
+            cacheKey.append(";f=");
+            cacheKey.append(fullArn);
+        }
+
+        return cacheKey.toString();
+    }
+
     static boolean isExpiredToken(long expiryTime, Integer minExpiryTime, Integer maxExpiryTime,
             int tokenMinExpiryTime) {
 
@@ -2976,7 +3064,6 @@ public class ZTSClient implements Closeable {
 
     /**
      * Retrieve the server info details
-     *
      * @return info object
      * @throws ZTSClientException in case of failure
      */
@@ -2989,6 +3076,235 @@ public class ZTSClient implements Closeable {
         } catch (Exception ex) {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param domainName name of the domain
+     * @param roleName only interested in the specified role name
+     * @param clientId name of the audience service name (e.g. sys.auth.gcp)
+     * @param redirectUriSuffix the function will generate an auto redirect uri as required by the server
+     *          with the format {service-name}.{domain-with-dashes}.{redirect-suffix} and submit as part
+     *          of the request.
+     * @param fullArn boolean flag indicating whether the groups claim in the token contains only the
+     *           role names or the full names including domains (e.g. sports.api:role.hockey-writers).
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @return ZTS generated ID Token String. ZTSClientException will be thrown in case of failure
+     */
+    public String getIDToken(String domainName, String roleName, String clientId, String redirectUriSuffix,
+                             boolean fullArn, Integer expiryTime) {
+        return getIDToken(domainName, Collections.singletonList(roleName), clientId,
+                redirectUriSuffix, fullArn, expiryTime);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param domainName name of the domain
+     * @param roleNames (optional) only interested in roles with these names, comma separated list of roles
+     * @param clientId name of the audience service name (e.g. sys.auth.gcp)
+     * @param redirectUriSuffix the function will generate an auto redirect uri as required by the server
+     *          with the format {service-name}.{domain-with-dashes}.{redirect-suffix} and submit as part
+     *          of the request.
+     * @param fullArn boolean flag indicating whether the groups claim in the token contains only the
+     *           role names or the full names including domains (e.g. sports.api:role.hockey-writers).
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @return ZTS generated ID Token String. ZTSClientException will be thrown in case of failure
+     */
+    public String getIDToken(String domainName, List<String> roleNames, String clientId, String redirectUriSuffix,
+            boolean fullArn, Integer expiryTime) {
+         final String redirectUri = generateRedirectUri(clientId, redirectUriSuffix);
+         final String scope = generateIdTokenScope(domainName, roleNames);
+
+         return getIDToken("id_token", clientId, redirectUri, scope, null, "EC", fullArn, expiryTime, false);
+    }
+
+    /**
+     * For the specified requester(user/service) return the corresponding Access Token that
+     * includes the list of roles that the principal has access to in the specified domain
+     * @param responseType response object type - only id_token is supported for now
+     * @param clientId name of the audience service name (e.g. sys.auth.gcp)
+     * @param redirectUri the redirect uri for the request
+     * @param scope the scope of the request e.g. "openid sports.api:roles.hockey-writers"
+     * @param state the state component of the location header. could be empty
+     * @param keyType the private key type to sign the token - possible values are "RSA" or "EC"
+     * @param fullArn boolean flag indicating whether the groups claim in the token contains only the
+     *           role names or the full names including domains (e.g. sports.api:role.hockey-writers).
+     * @param expiryTime (optional) specifies that the returned Access must be
+     *          at least valid for specified number of seconds. Pass 0 to use
+     *          server default timeout.
+     * @return ZTS generated ID Token String. ZTSClientException will be thrown in case of failure
+     */
+    public String getIDToken(String responseType, String clientId, String redirectUri, String scope, String state,
+            String keyType, Boolean fullArn, Integer expiryTime, boolean ignoreCache) {
+
+        // check for required attributes
+
+        if (isEmpty(responseType) || isEmpty(clientId) || isEmpty(redirectUri) || isEmpty(scope)) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, "missing required attribute(s)");
+        }
+
+        String idToken;
+
+        // first lookup in our cache to see if it can be satisfied
+        // only if we're not asked to ignore the cache
+
+        String cacheKey = null;
+        if (!cacheDisabled) {
+            cacheKey = getIdTokenCacheKey(responseType, clientId, redirectUri, scope, state, keyType, fullArn);
+            if (cacheKey != null && !ignoreCache) {
+                idToken = lookupIdTokenResponseInCache(cacheKey, expiryTime);
+                if (idToken != null) {
+                    return idToken;
+                }
+                // start prefetch for this token if prefetch is enabled
+                if (enablePrefetch && prefetchAutoEnable) {
+                    if (prefetchIdToken(responseType, clientId, redirectUri, scope,
+                            state, keyType, fullArn, expiryTime)) {
+                        idToken = lookupIdTokenResponseInCache(cacheKey, expiryTime);
+                    }
+                    if (idToken != null) {
+                        return idToken;
+                    }
+                    LOG.error("GetIdToken: cache prefetch and lookup error");
+                }
+            }
+        }
+
+        // if no hit then we need to request a new token from ZTS
+
+        updateServicePrincipal();
+        try {
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            ztsClient.getOIDCResponse(responseType, clientId, redirectUri, scope,
+                    state, Crypto.randomSalt(), keyType, fullArn, expiryTime, responseHeaders);
+
+            idToken = extractIdTokenFromLocation(responseHeaders, redirectUri, state);
+
+        } catch (ResourceException ex) {
+
+            if (cacheKey != null && !ignoreCache) {
+
+                // if we have an entry in our cache then we'll return that
+                // instead of returning failure
+
+                idToken = lookupIdTokenResponseInCache(cacheKey, -1);
+                if (idToken != null) {
+                    return idToken;
+                }
+            }
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+
+        } catch (Exception ex) {
+
+            // if we have an entry in our cache then we'll return that
+            // instead of returning failure
+
+            if (cacheKey != null && !ignoreCache) {
+                idToken = lookupIdTokenResponseInCache(cacheKey, -1);
+                if (idToken != null) {
+                    return idToken;
+                }
+            }
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+
+        // need to add the token to our cache. If our principal was
+        // updated then we need to retrieve a new cache key
+
+        if (!cacheDisabled) {
+            if (cacheKey == null) {
+                cacheKey = getIdTokenCacheKey(responseType, clientId, redirectUri, scope, state,
+                        keyType, fullArn);
+            }
+            if (cacheKey != null) {
+                ID_TOKEN_CACHE.put(cacheKey, new IdTokenCacheEntry(idToken, extractIdTokenExpiry(idToken)));
+            }
+        }
+
+        return idToken;
+    }
+
+    String lookupIdTokenResponseInCache(String cacheKey, Integer expiryTime) {
+
+        IdTokenCacheEntry idTokenCacheEntry = ID_TOKEN_CACHE.get(cacheKey);
+        if (idTokenCacheEntry == null) {
+            if (LOG.isInfoEnabled()) {
+                LOG.info("LookupIdTokenResponseInCache: cache-lookup key: {} result: not found", cacheKey);
+            }
+            return null;
+        }
+
+        // default timeout for id tokens is 1 hour
+
+        if (expiryTime == null) {
+            expiryTime = 60 * 60;
+        }
+
+        // before returning our cache hit we need to make sure it
+        // was at least 1/4th time left before the token expires
+        // if the expiryTime is -1 then we return the token as
+        // long as it's not expired
+
+        if (idTokenCacheEntry.isExpired(expiryTime)) {
+            if (idTokenCacheEntry.isExpired(-1)) {
+                ID_TOKEN_CACHE.remove(cacheKey);
+            }
+            return null;
+        }
+
+        return idTokenCacheEntry.getIdToken();
+    }
+
+    String extractIdTokenFromLocation(Map<String, List<String>> responseHeaders, final String redirectUri,
+            final String state) {
+
+        //the format of the location header is <redirect-uri>#id_token=<token>&state=<state>
+        List<String> locationValues = responseHeaders.get("location");
+        if (isEmpty(locationValues)) {
+            return "";
+        }
+        final String location = locationValues.get(0);
+        final String prefix = redirectUri + "#id_token=";
+        if (!location.startsWith(prefix)) {
+            return "";
+        }
+        if (isEmpty(state)) {
+            return location.substring(prefix.length());
+        }
+        final String suffix = "&state=" + state;
+        if (!location.endsWith(suffix)) {
+            return "";
+        }
+        return location.substring(prefix.length(), prefix.length() + location.length() - prefix.length() - suffix.length());
+    }
+
+    String generateIdTokenScope(final String domainName, List<String> roleNames) {
+        StringBuilder scope = new StringBuilder(256);
+        scope.append("openid");
+        if (isEmpty(roleNames)) {
+            scope.append(" roles ").append(domainName).append(":domain");
+        } else {
+            for (String role : roleNames) {
+                scope.append(' ').append(domainName).append(AuthorityConsts.ROLE_SEP).append(role);
+            }
+        }
+        return scope.toString();
+    }
+
+    String generateRedirectUri(final String clientId, final String uriSuffix) {
+        int idx = clientId.lastIndexOf('.');
+        if (idx == -1) {
+            return "";
+        }
+        final String dashDomain = clientId.substring(0, idx).replace('.', '-');
+        final String service = clientId.substring(idx + 1);
+        return "https://" + service + "." + dashDomain + "." + uriSuffix;
     }
 
     static class ClientKeyRefresherListener implements KeyRefresherListener {
@@ -3156,7 +3472,43 @@ public class ZTSClient implements Closeable {
             proxyUrl = url;
             return this;
         }
-        
+
+        String responseType;
+        PrefetchTokenScheduledItem setResponseType(String type) {
+            responseType = type;
+            return this;
+        }
+
+        String redirectUri;
+        PrefetchTokenScheduledItem setRedirectUri(String uri) {
+            redirectUri = uri;
+            return this;
+        }
+
+        String scope;
+        PrefetchTokenScheduledItem setScope(String value) {
+            scope = value;
+            return this;
+        }
+
+        String state;
+        PrefetchTokenScheduledItem setState(String value) {
+            state = value;
+            return this;
+        }
+
+        String keyType;
+        PrefetchTokenScheduledItem setKeyType(String type) {
+            keyType = type;
+            return this;
+        }
+
+        Boolean fullArn;
+        PrefetchTokenScheduledItem setFullArn(Boolean arn) {
+            fullArn = arn;
+            return this;
+        }
+
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -3171,6 +3523,12 @@ public class ZTSClient implements Closeable {
             result = prime * result + ((idTokenServiceName == null) ? 0 : idTokenServiceName.hashCode());
             result = prime * result + ((sslContext == null) ? 0 : sslContext.hashCode());
             result = prime * result + ((proxyUrl == null) ? 0 : proxyUrl.hashCode());
+            result = prime * result + ((responseType == null) ? 0 : responseType.hashCode());
+            result = prime * result + ((redirectUri == null) ? 0 : redirectUri.hashCode());
+            result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+            result = prime * result + ((state == null) ? 0 : state.hashCode());
+            result = prime * result + ((keyType == null) ? 0 : keyType.hashCode());
+            result = prime * result + ((fullArn == null) ? 0 : fullArn.hashCode());
             result = prime * result + tokenType.hashCode();
             result = prime * result + Boolean.hashCode(isInvalid);
 
@@ -3243,6 +3601,48 @@ public class ZTSClient implements Closeable {
                     return false;
                 }
             } else if (!idTokenServiceName.equals(other.idTokenServiceName)) {
+                return false;
+            }
+            if (responseType == null) {
+                if (other.responseType != null) {
+                    return false;
+                }
+            } else if (!responseType.equals(other.responseType)) {
+                return false;
+            }
+            if (redirectUri == null) {
+                if (other.redirectUri != null) {
+                    return false;
+                }
+            } else if (!redirectUri.equals(other.redirectUri)) {
+                return false;
+            }
+            if (scope == null) {
+                if (other.scope != null) {
+                    return false;
+                }
+            } else if (!scope.equals(other.scope)) {
+                return false;
+            }
+            if (state == null) {
+                if (other.state != null) {
+                    return false;
+                }
+            } else if (!state.equals(other.state)) {
+                return false;
+            }
+            if (keyType == null) {
+                if (other.keyType != null) {
+                    return false;
+                }
+            } else if (!keyType.equals(other.keyType)) {
+                return false;
+            }
+            if (fullArn == null) {
+                if (other.fullArn != null) {
+                    return false;
+                }
+            } else if (!fullArn.equals(other.fullArn)) {
                 return false;
             }
             if (isInvalid != other.isInvalid) {
@@ -3419,7 +3819,6 @@ public class ZTSClient implements Closeable {
      * in this model we're going to look at the principal field only and
      * ignore the proxy field since the client doesn't need to know anything
      * about that detail.
-     *
      * start prefetch task to reload to prevent expiry
      * return the cache key used
      */

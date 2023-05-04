@@ -3681,4 +3681,387 @@ public class ZTSClientTest {
         System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
         client.close();
     }
+
+    @Test
+    public void testExtractIdTokenFromLocation() {
+
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        Map<String, List<String>> responseHeaders = new HashMap<>();
+        responseHeaders.put("agent", Collections.singletonList("my-agent"));
+
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", null), "");
+
+        List<String> locationValues = new ArrayList<>();
+        responseHeaders.put("location", locationValues);
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", null), "");
+
+        locationValues.add("https://athenz.io#id_token=token-value");
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://api.athenz.io", null), "");
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://api.athenz.io", ""), "");
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", null), "token-value");
+
+        locationValues.clear();
+        locationValues.add("https://athenz.io#id_token=token-value&state=abc123");
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", "test"), "");
+        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", "abc123"), "token-value");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
+
+    @Test
+    public void testGenerateIdTokenScope() {
+
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        assertEquals(client.generateIdTokenScope("sports.api", null), "openid roles sports.api:domain");
+        assertEquals(client.generateIdTokenScope("sports.api", Collections.emptyList()), "openid roles sports.api:domain");
+
+        List<String> roles = new ArrayList<>();
+        roles.add("readers");
+        assertEquals(client.generateIdTokenScope("sports.api", roles), "openid sports.api:role.readers");
+
+        roles.add("writers");
+        assertEquals(client.generateIdTokenScope("sports.api", roles), "openid sports.api:role.readers sports.api:role.writers");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
+
+    @Test
+    public void testGenerateRedirectUri() {
+
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        assertEquals(client.generateRedirectUri("sports", "athenz.io"), "");
+        assertEquals(client.generateRedirectUri("sports.api", "athenz.io"), "https://api.sports.athenz.io");
+        assertEquals(client.generateRedirectUri("sports.prod.api", "athenz.io"), "https://api.sports-prod.athenz.io");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
+
+    @Test
+    public void testExtractIdTokenExpiry() {
+        String token = AccessTokenTestFileHelper.getSignedAccessToken(3600);
+        assertTrue(ZTSClient.extractIdTokenExpiry(token) != 0);
+        assertEquals(ZTSClient.extractIdTokenExpiry("invalid"), 0);
+        try {
+            ZTSClient.extractIdTokenExpiry("invalid.token.signature");
+            fail();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    public void testGetIdTokenCacheKey() {
+        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
+        ZTSClient.initConfigValues();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient(null, principal);
+
+        assertNull(client.getIdTokenCacheKey(null, "id", "uri", "scope", "state", "EC", true));
+        assertNull(client.getIdTokenCacheKey("id_token", null, "uri", "scope", "state", "EC", true));
+        assertNull(client.getIdTokenCacheKey("id_token", "id", null, "scope", "state", "EC", true));
+        assertNull(client.getIdTokenCacheKey("id_token", "id", "uri", null, "state", "EC", true));
+
+        assertEquals(client.getIdTokenCacheKey("id_token", "sports.api", "https://api.sports", "openid", null, null, null),
+                "t=id_token;c=sports.api;s=openid;r=https://api.sports");
+        assertEquals(client.getIdTokenCacheKey("id_token", "sports.api", "https://api.sports", "openid", "", "", null),
+                "t=id_token;c=sports.api;s=openid;r=https://api.sports");
+        assertEquals(client.getIdTokenCacheKey("id_token", "sports.api", "https://api.sports", "openid", "state", "", null),
+                "t=id_token;c=sports.api;s=openid;r=https://api.sports;a=state");
+        assertEquals(client.getIdTokenCacheKey("id_token", "sports.api", "https://api.sports", "openid", "state", "EC", true),
+                "t=id_token;c=sports.api;s=openid;r=https://api.sports;a=state;k=EC;f=true");
+
+        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
+        client.close();
+    }
+
+    @Test
+    public void testLookupIdTokenResponseInCache() throws InterruptedException {
+
+        final String cacheKey = "idtestkey1";
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+
+        assertNull(client.lookupIdTokenResponseInCache(cacheKey, 3600));
+
+        ZTSClient.ID_TOKEN_CACHE.put(cacheKey, new IdTokenCacheEntry("token", System.currentTimeMillis() / 1000 + 3600));
+
+        // with standard 1 hour check, our entry is not expired
+
+        assertNotNull(client.lookupIdTokenResponseInCache(cacheKey, 3600));
+
+        // if we pass null for expiry time, we default to 1 hour
+
+        assertNotNull(client.lookupIdTokenResponseInCache(cacheKey, null));
+
+        // with a 60-hour check, our entry is expired, however our entry
+        // will not be removed from the cache
+
+        assertNull(client.lookupIdTokenResponseInCache(cacheKey, 36000));
+        assertNotNull(ZTSClient.ID_TOKEN_CACHE.get(cacheKey));
+
+        // add a second entry with 1 second timeout
+
+        ZTSClient.ID_TOKEN_CACHE.put(cacheKey, new IdTokenCacheEntry("token", System.currentTimeMillis() / 1000 + 1));
+
+        // sleep a second and then ask for a cache entry
+
+        Thread.sleep(1000);
+
+        // entry is not returned from lookup and also removed from the cache
+
+        assertNull(client.lookupIdTokenResponseInCache(cacheKey, 3600));
+        assertNull(ZTSClient.ID_TOKEN_CACHE.get(cacheKey));
+        client.close();
+    }
+
+    @Test
+    public void testGetIdToken() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        ZTSClient.setPrefetchAutoEnable(true);
+        client.setEnablePrefetch(true);
+
+        String idToken = client.getIDToken("sports", "readers", "sys.auth.gcp",
+                "gcp.athenz.io", true, null);
+        assertNotNull(idToken);
+
+        // passing the role name as a list should give us the same token back
+        // as we should be caching our results
+
+        String idToken2 = client.getIDToken("sports", Collections.singletonList("readers"), "sys.auth.gcp",
+                "gcp.athenz.io", true, null);
+        assertNotNull(idToken2);
+        assertEquals(idToken, idToken2);
+
+        // now let's pass with the expiry time of 1 hour, and we still should get
+        // back the same token from the cache
+
+        idToken2 = client.getIDToken("sports", Collections.singletonList("readers"), "sys.auth.gcp",
+                "gcp.athenz.io", true, 3600);
+        assertNotNull(idToken2);
+        assertEquals(idToken, idToken2);
+
+        // now let's try with the full api and ignore cache disabled
+
+        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.readers", null, "EC", true, 3600, false);
+        assertNotNull(idToken2);
+        assertEquals(idToken, idToken2);
+
+        // finally let's try with cached disabled, and we should get a new token
+
+        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.readers", null, "EC", true, 3600, true);
+        assertNotNull(idToken2);
+        assertNotEquals(idToken, idToken2);
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenMissingArguments() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        try {
+            client.getIDToken("", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                    "openid sports:role.readers", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken(null, "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                    "openid sports:role.readers", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken("id_token", "", "https://gcp.sys-auth.gcp.athenz.io",
+                    "openid sports:role.readers", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken("id_token", null, "https://gcp.sys-auth.gcp.athenz.io",
+                    "openid sports:role.readers", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken("id_token", "sys.auth.gcp", "",
+                    "openid sports:role.readers", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken("id_token", "sys.auth.gcp", null,
+                    "openid sports:role.readers", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                    "", null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        try {
+            client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                    null, null, "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertTrue(ex.getMessage().contains("missing required attribute"));
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenExceptions() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        try {
+            client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                    "openid sports:role.readers", "zts-403", "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                    "openid sports:role.readers", "zts-500", "EC", true, 3600, false);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testPrefetchIdTokenShouldNotCallServer() throws Exception {
+
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        ztsClientMock.setRoleName("role1");
+
+        final Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        Mockito.when(siaProvider.getIdentity(Mockito.any(),
+                Mockito.any())).thenReturn(principal);
+
+        ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
+                "user", siaProvider);
+        ZTSClient.setPrefetchInterval(1);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        // initially, id token was never fetched.
+        assertTrue(ztsClientMock.getLastIdTokenFetchedTime("openid sports.api:role.readers") < 0);
+
+        // initialize the prefetch token process.
+        client.prefetchIdToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.readers", null, "EC", true, 8);
+        int scheduledItemsSize = client.getScheduledItemsSize();
+
+        // make sure only unique items are in the queue
+        client.prefetchIdToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.readers", null, "EC", true, 8);
+        int scheduledItemsSize2 = client.getScheduledItemsSize();
+        assertEquals(scheduledItemsSize, scheduledItemsSize2);
+
+        String idToken = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.readers", null, "EC", true, 8, false);
+        assertNotNull(idToken);
+        assertFalse(idToken.isEmpty());
+
+        client.prefetchIdToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.writers", null, "EC", true, 8);
+        assertEquals(client.getScheduledItemsSize(), scheduledItemsSize + 1);
+
+        String idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.writers", null, "EC", true, 8, false);
+        long rt2Expiry = ZTSClient.extractIdTokenExpiry(idToken2);
+        assertNotNull(idToken2);
+
+        System.out.println("testPrefetchIdTokenShouldNotCallServer: sleep Secs=5");
+        Thread.sleep(5000);
+        System.out.println("testPrefetchIdTokenShouldNotCallServer: nap over so what happened");
+
+        assertEquals(client.getScheduledItemsSize(), scheduledItemsSize + 1);
+
+        long lastTokenFetchedTime1 = ztsClientMock.getLastIdTokenFetchedTime("openid sports:role.readers");
+        assertTrue(lastTokenFetchedTime1 > 0);
+
+        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.writers", null, "EC", true, 8, false);
+        long rt2Expiry2 = ZTSClient.extractIdTokenExpiry(idToken2);
+
+        assertTrue(rt2Expiry2 > rt2Expiry); // this token was refreshed
+
+        // wait a few seconds, and see subsequent fetch happened.
+        System.out.println("testPrefetchIdTokenShouldNotCallServer: sleep Secs=5");
+        Thread.sleep(5000);
+        System.out.println("testPrefetchIdTokenShouldNotCallServer: again nap over so what happened");
+
+        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+                "openid sports:role.writers", null, "EC", true, 8, false);
+        long rt2Expiry3 = ZTSClient.extractIdTokenExpiry(idToken2);
+        assertTrue(rt2Expiry3 > rt2Expiry2); // this token was refreshed
+
+        ZTSClient.cancelPrefetch();
+        client.close();
+    }
 }

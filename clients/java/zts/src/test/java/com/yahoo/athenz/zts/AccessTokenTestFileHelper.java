@@ -25,13 +25,17 @@ public class AccessTokenTestFileHelper {
     private static final File invalidTokenFile = new File("./src/test/resources/test.domain/invalid");
 
     private static AccessToken createAccessToken(long now) {
+        return createAccessToken(now, 3600);
+    }
+
+    private static AccessToken createAccessToken(long now, int expiry) {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setAuthTime(now);
         accessToken.setScope(Collections.singletonList("admin"));
         accessToken.setSubject("subject");
         accessToken.setUserId("userid");
-        accessToken.setExpiryTime(now + 3600);
+        accessToken.setExpiryTime(now + expiry);
         accessToken.setIssueTime(now);
         accessToken.setClientId("mtls");
         accessToken.setAudience("coretech");
@@ -50,6 +54,13 @@ public class AccessTokenTestFileHelper {
         }
 
         return accessToken;
+    }
+
+    public static String getSignedAccessToken(int expiry) {
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now, expiry);
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        return accessToken.getSignedToken(privateKey, "eckey1", SignatureAlgorithm.ES256);
     }
 
     public static void setupTokenFile() {
