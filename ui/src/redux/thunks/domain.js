@@ -33,6 +33,7 @@ import {
     getFeatureFlag,
     getHeaderDetails,
 } from './domains';
+const debug = require('debug')('AthenzUI:redux:domain');
 
 const loadAllDomainData = async (domainName, userName, dispatch) => {
     dispatch(loadingInProcess('getDomainData'));
@@ -82,7 +83,7 @@ const loadAllDomainData = async (domainName, userName, dispatch) => {
         dispatch(loadingSuccess('getDomainData'));
     } catch (e) {
         dispatch(loadingFailed('getDomainData'));
-        throw e;
+        debug('Failed getDomainData:', e);
     }
 };
 

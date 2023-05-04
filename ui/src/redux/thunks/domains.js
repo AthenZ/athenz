@@ -43,6 +43,7 @@ import { subDomainDelimiter } from '../config';
 import { selectPersonalDomain } from '../selectors/domains';
 import { updateBellPendingMember } from '../actions/domain-data';
 import { getFullCollectionName } from './utils/collection';
+const debug = require('debug')('AthenzUI:redux:domains');
 
 export const getUserDomainsList = () => async (dispatch, getState) => {
     try {
@@ -95,24 +96,29 @@ export const getBusinessServicesAll = () => async (dispatch, getState) => {
     if (getState().domains.businessServicesAll) {
         dispatch(returnBusinessServicesAll());
     } else {
-        const allBusinessServices = await API().getMeta(bServicesParamsAll);
-        let businessServiceOptionsAll = [];
-        if (allBusinessServices && allBusinessServices.validValues) {
-            allBusinessServices.validValues.forEach((businessService) => {
-                let bServiceOnlyId = businessService.substring(
-                    0,
-                    businessService.indexOf(':')
-                );
-                let bServiceOnlyName = businessService.substring(
-                    businessService.indexOf(':') + 1
-                );
-                businessServiceOptionsAll.push({
-                    value: bServiceOnlyId,
-                    name: bServiceOnlyName,
+        try {
+            const allBusinessServices = await API().getMeta(bServicesParamsAll);
+            let businessServiceOptionsAll = [];
+            if (allBusinessServices && allBusinessServices.validValues) {
+                allBusinessServices.validValues.forEach((businessService) => {
+                    let bServiceOnlyId = businessService.substring(
+                        0,
+                        businessService.indexOf(':')
+                    );
+                    let bServiceOnlyName = businessService.substring(
+                        businessService.indexOf(':') + 1
+                    );
+                    businessServiceOptionsAll.push({
+                        value: bServiceOnlyId,
+                        name: bServiceOnlyName,
+                    });
                 });
-            });
+            }
+            dispatch(loadBusinessServicesAll(businessServiceOptionsAll));
+        } catch (e) {
+            dispatch(loadingFailed('getBusinessServicesAll'));
+            debug('Failed getBusinessServicesAll:', e);
         }
-        dispatch(loadBusinessServicesAll(businessServiceOptionsAll));
     }
 };
 
