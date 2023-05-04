@@ -9,7 +9,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 public class RetryDynamoDBCommand<T> {
-    private final Long dynamodbMaxRetries = Long.parseLong(
+    private final int dynamodbMaxRetries = Integer.parseInt(
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DYNAMODB_RETRIES, "10"));
 
     private final Long dynamodbRetriesSleepMillis = Long.parseLong(
