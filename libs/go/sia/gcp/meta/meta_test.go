@@ -93,8 +93,8 @@ func TestGetRegion(test *testing.T) {
 func TestGetDomain(test *testing.T) {
 	// Mock the metadata endpoints
 	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/project/attributes/domain", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
-		log.Println("Called /computeMetadata/v1/project/attributes/domain")
+	router.GET("/computeMetadata/v1/project/attributes/athenz-domain", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/project/attributes/athenz-domain")
 		io.WriteString(w, "athenz.test")
 	})
 
