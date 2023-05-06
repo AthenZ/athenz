@@ -1,3 +1,15 @@
+Athenz v1.11.29 Release / May 06, 2023
+--------------------------------------
+
+#2143 UI: Ensure metastore error does not interfere with UI usability
+#2150 return dns suffix through method so the AWS Provider can be extended
+#2151 correct handling of java client code generation for status 302
+#2157 for id tokens with group scope always use full arns
+#2161 sia copy if source file exists, gcp meta functions to get instance ip
+#2163 expose getIdToken methods in ZTS Java Client
+#2164 Update dynamodbMaxRetries to avoid Integer Overflow
+#2165 better attribute name for Athenz domain in GCP project metadata
+
 Athenz v1.11.28 Release / Apr 28, 2023
 --------------------------------------
 
