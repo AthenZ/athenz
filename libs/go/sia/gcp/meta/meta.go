@@ -85,7 +85,7 @@ func getRegionFromMeta(metaEndPoint string) string {
 }
 
 func GetDomain(metaEndpoint string) (string, error) {
-	domainBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/project/attributes/domain")
+	domainBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/project/attributes/athenz-domain")
 	if err != nil {
 		return "", err
 	}
