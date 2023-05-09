@@ -3683,38 +3683,6 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testExtractIdTokenFromLocation() {
-
-        System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
-        ZTSClient.initConfigValues();
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
-        ZTSClient client = new ZTSClient(null, principal);
-
-        Map<String, List<String>> responseHeaders = new HashMap<>();
-        responseHeaders.put("agent", Collections.singletonList("my-agent"));
-
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", null), "");
-
-        List<String> locationValues = new ArrayList<>();
-        responseHeaders.put("location", locationValues);
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", null), "");
-
-        locationValues.add("https://athenz.io#id_token=token-value");
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://api.athenz.io", null), "");
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://api.athenz.io", ""), "");
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", null), "token-value");
-
-        locationValues.clear();
-        locationValues.add("https://athenz.io#id_token=token-value&state=abc123");
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", "test"), "");
-        assertEquals(client.extractIdTokenFromLocation(responseHeaders, "https://athenz.io", "abc123"), "token-value");
-
-        System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF);
-        client.close();
-    }
-
-    @Test
     public void testGenerateIdTokenScope() {
 
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
@@ -3755,18 +3723,6 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testExtractIdTokenExpiry() {
-        String token = AccessTokenTestFileHelper.getSignedAccessToken(3600);
-        assertTrue(ZTSClient.extractIdTokenExpiry(token) != 0);
-        assertEquals(ZTSClient.extractIdTokenExpiry("invalid"), 0);
-        try {
-            ZTSClient.extractIdTokenExpiry("invalid.token.signature");
-            fail();
-        } catch (Exception ignored) {
-        }
-    }
-
-    @Test
     public void testGetIdTokenCacheKey() {
         System.setProperty(ZTSClient.ZTS_CLIENT_PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
         ZTSClient.initConfigValues();
@@ -3803,7 +3759,9 @@ public class ZTSClientTest {
 
         assertNull(client.lookupIdTokenResponseInCache(cacheKey, 3600));
 
-        ZTSClient.ID_TOKEN_CACHE.put(cacheKey, new IdTokenCacheEntry("token", System.currentTimeMillis() / 1000 + 3600));
+        ZTSClient.ID_TOKEN_CACHE.put(cacheKey,
+                new OIDCResponse().setId_token("token")
+                        .setExpiration_time(System.currentTimeMillis() / 1000 + 3600));
 
         // with standard 1 hour check, our entry is not expired
 
@@ -3821,8 +3779,9 @@ public class ZTSClientTest {
 
         // add a second entry with 1 second timeout
 
-        ZTSClient.ID_TOKEN_CACHE.put(cacheKey, new IdTokenCacheEntry("token", System.currentTimeMillis() / 1000 + 1));
-
+        ZTSClient.ID_TOKEN_CACHE.put(cacheKey,
+                new OIDCResponse().setId_token("token")
+                        .setExpiration_time(System.currentTimeMillis() / 1000 + 1));
         // sleep a second and then ask for a cache entry
 
         Thread.sleep(1000);
@@ -3847,39 +3806,39 @@ public class ZTSClientTest {
         ZTSClient.setPrefetchAutoEnable(true);
         client.setEnablePrefetch(true);
 
-        String idToken = client.getIDToken("sports", "readers", "sys.auth.gcp",
+        OIDCResponse oidcResponse = client.getIDToken("sports", "readers", "sys.auth.gcp",
                 "gcp.athenz.io", true, null);
-        assertNotNull(idToken);
+        assertNotNull(oidcResponse);
 
         // passing the role name as a list should give us the same token back
         // as we should be caching our results
 
-        String idToken2 = client.getIDToken("sports", Collections.singletonList("readers"), "sys.auth.gcp",
+        OIDCResponse oidcResponse2 = client.getIDToken("sports", Collections.singletonList("readers"), "sys.auth.gcp",
                 "gcp.athenz.io", true, null);
-        assertNotNull(idToken2);
-        assertEquals(idToken, idToken2);
+        assertNotNull(oidcResponse2);
+        assertEquals(oidcResponse, oidcResponse2);
 
         // now let's pass with the expiry time of 1 hour, and we still should get
         // back the same token from the cache
 
-        idToken2 = client.getIDToken("sports", Collections.singletonList("readers"), "sys.auth.gcp",
+        oidcResponse2 = client.getIDToken("sports", Collections.singletonList("readers"), "sys.auth.gcp",
                 "gcp.athenz.io", true, 3600);
-        assertNotNull(idToken2);
-        assertEquals(idToken, idToken2);
+        assertNotNull(oidcResponse2);
+        assertEquals(oidcResponse, oidcResponse2);
 
         // now let's try with the full api and ignore cache disabled
 
-        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+        oidcResponse2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.readers", null, "EC", true, 3600, false);
-        assertNotNull(idToken2);
-        assertEquals(idToken, idToken2);
+        assertNotNull(oidcResponse2);
+        assertEquals(oidcResponse, oidcResponse2);
 
         // finally let's try with cached disabled, and we should get a new token
 
-        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+        oidcResponse2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.readers", null, "EC", true, 3600, true);
-        assertNotNull(idToken2);
-        assertNotEquals(idToken, idToken2);
+        assertNotNull(oidcResponse2);
+        assertNotEquals(oidcResponse, oidcResponse2);
 
         client.close();
     }
@@ -4022,19 +3981,19 @@ public class ZTSClientTest {
         int scheduledItemsSize2 = client.getScheduledItemsSize();
         assertEquals(scheduledItemsSize, scheduledItemsSize2);
 
-        String idToken = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+        OIDCResponse oidcResponse = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.readers", null, "EC", true, 8, false);
-        assertNotNull(idToken);
-        assertFalse(idToken.isEmpty());
+        assertNotNull(oidcResponse);
+        assertFalse(oidcResponse.getId_token().isEmpty());
 
         client.prefetchIdToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.writers", null, "EC", true, 8);
         assertEquals(client.getScheduledItemsSize(), scheduledItemsSize + 1);
 
-        String idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+        OIDCResponse oidcResponse2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.writers", null, "EC", true, 8, false);
-        long rt2Expiry = ZTSClient.extractIdTokenExpiry(idToken2);
-        assertNotNull(idToken2);
+        assertNotNull(oidcResponse2);
+        long rt2Expiry = oidcResponse2.getExpiration_time();
 
         System.out.println("testPrefetchIdTokenShouldNotCallServer: sleep Secs=5");
         Thread.sleep(5000);
@@ -4045,9 +4004,9 @@ public class ZTSClientTest {
         long lastTokenFetchedTime1 = ztsClientMock.getLastIdTokenFetchedTime("openid sports:role.readers");
         assertTrue(lastTokenFetchedTime1 > 0);
 
-        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+        oidcResponse2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.writers", null, "EC", true, 8, false);
-        long rt2Expiry2 = ZTSClient.extractIdTokenExpiry(idToken2);
+        long rt2Expiry2 = oidcResponse2.getExpiration_time();
 
         assertTrue(rt2Expiry2 > rt2Expiry); // this token was refreshed
 
@@ -4056,9 +4015,9 @@ public class ZTSClientTest {
         Thread.sleep(5000);
         System.out.println("testPrefetchIdTokenShouldNotCallServer: again nap over so what happened");
 
-        idToken2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
+        oidcResponse2 = client.getIDToken("id_token", "sys.auth.gcp", "https://gcp.sys-auth.gcp.athenz.io",
                 "openid sports:role.writers", null, "EC", true, 8, false);
-        long rt2Expiry3 = ZTSClient.extractIdTokenExpiry(idToken2);
+        long rt2Expiry3 = oidcResponse2.getExpiration_time();
         assertTrue(rt2Expiry3 > rt2Expiry2); // this token was refreshed
 
         ZTSClient.cancelPrefetch();

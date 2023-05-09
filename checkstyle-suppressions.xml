@@ -29,4 +29,10 @@
   <suppress checks="MethodName"
             files="OAuthConfig.java"
             lines="1-9999"/>
+  <suppress checks="MemberName"
+            files="OIDCResponse.java"
+            lines="1-9999"/>
+  <suppress checks="MethodName"
+            files="OIDCResponse.java"
+            lines="1-9999"/>
 </suppressions>

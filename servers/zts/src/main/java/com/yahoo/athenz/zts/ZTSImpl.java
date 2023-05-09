@@ -1932,7 +1932,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
                                     String scope, String state, String nonce, String keyType, Boolean fullArn,
-                                    Integer timeout) {
+                                    Integer timeout, String output) {
 
         final String caller = ctx.getApiName();
 
@@ -1980,14 +1980,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // of oidc and return id tokens without access tokens
 
         if (!ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY.equals(responseType)) {
-            return oidcError("invalid response type", redirectUri, state);
+            throw requestError("invalid response type", caller, principal.getDomain(), principalDomain);
         }
 
         // we must have scope provided, so we know what access
         // the client is looking for
 
         if (StringUtil.isEmpty(scope)) {
-            return oidcError("no scope provided", redirectUri, state);
+            throw requestError("no scope provided", caller, principal.getDomain(), principalDomain);
         }
 
         // our scopes are space separated list of values. Any groups
@@ -2037,16 +2037,30 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // service principals 12 hours as the max timeout, unless the client
         // is explicitly asking for something smaller.
 
-        idToken.setExpiryTime(iat + determineOIDCIdTokenTimeout(principalDomain, timeout));
+        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, timeout);
+        idToken.setExpiryTime(expiryTime);
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(keyType);
-        String location = redirectUri + "#id_token=" +
-                idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(), signPrivateKey.getAlgorithm());
+        final String signedIdToken = idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(), signPrivateKey.getAlgorithm());
+        String location = redirectUri + "#id_token=" + signedIdToken;
         if (!StringUtil.isEmpty(state)) {
             location += "&state=" + state;
         }
 
-        return Response.status(ResourceException.FOUND).header("Location", location).build();
+        // based on the output argument we'll just return 200 with response object
+        // or redirect with the location header set in both cases
+
+        if (ZTSConsts.JSON.equalsIgnoreCase(output)) {
+            OIDCResponse oidcResponse = new OIDCResponse()
+                    .setId_token(signedIdToken)
+                    .setSuccess(true)
+                    .setVersion(1)
+                    .setToken_type(ZTSConsts.ZTS_OPENID_RESPONSE_TOKEN_TYPE + responseType)
+                    .setExpiration_time(expiryTime);
+            return Response.status(ResourceException.OK).entity(oidcResponse).header("Location", location).build();
+        } else {
+            return Response.status(ResourceException.FOUND).header("Location", location).build();
+        }
     }
 
     List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest, final String clientIdDomainName,
@@ -2272,20 +2286,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             serverPrivateKey = privateKey;
         }
         return serverPrivateKey;
-    }
-
-    Response oidcError(final String errorMessage, final String redirectUri, final String state) {
-        String location;
-        try {
-            location = redirectUri + "?error=invalid_request&error_description=" +
-                    URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
-            if (!StringUtil.isEmpty(state)) {
-                location += "&state=" + state;
-            }
-        } catch (Exception ex) {
-            location = redirectUri + "?error=invalid_request";
-        }
-        return Response.status(ResourceException.FOUND).header("Location", location).build();
     }
 
     @Override

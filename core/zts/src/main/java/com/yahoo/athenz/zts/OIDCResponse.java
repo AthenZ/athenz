@@ -11,14 +11,46 @@ import com.yahoo.rdl.*;
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OIDCResponse {
-    public String location;
+    public int version;
+    public String id_token;
+    public String token_type;
+    public boolean success;
+    public long expiration_time;
 
-    public OIDCResponse setLocation(String location) {
-        this.location = location;
+    public OIDCResponse setVersion(int version) {
+        this.version = version;
         return this;
     }
-    public String getLocation() {
-        return location;
+    public int getVersion() {
+        return version;
+    }
+    public OIDCResponse setId_token(String id_token) {
+        this.id_token = id_token;
+        return this;
+    }
+    public String getId_token() {
+        return id_token;
+    }
+    public OIDCResponse setToken_type(String token_type) {
+        this.token_type = token_type;
+        return this;
+    }
+    public String getToken_type() {
+        return token_type;
+    }
+    public OIDCResponse setSuccess(boolean success) {
+        this.success = success;
+        return this;
+    }
+    public boolean getSuccess() {
+        return success;
+    }
+    public OIDCResponse setExpiration_time(long expiration_time) {
+        this.expiration_time = expiration_time;
+        return this;
+    }
+    public long getExpiration_time() {
+        return expiration_time;
     }
 
     @Override
@@ -28,7 +60,19 @@ public class OIDCResponse {
                 return false;
             }
             OIDCResponse a = (OIDCResponse) another;
-            if (location == null ? a.location != null : !location.equals(a.location)) {
+            if (version != a.version) {
+                return false;
+            }
+            if (id_token == null ? a.id_token != null : !id_token.equals(a.id_token)) {
+                return false;
+            }
+            if (token_type == null ? a.token_type != null : !token_type.equals(a.token_type)) {
+                return false;
+            }
+            if (success != a.success) {
+                return false;
+            }
+            if (expiration_time != a.expiration_time) {
                 return false;
             }
         }
