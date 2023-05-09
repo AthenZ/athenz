@@ -2202,8 +2202,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             return false;
         }
         final String serviceEndpoint = service.getProviderEndpoint();
-        if (!StringUtil.isEmpty(serviceEndpoint)) {
-            return serviceEndpoint.equalsIgnoreCase(redirectUri);
+        if (!StringUtil.isEmpty(serviceEndpoint) && serviceEndpoint.equalsIgnoreCase(redirectUri)) {
+            return true;
         }
 
         // make sure we have a redirect uri suffix configured

@@ -13289,10 +13289,11 @@ public class ZTSImplTest {
 
         domainData.setServices(services);
 
-        // service endpoint exists - both valid and invalid cases
+        // service endpoint exists - both valid and invalid cases (no redirect suffix)
 
         assertTrue(zts.validateOidcRedirectUri(domainData, "coretech.backend", "https://localhost:4443/endpoint"));
         assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.backend", "https://api.coretech.athenz.io"));
+        assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.backend", "https://backend.coretech.athenz.io"));
 
         // valid service but no redirect uri suffix
 
@@ -13301,6 +13302,10 @@ public class ZTSImplTest {
         assertFalse(zts.validateOidcRedirectUri(domainData, "coretech.api", "https://api.coretech.athenz.io"));
 
         zts.redirectUriSuffix = ".athenz.io";
+
+        // the service with the endpoint set now should pass with redirect suffix
+
+        assertTrue(zts.validateOidcRedirectUri(domainData, "coretech.backend", "https://backend.coretech.athenz.io"));
 
         // invalid client id
 
