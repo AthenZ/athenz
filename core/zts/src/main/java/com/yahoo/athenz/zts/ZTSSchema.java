@@ -303,7 +303,11 @@ public class ZTSSchema {
     
 
         sb.structType("OIDCResponse")
-            .field("location", "String", false, "");
+            .field("version", "Int32", false, "version number")
+            .field("id_token", "String", false, "id token")
+            .field("token_type", "String", false, "token type e.g. urn:ietf:params:oauth:token-type:id_token")
+            .field("success", "Bool", false, "response status")
+            .field("expiration_time", "Int64", false, "expiration time in UTC");
 
         sb.structType("InstanceRegisterInformation")
             .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
@@ -1055,9 +1059,10 @@ public class ZTSSchema {
             .queryParam("keyType", "keyType", "SimpleName", null, "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured")
             .queryParam("fullArn", "fullArn", "Bool", false, "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)")
             .queryParam("expiryTime", "expiryTime", "Int32", null, "optional expiry period specified in seconds")
+            .queryParam("output", "output", "SimpleName", null, "optional output format of json")
             .output("Location", "location", "String", "return location header with id token")
             .auth("", "", true)
-            .expected("FOUND")
+            .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

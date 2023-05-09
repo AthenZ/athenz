@@ -930,7 +930,7 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope, String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime, String output, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/oauth2/auth");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (responseType != null) {
@@ -960,6 +960,9 @@ public class ZTSRDLGeneratedClient {
         if (expiryTime != null) {
             uriBuilder.setParameter("expiryTime", String.valueOf(expiryTime));
         }
+        if (output != null) {
+            uriBuilder.setParameter("output", output);
+        }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
@@ -971,11 +974,15 @@ public class ZTSRDLGeneratedClient {
             int code = httpResponse.getStatusLine().getStatusCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
+            case 200:
             case 302:
                 if (headers != null) {
                     headers.put("location", List.of(httpResponse.getFirstHeader("Location").getValue()));
                 }
-                return null;
+                if (code == 302) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), OIDCResponse.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

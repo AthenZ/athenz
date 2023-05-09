@@ -2596,7 +2596,31 @@ type AccessTokenRequest string
 
 // OIDCResponse -
 type OIDCResponse struct {
-	Location string `json:"location"`
+
+	//
+	// version number
+	//
+	Version int32 `json:"version"`
+
+	//
+	// id token
+	//
+	Id_token string `json:"id_token"`
+
+	//
+	// token type e.g. urn:ietf:params:oauth:token-type:id_token
+	//
+	Token_type string `json:"token_type"`
+
+	//
+	// response status
+	//
+	Success bool `json:"success"`
+
+	//
+	// expiration time in UTC
+	//
+	Expiration_time int64 `json:"expiration_time"`
 }
 
 // NewOIDCResponse - creates an initialized OIDCResponse instance, returns a pointer to it
@@ -2626,12 +2650,20 @@ func (self *OIDCResponse) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *OIDCResponse) Validate() error {
-	if self.Location == "" {
-		return fmt.Errorf("OIDCResponse.location is missing but is a required field")
+	if self.Id_token == "" {
+		return fmt.Errorf("OIDCResponse.id_token is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Location)
+		val := rdl.Validate(ZTSSchema(), "String", self.Id_token)
 		if !val.Valid {
-			return fmt.Errorf("OIDCResponse.location does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("OIDCResponse.id_token does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Token_type == "" {
+		return fmt.Errorf("OIDCResponse.token_type is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Token_type)
+		if !val.Valid {
+			return fmt.Errorf("OIDCResponse.token_type does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

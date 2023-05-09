@@ -23,7 +23,7 @@ func FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redi
 	client.DisableRedirect = true
 
 	// request an id token
-	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce), zts.SimpleName(keyType), fullArn, expireTime)
+	_, location, err := client.GetOIDCResponse("id_token", zts.ServiceName(clientId), redirectUri, scope, zts.EntityName(state), zts.EntityName(nonce), zts.SimpleName(keyType), fullArn, expireTime, "")
 	if err != nil {
 		return "", err
 	}

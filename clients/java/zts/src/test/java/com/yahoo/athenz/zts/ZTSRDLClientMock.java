@@ -241,7 +241,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope,
             String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime,
-            Map<String, List<String>> headers) throws URISyntaxException, IOException {
+            String output, Map<String, List<String>> headers) throws URISyntaxException, IOException {
 
         // some exception test cases based on the state value
         if (state != null) {
@@ -255,17 +255,19 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
         // process our request, generate a token and return
 
-        if (headers != null) {
-            //the format of the location header is <redirect-uri>#id_token=<token>&state=<state>
-            String token = AccessTokenTestFileHelper.getSignedAccessToken(expiryTime == null ? 3600 : expiryTime);
-            String location = redirectUri + "#id_token=" + token;
-            if (state != null) {
-                location = location.concat("&state=" + state);
-            }
-            headers.put("location", List.of(location));
-            lastIdTokenFetchedTime.put(scope, System.currentTimeMillis());
+        if (expiryTime == null) {
+            expiryTime = 3600;
         }
-        return null;
+        String token = AccessTokenTestFileHelper.getSignedAccessToken(expiryTime);
+        OIDCResponse oidcResponse = new OIDCResponse()
+                .setExpiration_time(System.currentTimeMillis() / 1000 + expiryTime)
+                .setVersion(1)
+                .setSuccess(true)
+                .setToken_type("urn:ietf:params:oauth:token-type:id_token")
+                .setId_token(token);
+        lastIdTokenFetchedTime.put(scope, System.currentTimeMillis());
+
+        return oidcResponse;
     }
 
     @Override
