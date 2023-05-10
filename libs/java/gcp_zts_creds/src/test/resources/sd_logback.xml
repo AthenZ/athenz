@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true">
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.out</target>
+    <encoder>
+      <pattern>%-4relative [%thread] %-5level %class - %msg%n</pattern>
+    </encoder>
+  </appender>
+     
+  <root>
+    <level value="ERROR" />
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

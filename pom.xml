@@ -149,6 +149,7 @@
     <module>clients/java/zts</module>
     <module>clients/java/zpe</module>
     <module>clients/java/msd</module>
+    <module>libs/java/gcp_zts_creds</module>
     <module>servers/zms</module>
     <module>servers/zts</module>
     <module>containers/jetty</module>
