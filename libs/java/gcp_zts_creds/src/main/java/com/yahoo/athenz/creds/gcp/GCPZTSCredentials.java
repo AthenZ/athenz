@@ -48,6 +48,11 @@ public class GCPZTSCredentials {
     int tokenLifetimeSeconds = 3600;
     KeyRefresher keyRefresher = null;
 
+    /**
+     * Internal constructor with required details. See {@link GCPZTSCredentials.Builder}.
+     *
+     * @param builder the {@code Builder} object used to construct the credentials.
+     */
     GCPZTSCredentials(Builder builder) {
 
         this.keyFile = builder.keyFile;
@@ -66,15 +71,27 @@ public class GCPZTSCredentials {
         final String redirectUri = URLEncoder.encode(ZTSClient.generateRedirectUri(builder.clientId, builder.redirectUriSuffix), StandardCharsets.UTF_8);
         tokenUrl = String.format("%s/oauth2/auth?response_type=id_token&client_id=%s&redirect_uri=%s&scope=%s&nonce=%s&keyType=EC&fullArn=true&output=json",
                 builder.ztsUrl, builder.clientId, redirectUri, scope, Crypto.randomSalt());
-
     }
 
+    /**
+     * Close the credentials object. If we have a Certificate Key Refresher configured
+     * and running, then calling this method is required to properly shut down any
+     * background tasks.
+     */
     public void close() {
         if (keyRefresher != null) {
             keyRefresher.shutdown();
         }
     }
 
+
+    /**
+     * Return ExternalAccountCredentials object based on the configured details
+     * that could be used in other GCP SDK APIs as credentials to access requested
+     * GCP resources.
+     *
+     * @return ExternalAccountCredentials credentials object
+     */
     public ExternalAccountCredentials getTokenAPICredentials() throws KeyRefresherException,
             IOException, InterruptedException {
 
@@ -133,6 +150,7 @@ public class GCPZTSCredentials {
         }
     }
 
+    /** Base builder for GCP external account credentials based on ZTS ID Tokens */
     public static class Builder {
 
         private String projectNumber;
@@ -155,74 +173,218 @@ public class GCPZTSCredentials {
         public Builder() {
         }
 
-        public void setProjectId(String projectId) {
+        /**
+         * Sets the GCP Project ID
+         *
+         * @param projectId GCP project id
+         * @return this {@code Builder} object
+         */
+        public Builder setProjectId(String projectId) {
             this.projectId = projectId;
+            return this;
         }
 
-        public void setWorkloadPoolName(String workloadPoolName) {
-            this.workloadPoolName = workloadPoolName;
-        }
-
-        public void setWorkloadProviderName(String workloadProviderName) {
-            this.workloadProviderName = workloadProviderName;
-        }
-
-        public void setZtsUrl(String ztsUrl) {
-            this.ztsUrl = ztsUrl;
-        }
-
-        public void setRedirectUriSuffix(String redirectUriSuffix) {
-            this.redirectUriSuffix = redirectUriSuffix;
-        }
-
-        public void setDomainName(String domainName) {
-            this.domainName = domainName;
-        }
-
-        public void setRoleNames(List<String> roleNames) {
-            this.roleNames = roleNames;
-        }
-
-        public void setServiceAccountName(String serviceAccountName) {
-            this.serviceAccountName = serviceAccountName;
-        }
-
-        public void setKeyFile(String keyFile) {
-            this.keyFile = keyFile;
-        }
-
-        public void setCertFile(String certFile) {
-            this.certFile = certFile;
-        }
-
-        public void setTrustStorePath(String trustStorePath) {
-            this.trustStorePath = trustStorePath;
-        }
-
-        public void setTrustStorePassword(char[] trustStorePassword) {
-            this.trustStorePassword = trustStorePassword;
-        }
-
-        public void setProjectNumber(String projectNumber) {
+        /**
+         * Sets the GCP Project Number
+         *
+         * @param projectNumber GCP project number
+         * @return this {@code Builder} object
+         */
+        public Builder setProjectNumber(String projectNumber) {
             this.projectNumber = projectNumber;
+            return this;
         }
 
-        public void setClientId(String clientId) {
+        /**
+         * Sets the Workload Identity Pool name configured in the project
+         *
+         * @param workloadPoolName GCP project workload identity pool name
+         * @return this {@code Builder} object
+         */
+        public Builder setWorkloadPoolName(String workloadPoolName) {
+            this.workloadPoolName = workloadPoolName;
+            return this;
+        }
+
+        /**
+         * Sets the Workload Identity Provider name configured in the project
+         *
+         * @param workloadProviderName GCP project workload identity provider name
+         * @return this {@code Builder} object
+         */
+        public Builder setWorkloadProviderName(String workloadProviderName) {
+            this.workloadProviderName = workloadProviderName;
+            return this;
+        }
+
+        /**
+         * Sets the ZTS Url that the library needs to connect to fetch the ID tokens.
+         * This value must be full url. For example, https://zts.athenz.io:4443/zts/v1
+         *
+         * @param ztsUrl ZTS Server Url
+         * @return this {@code Builder} object
+         */
+        public Builder setZtsUrl(String ztsUrl) {
+            this.ztsUrl = ztsUrl;
+            return this;
+        }
+
+        /**
+         * Sets the Redirect URI suffix configured in the ZTS Server. According to
+         * the OIDC spec, as part of the ID token request, the caller must specify
+         * the redirect uri which in the case of ZTS is auto-generated based on the
+         * client id: https://{service-name}.{domain-with-dashes}.{redirect-suffix}.
+         *
+         * @param redirectUriSuffix Redirect URI suffix configured in ZTS
+         * @return this {@code Builder} object
+         */
+        public Builder setRedirectUriSuffix(String redirectUriSuffix) {
+            this.redirectUriSuffix = redirectUriSuffix;
+            return this;
+        }
+
+        /**
+         * Sets the Athenz domain name for the roles.
+         *
+         * @param domainName Domain name
+         * @return this {@code Builder} object
+         */
+        public Builder setDomainName(String domainName) {
+            this.domainName = domainName;
+            return this;
+        }
+
+        /**
+         * Sets the list of role names in the configured domain that
+         * will be included in the groups claim in the generated
+         * id token assuming the principal has access to those roles.
+         *
+         * @param roleNames list of role names
+         * @return this {@code Builder} object
+         */
+        public Builder setRoleNames(List<String> roleNames) {
+            this.roleNames = roleNames;
+            return this;
+        }
+
+        /**
+         * Sets the GCP Service account name that we're going to
+         * impersonate using the ZTS ID token. The value must only
+         * contain the name of the service and not the full GCP
+         * generated email address. For example, deployment-service.
+         *
+         * @param serviceAccountName service account name
+         * @return this {@code Builder} object
+         */
+        public Builder setServiceAccountName(String serviceAccountName) {
+            this.serviceAccountName = serviceAccountName;
+            return this;
+        }
+
+        /**
+         * Sets the private key path of the principal that will
+         * request the ID token from ZTS.
+         *
+         * @param keyFile service private key path
+         * @return this {@code Builder} object
+         */
+        public Builder setKeyFile(String keyFile) {
+            this.keyFile = keyFile;
+            return this;
+        }
+
+        /**
+         * Sets the x.509 certificate path of the principal that will
+         * request the ID token from ZTS.
+         *
+         * @param certFile service x.509 certificate path
+         * @return this {@code Builder} object
+         */
+        public Builder setCertFile(String certFile) {
+            this.certFile = certFile;
+            return this;
+        }
+
+        /**
+         * Sets the truststore path for the request. This truststore
+         * must include the CA root keys for both GCP and ZTS
+         * services. Typically, this would the JDK trusttore path:
+         * {java-home}/jre/lib/security/cacerts.
+         *
+         * @param trustStorePath truststore path
+         * @return this {@code Builder} object
+         */
+        public Builder setTrustStorePath(String trustStorePath) {
+            this.trustStorePath = trustStorePath;
+            return this;
+        }
+
+        /**
+         * Sets the password for the truststore configured. If using
+         * the default JDK truststore, the value is changeit.
+         *
+         * @param trustStorePassword truststore password
+         * @return this {@code Builder} object
+         */
+        public Builder setTrustStorePassword(char[] trustStorePassword) {
+            this.trustStorePassword = trustStorePassword;
+            return this;
+        }
+
+        /**
+         * Sets the client id for the request. This must match
+         * the value configured in the project Workload Identity
+         * Provider. The client id is an Athenz identity in the
+         * {domain-name}.{service-name} format. This client id is
+         * also used to automatically generate the redirect uri
+         * required for the request.
+         *
+         * @param clientId client id for the request
+         * @return this {@code Builder} object
+         */
+        public Builder setClientId(String clientId) {
             this.clientId = clientId;
+            return this;
         }
 
-        public void setCertRefreshTimeout(int certRefreshTimeout) {
+        /**
+         * Sets the optional refresh timeout for the principal private key
+         * and certificate files in seconds. If configured, the library
+         * will automatically create a background task and check for
+         * updated key/cert files every configured number of seconds and
+         * automatically reloading the SSL context used for connections.
+         *
+         * @param certRefreshTimeout certificate refresh timeout in seconds
+         * @return this {@code Builder} object
+         */
+        public Builder setCertRefreshTimeout(int certRefreshTimeout) {
             this.certRefreshTimeout = certRefreshTimeout;
+            return this;
         }
 
-        public void setTokenLifetimeSeconds(int tokenLifetimeSeconds) {
+        /**
+         * Sets the requested lifetime for the Google access tokens.
+         * GCP requires that the value must be between 600 and 43200 seconds.
+         *
+         * @param tokenLifetimeSeconds token lifetime in seconds
+         * @return this {@code Builder} object
+         */
+        public Builder setTokenLifetimeSeconds(int tokenLifetimeSeconds) {
             // GCP requires that field must be between 600 and 43200 seconds
             if (tokenLifetimeSeconds < 600 || tokenLifetimeSeconds > 43200) {
                 throw new IllegalArgumentException("field must be between 600 and 43200 seconds");
             }
             this.tokenLifetimeSeconds = tokenLifetimeSeconds;
+            return this;
         }
 
+        /**
+         * Return GCPZTSCredentials object based on the builder that could be
+         * used to obtain ExternalAccountCredentials credentials object by using
+         * the getTokenAPICredentials() method of the object.
+         *
+         * @return GCPZTSCredentials object
+         */
         public GCPZTSCredentials build() {
             return new GCPZTSCredentials(this);
         }

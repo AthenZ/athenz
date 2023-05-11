@@ -50,29 +50,29 @@ public class ZTSGCPCredsClient {
         final String redirectUriSuffix = cmd.getOptionValue("redirectUriSuffix");
         final String serviceAccount = cmd.getOptionValue("serviceAccount");
 
-        // create our credentials builder based on the input data
+        // create our credentials object based on the input data
 
-        GCPZTSCredentials.Builder builder = new GCPZTSCredentials.Builder();
-        builder.setZtsUrl(ztsUrl);
-        builder.setProjectId(projectId);
-        builder.setProjectNumber(projectNumber);
-        builder.setWorkloadPoolName(workLoadPoolName);
-        builder.setWorkloadProviderName(workLoadProviderName);
-        builder.setServiceAccountName(serviceAccount);
-        builder.setCertFile(certPath);
-        builder.setKeyFile(keyPath);
-        builder.setTrustStorePath(trustStorePath);
-        builder.setTrustStorePassword(trustStorePassword.toCharArray());
-        builder.setCertRefreshTimeout(30000);
-        builder.setDomainName(domainName);
-        builder.setRoleNames(Collections.singletonList(roleName));
-        builder.setClientId(clientId);
-        builder.setRedirectUriSuffix(redirectUriSuffix);
-        builder.setTokenLifetimeSeconds(3600);
+        GCPZTSCredentials gcpztsCredentials = new GCPZTSCredentials.Builder()
+                .setZtsUrl(ztsUrl)
+                .setProjectId(projectId)
+                .setProjectNumber(projectNumber)
+                .setWorkloadPoolName(workLoadPoolName)
+                .setWorkloadProviderName(workLoadProviderName)
+                .setServiceAccountName(serviceAccount)
+                .setCertFile(certPath)
+                .setKeyFile(keyPath)
+                .setTrustStorePath(trustStorePath)
+                .setTrustStorePassword(trustStorePassword.toCharArray())
+                .setCertRefreshTimeout(30000)
+                .setDomainName(domainName)
+                .setRoleNames(Collections.singletonList(roleName))
+                .setClientId(clientId)
+                .setRedirectUriSuffix(redirectUriSuffix)
+                .setTokenLifetimeSeconds(3600)
+                .build();
 
         // create our Google external account credentials
 
-        GCPZTSCredentials gcpztsCredentials = builder.build();
         ExternalAccountCredentials credentials = gcpztsCredentials.getTokenAPICredentials();
 
         try {

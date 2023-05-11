@@ -37,24 +37,23 @@ public class GCPZTSCredentialsTest {
 
     private GCPZTSCredentials.Builder createBuilder() {
 
-        GCPZTSCredentials.Builder builder = new GCPZTSCredentials.Builder();
-        builder.setZtsUrl("https://localhost:4443");
-        builder.setProjectId("project-id");
-        builder.setProjectNumber("project-number");
-        builder.setWorkloadPoolName("athenz");
-        builder.setWorkloadProviderName("athenz");
-        builder.setServiceAccountName("admin-service");
-        builder.setCertFile(Objects.requireNonNull(classLoader.getResource("ec_public_x509.cert")).getPath());
-        builder.setKeyFile(Objects.requireNonNull(classLoader.getResource("unit_test_ec_private.key")).getPath());
-        builder.setTrustStorePath(Objects.requireNonNull(classLoader.getResource("truststore.jks")).getPath());
-        builder.setTrustStorePassword("123456".toCharArray());
-        builder.setCertRefreshTimeout(30000);
-        builder.setDomainName("sports");
-        builder.setRoleNames(Collections.singletonList("hockey"));
-        builder.setClientId("sports.gcp");
-        builder.setRedirectUriSuffix("gcp.athenz.io");
-        builder.setTokenLifetimeSeconds(3600);
-        return builder;
+        return new GCPZTSCredentials.Builder()
+                .setZtsUrl("https://localhost:4443")
+                .setProjectId("project-id")
+                .setProjectNumber("project-number")
+                .setWorkloadPoolName("athenz")
+                .setWorkloadProviderName("athenz")
+                .setServiceAccountName("admin-service")
+                .setCertFile(Objects.requireNonNull(classLoader.getResource("ec_public_x509.cert")).getPath())
+                .setKeyFile(Objects.requireNonNull(classLoader.getResource("unit_test_ec_private.key")).getPath())
+                .setTrustStorePath(Objects.requireNonNull(classLoader.getResource("truststore.jks")).getPath())
+                .setTrustStorePassword("123456".toCharArray())
+                .setCertRefreshTimeout(30000)
+                .setDomainName("sports")
+                .setRoleNames(Collections.singletonList("hockey"))
+                .setClientId("sports.gcp")
+                .setRedirectUriSuffix("gcp.athenz.io")
+                .setTokenLifetimeSeconds(3600);
     }
 
     @Test
