@@ -225,6 +225,26 @@ public class ZMSFileChangeLogStoreCommon {
         return names;
     }
 
+    public Map<String, DomainAttributes> getLocalDomainAttributeList() {
+
+        Map<String, DomainAttributes> domainAttrs = new HashMap<>();
+        String[] domains = rootDir.list();
+        if (domains == null) {
+            return domainAttrs;
+        }
+        for (String name : domains) {
+
+            // we are going to skip any hidden files
+
+            if (name.charAt(0) != '.') {
+                File file = new File(rootDir, name);
+                domainAttrs.put(name, new DomainAttributes().setFetchTime(file.lastModified() / 1000));
+            }
+        }
+
+        return domainAttrs;
+    }
+
     public Set<String> getServerDomainList(ZMSClient zmsClient) {
         return new HashSet<>(zmsClient.getDomainList().getNames());
     }

@@ -120,6 +120,11 @@ public class ZMSFileChangeLogStore implements ChangeLogStore {
         return changeLogStoreCommon.getLocalDomainList();
     }
 
+    @Override
+    public Map<String, DomainAttributes> getLocalDomainAttributeList() {
+        return changeLogStoreCommon.getLocalDomainAttributeList();
+    }
+
     public ZMSClient getZMSClient() {
 
         PrincipalToken token = new PrincipalToken.Builder("S1", ATHENZ_SYS_DOMAIN, ZTS_SERVICE)

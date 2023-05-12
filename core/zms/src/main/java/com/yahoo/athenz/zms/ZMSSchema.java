@@ -152,6 +152,10 @@ public class ZMSSchema {
             .arrayField("names", "DomainName", false, "list of domain names")
             .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.");
 
+        sb.structType("DomainAttributes")
+            .comment("A domain attributes for the changelog support")
+            .field("fetchTime", "Int64", false, "timestamp when the domain object was fetched from ZMS");
+
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")
             .arrayField("names", "EntityName", false, "list of role names")

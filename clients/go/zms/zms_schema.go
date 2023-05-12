@@ -179,6 +179,11 @@ func init() {
 	tDomainList.Field("next", "String", true, nil, "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.")
 	sb.AddType(tDomainList.Build())
 
+	tDomainAttributes := rdl.NewStructTypeBuilder("Struct", "DomainAttributes")
+	tDomainAttributes.Comment("A domain attributes for the changelog support")
+	tDomainAttributes.Field("fetchTime", "Int64", false, nil, "timestamp when the domain object was fetched from ZMS")
+	sb.AddType(tDomainAttributes.Build())
+
 	tRoleList := rdl.NewStructTypeBuilder("Struct", "RoleList")
 	tRoleList.Comment("The representation for an enumeration of roles in the namespace, with pagination.")
 	tRoleList.ArrayField("names", "EntityName", false, "list of role names")

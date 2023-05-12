@@ -24,7 +24,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class DomainState {
     private String domain;
     private String modified;
-    
+    private long fetchTime;
+
+    public long getFetchTime() {
+        return fetchTime;
+    }
+    public void setFetchTime(long fetchTime) {
+        this.fetchTime = fetchTime;
+    }
     public String getDomain() {
         return domain;
     }

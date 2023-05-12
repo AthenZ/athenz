@@ -86,6 +86,8 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     long checkDomainRefreshTime;
     long lastDeleteRunTime;
     long lastCheckRunTime;
+    long domainFetchRefreshTime;
+    int domainFetchCount;
     boolean jwsDomainSupport;
 
     private static final String ROLE_POSTFIX = ":role.";
@@ -102,18 +104,20 @@ public class DataStore implements DataCacheProvider, RolesProvider {
     private static final String ZTS_PROP_DOMAIN_DELETE_TIMEOUT = "athenz.zts.zms_domain_delete_timeout";
     private static final String ZTS_PROP_DOMAIN_CHECK_TIMEOUT  = "athenz.zts.zms_domain_check_timeout";
     private static final String ZTS_PROP_DOMAIN_JWS_SUPPORT    = "athenz.zts.zms_domain_jws_support";
+    private static final String ZTS_PROP_DOMAIN_FETCH_TIMEOUT  = "athenz.zts.zms_domain_fetch_timeout";
+    private static final String ZTS_PROP_DOMAIN_FETCH_COUNT    = "athenz.zts.zms_domain_fetch_count";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataStore.class);
 
     public DataStore(ChangeLogStore clogStore, CloudStore cloudStore, Metric metric) {
 
-        /* save our store objects */
+        // save our store objects
 
         this.changeLogStore = clogStore;
         this.setCloudStore(cloudStore);
         this.metric = metric;
 
-        /* generate our cache stores */
+        // generate our cache stores
 
         cacheStore = CacheBuilder.newBuilder().concurrencyLevel(25).build();
         zmsPublicKeyCache = CacheBuilder.newBuilder().concurrencyLevel(25).build();
@@ -129,16 +133,16 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         hostCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
 
-        /* our configured values are going to be in seconds so we need
-         * to convert our input in seconds to milliseconds */
+        // our configured values are going to be in seconds, so we need
+        // to convert our input in seconds to milliseconds
 
         updDomainRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_UPDATE_TIMEOUT, 60);
         delDomainRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_DELETE_TIMEOUT, 3600);
         checkDomainRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_CHECK_TIMEOUT, 600);
 
-        /* we will not let our domain delete/check update time be shorter
-         * than the domain update time so if that's the case we'll
-         * set both to be the same value */
+        // we will not let our domain delete/check update time be shorter
+        // than the domain update time so if that's the case we'll
+        // set both to be the same value
 
         if (delDomainRefreshTime < updDomainRefreshTime) {
             delDomainRefreshTime = updDomainRefreshTime;
@@ -150,6 +154,14 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         lastDeleteRunTime = System.currentTimeMillis();
         lastCheckRunTime = System.currentTimeMillis();
+
+        // configure how fresh our domain files must be. if the last fetch
+        // time is before configured number of seconds, we'll fetch a new
+        // version of the domain data from ZMS. We also have a limit on how
+        // many domains to update during each run
+
+        domainFetchRefreshTime = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_FETCH_TIMEOUT, 2592000);
+        domainFetchCount = ConfigProperties.retrieveConfigSetting(ZTS_PROP_DOMAIN_FETCH_COUNT, 10);
 
         /* load the zms public key from configuration files */
 
@@ -261,7 +273,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     public void processSignedDomainChecks() {
 
-        /* retrieve the list of domains from ZMS */
+        // retrieve the list of domains from ZMS
 
         SignedDomains signedDomains = changeLogStore.getServerDomainModifiedList();
         if (signedDomains == null) {
@@ -287,6 +299,47 @@ public class DataStore implements DataCacheProvider, RolesProvider {
                 processSignedDomain(signedDomain, true);
             }
         }
+
+        // get the list of all local domains that need to be refreshed
+        // based on their last fetch time and process them
+
+        List<String> refreshDomainList = getDomainRefreshList();
+        LOGGER.info("refreshing {} domain(s)...", refreshDomainList.size());
+
+        for (String domainName : refreshDomainList) {
+            SignedDomain signedDomain = changeLogStore.getServerSignedDomain(domainName);
+            if (signedDomain == null) {
+                continue;
+            }
+            processSignedDomain(signedDomain, true);
+        }
+    }
+
+    List<String> getDomainRefreshList() {
+
+        Map<String, DomainAttributes> domainMap = changeLogStore.getLocalDomainAttributeList();
+        if (domainMap == null) {
+            return Collections.emptyList();
+        }
+
+        int fetchCount = 0;
+        List<String> domainRefreshList = new ArrayList<>();
+        long now = System.currentTimeMillis() / 1000;
+        for (Map.Entry<String, DomainAttributes> entry : domainMap.entrySet()) {
+            if (now - entry.getValue().getFetchTime() > domainFetchRefreshTime) {
+                domainRefreshList.add(entry.getKey());
+                fetchCount++;
+            }
+
+            // if we have reached our limit, we need to break out of the loop
+            // and process the rest of the domains later.
+
+            if (fetchCount >= domainFetchCount) {
+                break;
+            }
+        }
+
+        return domainRefreshList;
     }
 
     // Internal
@@ -432,7 +485,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
     public void processJWSDomainChecks() {
 
-        /* retrieve the list of domains from ZMS */
+        // retrieve the list of domains from ZMS
 
         SignedDomains signedDomains = changeLogStore.getServerDomainModifiedList();
         if (signedDomains == null) {
@@ -456,6 +509,20 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
                 processJWSDomain(jwsDomain, true);
             }
+        }
+
+        // get the list of all local domains that need to be refreshed
+        // based on their last fetch time and process them
+
+        List<String> refreshDomainList = getDomainRefreshList();
+        LOGGER.info("refreshing {} domain(s)...", refreshDomainList.size());
+
+        for (String domainName : refreshDomainList) {
+            JWSDomain jwsDomain = changeLogStore.getServerJWSDomain(domainName);
+            if (jwsDomain == null) {
+                continue;
+            }
+            processJWSDomain(jwsDomain, true);
         }
     }
 
@@ -1804,7 +1871,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         try {
             hostRLock.lock();
 
-            /* we need to make a copy of our list as oppose to just returning
+            /* we need to make a copy of our list as opposed to just returning
              * a reference since once we release the host read lock that list
              * can be modified by the updater thread */
 
@@ -1886,7 +1953,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
             try {
                 // check to see if we need to handle our check our domain list -
-                //make sure refresh time is converted to millis
+                // make sure refresh time is converted to millis
 
                 if (System.currentTimeMillis() - lastCheckRunTime > checkDomainRefreshTime * 1000) {
 
