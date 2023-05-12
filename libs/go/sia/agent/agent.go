@@ -583,10 +583,10 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 		if tokenOpts != nil {
 			err := accessTokenRequest(tokenOpts)
 			if err != nil {
-				log.Fatalf("Unable to fetch access token, err: %v\n", err)
+				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
 		} else {
-			log.Print("unable to obtain fetch token, invalid sia_config")
+			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
 	case "post", "register":
 		err := RegisterInstance(ztsUrl, metaEndpoint, opts, false)
@@ -600,6 +600,19 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
+	case "init":
+		err := RegisterInstance(ztsUrl, metaEndpoint, opts, false)
+		if err != nil {
+			log.Fatalf("Unable to register identity, err: %v\n", err)
+		}
+		log.Printf("identity registered for services: %s\n", svcs)
+		GetRoleCertificates(ztsUrl, opts)
+		if tokenOpts != nil {
+			err := accessTokenRequest(tokenOpts)
+			if err != nil {
+				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
+			}
+		}
 	default:
 		// we're going to iterate through our configured services.
 		// if the service key and certificate files exist then we're
@@ -665,10 +678,10 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 				if tokenOpts != nil {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
-						errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
+						errors <- fmt.Errorf("Unable to fetch access tokens after identity refresh, err: %v\n", err)
 					}
 				} else {
-					log.Print("token config does not exist - do not refresh token")
+					log.Print("token config does not exist - do not refresh tokens")
 				}
 				GetRoleCertificates(ztsUrl, opts)
 				if opts.SDSUdsPath != "" {
