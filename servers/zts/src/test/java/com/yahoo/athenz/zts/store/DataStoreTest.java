@@ -316,7 +316,7 @@ public class DataStoreTest {
         String data = null;
         File f = new File("/tmp/zts_server_unit_tests/zts_root/.lastModTime");
         try {
-            data = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+            data = Files.readString(f.toPath());
         } catch (IOException e) {
             fail();
         }
@@ -4202,6 +4202,14 @@ public class DataStoreTest {
         signedDomains.setDomains(domains);
         clogStore.setSignedDomains(signedDomains);
 
+        // with this setup process our refresh domains
+
+        long now = System.currentTimeMillis() / 1000;
+        Map<String, DomainAttributes> domainMap = new HashMap<>();
+        domainMap.put("coretech", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        domainMap.put("sports", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        clogStore.setLocalDomainAttributeList(domainMap);
+
         // now process check which should return new domain sports that
         // we need to add to our store
 
@@ -4239,9 +4247,19 @@ public class DataStoreTest {
         signedDomains.setDomains(domains);
         clogStore.setSignedDomains(signedDomains);
 
+        // with this setup, coretech should be processed, sports should be
+        // skipped, finance should be processed, but it's null so skipped
+
+        long now = System.currentTimeMillis() / 1000;
+        Map<String, DomainAttributes> domainMap = new HashMap<>();
+        domainMap.put("coretech", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        domainMap.put("sports", new DomainAttributes().setFetchTime(now));
+        domainMap.put("finance", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        clogStore.setLocalDomainAttributeList(domainMap);
+
         // now process check which should return three domains due our
-        // our mock set with one new one but then when we try to fetch
-        // each one individually we'll get nulls so we'll have no impact
+        // mock set with one new one but then when we try to fetch
+        // each one individually we'll get nulls, so we'll have no impact
         // on our store and no new domain will be added
 
         store.processDomainChecks();
@@ -5001,6 +5019,14 @@ public class DataStoreTest {
         JWSDomain jwsDomain = signJwsDomain(signedDomain.getDomain(), "0");
         clogStore.setJWSDomain("sports", jwsDomain);
 
+        // allow sports to be processed
+
+        long now = System.currentTimeMillis() / 1000;
+        Map<String, DomainAttributes> domainMap = new HashMap<>();
+        domainMap.put("coretech", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        domainMap.put("sports", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        clogStore.setLocalDomainAttributeList(domainMap);
+
         // now process check which should return new domain sports that
         // we need to add to our store
 
@@ -5039,9 +5065,19 @@ public class DataStoreTest {
         signedDomains.setDomains(domains);
         clogStore.setSignedDomains(signedDomains);
 
+        // with this setup, coretech should be processed, sports should be
+        // skipped, finance should be processed, but it's null so skipped
+
+        long now = System.currentTimeMillis() / 1000;
+        Map<String, DomainAttributes> domainMap = new HashMap<>();
+        domainMap.put("coretech", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        domainMap.put("sports", new DomainAttributes().setFetchTime(now));
+        domainMap.put("finance", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        clogStore.setLocalDomainAttributeList(domainMap);
+
         // now process check which should return three domains due to
         // our mock set with one new one but then when we try to fetch
-        // each one individually we'll get nulls so we'll have no impact
+        // each one individually we'll get nulls, so we'll have no impact
         // on our store and no new domain will be added
 
         store.processDomainChecks();
@@ -5315,5 +5351,44 @@ public class DataStoreTest {
         assertEquals(accessibleRoles.size(), 2);
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("readers"));
+    }
+
+    @Test
+    public void testGetDomainRefreshList() {
+
+        MockZMSFileChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.jwsDomainSupport = true;
+
+        // initially we should get an empty list
+
+        assertTrue(store.getDomainRefreshList().isEmpty());
+
+        // now let's create a single entry without being expired
+
+        long now = System.currentTimeMillis() / 1000;
+
+        Map<String, DomainAttributes> domainMap = new HashMap<>();
+        clogStore.setLocalDomainAttributeList(domainMap);
+
+        domainMap.put("domain1", new DomainAttributes().setFetchTime(now));
+        assertTrue(store.getDomainRefreshList().isEmpty());
+
+        // now let's add another one with expired timeout
+
+        domainMap.put("domain2", new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        List<String> domains = store.getDomainRefreshList();
+        assertEquals(1, domains.size());
+        assertEquals("domain2", domains.get(0));
+
+        // now let's add domains more than the configured limit
+
+        for (int i = 0; i < store.domainFetchCount + 5; i++) {
+            domainMap.put("domain-" + i, new DomainAttributes().setFetchTime(now - store.domainFetchRefreshTime - 1));
+        }
+
+        domains = store.getDomainRefreshList();
+        assertEquals(store.domainFetchCount, domains.size());
     }
 }

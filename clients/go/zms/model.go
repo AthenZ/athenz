@@ -743,6 +743,45 @@ func (self *DomainList) Validate() error {
 	return nil
 }
 
+// DomainAttributes - A domain attributes for the changelog support
+type DomainAttributes struct {
+
+	//
+	// timestamp when the domain object was fetched from ZMS
+	//
+	FetchTime int64 `json:"fetchTime"`
+}
+
+// NewDomainAttributes - creates an initialized DomainAttributes instance, returns a pointer to it
+func NewDomainAttributes(init ...*DomainAttributes) *DomainAttributes {
+	var o *DomainAttributes
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainAttributes)
+	}
+	return o
+}
+
+type rawDomainAttributes DomainAttributes
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainAttributes
+func (self *DomainAttributes) UnmarshalJSON(b []byte) error {
+	var m rawDomainAttributes
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainAttributes(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainAttributes) Validate() error {
+	return nil
+}
+
 // RoleList - The representation for an enumeration of roles in the namespace,
 // with pagination.
 type RoleList struct {

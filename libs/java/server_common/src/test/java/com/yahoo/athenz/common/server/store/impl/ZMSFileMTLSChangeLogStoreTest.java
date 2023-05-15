@@ -36,7 +36,6 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_FILE_NAME;
-import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.*;
 
 public class ZMSFileMTLSChangeLogStoreTest {
@@ -99,8 +98,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
             
             new ZMSFileChangeLogStore(fpath, null, null);
             fail();
-        } catch (RuntimeException | IOException ex) {
-            assertTrue(true);
+        } catch (RuntimeException | IOException ignored) {
         }
     }
 
@@ -110,8 +108,7 @@ public class ZMSFileMTLSChangeLogStoreTest {
         try {
             new ZMSFileChangeLogStore("/proc/usr\ninvaliddir", null, null);
             fail();
-        } catch (RuntimeException ex) {
-            assertTrue(true);
+        } catch (RuntimeException ignored) {
         }
     }
     
@@ -582,5 +579,88 @@ public class ZMSFileMTLSChangeLogStoreTest {
         store.setJWSDomains(null);
         str.setLength(0);
         assertNull(store.getUpdatedJWSDomains(str));
+    }
+
+    @Test
+    public void testGetLocalDomainListAttributeListMultiple() throws KeyRefresherException, IOException, InterruptedException {
+
+        ZMSFileMTLSChangeLogStore fstore = new ZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        Struct data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test1", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test2", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test3", JSON.bytes(data));
+
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertEquals(domainMap.size(), 3);
+
+        DomainAttributes attrs = domainMap.get("test1");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+
+        attrs = domainMap.get("test2");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+
+        attrs = domainMap.get("test3");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+    }
+
+    @Test
+    public void testGetLocalDomainAttributeListHidden() throws KeyRefresherException, IOException, InterruptedException {
+        ZMSFileMTLSChangeLogStore fstore = new ZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        Struct data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test1", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put(".test2", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put(".test3", JSON.bytes(data));
+
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertEquals(domainMap.size(), 1);
+
+        DomainAttributes attrs = domainMap.get("test1");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+    }
+
+    @Test
+    public void testGetLocalDomainAttributeListEmpty() throws KeyRefresherException, IOException, InterruptedException {
+        ZMSFileMTLSChangeLogStore fstore = new ZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertTrue(domainMap.isEmpty());
+    }
+
+    @Test
+    public void testGetLocalDomainAttributeListError() throws InterruptedException, IOException, KeyRefresherException {
+        ZMSFileMTLSChangeLogStore fstore = new ZMSFileMTLSChangeLogStore(FSTORE_PATH, keyPath, certPath,
+                trustStorePath, trustStorePassword);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        File dir = Mockito.spy(cstore.rootDir);
+        Mockito.when(dir.list()).thenReturn(null);
+        cstore.rootDir = dir;
+
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertTrue(domainMap.isEmpty());
     }
 }

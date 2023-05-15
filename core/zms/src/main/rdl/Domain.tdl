@@ -52,3 +52,8 @@ type DomainList Struct {
     Array<DomainName> names; //list of domain names
     String next (optional); //if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter.
 }
+
+//A domain attributes for the changelog support
+type DomainAttributes Struct {
+    Int64 fetchTime; //timestamp when the domain object was fetched from ZMS
+}

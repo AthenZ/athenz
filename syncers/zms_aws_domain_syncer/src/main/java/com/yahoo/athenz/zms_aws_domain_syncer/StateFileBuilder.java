@@ -43,7 +43,7 @@ public class StateFileBuilder {
     private final static String FETCHING_ITEMS_TIMEOUT = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT);
 
     private final AmazonS3 s3client;
-    private final Map<String, JWSDomain> tempJWSDomainMap = new ConcurrentHashMap<>();
+    private final Map<String, JWSDomainData> tempJWSDomainMap = new ConcurrentHashMap<>();
     private final ExecutorService executorService;
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private final DomainValidator domainValidator;
@@ -95,23 +95,25 @@ public class StateFileBuilder {
         LOGGER.info("fetched {} domain object names from S3 bucket {}", tempJWSDomainMap.size(), BUCKET_NAME);
 
         Map<String, DomainState> stateMap = tempJWSDomainMap.entrySet().stream()
-                .filter(entry -> domainValidator.validateJWSDomain(entry.getValue()))
+                .filter(entry -> domainValidator.validateJWSDomain(entry.getValue().getJwsDomain()))
                 .collect(Collectors.toMap(
                         key -> key.getKey(),
-                        value -> getDomainState(domainValidator.getDomainData(value.getValue()))
+                        value -> getDomainState(domainValidator.getDomainData(value.getValue().getJwsDomain()),
+                                value.getValue().getFetchTime())
                 ));
 
         LOGGER.info("validated signatures of {} domain object from S3 bucket {}", stateMap.size(), BUCKET_NAME);
         return stateMap;
     }
 
-    DomainState getDomainState(final DomainData domData) {
+    DomainState getDomainState(final DomainData domData, long fetchTime) {
         final String domName = domData.getName();
         final String domMod = domData.getModified().toString();
 
         DomainState domState = new DomainState();
         domState.setDomain(domName);
         domState.setModified(domMod);
+        domState.setFetchTime(fetchTime);
         return domState;
     }
 
@@ -164,13 +166,29 @@ public class StateFileBuilder {
         return domains;
     }
 
+    static class JWSDomainData {
+        JWSDomain jwsDomain;
+        long fetchTime;
+
+        public JWSDomainData(JWSDomain jwsDomain, long fetchTime) {
+            this.jwsDomain = jwsDomain;
+            this.fetchTime = fetchTime;
+        }
+        JWSDomain getJwsDomain() {
+            return jwsDomain;
+        }
+        long getFetchTime() {
+            return fetchTime;
+        }
+    }
+
     class ObjectS3Thread implements Runnable {
 
         String domainName;
         AmazonS3 s3;
-        Map<String, JWSDomain> jwsDomainMap;
+        Map<String, JWSDomainData> jwsDomainMap;
 
-        public ObjectS3Thread(String domainName, Map<String, JWSDomain> jwsDomainMap, AmazonS3 s3) {
+        public ObjectS3Thread(String domainName, Map<String, JWSDomainData> jwsDomainMap, AmazonS3 s3) {
             this.domainName = domainName;
             this.s3 = s3;
             this.jwsDomainMap = jwsDomainMap;
@@ -182,11 +200,13 @@ public class StateFileBuilder {
             LOGGER.debug("Getting s3 object for domain: {}", domainName);
 
             JWSDomain jwsDomain = null;
+            long fetchTime = 0;
 
             try {
                 S3Object object = s3.getObject(BUCKET_NAME, domainName);
                 try (S3ObjectInputStream s3is = object.getObjectContent()) {
                     jwsDomain = jsonMapper.readValue(s3is, JWSDomain.class);
+                    fetchTime = object.getObjectMetadata().getLastModified().getTime() / 1000;
                 }
             } catch (Exception ex) {
                 LOGGER.error("unable to get domain {} error: {}", domainName, ex.getMessage());
@@ -195,7 +215,7 @@ public class StateFileBuilder {
             if (jwsDomain != null) {
 
                 LOGGER.debug("fetched domain: {},", domainName);
-                jwsDomainMap.put(domainName, jwsDomain);
+                jwsDomainMap.put(domainName, new JWSDomainData(jwsDomain, fetchTime));
             }
         }
     }

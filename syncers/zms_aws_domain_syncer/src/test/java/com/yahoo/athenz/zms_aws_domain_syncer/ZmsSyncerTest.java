@@ -490,6 +490,46 @@ public class ZmsSyncerTest {
     }
 
     @Test
+    public void testShouldRefreshDomain() {
+
+        AwsSyncer awsSyncer = Mockito.mock(AwsSyncer.class);
+        ZmsReader zmsReader = Mockito.mock(ZmsReader.class);
+        StateFileBuilder stateFileBuilder = Mockito.mock(StateFileBuilder.class);
+
+        ZmsSyncer zmsSyncer = new ZmsSyncer(awsSyncer, zmsReader, stateFileBuilder);
+        assertFalse(zmsSyncer.shouldRefreshDomain(null, 10000, 10, 3600));
+
+        // test refresh limit reached
+
+        zmsSyncer.setNumDomainsRefreshed(10);
+        DomainState state = new DomainState();
+        state.setFetchTime(1000);
+
+        assertFalse(zmsSyncer.shouldRefreshDomain(state, 10000, 10, 9500));
+
+        zmsSyncer.setNumDomainsRefreshed(11);
+        assertFalse(zmsSyncer.shouldRefreshDomain(state, 10000, 10, 9500));
+
+        // with limit lower we should get success
+
+        zmsSyncer.setNumDomainsRefreshed(9);
+        assertTrue(zmsSyncer.shouldRefreshDomain(state, 10000, 10, 8500));
+
+        // if the value is 0 then it's false
+
+        state.setFetchTime(0);
+        assertFalse(zmsSyncer.shouldRefreshDomain(state, 10000, 10, 9500));
+
+        // test where refresh is not necessary
+
+        state.setFetchTime(600);
+        assertFalse(zmsSyncer.shouldRefreshDomain(state, 10000, 10, 9500));
+
+        state.setFetchTime(400);
+        assertTrue(zmsSyncer.shouldRefreshDomain(state, 10000, 10, 9500));
+    }
+
+    @Test
     public void testSyncDomainsWithFailures() throws Exception {
         System.out.println("testSyncDomains");
         // set state file that will cause some domains to be deleted
