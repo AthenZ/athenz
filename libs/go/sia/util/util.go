@@ -27,12 +27,14 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"github.com/google/shlex"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -1065,4 +1067,43 @@ func requiredFilePerm(defaultPerm os.FileMode, directUpdateRequested bool) os.Fi
 	} else {
 		return defaultPerm
 	}
+}
+
+// ParseScriptArguments parses a script path with arguments using shlex
+// and constructs an array of string with name and arguments
+func ParseScriptArguments(script string) []string {
+	if script == "" {
+		return []string{}
+	}
+	parts, err := shlex.Split(script)
+	if err != nil {
+		log.Printf("invalid script: %q, err: %v\n", script, err)
+		return []string{}
+	}
+	if len(parts) != 0 && !strings.HasPrefix(parts[0], "/") {
+		log.Printf("script path should be a fully qualified path: %q\n", script)
+		return []string{}
+	}
+
+	// Clean application path
+	if len(parts) != 0 {
+		parts[0] = filepath.Clean(parts[0])
+	}
+	return parts
+}
+
+// ExecuteScriptWithoutBlock executes a script along with the provided
+// arguments in a go subroutine without blocking the agent
+func ExecuteScriptWithoutBlock(script []string) {
+	// execute run after script (if provided)
+	if len(script) == 0 {
+		return
+	}
+
+	go func() {
+		log.Printf("executing run after hook for: %v", script)
+		if err := exec.Command(script[0], script[1:]...).Run(); err != nil {
+			log.Printf("unable to execute: %q, err: %v", script, err)
+		}
+	}()
 }

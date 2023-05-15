@@ -115,6 +115,8 @@ type Config struct {
 	SshThreshold     float64                  `json:"sshcert_threshold_to_check,omitempty"` //threshold to verify for ssh certs
 	AccessManagement bool                     `json:"access_management,omitempty"`          //access management support
 	FailCountForExit int                      `json:"fail_count_for_exit,omitempty"`        //number of failed counts before exiting program
+	RunAfter         string                   `json:"run_after,omitempty"`                  //execute the command mentioned after certs are created
+	RunAfterTokens   string                   `json:"run_after_tokens,omitempty"`           //execute the command mentioned after tokens are created
 }
 
 type AccessProfileConfig struct {
@@ -156,63 +158,65 @@ type Service struct {
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider           provider.Provider //provider instance
-	Name               string            //name of the service identity
-	User               string            //the username to chown the cert/key dirs to. If absent, then root
-	Group              string            //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain             string            //name of the domain for the identity
-	Account            string            //name of the account
-	Service            string            //name of the service for the identity
-	Zts                string            //the ZTS to contact
-	InstanceId         string            //instance id if ec2, task id if running within eks/ecs
-	Roles              []Role            //map of roles to retrieve certificates for
-	Region             string            //region name
-	SanDnsWildcard     bool              //san dns wildcard support
-	SanDnsHostname     bool              //san dns hostname support
-	Version            string            //sia version number
-	ZTSDomains         []string          //zts domain prefixes
-	Services           []Service         //array of configured services
-	Ssh                bool              //ssh certificate support
-	UseRegionalSTS     bool              //use regional sts endpoint
-	KeyDir             string            //private key directory path
-	CertDir            string            //x.509 certificate directory path
-	AthenzCACertFile   string            //filename to store Athenz CA certs
-	ZTSCACertFile      string            //filename for CA certs when communicating with ZTS
-	ZTSServerName      string            //ZTS server name, if necessary for tls
-	ZTSAWSDomains      []string          //list of domain prefixes for sanDNS entries
-	GenerateRoleKey    bool              //option to generate a separate key for role certificates
-	RotateKey          bool              //rotate the private key when refreshing certificates
-	BackupDir          string            //backup directory for key/cert rotation
-	CertCountryName    string            //generated x.509 certificate country name
-	CertOrgName        string            //generated x.509 certificate organization name
-	SshPubKeyFile      string            //ssh host public key file path
-	SshCertFile        string            //ssh host certificate file path
-	SshConfigFile      string            //sshd config file path
-	SshHostKeyType     hostkey.KeyType   //ssh host key type - rsa or ecdsa
-	PrivateIp          string            //instance private ip
-	EC2Document        string            //EC2 instance identity document
-	EC2Signature       string            //EC2 instance identity document pkcs7 signature
-	EC2StartTime       *time.Time        //EC2 instance start time
-	InstanceIdSanDNS   bool              //include instance id in a san dns entry (backward compatible option)
-	RolePrincipalEmail bool              //include role principal in a san email field (backward compatible option)
-	SDSUdsPath         string            //UDS path if the agent should support uds connections
-	SDSUdsUid          int               //UDS connections must be from the given user uid
-	RefreshInterval    int               //refresh interval for certificates - default 24 hours
-	ZTSRegion          string            //ZTS region in case the client needs this information
-	DropPrivileges     bool              //Drop privileges to configured user instead of running as root
-	TokenDir           string            //Access tokens directory
-	AccessTokens       []ac.AccessToken  //Access tokens object
-	Profile            string            //Access profile name
-	ProfileRestrictTo  string            //Tag associated with access profile roles
-	Threshold          float64           //threshold in number of days for cert expiry checks
-	SshThreshold       float64           //threshold in number of days for ssh cert expiry checks
-	FileDirectUpdate   bool              //update key/cert files directly instead of using rename
-	HostnameSuffix     string            //hostname suffix in case we need to auto-generate hostname
-	SshPrincipals      string            //ssh additional principals
-	AccessManagement   bool              //access management support
-	ZTSCloudDomains    []string          //list of domain prefixes for sanDNS entries
-	AddlSanDNSEntries  []string          //additional san dns entries to be added to the CSR
-	FailCountForExit   int               //number of failed counts before exiting program
+	Provider            provider.Provider //provider instance
+	Name                string            //name of the service identity
+	User                string            //the username to chown the cert/key dirs to. If absent, then root
+	Group               string            //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain              string            //name of the domain for the identity
+	Account             string            //name of the account
+	Service             string            //name of the service for the identity
+	Zts                 string            //the ZTS to contact
+	InstanceId          string            //instance id if ec2, task id if running within eks/ecs
+	Roles               []Role            //map of roles to retrieve certificates for
+	Region              string            //region name
+	SanDnsWildcard      bool              //san dns wildcard support
+	SanDnsHostname      bool              //san dns hostname support
+	Version             string            //sia version number
+	ZTSDomains          []string          //zts domain prefixes
+	Services            []Service         //array of configured services
+	Ssh                 bool              //ssh certificate support
+	UseRegionalSTS      bool              //use regional sts endpoint
+	KeyDir              string            //private key directory path
+	CertDir             string            //x.509 certificate directory path
+	AthenzCACertFile    string            //filename to store Athenz CA certs
+	ZTSCACertFile       string            //filename for CA certs when communicating with ZTS
+	ZTSServerName       string            //ZTS server name, if necessary for tls
+	ZTSAWSDomains       []string          //list of domain prefixes for sanDNS entries
+	GenerateRoleKey     bool              //option to generate a separate key for role certificates
+	RotateKey           bool              //rotate the private key when refreshing certificates
+	BackupDir           string            //backup directory for key/cert rotation
+	CertCountryName     string            //generated x.509 certificate country name
+	CertOrgName         string            //generated x.509 certificate organization name
+	SshPubKeyFile       string            //ssh host public key file path
+	SshCertFile         string            //ssh host certificate file path
+	SshConfigFile       string            //sshd config file path
+	SshHostKeyType      hostkey.KeyType   //ssh host key type - rsa or ecdsa
+	PrivateIp           string            //instance private ip
+	EC2Document         string            //EC2 instance identity document
+	EC2Signature        string            //EC2 instance identity document pkcs7 signature
+	EC2StartTime        *time.Time        //EC2 instance start time
+	InstanceIdSanDNS    bool              //include instance id in a san dns entry (backward compatible option)
+	RolePrincipalEmail  bool              //include role principal in a san email field (backward compatible option)
+	SDSUdsPath          string            //UDS path if the agent should support uds connections
+	SDSUdsUid           int               //UDS connections must be from the given user uid
+	RefreshInterval     int               //refresh interval for certificates - default 24 hours
+	ZTSRegion           string            //ZTS region in case the client needs this information
+	DropPrivileges      bool              //Drop privileges to configured user instead of running as root
+	TokenDir            string            //Access tokens directory
+	AccessTokens        []ac.AccessToken  //Access tokens object
+	Profile             string            //Access profile name
+	ProfileRestrictTo   string            //Tag associated with access profile roles
+	Threshold           float64           //threshold in number of days for cert expiry checks
+	SshThreshold        float64           //threshold in number of days for ssh cert expiry checks
+	FileDirectUpdate    bool              //update key/cert files directly instead of using rename
+	HostnameSuffix      string            //hostname suffix in case we need to auto-generate hostname
+	SshPrincipals       string            //ssh additional principals
+	AccessManagement    bool              //access management support
+	ZTSCloudDomains     []string          //list of domain prefixes for sanDNS entries
+	AddlSanDNSEntries   []string          //additional san dns entries to be added to the CSR
+	FailCountForExit    int               //number of failed counts before exiting program
+	RunAfterParts       []string          //run after parsed parts
+	RunAfterTokensParts []string          //run after token parsed parts
 }
 
 const (
@@ -463,6 +467,12 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 	if config.SshPrincipals == "" {
 		config.SshPrincipals = os.Getenv("ATHENZ_SIA_SSH_PRINCIPALS")
 	}
+	if config.RunAfter == "" {
+		config.RunAfter = os.Getenv("ATHENZ_SIA_RUN_AFTER")
+	}
+	if config.RunAfterTokens == "" {
+		config.RunAfterTokens = os.Getenv("ATHENZ_SIA_RUN_AFTER_TOKENS")
+	}
 	if !config.AccessManagement {
 		config.AccessManagement = util.ParseEnvBooleanFlag("ATHENZ_SIA_ACCESS_MANAGEMENT")
 	}
@@ -556,6 +566,8 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	sshPrincipals := ""
 	accessManagement := false
 	failCountForExit := 2
+	runAfter := ""
+	runAfterTokens := ""
 
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
@@ -599,6 +611,12 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 		if config.SshPrincipals != "" {
 			sshPrincipals = config.SshPrincipals
+		}
+		if config.RunAfter != "" {
+			runAfter = config.RunAfter
+		}
+		if config.RunAfterTokens != "" {
+			runAfterTokens = config.RunAfterTokens
 		}
 		if config.FailCountForExit > 0 {
 			failCountForExit = config.FailCountForExit
@@ -740,40 +758,42 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	}
 
 	return &Options{
-		Name:              account.Name,
-		User:              account.User,
-		Group:             account.Group,
-		Domain:            account.Domain,
-		Account:           account.Account,
-		Zts:               account.Zts,
-		Version:           fmt.Sprintf("SIA %s", version),
-		UseRegionalSTS:    useRegionalSTS,
-		SanDnsWildcard:    sanDnsWildcard,
-		SanDnsHostname:    sanDnsHostname,
-		HostnameSuffix:    hostnameSuffix,
-		Services:          services,
-		Roles:             roles,
-		TokenDir:          tokenDir,
-		CertDir:           certDir,
-		KeyDir:            keyDir,
-		AthenzCACertFile:  fmt.Sprintf("%s/ca.cert.pem", certDir),
-		GenerateRoleKey:   generateRoleKey,
-		RotateKey:         rotateKey,
-		BackupDir:         backupDir,
-		SDSUdsPath:        sdsUdsPath,
-		RefreshInterval:   refreshInterval,
-		ZTSRegion:         ztsRegion,
-		DropPrivileges:    dropPrivileges,
-		AccessTokens:      accessTokens,
-		Profile:           profile,
-		ProfileRestrictTo: profileRestrictTo,
-		Threshold:         account.Threshold,
-		SshThreshold:      account.SshThreshold,
-		FileDirectUpdate:  fileDirectUpdate,
-		SshHostKeyType:    sshHostKeyType,
-		SshPrincipals:     sshPrincipals,
-		AccessManagement:  accessManagement,
-		FailCountForExit:  failCountForExit,
+		Name:                account.Name,
+		User:                account.User,
+		Group:               account.Group,
+		Domain:              account.Domain,
+		Account:             account.Account,
+		Zts:                 account.Zts,
+		Version:             fmt.Sprintf("SIA %s", version),
+		UseRegionalSTS:      useRegionalSTS,
+		SanDnsWildcard:      sanDnsWildcard,
+		SanDnsHostname:      sanDnsHostname,
+		HostnameSuffix:      hostnameSuffix,
+		Services:            services,
+		Roles:               roles,
+		TokenDir:            tokenDir,
+		CertDir:             certDir,
+		KeyDir:              keyDir,
+		AthenzCACertFile:    fmt.Sprintf("%s/ca.cert.pem", certDir),
+		GenerateRoleKey:     generateRoleKey,
+		RotateKey:           rotateKey,
+		BackupDir:           backupDir,
+		SDSUdsPath:          sdsUdsPath,
+		RefreshInterval:     refreshInterval,
+		ZTSRegion:           ztsRegion,
+		DropPrivileges:      dropPrivileges,
+		AccessTokens:        accessTokens,
+		Profile:             profile,
+		ProfileRestrictTo:   profileRestrictTo,
+		Threshold:           account.Threshold,
+		SshThreshold:        account.SshThreshold,
+		FileDirectUpdate:    fileDirectUpdate,
+		SshHostKeyType:      sshHostKeyType,
+		SshPrincipals:       sshPrincipals,
+		AccessManagement:    accessManagement,
+		FailCountForExit:    failCountForExit,
+		RunAfterParts:       util.ParseScriptArguments(runAfter),
+		RunAfterTokensParts: util.ParseScriptArguments(runAfterTokens),
 	}, nil
 }
 
