@@ -171,7 +171,7 @@ class AddSegmentation extends React.Component {
             this.validateMicrosegmentationPolicy.bind(this);
         this.validateFields = this.validateFields.bind(this);
         this.validateServiceNames = this.validateServiceNames.bind(this);
-        this.isScopeAWS = this.isScopeAWS.bind(this);
+        this.isScopeOnPrem = this.isScopeOnPrem.bind(this);
         this.scopeIsSet = this.scopeIsSet.bind(this);
         this.noSharedHostsBetweenModes =
             this.noSharedHostsBetweenModes.bind(this);
@@ -605,13 +605,18 @@ class AddSegmentation extends React.Component {
         return error;
     }
 
-    isScopeAWS() {
+    // isScopeOnPrem returns true if onprem is the only selected option
+    // if AWS and onprem are selected then it will return false
+    isScopeOnPrem() {
         for (let i = 0; i < this.state.PESList.length; i++) {
-            if (this.state.PESList[i].scopeaws == 'true') {
-                return true;
+            if (
+                this.state.PESList[i].scopeonprem == 'false' ||
+                this.state.PESList[i].scopeaws == 'true'
+            ) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     validateFields() {
@@ -1543,7 +1548,7 @@ class AddSegmentation extends React.Component {
                         <StyledInputLabel>Validation</StyledInputLabel>
                         <CheckBoxSectionDiv>
                             <StyledCheckBox
-                                disabled={this.isScopeAWS()}
+                                disabled={!this.isScopeOnPrem()}
                                 checked={this.state.validationCheckbox}
                                 name={
                                     'checkbox-validate-policy' +
