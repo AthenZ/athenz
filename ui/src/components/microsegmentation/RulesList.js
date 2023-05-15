@@ -192,6 +192,7 @@ class RulesList extends React.Component {
                         data={this.props.data.inbound}
                         caption='Inbound'
                         pageFeatureFlag={this.props.pageFeatureFlag}
+                        api={this.api}
                     />
                 ) : null}
                 <br />
@@ -204,6 +205,7 @@ class RulesList extends React.Component {
                         data={this.props.data.outbound}
                         caption='Outbound'
                         pageFeatureFlag={this.props.pageFeatureFlag}
+                        api={this.api}
                     />
                 ) : null}
                 {!showInbound && !showOutbound && this.state.tabularView ? (
