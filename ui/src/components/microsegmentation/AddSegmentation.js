@@ -605,14 +605,10 @@ class AddSegmentation extends React.Component {
         return error;
     }
 
-    // isScopeOnPrem returns true if onprem is the only selected option
-    // if AWS and onprem are selected then it will return false
+    // isScopeOnPrem returns true if onprem is a selected option
     isScopeOnPrem() {
         for (let i = 0; i < this.state.PESList.length; i++) {
-            if (
-                this.state.PESList[i].scopeonprem == 'false' ||
-                this.state.PESList[i].scopeaws == 'true'
-            ) {
+            if (this.state.PESList[i].scopeonprem == 'false') {
                 return false;
             }
         }
@@ -1562,7 +1558,7 @@ class AddSegmentation extends React.Component {
                                     'checkbox-validate-policy' +
                                     this.state.isCategory
                                 }
-                                label='Validate Microsegmentation policy against PES network policy'
+                                label='Validate Microsegmentation policy against PES network policy (OnPrem)'
                                 onChange={(event) =>
                                     this.inputChanged(
                                         event,

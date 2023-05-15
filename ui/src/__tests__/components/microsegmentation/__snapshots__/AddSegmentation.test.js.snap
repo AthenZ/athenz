@@ -1101,7 +1101,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           <label
             for="checkbox-validate-policytrue"
           >
-            Validate Microsegmentation policy against PES network policy
+            Validate Microsegmentation policy against PES network policy (OnPrem)
           </label>
         </div>
       </div>
