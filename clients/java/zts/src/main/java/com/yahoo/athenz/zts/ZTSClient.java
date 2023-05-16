@@ -3258,7 +3258,7 @@ public class ZTSClient implements Closeable {
         return oidcResponse;
     }
 
-    String generateIdTokenScope(final String domainName, List<String> roleNames) {
+    public static String generateIdTokenScope(final String domainName, List<String> roleNames) {
         StringBuilder scope = new StringBuilder(256);
         scope.append("openid");
         if (isEmpty(roleNames)) {
@@ -3271,7 +3271,7 @@ public class ZTSClient implements Closeable {
         return scope.toString();
     }
 
-    String generateRedirectUri(final String clientId, final String uriSuffix) {
+    public static String generateRedirectUri(final String clientId, final String uriSuffix) {
         int idx = clientId.lastIndexOf('.');
         if (idx == -1) {
             return "";
