@@ -1558,7 +1558,7 @@ class AddSegmentation extends React.Component {
                                     'checkbox-validate-policy' +
                                     this.state.isCategory
                                 }
-                                label='Validate Microsegmentation policy against PES network policy (OnPrem)'
+                                label='Validate Microsegmentation policy against PES network policy (only for onprem hosts)'
                                 onChange={(event) =>
                                     this.inputChanged(
                                         event,
