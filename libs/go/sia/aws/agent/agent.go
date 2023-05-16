@@ -84,13 +84,13 @@ func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
 	return util.PrivateKeyFromFile(svcKey)
 }
 
-func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
+func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 
 	//initialize our return state to success
 	failures := 0
 
-	var roleRequest = new(zts.RoleCertificateRequest)
 	for _, role := range opts.Roles {
+		var roleRequest = new(zts.RoleCertificateRequest)
 
 		svcKeyFile := util.GetSvcKeyFileName(opts.KeyDir, role.SvcKeyFilename, opts.Domain, role.Service)
 		svcCertFile := util.GetSvcCertFileName(opts.CertDir, role.SvcCertFilename, opts.Domain, role.Service)
@@ -161,7 +161,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
 		}
 	}
 	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
-	return failures == 0
+	return len(opts.Roles), failures
 }
 
 func RegisterInstance(data []*attestation.AttestationData, ztsUrl string, opts *options.Options, docExpiryCheck bool) error {
@@ -578,13 +578,17 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 	}
 	switch siaCmd {
 	case "rolecert":
-		GetRoleCertificates(ztsUrl, opts)
+		count, failures := GetRoleCertificates(ztsUrl, opts)
+		if failures != count {
+			util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+		}
 	case "token":
 		if tokenOpts != nil {
 			err := accessTokenRequest(tokenOpts)
 			if err != nil {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
+			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
@@ -593,12 +597,14 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
+		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(data, ztsUrl, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
+		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(data, ztsUrl, opts, false)
@@ -607,11 +613,13 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		}
 		log.Printf("identity registered for services: %s\n", svcs)
 		GetRoleCertificates(ztsUrl, opts)
+		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		if tokenOpts != nil {
 			err := accessTokenRequest(tokenOpts)
 			if err != nil {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
+			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 		}
 	default:
 		// we're going to iterate through our configured services.
@@ -676,6 +684,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 							log.Printf("refresh will be retried in %d minutes, failure %d of %d\n", opts.RefreshInterval, failedRefreshCount, opts.FailCountForExit)
 						}
 					} else {
+						failedRefreshCount = 0
 						log.Printf("identity successfully refreshed for services: %s\n", svcs)
 					}
 				}
@@ -684,11 +693,15 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
 						errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
+					} else {
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 					}
 				} else {
 					log.Print("token config does not exist - do not refresh token")
 				}
 				GetRoleCertificates(ztsUrl, opts)
+				util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true
 				}
@@ -737,6 +750,8 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
 						errors <- fmt.Errorf("refresh access-token task got error: %v\n", err)
+					} else {
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 					}
 				case <-stop:
 					errors <- nil
