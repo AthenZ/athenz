@@ -1,3 +1,13 @@
+Athenz v1.11.30 Release / May 16, 2023
+--------------------------------------
+
+#2166 option to return id token in json output instead of redirect uri
+#2167 for oidc redirect uri check both configured endpoint and auto-generated value
+#2168 new athenz-gcp-zts-creds library to simplify fetching Google credentials based on ZTS ID Tokens
+#2169 option to continuously update zts domain cache files
+#2170 single command line argument for sia called init
+#2174 provide run-after (cert/tokens) capability for sia
+
 Athenz v1.11.29 Release / May 06, 2023
 --------------------------------------
 
