@@ -82,7 +82,7 @@ const LeftMarginSpan = styled.span`
 export default class RuleTable extends React.Component {
     constructor(props) {
         super(props);
-
+        this.api = props.api;
         this.state = {
             expanded: true,
         };
@@ -130,6 +130,7 @@ export default class RuleTable extends React.Component {
                     onUpdateSuccess={this.props.onSubmit}
                     _csrf={this.props._csrf}
                     pageFeatureFlag={this.props.pageFeatureFlag}
+                    api={this.api}
                 />
             );
         });
