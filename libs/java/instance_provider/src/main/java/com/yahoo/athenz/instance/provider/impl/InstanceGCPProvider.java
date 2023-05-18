@@ -40,12 +40,12 @@ public class InstanceGCPProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceGCPProvider.class);
 
-    static final String GCP_PROP_GKE_DNS_SUFFIX   = "athenz.zts.gcp_gke_dns_suffix";
-
-    static final String GCP_PROP_BOOT_TIME_OFFSET = "athenz.zts.gcp_boot_time_offset";
-    static final String GCP_PROP_DNS_SUFFIX       = "athenz.zts.gcp_dns_suffix";
-    static final String GCP_PROP_REGION_NAME      = "athenz.zts.gcp_region_name";
-    static final String GCP_PROP_CERT_VALIDITY    = "athenz.zts.gcp_cert_validity";
+    static final String GCP_PROP_GKE_DNS_SUFFIX           = "athenz.zts.gcp_gke_dns_suffix";
+    static final String GCP_PROP_BOOT_TIME_OFFSET         = "athenz.zts.gcp_boot_time_offset";
+    static final String GCP_PROP_DNS_SUFFIX               = "athenz.zts.gcp_dns_suffix";
+    static final String GCP_PROP_REGION_NAME              = "athenz.zts.gcp_region_name";
+    static final String GCP_PROP_CERT_VALIDITY            = "athenz.zts.gcp_cert_validity";
+    static final String GCP_SSH_CERT_PRINCIPAL_SEPARATOR  = ",";
 
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     long certValidityTime;                   // cert validity for STS creds only case
@@ -246,7 +246,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         // additional metadata is only available on GCE so using that
         // as a basis to provide SSH host certificate
 
-        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData() != null);
+        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData());
 
         return confirmation;
     }
@@ -291,7 +291,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         validateAthenzService(derivedAttestationData, instanceService, gcpProject);
 
         // set the attributes to be returned to the ZTS server
-        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData() != null);
+        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData());
 
 
         return confirmation;
@@ -321,11 +321,20 @@ public class InstanceGCPProvider implements InstanceProvider {
         }
     }
 
-    protected void setConfirmationAttributes(InstanceConfirmation confirmation, boolean additionalMetadataAvailable) {
+    protected void setConfirmationAttributes(InstanceConfirmation confirmation, GCPAdditionalAttestationData additionalAttestationData) {
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(InstanceProvider.ZTS_CERT_SSH, Boolean.toString(additionalMetadataAvailable));
         attributes.put(InstanceProvider.ZTS_CERT_EXPIRY_TIME, Long.toString(certValidityTime));
+        attributes.put(InstanceProvider.ZTS_CERT_SSH, Boolean.toString(additionalAttestationData != null));
+        if (additionalAttestationData != null) {
+            String attestedSshHostPrincipals = additionalAttestationData.getInstanceName() +
+                    GCP_SSH_CERT_PRINCIPAL_SEPARATOR +
+                    "compute." + additionalAttestationData.getInstanceId() +
+                    GCP_SSH_CERT_PRINCIPAL_SEPARATOR +
+                    String.format("%s.c.%s.internal", additionalAttestationData.getInstanceName(),
+                            additionalAttestationData.getProjectId());
+            attributes.put(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS, attestedSshHostPrincipals);
+        }
         confirmation.setAttributes(attributes);
     }
 

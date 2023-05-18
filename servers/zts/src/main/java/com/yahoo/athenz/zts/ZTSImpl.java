@@ -3676,6 +3676,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         int certExpiryTime = 0;
         boolean certRefresh = true;
         boolean sshCertAllowed = false;
+        String attestedSshCertPrincipals = null;
 
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
@@ -3685,6 +3686,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             certExpiryTime = ZTSUtils.parseInt(instanceAttrs.remove(InstanceProvider.ZTS_CERT_EXPIRY_TIME), 0);
             certRefresh = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_REFRESH), true);
             sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
+            attestedSshCertPrincipals = instanceAttrs.remove(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS);
         }
 
         // validate the CSR subject ou field. We're doing this check here
@@ -3712,17 +3714,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw serverError("unable to generate identity", caller, domain, principalDomain);
         }
 
-        // if we're asked then we should also generate a ssh
+        // if we're asked then we should also generate an ssh
         // certificate for the instance as well
 
         if (sshCertAllowed) {
             Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
 
-            // generate a ssh object for recording
+            // generate an ssh object for recording
 
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false, attestedSshCertPrincipals);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4172,6 +4174,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         int certExpiryTime = 0;
         boolean sshCertAllowed = false;
         boolean certRefreshCheck = true;
+        String attestedSshCertPrincipals = null;
 
         Map<String, String> instanceAttrs = instance.getAttributes();
         if (instanceAttrs != null) {
@@ -4181,6 +4184,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             certRefreshCheck = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_REFRESH), true);
             certSubjectOU = instanceAttrs.remove(InstanceProvider.ZTS_CERT_SUBJECT_OU);
             sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
+            attestedSshCertPrincipals = instanceAttrs.remove(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS);
         }
 
         // validate the CSR subject ou field. We're doing this check here
@@ -4237,7 +4241,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, domain + "." + service, instanceId,
                     instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
-                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true);
+                    info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, true, attestedSshCertPrincipals);
             metric.stopTiming(timerSSHCertMetric, null, principalDomain);
         }
 
@@ -4323,7 +4327,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         InstanceIdentity identity = new InstanceIdentity().setName(principalName);
         Object timerSSHCertMetric = metric.startTiming("certsignssh_timing", null, principalDomain);
         if (!instanceCertManager.generateSSHIdentity(principal, identity, null, sshCsr, sshCertRequest,
-                null, ZTSConsts.ZTS_SSH_USER, true)) {
+                null, ZTSConsts.ZTS_SSH_USER, true, null)) {
             throw serverError("unable to generate ssh identity", caller, domain, principalDomain);
         }
         metric.stopTiming(timerSSHCertMetric, null, principalDomain);
