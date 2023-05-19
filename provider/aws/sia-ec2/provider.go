@@ -89,3 +89,7 @@ func (eks EC2Provider) GetAccountDomainServiceFromMeta(base string) (string, str
 func (tp EC2Provider) GetAccessManagementProfileFromMeta(base string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
+
+func (tp EC2Provider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	return "", nil
+}

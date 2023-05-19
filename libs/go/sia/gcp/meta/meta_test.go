@@ -215,3 +215,21 @@ func TestGetInstancePublicIp(test *testing.T) {
 		test.Errorf("want instancePubIp=20.20.20.20 got instancePubIp=%s", instancePubIp)
 	}
 }
+
+func TestGetInstanceName(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/computeMetadata/v1/instance/name", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/instance/name")
+		io.WriteString(w, "my-vm")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	instanceName, _ := GetInstanceName(metaServer.httpUrl())
+	if instanceName != "my-vm" {
+		test.Errorf("want instanceName=my-vm got instanceName=%s", instanceName)
+	}
+}

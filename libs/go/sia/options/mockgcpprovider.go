@@ -79,3 +79,7 @@ func (tp MockGCPProvider) GetAccountDomainServiceFromMeta(base string) (string, 
 func (tp MockGCPProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
 	return "testProf", nil
 }
+
+func (tp MockGCPProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	return "my-vm,compute.1234567890000,my-vm.c.my-gcp-project.internal", nil
+}

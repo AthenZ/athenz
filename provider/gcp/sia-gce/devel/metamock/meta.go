@@ -29,6 +29,7 @@ var (
 	sa            = `my-sa@my-gcp-project.iam.gserviceaccount.com`
 	instanceId    = `3692465022399257023`
 	accessProfile = `access-profile`
+	instanceName  = `my-vm`
 )
 
 func StartMetaServer(EndPoint string) {
@@ -49,6 +50,9 @@ func StartMetaServer(EndPoint string) {
 	})
 	http.HandleFunc("/computeMetadata/v1/instance/attributes/accessProfile", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, accessProfile)
+	})
+	http.HandleFunc("/computeMetadata/v1/instance/name", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, instanceName)
 	})
 
 	log.Println("Starting GCE Meta Mock listening on: " + EndPoint)

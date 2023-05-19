@@ -89,3 +89,7 @@ func (eks EKSProvider) GetAccountDomainServiceFromMeta(base string) (string, str
 func (tp EKSProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
+
+func (tp EKSProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	return "", nil
+}
