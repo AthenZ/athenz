@@ -22,6 +22,7 @@ import (
 	"crypto/x509/pkix"
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
+	"k8s.io/utils/strings/slices"
 	"log"
 	"net"
 	"net/url"
@@ -113,6 +114,10 @@ func (tp TestProvider) GetAccountDomainServiceFromMeta(string) (string, string, 
 
 func (tp TestProvider) GetAccessManagementProfileFromMeta(string) (string, error) {
 	return "testProf", nil
+}
+
+func (tp TestProvider) GetAdditionalSshHostPrincipals(string) (string, error) {
+	return "my-vm,my-instance-id", nil
 }
 
 func TestUpdateFileNew(test *testing.T) {
@@ -561,11 +566,15 @@ func TestServiceAlreadyRegistered(test *testing.T) {
 
 func TestGenerateSshRequest(test *testing.T) {
 
+	tp := TestProvider{
+		Name: "athenz.aws.us-west-2",
+	}
 	opts := options.Options{
-		Ssh: false,
+		Ssh:      false,
+		Provider: tp,
 	}
 	// ssh option false we should get success with nils and empty csr
-	sshReq, sshCsr, err := generateSshRequest(&opts, "backend", "hostname.athenz.io")
+	sshReq, sshCsr, err := generateSshRequest(&opts, "backend", "hostname.athenz.io", "")
 	assert.Nil(test, sshReq)
 	assert.Equal(test, "", sshCsr)
 	assert.Nil(test, err)
@@ -576,7 +585,7 @@ func TestGenerateSshRequest(test *testing.T) {
 			Name: "api",
 		},
 	}
-	sshReq, sshCsr, err = generateSshRequest(&opts, "backend", "hostname.athenz.io")
+	sshReq, sshCsr, err = generateSshRequest(&opts, "backend", "hostname.athenz.io", "")
 	assert.Nil(test, sshReq)
 	assert.Equal(test, "", sshCsr)
 	assert.Nil(test, err)
@@ -585,14 +594,29 @@ func TestGenerateSshRequest(test *testing.T) {
 	opts.Domain = "athenz"
 	opts.ZTSAWSDomains = []string{"athenz.io"}
 	opts.SshHostKeyType = hostkey.Rsa
-	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io", "")
 	assert.Nil(test, sshReq)
 	assert.NotEmpty(test, sshCsr)
 	assert.Nil(test, err)
 	// ssh enabled with primary service and key type is ecdsa - empty csr but not-nil cert request
 	opts.SshHostKeyType = hostkey.Ecdsa
-	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io", "")
 	assert.NotNil(test, sshReq)
+	assert.Equal(test, 3, len(sshReq.CertRequestData.Principals))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-vm"))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-instance-id"))
+	assert.Empty(test, sshCsr)
+	assert.Nil(test, err)
+	// ssh enabled with primary service and key type is ecdsa - empty csr but not-nil cert request, opts defines sshPrincipals
+	opts.SshHostKeyType = hostkey.Ecdsa
+	opts.SshPrincipals = "cname.athenz.io"
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io", "")
+	assert.NotNil(test, sshReq)
+	assert.Equal(test, 4, len(sshReq.CertRequestData.Principals))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "hostname.athenz.io"))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "cname.athenz.io"))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-vm"))
+	assert.True(test, slices.Contains(sshReq.CertRequestData.Principals, "my-instance-id"))
 	assert.Empty(test, sshCsr)
 	assert.Nil(test, err)
 }

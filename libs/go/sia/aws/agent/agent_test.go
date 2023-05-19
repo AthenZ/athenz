@@ -121,6 +121,10 @@ func (tp TestProvider) GetAccessManagementProfileFromMeta(string) (string, error
 	return "testProf", nil
 }
 
+func (tp TestProvider) GetAdditionalSshHostPrincipals(string) (string, error) {
+	return "i-1234edt22", nil
+}
+
 func TestUpdateFileNew(test *testing.T) {
 	testInternalUpdateFileNew(test, true)
 	testInternalUpdateFileNew(test, false)

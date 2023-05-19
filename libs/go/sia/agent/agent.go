@@ -236,7 +236,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc, false)
-	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname, metaEndpoint)
 	if err != nil {
 		return err
 	}
@@ -335,7 +335,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc, false)
-	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname, metaEndpoint)
 	if err != nil {
 		return err
 	}
@@ -419,7 +419,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	return nil
 }
 
-func generateSshRequest(opts *options.Options, primaryServiceName, hostname string) (*zts.SSHCertRequest, string, error) {
+func generateSshRequest(opts *options.Options, primaryServiceName, hostname, metaEndpoint string) (*zts.SSHCertRequest, string, error) {
 	var err error
 	var sshCsr string
 	var sshCertRequest *zts.SSHCertRequest
@@ -427,7 +427,17 @@ func generateSshRequest(opts *options.Options, primaryServiceName, hostname stri
 		if opts.SshHostKeyType == hostkey.Rsa {
 			sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSCloudDomains)
 		} else {
-			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, opts.SshPrincipals, opts.ZTSCloudDomains)
+			sshPrincipals := opts.SshPrincipals
+			// additional ssh host principals are added on best effort basis, hence error below is ignored.
+			additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(metaEndpoint)
+			if additionalSshHostPrincipals != "" {
+				if sshPrincipals != "" {
+					sshPrincipals = sshPrincipals + "," + additionalSshHostPrincipals
+				} else {
+					sshPrincipals = additionalSshHostPrincipals
+				}
+			}
+			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, sshPrincipals, opts.ZTSCloudDomains)
 		}
 	}
 	return sshCertRequest, sshCsr, err

@@ -134,11 +134,17 @@ func GetInstancePrivateIp(metaEndpoint string) (string, error) {
 	}
 	return string(instanceIdBytes), nil
 }
-
 func GetInstancePublicIp(metaEndpoint string) (string, error) {
 	pubIpBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip")
 	if err != nil {
 		return "", err
 	}
 	return string(pubIpBytes), nil
+}
+func GetInstanceName(metaEndpoint string) (string, error) {
+	nameBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/name")
+	if err != nil {
+		return "", err
+	}
+	return string(nameBytes), nil
 }
