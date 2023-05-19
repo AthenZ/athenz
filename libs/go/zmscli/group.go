@@ -122,14 +122,16 @@ func (cli Zms) SetGroupServiceExpiryDays(dn string, rn string, days int32) (*str
 func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (*string, error) {
 	fullResourceName := dn + ":group." + gn
 	var group zms.Group
-	_, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
-	if err == nil {
-		return nil, fmt.Errorf("group already exists: %v", fullResourceName)
-	}
-	switch v := err.(type) {
-	case rdl.ResourceError:
-		if v.Code != 404 {
-			return nil, v
+	if !cli.Overwrite {
+		_, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+		if err == nil {
+			return nil, fmt.Errorf("group already exists: %v", fullResourceName)
+		}
+		switch v := err.(type) {
+		case rdl.ResourceError:
+			if v.Code != 404 {
+				return nil, v
+			}
 		}
 	}
 	group.Name = zms.ResourceName(fullResourceName)
