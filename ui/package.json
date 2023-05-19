@@ -57,6 +57,7 @@
         "@redux-devtools/extension": "3.2.3",
         "@reduxjs/toolkit": "1.8.5",
         "async": "3.2.4",
+        "aws-sdk": "^2.1213.0",
         "body-parser": "1.20.0",
         "cookie-parser": "1.4.6",
         "cookie-session": "2.0.0",
