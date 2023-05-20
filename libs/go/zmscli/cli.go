@@ -44,6 +44,7 @@ type Zms struct {
 	UserDomain       string
 	HomeDomain       string
 	OutputFormat     string
+	Overwrite        bool
 	ProductIdSupport bool
 	Debug            bool
 	AddSelf          bool
