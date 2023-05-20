@@ -154,7 +154,7 @@ func usage() string {
 	buf.WriteString("   -k                  Disable peer verification of SSL certificates.\n")
 	buf.WriteString("   -key x509_key       Athenz X.509 Key file for authentication\n")
 	buf.WriteString("   -o output_format    Output format - json or yaml (default=yaml)\n")
-	buf.WriteString("   -overwrite           Overwrites without checking for existence\n")
+	buf.WriteString("   -overwrite          Overwrites without checking for existence\n")
 	buf.WriteString("   -s host:port        The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -v                  Verbose mode. Full resource names are included in output (default=false)\n")
 	buf.WriteString("   -x                  For user token output, exclude the header name (default=false)\n")
