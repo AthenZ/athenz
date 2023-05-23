@@ -18,7 +18,6 @@
 var url = require('url');
 var path = require('path');
 var axios = require('axios');
-var request = require('request');
 var debug = require('debug')('rdl-rest');
 var os = require('os');
 var clone = require('lodash.clone');
