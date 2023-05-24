@@ -30233,6 +30233,91 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testUpdateRoleMemberReviewAndExpirationDates() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "update-role";
+        final String roleName = "role1";
+
+        Timestamp t1 = Timestamp.fromMillis(1000);
+        Timestamp t2 = Timestamp.fromMillis(2000);
+        Timestamp t3 = Timestamp.fromMillis(3000);
+        Timestamp t4 = Timestamp.fromMillis(4000);
+
+        List<RoleMember> originalMembers = new ArrayList<>();
+        originalMembers.add(new RoleMember().setMemberName("user.joe")
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new RoleMember().setMemberName("user.jane")
+                .setReviewReminder(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new RoleMember().setMemberName("user.joseph")
+                .setReviewReminder(t1)
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new RoleMember().setMemberName("user.judy")
+                .setReviewReminder(t1)
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new RoleMember().setMemberName("user.johannes")
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+
+        List<RoleMember> updatedMembers = new ArrayList<>();
+        updatedMembers.add(new RoleMember().setMemberName("user.joe")
+                .setExpiration(t2)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        updatedMembers.add(new RoleMember().setMemberName("user.jane")
+                .setReviewReminder(t2)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        updatedMembers.add(new RoleMember().setMemberName("user.joseph")
+                .setReviewReminder(t3)
+                .setExpiration(t4)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        updatedMembers.add(new RoleMember().setMemberName("user.judy")
+                .setReviewReminder(t1)
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        // now let's create a role with user members only
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, originalMembers);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+
+        // now let's get our role object
+
+        Role role = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        assertNotNull(role);
+
+        List<RoleMember> retrievedMembers = role.getRoleMembers();
+        assertNotNull(retrievedMembers);
+        assertEquals(retrievedMembers.size(), 5);
+        zmsTestInitializer.checkRoleMembersExpirationAndReviewDates(originalMembers, retrievedMembers);
+
+        // now let's update our role with the updated members
+
+        role1.setRoleMembers(updatedMembers);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role1);
+
+        // now let's get our role object
+
+        role = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        assertNotNull(role);
+
+        retrievedMembers = role.getRoleMembers();
+        assertNotNull(retrievedMembers);
+        assertEquals(retrievedMembers.size(), 4);
+        zmsTestInitializer.checkRoleMembersExpirationAndReviewDates(updatedMembers, retrievedMembers);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
     public void testUpdateRoleWithGroupMembers() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

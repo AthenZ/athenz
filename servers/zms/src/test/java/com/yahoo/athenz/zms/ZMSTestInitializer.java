@@ -43,9 +43,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
@@ -400,6 +398,20 @@ public class ZMSTestInitializer {
             }
             if (!found) {
                 fail("Member " + roleMemberName + " not found");
+            }
+        }
+    }
+
+    public void checkRoleMembersExpirationAndReviewDates(final List<RoleMember> expectedMembers, List<RoleMember> members) {
+        Map<String, RoleMember> expectedMembersMap = new HashMap<>();
+        for (RoleMember expectedMember : expectedMembers) {
+            expectedMembersMap.put(expectedMember.getMemberName(), expectedMember);
+        }
+
+        for (RoleMember member : members) {
+            RoleMember expected = expectedMembersMap.get(member.getMemberName());
+            if (!Objects.equals(member.getExpiration(), expected.getExpiration()) || !Objects.equals(member.getReviewReminder(), expected.getReviewReminder())) {
+                fail("Member " + member.getMemberName() + " not matching expected Expiration/Review dates");
             }
         }
     }
