@@ -73,7 +73,7 @@ public class AuthzHelperTest {
         List<RoleMember> originalRoleMembers = convertMembersToRoleMembers(originalRoleMembersList);
         List<RoleMember> removeRoleMembers = convertMembersToRoleMembers(removeRoleMembersList);
 
-        AuthzHelper.removeRoleMembers(originalRoleMembers, removeRoleMembers);
+        AuthzHelper.removeRoleMembers(originalRoleMembers, removeRoleMembers, true);
 
         //remove case
         for (RoleMember orgMember : originalRoleMembers) {
@@ -90,13 +90,88 @@ public class AuthzHelperTest {
     @Test
     public void testRemoveRoleMembersInvalidInput() {
         List<RoleMember> list = Collections.singletonList(new RoleMember().setMemberName("member1"));
-        AuthzHelper.removeRoleMembers(list, null);
+        AuthzHelper.removeRoleMembers(list, null, true);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
 
-        AuthzHelper.removeRoleMembers(null, list);
+        AuthzHelper.removeRoleMembers(null, list, true);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
+    }
+
+    @Test
+    public void testRemoveRoleMembersChangedExpirationDate() {
+        Timestamp t1 = Timestamp.fromMillis(1000);
+        Timestamp t2 = Timestamp.fromMillis(2000);
+        Timestamp t3 = Timestamp.fromMillis(3000);
+        Timestamp t4 = Timestamp.fromMillis(4000);
+        Timestamp t5 = Timestamp.fromMillis(5000);
+
+        RoleMember member1 = new RoleMember().setMemberName("member1");
+
+        RoleMember member2 = new RoleMember().setMemberName("member2").setExpiration(t1);
+        RoleMember newMember2 = new RoleMember().setMemberName("member2").setExpiration(t2);
+
+        RoleMember member3 = new RoleMember().setMemberName("member3");
+        RoleMember newMember3 = new RoleMember().setMemberName("member3").setExpiration(t1);
+
+        RoleMember member4 = new RoleMember().setMemberName("member4").setExpiration(t3).setReviewReminder(t4);
+        RoleMember newMember4 = new RoleMember().setMemberName("member4").setExpiration(t3).setReviewReminder(t5);
+
+        RoleMember member5 = new RoleMember().setMemberName("member5");
+
+        RoleMember member6 = new RoleMember().setMemberName("member6");
+
+        RoleMember member7 = new RoleMember().setMemberName("member7").setExpiration(t5).setReviewReminder(t3);
+
+        List<RoleMember> originalMembers = new ArrayList<>() {
+            {
+                add(member1);
+                add(member2);
+                add(member3);
+                add(member4);
+                add(member5);
+                add(member7);
+            }
+        };
+
+        List<RoleMember> newMembers = new ArrayList<>() {
+            {
+                add(newMember2);
+                add(newMember3);
+                add(newMember4);
+                add(member5);
+                add(member6);
+                add(member7);
+            }
+        };
+
+        List<RoleMember> expectedNewMembers = new ArrayList<>() {
+            {
+                add(newMember2);
+                add(newMember3);
+                add(newMember4);
+                add(member6);
+            }
+        };
+
+        List<RoleMember> delMembers = new ArrayList<>() {
+            {
+                addAll(originalMembers);
+            }
+        };
+
+        List<RoleMember> expectedDelMembers = new ArrayList<>() {
+            {
+                add(member1);
+            }
+        };
+
+        AuthzHelper.removeRoleMembers(delMembers, newMembers, true);
+        assertEquals(delMembers, expectedDelMembers);
+
+        AuthzHelper.removeRoleMembers(newMembers, originalMembers, false);
+        assertEquals(newMembers, expectedNewMembers);
     }
 
     @DataProvider(name = "group-members")

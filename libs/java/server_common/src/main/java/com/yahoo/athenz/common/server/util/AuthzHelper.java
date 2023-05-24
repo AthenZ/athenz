@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class AuthzHelper {
 
@@ -47,12 +48,19 @@ public class AuthzHelper {
         return objectMapper;
     }
 
-    public static void removeRoleMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers) {
+    private static boolean isUpdateRequired(RoleMember member1, RoleMember member2) {
+        return !Objects.equals(member1.getExpiration(), member2.getExpiration()) ||
+                !Objects.equals(member1.getReviewReminder(), member2.getReviewReminder());
+    }
+
+    public static void removeRoleMembers(List<RoleMember> originalRoleMembers, List<RoleMember> removeRoleMembers, boolean filterByNameOnly) {
         if (removeRoleMembers == null || originalRoleMembers == null) {
             return;
         }
         for (RoleMember removeMember : removeRoleMembers) {
-            originalRoleMembers.removeIf(item -> item.getMemberName().equalsIgnoreCase(removeMember.getMemberName()));
+            originalRoleMembers.removeIf(item ->
+                    item.getMemberName().equalsIgnoreCase(removeMember.getMemberName()) &&
+                    (filterByNameOnly || !isUpdateRequired(item, removeMember)));
         }
     }
 

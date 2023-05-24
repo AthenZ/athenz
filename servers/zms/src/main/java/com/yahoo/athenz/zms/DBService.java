@@ -840,12 +840,12 @@ public class DBService implements RolesProvider {
 
         // remove current members from new members
 
-        AuthzHelper.removeRoleMembers(newMembers, curMembers);
+        AuthzHelper.removeRoleMembers(newMembers, curMembers, false);
 
         // remove new members from current members
         // which leaves the deleted members.
 
-        AuthzHelper.removeRoleMembers(delMembers, roleMembers);
+        AuthzHelper.removeRoleMembers(delMembers, roleMembers, true);
 
         if (!ignoreDeletes) {
             for (RoleMember member : delMembers) {
