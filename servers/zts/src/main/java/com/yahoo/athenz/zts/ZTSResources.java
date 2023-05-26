@@ -935,13 +935,14 @@ public class ZTSResources {
         @Parameter(description = "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured", required = false) @QueryParam("keyType") String keyType,
         @Parameter(description = "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)", required = false) @QueryParam("fullArn") @DefaultValue("false") Boolean fullArn,
         @Parameter(description = "optional expiry period specified in seconds", required = false) @QueryParam("expiryTime") Integer expiryTime,
-        @Parameter(description = "optional output format of json", required = false) @QueryParam("output") String output) {
+        @Parameter(description = "optional output format of json", required = false) @QueryParam("output") String output,
+        @Parameter(description = "flag to indicate to include role name in the audience claim only if we have a single role in response", required = false) @QueryParam("roleInAudClaim") @DefaultValue("false") Boolean roleInAudClaim) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getOIDCResponse");
             context.authenticate();
-            return this.delegate.getOIDCResponse(context, responseType, clientId, redirectUri, scope, state, nonce, keyType, fullArn, expiryTime, output);
+            return this.delegate.getOIDCResponse(context, responseType, clientId, redirectUri, scope, state, nonce, keyType, fullArn, expiryTime, output, roleInAudClaim);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

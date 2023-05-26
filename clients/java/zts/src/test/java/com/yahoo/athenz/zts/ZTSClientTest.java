@@ -2208,7 +2208,7 @@ public class ZTSClientTest {
     @Test
     public void testHostnameVerifierSupport() {
 
-        ZTSRDLGeneratedClientMock client = new ZTSRDLGeneratedClientMock("http://localhost:4080", (HostnameVerifier) null);
+        ZTSRDLGeneratedClientMock client = new ZTSRDLGeneratedClientMock("http://localhost:4080", null);
         HostnameVerifier hostnameVerifier = client.getHostnameVerifier();
         assertTrue(hostnameVerifier == null || hostnameVerifier instanceof org.apache.http.conn.ssl.DefaultHostnameVerifier);
 

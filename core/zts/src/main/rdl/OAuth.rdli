@@ -44,7 +44,7 @@ resource AccessTokenResponse POST "/oauth2/token" {
 }
 
 // Fetch OAuth OpenID Connect ID Token
-resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}&fullArn={fullArn}&expiryTime={expiryTime}&output={output}" {
+resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&keyType={keyType}&fullArn={fullArn}&expiryTime={expiryTime}&output={output}&roleInAudClaim={roleInAudClaim}" {
     String responseType; //response type - currently only supporting id tokens - id_token
     ServiceName clientId; //client id - must be valid athenz service identity name
     String redirectUri; //redirect uri for the response
@@ -55,6 +55,7 @@ resource OIDCResponse GET "/oauth2/auth?response_type={responseType}&client_id={
     Bool fullArn (optional, default=false); //flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)
     Int32 expiryTime (optional); //optional expiry period specified in seconds
     SimpleName output (optional); //optional output format of json
+    Bool roleInAudClaim (optional, default=false); //flag to indicate to include role name in the audience claim only if we have a single role in response
     String location (header="Location", out); //return location header with id token
     authenticate;
     expected OK, FOUND;

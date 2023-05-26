@@ -146,6 +146,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected List<Pattern> authFreeUriList = null;
     protected int httpPort;
     protected int httpsPort;
+    protected int oidcPort;
     protected int statusPort;
     protected boolean statusCertSigner = false;
     protected Status successServerStatus = null;
@@ -161,8 +162,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected AuthzDetailsEntityList systemAuthzDetails = null;
     protected ObjectMapper jsonMapper;
     protected OpenIDConfig openIDConfig;
+    protected OpenIDConfig oidcPortConfig;
     protected OAuthConfig oauthConfig;
     protected String ztsOpenIDIssuer;
+    protected String ztsOIDCPortIssuer;
     protected String redirectUriSuffix;
     protected Info serverInfo = null;
     protected AthenzJWKConfig jwkConfig;
@@ -401,15 +404,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return serviceIdentity;
     }
 
+    private OpenIDConfig createOpenidIDConfigObject(final String issuer) {
+        OpenIDConfig config = new OpenIDConfig();
+        config.setIssuer(issuer);
+        config.setJwks_uri(issuer + "/oauth2/keys?rfc=true");
+        config.setAuthorization_endpoint(issuer + "/oauth2/auth");
+        config.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
+        config.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
+        config.setId_token_signing_alg_values_supported(getSupportedSigningAlgValues());
+        return config;
+    }
+
     private void setupMetaConfigObjects() {
 
-        openIDConfig = new OpenIDConfig();
-        openIDConfig.setIssuer(ztsOpenIDIssuer);
-        openIDConfig.setJwks_uri(ztsOpenIDIssuer + "/oauth2/keys?rfc=true");
-        openIDConfig.setAuthorization_endpoint(ztsOpenIDIssuer + "/oauth2/auth");
-        openIDConfig.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
-        openIDConfig.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
-        openIDConfig.setId_token_signing_alg_values_supported(getSupportedSigningAlgValues());
+        openIDConfig = createOpenidIDConfigObject(ztsOpenIDIssuer);
+        oidcPortConfig = createOpenidIDConfigObject(ztsOIDCPortIssuer);
 
         oauthConfig = new OAuthConfig();
         oauthConfig.setIssuer(ztsOpenIDIssuer);
@@ -497,6 +506,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         httpsPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_HTTPS_PORT,
                 ZTSConsts.ZTS_HTTPS_PORT_DEFAULT);
         statusPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_STATUS_PORT, 0);
+        oidcPort = ConfigProperties.getPortNumber(ZTSConsts.ZTS_PROP_OIDC_PORT, 0);
 
         successServerStatus = new Status().setCode(ResourceException.OK).setMessage("OK");
 
@@ -620,6 +630,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         ztsOAuthIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER, serverHostName);
         ztsOpenIDIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, ztsOAuthIssuer);
+        ztsOIDCPortIssuer = System.getProperty(ZTSConsts.ZTS_PROP_OIDC_PORT_ISSUER, ztsOpenIDIssuer);
         redirectUriSuffix = System.getProperty(ZTSConsts.ZTS_PROP_REDIRECT_URI_SUFFIX);
 
         // set up our health check file
@@ -1932,12 +1943,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     @Override
     public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
                                     String scope, String state, String nonce, String keyType, Boolean fullArn,
-                                    Integer timeout, String output) {
+                                    Integer timeout, String output, Boolean roleInAudClaim) {
 
         final String caller = ctx.getApiName();
 
         final String principalDomain = logPrincipalAndGetDomain(ctx);
-        validateRequest(ctx.request(), principalDomain, caller);
+        validateOIDCRequest(ctx.request(), principalDomain, caller);
 
         validate(nonce, TYPE_ENTITY_NAME, principalDomain, caller);
         validate(clientId, TYPE_SERVICE_NAME, principalDomain, caller);
@@ -2025,9 +2036,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
-        idToken.setAudience(clientId);
+        idToken.setAudience(getIdTokenAudience(clientId, roleInAudClaim, idTokenGroups));
         idToken.setSubject(principalName);
-        idToken.setIssuer(ztsOpenIDIssuer);
+        idToken.setIssuer(isOidcPortRequest(ctx.request().getLocalPort()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
         idToken.setNonce(nonce);
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
@@ -2061,6 +2072,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         } else {
             return Response.status(ResourceException.FOUND).header("Location", location).build();
         }
+    }
+
+    String getIdTokenAudience(final String clientId, Boolean includeGroup, List<String> idTokenGroups) {
+        return (includeGroup == Boolean.TRUE && idTokenGroups != null && idTokenGroups.size() == 1) ?
+                clientId + ":" + idTokenGroups.get(0) : clientId;
     }
 
     List<String> processIdTokenGroups(final String principalName, IdTokenRequest tokenRequest, final String clientIdDomainName,
@@ -4729,8 +4745,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        validateRequest(ctx.request(), principalDomain, caller);
-
+        validateOIDCRequest(ctx.request(), principalDomain, caller);
         return dataStore.getZtsJWKList(rfc);
     }
 
@@ -4906,7 +4921,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate our request as status request
 
-        validateRequest(ctx.request(), principalDomain, caller, true);
+        validateStatusRequest(ctx.request(), principalDomain, caller);
 
         // for now we're going to verify our certsigner connectivity
         // only if the administrator has configured it. without certsigner
@@ -4941,14 +4956,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return successServerStatus;
     }
 
+    boolean isOidcPortRequest(int port) {
+        return port == oidcPort && oidcPort != httpsPort;
+    }
+
     @Override
     public OpenIDConfig getOpenIDConfig(ResourceContext ctx) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
-        validateRequest(ctx.request(), principalDomain, caller);
-        return openIDConfig;
+        validateOIDCRequest(ctx.request(), principalDomain, caller);
+        return isOidcPortRequest(ctx.request().getLocalPort()) ? oidcPortConfig : openIDConfig;
     }
 
     @Override
@@ -5001,11 +5020,19 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void validateRequest(HttpServletRequest request, final String principalDomain, final String caller) {
-        validateRequest(request, principalDomain, caller, false);
+        validateRequest(request, principalDomain, caller, false, false);
+    }
+
+    void validateOIDCRequest(HttpServletRequest request, final String principalDomain, final String caller) {
+        validateRequest(request, principalDomain, caller, false, true);
+    }
+
+    void validateStatusRequest(HttpServletRequest request, final String principalDomain, final String caller) {
+        validateRequest(request, principalDomain, caller, true, false);
     }
 
     void validateRequest(HttpServletRequest request, final String principalDomain, final String caller,
-                         boolean statusRequest) {
+                         boolean statusRequest, boolean oidcRequest) {
 
         // first validate if we're required process this over TLS only
 
@@ -5014,7 +5041,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        // second check if this is a status port so we can only
+        // second check if this is a status port, so we can only
         // process on status requests
 
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
@@ -5030,6 +5057,18 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             if (statusRequest && request.getLocalPort() != statusPort) {
                 throw requestError("incorrect port number for a status request",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+        }
+
+        // final check is for oidc requests
+
+        if (oidcPort > 0 && oidcPort != httpsPort) {
+
+            // non oidc requests must not take place on the oidc port
+
+            if (!oidcRequest && request.getLocalPort() == oidcPort) {
+                throw requestError("incorrect port number for a non-oidc request",
                         caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }
         }
