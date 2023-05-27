@@ -183,6 +183,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean validateServiceRoleMembers;
     protected DynamicConfigBoolean validateUserRoleMembers;
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
+    protected DynamicConfigBoolean allowUnderscoreInServiceNames;
     protected boolean useMasterCopyForSignedDomains = false;
     protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
@@ -829,6 +830,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String skipDomains = System.getProperty(
                 ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
         validateServiceMemberSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        allowUnderscoreInServiceNames = new DynamicConfigBoolean(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES, Boolean.FALSE);
 
         // check to see if we need to support product ids as required
         // for top level domains
@@ -5687,11 +5690,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
 
-    public boolean isValidServiceName(final String serviceName) {
+    public boolean isValidServiceName(final String domainName, final String serviceName) {
+
+        // first check the list of configured reserved names
 
         if (reservedServiceNames != null && reservedServiceNames.contains(serviceName)) {
             return false;
         }
+
+        // if we're not allowed to have underscores in service names then
+        // we need to check if the service exists or not since we do not
+        // want to block managing service accounts that were created before
+        // the option was enforced
+
+        if (allowUnderscoreInServiceNames.get() == Boolean.FALSE && serviceName.indexOf('_') != -1) {
+            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+                return false;
+            }
+        }
+
+        // finally, return result based on the configured minimum length of the service name
 
         return serviceNameMinLength <= 0 || serviceNameMinLength <= serviceName.length();
     }
@@ -5724,7 +5742,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate that the service name is valid
 
-        if (!isValidServiceName(serviceName)) {
+        if (!isValidServiceName(domainName, serviceName)) {
             throw ZMSUtils.requestError("putServiceIdentity: Invalid/Reserved service name", caller);
         }
 
@@ -5745,7 +5763,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 + service.getProviderEndpoint() + " - must be http(s) and in configured domain", caller);
         }
 
-        ServiceIdentity dbServiceIdentity = dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller, returnObj);
+        ServiceIdentity dbServiceIdentity = dbService.executePutServiceIdentity(ctx, domainName,
+                serviceName, service, auditRef, caller, returnObj);
 
         return ZMSUtils.returnPutResponse(returnObj, dbServiceIdentity);
     }
