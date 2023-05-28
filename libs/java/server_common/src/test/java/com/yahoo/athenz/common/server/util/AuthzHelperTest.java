@@ -100,7 +100,7 @@ public class AuthzHelperTest {
     }
 
     @Test
-    public void testRemoveRoleMembersChangedExpirationDate() {
+    public void testRemoveRoleMembersChangedExpirationAndReviewDates() {
         Timestamp t1 = Timestamp.fromMillis(1000);
         Timestamp t2 = Timestamp.fromMillis(2000);
         Timestamp t3 = Timestamp.fromMillis(3000);
@@ -204,7 +204,7 @@ public class AuthzHelperTest {
         List<GroupMember> originalGroupMembers = convertListToGroupMembers(originalGroupMembersList);
         List<GroupMember> removeGroupMembers = convertListToGroupMembers(removeGroupMembersList);
 
-        AuthzHelper.removeGroupMembers(originalGroupMembers, removeGroupMembers);
+        AuthzHelper.removeGroupMembers(originalGroupMembers, removeGroupMembers, true);
 
         //remove case
         for (GroupMember orgMember : originalGroupMembers) {
@@ -221,13 +221,81 @@ public class AuthzHelperTest {
     @Test
     public void testRemoveGroupMembersInvalidInput() {
         List<GroupMember> list = Collections.singletonList(new GroupMember().setMemberName("member1"));
-        AuthzHelper.removeGroupMembers(list, null);
+        AuthzHelper.removeGroupMembers(list, null, true);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
 
-        AuthzHelper.removeGroupMembers(null, list);
+        AuthzHelper.removeGroupMembers(null, list, true);
         assertEquals(list.size(), 1);
         assertEquals(list.get(0).getMemberName(), "member1");
+    }
+
+    @Test
+    public void testRemoveGroupMembersChangedExpirationDate() {
+        Timestamp t1 = Timestamp.fromMillis(1000);
+        Timestamp t2 = Timestamp.fromMillis(2000);
+        Timestamp t3 = Timestamp.fromMillis(3000);
+
+        GroupMember member1 = new GroupMember().setMemberName("member1");
+
+        GroupMember member2 = new GroupMember().setMemberName("member2").setExpiration(t1);
+        GroupMember newMember2 = new GroupMember().setMemberName("member2").setExpiration(t2);
+
+        GroupMember member3 = new GroupMember().setMemberName("member3");
+        GroupMember newMember3 = new GroupMember().setMemberName("member3").setExpiration(t1);
+
+        GroupMember member4 = new GroupMember().setMemberName("member4").setExpiration(t3);
+
+
+        GroupMember member5 = new GroupMember().setMemberName("member5");
+
+        GroupMember member6 = new GroupMember().setMemberName("member6").setExpiration(t3);
+
+        List<GroupMember> originalMembers = new ArrayList<>() {
+            {
+                add(member1);
+                add(member2);
+                add(member3);
+                add(member4);
+            }
+        };
+
+        List<GroupMember> newMembers = new ArrayList<>() {
+            {
+                add(newMember2);
+                add(newMember3);
+                add(member4);
+                add(member5);
+                add(member6);
+            }
+        };
+
+        List<GroupMember> expectedNewMembers = new ArrayList<>() {
+            {
+                add(newMember2);
+                add(newMember3);
+                add(member5);
+                add(member6);
+            }
+        };
+
+        List<GroupMember> delMembers = new ArrayList<>() {
+            {
+                addAll(originalMembers);
+            }
+        };
+
+        List<GroupMember> expectedDelMembers = new ArrayList<>() {
+            {
+                add(member1);
+            }
+        };
+
+        AuthzHelper.removeGroupMembers(delMembers, newMembers, true);
+        assertEquals(delMembers, expectedDelMembers);
+
+        AuthzHelper.removeGroupMembers(newMembers, originalMembers, false);
+        assertEquals(newMembers, expectedNewMembers);
     }
 
     private List<RoleMember> convertMembersToRoleMembers(List<String> members) {

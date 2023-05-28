@@ -30318,6 +30318,84 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testUpdateGroupMemberExpirationDate() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "update-group";
+        final String groupName = "group1";
+
+        Timestamp t1 = Timestamp.fromMillis(1000);
+        Timestamp t2 = Timestamp.fromMillis(2000);
+        Timestamp t3 = Timestamp.fromMillis(3000);
+
+        List<GroupMember> originalMembers = new ArrayList<>();
+        originalMembers.add(new GroupMember().setMemberName("user.joe")
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new GroupMember().setMemberName("user.jane")
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new GroupMember().setMemberName("user.joseph")
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new GroupMember().setMemberName("user.judy")
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        originalMembers.add(new GroupMember().setMemberName("user.johannes")
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+
+        List<GroupMember> updatedMembers = new ArrayList<>();
+        updatedMembers.add(new GroupMember().setMemberName("user.joe")
+                .setExpiration(t2)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        updatedMembers.add(new GroupMember().setMemberName("user.jane")
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        updatedMembers.add(new GroupMember().setMemberName("user.joseph")
+                .setExpiration(t3)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+        updatedMembers.add(new GroupMember().setMemberName("user.judy")
+                .setExpiration(t1)
+                .setPrincipalType(Principal.Type.USER.getValue()));
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        // now let's create a group with user members only
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, groupName,  originalMembers);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+
+        // now let's get our group object
+
+        Group group = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        List<GroupMember> retrievedMembers = group.getGroupMembers();
+        assertNotNull(retrievedMembers);
+        assertEquals(retrievedMembers.size(), 5);
+        zmsTestInitializer.checkGroupMembersExpirationDate(originalMembers, retrievedMembers);
+
+        // now let's update our group with the updated members
+
+        group1.setGroupMembers(updatedMembers);
+        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group1);
+
+        // now let's get our group object
+
+        group = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        assertNotNull(group);
+
+        retrievedMembers = group.getGroupMembers();
+        assertNotNull(retrievedMembers);
+        assertEquals(retrievedMembers.size(), 4);
+        zmsTestInitializer.checkGroupMembersExpirationDate(updatedMembers, retrievedMembers);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
     public void testUpdateRoleWithGroupMembers() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

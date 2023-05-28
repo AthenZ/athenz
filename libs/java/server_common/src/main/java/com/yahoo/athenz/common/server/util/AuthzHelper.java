@@ -64,12 +64,18 @@ public class AuthzHelper {
         }
     }
 
-    public static void removeGroupMembers(List<GroupMember> originalGroupMembers, List<GroupMember> removeGroupMembers) {
+    private static boolean isGroupMemberExpirationChanged(GroupMember member1, GroupMember member2) {
+        return !Objects.equals(member1.getExpiration(), member2.getExpiration());
+    }
+
+    public static void removeGroupMembers(List<GroupMember> originalGroupMembers, List<GroupMember> removeGroupMembers, boolean filterByNameOnly) {
         if (removeGroupMembers == null || originalGroupMembers == null) {
             return;
         }
         for (GroupMember removeMember : removeGroupMembers) {
-            originalGroupMembers.removeIf(item -> item.getMemberName().equalsIgnoreCase(removeMember.getMemberName()));
+            originalGroupMembers.removeIf(item ->
+                    item.getMemberName().equalsIgnoreCase(removeMember.getMemberName()) &&
+                            (filterByNameOnly || !isGroupMemberExpirationChanged(item, removeMember)));
         }
     }
 

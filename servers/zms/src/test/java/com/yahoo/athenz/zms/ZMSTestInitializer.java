@@ -416,6 +416,20 @@ public class ZMSTestInitializer {
         }
     }
 
+    public void checkGroupMembersExpirationDate(final List<GroupMember> expectedMembers, List<GroupMember> members) {
+        Map<String, GroupMember> expectedMembersMap = new HashMap<>();
+        for (GroupMember expectedMember : expectedMembers) {
+            expectedMembersMap.put(expectedMember.getMemberName(), expectedMember);
+        }
+
+        for (GroupMember member : members) {
+            GroupMember expected = expectedMembersMap.get(member.getMemberName());
+            if (!Objects.equals(member.getExpiration(), expected.getExpiration())) {
+                fail("Member " + member.getMemberName() + " not matching expected Expiration date");
+            }
+        }
+    }
+
     public void checkGroupMember(final List<String> checkList, List<GroupMember> members) {
         boolean found = false;
         for (String groupMemberName: checkList) {

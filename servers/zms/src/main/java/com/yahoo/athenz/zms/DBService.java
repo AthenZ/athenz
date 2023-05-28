@@ -887,12 +887,12 @@ public class DBService implements RolesProvider {
 
         // remove current members from new members
 
-        AuthzHelper.removeGroupMembers(newMembers, curMembers);
+        AuthzHelper.removeGroupMembers(newMembers, curMembers, false);
 
         // remove new members from current members
         // which leaves the deleted members.
 
-        AuthzHelper.removeGroupMembers(delMembers, groupMembers);
+        AuthzHelper.removeGroupMembers(delMembers, groupMembers, true);
 
         for (GroupMember member : delMembers) {
             if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
