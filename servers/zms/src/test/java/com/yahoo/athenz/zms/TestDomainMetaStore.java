@@ -94,6 +94,16 @@ public class TestDomainMetaStore implements DomainMetaStore {
     }
 
     @Override
+    public boolean isValidProductId(String domainName, String productId) {
+        return isValidAttribute(productId);
+    }
+
+    @Override
+    public void setProductIdDomain(String domainName, String productId) {
+        setAttribute(productId);
+    }
+
+    @Override
     public List<String> getValidProductIds(String userName) {
         return new ArrayList<>();
     }

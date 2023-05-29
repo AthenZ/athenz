@@ -278,7 +278,7 @@ func main() {
 	}
 
 	if *pX509KeyFile != "" && *pX509CertFile != "" {
-		err := cli.SetX509CertClient(*pX509KeyFile, *pX509CertFile, *pCACert, *pSocks, false, *pSkipVerify)
+		err := zmscli.SetX509CertClient(&cli, *pX509KeyFile, *pX509CertFile, *pCACert, *pSocks, false, *pSkipVerify)
 		if err != nil {
 			log.Fatalf("Unable to set ZMS x.509 Client: %v\n", err)
 		}
@@ -312,7 +312,7 @@ func main() {
 			}
 		}
 		var authHeader = "Athenz-Principal-Auth"
-		cli.SetClient(tr, &authHeader, &ntoken)
+		zmscli.SetClient(&cli, tr, &authHeader, &ntoken)
 
 		if len(args) > 0 && args[0] == "get-user-token" {
 			if len(args) == 2 {

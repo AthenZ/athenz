@@ -10,8 +10,8 @@ type DomainMeta Struct {
     ResourceName org (optional); //a reference to an audit organization defined in athenz
     Bool enabled (optional, default=true); //Future use only, currently not used
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
-    String account (optional); //associated aws account id (system attribute - uniqueness check)
-    Int32 ypmId (optional); //associated product id (system attribute - uniqueness check)
+    String account (optional); //associated aws account id (system attribute - uniqueness check - if enabled)
+    Int32 ypmId (optional); //associated product id (system attribute - uniqueness check - if enabled)
     String applicationId (optional); //associated application id
     String certDnsDomain (optional); //domain certificate dns domain (system attribute)
     Int32 memberExpiryDays (optional); //all user members in the domain will have specified max expiry days
@@ -22,12 +22,13 @@ type DomainMeta Struct {
     Int32 serviceExpiryDays (optional); //all services in the domain roles will have specified max expiry days
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
-    String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check)
-    String gcpProject (optional); //associated gcp project id (system attribute - uniqueness check)
+    String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check - if enabled)
+    String gcpProject (optional); //associated gcp project id (system attribute - uniqueness check - if enabled)
     String gcpProjectNumber (optional); //associated gcp project number (system attribute)
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String businessService (optional, x_allowempty="true"); //associated business service with domain
     Int32 memberPurgeExpiryDays (optional); //purge role/group members with expiry date configured days in the past
+    String productId (optional); //associated product id (system attribute - uniqueness check - if enabled)
 }
 
 //A domain is an independent partition of users, roles, and resources.
@@ -56,4 +57,12 @@ type DomainList Struct {
 //A domain attributes for the changelog support
 type DomainAttributes Struct {
     Int64 fetchTime; //timestamp when the domain object was fetched from ZMS
+}
+
+//A domain options for enforcing uniqueness checks
+type DomainOptions Struct {
+    Bool enforceUniqueProductIds; //enforce domains are associated with unique product ids
+    Bool enforceUniqueAWSAccounts; //enforce domains are associated with unique aws accounts
+    Bool enforceUniqueAzureSubscriptions; //enforce domains are associated with unique azure subscriptions
+    Bool enforceUniqueGCPProjects; //enforce domains are associated with unique gcp projects
 }

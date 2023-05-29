@@ -222,7 +222,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_VALUE              = "value";
     public static final String DB_COLUMN_DOMAIN_ID          = "domain_id";
     public static final String DB_COLUMN_ACCOUNT            = "account";
-    public static final String DB_COLUMN_PRODUCT_ID         = "ypm_id";
+    public static final String DB_COLUMN_YPM_ID             = "ypm_id";
+    public static final String DB_COLUMN_PRODUCT_ID         = "product_id";
     public static final String DB_COLUMN_ADMIN              = "admin";
     public static final String DB_COLUMN_CREATED            = "created";
     public static final String DB_COLUMN_AUDIT_REF          = "audit_ref";
@@ -311,7 +312,8 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_AZURE_SUBSCRIPTION = "azuresubscription";
     public static final String SYSTEM_META_GCP_PROJECT        = "gcpproject";
     public static final String SYSTEM_META_BUSINESS_SERVICE   = "businessservice";
-
+    public static final String SYSTEM_META_YPM_ID             = "ypmid";
+    public static final String SYSTEM_META_ATTR_ALL           = "all";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
@@ -389,6 +391,11 @@ public final class ZMSConsts {
     public static final Integer ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF = 500;
     public static final String ZMS_PROP_PURGE_MEMBER_EXPIRY_DAYS = "athenz.zms.purge_member_expiry_days";
     public static final Integer ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF = 180;
+
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_AWS_ACCOUNTS = "athenz.zms.enforce_unique_aws_accounts";
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_AZURE_SUBSCRIPTIONS = "athenz.zms.enforce_unique_azure_subscriptions";
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_GCP_PROJECTS = "athenz.zms.enforce_unique_gcp_projects";
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_PRODUCT_IDS = "athenz.zms.enforce_unique_product_ids";
 
     //pending member
     public static final String PENDING_REQUEST_ADD_STATE = "ADD";

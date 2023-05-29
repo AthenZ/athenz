@@ -323,12 +323,12 @@ func (client ZMSClient) GetDomain(domain DomainName) (*Domain, error) {
 	}
 }
 
-func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, depth *int32, account string, productId *int32, roleMember ResourceName, roleName ResourceName, subscription string, project string, tagKey CompoundName, tagValue CompoundName, businessService string, modifiedSince string) (*DomainList, error) {
+func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, depth *int32, account string, productNumber *int32, roleMember ResourceName, roleName ResourceName, subscription string, project string, tagKey CompoundName, tagValue CompoundName, businessService string, productId string, modifiedSince string) (*DomainList, error) {
 	var data *DomainList
 	headers := map[string]string{
 		"If-Modified-Since": modifiedSince,
 	}
-	url := client.URL + "/domain" + encodeParams(encodeOptionalInt32Param("limit", limit), encodeStringParam("skip", string(skip), ""), encodeStringParam("prefix", string(prefix), ""), encodeOptionalInt32Param("depth", depth), encodeStringParam("account", string(account), ""), encodeOptionalInt32Param("ypmid", productId), encodeStringParam("member", string(roleMember), ""), encodeStringParam("role", string(roleName), ""), encodeStringParam("azure", string(subscription), ""), encodeStringParam("gcp", string(project), ""), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""), encodeStringParam("businessService", string(businessService), ""))
+	url := client.URL + "/domain" + encodeParams(encodeOptionalInt32Param("limit", limit), encodeStringParam("skip", string(skip), ""), encodeStringParam("prefix", string(prefix), ""), encodeOptionalInt32Param("depth", depth), encodeStringParam("account", string(account), ""), encodeOptionalInt32Param("ypmid", productNumber), encodeStringParam("member", string(roleMember), ""), encodeStringParam("role", string(roleName), ""), encodeStringParam("azure", string(subscription), ""), encodeStringParam("gcp", string(project), ""), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""), encodeStringParam("businessService", string(businessService), ""), encodeStringParam("productId", string(productId), ""))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return data, err

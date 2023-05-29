@@ -113,12 +113,25 @@ public class DBService implements RolesProvider {
         if (defaultOpTimeout < 0) {
             defaultOpTimeout = 60;
         }
+
         int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueAWSAccounts(Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_ENFORCE_UNIQUE_AWS_ACCOUNTS, "true")));
+        domainOptions.setEnforceUniqueAzureSubscriptions(Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_ENFORCE_UNIQUE_AZURE_SUBSCRIPTIONS, "true")));
+        domainOptions.setEnforceUniqueGCPProjects(Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_ENFORCE_UNIQUE_GCP_PROJECTS, "true")));
+        domainOptions.setEnforceUniqueProductIds(Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_ENFORCE_UNIQUE_PRODUCT_IDS, "true")));
+
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
             this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
+            this.store.setDomainOptions(domainOptions);
         }
 
         // retrieve the concurrent update retry count. If we're given an invalid negative
@@ -3118,6 +3131,17 @@ public class DBService implements RolesProvider {
         return domList;
     }
 
+    DomainList lookupDomainByProductId(String productId) {
+        DomainList domList = new DomainList();
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            String domain = con.lookupDomainByProductId(productId);
+            if (domain != null) {
+                domList.setNames(Collections.singletonList(domain));
+            }
+        }
+        return domList;
+    }
+
     DomainList lookupDomainByBusinessService(final String businessService) {
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
@@ -3610,6 +3634,7 @@ public class DBService implements RolesProvider {
                         .setGcpProject(domain.getGcpProject())
                         .setGcpProjectNumber(domain.getGcpProjectNumber())
                         .setYpmId(domain.getYpmId())
+                        .setProductId(domain.getProductId())
                         .setCertDnsDomain(domain.getCertDnsDomain())
                         .setMemberExpiryDays(domain.getMemberExpiryDays())
                         .setServiceExpiryDays(domain.getServiceExpiryDays())
@@ -4003,6 +4028,10 @@ public class DBService implements RolesProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setYpmId(meta.getYpmId());
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getProductId(), meta.getProductId())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setProductId(meta.getProductId());
                 break;
             case ZMSConsts.SYSTEM_META_CERT_DNS_DOMAIN:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getCertDnsDomain(), meta.getCertDnsDomain())) {
@@ -5420,6 +5449,7 @@ public class DBService implements RolesProvider {
                 .append("\", \"signAlgorithm\": \"").append(domain.getSignAlgorithm())
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
+                .append("\", \"productId\": \"").append(domain.getProductId())
                 .append("\"}");
     }
 

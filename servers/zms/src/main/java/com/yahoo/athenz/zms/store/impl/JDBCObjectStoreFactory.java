@@ -53,7 +53,6 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
             Properties readOnlyProperties = getProperties(jdbcReadOnlyUser, keyStore.getSecret(jdbcAppName, readOnlyPassword));
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
-        
         return new JDBCObjectStore(readWriteSrc, readOnlySrc);
     }
 
