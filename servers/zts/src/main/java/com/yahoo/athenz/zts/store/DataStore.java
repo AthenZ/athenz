@@ -986,17 +986,17 @@ public class DataStore implements DataCacheProvider, RolesProvider {
 
         // remove current members from new members
 
-        AuthzHelper.removeGroupMembers(newMembers, curMembers);
+        AuthzHelper.removeGroupMembers(newMembers, curMembers, true);
 
         // remove new members from current members
         // which leaves the deleted members.
 
-        AuthzHelper.removeGroupMembers(delMembers, group.getGroupMembers());
+        AuthzHelper.removeGroupMembers(delMembers, group.getGroupMembers(), true);
 
         // now let's remove our new members from the member list to
         // get the possible list of users that need to be updated
 
-        AuthzHelper.removeGroupMembers(updMembers, newMembers);
+        AuthzHelper.removeGroupMembers(updMembers, newMembers, true);
 
         // update the group member cache with the new members
 
