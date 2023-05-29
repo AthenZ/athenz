@@ -6681,7 +6681,6 @@ public class ZMSImplTest {
         zmsImpl.deleteTopLevelDomain(ctx, "ServiceAddInvalidStructDom1", auditRef);
     }
 
-
     @Test
     public void testPutServiceIdentityWithoutPubKey() {
         String domainName = "ServicePutDom1";
@@ -6725,7 +6724,8 @@ public class ZMSImplTest {
         publicKeyEntryNew.setId("1");
         publicKeyNewList.add(publicKeyEntryNew);
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         ServiceIdentity service = new ServiceIdentity();
@@ -6760,7 +6760,8 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         ServiceIdentity service = new ServiceIdentity();
@@ -6784,7 +6785,8 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         ServiceIdentity service = new ServiceIdentity();
@@ -21652,38 +21654,38 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
 
         // reserved names
-        assertFalse(zmsImpl.isValidServiceName("com"));
-        assertFalse(zmsImpl.isValidServiceName("gov"));
-        assertFalse(zmsImpl.isValidServiceName("info"));
-        assertFalse(zmsImpl.isValidServiceName("org"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "com"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "gov"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "info"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "org"));
 
-        assertTrue(zmsImpl.isValidServiceName("svc"));
-        assertTrue(zmsImpl.isValidServiceName("acom"));
-        assertTrue(zmsImpl.isValidServiceName("coms"));
-        assertTrue(zmsImpl.isValidServiceName("borg"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "svc"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "acom"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "coms"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "borg"));
 
         // service names with 1 or 2 chars
 
-        assertFalse(zmsImpl.isValidServiceName("u"));
-        assertFalse(zmsImpl.isValidServiceName("k"));
-        assertFalse(zmsImpl.isValidServiceName("r"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "u"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "k"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "r"));
 
-        assertFalse(zmsImpl.isValidServiceName("us"));
-        assertFalse(zmsImpl.isValidServiceName("uk"));
-        assertFalse(zmsImpl.isValidServiceName("fr"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "us"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "uk"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "fr"));
 
         // set the min length to 0 and verify all pass
 
         zmsImpl.serviceNameMinLength = 0;
-        assertTrue(zmsImpl.isValidServiceName("r"));
-        assertTrue(zmsImpl.isValidServiceName("us"));
-        assertTrue(zmsImpl.isValidServiceName("svc"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "r"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "us"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "svc"));
 
         // set map to null and verify all pass
 
         zmsImpl.reservedServiceNames = null;
-        assertTrue(zmsImpl.isValidServiceName("com"));
-        assertTrue(zmsImpl.isValidServiceName("gov"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "com"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "gov"));
 
         // create new impl objects with new settings
 
@@ -21691,20 +21693,50 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH, "0");
         ZMSImpl zmsImpl2 = zmsTestInitializer.zmsInit();
 
-        assertTrue(zmsImpl2.isValidServiceName("com"));
-        assertTrue(zmsImpl2.isValidServiceName("gov"));
-        assertTrue(zmsImpl2.isValidServiceName("info"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "com"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "gov"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "info"));
 
-        assertFalse(zmsImpl2.isValidServiceName("one"));
-        assertFalse(zmsImpl2.isValidServiceName("two"));
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "one"));
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "two"));
 
-        assertTrue(zmsImpl2.isValidServiceName("u"));
-        assertTrue(zmsImpl2.isValidServiceName("k"));
-        assertTrue(zmsImpl2.isValidServiceName("r"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "u"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "k"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "r"));
         System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES);
         System.clearProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH);
 
+        // validate service names with underscores set to allow
+
+        zmsImpl2.allowUnderscoreInServiceNames = new DynamicConfigBoolean(Boolean.TRUE);
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
+
+        // while to allow option is enabled, let's create a service with underscore
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain testDomain = zmsTestInitializer.createTopLevelDomainObject("athenz",
+                "Athenz Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, testDomain);
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(ResourceUtils.serviceResourceName("athenz", "service_name"));
+        zmsImpl2.putServiceIdentity(ctx, "athenz", "service_name", auditRef, false, service);
+
+        // now let's disable the option. with the existing service, it should
+        // be allowed but non-existent service name with be rejected
+
+        zmsImpl2.allowUnderscoreInServiceNames = new DynamicConfigBoolean(Boolean.FALSE);
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "service_name2"));
+
+        zmsImpl2.deleteDomain(ctx, auditRef, "athenz", "unit-test");
+
         zmsImpl.objectStore.clearConnections();
+        zmsImpl2.objectStore.clearConnections();
     }
 
     @Test
