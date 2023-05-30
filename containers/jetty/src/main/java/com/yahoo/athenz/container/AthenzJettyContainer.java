@@ -474,9 +474,17 @@ public class AthenzJettyContainer {
             }
         }
     }
-    
+
+    HttpConfiguration getHttpsConfig(HttpConfiguration httpConfig, int httpsPort, boolean sniRequired, boolean sniHostCheck) {
+        HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+        httpsConfig.setSecureScheme("https");
+        httpsConfig.setSecurePort(httpsPort);
+        httpsConfig.addCustomizer(new SecureRequestCustomizer(sniRequired, sniHostCheck, -1L, false));
+        return httpsConfig;
+    }
+
     public void addHTTPConnectors(HttpConfiguration httpConfig, int httpPort, int httpsPort,
-            int statusPort) {
+            int oidcPort, int statusPort) {
 
         int idleTimeout = Integer.parseInt(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "30000"));
@@ -500,38 +508,34 @@ public class AthenzJettyContainer {
             connectionLogger = jettyConnectionLoggerFactory.create();
         }
 
+        boolean sniRequired = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_REQUIRED, "false"));
+        boolean sniHostCheck = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_HOSTCHECK, "true"));
+        boolean needClientAuth = Boolean.parseBoolean(
+                System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
+
         // HTTPS Connector
 
         if (httpsPort > 0) {
-
-            boolean sniRequired = Boolean.parseBoolean(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_REQUIRED, "false"));
-            boolean sniHostCheck = Boolean.parseBoolean(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_HOSTCHECK, "true"));
-
-            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
-            httpsConfig.setSecureScheme("https");
-            httpsConfig.setSecurePort(httpsPort);
-            httpsConfig.addCustomizer(new SecureRequestCustomizer(sniRequired, sniHostCheck, -1L, false));
-
-            boolean needClientAuth = Boolean.parseBoolean(
-                    System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
-
+            HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, httpsPort, sniRequired, sniHostCheck);
             addHTTPSConnector(httpsConfig, httpsPort, proxyProtocol, listenHost,
                     idleTimeout, needClientAuth, connectionLogger);
         }
-        
+
+        // OIDC Connector - only if it's different from HTTPS
+
+        if (oidcPort > 0 && oidcPort != httpsPort) {
+            HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, oidcPort, sniRequired, sniHostCheck);
+            addHTTPSConnector(httpsConfig, oidcPort, proxyProtocol, listenHost,
+                    idleTimeout, needClientAuth, connectionLogger);
+        }
+
         // Status Connector - only if it's different from HTTP/HTTPS
         
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
-            
             if (httpsPort > 0) {
-
-                HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
-                httpsConfig.setSecureScheme("https");
-                httpsConfig.setSecurePort(httpsPort);
-                httpsConfig.addCustomizer(new SecureRequestCustomizer(false, false, -1L, false));
-
+                HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, httpsPort, false, false);
                 addHTTPSConnector(httpsConfig, statusPort, false, listenHost, idleTimeout, false, connectionLogger);
             } else if (httpPort > 0) {
                 addHTTPConnector(httpConfig, statusPort, false, listenHost, idleTimeout);
@@ -592,7 +596,11 @@ public class AthenzJettyContainer {
                 AthenzConsts.ATHENZ_HTTP_PORT_DEFAULT);
         int httpsPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTPS_PORT,
                 AthenzConsts.ATHENZ_HTTPS_PORT_DEFAULT);
-        
+
+        // extract the port for oidc requests if one is configured
+
+        int oidcPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_OIDC_PORT, 0);
+
         // for status port we'll use the protocol specified for the regular http
         // port. if both http and https are provided then https will be picked
         // it could also be either one of the values specified as well
@@ -604,14 +612,14 @@ public class AthenzJettyContainer {
         AthenzJettyContainer container = new AthenzJettyContainer();
         container.setBanner("http://" + serverHostName + " http port: " +
                 httpPort + " https port: " + httpsPort + " status port: " +
-                statusPort);
+                statusPort + " oidc port: " + oidcPort);
 
         int maxThreads = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS,
                 Integer.toString(AthenzConsts.ATHENZ_HTTP_MAX_THREADS)));
         container.createServer(maxThreads);
 
         HttpConfiguration httpConfig = container.newHttpConfiguration();
-        container.addHTTPConnectors(httpConfig, httpPort, httpsPort, statusPort);
+        container.addHTTPConnectors(httpConfig, httpPort, httpsPort, oidcPort, statusPort);
         container.addServletHandlers(serverHostName);
         
         container.addRequestLogHandler();

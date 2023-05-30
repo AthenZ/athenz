@@ -1043,6 +1043,7 @@ func init() {
 	mGetOIDCResponse.Input("fullArn", "Bool", false, "fullArn", "", true, false, "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)")
 	mGetOIDCResponse.Input("expiryTime", "Int32", false, "expiryTime", "", true, nil, "optional expiry period specified in seconds")
 	mGetOIDCResponse.Input("output", "SimpleName", false, "output", "", true, nil, "optional output format of json")
+	mGetOIDCResponse.Input("roleInAudClaim", "Bool", false, "roleInAudClaim", "", true, false, "flag to indicate to include role name in the audience claim only if we have a single role in response")
 	mGetOIDCResponse.Output("location", "String", "Location", false, "return location header with id token")
 	mGetOIDCResponse.Auth("", "", true, "")
 	mGetOIDCResponse.Exception("BAD_REQUEST", "ResourceError", "")
