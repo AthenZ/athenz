@@ -60,7 +60,7 @@ public class ZMSResources {
         @Parameter(description = "restrict to names that start with the prefix", required = false) @QueryParam("prefix") String prefix,
         @Parameter(description = "restrict the depth of the name, specifying the number of '.' characters that can appear", required = false) @QueryParam("depth") Integer depth,
         @Parameter(description = "restrict to domain names that have specified account name", required = false) @QueryParam("account") String account,
-        @Parameter(description = "restrict the domain names that have specified product id", required = false) @QueryParam("ypmid") Integer productId,
+        @Parameter(description = "restrict the domain names that have specified product number", required = false) @QueryParam("ypmid") Integer productNumber,
         @Parameter(description = "restrict the domain names where the specified user is in a role - see roleName", required = false) @QueryParam("member") String roleMember,
         @Parameter(description = "restrict the domain names where the specified user is in this role - see roleMember", required = false) @QueryParam("role") String roleName,
         @Parameter(description = "restrict to domain names that have specified azure subscription name", required = false) @QueryParam("azure") String subscription,
@@ -68,13 +68,14 @@ public class ZMSResources {
         @Parameter(description = "flag to query all domains that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
         @Parameter(description = "flag to query all domains that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue,
         @Parameter(description = "restrict to domain names that have specified business service name", required = false) @QueryParam("businessService") String businessService,
+        @Parameter(description = "restrict the domain names that have specified product id", required = false) @QueryParam("productId") String productId,
         @Parameter(description = "This header specifies to the server to return any domains modified since this HTTP date", required = true) @HeaderParam("If-Modified-Since") String modifiedSince) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainList");
             context.authenticate();
-            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productId, roleMember, roleName, subscription, project, tagKey, tagValue, businessService, modifiedSince);
+            return this.delegate.getDomainList(context, limit, skip, prefix, depth, account, productNumber, roleMember, roleName, subscription, project, tagKey, tagValue, businessService, productId, modifiedSince);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

@@ -101,11 +101,6 @@ func (cli Zms) dumpByFormat(jsonResponse interface{}, manualYamlConverter YamlCo
 	}
 }
 
-func (cli *Zms) SetClient(tr *http.Transport, authHeader, ntoken *string) {
-	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
-	cli.Zms.AddCredentials(*authHeader, *ntoken)
-}
-
 func (cli Zms) interactiveSingleQuoteString(interactive bool, value string) string {
 	retValue := value
 	if !interactive {
@@ -127,7 +122,7 @@ func getTimestamp(str string) (rdl.Timestamp, error) {
 	return value, err
 }
 
-func (cli *Zms) EvalCommand(params []string) (*string, error) {
+func (cli Zms) EvalCommand(params []string) (*string, error) {
 	if len(params) >= 1 {
 		cmd := params[0]
 		args := params[1:]
@@ -171,26 +166,26 @@ func (cli *Zms) EvalCommand(params []string) (*string, error) {
 			return cli.helpCommand(params)
 		case "lookup-domain-by-aws-account", "lookup-domain-by-account":
 			if argc == 1 {
-				return cli.LookupDomainById(args[0], "", "", nil)
+				return cli.LookupDomainById(args[0], "", "", "")
 			}
 			return cli.helpCommand(params)
 		case "lookup-domain-by-azure-subscription", "lookup-domain-by-subscription":
 			if argc == 1 {
-				return cli.LookupDomainById("", args[0], "", nil)
+				return cli.LookupDomainById("", args[0], "", "")
 			}
 			return cli.helpCommand(params)
 		case "lookup-domain-by-gcp-project", "lookup-domain-by-project":
 			if argc == 1 {
-				return cli.LookupDomainById("", "", args[0], nil)
+				return cli.LookupDomainById("", "", args[0], "")
 			}
 			return cli.helpCommand(params)
 		case "lookup-domain-by-product-id":
 			if argc == 1 {
-				productID, err := cli.getInt32(args[0])
-				if err != nil {
-					return nil, err
+				productNumber, err := cli.getInt32(args[0])
+				if err == nil {
+					return cli.LookupDomainByNumber("", "", "", &productNumber)
 				}
-				return cli.LookupDomainById("", "", "", &productID)
+				return cli.LookupDomainById("", "", "", args[0])
 			}
 			return cli.helpCommand(params)
 		case "lookup-domain-by-business-service":
@@ -2221,7 +2216,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   endpoint : the url of the provider's service to support auto-provisioning of tenants\n")
 		buf.WriteString("            : To remove the endpoint pass \"\" as its value\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " set-service-endpoint storage http://coretech.athenzcompany.com:4080/tableProvider\n")
+		buf.WriteString("   " + domainExample + " set-service-endpoint storage https://coretech.athenzcompany.com:4080/tableProvider\n")
 	case "set-service-exe":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-service-exe service executable user group\n")
@@ -3226,7 +3221,7 @@ func (cli Zms) getPublicKey(s string) (*string, error) {
 	return &s, nil
 }
 
-func (cli *Zms) SetX509CertClient(keyFile, certFile, caCertFile, socksProxy string, httpProxy, skipVerify bool) error {
+func SetX509CertClient(cli *Zms, keyFile, certFile, caCertFile, socksProxy string, httpProxy, skipVerify bool) error {
 	keypem, err := os.ReadFile(keyFile)
 	if err != nil {
 		return err
@@ -3264,6 +3259,11 @@ func (cli *Zms) SetX509CertClient(keyFile, certFile, caCertFile, socksProxy stri
 	}
 	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
 	return nil
+}
+
+func SetClient(cli *Zms, tr *http.Transport, authHeader, ntoken *string) {
+	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
+	cli.Zms.AddCredentials(*authHeader, *ntoken)
 }
 
 func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {

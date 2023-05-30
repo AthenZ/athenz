@@ -265,6 +265,7 @@ public class ZMSImplTest {
         dom.setDescription("old virginny");
         dom.setOrg("universities");
         dom.setYpmId(1930);
+        dom.setProductId("abcd-1930");
 
         List<String> admins = new ArrayList<>();
         admins.add(zmsTestInitializer.getAdminUser());
@@ -449,6 +450,7 @@ public class ZMSImplTest {
         dom.setDescription("bigun");
         dom.setOrg("bigdog");
         dom.setYpmId(999999);
+        dom.setProductId("abcd-999999");
 
         List<String> admins = new ArrayList<>();
         admins.add(zmsTestInitializer.getAdminUser());
@@ -495,6 +497,7 @@ public class ZMSImplTest {
         dom.setDescription("bigun");
         dom.setOrg("bigdog");
         dom.setYpmId(77777);
+        dom.setProductId("abcd-77777");
 
         List<String> admins = new ArrayList<>();
         admins.add(zmsTestInitializer.getAdminUser());
@@ -522,7 +525,7 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null);
         assertNotNull(domList);
 
         assertTrue(domList.getNames().contains("ListDom1".toLowerCase()));
@@ -546,13 +549,13 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                "1234", null, null, null, null, null, null, null, null, null);
+                "1234", null, null, null, null, null, null, null, null, null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                "1235", null, null, null, null, null, null, null, null, null);
+                "1235", null, null, null, null, null, null, null, null, null, null);
         assertNull(domList.getNames());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -572,13 +575,13 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, "azure1", null, null, null, null, null);
+                null, null, null, null, "azure1", null, null, null, null, null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, "azure2", null, null, null, null, null);
+                null, null, null, null, "azure2", null, null, null, null, null, null);
         assertNull(domList.getNames());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -599,13 +602,13 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, "gcp1", null, null, null, null);
+                null, null, null, null, null, "gcp1", null, null, null, null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, "gcp2", null, null, null, null);
+                null, null, null, null, null, "gcp2", null, null, null, null, null);
         assertNull(domList.getNames());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -630,7 +633,7 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, "sports", null);
+                null, null, null, null, null, null, null, null, "sports", null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName1);
@@ -641,7 +644,7 @@ public class ZMSImplTest {
         zmsImpl.putDomainMeta(ctx, domainName2, auditRef, dm);
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, "sports", null);
+                null, null, null, null, null, null, null, null, "sports", null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 2);
         assertTrue(domList.getNames().contains(domainName1));
@@ -650,7 +653,7 @@ public class ZMSImplTest {
         // unknown service - no match
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, "unknown-service", null);
+                null, null, null, null, null, null, null, null, "unknown-service", null, null);
         assertNotNull(domList.getNames());
         assertTrue(domList.getNames().isEmpty());
 
@@ -674,16 +677,49 @@ public class ZMSImplTest {
         zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, "user.user101", roleName, null, null, null, null, null, null);
+                null, null, "user.user101", roleName, null, null, null, null, null, null, null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null, null, null,
-                "user.user101", "unknown-role-name", null, null, null, null, null, null);
+                "user.user101", "unknown-role-name", null, null, null, null, null, null, null);
         assertTrue(domList.getNames().isEmpty());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetDomainListByProductNumber() {
+
+        final String domainName = "lookupdomainbyproductnumber";
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // enable product id support
+
+        System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.setYpmId(101);
+        dom1.setProductId("abcd-101");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        DomainList domList = zmsImpl.getDomainList(ctx, null, null, null,
+                null, null, 101, null, null, null, null, null, null, null, null, null);
+        assertNotNull(domList.getNames());
+        assertEquals(domList.getNames().size(), 1);
+        assertEquals(domList.getNames().get(0), domainName);
+
+        domList = zmsImpl.getDomainList(ctx, null, null, null, null, null,
+                102, null, null, null, null, null, null, null, null, null);
+        assertNull(domList.getNames());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+        System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
+        zmsImpl.objectStore.clearConnections();
     }
 
     @Test
@@ -701,16 +737,17 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setYpmId(101);
+        dom1.setProductId("abcd-101");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null,
-                null, null, 101, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, "abcd-101", null);
         assertNotNull(domList.getNames());
         assertEquals(domList.getNames().size(), 1);
         assertEquals(domList.getNames().get(0), domainName);
 
         domList = zmsImpl.getDomainList(ctx, null, null, null, null, null,
-                102, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, "abcd-=102", null);
         assertNull(domList.getNames());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
@@ -747,7 +784,7 @@ public class ZMSImplTest {
         // option so this will be tested in zms_system_test package
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, modifiedSince);
+                null, null, null, null, null, null, null, null, null, null, null, modifiedSince);
         assertNotNull(domList);
 
         assertTrue(domList.getNames().contains("ListDom2".toLowerCase()));
@@ -764,7 +801,7 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.getDomainList(ctx, null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, "abc");
+                    null, null, null, null, null, null, null, null, null, "abc");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -772,7 +809,7 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.getDomainList(ctx, null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, "May 20, 1099");
+                    null, null, null, null, null, null, null, null, null, "May 20, 1099");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -780,7 +817,7 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.getDomainList(ctx, null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, "03:03:20 PM");
+                    null, null, null, null, null, null, null, null, null, "03:03:20 PM");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -803,7 +840,7 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
 
         DomainList domList = zmsImpl.getDomainList(ctx, 1, null, null,
-                null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null);
         assertEquals(1, domList.getNames().size());
 
         zmsImpl.deleteTopLevelDomain(ctx, "LimitDom1", auditRef);
@@ -830,18 +867,18 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom3);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null);
         int size = domList.getNames().size();
         assertTrue(size > 3);
 
         // ask for only for 2 domains back
         domList = zmsImpl.getDomainList(ctx, 2, null, null, null, null,
-                null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null);
         assertEquals(domList.getNames().size(), 2);
 
         // ask for the remaining domains
         DomainList remList = zmsImpl.getDomainList(ctx, null, domList.getNext(),
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
         assertEquals(remList.getNames().size(), size - 2);
 
         zmsImpl.deleteTopLevelDomain(ctx, "SkipDom1", auditRef);
@@ -865,7 +902,7 @@ public class ZMSImplTest {
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null,
-                "Prefix", null, null, null, null, null, null, null, null, null, null, null);
+                "Prefix", null, null, null, null, null, null, null, null, null, null, null, null);
 
         assertFalse(domList.getNames().contains("NoPrefixDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("PrefixDom2".toLowerCase()));
@@ -894,7 +931,7 @@ public class ZMSImplTest {
         zmsImpl.postSubDomain(ctx, "DepthDom1.DepthDom2", auditRef, dom3);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null,
-                1, null, null, null, null, null, null, null, null, null, null);
+                1, null, null, null, null, null, null, null, null, null, null, null);
 
         assertTrue(domList.getNames().contains("DepthDom1".toLowerCase()));
         assertTrue(domList.getNames().contains("DepthDom1.DepthDom2".toLowerCase()));
@@ -913,7 +950,7 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.getDomainList(ctx, -1, null, null, null, null, null, null,
-                    null, null, null, null, null, null, null);
+                    null, null, null, null, null, null, null, null);
             fail("requesterror not thrown.");
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 400);
@@ -1606,7 +1643,7 @@ public class ZMSImplTest {
         assertion.setResource("sys.auth:instance");
         assertion.setEffect(AssertionEffect.ALLOW);
         assertion.setRole("sys.auth:role." + instanceProvidersRoleName);
-        List<Assertion> assertions = Arrays.asList(assertion);
+        List<Assertion> assertions = List.of(assertion);
         policy.setAssertions(assertions);
         zmsImpl.putPolicy(sysAdminCtx, "sys.auth", instanceProviderPolicyName, auditRef, false, policy);
     }
@@ -2000,6 +2037,7 @@ public class ZMSImplTest {
         assertNull(resDom1.getGroupExpiryDays());
         assertNull(resDom1.getTokenExpiryMins());
         assertNull(resDom1.getMemberPurgeExpiryDays());
+        assertNull(resDom1.getProductId());
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Test2 Domain", "NewOrg",
                 true, true, "12345", 1001);
@@ -2008,6 +2046,7 @@ public class ZMSImplTest {
         meta.setRoleCertExpiryMins(200);
         meta.setMemberPurgeExpiryDays(90);
         meta.setSignAlgorithm("ec");
+        meta.setProductId("abcd-1234");
         zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
         zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "auditenabled", auditRef, meta);
         zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "account", auditRef, meta);
@@ -2026,6 +2065,7 @@ public class ZMSImplTest {
         assertTrue(resDom3.getAuditEnabled());
         assertEquals(resDom3.getAccount(), "12345");
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
+        assertEquals(resDom3.getProductId(), "abcd-1234");
         assertEquals(resDom3.getCertDnsDomain(), "yahoo.cloud");
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(100));
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(90));
@@ -2044,6 +2084,7 @@ public class ZMSImplTest {
         meta.setServiceExpiryDays(350);
         meta.setGroupExpiryDays(375);
         meta.setTokenExpiryMins(400);
+        meta.setProductId("abcd-1234");
         zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
 
         resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
@@ -2054,6 +2095,7 @@ public class ZMSImplTest {
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
         assertEquals(resDom3.getAccount(), "12345");
+        assertEquals(resDom3.getProductId(), "abcd-1234");
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(100));
         assertEquals(resDom3.getRoleCertExpiryMins(), Integer.valueOf(200));
@@ -2073,6 +2115,7 @@ public class ZMSImplTest {
                 true, true, "12345", 1001);
         Integer newProductId = ZMSTestInitializer.getRandomProductId();
         meta.setYpmId(newProductId);
+        meta.setProductId("abcd-1234-5678");
         meta.setServiceCertExpiryMins(5);
         meta.setRoleCertExpiryMins(0);
         meta.setMemberExpiryDays(15);
@@ -2091,6 +2134,7 @@ public class ZMSImplTest {
         assertTrue(resDom3.getEnabled());
         assertTrue(resDom3.getAuditEnabled());
         assertEquals(resDom3.getAccount(), "12345");
+        assertEquals(resDom3.getProductId(), "abcd-1234-5678");
         assertEquals(newProductId, resDom3.getYpmId());
         assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(5));
         assertNull(resDom3.getRoleCertExpiryMins());
@@ -8449,7 +8493,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, "signeddom1", "pol1", auditRef, false, pol);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null);
         List<String> domNames = domList.getNames();
         int numDoms = domNames.size();
 
@@ -19924,7 +19968,7 @@ public class ZMSImplTest {
         ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         zmsImpl.getDomainList(rsrcCtx1, 100, null, null, 100, "account", 224, "roleMem1",
-                "role1", null, null, null, null, null, null);
+                "role1", null, null, null, null, null, null, null);
     }
 
     @Test
@@ -21745,7 +21789,8 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         Domain domainMeta = new Domain().setName("dom1").setYpmId(123).setModified(Timestamp.fromCurrentTime())
                 .setAccount("1234").setAuditEnabled(true).setOrg("org").setAzureSubscription("4567")
-                .setBusinessService("123:business service").setGcpProject("gcp").setGcpProjectNumber("1240");
+                .setBusinessService("123:business service").setGcpProject("gcp").setGcpProjectNumber("1240")
+                .setProductId("abcd-123");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getYpmId());
@@ -21755,6 +21800,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
         assertNull(domain.getDomain().getAccount());
@@ -21765,6 +21811,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -21775,6 +21822,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
         assertNull(domain.getDomain().getAccount());
@@ -21785,6 +21833,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "azuresubscription");
         assertEquals(domain.getDomain().getAzureSubscription(), "4567");
@@ -21795,6 +21844,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "gcpproject");
         assertEquals(domain.getDomain().getGcpProject(), "gcp");
@@ -21805,6 +21855,7 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAuditEnabled());
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getProductId());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "businessservice");
         assertEquals(domain.getDomain().getBusinessService(), "123:business service");
@@ -21815,6 +21866,18 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getAzureSubscription());
         assertNull(domain.getDomain().getGcpProject());
         assertNull(domain.getDomain().getGcpProjectNumber());
+        assertNull(domain.getDomain().getProductId());
+
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "productid");
+        assertEquals(domain.getDomain().getProductId(), "abcd-123");
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
+        assertNull(domain.getDomain().getBusinessService());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -21825,6 +21888,7 @@ public class ZMSImplTest {
         assertEquals(domain.getDomain().getOrg(), "org");
         assertTrue(domain.getDomain().getAuditEnabled());
         assertEquals(domain.getDomain().getBusinessService(), "123:business service");
+        assertEquals(domain.getDomain().getProductId(), "abcd-123");
 
         domainMeta.setAccount(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "account");
@@ -21846,6 +21910,10 @@ public class ZMSImplTest {
         domainMeta.setAccount("1234");
         domainMeta.setYpmId(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "ypmid");
+        assertNull(domain);
+
+        domainMeta.setProductId(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "productid");
         assertNull(domain);
 
         zmsImpl.objectStore.clearConnections();
@@ -21911,7 +21979,7 @@ public class ZMSImplTest {
         zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsImpl);
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null);
         assertNotNull(domList);
 
         zmsImpl.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(zmsTestInitializer.getPrivKey())), "0");
@@ -22103,6 +22171,7 @@ public class ZMSImplTest {
         dom1.setMemberExpiryDays(40);
         dom1.setGroupExpiryDays(50);
         dom1.setServiceExpiryDays(60);
+        dom1.setMemberPurgeExpiryDays(90);
 
         Authority authority = Mockito.mock(Authority.class);
         when(authority.getDateAttribute("user.testadminuser", "elevated-clearance")).thenReturn(new Date());
@@ -22132,6 +22201,7 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(40), signedDomain.getDomain().getMemberExpiryDays());
         assertEquals(Integer.valueOf(50), signedDomain.getDomain().getGroupExpiryDays());
         assertEquals(Integer.valueOf(60), signedDomain.getDomain().getServiceExpiryDays());
+        assertEquals(Integer.valueOf(90), signedDomain.getDomain().getMemberPurgeExpiryDays());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
         zmsImpl.userAuthority = savedAuthority;
@@ -31717,19 +31787,19 @@ public class ZMSImplTest {
 
         // domain-list no tags - all domains should be presented
         DomainList dl = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null);
         assertTrue(dl.getNames().containsAll(Arrays.asList(domainNoTags, domainName1, domainName2)));
 
         // domain-list with only tag-key, should include both domains
         dl = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, "tag-key", null, null, null);
+                null, null, null, null, null, null, "tag-key", null, null, null, null);
 
         assertEquals(dl.getNames().size(), 2);
         assertTrue(dl.getNames().containsAll(Arrays.asList(domainName1, domainName2)));
 
         // domain-list with tag-key AND tag-value, should include only domainName1
         dl = zmsImpl.getDomainList(ctx, null, null, null, null,
-                null, null, null, null, null, null, "tag-key", "val1", null, null);
+                null, null, null, null, null, null, "tag-key", "val1", null, null, null);
 
         assertEquals(dl.getNames().size(), 1);
         assertTrue(dl.getNames().contains(domainName1));
@@ -31950,10 +32020,22 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("invalid product id"));
         }
 
+        try {
+            dom1.setGcpProject("valid-gcp-project");
+            dom1.setGcpProjectNumber("1200");
+            dom1.setYpmId(101);
+            dom1.setProductId("invalid-product-id");
+            zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid product id"));
+        }
+
         // specify gcp project but no project number
 
         try {
             dom1.setYpmId(101);
+            dom1.setProductId("valid-product-id");
             dom1.setGcpProject("valid-gcp-project");
             dom1.setGcpProjectNumber(null);
             zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
@@ -32133,6 +32215,15 @@ public class ZMSImplTest {
         }
 
         meta.setYpmId(101);
+        try {
+            meta.setProductId("invalid-product-id");
+            zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_PRODUCT_ID, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid product id"));
+        }
+
+        meta.setProductId("valid-product-id");
         zmsImpl.putDomainSystemMeta(ctx, domainName, ZMSConsts.SYSTEM_META_PRODUCT_ID, auditRef, meta);
 
         domain = zmsImpl.getDomain(ctx, domainName);
@@ -32243,6 +32334,7 @@ public class ZMSImplTest {
         assertEquals("azureSub", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "azureSubscription", null).getValidValues().get(0));
         assertEquals("gcpProject", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "gcpProject", null).getValidValues().get(0));
         assertEquals("product", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productId", null).getValidValues().get(0));
+        assertEquals("product", zmsImpl.getDomainMetaStoreValidValuesList(ctx, "productNumber", null).getValidValues().get(0));
         zmsImpl.domainMetaStore = savedMetaStore;
     }
 
@@ -33650,6 +33742,15 @@ public class ZMSImplTest {
         Group group3 = zmsImpl.getGroup(ctx, "test-domain3", "group3", null, null);
         assertEquals(role3.getRoleMembers().size(), 5);
         assertEquals(group3.getGroupMembers().size(), 5);
+
+        // try with invalid flag
+
+        try {
+            zmsImpl.deleteExpiredMembers(ctx, 4, auditRef, false);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("should be a number in [0-3]"));
+        }
 
         zmsImpl.deleteTopLevelDomain(ctx, "test-domain1", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx, "test-domain2", auditRef);

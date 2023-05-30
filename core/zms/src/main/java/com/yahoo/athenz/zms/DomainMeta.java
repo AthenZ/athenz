@@ -80,6 +80,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer memberPurgeExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String productId;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -235,6 +238,13 @@ public class DomainMeta {
     public Integer getMemberPurgeExpiryDays() {
         return memberPurgeExpiryDays;
     }
+    public DomainMeta setProductId(String productId) {
+        this.productId = productId;
+        return this;
+    }
+    public String getProductId() {
+        return productId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -307,6 +317,9 @@ public class DomainMeta {
                 return false;
             }
             if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
+                return false;
+            }
+            if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
                 return false;
             }
         }
