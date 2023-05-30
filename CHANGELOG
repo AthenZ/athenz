@@ -1,3 +1,20 @@
+Athenz v1.11.31 Release / May 30, 2023
+--------------------------------------
+
+#2173 Disable Microsegmentation validation checkbox for AWS env
+#2177 Deriving ssh cert principals from the GCP provider attestation data to validate the incoming sshrequest
+#2178 add principals from metadata in ssh cert request
+#2179 add overwrite option for zms-cli
+#2180 UI: replace deprecated request pkg
+#2185 fix role update on expiration and review dates
+#2189 UI: checked in package-lock.json was generated with old npm version
+#2190 support athenz as oidc provider for aws iam
+#2191 disallow by default services with _ in their names
+#2193 support product id (string) format association with domains
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230528.sql
+
 Athenz v1.11.30 Release / May 16, 2023
 --------------------------------------
 
