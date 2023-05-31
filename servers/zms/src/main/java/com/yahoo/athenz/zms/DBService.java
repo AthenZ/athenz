@@ -1064,8 +1064,51 @@ public class DBService implements RolesProvider {
         }
         auditLogStrings(auditDetails, "added-hosts", newHosts);
 
+        if (!processServiceIdentityTags(service, serviceName, domainName, originalService, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processServiceIdentityTags(ServiceIdentity service, String serviceName, String domainName,
+                                    ServiceIdentity originalService, ObjectStoreConnection con) {
+        if (service.getTags() != null && !service.getTags().isEmpty()) {
+            if (originalService == null) {
+                return con.insertServiceTags(serviceName, domainName, service.getTags());
+            } else {
+                return processUpdateServiceTags(service, originalService, con, serviceName, domainName);
+            }
+        }
+        return true;
+    }
+
+    private boolean processUpdateServiceTags(ServiceIdentity service, ServiceIdentity originalService, ObjectStoreConnection con, String serviceName, String domainName) {
+        if (originalService.getTags() == null || originalService.getTags().isEmpty()) {
+            if (service.getTags() == null || service.getTags().isEmpty()) {
+                // no tags to process..
+                return true;
+            }
+            return con.insertServiceTags(serviceName, domainName, service.getTags());
+        }
+        Map<String, TagValueList> originalServiceTags = originalService.getTags();
+        Map<String, TagValueList> currentTags = service.getTags();
+
+        Set<String> tagsToRemove = originalServiceTags.entrySet().stream()
+                .filter(curTag -> currentTags.get(curTag.getKey()) == null
+                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
+                .filter(curTag -> originalServiceTags.get(curTag.getKey()) == null
+                        || !originalServiceTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        boolean res = con.deleteServiceTags(serviceName, domainName, tagsToRemove);
+
+        return res && con.insertServiceTags(serviceName, domainName, tagsToAdd);
     }
 
     boolean shouldRetryOperation(ResourceException ex, int retryCount) {
@@ -2847,6 +2890,11 @@ public class DBService implements RolesProvider {
             List<String> hosts = con.listServiceHosts(domainName, serviceName);
             if (hosts != null && !hosts.isEmpty()) {
                 service.setHosts(hosts);
+            }
+
+            Map<String, TagValueList> serviceTags = con.getRoleTags(domainName, serviceName);
+            if (serviceTags != null) {
+                service.setTags(serviceTags);
             }
         }
         return service;
