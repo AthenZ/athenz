@@ -47,15 +47,17 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updateDomainModTimestamp(String domainName);
     List<String> listDomains(String prefix, long modifiedSince);
     String lookupDomainByProductId(int productId);
+    String lookupDomainByProductId(String productId);
     String lookupDomainByCloudProvider(String provider, String value);
     Map<String, String> listDomainsByCloudProvider(String provider);
     List<String> lookupDomainByRole(String roleMember, String roleName);
     List<String> lookupDomainByBusinessService(String businessService);
-
     AthenzDomain getAthenzDomain(String domainName);
     DomainMetaList listModifiedDomains(long modifiedSince);
+    void setDomainOptions(DomainOptions domainOptions);
 
     // Domain tags
+
     Map<String, TagValueList> getDomainTags(String domainName);
     boolean insertDomainTags(String domainName, Map<String, TagValueList> tags);
     boolean deleteDomainTags(String domainName, Set<String> tagsToRemove);
@@ -246,5 +248,4 @@ public interface ObjectStoreConnection extends Closeable {
 
     List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset, int serverPurgeExpiryDays);
     List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset, int serverPurgeExpiryDays);
-
 }

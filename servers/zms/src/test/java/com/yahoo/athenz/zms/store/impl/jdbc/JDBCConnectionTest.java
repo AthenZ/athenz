@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -74,7 +74,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("12345").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
-        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn(90).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID);
@@ -82,6 +82,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("service1").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
+        Mockito.doReturn("abcd-1234").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PRODUCT_ID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -95,6 +96,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getUserAuthorityFilter());
         assertEquals("service1", domain.getBusinessService());
         assertEquals(domain.getMemberPurgeExpiryDays(), 90);
+        assertEquals(domain.getProductId(), "abcd-1234");
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
         jdbcConn.close();
     }
@@ -111,7 +113,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ORG);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_UUID);
         Mockito.doReturn("12345").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
-        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_APPLICATION_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
@@ -122,6 +124,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PRODUCT_ID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -133,6 +136,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getOrg());
         assertNull(domain.getId());
         assertEquals("OnShore", domain.getUserAuthorityFilter());
+        assertNull(domain.getProductId());
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
 
         jdbcConn.close();
@@ -391,7 +395,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("cloud_services").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ORG);
         Mockito.doReturn("e5e97240-e94e-11e4-8163-6d083f3f473f").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_UUID);
         Mockito.doReturn("12345").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
-        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn(1001).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_APPLICATION_ID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SIGN_ALGORITHM);
@@ -402,6 +406,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE);
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
+        Mockito.doReturn("abcd-1234").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PRODUCT_ID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -413,6 +418,7 @@ public class JDBCConnectionTest {
         assertEquals("cloud_services", domain.getOrg());
         assertEquals(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"), domain.getId());
         assertEquals(domain.getUserAuthorityFilter(), "OnShore");
+        assertEquals(domain.getProductId(), "abcd-1234");
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
 
         jdbcConn.close();
@@ -476,7 +482,8 @@ public class JDBCConnectionTest {
                 .setYpmId(1011)
                 .setAzureSubscription("1234")
                 .setGcpProject("gcp")
-                .setGcpProjectNumber("1234");
+                .setGcpProjectNumber("1234")
+                .setProductId("abcd-1234");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.insertDomain(domain);
@@ -494,6 +501,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(19, "1234");
         Mockito.verify(mockPrepStmt, times(1)).setString(22, "gcp");
         Mockito.verify(mockPrepStmt, times(1)).setString(23, "1234");
+        Mockito.verify(mockPrepStmt, times(1)).setString(24, "abcd-1234");
         jdbcConn.close();
     }
 
@@ -624,7 +632,8 @@ public class JDBCConnectionTest {
                 .setBusinessService("service1")
                 .setMemberPurgeExpiryDays(90)
                 .setGcpProject("gcp")
-                .setGcpProjectNumber("1235");
+                .setGcpProjectNumber("1235")
+                .setProductId("abcd-1234");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -652,7 +661,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(20, 90);
         Mockito.verify(mockPrepStmt, times(1)).setString(21, "gcp");
         Mockito.verify(mockPrepStmt, times(1)).setString(22, "1235");
-        Mockito.verify(mockPrepStmt, times(1)).setString(23, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(23, "abcd-1234");
+        Mockito.verify(mockPrepStmt, times(1)).setString(24, "my-domain");
         jdbcConn.close();
     }
 
@@ -691,7 +701,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(20, 0);
         Mockito.verify(mockPrepStmt, times(1)).setString(21, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(22, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(23, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(23, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(24, "my-domain");
         jdbcConn.close();
     }
 
@@ -3552,7 +3563,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("/usr/bin64/athenz").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_EXECUTABLE);
         Mockito.doReturn("users").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_GROUP);
         Mockito.doReturn("root").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_USER);
-        Mockito.doReturn("http://server.athenzcompany.com").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT);
+        Mockito.doReturn("https://server.athenzcompany.com").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3561,7 +3572,7 @@ public class JDBCConnectionTest {
         assertEquals("/usr/bin64/athenz", service.getExecutable());
         assertEquals("users", service.getGroup());
         assertEquals("root", service.getUser());
-        assertEquals("http://server.athenzcompany.com", service.getProviderEndpoint());
+        assertEquals("https://server.athenzcompany.com", service.getProviderEndpoint());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3658,7 +3669,7 @@ public class JDBCConnectionTest {
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
-                .setProviderEndpoint("http://server.athenzcompany.com");
+                .setProviderEndpoint("https://server.athenzcompany.com");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -3672,7 +3683,7 @@ public class JDBCConnectionTest {
         // update service
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "service1");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "test service");
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "http://server.athenzcompany.com");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "https://server.athenzcompany.com");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "/usr/bin64/test.sh");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "root");
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "users");
@@ -3803,7 +3814,7 @@ public class JDBCConnectionTest {
                 .setExecutable("/usr/bin64/test.sh")
                 .setGroup("users")
                 .setUser("root")
-                .setProviderEndpoint("http://server.athenzcompany.com");
+                .setProviderEndpoint("https://server.athenzcompany.com");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -3820,7 +3831,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
         // update service
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "test service");
-        Mockito.verify(mockPrepStmt, times(1)).setString(2, "http://server.athenzcompany.com");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "https://server.athenzcompany.com");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "/usr/bin64/test.sh");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "root");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "users");
@@ -4103,7 +4114,7 @@ public class JDBCConnectionTest {
     @Test
     public void testSaveUriValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("http://server.athenzcompany.com", jdbcConn.saveValue("http://server.athenzcompany.com"));
+        assertEquals("https://server.athenzcompany.com", jdbcConn.saveValue("https://server.athenzcompany.com"));
         assertNull(jdbcConn.saveValue(""));
         jdbcConn.close();
     }
@@ -4144,7 +4155,7 @@ public class JDBCConnectionTest {
     @Test
     public void testProcessInsertUriValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertEquals("http://server.athenzcompany.com", jdbcConn.processInsertValue("http://server.athenzcompany.com"));
+        assertEquals("https://server.athenzcompany.com", jdbcConn.processInsertValue("https://server.athenzcompany.com"));
         assertEquals("", jdbcConn.processInsertValue((String) null));
         jdbcConn.close();
     }
@@ -6003,7 +6014,7 @@ public class JDBCConnectionTest {
             .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACCOUNT))
                 .thenReturn("acct1").thenReturn("acct2").thenReturn("acct3"); // 3 domains
-        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID))
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_YPM_ID))
                 .thenReturn("1234").thenReturn("1235").thenReturn("1236"); // 3 domains
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)).thenReturn("");
@@ -6019,6 +6030,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
 
@@ -6140,12 +6152,12 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_UUID);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_TRUST);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ACCOUNT);
-        Mockito.doReturn(0).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn(0).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn(5).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
         Mockito.doReturn("/usr/bin64/athenz").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_EXECUTABLE);
         Mockito.doReturn("users").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_GROUP);
         Mockito.doReturn("root").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_SVC_USER);
-        Mockito.doReturn("http://server.athenzcompany.com").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT);
+        Mockito.doReturn("https://server.athenzcompany.com").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PROVIDER_ENDPOINT);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1").thenReturn("role2");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRINCIPAL_GROUP))
@@ -6169,6 +6181,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_ID)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID)).thenReturn("");
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
         assertNotNull(athenzDomain);
@@ -6346,6 +6359,31 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testVerifyDomainSubscriptionUniquenessFail() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.verifyDomainAzureSubscriptionUniqueness("iaas.athenz", "azure-123", "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
+        }
+
+        // turn off the check and verify it passes
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueAzureSubscriptions(false);
+        jdbcConn.setDomainOptions(domainOptions);
+        jdbcConn.verifyDomainAzureSubscriptionUniqueness("iaas.athenz", "azure-123", "unitTest");
+
+        jdbcConn.close();
+    }
+
+    @Test
     public void testVerifyDomainProjectUniquenessEmptyAccount() throws Exception {
 
         // we are going to set the code to return exception so that we can
@@ -6357,6 +6395,31 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", null, "unitTest");
         jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", "", "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainProjectUniquenessFail() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", "gcp-123", "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
+        }
+
+        // turn off the check and verify it passes
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueGCPProjects(false);
+        jdbcConn.setDomainOptions(domainOptions);
+        jdbcConn.verifyDomainGcpProjectUniqueness("iaas.athenz", "gcp-123", "unitTest");
+
         jdbcConn.close();
     }
 
@@ -6410,6 +6473,75 @@ public class JDBCConnectionTest {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
+
+        // turn off the check and verify it passes
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueAWSAccounts(false);
+        jdbcConn.setDomainOptions(domainOptions);
+        jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainProductIdNumberUniquenessEmptyId() throws Exception {
+
+        // we are going to set the code to return exception so that we can
+        // verify that we're returning before making any sql calls
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", (Integer) null, "unitTest");
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 0, "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainProductIdNumberUniquenessPass() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainProductIdNumberUniquenessPassNoMatch() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainProductIdNumberUniquenessFail() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
+        }
+
+        // turn off the check and verify it passes
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueProductIds(false);
+        jdbcConn.setDomainOptions(domainOptions);
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+
         jdbcConn.close();
     }
 
@@ -6423,8 +6555,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", null, "unitTest");
-        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 0, "unitTest");
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", (String) null, "unitTest");
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "", "unitTest");
         jdbcConn.close();
     }
 
@@ -6435,7 +6567,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "abcd-1001", "unitTest");
         jdbcConn.close();
     }
 
@@ -6445,7 +6577,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "abcd-1001", "unitTest");
         jdbcConn.close();
     }
 
@@ -6457,12 +6589,18 @@ public class JDBCConnectionTest {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
-            jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
+            jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "abcd-1001", "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
         }
+        // turn off the check and verify it passes
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueProductIds(false);
+        jdbcConn.setDomainOptions(domainOptions);
+        jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "abcd-1001", "unitTest");
         jdbcConn.close();
     }
 
@@ -6550,7 +6688,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testLookupDomainByProductId() throws Exception {
+    public void testLookupDomainByProductIdNumber() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
@@ -6562,13 +6700,40 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testLookupDomainByProductIdException() throws Exception {
+    public void testLookupDomainByProductIdNumberException() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
         try {
             jdbcConn.lookupDomainByProductId(1001);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testLookupDomainByProductId() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        String domainName = jdbcConn.lookupDomainByProductId("abcd-1001");
+        assertEquals(domainName, "iaas.athenz");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testLookupDomainByProductIdException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+        try {
+            jdbcConn.lookupDomainByProductId("abcd-1001");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -8524,6 +8689,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "role1");
         jdbcConn.close();
     }
+
     @Test
     public void testNullIfDefaultValue() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -8532,6 +8698,7 @@ public class JDBCConnectionTest {
         assertTrue(jdbcConn.nullIfDefaultValue(true, false));
 
         assertNull(jdbcConn.nullIfDefaultValue(0, 0));
+        assertNull(jdbcConn.nullIfDefaultValue(1, 1));
         assertEquals(jdbcConn.nullIfDefaultValue(10, 0), Integer.valueOf(10));
         jdbcConn.close();
     }

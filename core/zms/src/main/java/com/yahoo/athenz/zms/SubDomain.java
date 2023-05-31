@@ -80,6 +80,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer memberPurgeExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String productId;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -241,6 +244,13 @@ public class SubDomain {
     public Integer getMemberPurgeExpiryDays() {
         return memberPurgeExpiryDays;
     }
+    public SubDomain setProductId(String productId) {
+        this.productId = productId;
+        return this;
+    }
+    public String getProductId() {
+        return productId;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -341,6 +351,9 @@ public class SubDomain {
                 return false;
             }
             if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
+                return false;
+            }
+            if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

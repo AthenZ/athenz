@@ -118,8 +118,8 @@ public class ZMSSchema {
             .field("org", "ResourceName", true, "a reference to an audit organization defined in athenz")
             .field("enabled", "Bool", true, "Future use only, currently not used", true)
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("account", "String", true, "associated aws account id (system attribute - uniqueness check)")
-            .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check)")
+            .field("account", "String", true, "associated aws account id (system attribute - uniqueness check - if enabled)")
+            .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check - if enabled)")
             .field("applicationId", "String", true, "associated application id")
             .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)")
             .field("memberExpiryDays", "Int32", true, "all user members in the domain will have specified max expiry days")
@@ -130,12 +130,13 @@ public class ZMSSchema {
             .field("serviceExpiryDays", "Int32", true, "all services in the domain roles will have specified max expiry days")
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("userAuthorityFilter", "String", true, "membership filtered based on user authority configured attributes")
-            .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check)")
-            .field("gcpProject", "String", true, "associated gcp project id (system attribute - uniqueness check)")
+            .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check - if enabled)")
+            .field("gcpProject", "String", true, "associated gcp project id (system attribute - uniqueness check - if enabled)")
             .field("gcpProjectNumber", "String", true, "associated gcp project number (system attribute)")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("businessService", "String", true, "associated business service with domain")
-            .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past");
+            .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past")
+            .field("productId", "String", true, "associated product id (system attribute - uniqueness check - if enabled)");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -155,6 +156,13 @@ public class ZMSSchema {
         sb.structType("DomainAttributes")
             .comment("A domain attributes for the changelog support")
             .field("fetchTime", "Int64", false, "timestamp when the domain object was fetched from ZMS");
+
+        sb.structType("DomainOptions")
+            .comment("A domain options for enforcing uniqueness checks")
+            .field("enforceUniqueProductIds", "Bool", false, "enforce domains are associated with unique product ids")
+            .field("enforceUniqueAWSAccounts", "Bool", false, "enforce domains are associated with unique aws accounts")
+            .field("enforceUniqueAzureSubscriptions", "Bool", false, "enforce domains are associated with unique azure subscriptions")
+            .field("enforceUniqueGCPProjects", "Bool", false, "enforce domains are associated with unique gcp projects");
 
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")
@@ -915,7 +923,7 @@ public class ZMSSchema {
             .queryParam("prefix", "prefix", "String", null, "restrict to names that start with the prefix")
             .queryParam("depth", "depth", "Int32", null, "restrict the depth of the name, specifying the number of '.' characters that can appear")
             .queryParam("account", "account", "String", null, "restrict to domain names that have specified account name")
-            .queryParam("ypmid", "productId", "Int32", null, "restrict the domain names that have specified product id")
+            .queryParam("ypmid", "productNumber", "Int32", null, "restrict the domain names that have specified product number")
             .queryParam("member", "roleMember", "ResourceName", null, "restrict the domain names where the specified user is in a role - see roleName")
             .queryParam("role", "roleName", "ResourceName", null, "restrict the domain names where the specified user is in this role - see roleMember")
             .queryParam("azure", "subscription", "String", null, "restrict to domain names that have specified azure subscription name")
@@ -923,6 +931,7 @@ public class ZMSSchema {
             .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all domains that have a given tagName")
             .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all domains that have a given tag name and value")
             .queryParam("businessService", "businessService", "String", null, "restrict to domain names that have specified business service name")
+            .queryParam("productId", "productId", "String", null, "restrict the domain names that have specified product id")
             .headerParam("If-Modified-Since", "modifiedSince", "String", null, "This header specifies to the server to return any domains modified since this HTTP date")
             .auth("", "", true)
             .expected("OK")

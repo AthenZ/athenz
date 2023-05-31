@@ -80,6 +80,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer memberPurgeExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String productId;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -239,6 +242,13 @@ public class UserDomain {
     public Integer getMemberPurgeExpiryDays() {
         return memberPurgeExpiryDays;
     }
+    public UserDomain setProductId(String productId) {
+        this.productId = productId;
+        return this;
+    }
+    public String getProductId() {
+        return productId;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -325,6 +335,9 @@ public class UserDomain {
                 return false;
             }
             if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
+                return false;
+            }
+            if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -25,7 +25,7 @@ resource Domain GET "/domain/{domain}" {
 //query options that are looking for specific domain attributes (e.g. aws account,
 //azure subscriptions, gcp project, business service, tags, etc) are mutually exclusive.
 //The server will only process the first query argument and ignore the others.
-resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productId}&member={roleMember}&role={roleName}&azure={subscription}&gcp={project}&tagKey={tagKey}&tagValue={tagValue}&businessService={businessService}" {
+resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth={depth}&account={account}&ypmid={productNumber}&member={roleMember}&role={roleName}&azure={subscription}&gcp={project}&tagKey={tagKey}&tagValue={tagValue}&businessService={businessService}&productId={productId}" {
     Int32 limit (optional); //restrict the number of results in this call
     String skip (optional); //restrict the set to those after the specified "next" token returned from a previous call
     String prefix (optional); //restrict to names that start with the prefix
@@ -33,12 +33,13 @@ resource DomainList GET "/domain?limit={limit}&skip={skip}&prefix={prefix}&depth
     String account (optional); //restrict to domain names that have specified account name
     String subscription (optional); //restrict to domain names that have specified azure subscription name
     String project (optional); //restrict to domain names that have specified gcp project name
-    Int32 productId (optional); //restrict the domain names that have specified product id
+    Int32 productNumber (optional); //restrict the domain names that have specified product number
     ResourceName roleMember (optional); //restrict the domain names where the specified user is in a role - see roleName
     ResourceName roleName (optional); //restrict the domain names where the specified user is in this role - see roleMember
     CompoundName tagKey (optional); //flag to query all domains that have a given tagName
     CompoundName tagValue (optional); //flag to query all domains that have a given tag name and value
     String businessService (optional); //restrict to domain names that have specified business service name
+    String productId (optional); //restrict the domain names that have specified product id
     String modifiedSince (header="If-Modified-Since"); //This header specifies to the server to return any domains modified since this HTTP date
     authenticate;
     exceptions {

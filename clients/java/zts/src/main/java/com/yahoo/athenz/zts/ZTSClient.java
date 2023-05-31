@@ -3168,7 +3168,7 @@ public class ZTSClient implements Closeable {
         try {
             Map<String, List<String>> responseHeaders = new HashMap<>();
             oidcResponse = ztsClient.getOIDCResponse(responseType, clientId, redirectUri, scope,
-                    state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", responseHeaders);
+                    state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false, responseHeaders);
 
         } catch (ResourceException ex) {
 

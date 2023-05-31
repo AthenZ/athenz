@@ -820,7 +820,8 @@ public class ZMSCoreTest {
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure").setGcpProject("gcp")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235");
+                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235")
+                .setProductId("abcd-1234");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -855,6 +856,7 @@ public class ZMSCoreTest {
             Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertEquals(dd.getBusinessService(), "business-service");
         assertEquals(dd.getMemberPurgeExpiryDays(), 10);
+        assertEquals(dd.getProductId(), "abcd-1234");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -864,194 +866,202 @@ public class ZMSCoreTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1235");
+                .setGcpProjectNumber("1235").setProductId("abcd-1234");
 
-        assertTrue(dd.equals(dd2));
-        assertFalse(dd.equals(null));
+        assertEquals(dd2, dd);
+        assertNotEquals(dd, null);
+        assertNotEquals(new String(), dd);
 
         List<Group> gl2 = new ArrayList<>();
         gl2.add(new Group().setName("new-name"));
         dd2.setGroups(gl2);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGroups(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGroups(gl);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setName("test.domain2");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setName(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setName("test.domain");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
+
+        dd2.setProductId("abcd-1235");
+        assertNotEquals(dd, dd2);
+        dd2.setProductId(null);
+        assertNotEquals(dd, dd2);
+        dd2.setProductId("abcd-1234");
+        assertEquals(dd, dd2);
 
         dd2.setAccount("aws2");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setAccount(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setAccount("aws");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setAzureSubscription("azure2");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setAzureSubscription(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setAzureSubscription("azure");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setGcpProject("gcp2");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGcpProject(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGcpProject("gcp");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setGcpProjectNumber("12356");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGcpProjectNumber(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGcpProjectNumber("1235");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setUserAuthorityFilter("NotOnShore");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setUserAuthorityFilter(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setUserAuthorityFilter("OnShore");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setSignAlgorithm("ec");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setSignAlgorithm(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setSignAlgorithm("rsa");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setMemberExpiryDays(45);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setMemberExpiryDays(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setMemberExpiryDays(30);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setMemberPurgeExpiryDays(45);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setMemberPurgeExpiryDays(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setMemberPurgeExpiryDays(10);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setServiceExpiryDays(45);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setServiceExpiryDays(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setServiceExpiryDays(40);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setGroupExpiryDays(55);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGroupExpiryDays(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setGroupExpiryDays(50);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setTokenExpiryMins(450);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setTokenExpiryMins(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setTokenExpiryMins(300);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setRoleCertExpiryMins(130);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setRoleCertExpiryMins(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setRoleCertExpiryMins(120);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setServiceCertExpiryMins(160);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setServiceCertExpiryMins(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setServiceCertExpiryMins(150);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setDescription("new domain");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setDescription(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setDescription("main domain");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setOrg("new org");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setOrg(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setOrg("org");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setTags(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setBusinessService("business-service2");
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setBusinessService(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setBusinessService("business-service");
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setAuditEnabled(true);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setAuditEnabled(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setAuditEnabled(false);
-        assertTrue(dd2.equals(dd));
+        assertEquals(dd, dd2);
 
         dd2.setCertDnsDomain(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setCertDnsDomain("athenz.cloud");
         dd2.setApplicationId(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setApplicationId("101");
         dd2.setModified(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setModified(Timestamp.fromMillis(123456789123L));
         dd2.setEntities(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setEntities(elist);
         dd2.setServices(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setServices(sil);
         dd2.setPolicies(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setPolicies(sp);
         dd2.setRoles(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setRoles(rl);
         dd2.setEnabled(false);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
         dd2.setEnabled(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setEnabled(true);
         dd2.setYpmId(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         dd2.setYpmId(1);
         dd2.setAccount(null);
-        assertFalse(dd2.equals(dd));
+        assertNotEquals(dd, dd2);
 
         // SignedDomain test
         SignedDomain sd = new SignedDomain().setDomain(dd).setSignature("zmssignature").setKeyId("v1");
@@ -1063,18 +1073,18 @@ public class ZMSCoreTest {
         assertEquals(sd.getKeyId(), "v1");
 
         SignedDomain sd2 = new SignedDomain().setDomain(dd).setSignature("zmssignature").setKeyId("v1");
-        assertTrue(sd2.equals(sd));
-        assertTrue(sd.equals(sd));
+        assertEquals(sd, sd2);
+        assertEquals(sd, sd);
 
         sd2.setKeyId(null);
-        assertFalse(sd2.equals(sd));
+        assertNotEquals(sd, sd2);
         sd2.setSignature(null);
-        assertFalse(sd2.equals(sd));
+        assertNotEquals(sd, sd2);
         sd2.setDomain(null);
-        assertFalse(sd2.equals(sd));
-        assertFalse(sd.equals(new String()));
+        assertNotEquals(sd, sd2);
+        assertNotEquals(new String(), sd);
 
-        List<SignedDomain> sdl = Arrays.asList(sd);
+        List<SignedDomain> sdl = List.of(sd);
 
         // SignedDomains test
         SignedDomains sds1 = new SignedDomains().setDomains(sdl);
@@ -1084,14 +1094,14 @@ public class ZMSCoreTest {
         assertEquals(sds1.getDomains(), sdl);
 
         SignedDomains sds2 = new SignedDomains().setDomains(sdl);
-        assertTrue(sds2.equals(sds1));
-        assertTrue(sds1.equals(sds1));
+        assertEquals(sds1, sds2);
+        assertEquals(sds1, sds1);
 
         sds2.setDomains(null);
-        assertFalse(sds2.equals(sds1));
+        assertNotEquals(sds1, sds2);
 
-        assertFalse(sds1.equals(null));
-        assertFalse(sds1.equals(new String()));
+        assertNotEquals(sds1, null);
+        assertNotEquals(new String(), sds1);
     }
 
     @Test
@@ -1209,1032 +1219,6 @@ public class ZMSCoreTest {
         da2.setAdmins(null);
         assertFalse(da2.equals(da));
         assertFalse(da2.equals(null));
-    }
-
-    @Test
-    public void testDomainMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        Domain d = new Domain();
-        d.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
-                .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("aws").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
-                .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
-                .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1237");
-
-        Result result = validator.validate(d, "Domain");
-        assertTrue(result.valid);
-
-        assertEquals(d.getName(), "test.domain");
-        assertEquals(d.getModified(), Timestamp.fromMillis(123456789123L));
-        assertEquals(d.getId(), UUID.fromMillis(100));
-        assertEquals(d.getDescription(), "test desc");
-        assertEquals(d.getOrg(), "test-org");
-        assertTrue(d.getEnabled());
-        assertTrue(d.getAuditEnabled());
-        assertEquals(d.getAccount(), "aws");
-        assertEquals(d.getAzureSubscription(), "azure");
-        assertEquals(d.getGcpProject(), "gcp");
-        assertEquals(d.getGcpProjectNumber(), "1237");
-        assertEquals((int) d.getYpmId(), 1);
-        assertEquals(d.getApplicationId(), "101");
-        assertEquals(d.getCertDnsDomain(), "athenz.cloud");
-        assertEquals(d.getMemberExpiryDays(), Integer.valueOf(30));
-        assertEquals(d.getServiceExpiryDays(), Integer.valueOf(40));
-        assertEquals(d.getGroupExpiryDays(), Integer.valueOf(50));
-        assertEquals(d.getTokenExpiryMins(), Integer.valueOf(300));
-        assertEquals(d.getServiceCertExpiryMins(), Integer.valueOf(120));
-        assertEquals(d.getRoleCertExpiryMins(), Integer.valueOf(150));
-        assertEquals(d.getSignAlgorithm(), "rsa");
-        assertEquals(d.getUserAuthorityFilter(), "OnShore");
-        assertEquals(d.getTags(),
-            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertEquals(d.getBusinessService(), "business-service");
-        assertEquals(d.getMemberPurgeExpiryDays(), 10);
-
-        Domain d2 = new Domain();
-        d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
-                .setDescription("test desc").setOrg("test-org").setEnabled(true).setAuditEnabled(true)
-                .setAccount("aws").setYpmId(1).setApplicationId("101").setCertDnsDomain("athenz.cloud")
-                .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
-                .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1237");
-
-        assertTrue(d2.equals(d));
-        assertTrue(d.equals(d));
-
-        d2.setUserAuthorityFilter("NotOnShore");
-        assertFalse(d2.equals(d));
-        d2.setUserAuthorityFilter(null);
-        assertFalse(d2.equals(d));
-        d2.setUserAuthorityFilter("OnShore");
-        assertTrue(d2.equals(d));
-
-        d2.setAccount("aws2");
-        assertFalse(d2.equals(d));
-        d2.setAccount(null);
-        assertFalse(d2.equals(d));
-        d2.setAccount("aws");
-        assertTrue(d2.equals(d));
-
-        d2.setAzureSubscription("azure2");
-        assertFalse(d2.equals(d));
-        d2.setAzureSubscription(null);
-        assertFalse(d2.equals(d));
-        d2.setAzureSubscription("azure");
-        assertTrue(d2.equals(d));
-
-        d2.setGcpProject("gcp2");
-        assertFalse(d2.equals(d));
-        d2.setGcpProject(null);
-        assertFalse(d2.equals(d));
-        d2.setGcpProject("gcp");
-        assertTrue(d2.equals(d));
-
-        d2.setGcpProjectNumber("12378");
-        assertFalse(d2.equals(d));
-        d2.setGcpProjectNumber(null);
-        assertFalse(d2.equals(d));
-        d2.setGcpProjectNumber("1237");
-        assertTrue(d2.equals(d));
-
-        d2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertFalse(d2.equals(d));
-        d2.setTags(null);
-        assertFalse(d2.equals(d));
-        d2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(d2.equals(d));
-
-        d2.setSignAlgorithm("ec");
-        assertFalse(d2.equals(d));
-        d2.setSignAlgorithm(null);
-        assertFalse(d2.equals(d));
-        d2.setSignAlgorithm("rsa");
-        assertTrue(d2.equals(d));
-
-        d2.setMemberExpiryDays(45);
-        assertFalse(d2.equals(d));
-        d2.setMemberExpiryDays(null);
-        assertFalse(d2.equals(d));
-        d2.setMemberExpiryDays(30);
-        assertTrue(d2.equals(d));
-
-        d2.setMemberPurgeExpiryDays(45);
-        assertFalse(d2.equals(d));
-        d2.setMemberPurgeExpiryDays(null);
-        assertFalse(d2.equals(d));
-        d2.setMemberPurgeExpiryDays(10);
-        assertTrue(d2.equals(d));
-
-        d2.setServiceExpiryDays(45);
-        assertFalse(d2.equals(d));
-        d2.setServiceExpiryDays(null);
-        assertFalse(d2.equals(d));
-        d2.setServiceExpiryDays(40);
-        assertTrue(d2.equals(d));
-
-        d2.setGroupExpiryDays(55);
-        assertFalse(d2.equals(d));
-        d2.setGroupExpiryDays(null);
-        assertFalse(d2.equals(d));
-        d2.setGroupExpiryDays(50);
-        assertTrue(d2.equals(d));
-
-        d2.setTokenExpiryMins(450);
-        assertFalse(d2.equals(d));
-        d2.setTokenExpiryMins(null);
-        assertFalse(d2.equals(d));
-        d2.setTokenExpiryMins(300);
-        assertTrue(d2.equals(d));
-
-        d2.setServiceCertExpiryMins(130);
-        assertFalse(d2.equals(d));
-        d2.setServiceCertExpiryMins(null);
-        assertFalse(d2.equals(d));
-        d2.setServiceCertExpiryMins(120);
-        assertTrue(d2.equals(d));
-
-        d2.setRoleCertExpiryMins(450);
-        assertFalse(d2.equals(d));
-        d2.setRoleCertExpiryMins(null);
-        assertFalse(d2.equals(d));
-        d2.setRoleCertExpiryMins(150);
-        assertTrue(d2.equals(d));
-
-        d2.setBusinessService("business-service2");
-        assertFalse(d2.equals(d));
-        d2.setBusinessService(null);
-        assertFalse(d2.equals(d));
-        d2.setBusinessService("business-service");
-        assertTrue(d2.equals(d));
-
-        d2.setId(UUID.fromMillis(101));
-        assertFalse(d2.equals(d));
-        d2.setId(null);
-        assertFalse(d2.equals(d));
-        d2.setModified(null);
-        assertFalse(d2.equals(d));
-        d2.setName(null);
-        assertFalse(d2.equals(d));
-        d2.setCertDnsDomain(null);
-        assertFalse(d2.equals(d));
-        d2.setApplicationId(null);
-        assertFalse(d2.equals(d));
-        d2.setYpmId(null);
-        assertFalse(d2.equals(d));
-        d2.setAccount(null);
-        assertFalse(d2.equals(d));
-        d2.setAuditEnabled(null);
-        assertFalse(d2.equals(d));
-        d2.setEnabled(null);
-        assertFalse(d2.equals(d));
-        d2.setOrg(null);
-        assertFalse(d2.equals(d));
-        d2.setDescription(null);
-        assertFalse(d2.equals(d));
-        assertFalse(d2.equals(null));
-        assertFalse(d.equals(new String()));
-    }
-
-    @Test
-    public void testDomainList() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        List<String> domainnames = Arrays.asList("test.domain");
-
-        DomainList dl = new DomainList().setNames(domainnames).setNext("next");
-
-        Result result = validator.validate(dl, "DomainList");
-        assertTrue(result.valid);
-
-        assertEquals(dl.getNames(), domainnames);
-        assertEquals(dl.getNext(), "next");
-
-        DomainList dl2 = new DomainList().setNames(domainnames).setNext("next");
-        assertTrue(dl2.equals(dl));
-        assertTrue(dl.equals(dl));
-
-        dl2.setNext(null);
-        assertFalse(dl2.equals(dl));
-        dl2.setNames(null);
-        assertFalse(dl2.equals(dl));
-        assertFalse(dl2.equals(null));
-        assertFalse(dl.equals(new String()));
-    }
-
-    @Test
-    public void testDomainMetaStoreValidValuesList() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-        List<String> validValues = new ArrayList<>();
-        validValues.add("bs1");
-        validValues.add("bs2");
-        validValues.add("bs3");
-        validValues.add("bs4");
-        validValues.add("bs5");
-        DomainMetaStoreValidValuesList validValuesList = new DomainMetaStoreValidValuesList();
-        validValuesList.setValidValues(validValues);
-
-        Result result = validator.validate(validValuesList, "DomainMetaStoreValidValuesList");
-        assertTrue(result.valid);
-        assertEquals(validValuesList.getValidValues().get(0), "bs1");
-        assertEquals(validValuesList.getValidValues().size(), 5);
-
-        List<String> validValues2 = new ArrayList<>();
-        validValues2.add("bs1");
-        validValues2.add("bs2");
-        validValues2.add("bs3");
-        validValues2.add("bs4");
-        validValues2.add("bs5");
-        DomainMetaStoreValidValuesList validValuesList2 = new DomainMetaStoreValidValuesList();
-        validValuesList2.setValidValues(validValues2);
-
-        assertEquals(validValuesList, validValuesList2);
-
-        validValuesList2.getValidValues().remove("bs3");
-        assertFalse(validValuesList.equals(validValuesList2));
-        validValuesList.getValidValues().remove("bs3");
-        assertTrue(validValuesList.equals(validValuesList2));
-        assertFalse(validValuesList.equals(null));
-    }
-
-    @Test
-    public void testDomainMetaMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        DomainMeta dm = new DomainMeta().init();
-        dm.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("aws").setYpmId(10).setApplicationId("101")
-                .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
-                .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240");
-
-        Result result = validator.validate(dm, "DomainMeta");
-        assertTrue(result.valid);
-
-        assertEquals(dm.getDescription(), "domain desc");
-        assertEquals(dm.getOrg(), "org:test");
-        assertTrue(dm.getEnabled());
-        assertFalse(dm.getAuditEnabled());
-        assertEquals(dm.getAccount(), "aws");
-        assertEquals(dm.getAzureSubscription(), "azure");
-        assertEquals(dm.getGcpProject(), "gcp");
-        assertEquals(dm.getGcpProjectNumber(), "1240");
-        assertEquals((int) dm.getYpmId(), 10);
-        assertEquals(dm.getApplicationId(), "101");
-        assertEquals(dm.getCertDnsDomain(), "athenz.cloud");
-        assertEquals(dm.getMemberExpiryDays(), Integer.valueOf(30));
-        assertEquals(dm.getServiceExpiryDays(), Integer.valueOf(40));
-        assertEquals(dm.getGroupExpiryDays(), Integer.valueOf(50));
-        assertEquals(dm.getTokenExpiryMins(), Integer.valueOf(300));
-        assertEquals(dm.getServiceCertExpiryMins(), Integer.valueOf(120));
-        assertEquals(dm.getRoleCertExpiryMins(), Integer.valueOf(150));
-        assertEquals(dm.getSignAlgorithm(), "ec");
-        assertEquals(dm.getUserAuthorityFilter(), "OnShore");
-        assertEquals(dm.getTags(),
-            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertEquals(dm.getBusinessService(), "business-service");
-        assertEquals(dm.getMemberPurgeExpiryDays(), 10);
-
-        DomainMeta dm2 = new DomainMeta().init();
-        dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("aws").setYpmId(10).setApplicationId("101")
-                .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
-                .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
-                .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240");
-
-        assertTrue(dm2.equals(dm));
-        assertTrue(dm.equals(dm));
-
-        dm2.setUserAuthorityFilter("NotOnShore");
-        assertFalse(dm2.equals(dm));
-        dm2.setUserAuthorityFilter(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setUserAuthorityFilter("OnShore");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setAccount("aws2");
-        assertFalse(dm2.equals(dm));
-        dm2.setAccount(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setAccount("aws");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setAzureSubscription("azure2");
-        assertFalse(dm2.equals(dm));
-        dm2.setAzureSubscription(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setAzureSubscription("azure");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setGcpProject("gcp2");
-        assertFalse(dm2.equals(dm));
-        dm2.setGcpProject(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setGcpProject("gcp");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setGcpProjectNumber("12401");
-        assertFalse(dm2.equals(dm));
-        dm2.setGcpProjectNumber(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setGcpProjectNumber("1240");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertFalse(dm2.equals(dm));
-        dm2.setTags(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(dm2.equals(dm));
-
-        dm2.setSignAlgorithm("rsa");
-        assertFalse(dm2.equals(dm));
-        dm2.setSignAlgorithm(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setSignAlgorithm("ec");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setMemberExpiryDays(45);
-        assertFalse(dm2.equals(dm));
-        dm2.setMemberExpiryDays(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setMemberExpiryDays(30);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setMemberPurgeExpiryDays(45);
-        assertFalse(dm2.equals(dm));
-        dm2.setMemberPurgeExpiryDays(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setMemberPurgeExpiryDays(10);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setServiceExpiryDays(45);
-        assertFalse(dm2.equals(dm));
-        dm2.setServiceExpiryDays(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setServiceExpiryDays(40);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setGroupExpiryDays(55);
-        assertFalse(dm2.equals(dm));
-        dm2.setGroupExpiryDays(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setGroupExpiryDays(50);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setTokenExpiryMins(450);
-        assertFalse(dm2.equals(dm));
-        dm2.setTokenExpiryMins(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setTokenExpiryMins(300);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setServiceCertExpiryMins(130);
-        assertFalse(dm2.equals(dm));
-        dm2.setServiceCertExpiryMins(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setServiceCertExpiryMins(120);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setRoleCertExpiryMins(450);
-        assertFalse(dm2.equals(dm));
-        dm2.setRoleCertExpiryMins(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setRoleCertExpiryMins(150);
-        assertTrue(dm2.equals(dm));
-
-        dm2.setBusinessService("business-service2");
-        assertFalse(dm2.equals(dm));
-        dm2.setBusinessService(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setBusinessService("business-service");
-        assertTrue(dm2.equals(dm));
-
-        dm2.setCertDnsDomain(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setApplicationId(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setYpmId(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setAccount(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setAuditEnabled(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setEnabled(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setOrg(null);
-        assertFalse(dm2.equals(dm));
-        dm2.setDescription(null);
-        assertFalse(dm2.equals(dm));
-        assertFalse(dm2.equals(null));
-        assertFalse(dm.equals(new String()));
-
-        // init will not reset false state
-
-        dm2.setEnabled(false);
-        dm2.setAuditEnabled(false);
-        dm2.init();
-        assertFalse(dm2.getAuditEnabled());
-        assertFalse(dm2.getEnabled());
-    }
-
-    @Test
-    public void testTopLevelDomainMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        List<String> admins = Arrays.asList("test.admin1");
-
-        // DomainTemplateList test
-        List<String> templateNames = Arrays.asList("test");
-        DomainTemplateList dtl = new DomainTemplateList().setTemplateNames(templateNames);
-
-        Result result = validator.validate(dtl, "DomainTemplateList");
-        assertTrue(result.valid);
-
-        assertEquals(dtl.getTemplateNames(), templateNames);
-        assertTrue(dtl.equals(dtl));
-        assertFalse(dtl.equals(new DomainTemplateList()));
-
-        // TopLevelDomain test
-        TopLevelDomain tld = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
-                .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1242");
-
-        result = validator.validate(tld, "TopLevelDomain");
-        assertTrue(result.valid);
-
-        assertEquals(tld.getDescription(), "domain desc");
-        assertEquals(tld.getOrg(), "org:test");
-        assertTrue(tld.getEnabled());
-        assertFalse(tld.getAuditEnabled());
-        assertEquals(tld.getAccount(), "aws");
-        assertEquals(tld.getAzureSubscription(), "azure");
-        assertEquals(tld.getGcpProject(), "gcp");
-        assertEquals(tld.getGcpProjectNumber(), "1242");
-        assertEquals((int) tld.getYpmId(), 10);
-        assertEquals(tld.getName(), "testdomain");
-        assertEquals(tld.getAdminUsers(), admins);
-        assertEquals(tld.getApplicationId(), "id1");
-        assertNotNull(tld.getTemplates());
-        assertEquals(tld.getCertDnsDomain(), "athenz.cloud");
-        assertEquals(tld.getMemberExpiryDays(), Integer.valueOf(30));
-        assertEquals(tld.getServiceExpiryDays(), Integer.valueOf(40));
-        assertEquals(tld.getGroupExpiryDays(), Integer.valueOf(50));
-        assertEquals(tld.getTokenExpiryMins(), Integer.valueOf(300));
-        assertEquals(tld.getServiceCertExpiryMins(), Integer.valueOf(150));
-        assertEquals(tld.getRoleCertExpiryMins(), Integer.valueOf(120));
-        assertEquals(tld.getSignAlgorithm(), "rsa");
-        assertEquals(tld.getUserAuthorityFilter(), "OnShore");
-        assertEquals(tld.getTags(),
-            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertEquals(tld.getBusinessService(), "business-service");
-        assertEquals(tld.getMemberPurgeExpiryDays(), 10);
-
-        TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(dtl).setApplicationId("id1").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
-                .setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150).setSignAlgorithm("rsa")
-                .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1242");
-
-        assertTrue(tld2.equals(tld));
-        assertTrue(tld.equals(tld));
-
-        tld2.setUserAuthorityFilter("NotOnShore");
-        assertFalse(tld2.equals(tld));
-        tld2.setUserAuthorityFilter(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setUserAuthorityFilter("OnShore");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setAccount("aws2");
-        assertFalse(tld2.equals(tld));
-        tld2.setAccount(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setAccount("aws");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setAzureSubscription("azure2");
-        assertFalse(tld2.equals(tld));
-        tld2.setAzureSubscription(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setAzureSubscription("azure");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setGcpProject("gcp2");
-        assertFalse(tld2.equals(tld));
-        tld2.setGcpProject(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setGcpProject("gcp");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setGcpProjectNumber("12421");
-        assertFalse(tld2.equals(tld));
-        tld2.setGcpProjectNumber(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setGcpProjectNumber("1242");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertFalse(tld2.equals(tld));
-        tld2.setTags(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(tld2.equals(tld));
-
-        tld2.setSignAlgorithm("ec");
-        assertFalse(tld2.equals(tld));
-        tld2.setSignAlgorithm(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setSignAlgorithm("rsa");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setMemberExpiryDays(45);
-        assertFalse(tld2.equals(tld));
-        tld2.setMemberExpiryDays(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setMemberExpiryDays(30);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setMemberPurgeExpiryDays(45);
-        assertFalse(tld2.equals(tld));
-        tld2.setMemberPurgeExpiryDays(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setMemberPurgeExpiryDays(10);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setServiceExpiryDays(45);
-        assertFalse(tld2.equals(tld));
-        tld2.setServiceExpiryDays(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setServiceExpiryDays(40);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setGroupExpiryDays(55);
-        assertFalse(tld2.equals(tld));
-        tld2.setGroupExpiryDays(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setGroupExpiryDays(50);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setRoleCertExpiryMins(450);
-        assertFalse(tld2.equals(tld));
-        tld2.setRoleCertExpiryMins(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setRoleCertExpiryMins(120);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setServiceCertExpiryMins(450);
-        assertFalse(tld2.equals(tld));
-        tld2.setServiceCertExpiryMins(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setServiceCertExpiryMins(150);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setTokenExpiryMins(450);
-        assertFalse(tld2.equals(tld));
-        tld2.setTokenExpiryMins(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setTokenExpiryMins(300);
-        assertTrue(tld2.equals(tld));
-
-        tld2.setBusinessService("business-service2");
-        assertFalse(tld2.equals(tld));
-        tld2.setBusinessService(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setBusinessService("business-service");
-        assertTrue(tld2.equals(tld));
-
-        tld2.setTemplates(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setAdminUsers(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setName(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setCertDnsDomain(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setApplicationId(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setYpmId(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setAccount(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setAuditEnabled(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setEnabled(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setOrg(null);
-        assertFalse(tld2.equals(tld));
-        tld2.setDescription(null);
-        assertFalse(tld2.equals(tld));
-        assertFalse(tld2.equals(null));
-        assertFalse(tld.equals(new String()));
-    }
-
-    @Test
-    public void testSubDomainMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        List<String> admins = Arrays.asList("test.admin1");
-
-        SubDomain sd = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
-                .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
-                .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1244");
-
-        Result result = validator.validate(sd, "SubDomain");
-        assertTrue(result.valid, result.error);
-
-        assertEquals(sd.getDescription(), "domain desc");
-        assertEquals(sd.getOrg(), "org:test");
-        assertTrue(sd.getEnabled());
-        assertFalse(sd.getAuditEnabled());
-        assertEquals(sd.getAccount(), "aws");
-        assertEquals(sd.getAzureSubscription(), "azure");
-        assertEquals(sd.getGcpProject(), "gcp");
-        assertEquals(sd.getGcpProjectNumber(), "1244");
-        assertEquals((int) sd.getYpmId(), 10);
-        assertEquals(sd.getName(), "testdomain");
-        assertEquals(sd.getAdminUsers(), admins);
-        assertNotNull(sd.getTemplates());
-        assertEquals(sd.getParent(), "domain.parent");
-        assertEquals(sd.getApplicationId(), "101");
-        assertEquals(sd.getCertDnsDomain(), "athenz.cloud");
-        assertEquals(sd.getMemberExpiryDays(), Integer.valueOf(30));
-        assertEquals(sd.getServiceExpiryDays(), Integer.valueOf(40));
-        assertEquals(sd.getGroupExpiryDays(), Integer.valueOf(50));
-        assertEquals(sd.getTokenExpiryMins(), Integer.valueOf(300));
-        assertEquals(sd.getRoleCertExpiryMins(), Integer.valueOf(150));
-        assertEquals(sd.getServiceCertExpiryMins(), Integer.valueOf(120));
-        assertEquals(sd.getSignAlgorithm(), "rsa");
-        assertEquals(sd.getUserAuthorityFilter(), "OnShore");
-        assertEquals(sd.getTags(),
-            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertEquals(sd.getBusinessService(), "business-service");
-        assertEquals(sd.getMemberPurgeExpiryDays(), 10);
-
-        SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("vipng")))
-                .setParent("domain.parent").setApplicationId("101").setCertDnsDomain("athenz.cloud")
-                .setMemberExpiryDays(30).setTokenExpiryMins(300).setServiceCertExpiryMins(120)
-                .setRoleCertExpiryMins(150).setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1244");
-
-        assertTrue(sd2.equals(sd));
-        assertTrue(sd.equals(sd));
-
-        sd2.setUserAuthorityFilter("NotOnShore");
-        assertFalse(sd2.equals(sd));
-        sd2.setUserAuthorityFilter(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setUserAuthorityFilter("OnShore");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setAccount("aws2");
-        assertFalse(sd2.equals(sd));
-        sd2.setAccount(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setAccount("aws");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setAzureSubscription("azure2");
-        assertFalse(sd2.equals(sd));
-        sd2.setAzureSubscription(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setAzureSubscription("azure");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setGcpProject("gcp2");
-        assertFalse(sd2.equals(sd));
-        sd2.setGcpProject(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setGcpProject("gcp");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setGcpProjectNumber("12441");
-        assertFalse(sd2.equals(sd));
-        sd2.setGcpProjectNumber(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setGcpProjectNumber("1244");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertFalse(sd2.equals(sd));
-        sd2.setTags(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(sd2.equals(sd));
-
-        sd2.setSignAlgorithm("ec");
-        assertFalse(sd2.equals(sd));
-        sd2.setSignAlgorithm(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setSignAlgorithm("rsa");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setMemberExpiryDays(45);
-        assertFalse(sd2.equals(sd));
-        sd2.setMemberExpiryDays(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setMemberExpiryDays(30);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setMemberPurgeExpiryDays(45);
-        assertFalse(sd2.equals(sd));
-        sd2.setMemberPurgeExpiryDays(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setMemberPurgeExpiryDays(10);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setServiceExpiryDays(45);
-        assertFalse(sd2.equals(sd));
-        sd2.setServiceExpiryDays(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setServiceExpiryDays(40);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setGroupExpiryDays(55);
-        assertFalse(sd2.equals(sd));
-        sd2.setGroupExpiryDays(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setGroupExpiryDays(50);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setTokenExpiryMins(450);
-        assertFalse(sd2.equals(sd));
-        sd2.setTokenExpiryMins(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setTokenExpiryMins(300);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setServiceCertExpiryMins(450);
-        assertFalse(sd2.equals(sd));
-        sd2.setServiceCertExpiryMins(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setServiceCertExpiryMins(120);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setRoleCertExpiryMins(450);
-        assertFalse(sd2.equals(sd));
-        sd2.setRoleCertExpiryMins(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setRoleCertExpiryMins(150);
-        assertTrue(sd2.equals(sd));
-
-        sd2.setBusinessService("business-service2");
-        assertFalse(sd2.equals(sd));
-        sd2.setBusinessService(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setBusinessService("business-service");
-        assertTrue(sd2.equals(sd));
-
-        sd2.setParent(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setTemplates(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setAdminUsers(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setName(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setCertDnsDomain(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setApplicationId(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setYpmId(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setAccount(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setAuditEnabled(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setEnabled(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setOrg(null);
-        assertFalse(sd2.equals(sd));
-        sd2.setDescription(null);
-        assertFalse(sd2.equals(sd));
-        assertFalse(sd2.equals(null));
-    }
-
-    @Test
-    public void testUserDomainMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        UserDomain ud = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
-                .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
-                .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
-                .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
-                .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246");
-
-        Result result = validator.validate(ud, "UserDomain");
-        assertTrue(result.valid);
-
-        assertEquals(ud.getDescription(), "domain desc");
-        assertEquals(ud.getOrg(), "org:test");
-        assertTrue(ud.getEnabled());
-        assertFalse(ud.getAuditEnabled());
-        assertEquals(ud.getAccount(), "aws");
-        assertEquals(ud.getAzureSubscription(), "azure");
-        assertEquals(ud.getGcpProject(), "gcp");
-        assertEquals(ud.getGcpProjectNumber(), "1246");
-        assertEquals((int) ud.getYpmId(), 10);
-        assertEquals(ud.getName(), "testuser");
-        assertEquals(ud.getApplicationId(), "101");
-        assertNotNull(ud.getTemplates());
-        assertEquals(ud.getCertDnsDomain(), "athenz.cloud");
-        assertEquals(ud.getMemberExpiryDays(), Integer.valueOf(30));
-        assertEquals(ud.getServiceExpiryDays(), Integer.valueOf(40));
-        assertEquals(ud.getGroupExpiryDays(), Integer.valueOf(50));
-        assertEquals(ud.getTokenExpiryMins(), Integer.valueOf(300));
-        assertEquals(ud.getRoleCertExpiryMins(), Integer.valueOf(150));
-        assertEquals(ud.getServiceCertExpiryMins(), Integer.valueOf(120));
-        assertEquals(ud.getSignAlgorithm(), "rsa");
-        assertEquals(ud.getUserAuthorityFilter(), "OnShore");
-        assertEquals(ud.getTags(),
-            Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertEquals(ud.getBusinessService(), "business-service");
-        assertEquals(ud.getMemberPurgeExpiryDays(), 10);
-
-        UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
-                .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
-                .setTemplates(new DomainTemplateList().setTemplateNames(Arrays.asList("template")))
-                .setApplicationId("101").setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30)
-                .setTokenExpiryMins(300).setServiceCertExpiryMins(120).setRoleCertExpiryMins(150)
-                .setSignAlgorithm("rsa").setServiceExpiryDays(40).setUserAuthorityFilter("OnShore")
-                .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246");
-
-        assertTrue(ud2.equals(ud));
-        assertTrue(ud.equals(ud));
-
-        ud2.setUserAuthorityFilter("NotOnShore");
-        assertFalse(ud2.equals(ud));
-        ud2.setUserAuthorityFilter(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setUserAuthorityFilter("OnShore");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setAccount("aws2");
-        assertFalse(ud2.equals(ud));
-        ud2.setAccount(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setAccount("aws");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setAzureSubscription("azure2");
-        assertFalse(ud2.equals(ud));
-        ud2.setAzureSubscription(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setAzureSubscription("azure");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setGcpProject("gcp2");
-        assertFalse(ud2.equals(ud));
-        ud2.setGcpProject(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setGcpProject("gcp");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setGcpProjectNumber("12461");
-        assertFalse(ud2.equals(ud));
-        ud2.setGcpProjectNumber(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setGcpProjectNumber("1246");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setTags(Collections.singletonMap("tagKeyOther", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertFalse(ud2.equals(ud));
-        ud2.setTags(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(ud2.equals(ud));
-
-        ud2.setSignAlgorithm("ec");
-        assertFalse(ud2.equals(ud));
-        ud2.setSignAlgorithm(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setSignAlgorithm("rsa");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setMemberExpiryDays(45);
-        assertFalse(ud2.equals(ud));
-        ud2.setMemberExpiryDays(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setMemberExpiryDays(30);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setMemberPurgeExpiryDays(45);
-        assertFalse(ud2.equals(ud));
-        ud2.setMemberPurgeExpiryDays(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setMemberPurgeExpiryDays(10);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setServiceExpiryDays(45);
-        assertFalse(ud2.equals(ud));
-        ud2.setServiceExpiryDays(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setServiceExpiryDays(40);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setGroupExpiryDays(55);
-        assertFalse(ud2.equals(ud));
-        ud2.setGroupExpiryDays(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setGroupExpiryDays(50);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setTokenExpiryMins(450);
-        assertFalse(ud2.equals(ud));
-        ud2.setTokenExpiryMins(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setTokenExpiryMins(300);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setServiceCertExpiryMins(450);
-        assertFalse(ud2.equals(ud));
-        ud2.setServiceCertExpiryMins(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setServiceCertExpiryMins(120);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setRoleCertExpiryMins(450);
-        assertFalse(ud2.equals(ud));
-        ud2.setRoleCertExpiryMins(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setRoleCertExpiryMins(150);
-        assertTrue(ud2.equals(ud));
-
-        ud2.setBusinessService("business-service2");
-        assertFalse(ud2.equals(ud));
-        ud2.setBusinessService(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setBusinessService("business-service");
-        assertTrue(ud2.equals(ud));
-
-        ud2.setTemplates(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setName(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setCertDnsDomain(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setApplicationId(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setYpmId(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setAccount(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setAuditEnabled(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setEnabled(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setOrg(null);
-        assertFalse(ud2.equals(ud));
-        ud2.setDescription(null);
-        assertFalse(ud2.equals(ud));
-        assertFalse(ud2.equals(null));
-        assertFalse(ud.equals(new String()));
     }
 
     @Test
@@ -4210,28 +3194,6 @@ public class ZMSCoreTest {
         tvl = new TagValueList().setList(Collections.singletonList("/homes/home/"));
         resultTvl = validator.validate(tvl, "TagValueList");
         assertTrue(resultTvl.valid);
-    }
-
-    @Test
-    public void testEmptyBusinessService() throws JsonProcessingException {
-        DomainMeta domainMeta = new DomainMeta();
-
-        // Set business service to "" (empty string). Will be part of Json.
-        domainMeta.setAccount("testAccount");
-        domainMeta.setBusinessService("");
-        ObjectMapper om = new ObjectMapper();
-        String jsonString = om.writeValueAsString(domainMeta);
-        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"\"}", jsonString);
-
-        // Set business service with regular value. Will be part of Json.
-        domainMeta.setBusinessService("Now with value");
-        jsonString = om.writeValueAsString(domainMeta);
-        assertEquals("{\"account\":\"testAccount\",\"businessService\":\"Now with value\"}", jsonString);
-
-        // Set business service with null. Will NOT be part of Json.
-        domainMeta.setBusinessService(null);
-        jsonString = om.writeValueAsString(domainMeta);
-        assertEquals("{\"account\":\"testAccount\"}", jsonString);
     }
 
     private UserAuthorityAttributeMap getUserAuthorityAttributeMapForTest() {

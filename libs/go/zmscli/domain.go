@@ -358,7 +358,7 @@ func (cli Zms) ExportDomain(dn string, filename string) (*string, error) {
 }
 
 func (cli Zms) SystemBackup(dir string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", "", "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", "", "", "", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -448,7 +448,7 @@ func (cli Zms) createDomain(dn string, productID *int32, admins []string) (*stri
 }
 
 func (cli Zms) LookupDomainByRole(roleMember string, roleName string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, zms.ResourceName(roleMember), zms.ResourceName(roleName), "", "", "", "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, zms.ResourceName(roleMember), zms.ResourceName(roleName), "", "", "", "", "", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -480,15 +480,23 @@ func (cli Zms) dumpDomainListByFormat(res *zms.DomainList) (*string, error) {
 }
 
 func (cli Zms) LookupDomainByBusinessService(businessService string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", "", "", businessService, "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", "", "", businessService, "", "")
 	if err != nil {
 		return nil, err
 	}
 	return cli.dumpDomainListByFormat(res)
 }
 
-func (cli Zms) LookupDomainById(account, subscription, project string, productID *int32) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, productID, "", "", subscription, project, "", "", "", "")
+func (cli Zms) LookupDomainByNumber(account, subscription, project string, productNumber *int32) (*string, error) {
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, productNumber, "", "", subscription, project, "", "", "", "", "")
+	if err != nil {
+		return nil, err
+	}
+	return cli.dumpDomainListByFormat(res)
+}
+
+func (cli Zms) LookupDomainById(account, subscription, project, productID string) (*string, error) {
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, account, nil, "", "", subscription, project, "", "", "", productID, "")
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +504,7 @@ func (cli Zms) LookupDomainById(account, subscription, project string, productID
 }
 
 func (cli Zms) LookupDomainByTag(tagKey string, tagValue string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", zms.CompoundName(tagKey), zms.CompoundName(tagValue), "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", zms.CompoundName(tagKey), zms.CompoundName(tagValue), "", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -504,7 +512,7 @@ func (cli Zms) LookupDomainByTag(tagKey string, tagValue string) (*string, error
 }
 
 func (cli Zms) ListDomains(limit *int32, skip string, prefix string, depth *int32) (*string, error) {
-	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "", "", "", "", "", "")
+	res, err := cli.Zms.GetDomainList(limit, skip, prefix, depth, "", nil, "", "", "", "", "", "", "", "", "")
 	if err != nil {
 		return nil, err
 	}

@@ -1060,6 +1060,7 @@ public class ZTSSchema {
             .queryParam("fullArn", "fullArn", "Bool", false, "flag to indicate to use full arn in group claim (e.g. sports:role.deployer instead of deployer)")
             .queryParam("expiryTime", "expiryTime", "Int32", null, "optional expiry period specified in seconds")
             .queryParam("output", "output", "SimpleName", null, "optional output format of json")
+            .queryParam("roleInAudClaim", "roleInAudClaim", "Bool", false, "flag to indicate to include role name in the audience claim only if we have a single role in response")
             .output("Location", "location", "String", "return location header with id token")
             .auth("", "", true)
             .expected("OK")

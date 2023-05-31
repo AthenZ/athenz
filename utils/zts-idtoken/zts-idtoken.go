@@ -23,7 +23,7 @@ var (
 )
 
 func usage() {
-	fmt.Println("usage: zts-idtoken <credentials> -zts <ZTS url> -scope <scope> -redirect-uri <redirect-uri> -nonce <nonce> -client-id <client-id> -state <state> -key-type <RSA|EC> -format <token|kubectl>")
+	fmt.Println("usage: zts-idtoken <credentials> -zts <ZTS url> -scope <scope> -redirect-uri <redirect-uri> -nonce <nonce> -client-id <client-id> -state <state> -key-type <RSA|EC> -format <token|kubectl> [-full-arn=true] [-role-in-aud-claim=true]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>]")
 	fmt.Println("       zts-idtoken -validate -id-token <id-token> -conf <athenz-conf-path> [-claims]")
 	os.Exit(1)
@@ -39,7 +39,7 @@ func printVersion() {
 
 func main() {
 	var clientId, scope, state, redirectUri, nonce, svcKeyFile, svcCertFile, svcCACertFile, ztsURL, conf, idToken, keyType, format string
-	var proxy, validate, claims, showVersion, fullArn bool
+	var proxy, validate, claims, showVersion, fullArn, roleInAudClaim bool
 	var expireTime int
 	flag.StringVar(&clientId, "client-id", "", "client-id for the token")
 	flag.StringVar(&redirectUri, "redirect-uri", "", "redirect uri registered for the client-id")
@@ -60,6 +60,7 @@ func main() {
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.StringVar(&format, "format", "token", "Output format: token | kubectl")
 	flag.IntVar(&expireTime, "expire-time", 60, "token expire time in minutes")
+	flag.BoolVar(&roleInAudClaim, "role-in-aud-claim", false, "include role name in aud claim")
 	flag.Parse()
 
 	if showVersion {
@@ -70,7 +71,7 @@ func main() {
 	if validate {
 		validateIdToken(idToken, conf, claims)
 	} else {
-		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format, &fullArn, proxy, expireTime)
+		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format, &fullArn, proxy, expireTime, &roleInAudClaim)
 	}
 }
 
@@ -115,7 +116,7 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	fmt.Println("Id Token successfully validated")
 }
 
-func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool, expireTime int) {
+func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool, expireTime int, roleInAudClaim *bool) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -129,7 +130,7 @@ func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redi
 	// need to convert minutes into seconds
 	expireTimeSecs := int32(expireTime) * 60
 
-	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, fullArn, proxy, &expireTimeSecs)
+	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, fullArn, proxy, &expireTimeSecs, roleInAudClaim)
 	if err != nil {
 		log.Fatalf("unable to fetch id token: %v\n", err)
 	}

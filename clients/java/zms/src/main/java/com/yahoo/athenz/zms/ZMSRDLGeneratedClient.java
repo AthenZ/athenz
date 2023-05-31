@@ -147,7 +147,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth, String account, Integer productId, String roleMember, String roleName, String subscription, String project, String tagKey, String tagValue, String businessService, String modifiedSince) throws URISyntaxException, IOException {
+    public DomainList getDomainList(Integer limit, String skip, String prefix, Integer depth, String account, Integer productNumber, String roleMember, String roleName, String subscription, String project, String tagKey, String tagValue, String businessService, String productId, String modifiedSince) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (limit != null) {
@@ -165,8 +165,8 @@ public class ZMSRDLGeneratedClient {
         if (account != null) {
             uriBuilder.setParameter("account", account);
         }
-        if (productId != null) {
-            uriBuilder.setParameter("ypmid", String.valueOf(productId));
+        if (productNumber != null) {
+            uriBuilder.setParameter("ypmid", String.valueOf(productNumber));
         }
         if (roleMember != null) {
             uriBuilder.setParameter("member", roleMember);
@@ -188,6 +188,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (businessService != null) {
             uriBuilder.setParameter("businessService", businessService);
+        }
+        if (productId != null) {
+            uriBuilder.setParameter("productId", productId);
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())
