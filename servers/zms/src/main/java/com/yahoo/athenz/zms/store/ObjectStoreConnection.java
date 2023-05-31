@@ -222,6 +222,10 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteGroupTags(String groupName, String domainName, Set<String> tagKeys);
     Map<String, TagValueList> getGroupTags(String domainName, String groupName);
 
+    boolean insertServiceTags(String serviceName, String domainName, Map<String, TagValueList> serviceTags);
+    boolean deleteServiceTags(String serviceName, String domainName, Set<String> tagKeys);
+    Map<String, TagValueList> getServiceTags(String domainName, String serviceName);
+
     int countAssertionConditions(long assertionId);
     int getNextConditionId(long assertionId, String caller);
     List<AssertionCondition> getAssertionConditions(long assertionId);

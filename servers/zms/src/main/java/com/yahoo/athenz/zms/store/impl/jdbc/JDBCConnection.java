@@ -581,6 +581,13 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_GROUP_TAGS = "SELECT g.name, gt.key, gt.value FROM group_tags gt "
             + "JOIN principal_group g ON gt.group_id = g.group_id JOIN domain ON domain.domain_id=g.domain_id "
             + "WHERE domain.name=?";
+    private static final String SQL_INSERT_SERVICE_TAG = "INSERT INTO service_tags"
+            + "(service_id, service_tags.key, service_tags.value) VALUES (?,?,?);";
+    private static final String SQL_SERVICE_TAG_COUNT = "SELECT COUNT(*) FROM service_tags WHERE service_id=?";
+    private static final String SQL_DELETE_SERVICE_TAG = "DELETE FROM service_tags WHERE service_id=? AND service_tags.key=?;";
+    private static final String SQL_GET_SERVICE_TAGS = "SELECT st.key, st.value FROM service_tags st "
+            + "JOIN service s ON st.service_id = s.service_id JOIN domain ON domain.domain_id=s.domain_id "
+            + "WHERE domain.name=? AND s.name=?";
     private static final String SQL_GET_ASSERTION_CONDITIONS = "SELECT assertion_condition.condition_id, "
             + "assertion_condition.key, assertion_condition.operator, assertion_condition.value "
             + "FROM assertion_condition WHERE assertion_condition.assertion_id=? ORDER BY assertion_condition.condition_id;";
@@ -656,6 +663,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private int roleTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int groupTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int domainTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
+    private int serviceTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
 
     Connection con;
     boolean transactionCompleted;
@@ -6663,6 +6671,109 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return res;
     }
+
+    @Override
+    public boolean insertServiceTags(String serviceName, String domainName, Map<String, TagValueList> serviceTags) {
+        final String caller = "insertServiceTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int serviceId = getServiceId(domainId, serviceName);
+        if (serviceId == 0) {
+            throw notFoundError(caller, OBJECT_SERVICE, ResourceUtils.serviceResourceName(domainName, serviceName));
+        }
+        int curTagCount = getServiceTagsCount(serviceId);
+        int newTagCount = calculateTagCount(serviceTags);
+        if (curTagCount + newTagCount > serviceTagsLimit) {
+            throw requestError(caller, "service tag quota exceeded - limit: "
+                    + serviceTagsLimit + ", current tags count: " + curTagCount + ", new tags count: " + newTagCount);
+        }
+
+        boolean res = true;
+        for (Map.Entry<String, TagValueList> e : serviceTags.entrySet()) {
+            for (String tagValue : e.getValue().getList()) {
+                try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_SERVICE_TAG)) {
+                    ps.setInt(1, serviceId);
+                    ps.setString(2, processInsertValue(e.getKey()));
+                    ps.setString(3, processInsertValue(tagValue));
+                    res &= (executeUpdate(ps, caller) > 0);
+                } catch (SQLException ex) {
+                    throw sqlError(ex, caller);
+                }
+            }
+        }
+        return res;
+    }
+
+    private int getServiceTagsCount(int serviceId) {
+        final String caller = "getServiceTagsCount";
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SERVICE_TAG_COUNT)) {
+            ps.setInt(1, serviceId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    @Override
+    public boolean deleteServiceTags(String serviceName, String domainName, Set<String> tagKeys) {
+        final String caller = "deleteServiceTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int serviceId = getRoleId(domainId, serviceName);
+        if (serviceId == 0) {
+            throw notFoundError(caller, OBJECT_SERVICE, ResourceUtils.serviceResourceName(domainName, serviceName));
+        }
+        boolean res = true;
+        for (String tagKey : tagKeys) {
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_SERVICE_TAG)) {
+                ps.setInt(1, serviceId);
+                ps.setString(2, processInsertValue(tagKey));
+                res &= (executeUpdate(ps, caller) > 0);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public Map<String, TagValueList> getServiceTags(String domainName, String serviceName) {
+        final String caller = "getServiceTags";
+        Map<String, TagValueList> serviceTag = null;
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_SERVICE_TAGS)) {
+            ps.setString(1, domainName);
+            ps.setString(2, serviceName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String tagKey = rs.getString(1);
+                    String tagValue = rs.getString(2);
+                    if (serviceTag == null) {
+                        serviceTag = new HashMap<>();
+                    }
+                    TagValueList tagValues = serviceTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return serviceTag;
+    }
+
+
 
     private void addTagsToGroups(Map<String, Group> groupMap, String domainName) {
 

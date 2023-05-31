@@ -303,7 +303,8 @@ public class ZMSSchema {
             .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
             .field("active", "Bool", true, "if multi-version policy then indicates active version")
-            .field("description", "String", true, "a description of the policy");
+            .field("description", "String", true, "a description of the policy\\")
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")
@@ -329,7 +330,8 @@ public class ZMSSchema {
             .field("executable", "String", true, "the path of the executable that runs the service")
             .arrayField("hosts", "String", true, "list of host names that this service can run on")
             .field("user", "String", true, "local (unix) user name this service can run as")
-            .field("group", "String", true, "local (unix) group name this service can run as");
+            .field("group", "String", true, "local (unix) group name this service can run as")
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")

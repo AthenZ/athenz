@@ -10785,6 +10785,161 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testProcessServiceWithTagsInsert() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> serviceTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        ServiceIdentity service = new ServiceIdentity().setName("newService").setTags(serviceTags);
+        Mockito.when(conn.insertServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.insertServiceTags("newService", "sys.auth", serviceTags)).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, null, "sys.auth", "newService",
+                service, false, auditDetails);
+
+        ArgumentCaptor<String> serviceCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagCapture = ArgumentCaptor.forClass(Map.class);
+
+        Mockito.verify(conn, times(1)).insertServiceTags(serviceCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertTrue(tagCapture.getValue().containsKey("tagKey"));
+        assertTrue(tagCapture.getValue().values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("tagVal")));
+
+        assertTrue(success);
+    }
+
+    @Test
+    public void testProcessServiceWithTagsUpdate() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> serviceTags = new HashMap<>();
+        serviceTags.put("tagToBeRemoved", new TagValueList().setList(Collections.singletonList("val0")));
+        serviceTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+
+        ServiceIdentity service = new ServiceIdentity().setName("newService").setTags(serviceTags);
+        Mockito.when(conn.insertServiceIdentity(anyString(), any())).thenReturn(true);
+        Mockito.when(conn.insertServiceTags("newService", "sys.auth", serviceTags)).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, null, "sys.auth", "newService",
+                service, false, auditDetails);
+
+        assertTrue(success);
+
+        // new service
+        Map<String, TagValueList> newServiceTags = new HashMap<>();
+        newServiceTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+        newServiceTags.put("newTagKey", new TagValueList().setList(Arrays.asList("val3", "val4")));
+        newServiceTags.put("newTagKey2", new TagValueList().setList(Arrays.asList("val5", "val6")));
+
+        ServiceIdentity newService = new ServiceIdentity().setName("newService").setTags(newServiceTags);
+
+        Mockito.when(conn.updateServiceIdentity("sys.auth", newService)).thenReturn(true);
+        Mockito.when(conn.deleteServiceTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertServiceTags(anyString(), anyString(), anyMap())).thenReturn(true);
+
+
+        success = zms.dbService.processServiceIdentity(null, conn, service, "sys.auth", "newService",
+                newService, false, auditDetails);
+
+        assertTrue(success);
+
+        // assert tags to remove
+        Set<String> expectedTagsToBeRemoved = new HashSet<>(Collections.singletonList("tagToBeRemoved")) ;
+
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> serviceCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deleteServiceTags(serviceCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newService", serviceCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
+
+        // assert tags to add
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(2)).insertServiceTags(serviceCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals("newService", serviceCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
+        assertTrue(resultInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("val3", "val4", "val5", "val6")));
+
+        // assert first tag insertion
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertTrue(resultFirstInsertTags.keySet().containsAll(Arrays.asList("tagKey", "tagToBeRemoved")));
+        assertTrue(resultFirstInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("val0", "val1", "val2")));
+    }
+
+    @Test
+    public void testServiceSameTagKeyValues() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> serviceTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        ServiceIdentity service = new ServiceIdentity().setName("service").setTags(serviceTags);
+        Mockito.when(conn.insertServiceIdentity(anyString(), any())).thenReturn(true);
+        Mockito.when(conn.insertServiceTags(anyString(), anyString(), any())).thenReturn(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+
+        boolean success = zms.dbService.processServiceIdentity(null, conn, null, "sys.auth", "newService",
+                service, false, auditDetails);
+
+        assertTrue(success);
+
+        // process the same service again with the same tags
+        ServiceIdentity newService = new ServiceIdentity().setName("service").setTags(serviceTags);
+
+        Mockito.when(conn.updateServiceIdentity("sys.auth", newService)).thenReturn(true);
+        Mockito.when(conn.deleteServiceTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertServiceTags(anyString(), anyString(), anyMap())).thenReturn(true);
+
+        success = zms.dbService.processServiceIdentity(null, conn, service, "sys.auth", "newService",
+                newService, false, auditDetails);
+
+        assertTrue(success);
+
+        // assert tags to remove should be empty
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> serviceCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deleteServiceTags(serviceCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newService", serviceCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().isEmpty());
+
+        // assert tags to add should be empty
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(2)).insertServiceTags(serviceCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals("newService", serviceCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.isEmpty());
+
+        // asert first tag insertion
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertTrue(resultFirstInsertTags.containsKey("tagKey"));
+        assertTrue(resultFirstInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .contains("tagVal"));
+
+    }
+
+    @Test
     public void testRoleSameTagKeyValues() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
