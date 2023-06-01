@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts;
+package com.yahoo.athenz.creds.gcp;
 
-public class AWSLambdaIdentity extends CloudIdentity {
+import com.yahoo.athenz.zts.CloudIdentity;
+
+public class GCPFunctionIdentity extends CloudIdentity {
 }

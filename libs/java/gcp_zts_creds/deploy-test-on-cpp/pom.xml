@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright The Athenz Authors
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+        http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.yahoo.athenz</groupId>
+  <artifactId>athenz-gcf-sia-tester</artifactId>
+  <version>1.0.0</version>
+  <name>athenz-gcf-sia-tester</name>
+  <description>A GCF that demonstrates fetching a SIA certificate from ZTS</description>
+  <packaging>jar</packaging>
+
+  <properties>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.cloud.functions</groupId>
+      <artifactId>functions-framework-api</artifactId>
+      <version>1.0.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>5.0.0</version>
+    </dependency>
+
+    <!-- The sources of these are copied to our directory, so these are only for sub-dependencies -->
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-zts-java-client</artifactId>
+      <version>1.11.30</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-cert-refresher</artifactId>
+      <version>1.11.30</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-auth-core</artifactId>
+      <version>1.11.30</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yahoo.athenz</groupId>
+      <artifactId>athenz-gcp-zts-creds</artifactId>
+      <version>1.11.30</version>
+    </dependency>
+
+
+  <!--    <dependency>-->
+<!--      <groupId>org.slf4j</groupId>-->
+<!--      <artifactId>slf4j-api</artifactId>-->
+<!--      <version>1.7.30</version>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>ch.qos.logback</groupId>-->
+<!--      <artifactId>logback-classic</artifactId>-->
+<!--      <version>1.2.3</version>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.slf4j</groupId>-->
+<!--          <artifactId>slf4j-api</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!--
+          Google Cloud Functions Framework Maven plugin
+
+          This plugin allows you to run Cloud Functions Java code
+          locally. Use the following terminal command to run a
+          given function locally:
+
+          mvn function:run -Drun.functionTarget=your.package.yourFunction
+        -->
+        <groupId>com.google.cloud.functions</groupId>
+        <artifactId>function-maven-plugin</artifactId>
+        <version>0.10.1</version>
+        <configuration>
+          <functionTarget>GcfSiaTest</functionTarget>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
