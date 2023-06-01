@@ -4078,7 +4078,8 @@ public class DBService implements RolesProvider {
                 for (RoleMember roleMember : originalRole.getRoleMembers()) {
                     final String memberName = roleMember.getMemberName();
                     if (ZMSUtils.principalType(memberName, zmsConfig.getUserDomainPrefix(),
-                            zmsConfig.getAddlUserCheckDomainPrefixList()) != Principal.Type.GROUP) {
+                            zmsConfig.getAddlUserCheckDomainPrefixList(),
+                            zmsConfig.getHeadlessUserDomainPrefix()) != Principal.Type.GROUP) {
                         continue;
                     }
 
@@ -5239,7 +5240,8 @@ public class DBService implements RolesProvider {
         }
 
         athenzDomain = con.getAthenzDomain(domainName);
-        athenzDomain.setRoleMemberPrincipalTypes(zmsConfig.getUserDomainPrefix(), zmsConfig.getAddlUserCheckDomainPrefixList());
+        athenzDomain.setRoleMemberPrincipalTypes(zmsConfig.getUserDomainPrefix(),
+                zmsConfig.getAddlUserCheckDomainPrefixList(), zmsConfig.getHeadlessUserDomainPrefix());
 
         DataCache dataCache = new DataCache(athenzDomain,
                 athenzDomain.getDomain().getModified().millis());
@@ -6393,7 +6395,7 @@ public class DBService implements RolesProvider {
             boolean dueDateUpdated = false;
 
             switch (ZMSUtils.principalType(nameGetter.apply(member), zmsConfig.getUserDomainPrefix(),
-                    zmsConfig.getAddlUserCheckDomainPrefixList())) {
+                    zmsConfig.getAddlUserCheckDomainPrefixList(), zmsConfig.getHeadlessUserDomainPrefix())) {
 
                 case USER:
 
@@ -6434,6 +6436,7 @@ public class DBService implements RolesProvider {
                     break;
 
                 case SERVICE:
+                case USER_HEADLESS:
 
                     if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
                         expirationSetter.accept(member, serviceExpiration);
@@ -7524,6 +7527,7 @@ public class DBService implements RolesProvider {
                 dueDateMills = memberDueDays.getUserDueDateMillis();
                 break;
             case SERVICE:
+            case USER_HEADLESS:
                 dueDateMills = memberDueDays.getServiceDueDateMillis();
                 break;
             case GROUP:

@@ -25,6 +25,7 @@ public class ZMSConfig {
     private String serverHostName;
     private String userDomain;
     private String userDomainPrefix;
+    private String headlessUserDomainPrefix;
     private List<String> addlUserCheckDomainPrefixList;
     private SolutionTemplates serverSolutionTemplates;
     private Authority userAuthority;
@@ -43,6 +44,14 @@ public class ZMSConfig {
 
     public void setUserDomainPrefix(String userDomainPrefix) {
         this.userDomainPrefix = userDomainPrefix;
+    }
+
+    public String getHeadlessUserDomainPrefix() {
+        return headlessUserDomainPrefix;
+    }
+
+    public void setHeadlessUserDomainPrefix(String headlessUserDomainPrefix) {
+        this.headlessUserDomainPrefix = headlessUserDomainPrefix;
     }
 
     public List<String> getAddlUserCheckDomainPrefixList() {
