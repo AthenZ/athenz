@@ -22,9 +22,11 @@ public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
 
-    public static final String ZMS_PROP_USER_DOMAIN       = "athenz.user_domain";
-    public static final String ZMS_PROP_HOME_DOMAIN       = "athenz.home_domain";
-    public static final String ZMS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
+    public static final String ZMS_PROP_USER_DOMAIN          = "athenz.user_domain";
+    public static final String ZMS_PROP_HOME_DOMAIN          = "athenz.home_domain";
+    public static final String ZMS_PROP_HEADLESS_USER_DOMAIN = "athenz.headless_user_domain";
+    public static final String ZMS_PROP_USER_DOMAIN_ALIAS    = "athenz.user_domain_alias";
+
     public static final String ZMS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZMS_PROP_STATUS_PORT       = "athenz.status_port";
