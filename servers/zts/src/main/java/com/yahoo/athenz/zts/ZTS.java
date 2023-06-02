@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 
 public class ZTS extends ResourceConfig {
     public ZTS() {
@@ -25,5 +26,6 @@ public class ZTS extends ResourceConfig {
         register(JsonProcessingExceptionMapper.class, 1);
         register(ZTSResources.class);
         register(ZTSBinder.getInstance());
+        property(ServerProperties.WADL_FEATURE_DISABLE, true);
     }
 }
