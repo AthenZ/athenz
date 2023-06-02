@@ -77,7 +77,7 @@ class Member extends React.Component {
         }
         let review = this.props.item.reviewReminder;
         if (review) {
-            review = this.localDate.getLocalDate(exp, this.props.timeZone, this.props.timeZone);
+            review = this.localDate.getLocalDate(review, this.props.timeZone, this.props.timeZone);
         }
 
         let fullName = '';
