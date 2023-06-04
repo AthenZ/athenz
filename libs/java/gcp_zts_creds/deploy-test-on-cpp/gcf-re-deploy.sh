@@ -15,11 +15,49 @@ trap '
     echo
   ' EXIT
 
-# Pre-compile to catch errors early.
+# Optionally - compile the whole of athenz.
+read -rp "Do you want to build the whole of athenz? this is required if you didn't already, or if athenz code is changed. This will take ~5 minutes (y/n) ? " CONFIRM
+if [[ "$CONFIRM" == "y" ]] ; then
+  (
+    set -x
+    cd ../../../..
+    time mvn compile -Dmaven.test.skip=true -Djacoco.skip=true
+  )
+fi
+
+# Compile deploy-test-on-cpp into a war,
+#  and from that war - build the directory target/gcp-upload -
+#  which is suitable to be deployed into CGP.
+# See https://cloud.google.com/functions/docs/concepts/java-deploy#build_and_deploy_a_thin_jar_with_external_dependencies
 (
   set -x
-  mvn compile
+
+  # Build and explode jar-file into target/jar-explode/
+  mvn package
+  rm -rf target/jar-explode
+  mkdir -p target/jar-explode
+  ( cd target/jar-explode ; unzip ../athenz-gcf-sia-tester-*.jar )
+
+  # Since the jar-file don't include the dependency-jars, the easiest way to get them is to build a war-file.
+  # Build and explode war-file into target/war-explode/
+  (
+    POM_FILE="pom.war.xml"
+    sed 's|<packaging>jar</packaging>|<packaging>war</packaging>|' pom.xml > "$POM_FILE"
+    trap 'rm -f "$POM_FILE"' EXIT
+    mvn --file "$POM_FILE" package
+  )
+  rm -rf target/war-explode
+  mkdir -p target/war-explode
+  ( cd target/war-explode ; unzip ../athenz-gcf-sia-tester-*.war )
+
+  # Copy dependency-jars into target/gcp-upload/libs/
+  rm -rf target/gcp-upload
+  mkdir -p target/gcp-upload
+
+  mv target/athenz-gcf-sia-tester-*.jar target/gcp-upload/
+  mv target/war-explode/WEB-INF/lib target/gcp-upload/libs
 )
+
 
 
 # Ensure the Serverless VPC Access API is enabled for your project:
@@ -122,6 +160,7 @@ echo "Deploying Cloud-Function..."
       --egress-settings "all" \
       --env-vars-file "$ENV_VARS_YAML" \
       --entry-point GcfSiaTest \
+      --source target/gcp-upload \
       --runtime java17 \
       --memory=256M \
 )

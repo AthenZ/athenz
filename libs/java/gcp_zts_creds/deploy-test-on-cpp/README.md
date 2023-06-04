@@ -1,4 +1,4 @@
-# Deploy a GCF (Google Cloud Function) to that gets SIA certs
+# Deploy a test GCF (Google Cloud Function) that gets SIA certs
 
 1. Edit configurations at [common.sh](common.sh)
 2. Execute [gcf-re-deploy.sh](gcf-re-deploy.sh) to deploy the GCF.
