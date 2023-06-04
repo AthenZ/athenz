@@ -132,8 +132,6 @@ libs/nodejs/auth_core/package-lock.json
 .clover/
 athenz-docker-build.log
 
-/libs/java/gcp_zts_creds/deploy-test-on-cpp/src/main/java/com/yahoo/athenz
-
 # Logs
 logs
 *.log
