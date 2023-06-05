@@ -2,7 +2,7 @@
 set -o pipefail
 
 cd "$( dirname "$0" )"
-. common.sh
+. common-wrapper.sh
 
 
 time (

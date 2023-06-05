@@ -62,6 +62,7 @@ libs/go/athenzconf/pkg/
 libs/java/client_common/bin/
 libs/java/server_common/bin/
 libs/java/auth_core/bin/
+libs/java/gcp_zts_creds/deploy-test-on-cpp/common.yaml
 libs/nodejs/auth_core/node_modules/
 libs/nodejs/auth_core/artifacts/
 libs/nodejs/auth_core/.eslintcodecache

@@ -2,7 +2,7 @@
 set -o pipefail
 
 cd "$( dirname "$0" )"
-. common.sh
+. common-wrapper.sh
 
 # Log header and footer.
 echo
@@ -70,27 +70,6 @@ fi
 # Default:   gcloud resource-manager tags bindings delete --tag-value=tagValues/281484611371492 --parent=//cloudresourcemanager.googleapis.com/projects/gcp-calypso-nonprod
 
 
-# ===================================    GCF ENV VARS    ===================================
-
-# $ENV_VARS_YAML will contain a YAML representation of common.sh - something like this:
-#     GCP_PROJECT_ID: gcp-calypso-nonprod
-#     GCP_REGION: us-west1
-#     ...
-ENV_VARS_YAML="$( mktemp /tmp/gcf-env-vars.yaml.XXXXXXXXXX )"
-(
-  {
-    gawk '
-        match($0, /^\s*export\s+([A-Za-z0-9_]+)=/, m) {
-          print m[1];
-        }
-      ' common.sh
-    echo "SIA_VERSION"
-  } |
-  while read -r VAR_NAME ; do
-    echo "$VAR_NAME: \"$( eval "echo \"\$$VAR_NAME\"" )\""
-  done
-) > "$ENV_VARS_YAML"
-
 # ===================================    VPC CONNECTOR    ===================================
 
 echo "Make sure a VPC-Connector \"$GCP_VPC_CONNECTOR_ID\" exists"
@@ -147,6 +126,15 @@ fi
 # ===================================    DEPLOY    ===================================
 
 echo "Deploying Cloud-Function..."
+ENV_VARS_YAML="$( mktemp /tmp/gcf-env-vars.yaml.XXXXXXXXXX )"
+echo "
+    ATHENZ_DOMAIN: \"$ATHENZ_DOMAIN\"
+    ATHENZ_SERVICE: \"$ATHENZ_SERVICE\"
+    GCP_PROJECT_ID: \"$GCP_PROJECT_ID\"
+    GCP_REGION: \"$GCP_REGION\"
+    ZTS_URL: \"$ZTS_URL\"
+  " > "$ENV_VARS_YAML"
+SERVICE_ACCOUNT="$ATHENZ_SERVICE@$GCP_PROJECT_ID.iam.gserviceaccount.com"
 (
   set -x
   time gcloud functions deploy "$GCP_FUNCTION_NAME" \
