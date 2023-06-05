@@ -25,7 +25,7 @@ if [[ "$CONFIRM" == "y" ]] ; then
   )
 fi
 
-# Compile deploy-test-on-cpp into a war,
+# Compile deploy-java-test-on-gcp into a war,
 #  and from that war - build the directory target/gcp-upload -
 #  which is suitable to be deployed into CGP.
 # See https://cloud.google.com/functions/docs/concepts/java-deploy#build_and_deploy_a_thin_jar_with_external_dependencies
