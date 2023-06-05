@@ -16,21 +16,16 @@
 
 package com.yahoo.athenz.zms;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
-
-import static org.testng.Assert.*;
-import static org.testng.Assert.assertFalse;
-
 import org.testng.annotations.Test;
 
 import java.util.*;
+
+import static org.testng.Assert.*;
 
 public class ZMSCoreTest {
 
@@ -744,7 +739,8 @@ public class ZMSCoreTest {
         ServiceIdentity si = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
                 .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
-                .setDescription("description");
+                .setDescription("description")
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         result = validator.validate(si, "ServiceIdentity");
         assertTrue(result.valid);
 
@@ -757,33 +753,57 @@ public class ZMSCoreTest {
         assertEquals(si.getUser(), "user.test");
         assertEquals(si.getGroup(), "test.group");
         assertEquals(si.getDescription(), "description");
+        assertEquals(si.getTags().get("tagKey").getList().get(0), "tagValue");
 
         ServiceIdentity si2 = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
                 .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
-                .setDescription("description");
+                .setDescription("description")
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(si2.equals(si));
         assertTrue(si.equals(si));
 
         si2.setGroup(null);
         assertFalse(si2.equals(si));
+        si2.setGroup(si.getGroup());
+        assertTrue(si2.equals(si));
         si2.setUser(null);
         assertFalse(si2.equals(si));
+        si2.setUser(si.getUser());
+        assertTrue(si2.equals(si));
         si2.setHosts(null);
         assertFalse(si2.equals(si));
+        si2.setHosts(si.getHosts());
+        assertTrue(si2.equals(si));
         si2.setExecutable(null);
         assertFalse(si2.equals(si));
+        si2.setExecutable(si.getExecutable());
+        assertTrue(si2.equals(si));
         si2.setModified(null);
         assertFalse(si2.equals(si));
+        si2.setModified(si.getModified());
+        assertTrue(si2.equals(si));
         si2.setProviderEndpoint(null);
         assertFalse(si2.equals(si));
+        si2.setProviderEndpoint(si.getProviderEndpoint());
+        assertTrue(si2.equals(si));
         si2.setPublicKeys(null);
         assertFalse(si2.equals(si));
+        si2.setPublicKeys(si.getPublicKeys());
+        assertTrue(si2.equals(si));
         si2.setDescription(null);
         assertFalse(si2.equals(si));
+        si2.setDescription(si.getDescription());
+        assertTrue(si2.equals(si));
         si2.setName(null);
         assertFalse(si2.equals(si));
+        si2.setName(si.getName());
+        assertTrue(si2.equals(si));
+        si2.setTags(null);
+        assertFalse(si2.equals(si));
+        si2.setTags(si.getTags());
+        assertTrue(si2.equals(si));
         assertFalse(si.equals(new String()));
 
         List<ServiceIdentity> sil = Arrays.asList(si);

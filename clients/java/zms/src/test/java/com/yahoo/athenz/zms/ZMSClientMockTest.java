@@ -15,32 +15,24 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.List;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.stream.Collectors;
-
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-import org.testng.annotations.BeforeMethod;
-
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.ArgumentMatchers;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.testng.Assert.*;
 
 @SuppressWarnings("RedundantThrows")
 public class ZMSClientMockTest {
@@ -1023,6 +1015,24 @@ public class ZMSClientMockTest {
             .setUser("root")
             .setHosts(hosts);
 
+        TagValueList tagValues1 = new TagValueList();
+        TagValueList tagValues2 = new TagValueList();
+        tagValues1.setList(Arrays.asList("value1", "value2", "value3"));
+        tagValues2.setList(Arrays.asList("value4", "value5"));
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.putIfAbsent("key1", tagValues1);
+        tags.putIfAbsent("key2", tagValues2);
+
+        ServiceIdentity serviceWithTagsOnly = new ServiceIdentity();
+        serviceWithTagsOnly.setName(domName + ".service-tags-only")
+                .setGroup("users")
+                .setExecutable("/usr/bin/jetty")
+                .setModified(Timestamp.fromCurrentTime())
+                .setUser("root")
+                .setTags(tags);
+
+
+
         List<ServiceIdentity> retListWithKeysHosts = new ArrayList<>();
         retListWithKeysHosts.add(serviceWithKeysHosts);
         ServiceIdentities retServicesWithKeysHosts = new ServiceIdentities().setList(retListWithKeysHosts);
@@ -1035,13 +1045,18 @@ public class ZMSClientMockTest {
         retListWithHostsOnly.add(serviceWithHostsOnly);
         ServiceIdentities retServicesWithHostsOnly = new ServiceIdentities().setList(retListWithHostsOnly);
 
-        Mockito.doReturn(retServicesWithKeysHosts).when(mockZMS).getServiceIdentities(domName, true, true);
-        Mockito.doReturn(retServicesWithKeysOnly).when(mockZMS).getServiceIdentities(domName, true, false);
-        Mockito.doReturn(retServicesWithHostsOnly).when(mockZMS).getServiceIdentities(domName, false, true);
+        List<ServiceIdentity> retListWithTagsOnly = new ArrayList<>();
+        retListWithTagsOnly.add(serviceWithTagsOnly);
+        ServiceIdentities retServicesWithTagsOnly = new ServiceIdentities().setList(retListWithTagsOnly);
+
+        Mockito.doReturn(retServicesWithKeysHosts).when(mockZMS).getServiceIdentities(domName, true, true, null, null);
+        Mockito.doReturn(retServicesWithKeysOnly).when(mockZMS).getServiceIdentities(domName, true, false, null ,null);
+        Mockito.doReturn(retServicesWithHostsOnly).when(mockZMS).getServiceIdentities(domName, false, true, null, null);
+        Mockito.doReturn(retServicesWithTagsOnly).when(mockZMS).getServiceIdentities(domName, false, false, "key1",  null);
 
         // first request with keys and hosts option set
 
-        ServiceIdentities services = zclt.getServiceIdentities(domName, true, true);
+        ServiceIdentities services = zclt.getServiceIdentities(domName, true, true, null ,null);
         assertNotNull(services);
         assertNotNull(services.getList());
 
@@ -1065,7 +1080,7 @@ public class ZMSClientMockTest {
 
         // next with only key option
 
-        services = zclt.getServiceIdentities(domName, true, false);
+        services = zclt.getServiceIdentities(domName, true, false, null, null);
         assertNotNull(services);
         assertNotNull(services.getList());
 
@@ -1086,7 +1101,7 @@ public class ZMSClientMockTest {
 
         // next with only host option
 
-        services = zclt.getServiceIdentities(domName, false, true);
+        services = zclt.getServiceIdentities(domName, false, true, null, null);
         assertNotNull(services);
         assertNotNull(services.getList());
 
@@ -1099,6 +1114,26 @@ public class ZMSClientMockTest {
                 assertNotNull(testHosts);
                 assertEquals(testHosts.size(), 1);
                 assertEquals(testHosts.get(0), "host1");
+                serviceCheck = true;
+            }
+        }
+        assertTrue(serviceCheck);
+
+        services = zclt.getServiceIdentities(domName, false, false, "key1", null);
+        assertNotNull(services);
+        assertNotNull(services.getList());
+
+        serviceCheck = false;
+        for (ServiceIdentity service : services.getList()) {
+            if ("get-services.service-tags-only".equals(service.getName())) {
+                assertNotNull(service.getModified());
+                assertNull(service.getPublicKeys());
+                assertNull(service.getHosts());
+                Map<String, TagValueList> testTags = service.getTags();
+                assertNotNull(testTags);
+                assertEquals(testTags.size(), 2);
+                assertEquals(testTags.get("key1").getList(), Arrays.asList("value1", "value2", "value3"));
+                assertEquals(testTags.get("key2").getList(), Arrays.asList("value4", "value5"));
                 serviceCheck = true;
             }
         }

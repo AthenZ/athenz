@@ -5889,7 +5889,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteServiceIdentity(ctx, domainName, serviceName, auditRef, caller);
     }
 
-    List<ServiceIdentity> setupServiceIdentityList(AthenzDomain domain, Boolean publicKeys, Boolean hosts) {
+    List<ServiceIdentity> setupServiceIdentityList(AthenzDomain domain, Boolean publicKeys, Boolean hosts, String tagKey, String tagValue) {
 
         // if we're asked to return the public keys and hosts as well then we
         // just need to return the data as is without any modifications
@@ -5907,7 +5907,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setExecutable(service.getExecutable())
                         .setGroup(service.getGroup())
                         .setUser(service.getUser())
-                        .setProviderEndpoint(service.getProviderEndpoint());
+                        .setProviderEndpoint(service.getProviderEndpoint())
+                        .setTags(service.getTags());
                 if (publicKeys == Boolean.TRUE) {
                     newService.setPublicKeys(service.getPublicKeys());
                 } else if (hosts == Boolean.TRUE) {
@@ -5917,11 +5918,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
+        if (tagKey != null) {
+            services = services.stream()
+                    .filter(service -> filterByTag(tagKey, tagValue, service, ServiceIdentity::getTags))
+                    .collect(Collectors.toList());
+        }
+
         return services;
     }
 
     public ServiceIdentities getServiceIdentities(ResourceContext ctx, String domainName,
-            Boolean publicKeys, Boolean hosts) {
+            Boolean publicKeys, Boolean hosts, String tagKey, String tagValue) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5944,7 +5951,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     + domainName + "'", caller);
         }
 
-        result.setList(setupServiceIdentityList(domain, publicKeys, hosts));
+        result.setList(setupServiceIdentityList(domain, publicKeys, hosts, tagKey, tagValue));
         return result;
     }
 

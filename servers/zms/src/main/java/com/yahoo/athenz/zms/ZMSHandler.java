@@ -3,11 +3,11 @@
 //
 package com.yahoo.athenz.zms;
 
-import com.yahoo.rdl.*;
-import jakarta.ws.rs.core.Response;
+import com.yahoo.rdl.Schema;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
 
 //
 // ZMSHandler is the interface that the service implementation must implement
@@ -88,7 +88,7 @@ public interface ZMSHandler {
     Response putServiceIdentity(ResourceContext context, String domain, String service, String auditRef, Boolean returnObj, ServiceIdentity detail);
     ServiceIdentity getServiceIdentity(ResourceContext context, String domain, String service);
     void deleteServiceIdentity(ResourceContext context, String domain, String service, String auditRef);
-    ServiceIdentities getServiceIdentities(ResourceContext context, String domainName, Boolean publickeys, Boolean hosts);
+    ServiceIdentities getServiceIdentities(ResourceContext context, String domainName, Boolean publickeys, Boolean hosts, String tagKey, String tagValue);
     ServiceIdentityList getServiceIdentityList(ResourceContext context, String domainName, Integer limit, String skip);
     PublicKeyEntry getPublicKeyEntry(ResourceContext context, String domain, String service, String id);
     void putPublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef, PublicKeyEntry publicKeyEntry);

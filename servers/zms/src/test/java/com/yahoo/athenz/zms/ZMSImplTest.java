@@ -62,16 +62,15 @@ import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Response;
 import org.hamcrest.CoreMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.*;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.core.EntityTag;
-import jakarta.ws.rs.core.Response;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -18954,7 +18953,7 @@ public class ZMSImplTest {
                 auditRef, false, service2);
 
         ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx,
-                domainName, Boolean.TRUE, Boolean.TRUE);
+                domainName, Boolean.TRUE, Boolean.TRUE, null, null);
         List<ServiceIdentity> services = serviceList.getList();
         assertEquals(2, services.size());
 
@@ -18998,7 +18997,7 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.getServiceIdentities(ctx, domainName,
-                    Boolean.TRUE, Boolean.TRUE);
+                    Boolean.TRUE, Boolean.TRUE, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -19029,7 +19028,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
-                Boolean.TRUE, Boolean.TRUE);
+                Boolean.TRUE, Boolean.TRUE, null, null);
         assertEquals(2, services.size());
 
         boolean service1Check = false;
@@ -19086,7 +19085,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
-                Boolean.FALSE, Boolean.FALSE);
+                Boolean.FALSE, Boolean.FALSE, null, null);
         assertEquals(2, services.size());
 
         boolean service1Check = false;
@@ -19141,7 +19140,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
-                Boolean.TRUE, Boolean.FALSE);
+                Boolean.TRUE, Boolean.FALSE, null, null);
         assertEquals(2, services.size());
 
         boolean service1Check = false;
@@ -19196,7 +19195,7 @@ public class ZMSImplTest {
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
         List<ServiceIdentity> services = zmsImpl.setupServiceIdentityList(domain,
-                Boolean.FALSE, Boolean.TRUE);
+                Boolean.FALSE, Boolean.TRUE, null, null);
         assertEquals(2, services.size());
 
         boolean service1Check = false;

@@ -313,8 +313,7 @@ public class ZMSSchema {
             .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
             .field("active", "Bool", true, "if multi-version policy then indicates active version")
-            .field("description", "String", true, "a description of the policy")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .field("description", "String", true, "a description of the policy");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")
@@ -2374,6 +2373,8 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("publickeys", "publickeys", "Bool", false, "return list of public keys in the service")
             .queryParam("hosts", "hosts", "Bool", false, "return list of hosts in the service")
+            .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all groups that have a given tagName")
+            .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all groups that have a given tag name and value")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

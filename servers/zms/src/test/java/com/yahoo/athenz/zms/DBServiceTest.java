@@ -7118,6 +7118,17 @@ public class DBServiceTest {
         Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
                 Mockito.any(), Mockito.anyString())).thenReturn(false);
 
+        Group group1 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        Group group2 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        group2.setMemberExpiryDays(3);
+        Group group3 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        group3.setGroupMembers(null);
+        List<Group> groupList = new ArrayList<>();
+        groupList.add(group1);
+        groupList.add(group2);
+        groupList.add(group3);
+        athenzDomain.setGroups(groupList);
+
         // we're going to make sure to throw an exception here
         // since this should never be called
 

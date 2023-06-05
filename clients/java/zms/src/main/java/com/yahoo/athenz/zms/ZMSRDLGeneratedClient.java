@@ -6,6 +6,7 @@ package com.yahoo.athenz.zms;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.rdl.Schema;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
@@ -28,7 +29,6 @@ import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
-import com.yahoo.rdl.Schema;
 
 public class ZMSRDLGeneratedClient {
 
@@ -2686,7 +2686,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public ServiceIdentities getServiceIdentities(String domainName, Boolean publickeys, Boolean hosts) throws URISyntaxException, IOException {
+    public ServiceIdentities getServiceIdentities(String domainName, Boolean publickeys, Boolean hosts, String tagKey, String tagValue) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/services")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -2695,6 +2695,12 @@ public class ZMSRDLGeneratedClient {
         }
         if (hosts != null) {
             uriBuilder.setParameter("hosts", String.valueOf(hosts));
+        }
+        if (tagKey != null) {
+            uriBuilder.setParameter("tagKey", tagKey);
+        }
+        if (tagValue != null) {
+            uriBuilder.setParameter("tagValue", tagValue);
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())

@@ -35,7 +35,7 @@ public interface ObjectStoreConnection extends Closeable {
     void rollbackChanges();
     void close();
     void setOperationTimeout(int opTimout);
-    void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
+    void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int serviceLimit);
 
     // Domain commands
 

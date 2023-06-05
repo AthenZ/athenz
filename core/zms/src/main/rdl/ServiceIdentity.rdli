@@ -56,10 +56,12 @@ resource ServiceIdentity DELETE "/domain/{domain}/service/{service}" {
 }
 
 //Retrieve list of service identities
-resource ServiceIdentities GET "/domain/{domainName}/services?publickeys={publickeys}&hosts={hosts}" {
+resource ServiceIdentities GET "/domain/{domainName}/services?publickeys={publickeys}&hosts={hosts}&tagKey={tagKey}&tagValue={tagValue}" {
     DomainName domainName; //name of the domain
     Bool publickeys (optional, default=false); // return list of public keys in the service
     Bool hosts (optional, default=false); // return list of hosts in the service
+    CompoundName tagKey (optional); //flag to query all groups that have a given tagName
+    CompoundName tagValue (optional); //flag to query all groups that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

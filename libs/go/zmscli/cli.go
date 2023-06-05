@@ -677,6 +677,24 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteService(dn, args[0])
 			}
+		case "add-service-tag":
+			if argc >= 3 {
+				return cli.AddServiceTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-service-tag":
+			if argc == 2 {
+				return cli.DeleteServiceTags(dn, args[0], args[1], "")
+			} else if argc == 3 {
+				return cli.DeleteServiceTags(dn, args[0], args[1], args[2])
+			}
+		case "show-services":
+			if argc == 0 {
+				return cli.ShowServices(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowServices(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowServices(dn, args[0], args[1])
+			}
 		case "list-entity", "list-entities":
 			if argc == 0 {
 				return cli.ListEntities(dn)

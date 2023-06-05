@@ -2829,9 +2829,9 @@ func (client ZMSClient) DeleteServiceIdentity(domain DomainName, service SimpleN
 	}
 }
 
-func (client ZMSClient) GetServiceIdentities(domainName DomainName, publickeys *bool, hosts *bool) (*ServiceIdentities, error) {
+func (client ZMSClient) GetServiceIdentities(domainName DomainName, publickeys *bool, hosts *bool, tagKey CompoundName, tagValue CompoundName) (*ServiceIdentities, error) {
 	var data *ServiceIdentities
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/services" + encodeParams(encodeOptionalBoolParam("publickeys", publickeys), encodeOptionalBoolParam("hosts", hosts))
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/services" + encodeParams(encodeOptionalBoolParam("publickeys", publickeys), encodeOptionalBoolParam("hosts", hosts), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

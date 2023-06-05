@@ -69,6 +69,100 @@ func (cli Zms) ShowUpdatedService(service *zms.ServiceIdentity) (*string, error)
 	return cli.dumpByFormat(service, oldYamlConverter)
 }
 
+func (cli Zms) DeleteServiceTags(dn string, sn, tagKey string, tagValue string) (*string, error) {
+	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn))
+	if err != nil {
+		return nil, err
+	}
+	//meta := getServiceMeta(service)
+
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+	if service.Tags == nil {
+		service.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	}
+
+	// except given tagValue, set the same tags map
+	if tagValue != "" && service.Tags != nil {
+		currentTagValues := service.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			for _, curTagValue := range currentTagValues.List {
+				if tagValue != string(curTagValue) {
+					tagValueArr = append(tagValueArr, curTagValue)
+				}
+			}
+		}
+	}
+
+	service.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	returnObj := false
+
+	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, service)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " tags successfully deleted]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) AddServiceTags(dn string, sn, tagKey string, tagValues []string) (*string, error) {
+	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn))
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+
+	if service.Tags == nil {
+		service.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	} else {
+		// append current tags
+		currentTagValues := service.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			tagValueArr = append(tagValueArr, currentTagValues.List...)
+		}
+	}
+
+	for _, tagValue := range tagValues {
+		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
+	}
+
+	service.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	returnObj := false
+	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, service)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " tags successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) ShowServices(dn string, tagKey string, tagValue string) (*string, error) {
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
+		publicKeys := true
+		hosts := true
+		services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publicKeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		if err != nil {
+			return nil, fmt.Errorf("unable to get service list - error: %v", err)
+		}
+		return cli.dumpByFormat(services, cli.buildYAMLOutput)
+	} else {
+		var buf bytes.Buffer
+		cli.dumpServices(&buf, dn, tagKey, tagValue)
+		s := buf.String()
+		return &s, nil
+	}
+}
+
 func (cli Zms) AddService(dn string, sn string, keyID string, pubKey *string) (*string, error) {
 	shortName := shortname(dn, sn)
 	if !cli.Overwrite {

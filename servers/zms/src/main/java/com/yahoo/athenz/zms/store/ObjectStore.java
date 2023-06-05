@@ -42,7 +42,7 @@ public interface ObjectStore {
      * @param roleLimit role tags limit
      * @param groupLimit group tags limit
      */
-    void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
+    void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int serviceLimit);
 
     /**
      * Set uniqueness checks options for the object store.

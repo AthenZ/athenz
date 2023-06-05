@@ -117,6 +117,7 @@ public class DBService implements RolesProvider {
         int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int serviceTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_SERVICE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
 
         DomainOptions domainOptions = new DomainOptions();
         domainOptions.setEnforceUniqueAWSAccounts(Boolean.parseBoolean(
@@ -130,7 +131,7 @@ public class DBService implements RolesProvider {
 
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
-            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, serviceTagsLimit);
             this.store.setDomainOptions(domainOptions);
         }
 
@@ -2892,7 +2893,7 @@ public class DBService implements RolesProvider {
                 service.setHosts(hosts);
             }
 
-            Map<String, TagValueList> serviceTags = con.getRoleTags(domainName, serviceName);
+            Map<String, TagValueList> serviceTags = con.getServiceTags(domainName, serviceName);
             if (serviceTags != null) {
                 service.setTags(serviceTags);
             }

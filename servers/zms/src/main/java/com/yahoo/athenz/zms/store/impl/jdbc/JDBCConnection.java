@@ -590,6 +590,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_SERVICE_TAGS = "SELECT st.key, st.value FROM service_tags st "
             + "JOIN service s ON st.service_id = s.service_id JOIN domain ON domain.domain_id=s.domain_id "
             + "WHERE domain.name=? AND s.name=?";
+    private static final String SQL_GET_DOMAIN_SERVICE_TAGS = "SELECT s.name, st.key, st.value FROM service_tags st "
+            + "JOIN service s ON st.service_id = s.service_id JOIN domain ON domain.domain_id=s.domain_id "
+            + "WHERE domain.name=?";
     private static final String SQL_GET_ASSERTION_CONDITIONS = "SELECT assertion_condition.condition_id, "
             + "assertion_condition.key, assertion_condition.operator, assertion_condition.value "
             + "FROM assertion_condition WHERE assertion_condition.assertion_id=? ORDER BY assertion_condition.condition_id;";
@@ -673,10 +676,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit) {
+    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int serviceTagsLimit) {
         this.domainTagsLimit = domainLimit;
         this.roleTagsLimit = roleLimit;
         this.groupTagsLimit = groupLimit;
+        this.serviceTagsLimit = serviceTagsLimit;
     }
 
     @Override
@@ -4059,6 +4063,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
+        // add services tags
+        addTagsToServices(serviceMap, athenzDomain.getName());
+
         athenzDomain.getServices().addAll(serviceMap.values());
     }
 
@@ -6571,12 +6578,26 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private void addTagsToRoles(Map<String, Role> roleMap, String domainName) {
 
+        // TODO change to the generic one
         Map<String, Map<String, TagValueList>> domainRoleTags = getDomainRoleTags(domainName);
         if (domainRoleTags != null) {
             for (Map.Entry<String, Role> roleEntry : roleMap.entrySet()) {
                 Map<String, TagValueList> roleTag = domainRoleTags.get(roleEntry.getKey());
                 if (roleTag != null) {
                     roleEntry.getValue().setTags(roleTag);
+                }
+            }
+        }
+    }
+
+    private void addTagsToServices(Map<String, ServiceIdentity> serviceMap, String domainName) {
+
+        Map<String, Map<String, TagValueList>> domainServiceTags = getDomainResourceTags(domainName, "service", SQL_GET_DOMAIN_SERVICE_TAGS);
+        if (domainServiceTags != null) {
+            for (Map.Entry<String, ServiceIdentity> serviceEntry : serviceMap.entrySet()) {
+                Map<String, TagValueList> serviceTag = domainServiceTags.get(serviceEntry.getKey());
+                if (serviceTag != null) {
+                    serviceEntry.getValue().setTags(serviceTag);
                 }
             }
         }
@@ -6813,6 +6834,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private void addTagsToGroups(Map<String, Group> groupMap, String domainName) {
 
+        //TODO change to the generic one
         Map<String, Map<String, TagValueList>> domainGroupTags = getDomainGroupTags(domainName);
         if (domainGroupTags != null) {
             for (Map.Entry<String, Group> groupEntry : groupMap.entrySet()) {
@@ -6822,6 +6844,31 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         }
+    }
+
+    Map<String, Map<String, TagValueList>> getDomainResourceTags(String domainName, String caller, String sqlStatement) {
+        final String funcCaller = "getDomain" + caller + "Tags";
+        Map<String, Map<String, TagValueList>> domainResourceTags = null;
+
+        try (PreparedStatement ps = con.prepareStatement(sqlStatement)) {
+            ps.setString(1, domainName);
+            try (ResultSet rs = executeQuery(ps, funcCaller)) {
+                while (rs.next()) {
+                    String resourceName = rs.getString(1);
+                    String tagKey = rs.getString(2);
+                    String tagValue = rs.getString(3);
+                    if (domainResourceTags == null) {
+                        domainResourceTags = new HashMap<>();
+                    }
+                    Map<String, TagValueList> resourceTag = domainResourceTags.computeIfAbsent(resourceName, tags -> new HashMap<>());
+                    TagValueList tagValues = resourceTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, funcCaller);
+        }
+        return domainResourceTags;
     }
 
     Map<String, Map<String, TagValueList>> getDomainGroupTags(String domainName) {

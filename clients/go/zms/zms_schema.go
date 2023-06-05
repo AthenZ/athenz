@@ -389,6 +389,7 @@ func init() {
 	tServiceIdentity.ArrayField("hosts", "String", true, "list of host names that this service can run on")
 	tServiceIdentity.Field("user", "String", true, nil, "local (unix) user name this service can run as")
 	tServiceIdentity.Field("group", "String", true, nil, "local (unix) group name this service can run as")
+	tServiceIdentity.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tServiceIdentity.Build())
 
 	tServiceIdentities := rdl.NewStructTypeBuilder("Struct", "ServiceIdentities")
@@ -2150,6 +2151,8 @@ func init() {
 	mGetServiceIdentities.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetServiceIdentities.Input("publickeys", "Bool", false, "publickeys", "", true, false, "return list of public keys in the service")
 	mGetServiceIdentities.Input("hosts", "Bool", false, "hosts", "", true, false, "return list of hosts in the service")
+	mGetServiceIdentities.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all groups that have a given tagName")
+	mGetServiceIdentities.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all groups that have a given tag name and value")
 	mGetServiceIdentities.Auth("", "", true, "")
 	mGetServiceIdentities.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetServiceIdentities.Exception("NOT_FOUND", "ResourceError", "")
