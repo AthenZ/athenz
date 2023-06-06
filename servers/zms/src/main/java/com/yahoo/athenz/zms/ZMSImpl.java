@@ -3989,10 +3989,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // are typically domains (like for ci/cd) where services
         // are dynamic and do not need to be registered in Athenz
 
-        if (!validateServiceMemberSkipDomains.contains(domainName)) {
-            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
-                throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
+        for (String skipDomain : validateServiceMemberSkipDomains) {
+            // first, we perform validation using wildcards
+            if (skipDomain.endsWith("*")) {
+                String skipDomainPrefix = skipDomain.substring(0, skipDomain.length()-1);
+                if (domainName.startsWith(skipDomainPrefix)) {
+                    return;
+                }
             }
+            // then, we conduct a perfect match search
+            if (skipDomain.equals(domainName)) {
+                return;
+            }
+        }
+        // If it reaches here, check if the service exists
+        if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
         }
     }
 
