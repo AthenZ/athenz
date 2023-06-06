@@ -1,3 +1,10 @@
+Athenz v1.11.32 Release / Jun 05, 2023
+--------------------------------------
+
+#2197 support headless user type - managed by user authority but treated like service
+#2198 disable wadl output
+#2199 update java and go dependencies to their latest releases
+
 Athenz v1.11.31 Release / May 30, 2023
 --------------------------------------
 
