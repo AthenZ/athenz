@@ -1,4 +1,4 @@
-# Deploy a test Java GCF (Google Cloud Function) that gets SIA certs
+# Deploy a test NodeJS GCF (Google Cloud Function) that gets SIA certs
 
 1. Edit configurations at [common.yaml](common.yaml)  (just skip this to get an error message that explains what should contain)
 2. Execute [gcf-re-deploy.sh](gcf-re-deploy.sh) to deploy the GCF.

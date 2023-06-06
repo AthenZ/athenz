@@ -68,6 +68,7 @@ libs/nodejs/auth_core/artifacts/
 libs/nodejs/auth_core/.eslintcodecache
 libs/nodejs/auth_core/.nyc_output/
 libs/nodejs/auth_core/artifacts
+libs/nodejs/gcp_zts_creds/deploy-nodejs-test-on-gcp/node_modules
 ui/artifacts/
 ui/keys/
 ui/node_modules/

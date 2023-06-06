@@ -6,7 +6,7 @@ cd "$( dirname "$0" )"
 
 # Log header and footer.
 echo
-echo "============================== DEPLOY version $SIA_VERSION =============================="
+echo "============================== DEPLOY =============================="
 echo
 trap '
     rm -f "'"$ENV_VARS_YAML"'"
