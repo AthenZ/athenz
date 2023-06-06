@@ -43,7 +43,8 @@ async function getSiaCertsDemo() {
     ztsRequestBody.csr = csr;
 
     console.log('CSR:\n', csr);
-    console.log('Private Key:\n', privateKey);
+    console.log('Private Key:\n', privateKey
+    );
 
     // Send CSR to ZTS.
     const ztsResponse = await getCredsFromZts(ztsUrl, ztsRequestBody);
