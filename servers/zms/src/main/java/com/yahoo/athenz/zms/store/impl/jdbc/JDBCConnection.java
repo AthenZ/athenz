@@ -6834,7 +6834,6 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private void addTagsToGroups(Map<String, Group> groupMap, String domainName) {
 
-        //TODO change to the generic one
         Map<String, Map<String, TagValueList>> domainGroupTags = getDomainGroupTags(domainName);
         if (domainGroupTags != null) {
             for (Map.Entry<String, Group> groupEntry : groupMap.entrySet()) {
