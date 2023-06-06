@@ -6984,7 +6984,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         int groupId = getGroupId(domainId, groupName);
         if (groupId == 0) {
-            throw notFoundError(caller, ZMSConsts.OBJECT_GROUP, ResourceUtils.roleResourceName(domainName, groupName));
+            throw notFoundError(caller, ZMSConsts.OBJECT_GROUP, ResourceUtils.groupResourceName(domainName, groupName));
         }
         boolean res = true;
         for (String tagKey : tagKeys) {

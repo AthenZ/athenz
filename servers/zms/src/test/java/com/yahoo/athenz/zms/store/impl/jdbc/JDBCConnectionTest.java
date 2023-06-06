@@ -5159,7 +5159,7 @@ public class JDBCConnectionTest {
 
         // domain
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
-        // role
+        // service
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service");
         // tag
@@ -5169,20 +5169,54 @@ public class JDBCConnectionTest {
         jdbcConn.close();
     }
 
+
     @Test
-    public void testDeleteServiceTagsInvalid() throws Exception {
+    public void testDeleteServiceTagsExceptions() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.getInt(1))
-                .thenReturn(5) // domain id
-                .thenReturn(7); // service id
+                .thenReturn(0) // domain id
+                .thenReturn(7) // domain id
+                .thenReturn(0) //service id
+                .thenReturn(20); //service id
 
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true); // this one is for service id
         Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        Mockito.when(mockConn.prepareStatement(ArgumentMatchers.isA(String.class)))
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenThrow(SQLException.class);
+
         Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
-        assertFalse(jdbcConn.deleteServiceTags("service", "domain", tagKeys));
+
+        try {
+            jdbcConn.deleteServiceTags("service", "domain", tagKeys);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - domain\"}");
+        }
+
+        try {
+            jdbcConn.deleteServiceTags("service", "domain", tagKeys);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown service - domain.service\"}");
+        }
+        try {
+            jdbcConn.deleteServiceTags("service", "domain", tagKeys);
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals(e.getMessage(), "ResourceException (500): {code: 500, message: \"null, state: null, code: 0\"}");
+        }
+
+
         jdbcConn.close();
     }
 
@@ -14344,12 +14378,6 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getInt(1))
-//                .thenAnswer(invocation -> {
-//                    return 0;
-//                })
-//                .thenAnswer(invocation -> {
-//                    return 5;
-//                })
                 .thenReturn(0) // first call domain id
                 .thenReturn(5) // second call domain id
                 .thenReturn(0) // second call for service
@@ -14394,6 +14422,114 @@ public class JDBCConnectionTest {
 
         try {
             jdbcConn.insertServiceTags("service", "domain", serviceTags);
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals(e.getMessage(), "ResourceException (500): {code: 500, message: \"null, state: null, code: 0\"}");
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteGroupTagsExceptions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0) // domain id
+                .thenReturn(7) // domain id
+                .thenReturn(0) //group id
+                .thenReturn(20); //group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+
+        Mockito.when(mockConn.prepareStatement(ArgumentMatchers.isA(String.class)))
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenThrow(SQLException.class);
+
+        Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+
+        try {
+            jdbcConn.deleteGroupTags("group", "domain", tagKeys);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - domain\"}");
+        }
+
+        try {
+            jdbcConn.deleteGroupTags("group", "domain", tagKeys);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown group - domain:group.group\"}");
+        }
+        try {
+            jdbcConn.deleteGroupTags("group", "domain", tagKeys);
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals(e.getMessage(), "ResourceException (500): {code: 500, message: \"null, state: null, code: 0\"}");
+        }
+
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertGroupTagsExceptions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0) // first call domain id
+                .thenReturn(5) // second call domain id
+                .thenReturn(0) // second call for group
+                .thenReturn(20); // third call for group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        Mockito.when(mockConn.prepareStatement(ArgumentMatchers.isA(String.class)))
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenThrow(SQLException.class);
+
+//        Mockito.doThrow(SQLException.class).when(mockConn).prepareStatement(ArgumentMatchers.isA(String.class));
+
+
+        Map<String, TagValueList> groupTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+
+        try {
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - domain\"}");
+        }
+
+        try {
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown group - domain:group.group\"}");
+        }
+
+        try {
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
             fail();
         } catch (RuntimeException e) {
             assertEquals(e.getMessage(), "ResourceException (500): {code: 500, message: \"null, state: null, code: 0\"}");
