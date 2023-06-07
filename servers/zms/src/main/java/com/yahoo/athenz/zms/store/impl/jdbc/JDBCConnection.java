@@ -626,6 +626,17 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " OR D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY))"
             + " limit ? offset ?";
 
+    private static final String SQL_INSERT_POLICY_TAG = "INSERT INTO policy_tags"
+            + "(policy_id, policy_tags.key, policy_tags.value) VALUES (?,?,?);";
+    private static final String SQL_POLICY_TAG_COUNT = "SELECT COUNT(*) FROM policy_tags WHERE policy_id=?";
+    private static final String SQL_DELETE_POLICY_TAG = "DELETE FROM policy_tags WHERE policy_id=? AND policy_tags.key=?;";
+    private static final String SQL_GET_POLICY_TAGS = "SELECT st.key, st.value FROM policy_tags st "
+            + "JOIN policy s ON st.policy_id = s.policy_id JOIN domain ON domain.domain_id=s.domain_id "
+            + "WHERE domain.name=? AND s.name=?";
+    private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT s.name, st.key, st.value FROM policy_tags st "
+            + "JOIN policy s ON st.policy_id = s.policy_id JOIN domain ON domain.domain_id=s.domain_id "
+            + "WHERE domain.name=?";
+
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
     private static final String CACHE_GROUP     = "g:";
@@ -640,6 +651,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private int roleTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int groupTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
     private int domainTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
+    private int policyTagsLimit = ZMSConsts.ZMS_DEFAULT_TAG_LIMIT;
 
     Connection con;
     int queryTimeout = 60;
@@ -665,10 +677,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit) {
+    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit) {
         this.domainTagsLimit = domainLimit;
         this.roleTagsLimit = roleLimit;
         this.groupTagsLimit = groupLimit;
+        this.policyTagsLimit = policyLimit;
     }
 
     @Override
@@ -3982,8 +3995,152 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
+        // add services tags
+        addTagsToPolicies(policyMap, athenzDomain.getName());
+
         athenzDomain.getPolicies().addAll(policyMap.values());
     }
+
+    private void addTagsToPolicies(Map<Integer, Policy> policyMap, String domainName) {
+
+        Map<String, Map<String, TagValueList>> domainPolicyTags = getDomainResourceTags(domainName, "Policy", SQL_GET_DOMAIN_POLICY_TAGS);
+        if (domainPolicyTags != null) {
+            for (Map.Entry<Integer, Policy> policyEntry : policyMap.entrySet()) {
+                String tagKeyName = ZMSUtils.extractPolicyName(domainName, policyEntry.getValue().name);
+                Map<String, TagValueList> policyTag = domainPolicyTags.get(ZMSUtils.extractPolicyName(domainName, policyEntry.getValue().name));
+                if (policyTag != null) {
+                    policyEntry.getValue().setTags(policyTag);
+                }
+            }
+        }
+    }
+
+    Map<String, Map<String, TagValueList>> getDomainResourceTags(String domainName, String caller, String sqlStatement) {
+        final String funcCaller = "getDomain" + caller + "Tags";
+        Map<String, Map<String, TagValueList>> domainResourceTags = null;
+
+        try (PreparedStatement ps = con.prepareStatement(sqlStatement)) {
+            ps.setString(1, domainName);
+            try (ResultSet rs = executeQuery(ps, funcCaller)) {
+                while (rs.next()) {
+                    String resourceName = rs.getString(1);
+                    String tagKey = rs.getString(2);
+                    String tagValue = rs.getString(3);
+                    if (domainResourceTags == null) {
+                        domainResourceTags = new HashMap<>();
+                    }
+                    Map<String, TagValueList> resourceTag = domainResourceTags.computeIfAbsent(resourceName, tags -> new HashMap<>());
+                    TagValueList tagValues = resourceTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, funcCaller);
+        }
+        return domainResourceTags;
+    }
+
+    @Override
+    public boolean insertPolicyTags(String policyName, String domainName, Map<String, TagValueList> policyTags, String version) {
+        final String caller = "insertPolicyTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int policyId = getPolicyId(domainId, policyName, version);
+        if (policyId == 0) {
+            throw notFoundError(caller, OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
+        }
+        int curTagCount = getPolicyTagsCount(policyId);
+        int newTagCount = calculateTagCount(policyTags);
+        if (curTagCount + newTagCount > policyTagsLimit) {
+            throw requestError(caller, "policy tag quota exceeded - limit: "
+                    + policyTagsLimit + ", current tags count: " + curTagCount + ", new tags count: " + newTagCount);
+        }
+
+        boolean res = true;
+        for (Map.Entry<String, TagValueList> e : policyTags.entrySet()) {
+            for (String tagValue : e.getValue().getList()) {
+                try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_POLICY_TAG)) {
+                    ps.setInt(1, policyId);
+                    ps.setString(2, processInsertValue(e.getKey()));
+                    ps.setString(3, processInsertValue(tagValue));
+                    res &= (executeUpdate(ps, caller) > 0);
+                } catch (SQLException ex) {
+                    throw sqlError(ex, caller);
+                }
+            }
+        }
+        return res;
+    }
+
+    private int getPolicyTagsCount(int policyId) {
+        final String caller = "getPolicyTagsCount";
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_POLICY_TAG_COUNT)) {
+            ps.setInt(1, policyId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    @Override
+    public boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys) {
+        final String caller = "deletePolicyTags";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int policyId = getRoleId(domainId, policyName);
+        if (policyId == 0) {
+            throw notFoundError(caller, OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
+        }
+        boolean res = true;
+        for (String tagKey : tagKeys) {
+            try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY_TAG)) {
+                ps.setInt(1, policyId);
+                ps.setString(2, processInsertValue(tagKey));
+                res &= (executeUpdate(ps, caller) > 0);
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public Map<String, TagValueList> getPolicyTags(String domainName, String policyName) {
+        final String caller = "getPolicyTags";
+        Map<String, TagValueList> policyTag = null;
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_TAGS)) {
+            ps.setString(1, domainName);
+            ps.setString(2, policyName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    String tagKey = rs.getString(1);
+                    String tagValue = rs.getString(2);
+                    if (policyTag == null) {
+                        policyTag = new HashMap<>();
+                    }
+                    TagValueList tagValues = policyTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
+                    tagValues.getList().add(tagValue);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return policyTag;
+    }
+
 
     void getAthenzDomainServices(String domainName, int domainId, AthenzDomain athenzDomain) {
 

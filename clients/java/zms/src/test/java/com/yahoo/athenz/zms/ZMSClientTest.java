@@ -15,26 +15,12 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.PrincipalAuthority;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
-
-import static org.mockito.ArgumentMatchers.any;
-
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.mockito.Mockito;
@@ -42,6 +28,17 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 public class ZMSClientTest {
 
@@ -1662,28 +1659,28 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getPolicies("domain1", true, false)).thenThrow(new NullPointerException());
+            Mockito.when(c.getPolicies("domain1", true, false, null, null)).thenThrow(new NullPointerException());
             client.getPolicies("domain1", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getPolicies("domain2", true, false)).thenThrow(new ResourceException(400));
+            Mockito.when(c.getPolicies("domain2", true, false, null, null)).thenThrow(new ResourceException(400));
             client.getPolicies("domain2", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getPolicies("domain3", true, true)).thenThrow(new ResourceException(400));
+            Mockito.when(c.getPolicies("domain3", true, true, null, null)).thenThrow(new ResourceException(400));
             client.getPolicies("domain3", true, true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getPolicies("domain3", false, true)).thenThrow(new NullPointerException());
+            Mockito.when(c.getPolicies("domain3", false, true, null, null)).thenThrow(new NullPointerException());
             client.getPolicies("domain3", false, true);
             fail();
         } catch (ZMSClientException ex) {

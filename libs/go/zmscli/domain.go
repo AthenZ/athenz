@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
-	"gopkg.in/yaml.v2"
 )
 
 // DeleteDomain deletes the given ZMS domain.
@@ -618,7 +617,7 @@ func (cli Zms) showDomainOld(dn string) (*string, error) {
 	cli.dumpTags(&buf, true, "  ", indentLevel1, domain.Tags)
 	cli.dumpRoles(&buf, dn, "", "")
 	cli.dumpGroups(&buf, dn, "", "")
-	cli.dumpPolicies(&buf, dn)
+	cli.dumpPolicies(&buf, dn, "", "")
 	cli.dumpServices(&buf, dn)
 
 	var names []string

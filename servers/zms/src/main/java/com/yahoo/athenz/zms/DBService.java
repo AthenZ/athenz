@@ -117,6 +117,7 @@ public class DBService implements RolesProvider {
         int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int policyTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_POLICY_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
 
         DomainOptions domainOptions = new DomainOptions();
         domainOptions.setEnforceUniqueAWSAccounts(Boolean.parseBoolean(
@@ -130,7 +131,7 @@ public class DBService implements RolesProvider {
 
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
-            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit);
             this.store.setDomainOptions(domainOptions);
         }
 
@@ -522,8 +523,51 @@ public class DBService implements RolesProvider {
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
         }
 
+        if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processPolicyTags(Policy policy, String policyName, String domainName,
+                                               Policy originalPolicy, ObjectStoreConnection con) {
+        if (policy.getTags() != null && !policy.getTags().isEmpty()) {
+            if (originalPolicy == null) {
+                return con.insertPolicyTags(policyName, domainName, policy.getTags(), policy.getVersion());
+            } else {
+                return processUpdatePolicyTags(policy, originalPolicy, con, policyName, domainName, policy.getVersion());
+            }
+        }
+        return true;
+    }
+
+    private boolean processUpdatePolicyTags(Policy policy, Policy originalPolicy, ObjectStoreConnection con, String policyName, String domainName, String version) {
+        if (originalPolicy.getTags() == null || originalPolicy.getTags().isEmpty()) {
+            if (policy.getTags() == null || policy.getTags().isEmpty()) {
+                // no tags to process..
+                return true;
+            }
+            return con.insertPolicyTags(policyName, domainName, policy.getTags(), version);
+        }
+        Map<String, TagValueList> originalPolicyTags = originalPolicy.getTags();
+        Map<String, TagValueList> currentTags = policy.getTags();
+
+        Set<String> tagsToRemove = originalPolicyTags.entrySet().stream()
+                .filter(curTag -> currentTags.get(curTag.getKey()) == null
+                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
+                .filter(curTag -> originalPolicyTags.get(curTag.getKey()) == null
+                        || !originalPolicyTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        boolean res = con.deletePolicyTags(policyName, domainName, tagsToRemove);
+
+        return res && con.insertPolicyTags(policyName, domainName, tagsToAdd, version);
     }
 
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
@@ -3577,6 +3621,12 @@ public class DBService implements RolesProvider {
         if (policy != null) {
             policy.setAssertions(con.listAssertions(domainName, policyName, version));
         }
+
+        Map<String, TagValueList> policyTags = con.getPolicyTags(domainName, policyName);
+        if (policy != null && policyTags != null) {
+            policy.setTags(policyTags);
+        }
+
         return policy;
     }
 

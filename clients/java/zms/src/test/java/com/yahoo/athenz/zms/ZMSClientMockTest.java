@@ -15,32 +15,26 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.rdl.Struct;
+import com.yahoo.rdl.Timestamp;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.rdl.Struct;
-import com.yahoo.rdl.Timestamp;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-import org.testng.annotations.BeforeMethod;
-
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.ArgumentMatchers;
-import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("RedundantThrows")
 public class ZMSClientMockTest {
@@ -888,8 +882,8 @@ public class ZMSClientMockTest {
         retListWithOutAssertions.add(policyWithOutAssertions);
         Policies retPoliciesWithOutAssertions = new Policies().setList(retListWithOutAssertions);
 
-        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, false);
-        Mockito.doReturn(retPoliciesWithOutAssertions).when(mockZMS).getPolicies(domName, false, false);
+        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, false, null, null);
+        Mockito.doReturn(retPoliciesWithOutAssertions).when(mockZMS).getPolicies(domName, false, false, null, null);
 
         // first request with assertions option set
 
@@ -959,7 +953,7 @@ public class ZMSClientMockTest {
         retList.add(policyWithOutAssertions);
         Policies retPoliciesWithAssertions = new Policies().setList(retList);
 
-        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, true);
+        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, true, null, null);
 
         Policies policies = zclt.getPolicies(domName, true, true);
         assertNotNull(policies);

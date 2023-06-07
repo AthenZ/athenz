@@ -62,16 +62,15 @@ import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Response;
 import org.hamcrest.CoreMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.*;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.core.EntityTag;
-import jakarta.ws.rs.core.Response;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -5577,7 +5576,7 @@ public class ZMSImplTest {
 
         // get new policy version and verify all assertion and assertion conditions were copied
         // currently assertion conditions are only retrieved in get all policies call
-        Policies policies = zmsImpl.getPolicies(ctx, domainName, true, true);
+        Policies policies = zmsImpl.getPolicies(ctx, domainName, true, true, null, null);
         Policy policyVersion = policies.getList().stream()
                 .filter(policy ->
                         policy.getName().equals("PolicyGetDom1:policy.Policy1".toLowerCase()) && policy.getVersion().equals("new-version2")
@@ -18692,7 +18691,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE, null, null);
         assertEquals(3, policies.size()); // need to account for admin policy
 
         boolean policy1Check = false;
@@ -18736,7 +18735,7 @@ public class ZMSImplTest {
         AthenzDomain domain = new AthenzDomain(domainName);
         domain.setPolicies(policyList);
 
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE, null, null);
         assertEquals(1, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-active-only:policy.policy1");
     }
@@ -18757,7 +18756,7 @@ public class ZMSImplTest {
         AthenzDomain domain = new AthenzDomain(domainName);
         domain.setPolicies(policyList);
 
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE, null, null);
         assertEquals(2, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "ver1");
@@ -18766,7 +18765,7 @@ public class ZMSImplTest {
         assertEquals(policies.get(1).getVersion(), "ver2");
         assertFalse(policies.get(1).getActive());
 
-        policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.TRUE);
+        policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.TRUE, null, null);
         assertEquals(2, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "ver1");
@@ -18794,7 +18793,7 @@ public class ZMSImplTest {
         Policy policy2 = zmsTestInitializer.createPolicyObject(domainName, "policy2");
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
 
-        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE);
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, null, null);
         List<Policy> policies = policyList.getList();
         assertEquals(3, policies.size()); // need to account for admin policy
 
@@ -18843,7 +18842,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
         zmsImpl.putPolicyVersion(ctx, domainName, "policy2", new PolicyOptions().setVersion("new-version"), auditRef, false);
 
-        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE);
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
         List<Policy> policies = policyList.getList();
         assertEquals(5, policies.size()); // need to account for admin policy
         // set our default versions for our policy objects
@@ -18877,7 +18876,7 @@ public class ZMSImplTest {
         String domainName = "get-policies-invalid-domain";
 
         try {
-            zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE);
+            zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -18903,7 +18902,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, null, null);
         assertEquals(3, policies.size()); // need to account for admin policy
 
         boolean policy1Check = false;

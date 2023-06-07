@@ -12083,4 +12083,163 @@ public class DBServiceTest {
         assertEquals("athenz", zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"));
 
     }
+
+    @Test
+    public void testProcessPolicyWithTagsInsert() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> policyTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        Policy policy = new Policy().setName("newPolicy").setTags(policyTags);
+        Mockito.when(conn.insertPolicy("sys.auth", policy)).thenReturn(true);
+        Mockito.when(conn.insertPolicyTags("newPolicy", "sys.auth", policyTags, null)).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+
+        ArgumentCaptor<String> policyCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> versionCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, TagValueList>> tagCapture = ArgumentCaptor.forClass(Map.class);
+
+        Mockito.verify(conn, times(1)).insertPolicyTags(policyCapture.capture(), domainCapture.capture(), tagCapture.capture(), versionCapture.capture());
+        assertTrue(tagCapture.getValue().containsKey("tagKey"));
+        assertTrue(tagCapture.getValue().values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("tagVal")));
+
+        assertTrue(success);
+    }
+
+    @Test
+    public void testProcessPolicyWithTagsUpdate() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> policyTags = new HashMap<>();
+        policyTags.put("tagToBeRemoved", new TagValueList().setList(Collections.singletonList("val0")));
+        policyTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+
+        Policy policy = new Policy().setName("newPolicy").setTags(policyTags);
+        Mockito.when(conn.insertPolicy(anyString(), any())).thenReturn(true);
+        Mockito.when(conn.insertPolicyTags("newPolicy", "sys.auth", policyTags, null)).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+
+        assertTrue(success);
+
+        // new policy
+        Map<String, TagValueList> newPolicyTags = new HashMap<>();
+        newPolicyTags.put("tagKey", new TagValueList().setList(Arrays.asList("val1", "val2")));
+        newPolicyTags.put("newTagKey", new TagValueList().setList(Arrays.asList("val3", "val4")));
+        newPolicyTags.put("newTagKey2", new TagValueList().setList(Arrays.asList("val5", "val6")));
+
+        Policy newPolicy = new Policy().setName("newPolicy").setTags(newPolicyTags);
+
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
+        Mockito.when(conn.deletePolicyTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertPolicyTags(anyString(), anyString(), anyMap(), any())).thenReturn(true);
+
+
+        success = zms.dbService.processPolicy(conn, policy, "sys.auth", "newPolicy",
+                newPolicy, false, auditDetails);
+
+        assertTrue(success);
+
+        // assert tags to remove
+        Set<String> expectedTagsToBeRemoved = new HashSet<>(Collections.singletonList("tagToBeRemoved")) ;
+
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> policyCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> versionCapture = ArgumentCaptor.forClass(String.class);
+
+        Mockito.verify(conn, times(1)).deletePolicyTags(policyCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newPolicy", policyCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().containsAll(expectedTagsToBeRemoved));
+
+        // assert tags to add
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(2)).insertPolicyTags(policyCapture.capture(), domainCapture.capture(), tagInsertCapture.capture(), versionCapture.capture());
+        assertEquals("newPolicy", policyCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.keySet().containsAll(Arrays.asList("newTagKey", "newTagKey2")));
+        assertTrue(resultInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("val3", "val4", "val5", "val6")));
+
+        // assert first tag insertion
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertTrue(resultFirstInsertTags.keySet().containsAll(Arrays.asList("tagKey", "tagToBeRemoved")));
+        assertTrue(resultFirstInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("val0", "val1", "val2")));
+    }
+
+    @Test
+    public void testPolicySameTagKeyValues() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> policyTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        Policy policy = new Policy().setName("policy").setTags(policyTags);
+        Mockito.when(conn.insertPolicy(anyString(), any())).thenReturn(true);
+        Mockito.when(conn.insertPolicyTags(anyString(), anyString(), any(), any())).thenReturn(true);
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+
+        boolean success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+
+        assertTrue(success);
+
+        // process the same policy again with the same tags
+        Policy newPolicy = new Policy().setName("policy").setTags(policyTags);
+
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
+        Mockito.when(conn.deletePolicyTags(anyString(), anyString(), anySet())).thenReturn(true);
+        Mockito.when(conn.insertPolicyTags(anyString(), anyString(), anyMap(), any())).thenReturn(true);
+
+        success = zms.dbService.processPolicy(conn, policy, "sys.auth", "newPolicy",
+                newPolicy, false, auditDetails);
+
+        assertTrue(success);
+
+        // assert tags to remove should be empty
+        ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
+        ArgumentCaptor<String> policyCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> versionCapture = ArgumentCaptor.forClass(String.class);
+
+
+        Mockito.verify(conn, times(1)).deletePolicyTags(policyCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newPolicy", policyCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().isEmpty());
+
+        // assert tags to add should be empty
+        ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(conn, times(2)).insertPolicyTags(policyCapture.capture(), domainCapture.capture(), tagInsertCapture.capture(), versionCapture.capture());
+        assertEquals("newPolicy", policyCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.isEmpty());
+
+        // asert first tag insertion
+        Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
+        assertTrue(resultFirstInsertTags.containsKey("tagKey"));
+        assertTrue(resultFirstInsertTags.values().stream()
+                .flatMap(l -> l.getList().stream())
+                .collect(Collectors.toList())
+                .contains("tagVal"));
+
+    }
 }

@@ -35,7 +35,7 @@ public interface ObjectStoreConnection extends Closeable {
     void rollbackChanges();
     void close();
     void setOperationTimeout(int opTimout);
-    void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
+    void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit);
 
     // Domain commands
 
@@ -244,4 +244,9 @@ public interface ObjectStoreConnection extends Closeable {
 
     List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset, int serverPurgeExpiryDays);
     List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset, int serverPurgeExpiryDays);
+
+    boolean insertPolicyTags(String policyName, String domainName, Map<String, TagValueList> policyTags, String version );
+    boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys);
+    Map<String, TagValueList> getPolicyTags(String domainName, String policyName);
+
 }

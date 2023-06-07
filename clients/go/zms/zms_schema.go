@@ -358,7 +358,8 @@ func init() {
 	tPolicy.Field("caseSensitive", "Bool", true, nil, "If true, we should store action and resource in their original case")
 	tPolicy.Field("version", "SimpleName", true, nil, "optional version string, defaults to 0")
 	tPolicy.Field("active", "Bool", true, nil, "if multi-version policy then indicates active version")
-	tPolicy.Field("description", "String", true, nil, "a description of the policy")
+	tPolicy.Field("description", "String", true, nil, "a description of the policy\\")
+	tPolicy.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tPolicy.Build())
 
 	tPolicies := rdl.NewStructTypeBuilder("Struct", "Policies")
@@ -1827,6 +1828,8 @@ func init() {
 	mGetPolicies.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetPolicies.Input("assertions", "Bool", false, "assertions", "", true, false, "return list of assertions in the policy")
 	mGetPolicies.Input("includeNonActive", "Bool", false, "includeNonActive", "", true, false, "include non-active policy versions")
+	mGetPolicies.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all groups that have a given tagName")
+	mGetPolicies.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all groups that have a given tag name and value")
 	mGetPolicies.Auth("", "", true, "")
 	mGetPolicies.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetPolicies.Exception("NOT_FOUND", "ResourceError", "")

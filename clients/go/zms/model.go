@@ -2510,9 +2510,14 @@ type Policy struct {
 	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// a description of the policy
+	// a description of the policy\
 	//
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewPolicy - creates an initialized Policy instance, returns a pointer to it

@@ -3,7 +3,9 @@
 //
 
 package com.yahoo.athenz.zms;
-import com.yahoo.rdl.*;
+
+import com.yahoo.rdl.Schema;
+import com.yahoo.rdl.SchemaBuilder;
 
 public class ZMSSchema {
 
@@ -311,7 +313,8 @@ public class ZMSSchema {
             .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
             .field("active", "Bool", true, "if multi-version policy then indicates active version")
-            .field("description", "String", true, "a description of the policy");
+            .field("description", "String", true, "a description of the policy\\")
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")
@@ -1939,6 +1942,8 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("assertions", "assertions", "Bool", false, "return list of assertions in the policy")
             .queryParam("includeNonActive", "includeNonActive", "Bool", false, "include non-active policy versions")
+            .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all groups that have a given tagName")
+            .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all groups that have a given tag name and value")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

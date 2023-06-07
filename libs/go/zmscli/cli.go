@@ -466,6 +466,24 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetActivePolicyVersion(dn, args[0], args[1])
 			}
+		case "add-policy-tag":
+			if argc >= 3 {
+				return cli.AddPolicyTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-policy-tag":
+			if argc == 2 {
+				return cli.DeletePolicyTags(dn, args[0], args[1], "")
+			} else if argc == 3 {
+				return cli.DeletePolicyTags(dn, args[0], args[1], args[2])
+			}
+		case "show-policies":
+			if argc == 0 {
+				return cli.ShowPolicies(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowPolicies(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowPolicies(dn, args[0], args[1])
+			}
 		case "show-access":
 			if argc >= 2 {
 				var trustDomain *string
