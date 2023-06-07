@@ -19,10 +19,8 @@ package com.yahoo.athenz.zts;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -2474,30 +2472,6 @@ public class ZTSClient implements Closeable {
         }
 
         return jsonData;
-    }
-
-    String getGcpFunctionAttestationData() {
-
-        String gcpMetaDataUrl = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=" + ztsUrl + "&format=full";
-        HttpURLConnection httpConnection = null;
-        try {
-            httpConnection = (HttpURLConnection) new URL(gcpMetaDataUrl).openConnection();
-            httpConnection.setRequestMethod("GET");
-            httpConnection.setRequestProperty("Metadata-Flavor", "Google");
-            int status = httpConnection.getResponseCode();
-            String rawMetaData = new String(httpConnection.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            if (status != 200) {
-                throw new IOException("HTTP code " + status + " != 200");
-            }
-            return "{\"identityToken\":\"" + rawMetaData + "\"}";
-        } catch (IOException ex) {
-            LOG.error("Unable to generate GCP attestation data: {}", ex.getMessage());
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
-        } finally {
-            if (httpConnection != null) {
-                httpConnection.disconnect();
-            }
-        }
     }
 
     /**

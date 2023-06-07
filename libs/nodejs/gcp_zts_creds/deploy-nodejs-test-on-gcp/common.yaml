@@ -1,11 +1,1 @@
-
-GCP_PROJECT_ID: "gcp-calypso-nonprod"
-GCP_REGION: "us-west1"
-GCP_FUNCTION_NAME: "gbendor_test_function"
-ATHENZ_DOMAIN: "calypso.nonprod"
-ATHENZ_SERVICE: "bastion"
-ZTS_URL: "https://zts.athenz.ouroath.com:4443/zts/v1"
-
-GCP_VPC: "calypso-nonprod-vpc"
-GCP_VPC_CONNECTOR_CIDR: "10.250.250.0/28"
-GCP_VPC_CONNECTOR_ID: "gbendor-test-connector"
+../../../java/gcp_zts_creds/deploy-java-test-on-gcp/common.yaml

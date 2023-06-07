@@ -28,7 +28,7 @@ async function getSiaCertsDemo() {
 
     // Get an identity-document for this GCF from GCP.
     ztsRequestBody.attestationData = await getGcpFunctionAttestationData(ztsUrl);
-    console.log(`GCP Attestation Data: ${ztsRequestBody.attestationData}`);
+    // console.log(`GCP Attestation Data: ${ztsRequestBody.attestationData}`);  commented out - sensitive info
 
     // Create a CSR (and a private-key).
     const { privateKey, csr } = await generateCsr(
@@ -42,9 +42,8 @@ async function getSiaCertsDemo() {
         ]);
     ztsRequestBody.csr = csr;
 
-    console.log('CSR:\n', csr);
-    console.log('Private Key:\n', privateKey
-    );
+    console.log(`CSR to send to ZTS:\n${csr}`);
+    // console.log('Private Key:\n', privateKey);  commented out - sensitive info
 
     // Send CSR to ZTS.
     const ztsResponse = await getCredsFromZts(ztsUrl, ztsRequestBody);
@@ -92,6 +91,24 @@ function getGcpFunctionAttestationData(ztsUrl) {
 
 // Generate a CSR.
 function generateCsr(commonName, organization, organizationalUnit, altNames) {
+
+    // This is a HORRENDOUS patch to pem.createCSR()
+    // As of pem@v1.14.8, pem.createCSR() does not support "URI" SANs (only "DNS" and "IP").
+    // However, we need the "spiffe://" alternative-name to be of type "URI".
+    // So we override Array.join() - which pem uses internally - to set things right.
+    const origArrayJoin = Array.prototype.join;
+    Array.prototype.join = function(separator) {
+        let result = origArrayJoin.apply(this, arguments);
+        if ((separator === '\n') &&
+            (this[0] === '[req]') &&
+            (this[1] === 'req_extensions = v3_req') &&
+            (this[2] === 'distinguished_name = req_distinguished_name')) {
+            // Replace "DNS.X = spiffe://" to "URI.X = spiffe://"
+            result = result.replace(/\nDNS(\.[0-9]+ = spiffe:\/\/)/g, '\nURI$1')
+        }
+        return result;
+    };
+
     return new Promise((resolve, reject) =>
         pem.createCSR(
             {
@@ -111,7 +128,7 @@ function generateCsr(commonName, organization, organizationalUnit, altNames) {
                             csr: keys.csr,
                         })
                 }
-            }));
+            })).finally(() => Array.prototype.join = origArrayJoin);
 }
 
 
@@ -138,9 +155,9 @@ function getCredsFromZts(ztsUrl, ztsRequestBody) {
                 response.on('end', () => {
                     // Response is read successfully.
                     const responseBody = responseBodyChunks.join('');
-                    if (response.statusCode !== 200) {
+                    if ((response.statusCode !== 200) && (response.statusCode !== 201)) {
                         // Bad HTTP status code.
-                        reject(new Error(`HTTP request to    ${requestUrl}    returned ${response.statusCode} (${response.status}). Body:\n${responseBody}`));
+                        reject(new Error(`HTTP request to    ${requestUrl}    returned ${response.statusCode} (${response.statusMessage}). Body:\n${responseBody}`));
                     } else {
                         // Parse response.
                         try {
