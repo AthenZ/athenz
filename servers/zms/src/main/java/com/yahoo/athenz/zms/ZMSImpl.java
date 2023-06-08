@@ -181,7 +181,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
     protected DynamicConfigBoolean allowUnderscoreInServiceNames;
     protected boolean useMasterCopyForSignedDomains = false;
-    protected Set<String> validateServiceMemberSkipDomains;
+    protected List<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
     protected String userDomain;
     protected String userDomainPrefix;
@@ -830,7 +830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String skipDomains = System.getProperty(
                 ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
-        validateServiceMemberSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        validateServiceMemberSkipDomains = new ArrayList<>(Arrays.asList(skipDomains.split(",")));
         allowUnderscoreInServiceNames = new DynamicConfigBoolean(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES, Boolean.FALSE);
 
