@@ -45,6 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -641,43 +642,13 @@ public class DBService implements RolesProvider {
 
     private boolean processRoleTags(Role role, String roleName, String domainName,
                                     Role originalRole, ObjectStoreConnection con) {
-        if (role.getTags() != null && !role.getTags().isEmpty()) {
-            if (originalRole == null) {
-                return con.insertRoleTags(roleName, domainName, role.getTags());
-            } else {
-                return processUpdateRoleTags(role, originalRole, con, roleName, domainName);
-            }
-        }
-        return true;
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertRoleTags(roleName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteRoleTags(roleName, domainName, tagKeys);
+
+        return processTags(con, role.getTags(), (originalRole != null ? originalRole.getTags() : null) , insertOp, deleteOp);
     }
-
-    private boolean processUpdateRoleTags(Role role, Role originalRole, ObjectStoreConnection con, String roleName, String domainName) {
-        if (originalRole.getTags() == null || originalRole.getTags().isEmpty()) {
-            if (role.getTags() == null || role.getTags().isEmpty()) {
-                // no tags to process..
-                return true;
-            }
-            return con.insertRoleTags(roleName, domainName, role.getTags());
-        }
-        Map<String, TagValueList> originalRoleTags = originalRole.getTags();
-        Map<String, TagValueList> currentTags = role.getTags();
-
-        Set<String> tagsToRemove = originalRoleTags.entrySet().stream()
-                .filter(curTag -> currentTags.get(curTag.getKey()) == null
-                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-
-        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
-                .filter(curTag -> originalRoleTags.get(curTag.getKey()) == null
-                        || !originalRoleTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        boolean res = con.deleteRoleTags(roleName, domainName, tagsToRemove);
-
-        return res && con.insertRoleTags(roleName, domainName, tagsToAdd);
-    }
-
+    
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
                         final String groupName, Group group, final String admin, final String auditRef,
                         StringBuilder auditDetails) {
@@ -740,41 +711,52 @@ public class DBService implements RolesProvider {
 
     private boolean processGroupTags(Group group, String groupName, String domainName,
                                     Group originalGroup, ObjectStoreConnection con) {
-        if (group.getTags() != null && !group.getTags().isEmpty()) {
-            if (originalGroup == null) {
-                return con.insertGroupTags(groupName, domainName, group.getTags());
+        
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertGroupTags(groupName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteGroupTags(groupName, domainName, tagKeys);
+        
+        return processTags(con, group.getTags(), (originalGroup != null ? originalGroup.getTags() : null) , insertOp, deleteOp);
+    }
+    
+    private boolean processTags(ObjectStoreConnection con, Map<String, TagValueList> currentResourceTags,
+                                Map<String, TagValueList> originalResourceTags, 
+                                BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
+                                BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
+        
+        if (currentResourceTags != null && !currentResourceTags.isEmpty()) {
+            if (originalResourceTags == null) {
+                return insertOp.apply(con, currentResourceTags);
             } else {
-                return processUpdateGroupTags(group, originalGroup, con, groupName, domainName);
+                return processUpdateTags(currentResourceTags, originalResourceTags, con, insertOp, deleteOp);
             }
         }
         return true;
     }
 
-    private boolean processUpdateGroupTags(Group group, Group originalGroup, ObjectStoreConnection con, String groupName, String domainName) {
-        if (originalGroup.getTags() == null || originalGroup.getTags().isEmpty()) {
-            if (group.getTags() == null || group.getTags().isEmpty()) {
+    private boolean processUpdateTags(Map<String, TagValueList> currentTags, Map<String, TagValueList> originalTags,
+                                      ObjectStoreConnection con, BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
+                                      BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
+        
+        if (originalTags == null || originalTags.isEmpty()) {
+            if (currentTags == null || currentTags.isEmpty()) {
                 // no tags to process..
                 return true;
             }
-            return con.insertGroupTags(groupName, domainName, group.getTags());
+            return insertOp.apply(con, currentTags);
         }
-        Map<String, TagValueList> originalGroupTags = originalGroup.getTags();
-        Map<String, TagValueList> currentTags = group.getTags();
-
-        Set<String> tagsToRemove = originalGroupTags.entrySet().stream()
+        
+        Set<String> tagsToRemove = originalTags.entrySet().stream()
                 .filter(curTag -> currentTags.get(curTag.getKey()) == null
                         || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
 
         Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
-                .filter(curTag -> originalGroupTags.get(curTag.getKey()) == null
-                        || !originalGroupTags.get(curTag.getKey()).equals(curTag.getValue()))
+                .filter(curTag -> originalTags.get(curTag.getKey()) == null
+                        || !originalTags.get(curTag.getKey()).equals(curTag.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        boolean res = con.deleteGroupTags(groupName, domainName, tagsToRemove);
-
-        return res && con.insertGroupTags(groupName, domainName, tagsToAdd);
+        
+        return deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
     }
 
     void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
@@ -5895,7 +5877,7 @@ public class DBService implements RolesProvider {
 
                 con.updateRole(domainName, updatedRole);
 
-                processUpdateRoleTags(updatedRole, originalRole, con, roleName, domainName);
+                processRoleTags(updatedRole, roleName, domainName, originalRole, con);
 
                 saveChanges(con, domainName);
 
@@ -6017,7 +5999,7 @@ public class DBService implements RolesProvider {
 
                 con.updateGroup(domainName, updatedGroup);
 
-                processUpdateGroupTags(updatedGroup, originalGroup, con, groupName, domainName);
+                processGroupTags(updatedGroup, groupName, domainName, originalGroup, con);
 
                 saveChanges(con, domainName);
 
@@ -6053,7 +6035,7 @@ public class DBService implements RolesProvider {
             }
         }
     }
-
+    
     String getDomainUserAuthorityFilterFromMap(ObjectStoreConnection con, Map<String, String> domainFitlerMap, final String domainName) {
         String domainUserAuthorityFilter = domainFitlerMap.get(domainName);
         if (domainUserAuthorityFilter == null) {
