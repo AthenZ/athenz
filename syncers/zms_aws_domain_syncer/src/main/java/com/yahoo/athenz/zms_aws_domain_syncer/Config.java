@@ -48,6 +48,9 @@ public class Config {
     static final String DEFAULT_STATE_BUILDER_TIMEOUT = "1800";
     static final String DEFAULT_DOMAIN_REFRESH_COUNT = "10";
     static final String DEFAULT_DOMAIN_REFRESH_TIMEOUT = "2592000";
+    static final String DEFAULT_JSON_MAX_NESTING_DEPTH = "1000";
+    static final String DEFAULT_JSON_MAX_NUMBER_LENGTH = "1000";
+    static final String DEFAULT_JSON_MAX_STRING_LENGTH = "200000000";
 
     // system properties - take precedence over config file settings
 
@@ -72,6 +75,9 @@ public class Config {
     static final String SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT = "state_builder_timeout";
     static final String SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT = "domain_refresh_count";
     static final String SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT = "domain_refresh_timeout";
+    static final String SYNC_CFG_PARAM_JSON_MAX_NESTING_DEPTH = "json_max_nesting_depth";
+    static final String SYNC_CFG_PARAM_JSON_MAX_NUMBER_LENGTH = "json_max_number_length";
+    static final String SYNC_CFG_PARAM_JSON_MAX_STRING_LENGTH = "json_max_string_length";
 
     static final String[] SYNC_CFG_PARAMS = {
             SYNC_CFG_PARAM_DEBUG,
@@ -92,7 +98,10 @@ public class Config {
             SYNC_CFG_PARAM_STATE_BUILDER_THREADS,
             SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT,
             SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT,
-            SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT
+            SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT,
+            SYNC_CFG_PARAM_JSON_MAX_NESTING_DEPTH,
+            SYNC_CFG_PARAM_JSON_MAX_NUMBER_LENGTH,
+            SYNC_CFG_PARAM_JSON_MAX_STRING_LENGTH
     };
 
     static final String ZMS_CFG_PARAM_ZMS_URL = "zmsUrl";
@@ -248,6 +257,9 @@ public class Config {
             propertyMap.putIfAbsent(SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT, DEFAULT_STATE_BUILDER_TIMEOUT);
             propertyMap.putIfAbsent(SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT, DEFAULT_DOMAIN_REFRESH_COUNT);
             propertyMap.putIfAbsent(SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT, DEFAULT_DOMAIN_REFRESH_TIMEOUT);
+            propertyMap.putIfAbsent(SYNC_CFG_PARAM_JSON_MAX_NESTING_DEPTH, DEFAULT_JSON_MAX_NESTING_DEPTH);
+            propertyMap.putIfAbsent(SYNC_CFG_PARAM_JSON_MAX_NUMBER_LENGTH, DEFAULT_JSON_MAX_NUMBER_LENGTH);
+            propertyMap.putIfAbsent(SYNC_CFG_PARAM_JSON_MAX_STRING_LENGTH, DEFAULT_JSON_MAX_STRING_LENGTH);
 
             syncMergeStatus = true;
         } catch (Exception ex) {

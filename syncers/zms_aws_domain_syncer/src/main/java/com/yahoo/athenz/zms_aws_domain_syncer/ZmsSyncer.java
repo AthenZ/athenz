@@ -18,6 +18,7 @@
 
 package com.yahoo.athenz.zms_aws_domain_syncer;
 
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.athenz.zms.SignedDomain;
@@ -76,6 +77,7 @@ public class ZmsSyncer {
     private List<DomainState> processedDomains = null;
 
     public ZmsSyncer() throws Exception {
+        setupJsonParserLimits();
         awsSyncer = new AwsSyncer();
         zmsReader = new ZmsReader();
         stateFileBuilder = new StateFileBuilder();
@@ -85,6 +87,19 @@ public class ZmsSyncer {
         this.awsSyncer = awsSyncer;
         this.zmsReader = zmsReader;
         this.stateFileBuilder = stateFileBuilder;
+    }
+
+    void setupJsonParserLimits() {
+
+        int maxNestingDepth = Integer.parseInt(Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_JSON_MAX_NESTING_DEPTH));
+        int maxNumberLength = Integer.parseInt(Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_JSON_MAX_NUMBER_LENGTH));
+        int maxStringLength = Integer.parseInt(Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_JSON_MAX_STRING_LENGTH));
+
+        final StreamReadConstraints streamReadConstraints = StreamReadConstraints.builder()
+                .maxNestingDepth(maxNestingDepth)
+                .maxNumberLength(maxNumberLength)
+                .maxStringLength(maxStringLength).build();
+        StreamReadConstraints.overrideDefaultStreamReadConstraints(streamReadConstraints);
     }
 
     public boolean processDomains() throws Exception {

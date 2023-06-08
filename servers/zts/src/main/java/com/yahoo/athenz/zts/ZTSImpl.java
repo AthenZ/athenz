@@ -99,6 +99,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
@@ -276,7 +277,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // create our json mapper
 
-        jsonMapper = new ObjectMapper();
+        loadJsonMapper();
 
         // before we do anything we need to load our configuration
         // settings
@@ -367,6 +368,21 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // load Athenz JWK configuration
 
         loadAthenzJWK();
+    }
+
+    void loadJsonMapper() {
+
+        int maxNestingDepth = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_JSON_MAX_NESTING_DEPTH, "1000"));
+        int maxNumberLength = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_JSON_MAX_NUMBER_LENGTH, "1000"));
+        int maxStringLength = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_JSON_MAX_STRING_LENGTH, "200000000"));
+
+        final StreamReadConstraints streamReadConstraints = StreamReadConstraints.builder()
+                .maxNestingDepth(maxNestingDepth)
+                .maxNumberLength(maxNumberLength)
+                .maxStringLength(maxStringLength).build();
+        StreamReadConstraints.overrideDefaultStreamReadConstraints(streamReadConstraints);
+
+        jsonMapper = new ObjectMapper();
     }
 
     protected void loadAthenzJWK() {
