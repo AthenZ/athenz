@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
 import com.oath.auth.KeyRefresherException;
@@ -598,7 +599,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // create our json mapper
 
-        jsonMapper = new ObjectMapper();
+        loadJsonMapper();
 
         // before we do anything we need to load our configuration
         // settings
@@ -688,6 +689,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         loadDomainChangePublisher();
 
+    }
+
+    void loadJsonMapper() {
+
+        int maxNestingDepth = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_JSON_MAX_NESTING_DEPTH, "1000"));
+        int maxNumberLength = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_JSON_MAX_NUMBER_LENGTH, "1000"));
+        int maxStringLength = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_JSON_MAX_STRING_LENGTH, "200000000"));
+
+        final StreamReadConstraints streamReadConstraints = StreamReadConstraints.builder()
+                .maxNestingDepth(maxNestingDepth)
+                .maxNumberLength(maxNumberLength)
+                .maxStringLength(maxStringLength).build();
+        StreamReadConstraints.overrideDefaultStreamReadConstraints(streamReadConstraints);
+
+        jsonMapper = new ObjectMapper();
     }
 
     void loadDomainChangePublisher() {
