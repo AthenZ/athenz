@@ -830,7 +830,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String skipDomains = System.getProperty(
                 ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
-        validateServiceMemberSkipDomains = new ArrayList<>(Arrays.asList(skipDomains.split(",")));
+        validateServiceMemberSkipDomains = Arrays.asList(skipDomains.split(","));
         allowUnderscoreInServiceNames = new DynamicConfigBoolean(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES, Boolean.FALSE);
 
