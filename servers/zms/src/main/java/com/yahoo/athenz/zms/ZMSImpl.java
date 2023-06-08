@@ -3992,7 +3992,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (String skipDomain : validateServiceMemberSkipDomains) {
             // first, we perform validation using wildcards
             if (skipDomain.endsWith("*")) {
-                String skipDomainPrefix = skipDomain.substring(0, skipDomain.length()-1);
+                String skipDomainPrefix = skipDomain.substring(0, skipDomain.length() - 1);
                 if (domainName.startsWith(skipDomainPrefix)) {
                     return;
                 }
