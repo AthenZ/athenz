@@ -48,6 +48,7 @@ import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zms.config.*;
@@ -83,7 +84,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -113,9 +113,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final String ADMIN_POLICY_NAME = "admin";
     private static final String ADMIN_ROLE_NAME = "admin";
-
-    private static final String META_ATTR_YPM_ID = "ypmid";
-    private static final String META_ATTR_ALL = "all";
 
     private static final String SYS_AUTH = "sys.auth";
     private static final String USER_TOKEN_DEFAULT_NAME = "_self_";
@@ -182,11 +179,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean validateServiceRoleMembers;
     protected DynamicConfigBoolean validateUserRoleMembers;
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
+    protected DynamicConfigBoolean allowUnderscoreInServiceNames;
     protected boolean useMasterCopyForSignedDomains = false;
     protected Set<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
     protected String userDomain;
     protected String userDomainPrefix;
+    protected String headlessUserDomain;
+    protected String headlessUserDomainPrefix;
     protected String homeDomain;
     protected String homeDomainPrefix;
     protected String userDomainAlias;
@@ -212,6 +212,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int serviceNameMinLength;
     protected Status successServerStatus = null;
     protected Set<String> reservedSystemDomains = null;
+    protected DynamicConfigCsv reservedDomainNames = null;
     protected File healthCheckFile = null;
     protected AuditReferenceValidator auditReferenceValidator = null;
     protected NotificationManager notificationManager = null;
@@ -790,6 +791,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             userDomainAliasPrefix = userDomainAlias + ".";
         }
 
+        headlessUserDomain = System.getProperty(ZMSConsts.ZMS_PROP_HEADLESS_USER_DOMAIN, userDomain);
+        headlessUserDomainPrefix = headlessUserDomain + ".";
+
         final String addlUserCheckDomains = System.getProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
         if (!StringUtil.isEmpty(addlUserCheckDomains)) {
             String[] checkDomains = addlUserCheckDomains.split(",");
@@ -827,6 +831,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String skipDomains = System.getProperty(
                 ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
         validateServiceMemberSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        allowUnderscoreInServiceNames = new DynamicConfigBoolean(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES, Boolean.FALSE);
 
         // check to see if we need to support product ids as required
         // for top level domains
@@ -927,8 +933,14 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         reservedSystemDomains.add("sys.auth.audit.domain");
         reservedSystemDomains.add(userDomain);
         reservedSystemDomains.add(homeDomain);
+        reservedSystemDomains.add(headlessUserDomain);
 
-        // setup our health check file
+        // set up our reserved top level domain names. we will not allow any top level
+        // domains to be created with these values
+
+        reservedDomainNames = new DynamicConfigCsv(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_RESERVED_DOMAIN_NAMES, null);
+
+        // set up our health check file
 
         final String healthCheckPath = System.getProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH);
         if (!StringUtil.isEmpty(healthCheckPath)) {
@@ -955,6 +967,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setUserDomain(userDomain);
         zmsConfig.setAddlUserCheckDomainPrefixList(addlUserCheckDomainPrefixList);
         zmsConfig.setUserDomainPrefix(userDomainPrefix);
+        zmsConfig.setHeadlessUserDomainPrefix(headlessUserDomainPrefix);
         zmsConfig.setServerHostName(serverHostName);
         zmsConfig.setServerSolutionTemplates(serverSolutionTemplates);
         zmsConfig.setUserAuthority(userAuthority);
@@ -1278,6 +1291,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
             createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
         }
+        if (!headlessUserDomain.equals(userDomain)) {
+            domain = new Domain().setName(headlessUserDomain).setDescription("The reserved domain for headless users")
+                    .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+            createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
+        }
         domain = new Domain().setName("sys").setDescription("The reserved domain for system related information")
                 .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
         createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
@@ -1322,9 +1340,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     @Override
     public DomainList getDomainList(ResourceContext ctx, Integer limit, String skip, String prefix,
-            Integer depth, String account, Integer productId, String roleMember, String roleName,
+            Integer depth, String account, Integer productNumber, String roleMember, String roleName,
             String subscription, String project, String tagKey, String tagValue, String businessService,
-            String modifiedSince) {
+            String productId, String modifiedSince) {
 
         final String caller = ctx.getApiName();
 
@@ -1333,10 +1351,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, productId: {}, " +
-                    "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, project: {}, businessService: {}",
-                    limit, skip, prefix, depth, account, productId, roleMember, roleName,
-                    modifiedSince, subscription, project, businessService);
+            LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, productNumber: {}, " +
+                    "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, project: {}, " +
+                    "businessService: {}, productId: {}",
+                    limit, skip, prefix, depth, account, productNumber, roleMember, roleName,
+                    modifiedSince, subscription, project, businessService, productId);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -1390,7 +1409,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             dlist = dbService.lookupDomainByAzureSubscription(subscription);
         } else if (!StringUtil.isEmpty(project)) {
             dlist = dbService.lookupDomainByGcpProject(project);
-        } else if (productId != null && productId != 0) {
+        } else if (productNumber != null && productNumber != 0) {
+            dlist = dbService.lookupDomainByProductId(productNumber);
+        } else if (!StringUtil.isEmpty(productId)) {
             dlist = dbService.lookupDomainByProductId(productId);
         } else if (roleMember != null || roleName != null) {
             dlist = dbService.lookupDomainByRole(normalizeDomainAliasUser(roleMember), roleName);
@@ -1447,6 +1468,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
+        // first verify that this is not a reserved domain name
+
+        if (reservedDomainNames.hasItem(domainName)) {
+            throw ZMSUtils.requestError("Domain name is reserved", caller);
+        }
+
+        // next check to make sure the domain does not contain an underscore
+        // since it's not a valid character for our sanDNS hostname entry
+        // in the service identity x.509 certificate, unless it's being
+        // executed by a system admin
+
         if (domainName.indexOf('_') != -1 && !isSysAdminUser(((RsrcCtxWrapper) ctx).principal())) {
             throw ZMSUtils.requestError("Domain name cannot contain underscores", caller);
         }
@@ -1482,13 +1514,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         int productId = 0;
         if (productIdSupport) {
+            if (detail.getYpmId() == null && StringUtil.isEmpty(detail.getProductId())) {
+                throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
+            }
+            // if we're given a ypm-id value then we need to make sure
+            // it is not a negative number.
             if (detail.getYpmId() != null) {
                 productId = detail.getYpmId();
                 if (productId <= 0) {
                     throw ZMSUtils.requestError("Product Id must be a positive integer", caller);
                 }
-            } else {
-                throw ZMSUtils.requestError("Product Id is required when creating top level domain", caller);
             }
         }
 
@@ -1510,6 +1545,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setGcpProject(detail.getGcpProject())
                 .setGcpProjectNumber(detail.getGcpProjectNumber())
                 .setYpmId(productId)
+                .setProductId(detail.getProductId())
                 .setModified(Timestamp.fromCurrentTime())
                 .setApplicationId(detail.getApplicationId())
                 .setMemberExpiryDays(detail.getMemberExpiryDays())
@@ -2166,6 +2202,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!domainMetaStore.isValidProductId(domain.getName(), domain.getYpmId())) {
             throw ZMSUtils.requestError("invalid product id for domain", caller);
         }
+        if (!domainMetaStore.isValidProductId(domain.getName(), domain.getProductId())) {
+            throw ZMSUtils.requestError("invalid product id for domain", caller);
+        }
     }
 
     boolean validateGcpProjectDetails(final String gcpProjectId, final String gcpProjectNumber) {
@@ -2216,6 +2255,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             case ZMSConsts.SYSTEM_META_PRODUCT_ID:
                 if (ZMSUtils.metaValueChanged(domain.getYpmId(), meta.getYpmId())) {
                     if (!domainMetaStore.isValidProductId(domain.getName(), meta.getYpmId())) {
+                        throw ZMSUtils.requestError("invalid product id for domain", caller);
+                    }
+                    changedAttrs.set(DomainMetaStore.META_ATTR_PRODUCT_NUMBER);
+                }
+                if (ZMSUtils.metaValueChanged(domain.getProductId(), meta.getProductId())) {
+                    if (!domainMetaStore.isValidProductId(domain.getName(), meta.getProductId())) {
                         throw ZMSUtils.requestError("invalid product id for domain", caller);
                     }
                     changedAttrs.set(DomainMetaStore.META_ATTR_PRODUCT_ID);
@@ -2291,8 +2336,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 case DomainMetaStore.META_ATTR_GCP_PROJECT:
                     domainMetaStore.setGcpProjectDomain(domainName, (String) value);
                     break;
-                case DomainMetaStore.META_ATTR_PRODUCT_ID:
+                case DomainMetaStore.META_ATTR_PRODUCT_NUMBER:
                     domainMetaStore.setProductIdDomain(domainName, (Integer) value);
+                    break;
+                case DomainMetaStore.META_ATTR_PRODUCT_ID:
+                    domainMetaStore.setProductIdDomain(domainName, (String) value);
                     break;
             }
         } catch (Exception ex) {
@@ -2320,8 +2368,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domain.getGcpProject());
         }
         if (domain.getYpmId() != null) {
-            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_PRODUCT_ID,
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_PRODUCT_NUMBER,
                     domain.getYpmId());
+        }
+        if (domain.getProductId() != null) {
+            updateDomainMetaStoreAttributeDetails(domain.getName(), DomainMetaStore.META_ATTR_PRODUCT_ID,
+                    domain.getProductId());
         }
     }
 
@@ -2340,8 +2392,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             case DomainMetaStore.META_ATTR_GCP_PROJECT:
                 value = meta.getGcpProject();
                 break;
-            case DomainMetaStore.META_ATTR_PRODUCT_ID:
+            case DomainMetaStore.META_ATTR_PRODUCT_NUMBER:
                 value = meta.getYpmId();
+                break;
+            case DomainMetaStore.META_ATTR_PRODUCT_ID:
+                value = meta.getProductId();
                 break;
         }
         return value;
@@ -2478,8 +2533,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // sure here if product id support is required then we must
         // have one specified for a top level domain.
 
-        if (productIdSupport && meta.getYpmId() == null && domainName.indexOf('.') == -1 &&
-                ZMSConsts.SYSTEM_META_PRODUCT_ID.equals(attribute)) {
+        if (productIdSupport && meta.getYpmId() == null && StringUtil.isEmpty(meta.getProductId()) &&
+                domainName.indexOf('.') == -1 && ZMSConsts.SYSTEM_META_PRODUCT_ID.equals(attribute)) {
              throw ZMSUtils.requestError("Unique Product Id must be specified for top level domain", caller);
         }
 
@@ -2699,6 +2754,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             case DomainMetaStore.META_ATTR_GCP_PROJECT_NAME:
                 values = domainMetaStore.getValidGcpProjects(userName);
                 break;
+            case DomainMetaStore.META_ATTR_PRODUCT_NUMBER_NAME:
             case DomainMetaStore.META_ATTR_PRODUCT_ID_NAME:
                 values = domainMetaStore.getValidProductIds(userName);
                 break;
@@ -3622,7 +3678,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     int principalType(final String principalName) {
-        return ZMSUtils.principalType(principalName, userDomainPrefix, addlUserCheckDomainPrefixList).getValue();
+        return ZMSUtils.principalType(principalName, userDomainPrefix, addlUserCheckDomainPrefixList, headlessUserDomainPrefix).getValue();
     }
 
     String normalizeDomainAliasUser(String user) {
@@ -3973,6 +4029,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (Principal.Type.getType(principalType)) {
 
             case USER:
+            case USER_HEADLESS:
 
                 // if the account contains a wildcard then we're going
                 // to let the user authority decide if it's valid or not
@@ -4021,6 +4078,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (Principal.Type.getType(principalType)) {
 
             case USER:
+            case USER_HEADLESS:
 
                 // for group members we always validate all members
 
@@ -4217,6 +4275,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     }
                     break;
                 case SERVICE:
+                case USER_HEADLESS:
                     if (cfgServiceMemberDueDateMillis != 0) {
                         Timestamp newDueDate = getMemberDueDate(cfgServiceMemberDueDateMillis, currentDueDate);
                         dueDateSetter.accept(member, newDueDate);
@@ -4398,6 +4457,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case SERVICE:
+            case USER_HEADLESS:
 
                 roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                         role.getServiceExpiryDays(), membership.getExpiration()));
@@ -4421,6 +4481,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case SERVICE:
+            case USER_HEADLESS:
                 roleMember.setReviewReminder(memberDueDateTimestamp(null,
                         role.getServiceReviewDays(), membership.getReviewReminder()));
                 break;
@@ -5640,10 +5701,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     boolean verifyServicePublicKey(String key) {
         try {
-            PublicKey pub = Crypto.loadPublicKey(Crypto.ybase64DecodeString(key));
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("verifyServicePublicKey: public key looks valid: {}", pub);
-            }
+            Crypto.loadPublicKey(Crypto.ybase64DecodeString(key));
         } catch (Exception ex) {
             LOG.error("verifyServicePublicKey: Invalid Public Key: {}", ex.getMessage());
             return false;
@@ -5669,11 +5727,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
 
-    public boolean isValidServiceName(final String serviceName) {
+    public boolean isValidServiceName(final String domainName, final String serviceName) {
+
+        // first check the list of configured reserved names
 
         if (reservedServiceNames != null && reservedServiceNames.contains(serviceName)) {
             return false;
         }
+
+        // if we're not allowed to have underscores in service names then
+        // we need to check if the service exists or not since we do not
+        // want to block managing service accounts that were created before
+        // the option was enforced
+
+        if (allowUnderscoreInServiceNames.get() == Boolean.FALSE && serviceName.indexOf('_') != -1) {
+            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+                return false;
+            }
+        }
+
+        // finally, return result based on the configured minimum length of the service name
 
         return serviceNameMinLength <= 0 || serviceNameMinLength <= serviceName.length();
     }
@@ -5706,7 +5779,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate that the service name is valid
 
-        if (!isValidServiceName(serviceName)) {
+        if (!isValidServiceName(domainName, serviceName)) {
             throw ZMSUtils.requestError("putServiceIdentity: Invalid/Reserved service name", caller);
         }
 
@@ -5727,7 +5800,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 + service.getProviderEndpoint() + " - must be http(s) and in configured domain", caller);
         }
 
-        ServiceIdentity dbServiceIdentity = dbService.executePutServiceIdentity(ctx, domainName, serviceName, service, auditRef, caller, returnObj);
+        ServiceIdentity dbServiceIdentity = dbService.executePutServiceIdentity(ctx, domainName,
+                serviceName, service, auditRef, caller, returnObj);
 
         return ZMSUtils.returnPutResponse(returnObj, dbServiceIdentity);
     }
@@ -6105,12 +6179,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     signedDomain.getDomain().setGcpProject(gcpProject);
                     signedDomain.getDomain().setGcpProjectNumber(domain.getGcpProjectNumber());
                     break;
-                case META_ATTR_YPM_ID:
+                case ZMSConsts.SYSTEM_META_YPM_ID:
                     final Integer ypmId = domain.getYpmId();
                     if (ypmId == null || ypmId == 0) {
                         return null;
                     }
                     signedDomain.getDomain().setYpmId(ypmId);
+                    break;
+                case ZMSConsts.SYSTEM_META_PRODUCT_ID:
+                    final String productId = domain.getProductId();
+                    if (productId == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setProductId(productId);
                     break;
                 case ZMSConsts.SYSTEM_META_BUSINESS_SERVICE:
                     final String businessService = domain.getBusinessService();
@@ -6119,7 +6200,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     }
                     signedDomain.getDomain().setBusinessService(businessService);
                     break;
-                case META_ATTR_ALL:
+                case ZMSConsts.SYSTEM_META_ATTR_ALL:
                     setDomainDataAttributes(signedDomain.getDomain(), domain);
                     break;
             }
@@ -6134,6 +6215,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setGcpProject(domain.getGcpProject());
         domainData.setGcpProjectNumber(domain.getGcpProjectNumber());
         domainData.setYpmId(domain.getYpmId());
+        domainData.setProductId(domain.getProductId());
         domainData.setApplicationId(domain.getApplicationId());
         domainData.setMemberExpiryDays(domain.getMemberExpiryDays());
         domainData.setServiceExpiryDays(domain.getServiceExpiryDays());
@@ -6205,6 +6287,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setAccount(athenzDomain.getDomain().getAccount());
         domainData.setAzureSubscription(athenzDomain.getDomain().getAzureSubscription());
         domainData.setYpmId(athenzDomain.getDomain().getYpmId());
+        domainData.setProductId(athenzDomain.getDomain().getProductId());
         domainData.setApplicationId(athenzDomain.getDomain().getApplicationId());
         domainData.setSignAlgorithm(athenzDomain.getDomain().getSignAlgorithm());
         domainData.setBusinessService(athenzDomain.getDomain().getBusinessService());
@@ -8923,10 +9006,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // go through all role members and if we have any groups validate
         // that the group has the requested filters set
 
-        for (RoleMember roleMember : role.getRoleMembers()) {
+        for (RoleMember roleMember : ZMSUtils.emptyIfNull(role.getRoleMembers())) {
 
             final String memberName = roleMember.getMemberName();
-            if (ZMSUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList) != Principal.Type.GROUP) {
+            if (ZMSUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList,
+                    headlessUserDomainPrefix) != Principal.Type.GROUP) {
                 continue;
             }
 
@@ -9825,6 +9909,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case SERVICE:
+            case USER_HEADLESS:
 
                 groupMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                         group.getServiceExpiryDays(), membership.getExpiration()));
@@ -10465,7 +10550,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public AssertionCondition putAssertionCondition(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef, AssertionCondition assertionCondition) {
+    public AssertionCondition putAssertionCondition(ResourceContext ctx, String domainName, String policyName,
+            Long assertionId, String auditRef, AssertionCondition assertionCondition) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -10509,7 +10596,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteAssertionConditions(ResourceContext ctx, String domainName, String policyName, Long assertionId, String auditRef) {
+    public void deleteAssertionConditions(ResourceContext ctx, String domainName, String policyName,
+            Long assertionId, String auditRef) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 
@@ -10546,7 +10635,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteAssertionCondition(ResourceContext ctx, String domainName, String policyName, Long assertionId, Integer conditionId, String auditRef) {
+    public void deleteAssertionCondition(ResourceContext ctx, String domainName, String policyName,
+            Long assertionId, Integer conditionId, String auditRef) {
+
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
 

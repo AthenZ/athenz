@@ -111,3 +111,19 @@ func (tp GCEProvider) GetAccessManagementProfileFromMeta(base string) (string, e
 	}
 	return profile, nil
 }
+
+func (tp GCEProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	instanceName, err := meta.GetInstanceName(base)
+	if err != nil {
+		return "", err
+	}
+	project, err := meta.GetProject(base)
+	if err != nil {
+		return fmt.Sprintf("%s", instanceName), nil
+	}
+	instanceId, err := meta.GetInstanceId(base)
+	if err != nil {
+		return fmt.Sprintf("%s,%s.c.%s.internal", instanceName, instanceName, project), nil
+	}
+	return fmt.Sprintf("%s,compute.%s,%s.c.%s.internal", instanceName, instanceId, instanceName, project), nil
+}

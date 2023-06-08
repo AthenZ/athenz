@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.11.28-SNAPSHOT</version>
+    <version>1.11.33-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -34,7 +34,7 @@
     <protobuf.java.version>3.21.12</protobuf.java.version>
     <pulsar.client.version>2.11.1</pulsar.client.version>
     <aws.secretmanager.version>1.0.12</aws.secretmanager.version>
-    <uuid.version>4.1.0</uuid.version>
+    <uuid.version>4.2.0</uuid.version>
     <hamcrest.json.version>0.2</hamcrest.json.version>
   </properties>
 

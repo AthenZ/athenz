@@ -28,8 +28,9 @@ public interface DomainMetaStore {
     int META_ATTR_BUSINESS_SERVICE    = 0;
     int META_ATTR_AWS_ACCOUNT         = 1;
     int META_ATTR_AZURE_SUBSCRIPTION  = 2;
-    int META_ATTR_PRODUCT_ID          = 3;
+    int META_ATTR_PRODUCT_NUMBER      = 3;
     int META_ATTR_GCP_PROJECT         = 4;
+    int META_ATTR_PRODUCT_ID          = 5;
 
     // valid attribute names
 
@@ -37,6 +38,7 @@ public interface DomainMetaStore {
     String META_ATTR_AWS_ACCOUNT_NAME = "awsAccount";
     String META_ATTR_AZURE_SUBSCRIPTION_NAME = "azureSubscription";
     String META_ATTR_GCP_PROJECT_NAME = "gcpProject";
+    String META_ATTR_PRODUCT_NUMBER_NAME = "productNumber";
     String META_ATTR_PRODUCT_ID_NAME = "productId";
 
     /**
@@ -151,6 +153,26 @@ public interface DomainMetaStore {
      * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
      */
     void setProductIdDomain(final String domainName, Integer productId);
+
+    /**
+     * Validate if the given product id is valid for the domain
+     * @param domainName - name of the domain
+     * @param productId - product id (can be null)
+     * @return true if valid, false otherwise
+     */
+    default boolean isValidProductId(final String domainName, String productId) {
+        return true;
+    }
+
+    /**
+     * Sets the athenz domain for the given product id. This attribute is a domain
+     * system meta attribute can only be changed by athenz system administrators.
+     * @param domainName - name of the domain
+     * @param productId - product id (can be null)
+     * @throws com.yahoo.athenz.common.server.rest.ResourceException in case of any failure
+     */
+    default void setProductIdDomain(final String domainName, String productId) {
+    }
 
     /**
      * Get a list of valid Product Ids

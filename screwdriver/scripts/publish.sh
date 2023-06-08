@@ -39,5 +39,6 @@ deployProject "com.yahoo.athenz:athenz-msd-java-client"
 deployProject "com.yahoo.athenz:athenz-server-common"
 deployProject "com.yahoo.athenz:athenz-instance-provider"
 deployProject "com.yahoo.athenz:athenz-syncer-common"
+deployProject "com.yahoo.athenz:athenz-gcp-zts-creds"
 
 rm -rf screwdriver/deploy

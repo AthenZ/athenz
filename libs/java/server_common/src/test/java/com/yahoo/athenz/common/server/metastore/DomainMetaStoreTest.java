@@ -42,7 +42,10 @@ public class DomainMetaStoreTest {
         assertTrue(metaStore.isValidAWSAccount("athenz", null));
 
         assertTrue(metaStore.isValidProductId("athenz", 42));
-        assertTrue(metaStore.isValidProductId("athenz", null));
+        assertTrue(metaStore.isValidProductId("athenz", (Integer) null));
+
+        assertTrue(metaStore.isValidProductId("athenz", "abcd-42"));
+        assertTrue(metaStore.isValidProductId("athenz", (String) null));
 
         assertTrue(metaStore.isValidBusinessService("athenz", "security"));
         assertTrue(metaStore.isValidBusinessService("athenz", null));
@@ -69,11 +72,13 @@ public class DomainMetaStoreTest {
         metaStore.setAWSAccountDomain("athenz", "aws");
         metaStore.setBusinessServiceDomain("athenz", "security");
         metaStore.setProductIdDomain("athenz", 42);
+        metaStore.setProductIdDomain("athenz", "abcd-42");
 
         assertEquals(DomainMetaStore.META_ATTR_BUSINESS_SERVICE, 0);
         assertEquals(DomainMetaStore.META_ATTR_AWS_ACCOUNT, 1);
         assertEquals(DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION, 2);
-        assertEquals(DomainMetaStore.META_ATTR_PRODUCT_ID, 3);
+        assertEquals(DomainMetaStore.META_ATTR_PRODUCT_NUMBER, 3);
         assertEquals(DomainMetaStore.META_ATTR_GCP_PROJECT, 4);
+        assertEquals(DomainMetaStore.META_ATTR_PRODUCT_ID, 5);
     }
 }

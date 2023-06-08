@@ -22,9 +22,11 @@ public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
 
-    public static final String ZMS_PROP_USER_DOMAIN       = "athenz.user_domain";
-    public static final String ZMS_PROP_HOME_DOMAIN       = "athenz.home_domain";
-    public static final String ZMS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
+    public static final String ZMS_PROP_USER_DOMAIN          = "athenz.user_domain";
+    public static final String ZMS_PROP_HOME_DOMAIN          = "athenz.home_domain";
+    public static final String ZMS_PROP_HEADLESS_USER_DOMAIN = "athenz.headless_user_domain";
+    public static final String ZMS_PROP_USER_DOMAIN_ALIAS    = "athenz.user_domain_alias";
+
     public static final String ZMS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZMS_PROP_STATUS_PORT       = "athenz.status_port";
@@ -92,6 +94,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_PROVIDER_ENDPOINTS      = "athenz.zms.provider_endpoints";
     public static final String ZMS_PROP_PRODUCT_ID_SUPPORT      = "athenz.zms.product_id_support";
     public static final String ZMS_PROP_SECURE_REQUESTS_ONLY    = "athenz.zms.secure_requests_only";
+    public static final String ZMS_PROP_RESERVED_DOMAIN_NAMES   = "athenz.zms.reserved_domain_names";
     public static final String ZMS_PROP_RESERVED_SERVICE_NAMES  = "athenz.zms.reserved_service_names";
     public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS     = "athenz.zms.max_policy_versions";
@@ -99,8 +102,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
     public static final String ZMS_PROP_VALIDATE_ASSERTION_ROLES = "athenz.zms.validate_policy_assertion_roles";
+
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS = "athenz.zms.validate_service_members_skip_domains";
     public static final String ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS        = "athenz.zms.master_copy_for_signed_domains";
+    public static final String ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES     = "athenz.zms.allow_underscore_in_service_names";
 
     // properties used to over-ride default Audit logger
  
@@ -221,7 +226,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_VALUE              = "value";
     public static final String DB_COLUMN_DOMAIN_ID          = "domain_id";
     public static final String DB_COLUMN_ACCOUNT            = "account";
-    public static final String DB_COLUMN_PRODUCT_ID         = "ypm_id";
+    public static final String DB_COLUMN_YPM_ID             = "ypm_id";
+    public static final String DB_COLUMN_PRODUCT_ID         = "product_id";
     public static final String DB_COLUMN_ADMIN              = "admin";
     public static final String DB_COLUMN_CREATED            = "created";
     public static final String DB_COLUMN_AUDIT_REF          = "audit_ref";
@@ -310,7 +316,8 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_AZURE_SUBSCRIPTION = "azuresubscription";
     public static final String SYSTEM_META_GCP_PROJECT        = "gcpproject";
     public static final String SYSTEM_META_BUSINESS_SERVICE   = "businessservice";
-
+    public static final String SYSTEM_META_YPM_ID             = "ypmid";
+    public static final String SYSTEM_META_ATTR_ALL           = "all";
 
     // HTTP operation types used in metrics
     public static final String HTTP_GET     = "GET";
@@ -388,6 +395,11 @@ public final class ZMSConsts {
     public static final Integer ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF = 500;
     public static final String ZMS_PROP_PURGE_MEMBER_EXPIRY_DAYS = "athenz.zms.purge_member_expiry_days";
     public static final Integer ZMS_PURGE_MEMBER_EXPIRY_DAYS_DEF = 180;
+
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_AWS_ACCOUNTS = "athenz.zms.enforce_unique_aws_accounts";
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_AZURE_SUBSCRIPTIONS = "athenz.zms.enforce_unique_azure_subscriptions";
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_GCP_PROJECTS = "athenz.zms.enforce_unique_gcp_projects";
+    public static final String ZMS_PROP_ENFORCE_UNIQUE_PRODUCT_IDS = "athenz.zms.enforce_unique_product_ids";
 
     //pending member
     public static final String PENDING_REQUEST_ADD_STATE = "ADD";

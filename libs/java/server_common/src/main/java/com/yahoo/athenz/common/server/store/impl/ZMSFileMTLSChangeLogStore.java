@@ -127,6 +127,11 @@ public class ZMSFileMTLSChangeLogStore implements ChangeLogStore {
     }
 
     @Override
+    public Map<String, DomainAttributes> getLocalDomainAttributeList() {
+        return changeLogStoreCommon.getLocalDomainAttributeList();
+    }
+
+    @Override
     public Set<String> getServerDomainList() {
 
         Set<String> zmsDomainList;

@@ -53,5 +53,9 @@ type JWKList Struct {
 type AccessTokenRequest String;
 
 type OIDCResponse Struct {
-    String location;
-};
+    Int32 version; //version number
+    String id_token; //id token
+    String token_type; //token type e.g. urn:ietf:params:oauth:token-type:id_token
+    Bool success; //response status
+    Int64 expiration_time; //expiration time in UTC
+}

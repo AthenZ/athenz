@@ -171,6 +171,7 @@ class AddSegmentation extends React.Component {
             this.validateMicrosegmentationPolicy.bind(this);
         this.validateFields = this.validateFields.bind(this);
         this.validateServiceNames = this.validateServiceNames.bind(this);
+        this.isScopeOnPrem = this.isScopeOnPrem.bind(this);
         this.scopeIsSet = this.scopeIsSet.bind(this);
         this.noSharedHostsBetweenModes =
             this.noSharedHostsBetweenModes.bind(this);
@@ -602,6 +603,16 @@ class AddSegmentation extends React.Component {
             }
         });
         return error;
+    }
+
+    // isScopeOnPrem returns true if onprem is a selected option
+    isScopeOnPrem() {
+        for (let i = 0; i < this.state.PESList.length; i++) {
+            if (this.state.PESList[i].scopeonprem == 'false') {
+                return false;
+            }
+        }
+        return true;
     }
 
     validateFields() {
@@ -1533,6 +1544,7 @@ class AddSegmentation extends React.Component {
                         <StyledInputLabel>Validation</StyledInputLabel>
                         <CheckBoxSectionDiv>
                             <StyledCheckBox
+                                disabled={!this.isScopeOnPrem()}
                                 checked={this.state.validationCheckbox}
                                 name={
                                     'checkbox-validate-policy' +
@@ -1546,7 +1558,7 @@ class AddSegmentation extends React.Component {
                                     'checkbox-validate-policy' +
                                     this.state.isCategory
                                 }
-                                label='Validate Microsegmentation policy against PES network policy'
+                                label='Validate Microsegmentation policy against PES network policy (only for onprem hosts)'
                                 onChange={(event) =>
                                     this.inputChanged(
                                         event,

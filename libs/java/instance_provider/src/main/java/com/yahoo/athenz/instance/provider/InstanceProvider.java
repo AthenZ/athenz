@@ -30,18 +30,20 @@ public interface InstanceProvider {
      * in the instance confirmation object and optionally return
      * back to the ZTS Server
      */
-    String ZTS_CERT_USAGE        = "certUsage";
-    String ZTS_CERT_EXPIRY_TIME  = "certExpiryTime";
-    String ZTS_CERT_REFRESH      = "certRefresh";
-    String ZTS_CERT_SUBJECT_OU   = "certSubjectOU";
-    String ZTS_CERT_SSH          = "certSSH";
+    String ZTS_CERT_USAGE                           = "certUsage";
+    String ZTS_CERT_EXPIRY_TIME                     = "certExpiryTime";
+    String ZTS_CERT_REFRESH                         = "certRefresh";
+    String ZTS_CERT_SUBJECT_OU                      = "certSubjectOU";
+    String ZTS_CERT_SSH                             = "certSSH";
 
     /**
      * If the attribute name is the certUsage then the
      * specified value can be either client or server
      */
-    String ZTS_CERT_USAGE_CLIENT = "client";
-    String ZTS_CERT_USAGE_SERVER = "server";
+    String ZTS_CERT_USAGE_CLIENT                    = "client";
+    String ZTS_CERT_USAGE_SERVER                    = "server";
+    String ZTS_CERT_USAGE_CODE_SIGNING              = "codeSigning";
+    String ZTS_CERT_USAGE_TIMESTAMPING              = "timestamping";
 
     /**
      * Instance specific attribute names. The san entries
@@ -49,23 +51,27 @@ public interface InstanceProvider {
      * by the client. Check the Copper Argos developer guide
      * for description of each attribute
      */
-    String ZTS_INSTANCE_SAN_DNS            = "sanDNS";
-    String ZTS_INSTANCE_SAN_IP             = "sanIP";
-    String ZTS_INSTANCE_SAN_URI            = "sanURI";
-    String ZTS_INSTANCE_CLIENT_IP          = "clientIP";
-    String ZTS_INSTANCE_ID                 = "instanceId";
-    String ZTS_INSTANCE_CSR_PUBLIC_KEY     = "csrPublicKey";
-    String ZTS_INSTANCE_HOSTNAME           = "hostname";
-    String ZTS_REQUEST_PRINCIPAL           = "principal";
-    String ZTS_INSTANCE_PRIVATE_IP         = "instancePrivateIp";
-    String ZTS_INSTANCE_AWS_ACCOUNT        = "awsAccount";
-    String ZTS_INSTANCE_AZURE_SUBSCRIPTION = "azureSubscription";
-    String ZTS_INSTANCE_GCP_PROJECT        = "gcpProject";
-    String ZTS_INSTANCE_CERT_HOSTNAME      = "certHostname";
-    String ZTS_INSTANCE_CERT_RSA_MOD_HASH  = "certRsaModHash";
-    String ZTS_INSTANCE_CERT_SUBJECT_DN    = "certSubjectDn";
-    String ZTS_INSTANCE_CERT_ISSUER_DN     = "certIssuerDn";
+    String ZTS_INSTANCE_SAN_DNS                     = "sanDNS";
+    String ZTS_INSTANCE_SAN_IP                      = "sanIP";
+    String ZTS_INSTANCE_SAN_URI                     = "sanURI";
+    String ZTS_INSTANCE_CLIENT_IP                   = "clientIP";
+    String ZTS_INSTANCE_ID                          = "instanceId";
+    String ZTS_INSTANCE_CSR_PUBLIC_KEY              = "csrPublicKey";
+    String ZTS_INSTANCE_HOSTNAME                    = "hostname";
+    String ZTS_REQUEST_PRINCIPAL                    = "principal";
+    String ZTS_INSTANCE_PRIVATE_IP                  = "instancePrivateIp";
+    String ZTS_INSTANCE_AWS_ACCOUNT                 = "awsAccount";
+    String ZTS_INSTANCE_AZURE_SUBSCRIPTION          = "azureSubscription";
+    String ZTS_INSTANCE_GCP_PROJECT                 = "gcpProject";
+    String ZTS_INSTANCE_CERT_HOSTNAME               = "certHostname";
+    String ZTS_INSTANCE_CERT_RSA_MOD_HASH           = "certRsaModHash";
+    String ZTS_INSTANCE_CERT_SUBJECT_DN             = "certSubjectDn";
+    String ZTS_INSTANCE_CERT_ISSUER_DN              = "certIssuerDn";
 
+    /**
+     * Host cert specific attribute names
+     */
+    String ZTS_ATTESTED_SSH_CERT_PRINCIPALS         = "attestedSshCertPrincipals";
 
     enum Scheme {
         HTTP,

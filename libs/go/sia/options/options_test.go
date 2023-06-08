@@ -203,6 +203,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	assert.Equal(t, "/var/lib/sia/certs", opts.CertDir)
 	assert.Equal(t, "/var/lib/sia/tokens", opts.TokenDir)
 	assert.Equal(t, "/var/lib/sia/backup", opts.BackupDir)
+	assert.Equal(t, 2, opts.FailCountForExit)
 }
 
 // TestOptionsNoProfileConfig tests the scenario when there is no /etc/sia/profile_config, the system uses instance profile arn
@@ -298,16 +299,17 @@ func TestOptionsWithRoleThreshold(t *testing.T) {
 	opts, e := setOptions(cfg, cfgAccount, profileConfig, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
-	assert.True(t, opts.RefreshInterval == 1440)
-	assert.True(t, opts.ZTSRegion == "")
+	assert.Equal(t, 1440, opts.RefreshInterval)
+	assert.Empty(t, opts.ZTSRegion)
+	assert.Equal(t, 5, opts.FailCountForExit)
 
 	// Make sure profile is correct
-	assert.True(t, opts.Profile == "zts-profile")
+	assert.Equal(t, "zts-profile", opts.Profile)
 
 	// Make sure services are set
-	assert.True(t, len(opts.Services) == 3)
-	assert.True(t, opts.Domain == "athenz")
-	assert.True(t, opts.Name == "athenz.api")
+	assert.Equal(t, 3, len(opts.Services))
+	assert.Equal(t, "athenz", opts.Domain)
+	assert.Equal(t, "athenz.api", opts.Name)
 
 	// Zeroth service should be the one from "service" key, the remaining are from "services" in no particular order
 	assert.True(t, assertService(opts.Services[0], Service{Name: "api", User: "nobody", Uid: getUid("nobody"), Gid: getUserGid("nobody"), FileMode: 288, Threshold: 20}))
@@ -316,7 +318,7 @@ func TestOptionsWithRoleThreshold(t *testing.T) {
 	assert.Equal(t, float64(25), opts.Roles[0].Threshold)
 
 	assert.Equal(t, DefaultThreshold, opts.SshThreshold)
-	assert.True(t, opts.Threshold == 20)
+	assert.Equal(t, float64(20), opts.Threshold)
 }
 
 func TestOptionsWithServiceAccountThreshold(t *testing.T) {
@@ -666,6 +668,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_CERT_DIR", "/var/athenz/certs")
 	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
 	os.Setenv("ATHENZ_SIA_SSH_PRINCIPALS", "host1.athenz.io")
+	os.Setenv("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", "10")
 
 	provider := MockAWSProvider{
 		Name:     fmt.Sprintf("athenz.aws.us-west-2"),
@@ -698,6 +701,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "athenz.api", cfgAccount.Name)
 	assert.Equal(t, 2, len(cfgAccount.Roles))
 	assert.Equal(t, "host1.athenz.io", cfg.SshPrincipals)
+	assert.Equal(t, 10, cfg.FailCountForExit)
 
 	os.Clearenv()
 }

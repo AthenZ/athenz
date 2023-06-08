@@ -85,7 +85,7 @@ func getRegionFromMeta(metaEndPoint string) string {
 }
 
 func GetDomain(metaEndpoint string) (string, error) {
-	domainBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/project/attributes/domain")
+	domainBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/project/attributes/athenz-domain")
 	if err != nil {
 		return "", err
 	}
@@ -126,4 +126,25 @@ func GetInstanceId(metaEndpoint string) (string, error) {
 		return "", err
 	}
 	return string(instanceIdBytes), nil
+}
+func GetInstancePrivateIp(metaEndpoint string) (string, error) {
+	instanceIdBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/network-interfaces/0/ip")
+	if err != nil {
+		return "", err
+	}
+	return string(instanceIdBytes), nil
+}
+func GetInstancePublicIp(metaEndpoint string) (string, error) {
+	pubIpBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip")
+	if err != nil {
+		return "", err
+	}
+	return string(pubIpBytes), nil
+}
+func GetInstanceName(metaEndpoint string) (string, error) {
+	nameBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/name")
+	if err != nil {
+		return "", err
+	}
+	return string(nameBytes), nil
 }

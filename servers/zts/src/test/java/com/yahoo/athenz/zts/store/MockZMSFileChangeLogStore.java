@@ -17,11 +17,11 @@ package com.yahoo.athenz.zts.store;
 
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.zms.*;
-import org.mockito.Mockito;
 
 import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.PROP_USER_DOMAIN;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +35,7 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
     private boolean refreshSupport = false;
     private final MockZMSFileChangeLogStoreCommon mockClogStoreCommon;
     private List<JWSDomain> jwsDomains;
+    private Map<String, DomainAttributes> domainAttributeMap;
 
     public MockZMSFileChangeLogStore(String rootDirectory, PrivateKey privateKey, String privateKeyId) {
         
@@ -114,5 +115,14 @@ public class MockZMSFileChangeLogStore extends ZMSFileChangeLogStore {
 
     public void setJWSDomain(String domainName, JWSDomain jwsDomain) {
         when(zms.getJWSDomain(domainName, null, null)).thenReturn(jwsDomain);
+    }
+
+    public void setLocalDomainAttributeList(Map<String, DomainAttributes> domainAttributeMap) {
+        this.domainAttributeMap = domainAttributeMap;
+    }
+
+    @Override
+    public Map<String, DomainAttributes> getLocalDomainAttributeList() {
+        return domainAttributeMap;
     }
 }

@@ -80,6 +80,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer memberPurgeExpiryDays;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String productId;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -242,6 +245,13 @@ public class DomainData {
     public Integer getMemberPurgeExpiryDays() {
         return memberPurgeExpiryDays;
     }
+    public DomainData setProductId(String productId) {
+        this.productId = productId;
+        return this;
+    }
+    public String getProductId() {
+        return productId;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -363,6 +373,9 @@ public class DomainData {
                 return false;
             }
             if (memberPurgeExpiryDays == null ? a.memberPurgeExpiryDays != null : !memberPurgeExpiryDays.equals(a.memberPurgeExpiryDays)) {
+                return false;
+            }
+            if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

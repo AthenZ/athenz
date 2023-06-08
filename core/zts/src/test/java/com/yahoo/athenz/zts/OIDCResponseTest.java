@@ -18,8 +18,7 @@ package com.yahoo.athenz.zts;
 
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.*;
 
 public class OIDCResponseTest {
 
@@ -29,21 +28,52 @@ public class OIDCResponseTest {
         OIDCResponse resp1 = new OIDCResponse();
         OIDCResponse resp2 = new OIDCResponse();
 
-        resp1.setLocation("https://localhost:4443/zts");
-        resp2.setLocation("https://localhost:4443/zts");
+        resp1.setId_token("idtoken1");
+        resp1.setSuccess(true);
+        resp1.setVersion(1);
+        resp1.setExpiration_time(1000);
+        resp1.setToken_type("id-token");
+
+        resp2.setId_token("idtoken1");
+        resp2.setSuccess(true);
+        resp2.setVersion(1);
+        resp2.setExpiration_time(1000);
+        resp2.setToken_type("id-token");
 
         assertEquals(resp1, resp2);
         assertEquals(resp1, resp1);
         assertNotEquals(null, resp1);
         assertNotEquals("oidcresponse", resp1);
 
-        assertEquals("https://localhost:4443/zts", resp1.getLocation());
+        assertEquals("idtoken1", resp1.getId_token());
+        assertTrue(resp1.getSuccess());
+        assertEquals(1, resp1.getVersion());
+        assertEquals(1000, resp1.getExpiration_time());
+        assertEquals("id-token", resp1.getToken_type());
 
-        resp2.setLocation("https://localhost:8443/zts");
+        resp2.setId_token("idtoken2");
         assertNotEquals(resp1, resp2);
-        resp2.setLocation(null);
+        resp2.setId_token(null);
         assertNotEquals(resp1, resp2);
-        resp2.setLocation("https://localhost:4443/zts");
+        resp2.setId_token("idtoken1");
+
+        resp2.setToken_type("id-token2");
+        assertNotEquals(resp1, resp2);
+        resp2.setToken_type(null);
+        assertNotEquals(resp1, resp2);
+        resp2.setToken_type("id-token");
+
+        resp2.setVersion(2);
+        assertNotEquals(resp1, resp2);
+        resp2.setVersion(1);
+
+        resp2.setExpiration_time(1001);
+        assertNotEquals(resp1, resp2);
+        resp2.setExpiration_time(1000);
+
+        resp2.setSuccess(false);
+        assertNotEquals(resp1, resp2);
+        resp2.setSuccess(true);
 
         assertEquals(resp1, resp2);
     }

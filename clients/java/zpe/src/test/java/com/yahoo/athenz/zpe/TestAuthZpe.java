@@ -1466,4 +1466,79 @@ public class TestAuthZpe {
         AuthZpeClient.setMillisBetweenZtsCalls(0);
         assertTrue(AuthZpeClient.canFetchLatestJwksFromZts());
     }
+
+    @Test
+    public void testMaxCacheTokenSize() throws IOException {
+
+        // perform allowed access check
+
+        List<String> roles = new ArrayList<>();
+        roles.add("full_regex");
+        roles.add("matchall");
+        roles.add("matchstarts");
+        roles.add("matchcompare");
+        roles.add("matchregex");
+        String signedToken = createAccessToken("angler", roles, "0");
+
+        String action = "all";
+        String resource = "angler:stuff";
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        // clear our cache
+
+        Map<String, AccessToken> roleMap = ZpeUpdPolLoader.getAccessTokenCacheMap();
+        roleMap.clear();
+
+        // successful access check should add the entry to the cache
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(signedToken, cert, null, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        Assert.assertEquals(roleMap.size(), 1);
+
+        // with our new token cache size limit of 1 the size should not change
+
+        AuthZpeClient.setTokenCacheMaxValue(1);
+
+        roles.add("testrole1");
+        signedToken = createAccessToken("angler", roles, "0");
+        status = AuthZpeClient.allowAccess(signedToken, cert, null, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        Assert.assertEquals(roleMap.size(), 1);
+
+        // set a negative value will be ignored, so we'll still
+        // have a single entry in the cache
+
+        AuthZpeClient.setTokenCacheMaxValue(-2);
+
+        status = AuthZpeClient.allowAccess(signedToken, cert, null, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        Assert.assertEquals(roleMap.size(), 1);
+
+
+        // now let's increase the size and try again
+
+        AuthZpeClient.setTokenCacheMaxValue(10);
+
+        status = AuthZpeClient.allowAccess(signedToken, cert, null, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        Assert.assertEquals(roleMap.size(), 2);
+
+        // let's set the limit to 0 and verify again
+
+        AuthZpeClient.setTokenCacheMaxValue(0);
+
+        roles.add("testrole2");
+        signedToken = createAccessToken("angler", roles, "0");
+        status = AuthZpeClient.allowAccess(signedToken, cert, null, resource, action);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+
+        Assert.assertEquals(roleMap.size(), 3);
+    }
 }

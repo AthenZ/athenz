@@ -82,6 +82,7 @@ public final class AthenzConsts {
 
     public static final String ATHENZ_PROP_HTTP_PORT   = "athenz.port";
     public static final String ATHENZ_PROP_HTTPS_PORT  = "athenz.tls_port";
+    public static final String ATHENZ_PROP_OIDC_PORT   = "athenz.oidc_port";
     public static final String ATHENZ_PROP_STATUS_PORT = "athenz.status_port";
     
     public static final int ATHENZ_HTTPS_PORT_DEFAULT = 4443;

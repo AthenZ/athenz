@@ -337,6 +337,7 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	expected = append(expected, rdl.StatusCode(r.Expected))
 	couldBeNoContent := "NO_CONTENT" == r.Expected
 	couldBeNotModified := "NOT_MODIFIED" == r.Expected
+	couldBeRedirect := "FOUND" == r.Expected
 	noContent := couldBeNoContent && r.Alternatives == nil
 	for _, e := range r.Alternatives {
 		if "NO_CONTENT" == e {
@@ -344,6 +345,9 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 		}
 		if "NOT_MODIFIED" == e {
 			couldBeNotModified = true
+		}
+		if "FOUND" == e {
+			couldBeRedirect = true
 		}
 		expected = append(expected, rdl.StatusCode(e))
 	}
@@ -360,8 +364,8 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	if noContent {
 		s += "                return null;\n"
 	} else {
-		if couldBeNoContent || couldBeNotModified {
-			s += "                if (" + gen.responseCondition(couldBeNoContent, couldBeNotModified) + ") {\n"
+		if couldBeNoContent || couldBeNotModified || couldBeRedirect {
+			s += "                if (" + gen.responseCondition(couldBeNoContent, couldBeNotModified, couldBeRedirect) + ") {\n"
 			s += "                    return null;\n"
 			s += "                }\n"
 		}
@@ -385,14 +389,22 @@ func (gen *javaClientGenerator) clientMethodBody(r *rdl.Resource) string {
 	return s
 }
 
-func (gen *javaClientGenerator) responseCondition(noContent, notModified bool) string {
+func (gen *javaClientGenerator) responseCondition(noContent, notModified, redirect bool) string {
 	var s string
-	if noContent && notModified {
-		s += "code == " + rdl.StatusCode("NO_CONTENT") + " || code == " + rdl.StatusCode("NOT_MODIFIED")
-	} else if noContent {
+	if noContent {
 		s += "code == " + rdl.StatusCode("NO_CONTENT")
-	} else {
+	}
+	if notModified {
+		if s != "" {
+			s += " || "
+		}
 		s += "code == " + rdl.StatusCode("NOT_MODIFIED")
+	}
+	if redirect {
+		if s != "" {
+			s += " || "
+		}
+		s += "code == " + rdl.StatusCode("FOUND")
 	}
 	return s
 }

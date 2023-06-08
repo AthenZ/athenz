@@ -60,6 +60,7 @@ public final class ZpeConsts {
     public static final String ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS     = "athenz.zpe.millis_between_zts_calls";
     public static final String ZPE_PROP_MILLIS_BETWEEN_RELOAD_CONFIG = "athenz.zpe.millis_between_reload_config";
     public static final String ZPE_PROP_TOKEN_OFFSET                 = "athenz.zpe.token_allowed_offset";
+    public static final String ZPE_PROP_MAX_TOKEN_CACHE              = "athenz.zpe.max_token_cache_entries";
     public static final String ZPE_PROP_METRIC_WRITE_INTERVAL        = "athenz.zpe.metric_write_interval";
     public static final String ZPE_PROP_METRIC_FILE_PATH             = "athenz.zpe.metric_file_path";
     public static final String ZPE_PROP_MON_TIMEOUT                  = "athenz.zpe.monitor_timeout_secs";

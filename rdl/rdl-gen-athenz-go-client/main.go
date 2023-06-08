@@ -653,7 +653,7 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 		expected = append(expected, rdl.StatusCode(e))
 	}
 	s += "\tcase " + strings.Join(expected, ", ") + ":\n"
-	if couldBeNoContent || couldBeNotModified {
+	if couldBeNoContent || couldBeNotModified || couldBeRedirect {
 		if !noContent {
 			tmp := ""
 			if couldBeNoContent {
@@ -665,13 +665,17 @@ func goMethodBody(reg rdl.TypeRegistry, r *rdl.Resource, precise bool) string {
 				}
 				tmp += "304 != resp.StatusCode"
 			}
+			if couldBeRedirect {
+				if tmp != "" {
+					tmp += " || "
+				}
+				tmp += "302 != resp.StatusCode"
+			}
 			s += "\t\tif " + tmp + " {\n"
 			s += "\t\t\terr = json.NewDecoder(resp.Body).Decode(&data)\n"
 			s += "\t\t\tif err != nil {\n\t\t\t\t" + errorReturn + "\n\t\t\t}\n"
 			s += "\t\t}\n"
 		}
-	} else if couldBeRedirect {
-		s += "\t\tdata = nil\n"
 	} else {
 		s += "\t\terr = json.NewDecoder(resp.Body).Decode(&data)\n"
 		s += "\t\tif err != nil {\n\t\t\t" + errorReturn + "\n\t\t}\n"

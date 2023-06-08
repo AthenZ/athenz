@@ -155,14 +155,16 @@ func parseAssertion(dn string, lst []string) (*zms.Assertion, error) {
 
 func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.Assertion) (*string, error) {
 	fullResourceName := dn + ":policy." + pn
-	_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
-	if err == nil {
-		return nil, fmt.Errorf("policy already exists: %v", fullResourceName)
-	}
-	switch v := err.(type) {
-	case rdl.ResourceError:
-		if v.Code != 404 {
-			return nil, v
+	if !cli.Overwrite {
+		_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
+		if err == nil {
+			return nil, fmt.Errorf("policy already exists: %v", fullResourceName)
+		}
+		switch v := err.(type) {
+		case rdl.ResourceError:
+			if v.Code != 404 {
+				return nil, v
+			}
 		}
 	}
 	policy := zms.Policy{
@@ -184,14 +186,16 @@ func (cli Zms) AddPolicyWithAssertions(dn string, pn string, assertions []*zms.A
 
 func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, error) {
 	fullResourceName := dn + ":policy." + pn
-	_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
-	if err == nil {
-		return nil, fmt.Errorf("policy already exists: %v", fullResourceName)
-	}
-	switch v := err.(type) {
-	case rdl.ResourceError:
-		if v.Code != 404 {
-			return nil, v
+	if !cli.Overwrite {
+		_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
+		if err == nil {
+			return nil, fmt.Errorf("policy already exists: %v", fullResourceName)
+		}
+		switch v := err.(type) {
+		case rdl.ResourceError:
+			if v.Code != 404 {
+				return nil, v
+			}
 		}
 	}
 	policy := zms.Policy{}
@@ -221,14 +225,16 @@ func (cli Zms) AddPolicy(dn string, pn string, assertion []string) (*string, err
 
 func (cli Zms) AddPolicyVersion(dn string, pn string, source_version string, version string) (*string, error) {
 	fullResourceName := dn + ":policy." + pn
-	_, err := cli.Zms.GetPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version))
-	if err == nil {
-		return nil, fmt.Errorf("policy version already exists: %v with version %v", fullResourceName, version)
-	}
-	switch v := err.(type) {
-	case rdl.ResourceError:
-		if v.Code != 404 {
-			return nil, v
+	if !cli.Overwrite {
+		_, err := cli.Zms.GetPolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version))
+		if err == nil {
+			return nil, fmt.Errorf("policy version already exists: %v with version %v", fullResourceName, version)
+		}
+		switch v := err.(type) {
+		case rdl.ResourceError:
+			if v.Code != 404 {
+				return nil, v
+			}
 		}
 	}
 	var policyOptions zms.PolicyOptions

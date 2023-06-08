@@ -17,7 +17,7 @@
 
 var url = require('url');
 var path = require('path');
-var request = require('request');
+var axios = require('axios');
 var debug = require('debug')('rdl-rest');
 var os = require('os');
 var clone = require('lodash.clone');
@@ -150,12 +150,12 @@ var _normalizeParts = function (route, data) {
     delete parts.href;
     delete parts.path;
     options.json = true;
-    options.uri = url.format(parts);
+    options.url = url.format(parts);
     data = this._normalizeData(route, data);
     if (data) {
-        options.body = data;
+        options.data = data;
     } else {
-        delete options.body;
+        delete options.data;
     }
     debug('parts', options);
     return options;
@@ -202,20 +202,19 @@ var _methodCb = function (data, callback, route) {
         }
         callback(err, json, res);
     };
-    return request(parts, function (err, res, json) {
-        var isJson = _isJsonResponse(json);
-        var isSuccessResponse = _isSuccessResponseCode(res && res.statusCode);
 
+    let handleResponse = function (err, json, res) {
+        var isJson = _isJsonResponse(json);
+        var isSuccessResponse = _isSuccessResponseCode(res && res.status);
         if (isSuccessResponse && !isJson) {
             if (res && res.statusCode !== 200) {
                 json = {};
                 isJson = true;
             }
         }
-
         if (err || !isSuccessResponse || !isJson) {
             err = {
-                status: res && res.statusCode,
+                status: res && res.status,
                 message: json,
                 error: err,
             };
@@ -223,9 +222,19 @@ var _methodCb = function (data, callback, route) {
                 json = null;
             }
         }
-
         done(err, json, res);
-    });
+    };
+
+    return axios
+        .request(parts)
+        .then((res) => {
+            let json = res.data;
+            handleResponse(null, json, res);
+        })
+        .catch((err) => {
+            let json = err.response && err.response.data;
+            handleResponse(err, json, err.response);
+        });
 };
 
 var generate = function (rdl, apiHost, mHeaders, requestOpts) {

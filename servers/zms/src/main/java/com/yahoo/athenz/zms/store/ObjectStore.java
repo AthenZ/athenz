@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zms.store;
 
+import com.yahoo.athenz.zms.DomainOptions;
+
 public interface ObjectStore {
 
     /**
@@ -41,7 +43,14 @@ public interface ObjectStore {
      * @param groupLimit group tags limit
      */
     void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
-    
+
+    /**
+     * Set uniqueness checks options for the object store.
+     * @param domainOptions domain attribute unique enforcement options
+     */
+    default void setDomainOptions(DomainOptions domainOptions) {
+    }
+
     /**
      * Clear all connections to the object store. This is called when
      * the server tries to write some object to the object store yet

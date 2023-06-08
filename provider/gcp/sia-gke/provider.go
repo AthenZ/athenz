@@ -111,3 +111,7 @@ func (tp GKEProvider) GetAccessManagementProfileFromMeta(base string) (string, e
 	}
 	return profile, nil
 }
+
+func (tp GKEProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	return "", nil
+}

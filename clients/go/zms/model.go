@@ -176,12 +176,13 @@ type DomainMeta struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated aws account id (system attribute - uniqueness check)
+	// associated aws account id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated product id (system attribute - uniqueness check)
+	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -237,12 +238,14 @@ type DomainMeta struct {
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated azure subscription id (system attribute - uniqueness check)
+	// associated azure subscription id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated gcp project id (system attribute - uniqueness check)
+	// associated gcp project id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
@@ -265,6 +268,11 @@ type DomainMeta struct {
 	// purge role/group members with expiry date configured days in the past
 	//
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated product id (system attribute - uniqueness check - if enabled)
+	//
+	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -373,6 +381,12 @@ func (self *DomainMeta) Validate() error {
 			return fmt.Errorf("DomainMeta.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.ProductId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -407,12 +421,13 @@ type Domain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated aws account id (system attribute - uniqueness check)
+	// associated aws account id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated product id (system attribute - uniqueness check)
+	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -468,12 +483,14 @@ type Domain struct {
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated azure subscription id (system attribute - uniqueness check)
+	// associated azure subscription id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated gcp project id (system attribute - uniqueness check)
+	// associated gcp project id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
@@ -496,6 +513,11 @@ type Domain struct {
 	// purge role/group members with expiry date configured days in the past
 	//
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated product id (system attribute - uniqueness check - if enabled)
+	//
+	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -619,6 +641,12 @@ func (self *Domain) Validate() error {
 			return fmt.Errorf("Domain.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.ProductId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
+		if !val.Valid {
+			return fmt.Errorf("Domain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("Domain.name is missing but is a required field")
 	} else {
@@ -740,6 +768,99 @@ func (self *DomainList) Validate() error {
 			return fmt.Errorf("DomainList.next does not contain a valid String (%v)", val.Error)
 		}
 	}
+	return nil
+}
+
+// DomainAttributes - A domain attributes for the changelog support
+type DomainAttributes struct {
+
+	//
+	// timestamp when the domain object was fetched from ZMS
+	//
+	FetchTime int64 `json:"fetchTime"`
+}
+
+// NewDomainAttributes - creates an initialized DomainAttributes instance, returns a pointer to it
+func NewDomainAttributes(init ...*DomainAttributes) *DomainAttributes {
+	var o *DomainAttributes
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainAttributes)
+	}
+	return o
+}
+
+type rawDomainAttributes DomainAttributes
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainAttributes
+func (self *DomainAttributes) UnmarshalJSON(b []byte) error {
+	var m rawDomainAttributes
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainAttributes(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainAttributes) Validate() error {
+	return nil
+}
+
+// DomainOptions - A domain options for enforcing uniqueness checks
+type DomainOptions struct {
+
+	//
+	// enforce domains are associated with unique product ids
+	//
+	EnforceUniqueProductIds bool `json:"enforceUniqueProductIds"`
+
+	//
+	// enforce domains are associated with unique aws accounts
+	//
+	EnforceUniqueAWSAccounts bool `json:"enforceUniqueAWSAccounts"`
+
+	//
+	// enforce domains are associated with unique azure subscriptions
+	//
+	EnforceUniqueAzureSubscriptions bool `json:"enforceUniqueAzureSubscriptions"`
+
+	//
+	// enforce domains are associated with unique gcp projects
+	//
+	EnforceUniqueGCPProjects bool `json:"enforceUniqueGCPProjects"`
+}
+
+// NewDomainOptions - creates an initialized DomainOptions instance, returns a pointer to it
+func NewDomainOptions(init ...*DomainOptions) *DomainOptions {
+	var o *DomainOptions
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainOptions)
+	}
+	return o
+}
+
+type rawDomainOptions DomainOptions
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainOptions
+func (self *DomainOptions) UnmarshalJSON(b []byte) error {
+	var m rawDomainOptions
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainOptions(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainOptions) Validate() error {
 	return nil
 }
 
@@ -3404,12 +3525,13 @@ type TopLevelDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated aws account id (system attribute - uniqueness check)
+	// associated aws account id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated product id (system attribute - uniqueness check)
+	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -3465,12 +3587,14 @@ type TopLevelDomain struct {
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated azure subscription id (system attribute - uniqueness check)
+	// associated azure subscription id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated gcp project id (system attribute - uniqueness check)
+	// associated gcp project id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
@@ -3493,6 +3617,11 @@ type TopLevelDomain struct {
 	// purge role/group members with expiry date configured days in the past
 	//
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated product id (system attribute - uniqueness check - if enabled)
+	//
+	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -3619,6 +3748,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.ProductId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("TopLevelDomain.name is missing but is a required field")
 	} else {
@@ -3659,12 +3794,13 @@ type SubDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated aws account id (system attribute - uniqueness check)
+	// associated aws account id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated product id (system attribute - uniqueness check)
+	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -3720,12 +3856,14 @@ type SubDomain struct {
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated azure subscription id (system attribute - uniqueness check)
+	// associated azure subscription id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated gcp project id (system attribute - uniqueness check)
+	// associated gcp project id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
@@ -3748,6 +3886,11 @@ type SubDomain struct {
 	// purge role/group members with expiry date configured days in the past
 	//
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated product id (system attribute - uniqueness check - if enabled)
+	//
+	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -3879,6 +4022,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.businessService does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.ProductId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.Name == "" {
 		return fmt.Errorf("SubDomain.name is missing but is a required field")
 	} else {
@@ -3928,12 +4077,13 @@ type UserDomain struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated aws account id (system attribute - uniqueness check)
+	// associated aws account id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated product id (system attribute - uniqueness check)
+	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -3989,12 +4139,14 @@ type UserDomain struct {
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated azure subscription id (system attribute - uniqueness check)
+	// associated azure subscription id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated gcp project id (system attribute - uniqueness check)
+	// associated gcp project id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
@@ -4017,6 +4169,11 @@ type UserDomain struct {
 	// purge role/group members with expiry date configured days in the past
 	//
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated product id (system attribute - uniqueness check - if enabled)
+	//
+	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -4133,6 +4290,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.businessService does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ProductId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.productId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -6376,12 +6539,13 @@ type DomainData struct {
 	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated aws account id (system attribute - uniqueness check)
+	// associated aws account id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated product id (system attribute - uniqueness check)
+	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -6437,12 +6601,14 @@ type DomainData struct {
 	UserAuthorityFilter string `json:"userAuthorityFilter" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated azure subscription id (system attribute - uniqueness check)
+	// associated azure subscription id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	AzureSubscription string `json:"azureSubscription" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// associated gcp project id (system attribute - uniqueness check)
+	// associated gcp project id (system attribute - uniqueness check - if
+	// enabled)
 	//
 	GcpProject string `json:"gcpProject" rdl:"optional" yaml:",omitempty"`
 
@@ -6465,6 +6631,11 @@ type DomainData struct {
 	// purge role/group members with expiry date configured days in the past
 	//
 	MemberPurgeExpiryDays *int32 `json:"memberPurgeExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated product id (system attribute - uniqueness check - if enabled)
+	//
+	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -6621,6 +6792,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.BusinessService)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.businessService does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ProductId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.productId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

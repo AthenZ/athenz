@@ -53,6 +53,7 @@ public class ZmsSyncer {
     static final String RUN_MESSAGE_FIELD = "run-message"; // value is a string explaining the run_status
     static final String RUN_TIME_FIELD    = "run-time"; // value is a string that is date-time in UTC
     static final String NUM_DOMS_UPLOADED_FIELD      = "number-domains-uploaded"; // value is a number
+    static final String NUM_DOMS_REFRESHED_FIELD     = "number-domains-refreshed"; // value is a number
     static final String NUM_DOMS_NOT_UPLOADED_FIELD  = "number-domains-not-uploaded"; // value is a number
     static final String NUM_DOMS_UPLOAD_FAILED_FIELD = "number-domain-upload-failures"; // value is a number
     static final String NUM_DOMS_DELETED_FIELD       = "number-domain-deleted"; //  value is a number
@@ -66,6 +67,7 @@ public class ZmsSyncer {
     private int numDomainsUploadFailed   = 0;
     private int numDomainsDeleted        = 0;
     private int numDomainsDeletedFailed  = 0;
+    private int numDomainsRefreshed      = 0;
     private boolean loadStateSuccess     = false;
 
     private final AwsSyncer awsSyncer;
@@ -107,6 +109,14 @@ public class ZmsSyncer {
 
     public int getNumDomainsUploaded() {
         return numDomainsUploaded;
+    }
+
+    public int getNumDomainsRefreshed() {
+        return numDomainsRefreshed;
+    }
+
+    void setNumDomainsRefreshed(int count) {
+        numDomainsRefreshed = count;
     }
 
     public int getNumDomainsNotUploaded() {
@@ -158,6 +168,7 @@ public class ZmsSyncer {
         }
         
         stateObj.setModified(modified);
+        stateObj.setFetchTime(System.currentTimeMillis() / 1000);
         return stateObj;
     }
 
@@ -207,6 +218,13 @@ public class ZmsSyncer {
 
     boolean syncDomains(final Map<String, DomainState> stateMap) throws Exception {
 
+        // fetch how many domains we're going to refresh every time
+        // if the domain hasn't been fetched for the configured amount
+        // of seconds in the past
+
+        int domainRefreshCountLimit = Integer.parseInt(Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT));
+        int domainRefreshTimeout = Integer.parseInt(Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT));
+
         // get domain list
 
         Set<String> latestZmsDomSet = new HashSet<>();
@@ -225,6 +243,7 @@ public class ZmsSyncer {
             LOGGER.info("got domain list from zms: num elements: {}", sdList.size());
             processedDomains = new ArrayList<>(sdList.size());
 
+            long now = System.currentTimeMillis() / 1000;
             for (SignedDomain sDom : sdList) {
 
                 DomainData domainData = sDom.getDomain();
@@ -235,13 +254,17 @@ public class ZmsSyncer {
 
                 DomainState domainState = stateMap.get(domainName);
                 boolean uploadDom = domainState == null || !domainModifiedTime.equals(domainState.getModified());
-                if (uploadDom) {
+                boolean refreshDom = shouldRefreshDomain(domainState, now, domainRefreshCountLimit, domainRefreshTimeout);
+                if (uploadDom || refreshDom) {
                     domainState = uploadDomain(domainName);
                     // add the updated domain state
                     processedDomains.add(domainState);
                     // check if we failed to upload this domain
                     if (domainState.getModified().equals(LAST_MOD_NO_DATE)) {
                         retStatus = false;
+                    }
+                    if (refreshDom) {
+                        ++numDomainsRefreshed;
                     }
                 } else {
                     // add the old domain state
@@ -272,12 +295,22 @@ public class ZmsSyncer {
 
         final String sb = "Sync Status:" +
                 " : number-domains-uploaded: " + getNumDomainsUploaded() +
+                " : number-domains-refreshed: " + getNumDomainsRefreshed() +
                 " : number-domains-not-uploaded: " + getNumDomainsNotUploaded() +
                 " : number-domain-upload-failures: " + getNumDomainsUploadFailed() +
                 " : number-domain-deleted: " + getNumDomainsDeleted() +
                 " : number-domain-deleted-failures: " + getNumDomainsDeletedFailed();
         LOGGER.info(sb);
         return retStatus;
+    }
+
+    boolean shouldRefreshDomain(DomainState domainState, long now, int domainRefreshCountLimit, int domainRefreshTimeout) {
+        // if there is no state, or we have reached our limit we return false
+        if (domainState == null || numDomainsRefreshed >= domainRefreshCountLimit) {
+            return false;
+        }
+        long fetchTime = domainState.getFetchTime();
+        return fetchTime != 0 && fetchTime < now - domainRefreshTimeout;
     }
 
     boolean saveStateToFile(String stateFileName, Struct newState) {
@@ -323,6 +356,7 @@ public class ZmsSyncer {
         String timeStamp = Timestamp.fromCurrentTime().toString();
         newState.with(RUN_TIME_FIELD, timeStamp).
             with(NUM_DOMS_UPLOADED_FIELD, getNumDomainsUploaded()).
+            with(NUM_DOMS_REFRESHED_FIELD, getNumDomainsRefreshed()).
             with(NUM_DOMS_NOT_UPLOADED_FIELD, getNumDomainsNotUploaded()).
             with(NUM_DOMS_UPLOAD_FAILED_FIELD, getNumDomainsUploadFailed()).
             with(NUM_DOMS_DELETED_FIELD, getNumDomainsDeleted()).
@@ -332,7 +366,6 @@ public class ZmsSyncer {
         return saveStateToFile(stateFileName, newState);
     }
 
-    ///CLOVER:OFF
     public static void main(String[] args) {
         ZmsSyncer syncer = null;
         boolean syncStatus = false;
@@ -347,5 +380,4 @@ public class ZmsSyncer {
         }
         System.exit(syncStatus ? 0 : 1);
     }
-    ///CLOVER:ON
 }

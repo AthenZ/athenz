@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
@@ -81,13 +82,13 @@ func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
 	return util.PrivateKeyFromFile(svcKey)
 }
 
-func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
+func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 
 	//initialize our return state to success
 	failures := 0
 
-	var roleRequest = new(zts.RoleCertificateRequest)
 	for _, role := range opts.Roles {
+		var roleRequest = new(zts.RoleCertificateRequest)
 
 		svcKeyFile := util.GetSvcKeyFileName(opts.KeyDir, role.SvcKeyFilename, opts.Domain, role.Service)
 		svcCertFile := util.GetSvcCertFileName(opts.CertDir, role.SvcCertFilename, opts.Domain, role.Service)
@@ -158,7 +159,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) bool {
 		}
 	}
 	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), failures)
-	return failures == 0
+	return len(opts.Roles), failures
 }
 
 func RegisterInstance(ztsUrl, metaEndpoint string, opts *options.Options, docExpiryCheck bool) error {
@@ -235,7 +236,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc, false)
-	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname, metaEndpoint)
 	if err != nil {
 		return err
 	}
@@ -334,7 +335,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc, false)
-	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname, metaEndpoint)
 	if err != nil {
 		return err
 	}
@@ -418,7 +419,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	return nil
 }
 
-func generateSshRequest(opts *options.Options, primaryServiceName, hostname string) (*zts.SSHCertRequest, string, error) {
+func generateSshRequest(opts *options.Options, primaryServiceName, hostname, metaEndpoint string) (*zts.SSHCertRequest, string, error) {
 	var err error
 	var sshCsr string
 	var sshCertRequest *zts.SSHCertRequest
@@ -426,7 +427,17 @@ func generateSshRequest(opts *options.Options, primaryServiceName, hostname stri
 		if opts.SshHostKeyType == hostkey.Rsa {
 			sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSCloudDomains)
 		} else {
-			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, opts.SshPrincipals, opts.ZTSAWSDomains)
+			sshPrincipals := opts.SshPrincipals
+			// additional ssh host principals are added on best effort basis, hence error below is ignored.
+			additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(metaEndpoint)
+			if additionalSshHostPrincipals != "" {
+				if sshPrincipals != "" {
+					sshPrincipals = sshPrincipals + "," + additionalSshHostPrincipals
+				} else {
+					sshPrincipals = additionalSshHostPrincipals
+				}
+			}
+			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, sshPrincipals, opts.ZTSCloudDomains)
 		}
 	}
 	return sshCertRequest, sshCsr, err
@@ -577,28 +588,49 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 	}
 	switch siaCmd {
 	case "rolecert":
-		GetRoleCertificates(ztsUrl, opts)
+		count, failures := GetRoleCertificates(ztsUrl, opts)
+		if failures != count {
+			util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+		}
 	case "token":
 		if tokenOpts != nil {
 			err := accessTokenRequest(tokenOpts)
 			if err != nil {
-				log.Fatalf("Unable to fetch access token, err: %v\n", err)
+				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
+			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 		} else {
-			log.Print("unable to obtain fetch token, invalid sia_config")
+			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
 	case "post", "register":
 		err := RegisterInstance(ztsUrl, metaEndpoint, opts, false)
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
+		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(ztsUrl, metaEndpoint, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
+		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
+	case "init":
+		err := RegisterInstance(ztsUrl, metaEndpoint, opts, false)
+		if err != nil {
+			log.Fatalf("Unable to register identity, err: %v\n", err)
+		}
+		log.Printf("identity registered for services: %s\n", svcs)
+		GetRoleCertificates(ztsUrl, opts)
+		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+		if tokenOpts != nil {
+			err := accessTokenRequest(tokenOpts)
+			if err != nil {
+				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
+			}
+			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
+		}
 	default:
 		// we're going to iterate through our configured services.
 		// if the service key and certificate files exist then we're
@@ -633,6 +665,12 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 		errors := make(chan error, 1)
 		certUpdates := make(chan bool, 1)
 
+		// keep track of failed counts for refresh operations. Since we typically
+		// get certs valid for several days, there is no need to exit immediately
+		// and keep retrying. instead, we'll just skip this run and retry again
+		// in the configured number of minutes (based on the refresh interval)
+		failedRefreshCount := 0
+
 		go func() {
 			for {
 				// if we just did our initial setup there is no point
@@ -642,21 +680,33 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 				if !initialSetup {
 					err = RefreshInstance(ztsUrl, metaEndpoint, opts)
 					if err != nil {
-						errors <- fmt.Errorf("refresh identity failed: %v\n", err)
-						return
+						failedRefreshCount++
+						if shouldExitRightAway(failedRefreshCount, opts) {
+							errors <- fmt.Errorf("refresh identity failed: %v\n", err)
+							return
+						} else {
+							log.Printf("refresh identity failed for svcs %s, error: %v\n", svcs, err)
+							log.Printf("refresh will be retried in %d minutes, failure %d of %d\n", opts.RefreshInterval, failedRefreshCount, opts.FailCountForExit)
+						}
+					} else {
+						failedRefreshCount = 0
+						log.Printf("identity successfully refreshed for services: %s\n", svcs)
 					}
-					log.Printf("identity successfully refreshed for services: %s\n", svcs)
 				}
 				initialSetup = false
 				if tokenOpts != nil {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
-						errors <- fmt.Errorf("Unable to fetch access token after identity refresh, err: %v\n", err)
+						errors <- fmt.Errorf("Unable to fetch access tokens after identity refresh, err: %v\n", err)
+					} else {
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 					}
 				} else {
-					log.Print("token config does not exist - do not refresh token")
+					log.Print("token config does not exist - do not refresh tokens")
 				}
 				GetRoleCertificates(ztsUrl, opts)
+				util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
+
 				if opts.SDSUdsPath != "" {
 					certUpdates <- true
 				}
@@ -705,6 +755,8 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
 						errors <- fmt.Errorf("refresh access-token task got error: %v\n", err)
+					} else {
+						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
 					}
 				case <-stop:
 					errors <- nil
@@ -791,4 +843,27 @@ func serviceAlreadyRegistered(opts *options.Options, svc options.Service) bool {
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 	return util.FileExists(keyFile) && util.FileExists(certFile)
+}
+
+func shouldExitRightAway(failedRefreshCount int, opts *options.Options) bool {
+	// if the failed count already matches or exceeds our configured
+	// value then we return right away
+	if failedRefreshCount >= opts.FailCountForExit {
+		return true
+	}
+	// if the count hasn't reached the limit, we will skip this
+	// failure only if all the certificates that we're refreshing
+	// are not going to expire before the next refresh happens
+	for _, svc := range opts.Services {
+		svcCertFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
+		// if we're not able to parse/load the certificate file, we'll exit right away
+		x509Cert, err := athenzutils.LoadX509Certificate(svcCertFile)
+		if err != nil {
+			return true
+		}
+		if x509Cert.NotAfter.Unix()-time.Now().Unix() < int64(opts.RefreshInterval*60) {
+			return true
+		}
+	}
+	return false
 }

@@ -154,6 +154,7 @@ func usage() string {
 	buf.WriteString("   -k                  Disable peer verification of SSL certificates.\n")
 	buf.WriteString("   -key x509_key       Athenz X.509 Key file for authentication\n")
 	buf.WriteString("   -o output_format    Output format - json or yaml (default=yaml)\n")
+	buf.WriteString("   -overwrite          Overwrites without checking for existence\n")
 	buf.WriteString("   -s host:port        The SOCKS5 proxy to route requests through\n")
 	buf.WriteString("   -v                  Verbose mode. Full resource names are included in output (default=false)\n")
 	buf.WriteString("   -x                  For user token output, exclude the header name (default=false)\n")
@@ -197,6 +198,7 @@ func main() {
 	pSocks := flag.String("s", defaultSocksProxy(), "The SOCKS5 proxy to route requests through, i.e. 127.0.0.1:1080")
 	pSkipVerify := flag.Bool("k", false, "Disable peer verification of SSL certificates")
 	pOutputFormat := flag.String("o", "manualYaml", "Output format - json or yaml")
+	pOverwrite := flag.Bool("overwrite", false, "Overwrites without checking for existence")
 	pDebug := flag.Bool("debug", defaultDebug(), "debug mode (for authentication, mainly)")
 	pAuditRef := flag.String("a", "", "Audit Reference Token if auditing is enabled for the domain")
 	pExcludeHeader := flag.Bool("x", false, "Exclude header in user-token output")
@@ -271,11 +273,12 @@ func main() {
 		Debug:            *pDebug,
 		AddSelf:          *pAddSelf,
 		OutputFormat:     *pOutputFormat,
+		Overwrite:        *pOverwrite,
 		SkipErrors:       *pSkipErrors,
 	}
 
 	if *pX509KeyFile != "" && *pX509CertFile != "" {
-		err := cli.SetX509CertClient(*pX509KeyFile, *pX509CertFile, *pCACert, *pSocks, false, *pSkipVerify)
+		err := zmscli.SetX509CertClient(&cli, *pX509KeyFile, *pX509CertFile, *pCACert, *pSocks, false, *pSkipVerify)
 		if err != nil {
 			log.Fatalf("Unable to set ZMS x.509 Client: %v\n", err)
 		}
@@ -309,7 +312,7 @@ func main() {
 			}
 		}
 		var authHeader = "Athenz-Principal-Auth"
-		cli.SetClient(tr, &authHeader, &ntoken)
+		zmscli.SetClient(&cli, tr, &authHeader, &ntoken)
 
 		if len(args) > 0 && args[0] == "get-user-token" {
 			if len(args) == 2 {

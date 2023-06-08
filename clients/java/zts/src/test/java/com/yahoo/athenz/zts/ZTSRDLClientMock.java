@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import com.yahoo.rdl.Timestamp;
@@ -40,9 +42,10 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     Map<String, AWSTemporaryCredentials> credsMap = new HashMap<>();
 
-    private Map<String, Long> lastRoleTokenFetchedTime = new HashMap<>();
-    private Map<String, Long> lastAccessTokenFetchedTime = new HashMap<>();
-    private Map<String, Long> lastRoleTokenFailTime = new HashMap<>();
+    private final Map<String, Long> lastRoleTokenFetchedTime = new HashMap<>();
+    private final Map<String, Long> lastAccessTokenFetchedTime = new HashMap<>();
+    private final Map<String, Long> lastRoleTokenFailTime = new HashMap<>();
+    private final Map<String, Long> lastIdTokenFetchedTime = new HashMap<>();
 
     static String getKey(String domain, String roleName, String proxyForPrincipal) {
         return domain + "-" + roleName + "-" + proxyForPrincipal;
@@ -76,6 +79,13 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         String key = getKey(domain, roleName, proxyForPrincipal);
         if (lastAccessTokenFetchedTime.containsKey(key)) {
             return lastAccessTokenFetchedTime.get(key);
+        }
+        return -1;
+    }
+
+    long getLastIdTokenFetchedTime(final String scope) {
+        if (lastIdTokenFetchedTime.containsKey(scope)) {
+            return lastIdTokenFetchedTime.get(scope);
         }
         return -1;
     }
@@ -220,13 +230,45 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
             if (domainScope != -1) {
                 final String domainName = request.substring(idxScope + 6, domainScope);
                 String key = getKey(domainName, null, null);
-                long lastUpdatedTime = System.currentTimeMillis();
-                lastAccessTokenFetchedTime.put(key, lastUpdatedTime);
+                lastAccessTokenFetchedTime.put(key, System.currentTimeMillis());
             }
         }
 
         requestCount += 1;
         return tokenResponse;
+    }
+
+    @Override
+    public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope,
+            String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime,
+            String output, Boolean roleInAudClaim, Map<String, List<String>> headers)
+            throws URISyntaxException, IOException {
+
+        // some exception test cases based on the state value
+        if (state != null) {
+            switch (state) {
+                case "zts-403":
+                    throw new ResourceException(403, "forbidden request");
+                case "zts-500":
+                    throw new IllegalArgumentException("invalid arguments", null);
+            }
+        }
+
+        // process our request, generate a token and return
+
+        if (expiryTime == null) {
+            expiryTime = 3600;
+        }
+        String token = AccessTokenTestFileHelper.getSignedAccessToken(expiryTime);
+        OIDCResponse oidcResponse = new OIDCResponse()
+                .setExpiration_time(System.currentTimeMillis() / 1000 + expiryTime)
+                .setVersion(1)
+                .setSuccess(true)
+                .setToken_type("urn:ietf:params:oauth:token-type:id_token")
+                .setId_token(token);
+        lastIdTokenFetchedTime.put(scope, System.currentTimeMillis());
+
+        return oidcResponse;
     }
 
     @Override

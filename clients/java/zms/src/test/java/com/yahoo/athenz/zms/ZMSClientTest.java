@@ -1309,7 +1309,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainListMock = Mockito.mock(DomainList.class);
         Mockito.when(
-            c.getDomainList(null, null, null, null, null, null, null, null, null, null, null, null, null, null))
+            c.getDomainList(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
             .thenReturn(domainListMock);
         DomainList domList = client.getDomainList();
         assertNotNull(domList);
@@ -1325,7 +1325,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(100, "skip", "prefix", 1, null, null, null, null,
-                        null, null, null, null, null, modSinceStr)).thenReturn(domainList)
+                        null, null, null, null, null, null, modSinceStr)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainList(100, "skip", "prefix", 1, now));
         try {
@@ -1349,7 +1349,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, null, "MemberRole1", "RoleName1",
-                        null, null, null, null, null, null)).thenReturn(domainList)
+                        null, null, null, null, null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainList("MemberRole1", "RoleName1"));
         try {
@@ -1373,7 +1373,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, null, "MemberRole1", "RoleName1",
-                null, null, null, null, null, null)).thenReturn(domainList)
+                null, null, null, null, null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByRole("MemberRole1", "RoleName1"));
         try {
@@ -1397,7 +1397,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, "aws", null, null, null,
-                        null, null, null, null, null, null)).thenReturn(domainList)
+                        null, null, null, null, null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByAwsAccount("aws"));
         try {
@@ -1421,7 +1421,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
-                        "azure", null, null, null, null, null)).thenReturn(domainList)
+                        "azure", null, null, null, null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByAzureSubscription("azure"));
         try {
@@ -1445,7 +1445,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
-                        null, "gcp", null, null, null, null)).thenReturn(domainList)
+                        null, "gcp", null, null, null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByGcpProject("gcp"));
         try {
@@ -1469,7 +1469,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
-                        null, null, null, null, "business-service", null)).thenReturn(domainList)
+                        null, null, null, null, "business-service", null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByBusinessService("business-service"));
         try {
@@ -1493,7 +1493,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, 101, null, null,
-                        null, null, null, null, null, null)).thenReturn(domainList)
+                        null, null, null, null, null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByProductId(101));
         try {
@@ -1517,7 +1517,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         DomainList domainList = new DomainList().setNames(Collections.singletonList("domain"));
         Mockito.when(c.getDomainList(null, null, null, null, null, null, null, null,
-                        null, null, "tag-key", "tag-value", null, null)).thenReturn(domainList)
+                        null, null, "tag-key", "tag-value", null, null, null)).thenReturn(domainList)
                 .thenThrow(new NullPointerException()).thenThrow(new ResourceException(400));
         assertNotNull(client.getDomainListByTags("tag-key", "tag-value"));
         try {
@@ -2579,7 +2579,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         try {
             Mockito.when(
-                    c.getDomainList(0, null, null, null, null, null, null, null, null, null, null, null, null, null))
+                    c.getDomainList(0, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
                     .thenThrow(new RuntimeException());
             client.getDomainList(0, null, null, null, null, null, null, null, null, null, null);
             fail();
@@ -2589,7 +2589,7 @@ public class ZMSClientTest {
 
         try {
             Mockito.when(
-                    c.getDomainList(1, null, null, null, null, null, null, null, null, null, null, null, null, null))
+                    c.getDomainList(1, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
                     .thenThrow(new InvalidParameterException("Bad parameter"));
             client.getDomainList(1, null, null, null, null, null, null, null, null, null, null);
             fail();
@@ -2599,7 +2599,7 @@ public class ZMSClientTest {
 
         try {
             Mockito.when(
-                    c.getDomainList(2, null, null, null, null, null, null, null, null, null, null, null, null, null))
+                    c.getDomainList(2, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
                     .thenThrow(new ResourceException(400));
             client.getDomainList(2, null, null, null, null, null, null, null, null, null, null);
             fail();

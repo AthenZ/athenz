@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.security.PrivateKey;
+import java.util.Map;
 import java.util.Set;
 
 import com.yahoo.athenz.CommonTestUtils;
@@ -89,8 +90,7 @@ public class ZMSFileChangeLogStoreTest {
             
             new ZMSFileChangeLogStore(fpath, null, null);
             fail();
-        } catch (RuntimeException | IOException ex) {
-            assertTrue(true);
+        } catch (RuntimeException | IOException ignored) {
         }
     }
 
@@ -100,8 +100,7 @@ public class ZMSFileChangeLogStoreTest {
         try {
             new ZMSFileChangeLogStore("/proc/usr\ninvaliddir", null, null);
             fail();
-        } catch (RuntimeException ex) {
-            assertTrue(true);
+        } catch (RuntimeException ignored) {
         }
     }
     
@@ -109,7 +108,7 @@ public class ZMSFileChangeLogStoreTest {
     public void testGetLocalDomainListEmpty() {
         ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
         List<String> ls = fstore.getLocalDomainList();
-        assertEquals(ls.size(), 0);
+        assertTrue(ls.isEmpty());
     }
 
     @Test
@@ -122,7 +121,7 @@ public class ZMSFileChangeLogStoreTest {
         cstore.rootDir = dir;
 
         List<String> ls = fstore.getLocalDomainList();
-        assertEquals(ls.size(), 0);
+        assertTrue(ls.isEmpty());
     }
 
     @Test
@@ -480,5 +479,84 @@ public class ZMSFileChangeLogStoreTest {
         fstore.removeLocalDomain(domainName);
         jwsDomain1 = fstore.getLocalJWSDomain(domainName);
         assertNull(jwsDomain1);
+    }
+
+    @Test
+    public void testGetLocalDomainListAttributeListMultiple() {
+
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        Struct data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test1", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test2", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test3", JSON.bytes(data));
+
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertEquals(domainMap.size(), 3);
+
+        DomainAttributes attrs = domainMap.get("test1");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+
+        attrs = domainMap.get("test2");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+
+        attrs = domainMap.get("test3");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+    }
+
+    @Test
+    public void testGetLocalDomainAttributeListHidden() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        Struct data = new Struct();
+        data.put("key", "val1");
+        cstore.put("test1", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put(".test2", JSON.bytes(data));
+
+        data = new Struct();
+        data.put("key", "val1");
+        cstore.put(".test3", JSON.bytes(data));
+
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertEquals(domainMap.size(), 1);
+
+        DomainAttributes attrs = domainMap.get("test1");
+        assertNotNull(attrs);
+        assertTrue(attrs.getFetchTime() > 0);
+    }
+
+    @Test
+    public void testGetLocalDomainAttributeListEmpty() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertTrue(domainMap.isEmpty());
+    }
+
+    @Test
+    public void testGetLocalDomainAttributeListError() {
+        ZMSFileChangeLogStore fstore = new ZMSFileChangeLogStore(FSTORE_PATH, null, null);
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        File dir = Mockito.spy(cstore.rootDir);
+        Mockito.when(dir.list()).thenReturn(null);
+        cstore.rootDir = dir;
+
+        Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
+        assertTrue(domainMap.isEmpty());
     }
 }

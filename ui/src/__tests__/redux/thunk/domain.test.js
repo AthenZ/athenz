@@ -248,24 +248,19 @@ describe('test getDomainData thunk', () => {
         MockApi.setMockApi({
             getDomain: jest.fn().mockReturnValue(Promise.reject(err)),
         });
-        try {
-            await getDomainData('newDomain', userName)(fakeDispatch, getState);
-            fail();
-        } catch (e) {
-            expect(_.isEqual(e, err)).toBeTruthy();
-            expect(
-                _.isEqual(
-                    fakeDispatch.getCall(0).args[0],
-                    loadingInProcess('getDomainData')
-                )
-            ).toBeTruthy();
-            expect(
-                _.isEqual(
-                    fakeDispatch.getCall(1).args[0],
-                    loadingFailed('getDomainData')
-                )
-            ).toBeTruthy();
-        }
+        await getDomainData('newDomain', userName)(fakeDispatch, getState);
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(0).args[0],
+                loadingInProcess('getDomainData')
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(1).args[0],
+                loadingFailed('getDomainData')
+            )
+        ).toBeTruthy();
     });
 });
 

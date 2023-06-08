@@ -88,3 +88,7 @@ func (eks FargateProvider) GetAccountDomainServiceFromMeta(base string) (string,
 func (tp FargateProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
+
+func (tp FargateProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	return "", nil
+}

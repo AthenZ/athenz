@@ -16,11 +16,13 @@
 
 package com.yahoo.athenz.common.server.store;
 
+import com.yahoo.athenz.zms.DomainAttributes;
 import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -86,6 +88,15 @@ public interface ChangeLogStore {
      * @return List of domain names
      */
     List<String> getLocalDomainList();
+
+    /**
+     * Returns the names of all domain stored in local repository
+     * along with domain attributes (e.g. timestamp when the domain was fetched).
+     * @return Map of domain names with their attributes
+     */
+    default Map<String, DomainAttributes> getLocalDomainAttributeList() {
+        return null;
+    }
 
     /**
      * Returns the list of all domains configured on server

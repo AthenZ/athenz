@@ -24,6 +24,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
     public static final String ZTS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZTS_PROP_HTTPS_PORT        = "athenz.tls_port";
+    public static final String ZTS_PROP_OIDC_PORT         = "athenz.oidc_port";
     public static final String ZTS_PROP_STATUS_PORT       = "athenz.status_port";
 
     public static final String ZTS_PROP_ROOT_DIR    = "athenz.zts.root_dir";
@@ -65,6 +66,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_OAUTH_ISSUER           = "athenz.zts.oauth_issuer";
     public static final String ZTS_PROP_OAUTH_OPENID_SCOPE     = "athenz.zts.oauth_openid_scope";
     public static final String ZTS_PROP_OPENID_ISSUER          = "athenz.zts.openid_issuer";
+    public static final String ZTS_PROP_OIDC_PORT_ISSUER       = "athenz.zts.oidc_port_issuer";
     public static final String ZTS_PROP_REDIRECT_URI_SUFFIX    = "athenz.zts.redirect_uri_suffix";
 
     public static final String ZTS_PROP_CERTSIGN_BASE_URI            = "athenz.zts.certsign_base_uri";
@@ -201,6 +203,7 @@ public final class ZTSConsts {
     public static final String RSA   = "RSA";
     public static final String EC    = "EC";
     public static final String ECDSA = "ECDSA";
+    public static final String JSON  = "json";
 
     public static final String ZTS_PROP_METRIC_FACTORY_CLASS             = "athenz.zts.metric_factory_class";
     public static final String ZTS_PROP_CERT_SIGNER_FACTORY_CLASS        = "athenz.zts.cert_signer_factory_class";
@@ -242,9 +245,9 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = "athenz.zts.cert_priority_max_percent_high_priority";
     public static final String ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT = "25";
 
+    public static final String ZTS_OPENID_RESPONSE_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:";
     public static final String ZTS_OPENID_RESPONSE_AT_ONLY    = "token";
     public static final String ZTS_OPENID_RESPONSE_IT_ONLY    = "id_token";
     public static final String ZTS_OPENID_RESPONSE_BOTH_IT_AT = "id_token token";
     public static final String ZTS_OPENID_SUBJECT_TYPE_PUBLIC = "public";
-
 }

@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms.store.impl.jdbc;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.zms.DomainOptions;
 import com.yahoo.athenz.zms.ResourceException;
 import com.yahoo.athenz.zms.store.ObjectStore;
 import com.yahoo.athenz.zms.store.ObjectStoreConnection;
@@ -29,7 +30,8 @@ public class JDBCObjectStore implements ObjectStore {
     private int roleTagsLimit;
     private int domainTagsLimit;
     private int groupTagsLimit;
-    
+    private DomainOptions domainOptions;
+
     public JDBCObjectStore(PoolableDataSource rwSrc, PoolableDataSource roSrc) {
         this.rwSrc = rwSrc;
         this.roSrc = roSrc;
@@ -50,6 +52,7 @@ public class JDBCObjectStore implements ObjectStore {
             JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
             jdbcConn.setOperationTimeout(opTimeout);
             jdbcConn.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
+            jdbcConn.setDomainOptions(domainOptions);
             return jdbcConn;
         } catch (Exception ex) {
             
@@ -71,6 +74,11 @@ public class JDBCObjectStore implements ObjectStore {
     @Override
     public void setOperationTimeout(int opTimeout) {
         this.opTimeout = opTimeout;
+    }
+
+    @Override
+    public void setDomainOptions(DomainOptions domainOptions) {
+        this.domainOptions = domainOptions;
     }
 
     @Override

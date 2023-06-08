@@ -79,3 +79,7 @@ func (tp MockAWSProvider) GetAccountDomainServiceFromMeta(string) (string, strin
 func (tp MockAWSProvider) GetAccessManagementProfileFromMeta(string) (string, error) {
 	return "testProf", nil
 }
+
+func (tp MockAWSProvider) GetAdditionalSshHostPrincipals(string) (string, error) {
+	return "i-1234edt22", nil
+}

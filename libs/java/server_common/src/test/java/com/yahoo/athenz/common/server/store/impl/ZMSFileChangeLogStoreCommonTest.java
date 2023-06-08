@@ -384,6 +384,18 @@ public class ZMSFileChangeLogStoreCommonTest {
     }
 
     @Test
+    public void testGetLocalDomainAttributeListError() {
+        ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);
+
+        File dir = Mockito.spy(cstore.rootDir);
+        Mockito.when(dir.list()).thenReturn(null);
+        cstore.rootDir = dir;
+
+        Map<String, DomainAttributes> domainMap = cstore.getLocalDomainAttributeList();
+        assertTrue(domainMap.isEmpty());
+    }
+
+    @Test
     public void testRetrieveLastModificationTime() {
 
         ZMSFileChangeLogStoreCommon cstore = new ZMSFileChangeLogStoreCommon(FSTORE_PATH);

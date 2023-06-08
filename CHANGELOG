@@ -1,3 +1,61 @@
+Athenz v1.11.32 Release / Jun 05, 2023
+--------------------------------------
+
+#2197 support headless user type - managed by user authority but treated like service
+#2198 disable wadl output
+#2199 update java and go dependencies to their latest releases
+
+Athenz v1.11.31 Release / May 30, 2023
+--------------------------------------
+
+#2173 Disable Microsegmentation validation checkbox for AWS env
+#2177 Deriving ssh cert principals from the GCP provider attestation data to validate the incoming sshrequest
+#2178 add principals from metadata in ssh cert request
+#2179 add overwrite option for zms-cli
+#2180 UI: replace deprecated request pkg
+#2185 fix role update on expiration and review dates
+#2189 UI: checked in package-lock.json was generated with old npm version
+#2190 support athenz as oidc provider for aws iam
+#2191 disallow by default services with _ in their names
+#2193 support product id (string) format association with domains
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230528.sql
+
+Athenz v1.11.30 Release / May 16, 2023
+--------------------------------------
+
+#2166 option to return id token in json output instead of redirect uri
+#2167 for oidc redirect uri check both configured endpoint and auto-generated value
+#2168 new athenz-gcp-zts-creds library to simplify fetching Google credentials based on ZTS ID Tokens
+#2169 option to continuously update zts domain cache files
+#2170 single command line argument for sia called init
+#2174 provide run-after (cert/tokens) capability for sia
+
+Athenz v1.11.29 Release / May 06, 2023
+--------------------------------------
+
+#2143 UI: Ensure metastore error does not interfere with UI usability
+#2150 return dns suffix through method so the AWS Provider can be extended
+#2151 correct handling of java client code generation for status 302
+#2157 for id tokens with group scope always use full arns
+#2161 sia copy if source file exists, gcp meta functions to get instance ip
+#2163 expose getIdToken methods in ZTS Java Client
+#2164 Update dynamodbMaxRetries to avoid Integer Overflow
+#2165 better attribute name for Athenz domain in GCP project metadata
+
+Athenz v1.11.28 Release / Apr 28, 2023
+--------------------------------------
+
+#2141 feat: code signing provider
+#2142 fix NPE while setting User Authority Expiration for role without members
+#2144 Set a connect timeout when fetching JWT signing keys
+#2145 limit the number of entries in the zpe client library token cache
+#2146 allow use of cluster names in san dns entries for eks
+#2147 config setting for reserved top level domains
+#2148 sia agent - exit when refresh fails after configured number of attempts
+#2149 gce fix for host cert principals and x509 cert expiry
+
 Athenz v1.11.27 Release / Apr 22, 2023
 --------------------------------------
 

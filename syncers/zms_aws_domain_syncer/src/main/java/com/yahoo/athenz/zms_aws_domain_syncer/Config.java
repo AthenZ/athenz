@@ -46,6 +46,8 @@ public class Config {
     static final String DEFAULT_TRUSTSOURCE_PASSWORD = "changeit";
     static final String DEFAULT_STATE_BUILDER_THREADS = "10";
     static final String DEFAULT_STATE_BUILDER_TIMEOUT = "1800";
+    static final String DEFAULT_DOMAIN_REFRESH_COUNT = "10";
+    static final String DEFAULT_DOMAIN_REFRESH_TIMEOUT = "2592000";
 
     // system properties - take precedence over config file settings
 
@@ -68,6 +70,8 @@ public class Config {
     static final String SYNC_CFG_PARAM_AWS_S3_REGION = "aws_s3_region";
     static final String SYNC_CFG_PARAM_STATE_BUILDER_THREADS = "state_builder_threads";
     static final String SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT = "state_builder_timeout";
+    static final String SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT = "domain_refresh_count";
+    static final String SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT = "domain_refresh_timeout";
 
     static final String[] SYNC_CFG_PARAMS = {
             SYNC_CFG_PARAM_DEBUG,
@@ -86,7 +90,9 @@ public class Config {
             SYNC_CFG_PARAM_AWS_ACCESS_KEY,
             SYNC_CFG_PARAM_AWS_S3_REGION,
             SYNC_CFG_PARAM_STATE_BUILDER_THREADS,
-            SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT
+            SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT,
+            SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT,
+            SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT
     };
 
     static final String ZMS_CFG_PARAM_ZMS_URL = "zmsUrl";
@@ -240,6 +246,8 @@ public class Config {
             propertyMap.putIfAbsent(SYNC_CFG_PARAM_TRUST_STORE_PASSWORD, DEFAULT_TRUSTSOURCE_PASSWORD);
             propertyMap.putIfAbsent(SYNC_CFG_PARAM_STATE_BUILDER_THREADS, DEFAULT_STATE_BUILDER_THREADS);
             propertyMap.putIfAbsent(SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT, DEFAULT_STATE_BUILDER_TIMEOUT);
+            propertyMap.putIfAbsent(SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT, DEFAULT_DOMAIN_REFRESH_COUNT);
+            propertyMap.putIfAbsent(SYNC_CFG_PARAM_DOMAIN_REFRESH_TIMEOUT, DEFAULT_DOMAIN_REFRESH_TIMEOUT);
 
             syncMergeStatus = true;
         } catch (Exception ex) {

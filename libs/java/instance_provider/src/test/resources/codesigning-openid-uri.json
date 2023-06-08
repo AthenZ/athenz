@@ -1,0 +1,4 @@
+{
+  "token_endpoint":"https://localhost/oauth2/token",
+  "jwks_uri":"file://src/test/resources/keys.json"
+}

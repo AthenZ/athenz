@@ -15,23 +15,22 @@
  */
 package com.yahoo.athenz.zms.utils;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
+import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.zms.*;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
-import com.yahoo.athenz.common.server.log.AuditLogger;
-import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ZMSUtils {
 
@@ -254,10 +253,12 @@ public class ZMSUtils {
     }
 
     public static Principal.Type principalType(final String memberName, final String userDomainPrefix,
-                                               final List<String> addlUserCheckDomainPrefixList) {
+            final List<String> addlUserCheckDomainPrefixList, final String headlessUserDomainPrefix) {
 
         if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
             return Principal.Type.USER;
+        } else if (memberName.startsWith(headlessUserDomainPrefix)) {
+            return Principal.Type.USER_HEADLESS;
         } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
             return Principal.Type.GROUP;
         } else {
@@ -468,5 +469,9 @@ public class ZMSUtils {
 
     public static boolean isListEmpty(List list) {
         return list == null || list.isEmpty();
+    }
+
+    public static <T> Collection<T> emptyIfNull(final Collection<T> c) {
+        return c == null ? Collections.emptyList() : c;
     }
 }

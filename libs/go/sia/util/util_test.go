@@ -1181,3 +1181,85 @@ func TestRequiredFilePerm(t *testing.T) {
 		})
 	}
 }
+
+func TestCopy(t *testing.T) {
+
+	timeNano := time.Now().UnixNano()
+	fileName := fmt.Sprintf("copy-test.tmp%d", timeNano)
+	testContents := "xx-yy-zz"
+	err := os.WriteFile(fileName, []byte(testContents), 0644)
+	defer os.Remove(fileName)
+
+	siaDir, err := os.MkdirTemp("", "sia_bkup.")
+	assert.Nil(t, err, "should be able to create backup folder for sia")
+	defer os.RemoveAll(siaDir)
+	assert.Nil(t, Copy(fileName, siaDir+"/"+fileName, os.FileMode(0644)))
+	//non-existent file
+	assert.Nil(t, Copy("./abcd", siaDir+"/abcd", os.FileMode(0644)))
+}
+
+func TestParseScriptArguments(t *testing.T) {
+
+	tests := []struct {
+		name       string
+		scriptPath string
+		result     []string
+	}{
+		{
+			name:       "Empty Sia",
+			scriptPath: "",
+			result:     []string{},
+		},
+		{
+			name:       "Unqualified path",
+			scriptPath: "  bin/echo  ",
+			result:     []string{},
+		},
+		{
+			name:       "With white space",
+			scriptPath: "  /bin/echo   Hello    World  ",
+			result:     []string{"/bin/echo", "Hello", "World"},
+		},
+		{
+			name:       "Double quoted argument",
+			scriptPath: "  /bin/echo -n  \"Hello World\" And USA",
+			result:     []string{"/bin/echo", "-n", "Hello World", "And", "USA"},
+		},
+		{
+			name:       "Single quoted argument",
+			scriptPath: "  /bin/echo   '\"Hello World\"'",
+			result:     []string{"/bin/echo", `"Hello World"`},
+		},
+		{
+			name:       "Broken quote argument",
+			scriptPath: "  /bin/echo   \"Hello World",
+			result:     []string{},
+		},
+		{
+			name:       "Unsanitized path check",
+			scriptPath: "/bin/////echo   '\"Hello World Sanitized\"'",
+			result:     []string{"/bin/echo", `"Hello World Sanitized"`},
+		},
+		{
+			name:       "Unsanitized path check2",
+			scriptPath: "/../bin/echo   '\"Hello World Sanitized\"'",
+			result:     []string{"/bin/echo", `"Hello World Sanitized"`},
+		},
+		{
+			name:       "Unsanitized path check2",
+			scriptPath: "/bin/../echo   '\"Hello World Sanitized\"'",
+			result:     []string{"/echo", `"Hello World Sanitized"`},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parts := ParseScriptArguments(tt.scriptPath)
+			assert.Equal(t, len(parts), len(tt.result))
+			if len(tt.result) != 0 {
+				assert.Equalf(t, tt.result, parts, "test: %s, unexpected parts: %+v, expecting: %+v",
+					tt.name, parts, tt.result)
+			}
+		})
+	}
+}
