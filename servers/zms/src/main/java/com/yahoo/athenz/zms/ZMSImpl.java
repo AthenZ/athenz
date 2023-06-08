@@ -3996,13 +3996,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (domainName.startsWith(skipDomainPrefix)) {
                     return;
                 }
-            }
-            // then, we conduct a perfect match search
-            if (skipDomain.equals(domainName)) {
+            } else if (skipDomain.equals(domainName)) {
+                // if skipDomain doesn't have wildcard, we conduct a perfect match search
                 return;
             }
         }
-        // If it reaches here, check if the service exists
+        // if it reaches here, check if the service exists
         if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
         }
