@@ -77,6 +77,8 @@ spec:
           image: {{ template "athenz-zts.setup.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           securityContext:
+            # Allowing containers to run as root can lead to potential breakouts onto the workernode
+            # See: https://github.com/carlospolop/hacktricks/blob/master/linux-unix/privilege-escalation/docker-breakout.md
             runAsUser: 0
           command:
             - "/bin/chown"
