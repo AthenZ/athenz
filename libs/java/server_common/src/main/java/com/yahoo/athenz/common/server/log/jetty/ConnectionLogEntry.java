@@ -32,7 +32,7 @@ public class ConnectionLogEntry {
     private final String sslHandshakeFailureMessage;
     private final String sslHandshakeFailureCause;
     private final String sslHandshakeFailureType;
-
+    private final String athenzPrincipal;
 
     private ConnectionLogEntry(Builder builder) {
         this.id = builder.id;
@@ -44,6 +44,7 @@ public class ConnectionLogEntry {
         this.sslHandshakeFailureMessage = builder.sslHandshakeFailureMessage;
         this.sslHandshakeFailureCause = builder.sslHandshakeFailureCause;
         this.sslHandshakeFailureType = builder.sslHandshakeFailureType;
+        this.athenzPrincipal = builder.athenzPrincipal;
     }
 
     public static Builder builder(UUID id, Instant timestamp) {
@@ -86,6 +87,10 @@ public class ConnectionLogEntry {
         return Optional.ofNullable(sslHandshakeFailureType);
     }
 
+    public Optional<String> athenzPrincipal() {
+        return Optional.ofNullable(athenzPrincipal);
+    }
+    
     public static class Builder {
         private final UUID id;
         private final Instant timestamp;
@@ -97,7 +102,7 @@ public class ConnectionLogEntry {
         private String sslHandshakeFailureMessage;
         private String sslHandshakeFailureCause;
         private String sslHandshakeFailureType;
-
+        private String athenzPrincipal;
 
         Builder(UUID id, Instant timestamp) {
             this.id = id;
@@ -139,6 +144,11 @@ public class ConnectionLogEntry {
             return this;
         }
 
+        public Builder withAthenzPrincipal(String athenzPrincipal) {
+            this.athenzPrincipal = athenzPrincipal;
+            return this;
+        }
+        
         public ConnectionLogEntry build() {
             return new ConnectionLogEntry(this);
         }

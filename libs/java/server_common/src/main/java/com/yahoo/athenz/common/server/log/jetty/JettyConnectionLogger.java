@@ -25,15 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLHandshakeException;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.yahoo.athenz.common.server.log.jetty.ExceptionCauseFetcher.getInnerCause;
 
 public class JettyConnectionLogger extends AbstractLifeCycle implements SslHandshakeListener {
 
@@ -77,11 +72,12 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements SslHands
     @Override
     public void handshakeFailed(Event event, Throwable failure) {
         SSLEngine sslEngine = event.getSSLEngine();
+        ConnectionData connectionData = AthenzConnectionListener.getConnectionDataBySslEngine(event.getSSLEngine());
+
         handleListenerInvocation("SslHandshakeListener", "handshakeFailed", "sslEngine=%h,failure=%s", Stream.of(sslEngine, failure).collect(Collectors.toList()), () -> {
-            ConnectionInfo info = ConnectionInfo.from(sslEngine);
-            info.setSslHandshakeFailure(failure);
-            connectionLog.log(info.toLogEntry());
-            metric.increment(metricName, info.toMetric());
+            connectionData.setSslHandshakeFailure(failure);
+            connectionLog.log(connectionData.toLogEntry());
+            metric.increment(metricName, connectionData.toMetric());
         });
     }
 
@@ -102,74 +98,5 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements SslHands
     private interface ListenerHandler {
         void run() throws Exception;
     }
-
-    private static class ConnectionInfo {
-        private final UUID uuid;
-        private final String peerHost;
-        private final int peerPort;
-
-        private String sslHandshakeFailureException;
-        private String sslHandshakeFailureMessage;
-        private String sslHandshakeFailureCause;
-        private String sslHandshakeFailureType;
-
-        private ConnectionInfo(UUID uuid, String peerHost, int peerPort) {
-            this.uuid = uuid;
-            this.peerHost = peerHost;
-            this.peerPort = peerPort;
-        }
-
-        static ConnectionInfo from(SSLEngine sslEngine) {
-            return new ConnectionInfo(
-                    UUID.randomUUID(),
-                    sslEngine.getPeerHost(),
-                    sslEngine.getPeerPort());
-        }
-
-        synchronized ConnectionInfo setSslHandshakeFailure(Throwable exception) {
-            SSLHandshakeException sslHandshakeException = (SSLHandshakeException) exception;
-            this.sslHandshakeFailureException = sslHandshakeException.getClass().getName();
-            this.sslHandshakeFailureMessage = sslHandshakeException.getMessage();
-            // If the error isn't clear, try to get it from the exception inner cause
-            if (exception.getCause() != null) {
-                this.sslHandshakeFailureCause = getInnerCause(exception, sslHandshakeException.getMessage());
-                // If the cause is identical to the message, no need to print it so we'll set it to null
-                if (this.sslHandshakeFailureCause != null && this.sslHandshakeFailureCause.equals(this.sslHandshakeFailureMessage)) {
-                    this.sslHandshakeFailureCause = null;
-                }
-            }
-            this.sslHandshakeFailureType = SslHandshakeFailure.fromSslHandshakeException(sslHandshakeException)
-                    .map(SslHandshakeFailure::failureType)
-                    .orElse("UNKNOWN");
-            return this;
-        }
-
-        synchronized ConnectionLogEntry toLogEntry() {
-            ConnectionLogEntry.Builder builder = ConnectionLogEntry.builder(uuid, Instant.now());
-            if (peerHost != null) {
-                builder.withPeerAddress(peerHost);
-                builder.withPeerPort(peerPort);
-            }
-            if (sslHandshakeFailureException != null && sslHandshakeFailureMessage != null && sslHandshakeFailureType != null) {
-                builder.withSslHandshakeFailureException(sslHandshakeFailureException)
-                        .withSslHandshakeFailureMessage(sslHandshakeFailureMessage)
-                        .withSslHandshakeFailureType(sslHandshakeFailureType);
-                if (sslHandshakeFailureCause != null) {
-                    builder.withSslHandshakeFailureCause(sslHandshakeFailureCause);
-                }
-            }
-            return builder.build();
-        }
-
-        synchronized String[] toMetric() {
-            String failureTypeKey = "failureType";
-            String failureTypeValue = "unknown";
-            if (sslHandshakeFailureType != null) {
-                failureTypeValue = sslHandshakeFailureType;
-            }
-            return new String[] {
-                    failureTypeKey, failureTypeValue
-            };
-        }
-    }
+    
 }
