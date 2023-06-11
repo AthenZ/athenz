@@ -30,7 +30,8 @@ public interface Principal {
         UNKNOWN(0),
         USER(1),
         SERVICE(2),
-        GROUP(3);
+        GROUP(3),
+        USER_HEADLESS(4);
 
         private final int principalType;
         Type(int type) {

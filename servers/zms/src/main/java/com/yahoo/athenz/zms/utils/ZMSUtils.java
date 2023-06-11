@@ -253,10 +253,12 @@ public class ZMSUtils {
     }
 
     public static Principal.Type principalType(final String memberName, final String userDomainPrefix,
-                                               final List<String> addlUserCheckDomainPrefixList) {
+            final List<String> addlUserCheckDomainPrefixList, final String headlessUserDomainPrefix) {
 
         if (ZMSUtils.isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
             return Principal.Type.USER;
+        } else if (memberName.startsWith(headlessUserDomainPrefix)) {
+            return Principal.Type.USER_HEADLESS;
         } else if (memberName.contains(AuthorityConsts.GROUP_SEP)) {
             return Principal.Type.GROUP;
         } else {

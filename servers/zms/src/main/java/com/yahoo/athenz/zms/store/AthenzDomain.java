@@ -96,7 +96,8 @@ public class AthenzDomain {
         return domain;
     }
 
-    public void setRoleMemberPrincipalTypes(final String userDomainPrefix, List<String> addlUserCheckDomainPrefixList) {
+    public void setRoleMemberPrincipalTypes(final String userDomainPrefix, List<String> addlUserCheckDomainPrefixList,
+                                            final String headlessUserDomainPrefix) {
         if (roles == null) {
             return;
         }
@@ -105,7 +106,7 @@ public class AthenzDomain {
             if (roleMembers != null) {
                 for (RoleMember roleMember: roleMembers) {
                     roleMember.setPrincipalType(ZMSUtils.principalType(roleMember.getMemberName(),
-                            userDomainPrefix, addlUserCheckDomainPrefixList).getValue());
+                            userDomainPrefix, addlUserCheckDomainPrefixList, headlessUserDomainPrefix).getValue());
                 }
             }
         }
