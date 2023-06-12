@@ -17,6 +17,8 @@ import java.security.cert.X509Certificate;
 public class GcfSiaTest implements HttpFunction {
 
     void getSiaCertsDemo() {
+        LOG.debug("This is JAVA GCF test");
+
         // Read configurations.
         final String athenzDomain = getMandatoryEnvVar("ATHENZ_DOMAIN");
         final String athenzService = getMandatoryEnvVar("ATHENZ_SERVICE");
@@ -24,8 +26,27 @@ public class GcfSiaTest implements HttpFunction {
         final String gcpRegion = getMandatoryEnvVar("GCP_REGION");
         final String athenzProvider = "sys.gcp." + gcpRegion;
         final String ztsUrl = getMandatoryEnvVar("ZTS_URL");
-        final String certDn = "ou=Athenz,o=Oath"; // the dn you want included in cert - should not change
-        final String certDomain = "gcp.yahoo.cloud"; // do not change
+        final String certDomain = getMandatoryEnvVar("CERT_DOMAIN");
+
+        // Build the certificate's Subject fields - as a single string.
+        // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
+        String certDn = "";
+        if (!getOptionalEnvVar("CSR_COUNTRY").isEmpty()) {
+            certDn += "c=" + getOptionalEnvVar("CSR_COUNTRY") + ", ";
+        }
+        if (!getOptionalEnvVar("CSR_STATE").isEmpty()) {
+            certDn += "s=" + getOptionalEnvVar("CSR_STATE") + ", ";
+        }
+        if (!getOptionalEnvVar("CSR_LOCALITY").isEmpty()) {
+            certDn += "l=" + getOptionalEnvVar("CSR_LOCALITY") + ", ";
+        }
+        if (!getOptionalEnvVar("CSR_ORGANIZATION").isEmpty()) {
+            certDn += "o=" + getOptionalEnvVar("CSR_ORGANIZATION") + ", ";
+        }
+        if (!getOptionalEnvVar("CSR_ORGANIZATION_UNIT").isEmpty()) {
+            certDn += "ou=" + getOptionalEnvVar("CSR_ORGANIZATION_UNIT") + ", ";
+        }
+        certDn = certDn.replaceAll(", $", "");   // Remove dangling ", " tail
 
         // Generate a private key and retrieve the corresponding certificate from Athenz ZTS Service.
         GCPFunctionIdentity gcpIdentity;
@@ -58,6 +79,15 @@ public class GcfSiaTest implements HttpFunction {
         return value;
     }
 
+    String getOptionalEnvVar(String envVar) {
+        String value = System.getenv(envVar);
+        if (value == null) {
+            throw new RuntimeException("Mandatory environment-variable \"" + envVar + "\" is not defined");
+        }
+        LOG.debug("Environment variable:   " + envVar + " = \"" + value + "\"");
+        return value;
+    }
+
     @Override
     public void service(HttpRequest request, HttpResponse response) throws IOException {
         BufferedWriter responseWriter = response.getWriter();
@@ -66,7 +96,7 @@ public class GcfSiaTest implements HttpFunction {
         try {
             getSiaCertsDemo();
         } catch (Exception exception) {
-            exception.printStackTrace();
+            LOG.error("Exception: ", exception);
         }
 
         threadLocalResponseWriter.remove();

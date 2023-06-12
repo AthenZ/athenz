@@ -11,10 +11,6 @@ echo
 
 echo "======> Trying to show certificate:"
 echo "$OUTPUT" |
-grep '"x509Certificate": "-----BEGIN CERTIFICATE-----' |
-tail -1 |
-sed -e 's/"x509Certificate"://' -e 's/,$//' |
-jq -r '.' |
 ( set -x ; openssl x509 -text -noout ) |
 gawk '
     # Replace multi-lined "Modulus:" and "Signature Algorithm:" with a single "..." line.

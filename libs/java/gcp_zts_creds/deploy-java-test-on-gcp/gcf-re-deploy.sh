@@ -9,7 +9,6 @@ echo
 echo "============================== DEPLOY =============================="
 echo
 trap '
-    rm -f "'"$ENV_VARS_YAML"'"
     echo
     echo "===================================================================="
     echo
@@ -126,14 +125,6 @@ fi
 # ===================================    DEPLOY    ===================================
 
 echo "Deploying Cloud-Function..."
-ENV_VARS_YAML="$( mktemp /tmp/gcf-env-vars.yaml.XXXXXXXXXX )"
-echo "
-    ATHENZ_DOMAIN: \"$ATHENZ_DOMAIN\"
-    ATHENZ_SERVICE: \"$ATHENZ_SERVICE\"
-    GCP_PROJECT_ID: \"$GCP_PROJECT_ID\"
-    GCP_REGION: \"$GCP_REGION\"
-    ZTS_URL: \"$ZTS_URL\"
-  " > "$ENV_VARS_YAML"
 SERVICE_ACCOUNT="$ATHENZ_SERVICE@$GCP_PROJECT_ID.iam.gserviceaccount.com"
 (
   set -x
@@ -146,7 +137,7 @@ SERVICE_ACCOUNT="$ATHENZ_SERVICE@$GCP_PROJECT_ID.iam.gserviceaccount.com"
       --region "$GCP_REGION" \
       --vpc-connector "$GCP_VPC_CONNECTOR_ID" \
       --egress-settings "all" \
-      --env-vars-file "$ENV_VARS_YAML" \
+      --env-vars-file "$( createEnvVarsYamlFile )" \
       --entry-point GcfSiaTest \
       --source target/gcp-upload \
       --runtime java17 \

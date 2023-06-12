@@ -8,6 +8,8 @@ const pem = require('pem');
 // See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-nodejs
 
 async function getSiaCertsDemo() {
+    console.log("This is NodeJS GCF test");
+
     // Read configurations.
     const athenzDomain = getMandatoryEnvVar("ATHENZ_DOMAIN");
     const athenzService = getMandatoryEnvVar("ATHENZ_SERVICE");
@@ -15,11 +17,15 @@ async function getSiaCertsDemo() {
     const gcpRegion = getMandatoryEnvVar("GCP_REGION");
     const athenzProvider = "sys.gcp." + gcpRegion;
     const ztsUrl = getMandatoryEnvVar("ZTS_URL");
-    const certOrgUnit = "Athenz"; // the dn you want included in cert - should not change
-    const certOrg = "Oath"; // the dn you want included in cert - should not change
-    const certDomain = "gcp.yahoo.cloud"; // do not change
+    const certDomain = getMandatoryEnvVar("CERT_DOMAIN");
+    const csrSubjectFields = {
+        country: getOptionalEnvVar("CSR_COUNTRY"),
+        state: getOptionalEnvVar("CSR_STATE"),
+        locality: getOptionalEnvVar("CSR_LOCALITY"),
+        organization: getOptionalEnvVar("CSR_ORGANIZATION"),
+        organizationUnit: getOptionalEnvVar("CSR_ORGANIZATION_UNIT"),
+    };
 
-    // TODO: We probably want to get reed of "ztsRequestBody"...
     const ztsRequestBody = {
         domain: athenzDomain.toLowerCase(),
         service: athenzService.toLowerCase(),
@@ -33,8 +39,7 @@ async function getSiaCertsDemo() {
     // Create a CSR (and a private-key).
     const { privateKey, csr } = await generateCsr(
         `${ztsRequestBody.domain}.${ztsRequestBody.service}`,
-        certOrg,
-        certOrgUnit,
+        csrSubjectFields,
         [
             `${ztsRequestBody.service}.${ztsRequestBody.domain.replace(/\./g, '-')}.${certDomain}`,
             `gcf-${gcpProjectId}-${ztsRequestBody.service}.instanceid.athenz.${certDomain}`,
@@ -49,7 +54,11 @@ async function getSiaCertsDemo() {
     const ztsResponse = await getCredsFromZts(ztsUrl, ztsRequestBody);
     console.log(`ZTS response: ${JSON.stringify(ztsResponse, null, 4)}`);
 
-    return ztsResponse.x509Certificate;
+    // Log the SIA certificate.
+    console.log('SIA CERTIFICATE:');
+    console.log(ztsResponse.x509Certificate);
+
+    return { privateKey, certificate: ztsResponse.x509Certificate };
 }
 
 // Get an identity-document for this GCF from GCP.
@@ -90,7 +99,7 @@ function getGcpFunctionAttestationData(ztsUrl) {
 }
 
 // Generate a CSR.
-function generateCsr(commonName, organization, organizationalUnit, altNames) {
+function generateCsr(commonName, csrSubjectFields, altNames) {
 
     // This is a HORRENDOUS patch to pem.createCSR()
     // As of pem@v1.14.8, pem.createCSR() does not support "URI" SANs (only "DNS" and "IP").
@@ -112,9 +121,8 @@ function generateCsr(commonName, organization, organizationalUnit, altNames) {
     return new Promise((resolve, reject) =>
         pem.createCSR(
             {
+                ...csrSubjectFields,
                 commonName,
-                organization,
-                organizationalUnit,
                 altNames,
                 keyBitSize: 2048
             },
@@ -222,6 +230,15 @@ function getMandatoryEnvVar(envVar) {
     }
     if (! value) {
         throw new Error(`Mandatory environment-variable \"${envVar}\" is defined but is empty`);
+    }
+    console.log(`Environment variable:   ${envVar} = \"${value}\"`);
+    return value;
+}
+
+function getOptionalEnvVar(envVar) {
+    const value = process.env[envVar];
+    if (value === undefined) {
+        throw new Error(`Mandatory environment-variable \"${envVar}\" is not defined`);
     }
     console.log(`Environment variable:   ${envVar} = \"${value}\"`);
     return value;
