@@ -44,7 +44,7 @@ public class AthenzConnectionListener implements Connection.Listener {
     
     public AthenzConnectionListener() {
         LOG.debug("AthenzConnectionListener is created");
-        int cleanupClosedConnectionsRefreshInterval = Integer.parseInt(System.getProperty(ATHENZ_PROP_CLEANUP_CLOSED_CONNECTION_INTERVAL, "60"));
+        int cleanupClosedConnectionsRefreshInterval = Integer.parseInt(System.getProperty(ATHENZ_PROP_CLEANUP_CLOSED_CONNECTION_INTERVAL, "60000"));
 
         // Add a cleaner thread to remove closed connections who were not deleted from the map.
         // this map should not grow at all since we are removing the entries when the connection is closed.
@@ -53,10 +53,10 @@ public class AthenzConnectionListener implements Connection.Listener {
                 this::cleanupClosedConnections,
                 cleanupClosedConnectionsRefreshInterval,
                 cleanupClosedConnectionsRefreshInterval,
-                TimeUnit.SECONDS);
+                TimeUnit.MILLISECONDS);
     }
 
-    private void cleanupClosedConnections() {
+    void cleanupClosedConnections() {
 
         int mapSize = OPENED_SSL_ENGINES_MAP.size();
         if (mapSize > 0) {
