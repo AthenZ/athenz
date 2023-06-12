@@ -543,7 +543,7 @@ public class DBService implements RolesProvider {
         return true;
     }
 
-    private boolean processUpdatePolicyTags(Policy policy, Policy originalPolicy, ObjectStoreConnection con, String policyName, String domainName, String version) {
+    boolean processUpdatePolicyTags(Policy policy, Policy originalPolicy, ObjectStoreConnection con, String policyName, String domainName, String version) {
         if (originalPolicy.getTags() == null || originalPolicy.getTags().isEmpty()) {
             if (policy.getTags() == null || policy.getTags().isEmpty()) {
                 // no tags to process..

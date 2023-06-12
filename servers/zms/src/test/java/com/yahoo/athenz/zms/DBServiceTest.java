@@ -946,15 +946,14 @@ public class DBServiceTest {
         Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
-        Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true).thenReturn(false).thenReturn(true);
         Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion.getAssertions());
         Mockito.when(mockJdbcConn.listAssertions(domainName, policyName, "new-version")).thenReturn(originalPolicyVersion.getAssertions());
 
         Policy newPolicyVersion = createPolicyObject(domainName, policyName);
         newPolicyVersion.setVersion("new-version");
         newPolicyVersion.setActive(false);
-        Mockito.when(mockJdbcConn.insertPolicy(domainName, newPolicyVersion)).thenReturn(false).thenReturn(true);
-        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), isNull(), any())).thenReturn(true).thenReturn(false).thenReturn(false).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), isNull(), any())).thenReturn(true).thenReturn(false);
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -4840,12 +4839,20 @@ public class DBServiceTest {
 
         Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.deleteQuota(domainName))
+                .thenReturn(false)
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         int saveRetryCount = zms.dbService.defaultRetryCount;
         zms.dbService.defaultRetryCount = 2;
+
+        try {
+            zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef, "deleteQuota");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+        }
 
         try {
             zms.dbService.executeDeleteQuota(mockDomRsrcCtx, domainName, auditRef, "deleteQuota");
@@ -7154,6 +7161,17 @@ public class DBServiceTest {
         Mockito.when(mockConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
         Mockito.when(mockConn.insertRoleMember(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
                 Mockito.any(), Mockito.anyString())).thenReturn(false);
+
+        Group group1 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        Group group2 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        group2.setMemberExpiryDays(3);
+        Group group3 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        group3.setGroupMembers(null);
+        List<Group> groupList = new ArrayList<>();
+        groupList.add(group1);
+        groupList.add(group2);
+        groupList.add(group3);
+        athenzDomain.setGroups(groupList);
 
         // we're going to make sure to throw an exception here
         // since this should never be called
@@ -12136,6 +12154,25 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testProcessPolicyConReturnFalse() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+
+        Policy policy = new Policy().setName("newPolicy");
+
+        Assertion policyAssertion = new Assertion();
+        policy.setAssertions(new LinkedList<>(Collections.singletonList(policyAssertion)));
+        Mockito.when(conn.insertAssertion("sys.auth", "newPolicy", null, policyAssertion)).thenReturn(false).thenReturn(true);
+        Mockito.when(conn.insertPolicy("sys.auth", policy)).thenReturn(true).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+
+        assertFalse(success);
+
+    }
+    @Test
     public void testProcessPolicyWithTagsInsert() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
@@ -12143,8 +12180,8 @@ public class DBServiceTest {
                 "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
         );
         Policy policy = new Policy().setName("newPolicy").setTags(policyTags);
-        Mockito.when(conn.insertPolicy("sys.auth", policy)).thenReturn(true);
-        Mockito.when(conn.insertPolicyTags("newPolicy", "sys.auth", policyTags, null)).thenReturn(true);
+        Mockito.when(conn.insertPolicy("sys.auth", policy)).thenReturn(true).thenReturn(true);
+        Mockito.when(conn.insertPolicyTags("newPolicy", "sys.auth", policyTags, null)).thenReturn(true).thenReturn(false);
 
         StringBuilder auditDetails = new StringBuilder("testAudit");
         boolean success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
@@ -12163,6 +12200,11 @@ public class DBServiceTest {
                 .containsAll(Arrays.asList("tagVal")));
 
         assertTrue(success);
+
+        success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+
+        assertFalse(success);
     }
 
     @Test
@@ -12264,6 +12306,8 @@ public class DBServiceTest {
 
         assertTrue(success);
 
+        assertTrue(success);
+
         // assert tags to remove should be empty
         ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
         ArgumentCaptor<String> policyCapture = ArgumentCaptor.forClass(String.class);
@@ -12284,7 +12328,7 @@ public class DBServiceTest {
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
         assertTrue(resultInsertTags.isEmpty());
 
-        // asert first tag insertion
+        // assert first tag insertion
         Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
         assertTrue(resultFirstInsertTags.containsKey("tagKey"));
         assertTrue(resultFirstInsertTags.values().stream()
@@ -12293,4 +12337,23 @@ public class DBServiceTest {
                 .contains("tagVal"));
 
     }
+
+    @Test
+    public void testPolicyProcessUpdatePolicyTags() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> policyTags = new HashMap<>();
+        Policy policy = new Policy().setName("policy").setTags(policyTags);
+
+        Policy originalPolicy = new Policy().setName("policy").setTags(null);
+
+
+        boolean success = zms.dbService.processUpdatePolicyTags(policy, originalPolicy, conn,  "policy", "sys.auth", null);
+
+        assertTrue(success);
+
+    }
+
+
+
 }

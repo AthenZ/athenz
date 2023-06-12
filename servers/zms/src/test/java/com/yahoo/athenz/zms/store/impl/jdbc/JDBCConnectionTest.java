@@ -6109,7 +6109,7 @@ public class JDBCConnectionTest {
             .thenReturn(true).thenReturn(true).thenReturn(false) // 2 policies
             // 1 assertion each. true for first assertion, false for assertion condition for that assertion
             // true for second assertion, false for assertion condition for second assertion, last false to get out
-            .thenReturn(true).thenReturn(true).thenReturn(false)
+            .thenReturn(true).thenReturn(true).thenReturn(false).thenReturn(false)
             .thenReturn(false) // no conditions
             .thenReturn(true).thenReturn(false) // 1 service
             .thenReturn(true).thenReturn(false) // 1 public key
@@ -14336,4 +14336,61 @@ public class JDBCConnectionTest {
         jdbcConn.close();
     }
 
+    @Test
+    public void testInsertGroupTagsExceptions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(0) // first call domain id
+                .thenReturn(5) // second call domain id
+                .thenReturn(0) // second call for group
+                .thenReturn(20); // third call for group id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for group id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        Mockito.when(mockConn.prepareStatement(ArgumentMatchers.isA(String.class)))
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenReturn(mockPrepStmt)
+                .thenThrow(SQLException.class);
+
+//        Mockito.doThrow(SQLException.class).when(mockConn).prepareStatement(ArgumentMatchers.isA(String.class));
+
+
+        Map<String, TagValueList> groupTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+
+        try {
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown domain - domain\"}");
+        }
+
+        try {
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 404);
+            assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown group - domain:group.group\"}");
+        }
+
+        try {
+            jdbcConn.insertGroupTags("group", "domain", groupTags);
+            fail();
+        } catch (RuntimeException e) {
+            assertEquals(e.getMessage(), "ResourceException (500): {code: 500, message: \"null, state: null, code: 0\"}");
+        }
+
+        jdbcConn.close();
+    }
 }

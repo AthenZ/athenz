@@ -245,7 +245,7 @@ public interface ObjectStoreConnection extends Closeable {
     List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset, int serverPurgeExpiryDays);
     List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset, int serverPurgeExpiryDays);
 
-    boolean insertPolicyTags(String policyName, String domainName, Map<String, TagValueList> policyTags, String version );
+    boolean insertPolicyTags(String policyName, String domainName, Map<String, TagValueList> policyTags, String version);
     boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys);
     Map<String, TagValueList> getPolicyTags(String domainName, String policyName);
 
