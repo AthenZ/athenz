@@ -7,65 +7,67 @@ const pem = require('pem');
 
 // See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-nodejs
 
-async function getSiaCertsDemo() {
-    console.log("This is NodeJS GCF test");
+async function getSiaCertsDemo(
+        athenzDomain,
+        athenzService,
+        gcpProjectId,
+        gcpRegion,
+        athenzProvider,
+        ztsUrl,
+        certDomain,
+        optionalCountry,
+        optionalState,
+        optionalLocality,
+        optionalOrganization,
+        optionalOrganizationUnit) {
 
-    // Read configurations.
-    const athenzDomain = getMandatoryEnvVar("ATHENZ_DOMAIN");
-    const athenzService = getMandatoryEnvVar("ATHENZ_SERVICE");
-    const gcpProjectId = getMandatoryEnvVar("GCP_PROJECT_ID");
-    const gcpRegion = getMandatoryEnvVar("GCP_REGION");
-    const athenzProvider = "sys.gcp." + gcpRegion;
-    const ztsUrl = getMandatoryEnvVar("ZTS_URL");
-    const certDomain = getMandatoryEnvVar("CERT_DOMAIN");
-    const csrSubjectFields = {
-        country: getOptionalEnvVar("CSR_COUNTRY"),
-        state: getOptionalEnvVar("CSR_STATE"),
-        locality: getOptionalEnvVar("CSR_LOCALITY"),
-        organization: getOptionalEnvVar("CSR_ORGANIZATION"),
-        organizationUnit: getOptionalEnvVar("CSR_ORGANIZATION_UNIT"),
-    };
-
-    const ztsRequestBody = {
-        domain: athenzDomain.toLowerCase(),
-        service: athenzService.toLowerCase(),
-        provider: athenzProvider.toLowerCase(),
-    };
+    athenzDomain   = athenzDomain.toLowerCase();
+    athenzService  = athenzService.toLowerCase();
+    athenzProvider = athenzProvider.toLowerCase();
 
     // Get an identity-document for this GCF from GCP.
-    ztsRequestBody.attestationData = await getGcpFunctionAttestationData(ztsUrl);
-    // console.log(`GCP Attestation Data: ${ztsRequestBody.attestationData}`);  commented out - sensitive info
+    const attestationData = await getGcpFunctionAttestationData(ztsUrl);
+    // console.log(`GCP Attestation Data: ${attestationData}`);  // commented out - sensitive info
 
     // Create a CSR (and a private-key).
     const { privateKey, csr } = await generateCsr(
-        `${ztsRequestBody.domain}.${ztsRequestBody.service}`,
-        csrSubjectFields,
+        `${athenzDomain}.${athenzService}`,
+        {
+            country: optionalCountry,
+            state: optionalState,
+            locality: optionalLocality,
+            organization: optionalOrganization,
+            organizationUnit: optionalOrganizationUnit,
+        },
         [
-            `${ztsRequestBody.service}.${ztsRequestBody.domain.replace(/\./g, '-')}.${certDomain}`,
-            `gcf-${gcpProjectId}-${ztsRequestBody.service}.instanceid.athenz.${certDomain}`,
-            `spiffe://${ztsRequestBody.domain}/sa/${ztsRequestBody.service}`,
+            `${athenzService}.${athenzDomain.replace(/\./g, '-')}.${certDomain}`,
+            `gcf-${gcpProjectId}-${athenzService}.instanceid.athenz.${certDomain}`,
+            `spiffe://${athenzDomain}/sa/${athenzService}`,
         ]);
-    ztsRequestBody.csr = csr;
 
-    console.log(`CSR to send to ZTS:\n${csr}`);
-    // console.log('Private Key:\n', privateKey);  commented out - sensitive info
+    // console.log(`CSR to send to ZTS:\n${csr}`);
+    // console.log('Private Key:\n', privateKey);
 
     // Send CSR to ZTS.
-    const ztsResponse = await getCredsFromZts(ztsUrl, ztsRequestBody);
-    console.log(`ZTS response: ${JSON.stringify(ztsResponse, null, 4)}`);
+    const ztsResponse = await getCredsFromZts(
+        ztsUrl,
+        {
+            domain: athenzDomain,
+            service: athenzService,
+            provider: athenzProvider,
+            attestationData,
+            csr,
+        });
+    // console.log(`ZTS response: ${JSON.stringify(ztsResponse, null, 4)}`);
 
-    // Log the SIA certificate.
-    console.log('SIA CERTIFICATE:');
-    console.log(ztsResponse.x509Certificate);
-
-    return { privateKey, certificate: ztsResponse.x509Certificate };
+    return { privateKey, x509Certificate: ztsResponse.x509Certificate, x509CertificateSigner: ztsResponse.x509CertificateSigner };
 }
 
 // Get an identity-document for this GCF from GCP.
 function getGcpFunctionAttestationData(ztsUrl) {
     return new Promise((resolve, reject) => {
         const gcpIdentityUrl = `http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=${ztsUrl}&format=full`;
-        console.log(`Getting GCF identity from: ${gcpIdentityUrl}`);
+        // console.log(`Getting GCF identity from: ${gcpIdentityUrl}`);
         http.get(
             gcpIdentityUrl,
             {
@@ -163,7 +165,7 @@ function getCredsFromZts(ztsUrl, ztsRequestBody) {
                 response.on('end', () => {
                     // Response is read successfully.
                     const responseBody = responseBodyChunks.join('');
-                    if ((response.statusCode !== 200) && (response.statusCode !== 201)) {
+                    if (response.statusCode !== 201) {
                         // Bad HTTP status code.
                         reject(new Error(`HTTP request to    ${requestUrl}    returned ${response.statusCode} (${response.statusMessage}). Body:\n${responseBody}`));
                     } else {
@@ -189,7 +191,45 @@ function getCredsFromZts(ztsUrl, ztsRequestBody) {
 
 // Register an HTTP function with the Functions Framework
 functions.http('GcfSiaTest', async (req, res) => {
-    res.send(await executeAsyncWhileCapturingLogs(getSiaCertsDemo));
+    res.send(await executeAsyncWhileCapturingLogs(async () => {
+        console.log("This is NodeJS GCF test");
+
+        // Read configurations.
+        const athenzDomain = getMandatoryEnvVar("ATHENZ_DOMAIN");
+        const athenzService = getMandatoryEnvVar("ATHENZ_SERVICE");
+        const gcpProjectId = getMandatoryEnvVar("GCP_PROJECT_ID");
+        const gcpRegion = getMandatoryEnvVar("GCP_REGION");
+        const athenzProvider = "sys.gcp." + gcpRegion;
+        const ztsUrl = getMandatoryEnvVar("ZTS_URL");
+        const certDomain = getMandatoryEnvVar("CERT_DOMAIN");
+        const csrCountry= getOptionalEnvVar("CSR_COUNTRY");
+        const csrState= getOptionalEnvVar("CSR_STATE");
+        const csrLocality= getOptionalEnvVar("CSR_LOCALITY");
+        const csrOrganization= getOptionalEnvVar("CSR_ORGANIZATION");
+        const csrOrganizationUnit= getOptionalEnvVar("CSR_ORGANIZATION_UNIT");
+
+        const { privateKey, x509Certificate, x509CertificateSigner } = await getSiaCertsDemo(
+                athenzDomain,
+                athenzService,
+                gcpProjectId,
+                gcpRegion,
+                athenzProvider,
+                ztsUrl,
+                certDomain,
+                csrCountry,
+                csrState,
+                csrLocality,
+                csrOrganization,
+                csrOrganizationUnit);
+
+        // Log the SIA certificate.
+        // console.log('PRIVATE-KEY:');
+        // console.log(privateKey);
+        console.log('ATHENZ CERTIFICATE:');
+        console.log(x509Certificate);
+        console.log('CERTIFICATE SIGNER:');
+        console.log(x509Certificate);
+    }));
 });
 
 async function executeAsyncWhileCapturingLogs(work) {

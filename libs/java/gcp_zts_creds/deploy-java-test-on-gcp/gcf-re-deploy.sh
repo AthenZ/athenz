@@ -24,6 +24,12 @@ if [[ "$CONFIRM" == "y" ]] ; then
   )
 fi
 
+(
+  set -x
+  cd ..
+  mvn package
+)
+
 # Compile deploy-java-test-on-gcp into a war,
 #  and from that war - build the directory target/gcp-upload -
 #  which is suitable to be deployed into CGP.

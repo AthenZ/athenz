@@ -2,21 +2,17 @@
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
-import com.yahoo.athenz.auth.util.Crypto;
-import com.yahoo.athenz.creds.gcp.GCPFunctionIdentity;
 import com.yahoo.athenz.creds.gcp.GCPSIACredentials;
-import com.yahoo.athenz.zts.ZTSClient;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.invoke.MethodHandles;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 
 public class GcfSiaTest implements HttpFunction {
 
-    void getSiaCertsDemo() {
+    void getSiaCertsDemo() throws Exception {
         LOG.debug("This is JAVA GCF test");
 
         // Read configurations.
@@ -27,44 +23,42 @@ public class GcfSiaTest implements HttpFunction {
         final String athenzProvider = "sys.gcp." + gcpRegion;
         final String ztsUrl = getMandatoryEnvVar("ZTS_URL");
         final String certDomain = getMandatoryEnvVar("CERT_DOMAIN");
-
-        // Build the certificate's Subject fields - as a single string.
-        // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
-        String certDn = "";
-        if (!getOptionalEnvVar("CSR_COUNTRY").isEmpty()) {
-            certDn += "c=" + getOptionalEnvVar("CSR_COUNTRY") + ", ";
-        }
-        if (!getOptionalEnvVar("CSR_STATE").isEmpty()) {
-            certDn += "s=" + getOptionalEnvVar("CSR_STATE") + ", ";
-        }
-        if (!getOptionalEnvVar("CSR_LOCALITY").isEmpty()) {
-            certDn += "l=" + getOptionalEnvVar("CSR_LOCALITY") + ", ";
-        }
-        if (!getOptionalEnvVar("CSR_ORGANIZATION").isEmpty()) {
-            certDn += "o=" + getOptionalEnvVar("CSR_ORGANIZATION") + ", ";
-        }
-        if (!getOptionalEnvVar("CSR_ORGANIZATION_UNIT").isEmpty()) {
-            certDn += "ou=" + getOptionalEnvVar("CSR_ORGANIZATION_UNIT") + ", ";
-        }
-        certDn = certDn.replaceAll(", $", "");   // Remove dangling ", " tail
+        final String optionalCountry = getOptionalEnvVar("CSR_COUNTRY");
+        final String optionalState = getOptionalEnvVar("CSR_STATE");
+        final String optionalLocality = getOptionalEnvVar("CSR_LOCALITY");
+        final String optionalOrganization = getOptionalEnvVar("CSR_ORGANIZATION");
+        final String optionalOrganizationUnit = getOptionalEnvVar("CSR_ORGANIZATION_UNIT");
 
         // Generate a private key and retrieve the corresponding certificate from Athenz ZTS Service.
-        GCPFunctionIdentity gcpIdentity;
-        try (ZTSClient client = new ZTSClient(ztsUrl)) {
-            ZTSClient.setX509CsrDetails(certDn, certDomain);
-            gcpIdentity = GCPSIACredentials.getGCPFunctionServiceCertificate(
-                    client,
-                    athenzDomain,
-                    athenzService,
-                    gcpProjectId,
-                    athenzProvider);
+        GCPSIACredentials.PrivateAndCertificate privateAndCertificate = GCPSIACredentials.getGCPFunctionServiceCertificate(
+                athenzDomain,
+                athenzService,
+                gcpProjectId,
+                athenzProvider,
+                ztsUrl,
+                certDomain,
+                optionalCountry,
+                optionalState,
+                optionalLocality,
+                optionalOrganization,
+                optionalOrganizationUnit);
+
+        LOG.debug("SIA CERTIFICATE:\n" + convertToPEMFormat(privateAndCertificate.certificate));
+        // LOG.debug("SIA PRIVATE-KEY:\n" + convertToPEMFormat(privateAndCertificate.privateKey));     Commented out: too sensitive
+    }
+
+    public static String convertToPEMFormat(Object obj) {
+        StringWriter writer = new StringWriter();
+        try {
+            try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
+                pemWriter.writeObject(obj);
+                pemWriter.flush();
+            }
+        } catch (IOException exception) {
+            LOG.error("convertToPEMFormat: unable to convert object to PEM: ", exception);
+            return null;
         }
-
-        X509Certificate certificate = gcpIdentity.getX509Certificate();
-        PrivateKey privateKey = gcpIdentity.getPrivateKey();
-
-        LOG.debug("SIA CERTIFICATE:\n" + Crypto.convertToPEMFormat(certificate));
-        //  LOG.debug("SIA PRIVATE-KEY:\n" + Crypto.convertToPEMFormat(privateKey));     Commented out: too sensitive
+        return writer.toString();
     }
 
     String getMandatoryEnvVar(String envVar) {

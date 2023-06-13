@@ -15,5 +15,60 @@
  */
 package com.yahoo.athenz.zts;
 
-public class AWSLambdaIdentity extends CloudIdentity {
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+
+public class AWSLambdaIdentity {
+
+    private PrivateKey privateKey;
+    private X509Certificate x509Certificate;
+    private String caCertificates;
+
+    /**
+     * Get the private key for the lambda service identity
+     * @return privateKey
+     */
+    public PrivateKey getPrivateKey() {
+        return privateKey;
+    }
+
+    /**
+     * Set the private key for the labmda service identity
+     * @param privateKey use the given private key
+     */
+    public void setPrivateKey(PrivateKey privateKey) {
+        this.privateKey = privateKey;
+    }
+
+    /**
+     * Get the x.509 certificate for the lambda service identity
+     * @return x509Certificate
+     */
+    public X509Certificate getX509Certificate() {
+        return x509Certificate;
+    }
+
+    /**
+     * Set the x.509 certificate for the lambda service idenitty
+     * @param x509Certificate use the given x.509 certificate
+     */
+    public void setX509Certificate(X509Certificate x509Certificate) {
+        this.x509Certificate = x509Certificate;
+    }
+
+    /**
+     * Get the Athenz CA certificates in pem format
+     * @return certificates in pem format
+     */
+    public String getCACertificates() {
+        return caCertificates;
+    }
+
+    /**
+     * Set the Athenz CA certificates in pem format
+     * @param caCertificates use the given set of ca certificates
+     */
+    public void setCaCertificates(String caCertificates) {
+        this.caCertificates = caCertificates;
+    }
 }
