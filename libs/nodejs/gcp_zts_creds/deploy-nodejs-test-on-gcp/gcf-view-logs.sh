@@ -1,1 +1,0 @@
-../../../java/gcp_zts_creds/deploy-java-test-on-gcp/gcf-view-logs.sh

@@ -15,11 +15,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -33,9 +30,6 @@ public class GCPSIACredentials {
         public PrivateKey privateKey;
         public String caCertificates;
     }
-
-
-    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * For GCP cloud-functions generate a new private key, request a
@@ -143,7 +137,7 @@ public class GCPSIACredentials {
     /** Get GCP attestation data for GCP Function. */
     private static String getGcpFunctionAttestationData(String ztsUrl) throws Exception {
         String gcpIdentityUrl = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=" + ztsUrl + "&format=full";
-        LOG.debug("Getting GCF identity from: {}", gcpIdentityUrl);
+        // LOG.debug("Getting GCF identity from: {}", gcpIdentityUrl);
         HttpURLConnection httpConnection = null;
         try {
             httpConnection = (HttpURLConnection) new URL(gcpIdentityUrl).openConnection();

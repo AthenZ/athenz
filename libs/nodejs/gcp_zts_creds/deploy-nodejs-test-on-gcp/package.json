@@ -1,7 +1,0 @@
-{
-  "main": "index.js",
-  "dependencies": {
-    "@google-cloud/functions-framework": "^3.0.0",
-    "pem": "^1.14.8"
-  }
-}
