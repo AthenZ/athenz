@@ -196,7 +196,6 @@ public class GCPSIACredentialsTest {
     }
 
     static class MockZtsInstanceForbiddenHandler implements HttpHandler {
-        public String requestedUri;
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
             String response = "<MOCK ZTS FORBIDDEN>";
