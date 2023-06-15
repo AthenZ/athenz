@@ -630,11 +630,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(policy_id, policy_tags.key, policy_tags.value) VALUES (?,?,?);";
     private static final String SQL_POLICY_TAG_COUNT = "SELECT COUNT(*) FROM policy_tags WHERE policy_id=?";
     private static final String SQL_DELETE_POLICY_TAG = "DELETE FROM policy_tags WHERE policy_id=? AND policy_tags.key=?;";
-    private static final String SQL_GET_POLICY_TAGS = "SELECT st.key, st.value FROM policy_tags st "
-            + "JOIN policy s ON st.policy_id = s.policy_id JOIN domain ON domain.domain_id=s.domain_id "
-            + "WHERE domain.name=? AND s.name=?";
-    private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT s.name, st.key, st.value FROM policy_tags st "
-            + "JOIN policy s ON st.policy_id = s.policy_id JOIN domain ON domain.domain_id=s.domain_id "
+    private static final String SQL_GET_POLICY_TAGS = "SELECT pt.key, pt.value FROM policy_tags pt "
+            + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
+            + "WHERE domain.name=? AND p.name=?";
+    private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT p.name, pt.key, pt.value, p.version FROM policy_tags pt "
+            + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
             + "WHERE domain.name=?";
 
     private static final String CACHE_DOMAIN    = "d:";
@@ -4001,13 +4001,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         athenzDomain.getPolicies().addAll(policyMap.values());
     }
 
-    private void addTagsToPolicies(Map<Integer, Policy> policyMap, String domainName) {
+    void addTagsToPolicies(Map<Integer, Policy> policyMap, String domainName) {
 
-        Map<String, Map<String, TagValueList>> domainPolicyTags = getDomainResourceTags(domainName, "Policy", SQL_GET_DOMAIN_POLICY_TAGS);
+        Map<String, Map<String, TagValueList>> domainPolicyTags = getDomainPolicyTags(domainName);
         if (domainPolicyTags != null) {
             for (Map.Entry<Integer, Policy> policyEntry : policyMap.entrySet()) {
-                String tagKeyName = ZMSUtils.extractPolicyName(domainName, policyEntry.getValue().name);
-                Map<String, TagValueList> policyTag = domainPolicyTags.get(ZMSUtils.extractPolicyName(domainName, policyEntry.getValue().name));
+                Map<String, TagValueList> policyTag = domainPolicyTags.get(ZMSUtils.extractPolicyName(domainName, policyEntry.getValue().name) + ":" + policyEntry.getValue().getVersion());
                 if (policyTag != null) {
                     policyEntry.getValue().setTags(policyTag);
                 }
@@ -4015,21 +4014,22 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
 
-    Map<String, Map<String, TagValueList>> getDomainResourceTags(String domainName, String caller, String sqlStatement) {
-        final String funcCaller = "getDomain" + caller + "Tags";
+    Map<String, Map<String, TagValueList>> getDomainPolicyTags(String domainName) {
+        final String funcCaller = "getDomain Policy Tags";
         Map<String, Map<String, TagValueList>> domainResourceTags = null;
 
-        try (PreparedStatement ps = con.prepareStatement(sqlStatement)) {
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICY_TAGS)) {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, funcCaller)) {
                 while (rs.next()) {
                     String resourceName = rs.getString(1);
                     String tagKey = rs.getString(2);
                     String tagValue = rs.getString(3);
+                    String version = rs.getString(4);
                     if (domainResourceTags == null) {
                         domainResourceTags = new HashMap<>();
                     }
-                    Map<String, TagValueList> resourceTag = domainResourceTags.computeIfAbsent(resourceName, tags -> new HashMap<>());
+                    Map<String, TagValueList> resourceTag = domainResourceTags.computeIfAbsent(resourceName + ":" + version, tags -> new HashMap<>());
                     TagValueList tagValues = resourceTag.computeIfAbsent(tagKey, k -> new TagValueList().setList(new ArrayList<>()));
                     tagValues.getList().add(tagValue);
                 }

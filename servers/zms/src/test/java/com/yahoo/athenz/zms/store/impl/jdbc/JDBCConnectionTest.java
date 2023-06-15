@@ -14393,4 +14393,63 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetDomainReasourceTags() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("policy");
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("tagKey");
+        Mockito.when(mockResultSet.getString(3))
+                .thenReturn("tagVal1", "tagVal2");
+        Mockito.when(mockResultSet.getString(4))
+                .thenReturn("1");
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true, true, false);
+
+        Map<String, Map<String, TagValueList>> domainPolicyTags = jdbcConn.getDomainPolicyTags("sys.auth");
+        assertNotNull(domainPolicyTags);
+
+        Map<String, TagValueList> roleTags = domainPolicyTags.get("policy:1");
+        TagValueList tagValues = roleTags.get("tagKey");
+
+        assertNotNull(tagValues);
+        assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainResourceTagsEmpty() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false);
+
+        Map<String, Map<String, TagValueList>> domainRoleTags = jdbcConn.getDomainRoleTags("sys.auth");
+        assertNull(domainRoleTags);
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "sys.auth");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainResourceTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true).thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getDomainRoleTags("sys.auth");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
 }
