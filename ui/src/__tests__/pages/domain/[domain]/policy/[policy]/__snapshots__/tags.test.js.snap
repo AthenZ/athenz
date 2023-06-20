@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PolicyPage should render 1`] = `
+exports[`Policies Tag Page should render 1`] = `
 .emotion-0 {
   height: 60px;
   position: relative;
@@ -507,25 +507,20 @@ exports[`PolicyPage should render 1`] = `
 .emotion-28 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
-  display: inline-block;
 }
 
 .emotion-30 {
-  margin-left: 10px;
-  display: inline-block;
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .emotion-32 {
-  fill: #3697f2;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-33 {
   margin: 20px 0;
 }
 
-.emotion-35 {
+.emotion-34 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -536,151 +531,138 @@ exports[`PolicyPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-37 {
+.emotion-36 {
   padding-right: 50px;
 }
 
-.emotion-39 {
+.emotion-38 {
   font-weight: 600;
 }
 
-.emotion-41 {
+.emotion-40 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-59 {
+.emotion-48 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(1, 1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-48.vertical {
+  background: #f5f8fe;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-49 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-59>input[type='checkbox'] {
-  box-sizing: border-box;
+  background: #f5f8fe;
+  color: #3697f2;
   cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-59>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 18px;
-  line-height: 18px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  padding: 8px 20px;
   white-space: nowrap;
+  z-index: 1;
 }
 
-.emotion-59>input[type='checkbox']+label .label-content {
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  margin-left: 6px;
-}
-
-@-moz-document url-prefix() {
-  .emotion-59>input[type='checkbox']+label .label-content {
-    margin-top: 1px;
-  }
-}
-
-.emotion-59>input[type='checkbox']+label:before {
-  background: #d5d5d5;
-  border-radius: 9px;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 4px;
-  line-height: 16px;
-  margin: 7px 0 0 0;
-  -webkit-transition: all 0.25s;
-  transition: all 0.25s;
-  vertical-align: top;
-  width: 34px;
-}
-
-.emotion-59>input[type='checkbox']+label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
-  left: 0;
-  position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
-}
-
-.emotion-59>input[type='checkbox']:checked+label::before {
-  background-color: rgba(21,192,70,0.45);
-}
-
-.emotion-59>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-59>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-59>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-59>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-59>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
-}
-
-.emotion-76 {
-  font-weight: 600;
-  title: add;
-  word-break: break-all;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 400px;
-}
-
-.emotion-78 {
+.emotion-49:hover {
   color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: '';
 }
 
-.emotion-84 {
+.emotion-49.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-49.active:hover {
+  color: #303030;
+}
+
+.emotion-49.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-49.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-49.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-50 {
+  margin: 20px;
+}
+
+.emotion-52 {
+  padding-bottom: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  float: right;
+}
+
+.emotion-54 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -706,176 +688,179 @@ exports[`PolicyPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-84:first-of-type {
+.emotion-54:first-of-type {
   margin-left: 0;
 }
 
-.emotion-84:disabled {
+.emotion-54:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-84:disabled {
+.emotion-54:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-84:hover:not(:disabled) {
+.emotion-54:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-85 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  background: #f5f8fe;
-  border-radius: 2px;
-  box-sizing: border-box;
-  display: inline-grid;
-  grid-template-columns: repeat(9, 1fr);
-  margin-top: 0;
-  min-width: 80px;
-  position: relative;
+.emotion-55 {
+  width: 100%;
+  border-spacing: 0;
+  display: table;
+  border-collapse: separate;
+  border-color: #9a9a9a;
 }
 
-.emotion-85.vertical {
-  background: #f5f8fe;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  height: 100%;
-  min-width: 300px;
-  overflow-y: scroll;
-  padding: 12px 0px 40px 0px;
-  width: 300px;
+.emotion-57 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
 }
 
-.emotion-86 {
+.emotion-61 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-67 {
+  background-color: #3570f40D;
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-71 {
   font-family: Helvetica,Arial,sans-serif;
+  background: rgba(53, 112, 244, 0.08);
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #303030;
+  display: inline-block;
   font-size: 14px;
-  font-weight: 300;
+  height: 28px;
+  line-height: 26px;
+  margin: 3px;
+  min-width: 50px;
+  padding: 0 12px;
+  position: relative;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.emotion-71:hover {
+  background: #cbd9f9;
+}
+
+.emotion-71 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  background: #f5f8fe;
-  color: #3697f2;
-  cursor: pointer;
+  background: #cbd9f9;
+  border-radius: 0 14px 14px 0;
+  box-shadow: none;
+  box-sizing: border-box;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
+  height: 28px;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
   -webkit-justify-content: center;
   justify-content: center;
-  padding: 8px 20px;
-  white-space: nowrap;
-  z-index: 1;
+  opacity: 0;
+  padding-right: 2px;
+  position: absolute;
+  right: -14px;
+  top: -1px;
+  -webkit-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  width: 28px;
 }
 
-.emotion-86:hover {
-  color: #3570f4;
+.emotion-71:hover .tag-remove {
+  box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
+  opacity: 1;
+  right: 0;
 }
 
-.emotion-86.active {
-  background: #fff;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
+.emotion-72 {
+  color: #d5d5d5;
+  font-size: 14px;
+  height: 28px;
+  line-height: 14px;
+  margin: 5px 15px 5px 0;
+  padding: 6px 8px 7px 10px;
+  background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-86.active:hover {
-  color: #303030;
+.emotion-72:hover {
+  background: #ffffff;
 }
 
-.emotion-86.vertical {
-  background: #f5f8fe;
-  border-left: solid 4px #f5f8fe;
-  height: 24px;
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  -webkit-justify-content: flex-start;
-  justify-content: flex-start;
-  padding: 12px 0px 12px 26px;
-  text-align: left;
+.emotion-74 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
 }
 
-.emotion-86.vertical.active {
-  background: #fff;
-  border-left: solid 4px #3697f2;
-  color: #303030;
+.emotion-76 {
+  fill: rgba(48,48,48,0.6);
+  cursor: pointer;
+  vertical-align: text-bottom;
 }
 
-.emotion-86.vertical.active:hover {
-  color: #303030;
-}
-
-.emotion-95 {
-  margin: 20px;
-}
-
-.emotion-97 {
-  padding-bottom: 20px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  float: right;
-}
-
-.emotion-100 {
-  width: 100%;
-  border-spacing: 0 15px;
-  display: table;
-  border-collapse: separate;
-  border-color: grey;
-}
-
-.emotion-102 {
+.emotion-83 {
+  background-color: #3570f40D;
   text-align: center;
-  border-bottom: 2px solid rgb(213, 213, 213);
-  color: rgb(154, 154, 154);
-  padding-bottom: 5px;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
   padding: 5px 0 5px 15px;
+  vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-104 {
+.emotion-85 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-91 {
   text-align: left;
-  border-bottom: 2px solid rgb(213, 213, 213);
-  color: rgb(154, 154, 154);
-  padding-bottom: 5px;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
   padding: 5px 0 5px 15px;
+  vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-118 {
+.emotion-101 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+}
+
+.emotion-107 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -901,13 +886,13 @@ exports[`PolicyPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-120 {
+.emotion-109 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-121 {
+.emotion-110 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -922,7 +907,7 @@ exports[`PolicyPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-123 {
+.emotion-112 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -941,28 +926,28 @@ exports[`PolicyPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-125 {
+.emotion-114 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-127 {
+.emotion-116 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-129 {
+.emotion-118 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-133 {
+.emotion-122 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-135 {
+.emotion-124 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -970,19 +955,19 @@ exports[`PolicyPage should render 1`] = `
   display: flex;
 }
 
-.emotion-137 {
+.emotion-126 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-139 {
+.emotion-128 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
 }
 
 <div
-  data-testid="policy"
+  data-testid="policy-tags"
 >
   <div
     class="emotion-0 emotion-1"
@@ -1117,292 +1102,334 @@ exports[`PolicyPage should render 1`] = `
             class="emotion-26 emotion-27"
           >
             <div
-              data-testid="domain-name-header"
+              class="emotion-28 emotion-29"
+              data-testid="collection-name-header"
             >
-              <div
-                class="emotion-28 emotion-29"
-              >
-                home.pgote
-              </div>
-              <div
+              <a
                 class="emotion-30 emotion-31"
               >
-                <svg
-                  class="emotion-32"
-                  data-testid="icon"
-                  height="25px"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="25px"
-                >
-                  <title>
-                    View Pending Members by Domain
-                  </title>
-                  <path
-                    d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
-                  />
-                </svg>
-              </div>
+                dom
+              </a>
+              :
+              policy
+              .
+              policy1
             </div>
             <div
-              class="emotion-33 emotion-34"
-              data-testid="domain-details"
+              class="emotion-32 emotion-33"
+              data-testid="collection-details"
             >
               <div
-                class="emotion-35 emotion-36"
+                class="emotion-34 emotion-35"
               >
                 <div
-                  class="emotion-37 emotion-38"
+                  class="emotion-36 emotion-37"
                 >
                   <div
-                    class="emotion-39 emotion-40"
+                    class="emotion-38 emotion-39"
                   >
-                    2020-01-24 18:14 UTC
+                    2022-10-02 14:37 UTC
                   </div>
                   <div
-                    class="emotion-41 emotion-42"
+                    class="emotion-40 emotion-41"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-37 emotion-38"
+                  class="emotion-36 emotion-37"
                 >
                   <div
-                    class="emotion-39 emotion-40"
+                    class="emotion-38 emotion-39"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-41 emotion-42"
+                    class="emotion-40 emotion-41"
                   >
-                    Product ID
+                    REVIEWED DATE
                   </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <div
-                    class="emotion-39 emotion-40"
-                  >
-                    athenz
-                  </div>
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    ORGANIZATION
-                  </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <div
-                    class="emotion-39 emotion-40"
-                  >
-                    <div
-                      class="emotion-59 denali-switch"
-                      data-testid="switch-wrapper"
-                    >
-                      <input
-                        data-testid="auditDomainDetails-switch-input"
-                        disabled=""
-                        id="switch-auditDomainDetails"
-                        name="auditDomainDetails"
-                        type="checkbox"
-                        value="false"
-                      />
-                      <label
-                        for="switch-auditDomainDetails"
-                      />
-                    </div>
-                  </div>
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    AUDIT ENABLED
-                  </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <div
-                    class="emotion-39 emotion-40"
-                  >
-                    1231243134
-                  </div>
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    AWS ACCOUNT ID
-                  </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <div
-                    class="emotion-39 emotion-40"
-                  >
-                    N/A
-                  </div>
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    GCP PROJECT ID
-                  </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <div
-                    class="emotion-76 emotion-77"
-                    title="add"
-                  >
-                    <a
-                      class="emotion-78 emotion-79"
-                    >
-                      add
-                    </a>
-                  </div>
-                  <div
-                    class="emotion-41 emotion-42"
-                  >
-                    BUSINESS SERVICE
-                  </div>
-                </div>
-                <div
-                  class="emotion-37 emotion-38"
-                >
-                  <button
-                    class="emotion-84 denali-button"
-                  >
-                    Onboard to AWS
-                  </button>
                 </div>
               </div>
             </div>
             <div
-              class="emotion-85 denali-tab-group"
+              class="emotion-48 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                Roles
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                Groups
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                Services
-              </div>
-              <div
-                class="emotion-86 denali-tab active"
+                class="emotion-49 denali-tab active"
                 data-active="true"
               >
-                Policies
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
                 Tags
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                Templates
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                Settings
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                Visibility
-              </div>
-              <div
-                class="emotion-86 denali-tab"
-                data-active="false"
-              >
-                History
               </div>
             </div>
           </div>
           <div
-            class="emotion-95 emotion-96"
-            data-testid="policylist"
+            class="emotion-50 emotion-51"
+            data-testid="tag-list"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-52 emotion-53"
             >
               <div>
                 <button
-                  class="emotion-84 denali-button"
+                  class="emotion-54 denali-button"
                 >
-                  Add Policy
+                  Add Tag
                 </button>
               </div>
             </div>
             <table
-              class="emotion-100 emotion-101"
+              class="emotion-55 emotion-56"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-102 emotion-103"
+                    class="emotion-57 emotion-58"
                   >
-                    Active
+                    TAG NAME
                   </th>
                   <th
-                    class="emotion-104 emotion-103"
+                    class="emotion-57 emotion-58"
                   >
-                    Policy
+                    TAG VALUES
                   </th>
                   <th
-                    class="emotion-104 emotion-103"
+                    class="emotion-61 emotion-58"
                   >
-                    Versions
+                    EDIT
                   </th>
                   <th
-                    class="emotion-104 emotion-103"
+                    class="emotion-61 emotion-58"
                   >
-                    Modified Date
-                  </th>
-                  <th
-                    class="emotion-102 emotion-103"
-                  >
-                    Rules
-                  </th>
-                  <th
-                    class="emotion-102 emotion-103"
-                  >
-                    Tags
-                  </th>
-                  <th
-                    class="emotion-102 emotion-103"
-                  >
-                    Duplicate
-                  </th>
-                  <th
-                    class="emotion-102 emotion-103"
-                  >
-                    Delete
+                    DELETE
                   </th>
                 </tr>
               </thead>
-              <tbody />
+              <tbody>
+                <tr
+                  class="emotion-65 emotion-66"
+                  data-testid="tag-row"
+                >
+                  <td
+                    class="emotion-67 emotion-68"
+                    color="#3570f40D"
+                  >
+                    tag
+                  </td>
+                  <td
+                    class="emotion-67 emotion-68"
+                    color="#3570f40D"
+                  >
+                    <div
+                      class="emotion-71 denali-tag emotion-72 emotion-73"
+                      data-testid="tag"
+                    >
+                      <a
+                        class="emotion-74 emotion-75"
+                        style="color: rgb(53, 112, 244);"
+                      >
+                         
+                        tag1
+                         
+                      </a>
+                      <div
+                        class="tag-remove"
+                      >
+                        <svg
+                          class="emotion-76"
+                          data-testid="icon"
+                          height="20px"
+                          id=""
+                          viewBox="0 0 1024 1024"
+                          width="20px"
+                        >
+                          <title>
+                            x
+                          </title>
+                          <path
+                            d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div
+                      class="emotion-71 denali-tag emotion-72 emotion-73"
+                      data-testid="tag"
+                    >
+                      <a
+                        class="emotion-74 emotion-75"
+                        style="color: rgb(53, 112, 244);"
+                      >
+                         
+                        tag2
+                         
+                      </a>
+                      <div
+                        class="tag-remove"
+                      >
+                        <svg
+                          class="emotion-76"
+                          data-testid="icon"
+                          height="20px"
+                          id=""
+                          viewBox="0 0 1024 1024"
+                          width="20px"
+                        >
+                          <title>
+                            x
+                          </title>
+                          <path
+                            d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-83 emotion-68"
+                    color="#3570f40D"
+                  >
+                    <span>
+                      <svg
+                        class="emotion-85"
+                        data-testid="icon"
+                        height="1.25em"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="1.25em"
+                      >
+                        <title>
+                          edit
+                        </title>
+                        <path
+                          d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                        />
+                      </svg>
+                    </span>
+                  </td>
+                  <td
+                    class="emotion-83 emotion-68"
+                    color="#3570f40D"
+                  >
+                    <span>
+                      <svg
+                        class="emotion-85"
+                        data-testid="icon"
+                        height="1.25em"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="1.25em"
+                      >
+                        <title>
+                          trash
+                        </title>
+                        <path
+                          d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                        />
+                        <path
+                          d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                        />
+                      </svg>
+                    </span>
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-65 emotion-66"
+                  data-testid="tag-row"
+                >
+                  <td
+                    class="emotion-91 emotion-68"
+                    color=""
+                  >
+                    tag2
+                  </td>
+                  <td
+                    class="emotion-91 emotion-68"
+                    color=""
+                  >
+                    <div
+                      class="emotion-71 denali-tag emotion-72 emotion-73"
+                      data-testid="tag"
+                    >
+                      <a
+                        class="emotion-74 emotion-75"
+                        style="color: rgb(53, 112, 244);"
+                      >
+                         
+                        tag3
+                         
+                      </a>
+                      <div
+                        class="tag-remove"
+                      >
+                        <svg
+                          class="emotion-76"
+                          data-testid="icon"
+                          height="20px"
+                          id=""
+                          viewBox="0 0 1024 1024"
+                          width="20px"
+                        >
+                          <title>
+                            x
+                          </title>
+                          <path
+                            d="M572.373 512l224.427-224.213c8.506-8.066 13.798-19.448 13.798-32.066 0-9.118-2.763-17.59-7.498-24.625l0.1 0.158c-7.858-10.565-20.305-17.335-34.333-17.335-11.534 0-21.999 4.577-29.678 12.013l0.011-0.011-227.2 225.707-226.133-225.707c-7.733-7.792-18.447-12.616-30.289-12.616-14.295 0-26.948 7.030-34.691 17.822l-0.087 0.128c-4.635 6.877-7.398 15.35-7.398 24.467 0 12.618 5.292 24 13.778 32.048l0.020 0.019 224.427 224.213-224.427 224.213c-8.506 8.066-13.798 19.448-13.798 32.066 0 9.118 2.763 17.59 7.498 24.625l-0.1-0.158c7.83 10.919 20.483 17.949 34.778 17.949 11.841 0 22.556-4.824 30.286-12.613l0.003-0.003 226.133-225.707 226.133 225.707c7.668 7.425 18.133 12.002 29.667 12.002 14.028 0 26.476-6.77 34.252-17.222l0.081-0.114c4.635-6.877 7.398-15.35 7.398-24.467 0-12.618-5.292-24-13.778-32.048l-0.020-0.019z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-101 emotion-68"
+                    color=""
+                  >
+                    <span>
+                      <svg
+                        class="emotion-85"
+                        data-testid="icon"
+                        height="1.25em"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="1.25em"
+                      >
+                        <title>
+                          edit
+                        </title>
+                        <path
+                          d="M926.293 400.427l-301.013-302.507c-7.73-7.775-18.433-12.587-30.26-12.587-0.012 0-0.024 0-0.036 0l0.002-0c-0.104-0.001-0.228-0.001-0.351-0.001-11.554 0-22.002 4.734-29.51 12.369l-0.006 0.006-467.413 467.413c-7.647 7.709-12.373 18.325-12.373 30.046 0 0.012 0 0.024 0 0.036l-0-0.002v300.8c0 23.564 19.103 42.667 42.667 42.667v0h300.8c0.010 0 0.022 0 0.034 0 11.721 0 22.337-4.726 30.049-12.376l-0.003 0.003 467.2-465.92c7.668-7.712 12.409-18.343 12.409-30.081 0-11.631-4.654-22.176-12.202-29.872l0.007 0.007zM411.093 853.333h-240.427v-240.427l265.6-265.6 240.853 240.853zM737.493 528l-240.853-241.067 98.347-98.347 240.64 241.707z"
+                        />
+                      </svg>
+                    </span>
+                  </td>
+                  <td
+                    class="emotion-101 emotion-68"
+                    color=""
+                  >
+                    <span>
+                      <svg
+                        class="emotion-85"
+                        data-testid="icon"
+                        height="1.25em"
+                        id=""
+                        viewBox="0 0 1024 1024"
+                        width="1.25em"
+                      >
+                        <title>
+                          trash
+                        </title>
+                        <path
+                          d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                        />
+                        <path
+                          d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                        />
+                      </svg>
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -1411,11 +1438,11 @@ exports[`PolicyPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-118 emotion-119"
+          class="emotion-107 emotion-108"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-120"
+            class="emotion-109"
             data-testid="icon"
             height="1em"
             id=""
@@ -1431,45 +1458,45 @@ exports[`PolicyPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-121 emotion-122"
+          class="emotion-110 emotion-111"
         >
           <div
-            class="emotion-123 emotion-124"
+            class="emotion-112 emotion-113"
           >
             <div
-              class="emotion-125 emotion-126"
+              class="emotion-114 emotion-115"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-127 emotion-128"
+                class="emotion-116 emotion-117"
               >
                 Create
               </a>
               <span
-                class="emotion-129 emotion-130"
+                class="emotion-118 emotion-119"
               >
                  | 
               </span>
               <a
-                class="emotion-127 emotion-128"
+                class="emotion-116 emotion-117"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-133 emotion-134"
+            class="emotion-122 emotion-123"
           >
             <div
-              class="emotion-135 emotion-136"
+              class="emotion-124 emotion-125"
             >
               <div
-                class="emotion-137 emotion-138"
+                class="emotion-126 emotion-127"
               >
                 <svg
-                  class="emotion-139"
+                  class="emotion-128"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1491,19 +1518,19 @@ exports[`PolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-127 emotion-128"
+                class="emotion-116 emotion-117"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-135 emotion-136"
+              class="emotion-124 emotion-125"
             >
               <div
-                class="emotion-137 emotion-138"
+                class="emotion-126 emotion-127"
               >
                 <svg
-                  class="emotion-139"
+                  class="emotion-128"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1525,7 +1552,7 @@ exports[`PolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-127 emotion-128"
+                class="emotion-116 emotion-117"
               >
                 athens.ci
               </a>

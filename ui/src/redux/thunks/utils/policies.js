@@ -29,8 +29,10 @@ import API from '../../../api';
 import { addPolicyToStore, loadPolicies } from '../../actions/policies';
 import { policyDelimiter } from '../../config';
 
-export const getPolicyFullName = (domainName, policyName) =>
-    getFullName(domainName, policyDelimiter, policyName);
+export const getPolicyFullName = (domainName, policyName, version) => {
+    let fullPolicyName = getFullName(domainName, policyDelimiter, policyName);
+    return version ? fullPolicyName + ':' + version : fullPolicyName;
+};
 
 export const getPoliciesApiCall = async (domainName, dispatch) => {
     try {

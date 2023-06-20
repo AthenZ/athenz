@@ -30,23 +30,28 @@ export const selectActivePoliciesOnly = (state) => {
     return allPolicies.filter((policy) => policy.active);
 };
 
-export const selectPolicy = (state, domainName, policyName) => {
-    const allActivePolicyVersion = selectActivePoliciesOnly(state);
-    const policyFullName = getPolicyFullName(domainName, policyName);
-    for (const policy of allActivePolicyVersion) {
-        if (policy.name === policyFullName) {
-            return { ...policy, assertions: mapToList(policy.assertions) };
-        }
-    }
-    return null;
+export const selectPolicy = (state, domainName, policyName, version) => {
+    let policy = selectPolicyThunk(state, domainName, policyName, version);
+    return policy && policy.assertions
+        ? { ...policy, assertions: mapToList(policy.assertions) }
+        : policy;
 };
 
-export const selectPolicyThunk = (state, domainName, policyName) => {
-    const allActivePolicyVersion = selectActivePoliciesOnly(state);
+export const selectPolicyTags = (state, domainName, policyName, version) => {
+    let policy = selectPolicy(state, domainName, policyName, version);
+    return policy && policy.tags ? policy.tags : [];
+};
+
+export const selectPolicyThunk = (state, domainName, policyName, version) => {
+    const policies = selectPolicies(state);
     const policyFullName = getPolicyFullName(domainName, policyName);
-    for (const policy of allActivePolicyVersion) {
+    for (const policy of policies) {
         if (policy.name === policyFullName) {
-            return policy;
+            if (version) {
+                if (policy.version === version) return policy;
+            } else if (policy.active) {
+                return policy;
+            }
         }
     }
     return null;

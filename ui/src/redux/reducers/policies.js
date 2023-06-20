@@ -30,6 +30,7 @@ import {
 } from '../actions/policies';
 import { buildPolicyMapKey, getExpiredTime } from '../utils';
 import produce from 'immer';
+import { UPDATE_TAGS_TO_STORE } from '../actions/collections';
 
 export const policies = (state = {}, action) => {
     const { type, payload } = action;
@@ -155,6 +156,19 @@ export const policies = (state = {}, action) => {
             return produce(state, (draft) => {
                 draft.expiry = getExpiredTime();
             });
+        }
+        case UPDATE_TAGS_TO_STORE: {
+            const { collectionName, collectionWithTags, category } = payload;
+            let newState = state;
+            if (category === 'policy') {
+                newState = produce(state, (draft) => {
+                    draft.policies[collectionName]
+                        ? (draft.policies[collectionName].tags =
+                              collectionWithTags.tags)
+                        : (draft.policies[collectionName] = collectionWithTags);
+                });
+            }
+            return newState;
         }
         case RETURN_POLICIES:
         default:

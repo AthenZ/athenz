@@ -152,6 +152,26 @@ export const mockRolesApiCalls = () => {
     };
 };
 
+export const mockPoliciesApiCalls = () => {
+    return {
+        getPolicies: jest.fn().mockReturnValue(
+            new Promise((resolve, reject) => {
+                resolve([]);
+            })
+        ),
+        getPolicy: jest.fn().mockReturnValue(
+            new Promise((resolve, reject) => {
+                resolve({});
+            })
+        ),
+        // getRoleMembers: jest.fn().mockReturnValue(
+        //     new Promise((resolve, reject) => {
+        //         resolve({});
+        //     })
+        // ),
+    };
+};
+
 export const mockAllDomainDataApiCalls = (domainDetails, headerDetails) => {
     return {
         getDomain: jest.fn().mockReturnValue(

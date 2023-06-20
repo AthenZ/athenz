@@ -138,13 +138,14 @@ export const groups = (state = {}, action) => {
             return newState;
         }
         case UPDATE_TAGS_TO_STORE: {
-            const { collectionName, collectionTags, category } = payload;
+            const { collectionName, collectionWithTags, category } = payload;
             let newState = state;
             if (category === 'group') {
                 newState = produce(state, (draft) => {
-                    if (draft.groups[collectionName]) {
-                        draft.groups[collectionName].tags = collectionTags;
-                    }
+                    draft.groups[collectionName]
+                        ? (draft.groups[collectionName].tags =
+                              collectionWithTags.tags)
+                        : (draft.groups[collectionName] = collectionWithTags);
                 });
             }
             return newState;

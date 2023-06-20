@@ -49,6 +49,7 @@ import {
 import { loadRole } from '../../../redux/actions/roles';
 import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 import { updateBellPendingMember } from '../../../redux/actions/domain-data';
+import { expiry, modified } from '../../config/config.test';
 
 const groupsThunk = require('../../../redux/thunks/groups');
 const rolesThunk = require('../../../redux/thunks/roles');
@@ -364,7 +365,27 @@ describe('updateTags method', () => {
     });
     it('successfully update group tag', async () => {
         let collectionName = 'group1';
-        let detail = { tags: ['tag1', 'tag2'] };
+        let detail = {
+            memberExpiryDays: 50,
+            tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
+            name: 'dom:group.expiration',
+            modified: modified,
+            groupMembers: {
+                'user.user4': {
+                    memberName: 'user.user4',
+                    groupName: 'dom:group.expiration',
+                    expiration: '2022-08-25T15:39:23.701Z',
+                },
+                'user.user1': {
+                    memberName: 'user.user1',
+                    groupName: 'dom:group.expiration',
+                    expiration: '2022-08-25T15:39:23.701Z',
+                },
+            },
+            groupPendingMembers: {},
+            lastReviewedDate: '2022-07-18T14:20:45.836Z',
+            expiry: 1658408002704,
+        };
         let auditRef = 'auditRef';
         let _csrf = 'csrf';
         let category = 'group';
@@ -399,20 +420,36 @@ describe('updateTags method', () => {
                     category
                 )
         ).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
-                updateTagsToStore(
-                    domainName + ':group.' + collectionName,
-                    detail.tags,
-                    category
-                )
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            updateTagsToStore(
+                domainName + ':group.' + collectionName,
+                detail,
+                category
             )
-        ).toBeTruthy();
+        );
     });
     it('successfully update role tag', async () => {
-        let collectionName = 'role1';
-        let detail = { tags: ['tag1', 'tag2'] };
+        let collectionName = 'admin';
+        let detail = {
+            tags: { tag: { list: ['tag1'] } },
+            name: 'dom:role.admin',
+            modified: modified,
+            roleMembers: {
+                'user.user2': {
+                    memberName: 'user.user2',
+                    expiration: expiry,
+                    principalType: 1,
+                    memberFullName: null,
+                },
+                'user.user3': {
+                    memberName: 'user.user7',
+                    expiration: expiry,
+                    principalType: 1,
+                    memberFullName: null,
+                },
+            },
+            rolePendingMembers: {},
+        };
         let auditRef = 'auditRef';
         let _csrf = 'csrf';
         let category = 'role';
@@ -446,16 +483,72 @@ describe('updateTags method', () => {
                     category
                 )
         ).toBeTruthy();
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            updateTagsToStore(
+                domainName + ':role.' + collectionName,
+                detail,
+                category
+            )
+        );
+    });
+    it('successfully update policy tag', async () => {
+        let collectionName = 'policy1';
+        let detail = {
+            name: 'dom:policy.policy1',
+            modified: modified,
+            tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
+            assertions: {
+                17379: {
+                    role: 'dom:role.role2',
+                    resource: 'dom:test2',
+                    action: '*',
+                    effect: 'DENY',
+                    id: 17379,
+                },
+            },
+            version: '2',
+            active: false,
+        };
+        let auditRef = 'auditRef';
+        let _csrf = 'csrf';
+        let category = 'policy';
+
+        const getState = () => {};
+        let myApiMock = {
+            putMeta: jest.fn().mockReturnValue(Promise.resolve([])),
+        };
+        MockApi.setMockApi(myApiMock);
+        sinon.spy(myApiMock, 'putMeta');
+
+        const fakeDispatch = sinon.spy();
+        await updateTags(
+            domainName,
+            collectionName,
+            detail,
+            auditRef,
+            _csrf,
+            category
+        )(fakeDispatch, getState);
+
         expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
-                updateTagsToStore(
-                    domainName + ':role.' + collectionName,
-                    detail.tags,
+            myApiMock.putMeta
+                .getCall(0)
+                .calledWith(
+                    domainName,
+                    collectionName,
+                    detail,
+                    auditRef,
+                    _csrf,
                     category
                 )
-            )
         ).toBeTruthy();
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            updateTagsToStore(
+                domainName + ':policy.' + collectionName,
+                detail,
+                category
+            )
+        );
     });
 });
 

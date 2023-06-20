@@ -34,6 +34,7 @@ import {
     setActivePolicyVersion,
 } from '../../redux/thunks/policies';
 import { connect } from 'react-redux';
+import { withRouter } from 'next/router';
 
 const TdStyled = styled.td`
     text-align: ${(props) => props.align};
@@ -394,7 +395,15 @@ export class PolicyRow extends React.Component {
         this.setState({ [key]: value });
     }
 
+    onClickFunction(route) {
+        this.props.router.push(route, route);
+    }
+
     render() {
+        let clickTag = this.onClickFunction.bind(
+            this,
+            `/domain/${this.props.domain}/policy/${this.props.name}/${this.props.version}/tags`
+        );
         let rows = [];
         let left = 'left';
         let center = 'center';
@@ -504,6 +513,17 @@ export class PolicyRow extends React.Component {
                     <Icon
                         icon={'list-check'}
                         onClick={this.toggleAssertions}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                </TdStyled>
+                {/*Tags*/}
+                <TdStyled align={center} width={'10%'}>
+                    <Icon
+                        icon={'tag'}
+                        onClick={clickTag}
                         color={colors.icons}
                         isLink
                         size={'1.25em'}
@@ -676,6 +696,7 @@ export class PolicyRow extends React.Component {
                         enableDelete={true}
                         enableDuplicate={this.state.enableDuplicate}
                         isChild={true}
+                        router={this.props.router}
                     />
                 );
             });
@@ -725,4 +746,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(getPolicyVersion(domain, policy, version)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(PolicyRow);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withRouter(PolicyRow));
