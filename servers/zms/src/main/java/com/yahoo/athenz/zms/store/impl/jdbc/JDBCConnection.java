@@ -3995,7 +3995,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
-        // add services tags
+        // add policies tags
         addTagsToPolicies(policyMap, athenzDomain.getName());
 
         athenzDomain.getPolicies().addAll(policyMap.values());

@@ -33987,4 +33987,41 @@ public class ZMSImplTest {
         assertFalse(zmsImpl.validateGcpProjectDetails("1234", ""));
         assertFalse(zmsImpl.validateGcpProjectDetails("1234", null));
     }
+
+    @Test
+    public void testSetupPolicyListWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "setup-policy-with-tags";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        Map<String, TagValueList> policy1Tags = Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val2", "val3")));
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        policy1.setTags(policy1Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1);
+
+        Policy policy1version2 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        policy1version2.setVersion("2");
+        policy1version2.setActive(false);
+        policy1version2.setTags(policy1Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1version2);
+
+        Map<String, TagValueList> policy2Tags = Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val2")));
+        Policy policy2 = zmsTestInitializer.createPolicyObject(domainName, "policy2");
+        policy2.setTags(policy2Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
+
+        AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, "tag-key", "val3");
+        assertEquals(1, policies.size()); // need to account for admin policy
+
+        assertEquals(policies.get(0).getName(), "setup-policy-with-tags:policy.policy1");
+        assertEquals(policies.get(0).getVersion(), "0");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
 }
