@@ -130,6 +130,7 @@ export default class RoleGroup extends React.Component {
                                 domain={domain}
                                 key={key}
                                 onUpdateSuccess={this.props.onUpdateSuccess}
+                                timeZone={this.props.timeZone}
                                 _csrf={this.props._csrf}
                                 newRole={this.props.newRole}
                             />

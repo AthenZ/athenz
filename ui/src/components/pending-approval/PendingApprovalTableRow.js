@@ -201,8 +201,8 @@ export default class PendingApprovalTableRow extends React.Component {
                 <TableTd>
                     {this.dateUtils.getLocalDate(
                         this.props.requestTime,
-                        'UTC',
-                        'UTC'
+                        this.props.timeZone,
+                        this.props.timeZone
                     )}
                 </TableTd>
                 <TableTd>

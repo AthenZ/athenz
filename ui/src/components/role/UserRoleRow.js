@@ -136,8 +136,8 @@ export default class UserRoleRow extends React.Component {
                         {role.expiration
                             ? this.dateUtils.getLocalDate(
                                   role.expiration,
-                                  'UTC',
-                                  'UTC'
+                                  this.props.timeZone,
+                                  this.props.timeZone
                               )
                             : null}
                     </TDStyledIcon>

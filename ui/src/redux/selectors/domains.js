@@ -64,6 +64,10 @@ export const selectHeaderDetails = (state) => {
     return state.domains.headerDetails ? state.domains.headerDetails : {};
 };
 
+export const selectTimeZone = (state) => {
+    return state.domains.timeZone ? state.domains.timeZone : 'UTC';
+};
+
 export const selectProductMasterLink = (state) => {
     return selectHeaderDetails(state) &&
         selectHeaderDetails(state).productMasterLink

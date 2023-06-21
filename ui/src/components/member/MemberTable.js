@@ -144,6 +144,7 @@ export default class MemberTable extends React.Component {
                             color={color}
                             key={item.memberName}
                             onUpdateSuccess={this.props.onSubmit}
+                            timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                             justificationRequired={
                                 this.props.justificationRequired

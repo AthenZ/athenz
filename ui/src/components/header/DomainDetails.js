@@ -34,6 +34,7 @@ import {
 import {
     selectBusinessServicesAll,
     selectProductMasterLink,
+    selectTimeZone,
 } from '../../redux/selectors/domains';
 import { getBusinessServicesAll } from '../../redux/thunks/domains';
 import { makeRolesExpires } from '../../redux/actions/roles';
@@ -289,8 +290,8 @@ class DomainDetails extends React.Component {
         let localDate = new DateUtils();
         let modifiedDate = localDate.getLocalDate(
             this.props.domainDetails.modified,
-            'UTC',
-            'UTC'
+            this.props.timeZone,
+            this.props.timeZone
         );
         let showOnBoardToAWS = false;
         if (
@@ -463,6 +464,7 @@ const mapStateToProps = (state, props) => {
         auditEnabled: selectDomainAuditEnabled(state),
         businessServices: selectBusinessServices(state),
         businessServicesAll: selectBusinessServicesAll(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

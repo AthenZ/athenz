@@ -26,6 +26,7 @@ import { connect } from 'react-redux';
 import { selectGroups } from '../../redux/selectors/group';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const GroupsSectionDiv = styled.div`
@@ -168,6 +169,7 @@ class GroupList extends React.Component {
                     <GroupTable
                         groups={groups}
                         domain={this.props.domain}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onSubmit={this.reloadGroups}
                         justificationRequired={this.props.isDomainAuditEnabled}
@@ -192,6 +194,7 @@ const mapStateToProps = (state, props) => {
         isLoading: selectIsLoading(state),
         groups: selectGroups(state),
         isDomainAuditEnabled: selectDomainAuditEnabled(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

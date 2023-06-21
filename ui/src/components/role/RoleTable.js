@@ -138,6 +138,7 @@ export default class RoleTable extends React.Component {
                             domain={domain}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
+                            timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                         />
                     );
@@ -154,6 +155,7 @@ export default class RoleTable extends React.Component {
                             name={name}
                             roles={this.state.rows[name]}
                             onUpdateSuccess={this.props.onSubmit}
+                            timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                             newRole={this.props.newRole}
                         />
@@ -175,6 +177,7 @@ export default class RoleTable extends React.Component {
                             domain={domain}
                             key={item.name}
                             onUpdateSuccess={this.props.onSubmit}
+                            timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                             newRole={this.props.newRole}
                         />

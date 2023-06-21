@@ -28,6 +28,7 @@ import {
     loadBusinessServicesAll,
     loadFeatureFlag,
     loadHeaderDetails,
+    loadTimeZone,
     loadPendingDomainMembersList,
     loadUserDomainList,
     processGroupPendingMembersToStore,
@@ -37,6 +38,7 @@ import {
     returnDomainList,
     returnFeatureFlag,
     returnHeaderDetails,
+    returnTimeZone,
 } from '../actions/domains';
 import { buildErrorForDuplicateCase, getFullName } from '../utils';
 import { subDomainDelimiter } from '../config';
@@ -67,6 +69,15 @@ export const getHeaderDetails = () => async (dispatch, getState) => {
     } else {
         const headerDetails = await API().getHeaderDetails();
         dispatch(loadHeaderDetails(headerDetails));
+    }
+};
+
+export const getTimeZone = () => async (dispatch, getState) => {
+    if (getState().domains.timeZone) {
+        dispatch(returnTimeZone());
+    } else {
+        const timeZone = await API().getTimeZone();
+        dispatch(loadTimeZone(timeZone));
     }
 };
 

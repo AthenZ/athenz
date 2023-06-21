@@ -293,6 +293,7 @@ class UserRoleTable extends React.Component {
                               memberData={item}
                               onDelete={this.deleteItemMember}
                               deleteRoleMember={this.deleteItem}
+                              timeZone={this.props.timeZone}
                           />
                       );
                   })

@@ -16,6 +16,8 @@
 import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import React from 'react';
+import { selectTimeZone } from '../../redux/selectors/domains';
+import { connect } from 'react-redux';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -40,7 +42,7 @@ const LabelDiv = styled.div`
     text-transform: uppercase;
 `;
 
-export default class CollectionDetails extends React.Component {
+class CollectionDetails extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -49,14 +51,14 @@ export default class CollectionDetails extends React.Component {
         let localDate = new DateUtils();
         let modifiedDate = localDate.getLocalDate(
             this.props.collectionDetails.modified,
-            'UTC',
-            'UTC'
+            this.props.timeZone,
+            this.props.timeZone
         );
         let lastReviewedDate = this.props.collectionDetails.lastReviewedDate
             ? localDate.getLocalDate(
                   this.props.collectionDetails.lastReviewedDate,
-                  'UTC',
-                  'UTC'
+                  this.props.timeZone,
+                  this.props.timeZone
               )
             : 'N/A';
         return (
@@ -75,3 +77,12 @@ export default class CollectionDetails extends React.Component {
         );
     }
 }
+
+const mapStateToProps = (state, props) => {
+    return {
+        ...props,
+        timeZone: selectTimeZone(state),
+    };
+};
+
+export default connect(mapStateToProps, null)(CollectionDetails);

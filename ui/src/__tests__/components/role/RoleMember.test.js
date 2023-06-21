@@ -16,12 +16,13 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import Member from '../../../components/member/Member';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('Member', () => {
     it('should render', () => {
         let member = { memberName: 'user.test2' };
 
-        const { getByTestId } = render(<Member item={member} idx={0} />);
+        const { getByTestId } = renderWithRedux(<Member item={member} idx={0} />);
         const roleMember = getByTestId('tag');
         expect(roleMember).toMatchSnapshot();
     });
