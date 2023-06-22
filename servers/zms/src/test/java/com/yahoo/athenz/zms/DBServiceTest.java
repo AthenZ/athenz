@@ -12278,7 +12278,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testPolicySameTagKeyValues() {
+    public void testProcessPolicyUpdateTagKeyValues() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 
         Map<String, TagValueList> policyTags = Collections.singletonMap(
@@ -12294,14 +12294,17 @@ public class DBServiceTest {
 
         assertTrue(success);
 
+        Map<String, TagValueList> newPolicyTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(List.of("tagVal3", "tagVal2"))
+        );
         // process the same policy again with the same tags
-        Policy newPolicy = new Policy().setName("policy").setTags(policyTags);
+        Policy newPolicy = new Policy().setName("policy").setTags(newPolicyTags);
 
-        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(false);
         Mockito.when(conn.deletePolicyTags(anyString(), anyString(), anySet())).thenReturn(true);
         Mockito.when(conn.insertPolicyTags(anyString(), anyString(), anyMap(), any())).thenReturn(true);
 
-        success = zms.dbService.processPolicy(conn, policy, "sys.auth", "newPolicy",
+        success = zms.dbService.processPolicy(conn, policy, "sys.auth", "policy",
                 newPolicy, false, auditDetails);
 
         assertTrue(success);
@@ -12316,17 +12319,17 @@ public class DBServiceTest {
 
 
         Mockito.verify(conn, times(1)).deletePolicyTags(policyCapture.capture(), domainCapture.capture(), tagCapture.capture());
-        assertEquals("newPolicy", policyCapture.getValue());
+        assertEquals("policy", policyCapture.getValue());
         assertEquals("sys.auth", domainCapture.getValue());
-        assertTrue(tagCapture.getValue().isEmpty());
+        assertTrue(tagCapture.getValue().contains("tagKey"));
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(conn, times(2)).insertPolicyTags(policyCapture.capture(), domainCapture.capture(), tagInsertCapture.capture(), versionCapture.capture());
-        assertEquals("newPolicy", policyCapture.getValue());
+        assertEquals("policy", policyCapture.getValue());
         assertEquals("sys.auth", domainCapture.getValue());
         Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
-        assertTrue(resultInsertTags.isEmpty());
+        assertEquals(resultInsertTags, newPolicyTags);
 
         // assert first tag insertion
         Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);

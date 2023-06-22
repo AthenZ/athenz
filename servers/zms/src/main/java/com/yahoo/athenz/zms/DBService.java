@@ -467,6 +467,7 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updatePolicy(domainName, policy);
         }
 
+        requestSuccess = processPolicyTags(policy, policyName, domainName, originalPolicy, con) || requestSuccess ;
         // if we didn't update any policies then we need to return failure
 
         if (!requestSuccess) {
@@ -523,9 +524,6 @@ public class DBService implements RolesProvider {
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
         }
 
-        if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
-            return false;
-        }
 
         auditDetails.append('}');
         return true;
