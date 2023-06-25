@@ -632,7 +632,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_DELETE_POLICY_TAG = "DELETE FROM policy_tags WHERE policy_id=? AND policy_tags.key=?;";
     private static final String SQL_GET_POLICY_TAGS = "SELECT pt.key, pt.value FROM policy_tags pt "
             + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
-            + "WHERE domain.name=? AND p.name=?";
+            + "WHERE domain.name=? AND p.name=? AND p.version=?";
     private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT p.name, pt.key, pt.value, p.version FROM policy_tags pt "
             + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
             + "WHERE domain.name=?";
@@ -4117,13 +4117,14 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public Map<String, TagValueList> getPolicyTags(String domainName, String policyName) {
+    public Map<String, TagValueList> getPolicyTags(String domainName, String policyName, String version) {
         final String caller = "getPolicyTags";
         Map<String, TagValueList> policyTag = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_TAGS)) {
             ps.setString(1, domainName);
             ps.setString(2, policyName);
+            ps.setString(3, version);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String tagKey = rs.getString(1);

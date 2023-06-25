@@ -3,11 +3,11 @@
 //
 package com.yahoo.athenz.zms;
 
-import com.yahoo.rdl.Schema;
+import com.yahoo.rdl.*;
+import jakarta.ws.rs.core.Response;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.core.Response;
 
 //
 // ZMSHandler is the interface that the service implementation must implement

@@ -14293,7 +14293,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(true, true, false);
 
-        Map<String, TagValueList> policyTags = jdbcConn.getPolicyTags("domain", "policy");
+        Map<String, TagValueList> policyTags = jdbcConn.getPolicyTags("domain", "policy", "1");
         assertNotNull(policyTags);
 
         TagValueList tagValues = policyTags.get("tagKey");
@@ -14303,6 +14303,7 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "policy");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "1");
 
         jdbcConn.close();
     }
@@ -14314,10 +14315,11 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(false);
 
-        Map<String, TagValueList> policyTags = jdbcConn.getPolicyTags("domain", "policy");
+        Map<String, TagValueList> policyTags = jdbcConn.getPolicyTags("domain", "policy", "0");
         assertNull(policyTags);
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "policy");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "0");
 
         jdbcConn.close();
     }
@@ -14328,7 +14330,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
                 .thenReturn(true).thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.getPolicyTags("domain", "policy");
+            jdbcConn.getPolicyTags("domain", "policy", "0");
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));

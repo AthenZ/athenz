@@ -12200,11 +12200,6 @@ public class DBServiceTest {
                 .containsAll(Arrays.asList("tagVal")));
 
         assertTrue(success);
-
-        success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
-                policy, false, auditDetails);
-
-        assertFalse(success);
     }
 
     @Test

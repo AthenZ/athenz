@@ -247,6 +247,6 @@ public interface ObjectStoreConnection extends Closeable {
 
     boolean insertPolicyTags(String policyName, String domainName, Map<String, TagValueList> policyTags, String version);
     boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys);
-    Map<String, TagValueList> getPolicyTags(String domainName, String policyName);
+    Map<String, TagValueList> getPolicyTags(String domainName, String policyName, String version);
 
 }
