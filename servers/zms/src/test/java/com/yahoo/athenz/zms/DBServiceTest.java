@@ -12134,4 +12134,12 @@ public class DBServiceTest {
         assertEquals("athenz", zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"));
 
     }
+
+    @Test
+    public void testProcessNoTags() {
+        assertTrue(zms.dbService.processUpdateTags(null, null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
+    }
 }
