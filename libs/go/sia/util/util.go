@@ -730,16 +730,23 @@ func ParseEnvFloatFlag(varName string, defaultValue float64) float64 {
 	return value
 }
 
-func getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix string) (string, string) {
-	if file != "" && file[0] == '/' {
-		return file, fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+func getCertKeyFileName(keyFile, certFile, keyDir, certDir, keyPrefix, certPrefix string) (string, string) {
+	if keyFile == "" {
+		keyFile = fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+	}
+	if certFile != "" {
+		if certFile[0] == '/' {
+			return keyFile, certFile
+		} else {
+			return keyFile, fmt.Sprintf("%s/%s", certDir, certFile)
+		}
 	} else {
-		return fmt.Sprintf("%s/%s.cert.pem", certDir, certPrefix), fmt.Sprintf("%s/%s.key.pem", keyDir, keyPrefix)
+		return keyFile, fmt.Sprintf("%s/%s.cert.pem", certDir, certPrefix)
 	}
 }
 
-func SaveRoleCertKey(key, cert []byte, file, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, fileDirectUpdate bool) error {
-	certFile, keyFile := getCertKeyFileName(file, keyDir, certDir, keyPrefix, certPrefix)
+func SaveRoleCertKey(key, cert []byte, svcKeyFile, roleCertFile, keyPrefix, certPrefix string, uid, gid, fileMode int, createKey, rotateKey bool, keyDir, certDir, backupDir string, fileDirectUpdate bool) error {
+	keyFile, certFile := getCertKeyFileName(svcKeyFile, roleCertFile, keyDir, certDir, keyPrefix, certPrefix)
 	return SaveCertKey(key, cert, keyFile, certFile, keyPrefix, certPrefix, uid, gid, fileMode, createKey, rotateKey, backupDir, fileDirectUpdate)
 }
 
@@ -790,7 +797,7 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 			return err
 		}
 	} else if FileExists(keyFile) {
-		log.Printf("Updating existing key file %s", keyFile)
+		log.Printf("Updating existing key file %s ownership only", keyFile)
 		UpdateKeyOwnership(keyFile, uid, gid, os.FileMode(fileMode), fileDirectUpdate)
 	}
 	log.Printf("Updating the cert file %s", certFile)
