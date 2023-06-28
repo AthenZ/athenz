@@ -27,8 +27,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <!-- TODO: I had to change from 1.00 to 0.99 - even though 100% of the lines are covered. I don't understand... -->
-    <code.coverage.min>0.99</code.coverage.min>
+    <code.coverage.min>1.0</code.coverage.min>
   </properties>
 
   <dependencyManagement>
@@ -66,11 +65,6 @@
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.client.version}</version>
     </dependency>
   </dependencies>
 
