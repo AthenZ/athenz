@@ -27,6 +27,7 @@
   <packaging>jar</packaging>
 
   <properties>
+    <commons.codec.version>1.16.0</commons.codec.version>
     <code.coverage.min>1.00</code.coverage.min>
   </properties>
 
@@ -71,7 +72,7 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.15</version>
+      <version>${commons.codec.version}</version>
     </dependency>
   </dependencies>
 
