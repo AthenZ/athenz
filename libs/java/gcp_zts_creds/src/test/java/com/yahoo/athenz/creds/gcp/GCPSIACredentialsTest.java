@@ -1,9 +1,12 @@
 package com.yahoo.athenz.creds.gcp;
 
 import static org.testng.Assert.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.yahoo.athenz.zts.InstanceRegisterInformation;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -22,7 +25,7 @@ public class GCPSIACredentialsTest {
         try (AutoCloseable ignored = startHttpServerForAttestationAndZtsInstance(
                 mockGcfAttestationDataHandler,
                 mockZtsInstanceHandler)) {
-            GCPSIACredentials.PrivateAndCertificate privateAndCertificate = GCPSIACredentials.getGCPFunctionServiceCertificate(
+            GCPSIACredentials.X509KeyPair x509KeyPair = GCPSIACredentials.getGCPFunctionServiceCertificate(
                     "athenzDomain",
                     "athenzService",
                     "gcpProjectId",
@@ -36,9 +39,13 @@ public class GCPSIACredentialsTest {
                     "optionalOrganizationUnit");
             assertEquals(mockGcfAttestationDataHandler.requestedUri, "/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance");
             assertEquals(mockZtsInstanceHandler.requestedUri, "/mock-zts-instance/instance");
-            assertTrue(mockZtsInstanceHandler.requestedBody.startsWith("{\"domain\": \"athenzdomain\",\"service\": \"athenzservice\",\"provider\": \"athenzprovider\",\"attestationData\": \"{\\\"identityToken\\\":\\\"<MOCK-ATTESTATION-DATA>\\\"}\",\"csr\":"));
-            assertEquals(privateAndCertificate.certificatePem, MOCK_ATHENZ_CERT);
-            assertEquals(privateAndCertificate.caCertificatesPem, MOCK_CA_CERTS);
+            InstanceRegisterInformation requestBody = new ObjectMapper().readValue(mockZtsInstanceHandler.requestedBody, InstanceRegisterInformation.class);
+            assertEquals(requestBody.domain, "athenzdomain");
+            assertEquals(requestBody.service, "athenzservice");
+            assertEquals(requestBody.provider, "athenzprovider");
+            assertEquals(requestBody.attestationData, "{\"identityToken\":\"<MOCK-ATTESTATION-DATA>\"}");
+            assertEquals(x509KeyPair.certificatePem, MOCK_ATHENZ_CERT);
+            assertEquals(x509KeyPair.caCertificatesPem, MOCK_CA_CERTS);
         }
     }
 

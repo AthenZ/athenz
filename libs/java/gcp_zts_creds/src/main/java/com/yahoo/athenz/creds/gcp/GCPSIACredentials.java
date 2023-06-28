@@ -1,8 +1,9 @@
 package com.yahoo.athenz.creds.gcp;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.zts.InstanceIdentity;
+import com.yahoo.athenz.zts.InstanceRegisterInformation;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -15,11 +16,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -34,8 +32,12 @@ public class GCPSIACredentials {
     public static int ATTESTATION_CONNECT_TIMEOUT_MS = ZTS_CONNECT_TIMEOUT_MS;
     public static int ATTESTATION_READ_TIMEOUT_MS = ZTS_READ_TIMEOUT_MS;
 
+    static String ATTESTATION_DATA_URL_PREFIX = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?format=full&audience=";
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     /** Response of {@link #getGCPFunctionServiceCertificate} */
-    public static class PrivateAndCertificate {
+    public static class X509KeyPair {
         public X509Certificate certificate;
         public String          certificatePem;
         public PrivateKey      privateKey;
@@ -53,26 +55,28 @@ public class GCPSIACredentials {
      * @param gcpProjectId GCP project-id that the function runs in
      * @param athenzProvider name of the provider service for GCP Cloud-Functions
      * @param ztsUrl Something like: https://...:.../zts/v1
-     * @param certDomain TODO: Abhijeet - explain what this is...
-     * @param optionalCountry Optional field in the certificate's Subject.
-     * @param optionalState Optional field in the certificate's Subject.
-     * @param optionalLocality Optional field in the certificate's Subject.
-     * @param optionalOrganization Optional field in the certificate's Subject.
-     * @param optionalOrganizationUnit Optional field in the certificate's Subject.
-     * @return GCPFunctionIdentity with private key and certificate
+     * @param certDomain String identifying the DNS domain for generating SAN fields.
+     *                   For example, for the domain "sports", service "api" and certDomain "athenz.io",
+     *                    the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
+     * @param rdnCountry Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnState Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnLocality Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnOrganization Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param rdnOrganizationUnit Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @return private key and certificate from ZTS server.
      */
-    public static PrivateAndCertificate getGCPFunctionServiceCertificate(
+    public static X509KeyPair getGCPFunctionServiceCertificate(
             String athenzDomain,
             String athenzService,
             String gcpProjectId,
             String athenzProvider,
             String ztsUrl,
             String certDomain,
-            String optionalCountry,
-            String optionalState,
-            String optionalLocality,
-            String optionalOrganization,
-            String optionalOrganizationUnit)
+            String rdnCountry,
+            String rdnState,
+            String rdnLocality,
+            String rdnOrganization,
+            String rdnOrganizationUnit)
             throws Exception {
 
         athenzDomain   = athenzDomain.toLowerCase();
@@ -82,20 +86,18 @@ public class GCPSIACredentials {
 
         // Build the certificate's Subject fields - as a single string.
         // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
-        // Build the certificate's Subject fields - as a single string.
-        // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
         String certDn = buildCertDn(
-                optionalCountry,
-                optionalState,
-                optionalLocality,
-                optionalOrganization,
-                optionalOrganizationUnit);
+                rdnCountry,
+                rdnState,
+                rdnLocality,
+                rdnOrganization,
+                rdnOrganizationUnit);
 
         // Get GCP attestation data for GCP Function.
         String attestationData = getGcpFunctionAttestationData(ztsUrl);
 
         // Generate a private-key.
-        PrivateAndCertificate response = new PrivateAndCertificate();
+        X509KeyPair response = new X509KeyPair();
         response.privateKey = Crypto.generateRSAPrivateKey(2048);
         response.privateKeyPem = Crypto.convertToPEMFormat(response.privateKey);
 
@@ -103,6 +105,7 @@ public class GCPSIACredentials {
         GeneralName[] sanArray = buildAlternativeDnsNames(
                 athenzDomain,
                 athenzService,
+                athenzProvider,
                 gcpProjectId,
                 certDomain);
 
@@ -131,26 +134,26 @@ public class GCPSIACredentials {
      * At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
      */
     private static String buildCertDn(
-            String optionalCountry,
-            String optionalState,
-            String optionalLocality,
-            String optionalOrganization,
-            String optionalOrganizationUnit) {
+            String rdnCountry,
+            String rdnState,
+            String rdnLocality,
+            String rdnOrganization,
+            String rdnOrganizationUnit) {
         String certDn = "";
-        if ((optionalCountry != null) && (!optionalCountry.isEmpty())) {
-            certDn += "c=" + optionalCountry + ", ";
+        if ((rdnCountry != null) && (!rdnCountry.isEmpty())) {
+            certDn += "c=" + rdnCountry + ", ";
         }
-        if ((optionalState != null) && (!optionalState.isEmpty())) {
-            certDn += "s=" + optionalState + ", ";
+        if ((rdnState != null) && (!rdnState.isEmpty())) {
+            certDn += "s=" + rdnState + ", ";
         }
-        if ((optionalLocality != null) && (!optionalLocality.isEmpty())) {
-            certDn += "l=" + optionalLocality + ", ";
+        if ((rdnLocality != null) && (!rdnLocality.isEmpty())) {
+            certDn += "l=" + rdnLocality + ", ";
         }
-        if ((optionalOrganization != null) && (!optionalOrganization.isEmpty())) {
-            certDn += "o=" + optionalOrganization + ", ";
+        if ((rdnOrganization != null) && (!rdnOrganization.isEmpty())) {
+            certDn += "o=" + rdnOrganization + ", ";
         }
-        if ((optionalOrganizationUnit != null) && (!optionalOrganizationUnit.isEmpty())) {
-            certDn += "ou=" + optionalOrganizationUnit + ", ";
+        if ((rdnOrganizationUnit != null) && (!rdnOrganizationUnit.isEmpty())) {
+            certDn += "ou=" + rdnOrganizationUnit + ", ";
         }
         return certDn.replaceAll(", $", "");   // Remove dangling ", " tail
     }
@@ -158,7 +161,6 @@ public class GCPSIACredentials {
     /** Get GCP attestation data for GCP Function. */
     private static String getGcpFunctionAttestationData(String ztsUrl) throws Exception {
         String gcpIdentityUrl = ATTESTATION_DATA_URL_PREFIX + ztsUrl;
-        // LOG.debug("Getting GCF attestation-data from: {}", gcpIdentityUrl);
         HttpURLConnection httpConnection = null;
         try {
             httpConnection = (HttpURLConnection) new URL(gcpIdentityUrl).openConnection();
@@ -171,7 +173,6 @@ public class GCPSIACredentials {
             if (status != 200) {
                 throw new Exception("Unable to generate GCF attestation data from URL \"" + gcpIdentityUrl + "\" : HTTP code " + status + " != 200");
             }
-            // LOG.debug("GCF attestation-data: {}", identityToken);
             return "{\"identityToken\":\"" + identityToken + "\"}";
         } catch (IOException exception) {
             throw new Exception("Unable to generate GCF attestation data from URL \"" + gcpIdentityUrl + "\" : ", exception);
@@ -186,6 +187,7 @@ public class GCPSIACredentials {
     private static GeneralName[] buildAlternativeDnsNames(
             String athenzDomain,
             String athenzService,
+            String athenzProvider,
             String gcpProjectId,
             String certDomain) {
         return new GeneralName[]{
@@ -193,11 +195,11 @@ public class GCPSIACredentials {
                         GeneralName.dNSName,
                         new DERIA5String(athenzService + '.' + athenzDomain.replace('.', '-') + '.' + certDomain)),
                 new GeneralName(
-                        GeneralName.dNSName,
-                        new DERIA5String("gcf-" + gcpProjectId + '-' + athenzService + ".instanceid.athenz." + certDomain)),    // TODO: Not sure about this
-                new GeneralName(
                         GeneralName.uniformResourceIdentifier,
                         new DERIA5String("spiffe://" + athenzDomain + "/sa/" + athenzService)),
+                new GeneralName(
+                        GeneralName.uniformResourceIdentifier,
+                        new DERIA5String("athenz://instanceid/" + athenzProvider + "/gcp-function-" + gcpProjectId)),
         };
     }
 
@@ -222,14 +224,13 @@ public class GCPSIACredentials {
                 .build()) {
 
             // Construct an HTTP POST request.
-            String postPayload = "{" +
-                    "\"domain\": " + OBJECT_MAPPER.writeValueAsString(athenzDomain) + "," +
-                    "\"service\": " + OBJECT_MAPPER.writeValueAsString(athenzService) + "," +
-                    "\"provider\": " + OBJECT_MAPPER.writeValueAsString(athenzProvider) + "," +
-                    "\"attestationData\": " + OBJECT_MAPPER.writeValueAsString(attestationData) + "," +
-                    "\"csr\": " + OBJECT_MAPPER.writeValueAsString(csr) +
-                    "}";
-            // LOG.debug("Getting identity from ZTS: requesting \"{}/instance\" with payload: {}", ztsUrl, postPayload);
+            InstanceRegisterInformation postPayloadObject = new InstanceRegisterInformation();
+            postPayloadObject.domain = athenzDomain;
+            postPayloadObject.service = athenzService;
+            postPayloadObject.provider = athenzProvider;
+            postPayloadObject.attestationData = attestationData;
+            postPayloadObject.csr = csr;
+            String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
             HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
             HttpUriRequest httpUriRequest = RequestBuilder.post()
                     .setUri(ztsUrl + "/instance")
@@ -244,7 +245,6 @@ public class GCPSIACredentials {
                 httpResponseEntity = httpResponse.getEntity();
                 if ((statusCode == 200) || (statusCode == 201)) {
                     InstanceIdentity response = OBJECT_MAPPER.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
-                    // LOG.debug("Got identity from ZTS:    x509Certificate={}    x509CertificateSigner={}", OBJECT_MAPPER.writeValueAsString(response.x509Certificate), OBJECT_MAPPER.writeValueAsString(response.x509CertificateSigner));
                     return response;
                 } else {
                     final String errorBody = (httpResponseEntity == null) ? "<no response body>" : EntityUtils.toString(httpResponseEntity);
@@ -255,16 +255,4 @@ public class GCPSIACredentials {
             }
         }
     }
-
-    /** Used to parse ZTS response */
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class InstanceIdentity {
-        public String x509Certificate;
-        public String x509CertificateSigner;
-    }
-
-    static String ATTESTATION_DATA_URL_PREFIX = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?format=full&audience=";
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 }
