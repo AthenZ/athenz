@@ -1,3 +1,18 @@
+/*
+ * Copyright The Athenz Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.creds.gcp;
 
 import static org.testng.Assert.*;
@@ -16,6 +31,32 @@ import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 public class GCPSIACredentialsTest {
+
+    private static final String MOCK_ATHENZ_CERT =
+            "-----BEGIN CERTIFICATE-----\n" +
+                    "MIIDfTCCAwOgAwIBAgIRAJV1m8LU1u1CT9mLHk3GcjwwCgYIKoZIzj0EAwMwTzEL\n" +
+                    "MAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMRYwFAYDVQQLEw11cy13ZXN0LTIt\n" +
+                    "Z2NwMRgwFgYDVQQDEw9ZYWhvbyBBdGhlbnogQ0EwHhcNMjMwNjEzMTQ1MDMyWhcN\n" +
+                    "MjMwNjIwMTU1MDMyWjBCMQ0wCwYDVQQKEwRPYXRoMQ8wDQYDVQQLEwZBdGhlbnox\n" +
+                    "IDAeBgNVBAMTF2NhbHlwc28ubm9ucHJvZC5iYXN0aW9uMIIBIjANBgkqhkiG9w0B\n" +
+                    "AQEFAAOCAQ8AMIIBCgKCAQEA5XJzKNyFhYqaWnExqKQParzLaHA/yFA5ti/t4SrN\n" +
+                    "qqxGNfi3jp3BQ2hQLl6TYzPd4YKLhAzGtczNLDYWA6rH0ASfNbjTN32FZHUi13zn\n" +
+                    "A0txFiFZOFZQSgtrkoZb37oWHlvSXfgLJEdQsg04MXfC9/ph0eVzwbcxzcTVj3sV\n" +
+                    "3IJlFqQDDmH/Hw7813Zhq3NKBP+hMMCcj4gyYSsCA8WJdElaCkykLgImSpVcwZEx\n" +
+                    "Apvzvs2xLJ/RKqRHhar4GQsJLzS0w9qZ4hSBwePOcsvvy5bIah/Kg1gngUCqrBXX\n" +
+                    "3C4GWDizL1WN0kksed0ISswWsIoSg2bCUWvErwYzggPNmQIDAQABo4IBADCB/TAO\n" +
+                    "BgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMAwG\n" +
+                    "A1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUU9M9M/IZIXQjG1SvHxT6qVFWaCUwgZwG\n" +
+                    "A1UdEQSBlDCBkYInYmFzdGlvbi5jYWx5cHNvLW5vbnByb2QuZ2NwLnlhaG9vLmNs\n" +
+                    "b3VkgkFnY2YtZ2NwLWNhbHlwc28tbm9ucHJvZC1iYXN0aW9uLmluc3RhbmNlaWQu\n" +
+                    "YXRoZW56LmdjcC55YWhvby5jbG91ZIYjc3BpZmZlOi8vY2FseXBzby5ub25wcm9k\n" +
+                    "L3NhL2Jhc3Rpb24wCgYIKoZIzj0EAwMDaAAwZQIxANhRx5w6RppPHTsaDhJQHva9\n" +
+                    "/HOR8ZODbFJbPZUNzsA6G6E7KDcEwdFd6zhtkbPnKAIwa66aqHw+e3vdryynNpSF\n" +
+                    "tpd0tFqsGKp1jjnmMIQ/g0usCxIXVMwF0UPywuh/qtf8\n" +
+                    "-----END CERTIFICATE-----\n";
+
+    private static final String MOCK_ATHENZ_CERT_JSON = '"' + MOCK_ATHENZ_CERT.replaceAll("\n", "\\\\n") + '"';
+    private static final String MOCK_CA_CERTS = "-----BEGIN CERTIFICATE----- MOCK CA CERTIFICATES -----END CERTIFICATE-----";
 
     @Test
     public void testAllGood() throws Exception {
@@ -127,6 +168,12 @@ public class GCPSIACredentialsTest {
         }
     }
 
+    @Test
+    public void testDefaultConstructor() {
+        GCPSIACredentials credentials = new GCPSIACredentials();
+        assertNotNull(credentials);
+    }
+
     static AutoCloseable startHttpServerForAttestationAndZtsInstance(
             HttpHandler mockGcfAttestationDataHandler,
             HttpHandler mockZtsInstanceHandler)
@@ -212,29 +259,4 @@ public class GCPSIACredentialsTest {
             os.close();
         }
     }
-
-    private static final String MOCK_ATHENZ_CERT =
-            "-----BEGIN CERTIFICATE-----\n" +
-            "MIIDfTCCAwOgAwIBAgIRAJV1m8LU1u1CT9mLHk3GcjwwCgYIKoZIzj0EAwMwTzEL\n" +
-            "MAkGA1UEBhMCVVMxDjAMBgNVBAoTBVlhaG9vMRYwFAYDVQQLEw11cy13ZXN0LTIt\n" +
-            "Z2NwMRgwFgYDVQQDEw9ZYWhvbyBBdGhlbnogQ0EwHhcNMjMwNjEzMTQ1MDMyWhcN\n" +
-            "MjMwNjIwMTU1MDMyWjBCMQ0wCwYDVQQKEwRPYXRoMQ8wDQYDVQQLEwZBdGhlbnox\n" +
-            "IDAeBgNVBAMTF2NhbHlwc28ubm9ucHJvZC5iYXN0aW9uMIIBIjANBgkqhkiG9w0B\n" +
-            "AQEFAAOCAQ8AMIIBCgKCAQEA5XJzKNyFhYqaWnExqKQParzLaHA/yFA5ti/t4SrN\n" +
-            "qqxGNfi3jp3BQ2hQLl6TYzPd4YKLhAzGtczNLDYWA6rH0ASfNbjTN32FZHUi13zn\n" +
-            "A0txFiFZOFZQSgtrkoZb37oWHlvSXfgLJEdQsg04MXfC9/ph0eVzwbcxzcTVj3sV\n" +
-            "3IJlFqQDDmH/Hw7813Zhq3NKBP+hMMCcj4gyYSsCA8WJdElaCkykLgImSpVcwZEx\n" +
-            "Apvzvs2xLJ/RKqRHhar4GQsJLzS0w9qZ4hSBwePOcsvvy5bIah/Kg1gngUCqrBXX\n" +
-            "3C4GWDizL1WN0kksed0ISswWsIoSg2bCUWvErwYzggPNmQIDAQABo4IBADCB/TAO\n" +
-            "BgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMAwG\n" +
-            "A1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUU9M9M/IZIXQjG1SvHxT6qVFWaCUwgZwG\n" +
-            "A1UdEQSBlDCBkYInYmFzdGlvbi5jYWx5cHNvLW5vbnByb2QuZ2NwLnlhaG9vLmNs\n" +
-            "b3VkgkFnY2YtZ2NwLWNhbHlwc28tbm9ucHJvZC1iYXN0aW9uLmluc3RhbmNlaWQu\n" +
-            "YXRoZW56LmdjcC55YWhvby5jbG91ZIYjc3BpZmZlOi8vY2FseXBzby5ub25wcm9k\n" +
-            "L3NhL2Jhc3Rpb24wCgYIKoZIzj0EAwMDaAAwZQIxANhRx5w6RppPHTsaDhJQHva9\n" +
-            "/HOR8ZODbFJbPZUNzsA6G6E7KDcEwdFd6zhtkbPnKAIwa66aqHw+e3vdryynNpSF\n" +
-            "tpd0tFqsGKp1jjnmMIQ/g0usCxIXVMwF0UPywuh/qtf8\n" +
-            "-----END CERTIFICATE-----\n";
-    private static final String MOCK_ATHENZ_CERT_JSON = '"' + MOCK_ATHENZ_CERT.replaceAll("\n", "\\\\n") + '"';
-    private static final String MOCK_CA_CERTS = "-----BEGIN CERTIFICATE----- MOCK CA CERTIFICATES -----END CERTIFICATE-----";
-}
+ }

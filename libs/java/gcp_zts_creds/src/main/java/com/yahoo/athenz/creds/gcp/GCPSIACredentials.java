@@ -1,3 +1,18 @@
+/*
+ * Copyright The Athenz Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.yahoo.athenz.creds.gcp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,10 +69,10 @@ public class GCPSIACredentials {
      * @param athenzService name of the service
      * @param gcpProjectId GCP project-id that the function runs in
      * @param athenzProvider name of the provider service for GCP Cloud-Functions
-     * @param ztsUrl Something like: https://...:.../zts/v1
+     * @param ztsUrl ZTS Server URL e.g. https://zts.athenz.io:4443/zts/v1
      * @param certDomain String identifying the DNS domain for generating SAN fields.
      *                   For example, for the domain "sports", service "api" and certDomain "athenz.io",
-     *                    the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
+     *                   the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
      * @param rdnCountry Optional field in the certificate's Subject rdn (relative distinguished name).
      * @param rdnState Optional field in the certificate's Subject rdn (relative distinguished name).
      * @param rdnLocality Optional field in the certificate's Subject rdn (relative distinguished name).
@@ -112,7 +127,7 @@ public class GCPSIACredentials {
         // Build a CSR.
         String csr = Crypto.generateX509CSR(
                 response.privateKey,
-                "cn=" + athenzPrincipal + ',' + certDn, sanArray);
+                certDn + ",cn=" + athenzPrincipal, sanArray);
 
         // Request the Athenz certificate from ZTS server.
         InstanceIdentity identity = postInstanceRegisterInformation(
@@ -230,7 +245,7 @@ public class GCPSIACredentials {
             postPayloadObject.provider = athenzProvider;
             postPayloadObject.attestationData = attestationData;
             postPayloadObject.csr = csr;
-            String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
+            final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
             HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
             HttpUriRequest httpUriRequest = RequestBuilder.post()
                     .setUri(ztsUrl + "/instance")
@@ -244,8 +259,7 @@ public class GCPSIACredentials {
                 int statusCode = httpResponse.getStatusLine().getStatusCode();
                 httpResponseEntity = httpResponse.getEntity();
                 if ((statusCode == 200) || (statusCode == 201)) {
-                    InstanceIdentity response = OBJECT_MAPPER.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
-                    return response;
+                    return OBJECT_MAPPER.readValue(httpResponseEntity.getContent(), InstanceIdentity.class);
                 } else {
                     final String errorBody = (httpResponseEntity == null) ? "<no response body>" : EntityUtils.toString(httpResponseEntity);
                     throw new Exception("Unable to register instance with Athenz. HTTP status: " + statusCode + ". Response: " + errorBody);
