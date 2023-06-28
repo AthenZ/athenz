@@ -50,6 +50,7 @@ public class JettyConnectionLoggerTest {
         Metric metric = Mockito.mock(Metric.class);
 
         JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
+        jettyConnectionLogger.doStart();
 
         MockedConnection failedMockedConnection = getMockConnection();
         SslConnection mockConnection2 = failedMockedConnection.sslConnection;
@@ -80,6 +81,7 @@ public class JettyConnectionLoggerTest {
         assertEquals("INCOMPATIBLE_CLIENT_CIPHER_SUITES", testValue[1]);
         assertEquals("athenzPrincipal", testValue[2]);
         assertEquals("unknown", testValue[3]);
+        jettyConnectionLogger.doStop();
     }
 
     @Test
@@ -88,6 +90,7 @@ public class JettyConnectionLoggerTest {
         ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
         Metric metric = Mockito.mock(Metric.class);
         JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
+        jettyConnectionLogger.doStart();
 
         MockedConnection failedMockedConnection = getMockConnection();
         SslConnection mockConnection = failedMockedConnection.sslConnection;
@@ -114,6 +117,7 @@ public class JettyConnectionLoggerTest {
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         assertEquals(GENERAL_SSL_ERROR, connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
         assertEquals("Last cause (most specific reason)", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().get());
+        jettyConnectionLogger.doStop();
     }
 
     @Test
