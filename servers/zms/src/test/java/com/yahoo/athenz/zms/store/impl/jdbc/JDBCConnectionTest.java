@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.*;
 import java.util.function.Function;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
@@ -14194,7 +14196,7 @@ public class JDBCConnectionTest {
 
         Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
 
-        assertTrue(jdbcConn.deletePolicyTags("policy", "domain", tagKeys));
+        assertTrue(jdbcConn.deletePolicyTags("policy", "domain", tagKeys, any()));
 
         // domain
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
@@ -14216,8 +14218,8 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(1))
                 .thenReturn(0) // domain id
                 .thenReturn(7) // domain id
-                .thenReturn(0) //policy id
-                .thenReturn(20); //policy id
+                .thenReturn(0) // policy id
+                .thenReturn(20); // policy id
 
         Mockito.when(mockResultSet.next())
                 .thenReturn(true) // this one is for domain id
@@ -14234,7 +14236,7 @@ public class JDBCConnectionTest {
         Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
 
         try {
-            jdbcConn.deletePolicyTags("policy", "domain", tagKeys);
+            jdbcConn.deletePolicyTags("policy", "domain", tagKeys, any());
             fail();
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
@@ -14242,14 +14244,14 @@ public class JDBCConnectionTest {
         }
 
         try {
-            jdbcConn.deletePolicyTags("policy", "domain", tagKeys);
+            jdbcConn.deletePolicyTags("policy", "domain", tagKeys, any());
             fail();
         } catch (ResourceException e) {
             assertEquals(e.getCode(), 404);
             assertEquals(e.getMessage(), "ResourceException (404): {code: 404, message: \"unknown policy - domain:policy.policy\"}");
         }
         try {
-            jdbcConn.deletePolicyTags("policy", "domain", tagKeys);
+            jdbcConn.deletePolicyTags("policy", "domain", tagKeys, any());
             fail();
         } catch (RuntimeException e) {
             assertEquals(e.getMessage(), "ResourceException (500): {code: 500, message: \"null, state: null, code: 0\"}");
@@ -14273,7 +14275,7 @@ public class JDBCConnectionTest {
                 .thenThrow(new SQLException("sql error"));
         try {
             Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
-            jdbcConn.deletePolicyTags("policy", "domain", tagKeys);
+            jdbcConn.deletePolicyTags("policy", "domain", tagKeys, any());
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
