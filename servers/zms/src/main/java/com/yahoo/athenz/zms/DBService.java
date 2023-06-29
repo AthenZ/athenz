@@ -609,6 +609,7 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updateRole(domainName, role);
         }
 
+        requestSuccess = processRoleTags(role, roleName, domainName, originalRole, con) || requestSuccess;
         // if we didn't update any roles then we need to return failure
 
         if (!requestSuccess) {
@@ -645,9 +646,7 @@ public class DBService implements RolesProvider {
             }
         }
 
-        if (!processRoleTags(role, roleName, domainName, originalRole, con)) {
-            return false;
-        }
+
 
         auditDetails.append('}');
         return true;
@@ -677,6 +676,7 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updateGroup(domainName, group);
         }
 
+        requestSuccess = processGroupTags(group, groupName, domainName, originalGroup, con) || requestSuccess;
         // if we didn't update any groups then we need to return failure
 
         if (!requestSuccess) {
@@ -714,9 +714,6 @@ public class DBService implements RolesProvider {
             }
         }
 
-        if (!processGroupTags(group, groupName, domainName, originalGroup, con)) {
-            return false;
-        }
 
         auditDetails.append('}');
         return true;
@@ -736,14 +733,14 @@ public class DBService implements RolesProvider {
                                 BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
                                 BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
         
-        if (currentTags != null && !currentTags.isEmpty()) {
+        if (currentTags != null) {
             if (originalTags == null) {
                 return insertOp.apply(con, currentTags);
             } else {
                 return processUpdateTags(currentTags, originalTags, con, insertOp, deleteOp);
             }
         }
-        return true;
+        return false;
     }
 
     boolean processUpdateTags(Map<String, TagValueList> currentTags, Map<String, TagValueList> originalTags,
@@ -753,7 +750,7 @@ public class DBService implements RolesProvider {
         if (originalTags == null || originalTags.isEmpty()) {
             if (currentTags == null || currentTags.isEmpty()) {
                 // no tags to process..
-                return true;
+                return false;
             }
             return insertOp.apply(con, currentTags);
         }
@@ -769,7 +766,7 @@ public class DBService implements RolesProvider {
                         || !originalTags.get(curTag.getKey()).equals(curTag.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         
-        return deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
+        return (tagsToRemove.size() > 0 || tagsToAdd.size() > 0) && deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
     }
 
     void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
@@ -3640,14 +3637,16 @@ public class DBService implements RolesProvider {
                     updateDomainMetaFields(updatedDomain, meta);
                 }
 
-                con.updateDomain(updatedDomain);
+                boolean domainChanged = con.updateDomain(updatedDomain);
+
+                domainChanged = processDomainTags(con, meta.getTags(), domain, domainName, true) || domainChanged;
 
                 // if we're only updating our tags then we need to explicitly
                 // update our domain last mod timestamp since it won't be
                 // updated during the updateDomain call if there are no other
                 // changes present in the request
 
-                if (!processDomainTags(con, meta.getTags(), domain, domainName, true)) {
+                if (!domainChanged) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError(caller + "Unable to update tags", caller);
                 }
@@ -3691,56 +3690,21 @@ public class DBService implements RolesProvider {
     private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
             Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
 
-        if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
-            if (domainTags == null || domainTags.isEmpty()) {
-                // no tags to process
-                return true;
-            }
-            if (!con.insertDomainTags(domainName, domainTags)) {
-                return false;
-            }
+        if (originalDomain == null && domainTags == null) {
+            return true;
+        }
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+
+        if (processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp)) {
             if (updateDomainLastModTimestamp) {
                 con.updateDomainModTimestamp(domainName);
             }
             return true;
         }
 
-        if (domainTags == null) {
-            return true;
-        }
-
-        Map<String, TagValueList> originalDomainTags = originalDomain.getTags();
-
-        Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
-            .filter(curTag -> domainTags.get(curTag.getKey()) == null
-                || !domainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toSet());
-
-        boolean tagsChanged = false;
-        if (tagsToRemove != null && !tagsToRemove.isEmpty()) {
-            if (!con.deleteDomainTags(originalDomain.getName(), tagsToRemove)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        Map<String, TagValueList> tagsToAdd = domainTags.entrySet().stream()
-            .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
-                || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        if (tagsToAdd != null && !tagsToAdd.isEmpty()) {
-            if (!con.insertDomainTags(originalDomain.getName(), tagsToAdd)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        if (tagsChanged && updateDomainLastModTimestamp) {
-            con.updateDomainModTimestamp(domainName);
-        }
-        return true;
+        return false;
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
