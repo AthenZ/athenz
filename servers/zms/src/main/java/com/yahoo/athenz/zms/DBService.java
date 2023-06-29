@@ -468,7 +468,7 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updatePolicy(domainName, policy);
         }
 
-        requestSuccess = processPolicyTags(policy, policyName, domainName, originalPolicy, con) || requestSuccess ;
+        requestSuccess = processPolicyTags(policy, policyName, domainName, originalPolicy, con) || requestSuccess;
         // if we didn't update any policies then we need to return failure
 
         if (!requestSuccess) {
@@ -532,41 +532,13 @@ public class DBService implements RolesProvider {
 
     private boolean processPolicyTags(Policy policy, String policyName, String domainName,
                                                Policy originalPolicy, ObjectStoreConnection con) {
-        if (policy.getTags() != null && !policy.getTags().isEmpty()) {
-            if (originalPolicy == null) {
-                return con.insertPolicyTags(policyName, domainName, policy.getTags(), policy.getVersion());
-            } else {
-                return processUpdatePolicyTags(policy, originalPolicy, con, policyName, domainName, policy.getVersion());
-            }
-        }
-        return true;
-    }
 
-    boolean processUpdatePolicyTags(Policy policy, Policy originalPolicy, ObjectStoreConnection con, String policyName, String domainName, String version) {
-        if (originalPolicy.getTags() == null || originalPolicy.getTags().isEmpty()) {
-            if (policy.getTags() == null || policy.getTags().isEmpty()) {
-                // no tags to process..
-                return true;
-            }
-            return con.insertPolicyTags(policyName, domainName, policy.getTags(), version);
-        }
-        Map<String, TagValueList> originalPolicyTags = originalPolicy.getTags();
-        Map<String, TagValueList> currentTags = policy.getTags();
+        String policyVersion = policy.getVersion();
 
-        Set<String> tagsToRemove = originalPolicyTags.entrySet().stream()
-                .filter(curTag -> currentTags.get(curTag.getKey()) == null
-                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertPolicyTags(policyName, domainName, tags, policyVersion);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
 
-        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
-                .filter(curTag -> originalPolicyTags.get(curTag.getKey()) == null
-                        || !originalPolicyTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        boolean res = con.deletePolicyTags(policyName, domainName, tagsToRemove);
-
-        return res && con.insertPolicyTags(policyName, domainName, tagsToAdd, version);
+        return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null) , insertOp, deleteOp);
     }
 
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
@@ -651,6 +623,7 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updateRole(domainName, role);
         }
 
+        requestSuccess = processRoleTags(role, roleName, domainName, originalRole, con) || requestSuccess;
         // if we didn't update any roles then we need to return failure
 
         if (!requestSuccess) {
@@ -687,9 +660,7 @@ public class DBService implements RolesProvider {
             }
         }
 
-        if (!processRoleTags(role, roleName, domainName, originalRole, con)) {
-            return false;
-        }
+
 
         auditDetails.append('}');
         return true;
@@ -719,6 +690,7 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updateGroup(domainName, group);
         }
 
+        requestSuccess = processGroupTags(group, groupName, domainName, originalGroup, con) || requestSuccess;
         // if we didn't update any groups then we need to return failure
 
         if (!requestSuccess) {
@@ -756,9 +728,6 @@ public class DBService implements RolesProvider {
             }
         }
 
-        if (!processGroupTags(group, groupName, domainName, originalGroup, con)) {
-            return false;
-        }
 
         auditDetails.append('}');
         return true;
@@ -778,14 +747,14 @@ public class DBService implements RolesProvider {
                                 BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
                                 BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
         
-        if (currentTags != null && !currentTags.isEmpty()) {
+        if (currentTags != null) {
             if (originalTags == null) {
                 return insertOp.apply(con, currentTags);
             } else {
                 return processUpdateTags(currentTags, originalTags, con, insertOp, deleteOp);
             }
         }
-        return true;
+        return false;
     }
 
     boolean processUpdateTags(Map<String, TagValueList> currentTags, Map<String, TagValueList> originalTags,
@@ -795,7 +764,7 @@ public class DBService implements RolesProvider {
         if (originalTags == null || originalTags.isEmpty()) {
             if (currentTags == null || currentTags.isEmpty()) {
                 // no tags to process..
-                return true;
+                return false;
             }
             return insertOp.apply(con, currentTags);
         }
@@ -811,7 +780,7 @@ public class DBService implements RolesProvider {
                         || !originalTags.get(curTag.getKey()).equals(curTag.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         
-        return deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
+        return (tagsToRemove.size() > 0 || tagsToAdd.size() > 0) && deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
     }
 
     void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
@@ -3688,14 +3657,16 @@ public class DBService implements RolesProvider {
                     updateDomainMetaFields(updatedDomain, meta);
                 }
 
-                con.updateDomain(updatedDomain);
+                boolean domainChanged = con.updateDomain(updatedDomain);
+
+                domainChanged = processDomainTags(con, meta.getTags(), domain, domainName, true) || domainChanged;
 
                 // if we're only updating our tags then we need to explicitly
                 // update our domain last mod timestamp since it won't be
                 // updated during the updateDomain call if there are no other
                 // changes present in the request
 
-                if (!processDomainTags(con, meta.getTags(), domain, domainName, true)) {
+                if (!domainChanged) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError(caller + "Unable to update tags", caller);
                 }
@@ -3739,56 +3710,21 @@ public class DBService implements RolesProvider {
     private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
             Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
 
-        if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
-            if (domainTags == null || domainTags.isEmpty()) {
-                // no tags to process
-                return true;
-            }
-            if (!con.insertDomainTags(domainName, domainTags)) {
-                return false;
-            }
+        if (originalDomain == null && domainTags == null) {
+            return true;
+        }
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+
+        if (processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp)) {
             if (updateDomainLastModTimestamp) {
                 con.updateDomainModTimestamp(domainName);
             }
             return true;
         }
 
-        if (domainTags == null) {
-            return true;
-        }
-
-        Map<String, TagValueList> originalDomainTags = originalDomain.getTags();
-
-        Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
-            .filter(curTag -> domainTags.get(curTag.getKey()) == null
-                || !domainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toSet());
-
-        boolean tagsChanged = false;
-        if (tagsToRemove != null && !tagsToRemove.isEmpty()) {
-            if (!con.deleteDomainTags(originalDomain.getName(), tagsToRemove)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        Map<String, TagValueList> tagsToAdd = domainTags.entrySet().stream()
-            .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
-                || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        if (tagsToAdd != null && !tagsToAdd.isEmpty()) {
-            if (!con.insertDomainTags(originalDomain.getName(), tagsToAdd)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        if (tagsChanged && updateDomainLastModTimestamp) {
-            con.updateDomainModTimestamp(domainName);
-        }
-        return true;
+        return false;
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,

@@ -4092,14 +4092,14 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys) {
+    public boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys, String version) {
         final String caller = "deletePolicyTags";
 
         int domainId = getDomainId(domainName);
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int policyId = getRoleId(domainId, policyName);
+        int policyId = getPolicyId(domainId, policyName, version);
         if (policyId == 0) {
             throw notFoundError(caller, OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
