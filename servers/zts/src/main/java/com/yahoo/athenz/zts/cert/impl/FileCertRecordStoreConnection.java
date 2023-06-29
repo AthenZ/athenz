@@ -110,7 +110,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         return new ArrayList<>();
     }
 
-    boolean notExpired(long currentTime, long lastModified, int expiryTimeMins) {
+    boolean notExpired(long currentTime, long lastModified, long expiryTimeMins) {
         return (currentTime - lastModified < expiryTimeMins * 60 * 1000);
     }
 

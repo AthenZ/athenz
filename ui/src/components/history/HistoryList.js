@@ -28,6 +28,7 @@ import { connect } from 'react-redux';
 import { selectRoles } from '../../redux/selectors/roles';
 import { getDomainHistory } from '../../redux/thunks/domain';
 import { selectHistoryRows } from '../../redux/selectors/domainData';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
@@ -283,7 +284,11 @@ class HistoryList extends React.Component {
                         </Menu>
                     </TDStyled>
                     <TDStyled color={color} align={left}>
-                        {this.dateUtils.getLocalDate(item.when, 'UTC', 'UTC')}
+                        {this.dateUtils.getLocalDate(
+                            item.when,
+                            this.props.timeZone,
+                            this.props.timeZone
+                        )}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
                         {item.details}
@@ -407,6 +412,7 @@ const mapStateToProps = (state, props) => {
         isLoading: selectIsLoading(state),
         roles: selectRoles(state),
         historyrows: selectHistoryRows(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

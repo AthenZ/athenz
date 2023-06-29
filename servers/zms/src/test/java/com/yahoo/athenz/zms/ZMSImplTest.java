@@ -24644,11 +24644,11 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
-        // include coretech in the skip domain list and try
+        // include coretech and rbac in the skip domain list and try
         // the operation again
 
         System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS,
-                "unix,coretech");
+                "unix,coretech,rbac.*");
         zmsImpl.loadConfigurationSettings();
         zmsImpl.validateServiceRoleMembers = dynamicConfigBoolean;
 
@@ -24666,6 +24666,11 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        // rbac.sre does not exists, but is accepted because rbac.* is included in skipDomains
+
+        zmsImpl.validateRoleMemberPrincipal("rbac.sre.backend", Principal.Type.SERVICE.getValue(),
+                null, null, null ,false, "unittest");
 
         // user principals by default are accepted
 

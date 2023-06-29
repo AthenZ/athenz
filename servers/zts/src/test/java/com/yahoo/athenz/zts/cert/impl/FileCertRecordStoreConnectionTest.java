@@ -37,7 +37,7 @@ public class FileCertRecordStoreConnectionTest {
         }
 
         @Override
-        boolean notExpired(long currentTime, long lastModified, int expiryTimeMins) {
+        boolean notExpired(long currentTime, long lastModified, long expiryTimeMins) {
             return true;
         }
     }
@@ -172,7 +172,12 @@ public class FileCertRecordStoreConnectionTest {
         
         X509CertRecord certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
         assertNotNull(certRecordCheck);
-        
+
+        // Verify that certificates are not expired immediately
+        con.deleteExpiredX509CertRecords(43200); //30 days
+        certRecordCheck = con.getX509CertRecord("ostk", "instance-id", "cn");
+        assertNotNull(certRecordCheck);
+
         Thread.sleep(1000);
         con.deleteExpiredX509CertRecords(0);
 

@@ -22,6 +22,7 @@ import {
     LOAD_BUSINESS_SERVICES_ALL,
     LOAD_FEATURE_FLAG,
     LOAD_HEADER_DETAILS,
+    LOAD_TIME_ZONE,
     LOAD_PENDING_DOMAIN_MEMBERS_LIST,
     LOAD_USER_DOMAINS_LIST,
     PROCESS_GROUP_PENDING_MEMBERS_TO_STORE,
@@ -31,6 +32,7 @@ import {
     RETURN_DOMAIN_LIST,
     RETURN_FEATURE_FLAG,
     RETURN_HEADER_DETAILS,
+    RETURN_TIME_ZONE,
     STORE_DOMAIN_DATA,
     STORE_GROUPS,
     STORE_POLICIES,
@@ -239,6 +241,13 @@ export const domains = (state = {}, action) => {
             });
             return newState;
         }
+        case LOAD_TIME_ZONE: {
+            const { timeZone } = payload;
+            let newState = produce(state, (draft) => {
+                draft.timeZone = timeZone;
+            });
+            return newState;
+        }
         case LOAD_AUTHORITY_ATTRIBUTES: {
             const { authorityAttributes } = payload;
             let newState = produce(state, (draft) => {
@@ -256,6 +265,7 @@ export const domains = (state = {}, action) => {
         case RETURN_AUTHORITY_ATTRIBUTES:
         case RETURN_FEATURE_FLAG:
         case RETURN_HEADER_DETAILS:
+        case RETURN_TIME_ZONE:
         case RETURN_BUSINESS_SERVICES_ALL:
         case RETURN_DOMAIN_LIST:
         default:

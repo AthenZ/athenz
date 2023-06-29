@@ -274,8 +274,8 @@ class RoleSectionRow extends React.Component {
                         {role.expiration
                             ? this.localDate.getLocalDate(
                                   role.expiration,
-                                  'UTC',
-                                  'UTC'
+                                  this.props.timeZone,
+                                  this.props.timeZone
                               )
                             : 'N/A'}
                     </TDTime>
@@ -318,16 +318,16 @@ class RoleSectionRow extends React.Component {
                     <TDTime color={color} align={left}>
                         {this.localDate.getLocalDate(
                             role.modified,
-                            'UTC',
-                            'UTC'
+                            this.props.timeZone,
+                            this.props.timeZone
                         )}
                     </TDTime>
                     <TDTime color={color} align={left}>
                         {role.lastReviewedDate
                             ? this.localDate.getLocalDate(
                                   role.lastReviewedDate,
-                                  'UTC',
-                                  'UTC'
+                                  this.props.timeZone,
+                                  this.props.timeZone
                               )
                             : 'N/A'}
                     </TDTime>

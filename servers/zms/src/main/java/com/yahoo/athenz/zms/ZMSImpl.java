@@ -182,7 +182,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
     protected DynamicConfigBoolean allowUnderscoreInServiceNames;
     protected boolean useMasterCopyForSignedDomains = false;
-    protected Set<String> validateServiceMemberSkipDomains;
+    protected List<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
     protected String userDomain;
     protected String userDomainPrefix;
@@ -846,7 +846,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String skipDomains = System.getProperty(
                 ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
-        validateServiceMemberSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        validateServiceMemberSkipDomains = Arrays.asList(skipDomains.split(","));
         allowUnderscoreInServiceNames = new DynamicConfigBoolean(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES, Boolean.FALSE);
 
@@ -4005,10 +4005,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // are typically domains (like for ci/cd) where services
         // are dynamic and do not need to be registered in Athenz
 
-        if (!validateServiceMemberSkipDomains.contains(domainName)) {
-            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
-                throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
+        for (String skipDomain : validateServiceMemberSkipDomains) {
+            // first, we perform validation using wildcards
+            if (skipDomain.endsWith("*")) {
+                String skipDomainPrefix = skipDomain.substring(0, skipDomain.length() - 1);
+                if (domainName.startsWith(skipDomainPrefix)) {
+                    return;
+                }
+            } else if (skipDomain.equals(domainName)) {
+                // if skipDomain doesn't have wildcard, we conduct a perfect match search
+                return;
             }
+        }
+        // if it reaches here, check if the service exists
+        if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
         }
     }
 

@@ -88,8 +88,8 @@ class GroupMemberList extends React.Component {
                             {item.expiration
                                 ? this.localDate.getLocalDate(
                                       item.expiration,
-                                      'UTC',
-                                      'UTC'
+                                      this.props.timeZone,
+                                      this.props.timeZone
                                   )
                                 : 'N/A'}
                         </StyledTd>

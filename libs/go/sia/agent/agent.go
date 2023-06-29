@@ -76,10 +76,11 @@ func GetPrevRoleCertDates(certFile string) (*rdl.Timestamp, *rdl.Timestamp, erro
 }
 
 func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
-	if rotateKey == true {
+	if rotateKey {
 		return util.GenerateKeyPair(2048)
+	} else {
+		return util.PrivateKeyFromFile(svcKey)
 	}
-	return util.PrivateKeyFromFile(svcKey)
 }
 
 func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
@@ -448,14 +449,17 @@ func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options)
 	if role.Filename != "" {
 		certPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
 	}
+	svcKeyFile := ""
 	keyPrefix := fmt.Sprintf("%s.%s", opts.Domain, role.Service)
-	if opts.GenerateRoleKey == true {
+	if opts.GenerateRoleKey {
 		keyPrefix = role.Name
 		if role.Filename != "" {
 			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
 		}
+	} else {
+		svcKeyFile = util.GetSvcKeyFileName(opts.KeyDir, role.SvcKeyFilename, opts.Domain, role.Service)
 	}
-	return util.SaveRoleCertKey(key, cert, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackupDir, opts.FileDirectUpdate)
+	return util.SaveRoleCertKey(key, cert, svcKeyFile, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackupDir, opts.FileDirectUpdate)
 }
 
 func restartSshdService() error {

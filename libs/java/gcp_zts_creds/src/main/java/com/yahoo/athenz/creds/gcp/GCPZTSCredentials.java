@@ -31,6 +31,8 @@ import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -44,6 +46,7 @@ public class GCPZTSCredentials {
     private final String serviceUrl;
     private final String tokenUrl;
     private final char[] trustStorePassword;
+    private Proxy proxy = null;
     int certRefreshTimeout;
     int tokenLifetimeSeconds = 3600;
     KeyRefresher keyRefresher = null;
@@ -71,6 +74,9 @@ public class GCPZTSCredentials {
         final String redirectUri = URLEncoder.encode(ZTSClient.generateRedirectUri(builder.clientId, builder.redirectUriSuffix), StandardCharsets.UTF_8);
         tokenUrl = String.format("%s/oauth2/auth?response_type=id_token&client_id=%s&redirect_uri=%s&scope=%s&nonce=%s&keyType=EC&fullArn=true&output=json",
                 builder.ztsUrl, builder.clientId, redirectUri, scope, Crypto.randomSalt());
+        if (builder.proxyHost != null && !builder.proxyHost.isEmpty()) {
+            proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(builder.proxyHost, builder.proxyPort));
+        }
     }
 
     /**
@@ -103,7 +109,7 @@ public class GCPZTSCredentials {
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                 keyRefresher.getTrustManagerProxy());
 
-        final AthenztHttpTransportFactory transportFactory = new AthenztHttpTransportFactory(sslContext);
+        final AthenztHttpTransportFactory transportFactory = new AthenztHttpTransportFactory(sslContext, proxy);
         final InputStream inputStream = createTokenAPIStream();
         return ExternalAccountCredentials.fromStream(inputStream, transportFactory);
     }
@@ -140,13 +146,18 @@ public class GCPZTSCredentials {
     static class AthenztHttpTransportFactory implements HttpTransportFactory {
 
         final SSLContext sslContext;
+        final Proxy proxy;
 
-        AthenztHttpTransportFactory(SSLContext sslContext) {
+        AthenztHttpTransportFactory(SSLContext sslContext, Proxy proxy) {
             this.sslContext = sslContext;
+            this.proxy = proxy;
         }
 
         public HttpTransport create() {
-            return new NetHttpTransport.Builder().setSslSocketFactory(sslContext.getSocketFactory()).build();
+            return new NetHttpTransport.Builder()
+                    .setSslSocketFactory(sslContext.getSocketFactory())
+                    .setProxy(proxy)
+                    .build();
         }
     }
 
@@ -167,6 +178,8 @@ public class GCPZTSCredentials {
         private String certFile;
         private String trustStorePath;
         private char[] trustStorePassword;
+        private String proxyHost;
+        private int proxyPort = 443;
         int certRefreshTimeout;
         int tokenLifetimeSeconds;
 
@@ -375,6 +388,34 @@ public class GCPZTSCredentials {
                 throw new IllegalArgumentException("field must be between 600 and 43200 seconds");
             }
             this.tokenLifetimeSeconds = tokenLifetimeSeconds;
+            return this;
+        }
+
+        /**
+         * Sets the proxy hostname for the request.
+         *
+         * @param proxyHost proxy server hostname
+         * @return this {@code Builder} object
+         */
+        public Builder setProxyHost(String proxyHost) {
+            this.proxyHost = proxyHost;
+            return this;
+        }
+
+        /**
+         * Sets the proxy port number for the request. The default
+         * value for the proxy port is 443. A valid port value is between
+         * 0 and 65535. A port number of zero will let the system
+         * pick up an ephemeral port in a bind operation.
+         *
+         * @param proxyPort proxy server port number
+         * @return this {@code Builder} object
+         */
+        public Builder setProxyPort(int proxyPort) {
+            if (proxyPort < 0 || proxyPort > 65535) {
+                throw new IllegalArgumentException("proxy port must be between 0 and 65535");
+            }
+            this.proxyPort = proxyPort;
             return this;
         }
 

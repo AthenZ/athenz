@@ -28,7 +28,7 @@ import { deleteSubDomain } from '../../redux/thunks/domains';
 import { connect } from 'react-redux';
 import { withRouter } from 'next/router';
 import { selectBusinessServices } from '../../redux/selectors/domainData';
-import { selectBusinessServicesAll } from '../../redux/selectors/domains';
+import { selectBusinessServicesAll, selectTimeZone } from '../../redux/selectors/domains';
 
 const ManageDomainSectionDiv = styled.div`
     margin: 20px;
@@ -356,8 +356,8 @@ class ManageDomains extends React.Component {
                           <TDStyled color={color} align={left}>
                               {this.dateUtils.getLocalDate(
                                   item.domain.modified,
-                                  'UTC',
-                                  'UTC'
+                                  this.props.timeZone,
+                                  this.props.timeZone
                               )}
                           </TDStyled>
                           <TDStyled color={color} align={center}>
@@ -491,6 +491,7 @@ const mapStateToProps = (state, props) => {
         ...props,
         validBusinessServices: selectBusinessServices(state),
         validBusinessServicesAll: selectBusinessServicesAll(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

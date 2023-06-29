@@ -316,6 +316,7 @@ export class ReviewTable extends React.Component {
                                   color={color}
                                   onUpdate={this.onUpdate}
                                   submittedReview={this.state.submittedReview}
+                                  timeZone={this.props.timeZone}
                               />
                           );
                       })

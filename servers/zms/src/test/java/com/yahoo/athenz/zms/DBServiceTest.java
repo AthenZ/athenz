@@ -12154,6 +12154,14 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testProcessNoTags() {
+        assertTrue(zms.dbService.processUpdateTags(null, null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
+    }
+
+    @Test
     public void testProcessPolicyConReturnFalse() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
 

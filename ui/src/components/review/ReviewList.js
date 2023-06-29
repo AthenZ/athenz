@@ -20,6 +20,7 @@ import ReviewTable from './ReviewTable';
 import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { withRouter } from 'next/router';
@@ -95,6 +96,7 @@ class ReviewList extends React.Component {
                         role={collection}
                         roleDetails={collectionDetails}
                         members={this.props.members}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
                     />
@@ -116,6 +118,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

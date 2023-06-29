@@ -26,6 +26,7 @@ describe('PendingApprovalTable', () => {
         const roleName = 'c';
         const checked = false;
         const userComment = 'd';
+        const timeZone = 'UTC';
 
         const { getByTestId } = render(
             <table>
@@ -40,6 +41,7 @@ describe('PendingApprovalTable', () => {
                         pendingDecision={() => {}}
                         auditRefMissing={false}
                         pendingState={PENDING_STATE_ENUM.ADD}
+                        timeZone={timeZone}
                     />
                 </tbody>
             </table>

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`RoleDetails should render 1`] = `
+exports[`RoleDetails should renderWithRedux 1`] = `
 .emotion-0 {
   margin: 20px 0;
 }
@@ -69,7 +69,7 @@ exports[`RoleDetails should render 1`] = `
 </div>
 `;
 
-exports[`RoleDetails should render with mock data 1`] = `
+exports[`RoleDetails should renderWithRedux with mock data 1`] = `
 .emotion-0 {
   margin: 20px 0;
 }

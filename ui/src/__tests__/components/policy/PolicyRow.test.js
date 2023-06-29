@@ -23,10 +23,11 @@ describe('PolicyRow', () => {
     it('should render', () => {
         const color = colors.row;
         const name = 'sections';
+        const timeZone = 'UTC';
         const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
-                    <PolicyRow name={name} color={color} isActive={true} />
+                    <PolicyRow name={name} color={color} isActive={true} timeZone={timeZone} />
                 </tbody>
             </table>
         );

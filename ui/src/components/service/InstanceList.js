@@ -20,6 +20,7 @@ import SearchInput from '../denali/SearchInput';
 import InstanceTable from './InstanceTable';
 import AddStaticInstances from '../microsegmentation/AddStaticInstances';
 import InputDropdown from '../denali/InputDropdown';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { selectInstancesWorkLoadData } from '../../redux/selectors/services';
 import { connect } from 'react-redux';
 
@@ -214,6 +215,7 @@ class InstanceList extends React.Component {
                         instances={this.state.instances}
                         domain={this.props.domain}
                         service={this.props.service}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onSubmit={this.props.onInstancesUpdated}
                         category={this.props.category}
@@ -233,6 +235,7 @@ const mapStateToProps = (state, props) => {
             props.service,
             props.category
         ),
+        timeZone: selectTimeZone(state),
     };
 };
 

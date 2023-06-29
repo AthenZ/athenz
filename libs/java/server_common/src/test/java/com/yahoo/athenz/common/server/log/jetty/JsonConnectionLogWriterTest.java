@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.UUID;
 
+import static org.testng.Assert.assertNotNull;
+
 public class JsonConnectionLogWriterTest {
 
     @Test
@@ -69,5 +71,10 @@ public class JsonConnectionLogWriterTest {
         JsonConnectionLogWriter writer = new JsonConnectionLogWriter();
         String actualJson = writer.logEntryToString(entry);
         JsonTestHelper.assertJsonEquals(actualJson, expectedJson);
+
+        FileSSLConnectionLogFactory fileSSLConnectionLogFactory = new FileSSLConnectionLogFactory();
+        ConnectionLog connectionLog = fileSSLConnectionLogFactory.create();
+        assertNotNull(connectionLog);
+        connectionLog.log(entry);
     }
 }

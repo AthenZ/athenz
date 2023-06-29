@@ -29,7 +29,7 @@ import {
 import produce from 'immer';
 import { processPendingMembers } from '../../redux/thunks/domains';
 import { connect } from 'react-redux';
-import { selectPendingMembersList } from '../../redux/selectors/domains';
+import { selectPendingMembersList, selectTimeZone } from '../../redux/selectors/domains';
 import NameUtils from '../utils/NameUtils';
 
 const TableHeader = styled.th`
@@ -411,6 +411,7 @@ class PendingApprovalTable extends React.Component {
                         }
                         pendingState={this.state.pendingMap[key].pendingState}
                         view={view}
+                        timeZone={this.props.timeZone}
                     />
                 );
             });
@@ -478,6 +479,7 @@ const mapStateToProps = (state, props) => {
             props.domainName,
             props.view
         ),
+        timeZone: selectTimeZone(state),
     };
 };
 
