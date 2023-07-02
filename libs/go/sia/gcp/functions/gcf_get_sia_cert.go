@@ -1,3 +1,19 @@
+//
+// Copyright The Athenz Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 package functions
 
 import (
@@ -18,12 +34,7 @@ import (
 	"strings"
 )
 
-// GcfGetSiaCerts this method can be called from within a GCF (Google Cloud Function) -
-//
-//	to get an Athenz certificate from ZTS.
-//
-// This file should usually be copied without changes into the GCF source-code.
-//
+// GcfGetSiaCerts this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
 // See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-go
 func GcfGetSiaCerts(
 	athenzDomain string,
@@ -44,7 +55,6 @@ func GcfGetSiaCerts(
 	if err != nil {
 		return nil, err
 	}
-	//log.Printf("GCP Attestation Data: %s", attestationData) // commented out - sensitive info
 
 	// Create a private-key.
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -56,7 +66,6 @@ func GcfGetSiaCerts(
 	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
 	privateKeyBlock := pem.Block{Type: "RSA PRIVATE KEY", Bytes: privateKeyDer}
 	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
-	//log.Printf("Private Key:\n%s", privateKeyPem) // commented out - sensitive info
 
 	// Create a CSR (and a private-key).
 	csr, err := generateCsr(
@@ -79,7 +88,6 @@ func GcfGetSiaCerts(
 		return nil, fmt.Errorf("cannot encode CSR to PEM: %v", err)
 	}
 	csrPem := csrPemBuffer.String()
-	//log.Printf("CSR to send to ZTS:\n%s", csrPem) // commented out - sensitive info
 
 	// Send CSR to ZTS.
 	siaCertData, err := getCredsFromZts(
@@ -121,7 +129,6 @@ type CsrSubjectFields struct {
 // Get an identity-document for this GCF from GCP.
 func getGcpFunctionAttestationData(ztsUrl string) (string, error) {
 	gcpIdentityUrl := "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=" + ztsUrl + "&format=full"
-	//log.Printf("Getting GCF identity from: %s", gcpIdentityUrl)
 
 	req, err := http.NewRequest(http.MethodGet, gcpIdentityUrl, nil)
 	if err != nil {
