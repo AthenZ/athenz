@@ -117,9 +117,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected InstanceProviderManager instanceProviderManager;
     protected Metric metric = null;
     protected Schema schema = null;
-    protected ServerPrivateKey privateKey = null;
+    protected ServerPrivateKey privateOrigKey = null;
     protected ServerPrivateKey privateECKey = null;
     protected ServerPrivateKey privateRSAKey = null;
+    protected String keyAlgoForJsonWebObjects;
+    protected String keyAlgoForProprietaryObjects;
+    protected String keyAlgoForPlugins;
     protected PrivateKeyStore privateKeyStore = null;
     protected HostnameResolver hostnameResolver = null;
     protected int roleTokenDefaultTimeout;
@@ -348,8 +351,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver,
                 readOnlyMode.get(), userAuthority);
 
-        instanceProviderManager = new InstanceProviderManager(dataStore, ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
-                ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore), privateKey, this);
+        instanceProviderManager = new InstanceProviderManager(dataStore,
+                ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
+                ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore),
+                getServerPrivateKey(keyAlgoForPlugins), this);
 
         // make sure to set the keystore for any instance that requires it
 
@@ -450,14 +455,20 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     List<String> getSupportedSigningAlgValues() {
 
         List<String> algValues = new ArrayList<>();
-        algValues.add(privateKey.getAlgorithm().getValue());
+        if (privateECKey != null) {
+            algValues.add(privateECKey.getAlgorithm().getValue());
+        }
 
-        // since we always give preference to EC keys there is no need
-        // to check for privateECKey. instead, we only need to check if the
-        // rsa private key is valid and not
+        // if we have an rsa key, then we'll verify the value as well
 
         if (privateRSAKey != null && !algValues.contains(privateRSAKey.getAlgorithm().getValue())) {
             algValues.add(privateRSAKey.getAlgorithm().getValue());
+        }
+
+        // and finally original private key in case we don't have rsa/ec keys specified
+
+        if (privateOrigKey != null && !algValues.contains(privateOrigKey.getAlgorithm().getValue())) {
+            algValues.add(privateOrigKey.getAlgorithm().getValue());
         }
 
         return algValues;
@@ -528,6 +539,13 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         statusCertSigner = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_STATUS_CERT_SIGNER, "false"));
+
+        // retrieve the preferred private key algorithms, and we're going to
+        // convert them to uppercase for easier comparison
+
+        keyAlgoForJsonWebObjects = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_JSON_WEB_OBJECTS, ZTSConsts.EC).toUpperCase();
+        keyAlgoForProprietaryObjects = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_PROPRIETARY_OBJECTS, ZTSConsts.EC).toUpperCase();
+        keyAlgoForPlugins = System.getProperty(ZTSConsts.ZTS_PROP_KEY_ALGO_PLUGINS, ZTSConsts.EC).toUpperCase();
 
         // check to see if we want to disable allowing clients to ask for role
         // tokens without role name thus violating the least privilege principle
@@ -724,6 +742,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // create our struct store
 
         clogFactory.setPrivateKeyStore(privateKeyStore);
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForPlugins);
         return clogFactory.create(homeDir, privateKey.getKey(), privateKey.getId());
     }
 
@@ -797,11 +816,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (privateECKey == null && privateRSAKey == null) {
             StringBuilder privKeyId = new StringBuilder(256);
             PrivateKey pkey = privateKeyStore.getPrivateKey(ZTSConsts.ZTS_SERVICE, serverHostName, privKeyId);
-            privateKey = new ServerPrivateKey(pkey, privKeyId.toString());
-        } else if (privateECKey != null) {
-            privateKey = privateECKey;
-        } else {
-            privateKey = privateRSAKey;
+            privateOrigKey = new ServerPrivateKey(pkey, privKeyId.toString());
         }
     }
 
@@ -1365,6 +1380,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
             // generate our protected header - just includes the key id + algorithm
 
+            ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
             final String protectedHeader = "{\"kid\":\"" + privateKey.getId() + "\",\"alg\":\"" + privateKey.getAlgorithm() + "\"}";
             final byte[] encodedProtectedHeader = encoder.encode(protectedHeader.getBytes(StandardCharsets.UTF_8));
 
@@ -1447,6 +1463,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 .setZmsKeyId(domainData.getPolicies().getKeyId())
                 .setZmsSignature(domainData.getPolicies().getSignature());
 
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
         String signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), privateKey.getKey());
         DomainSignedPolicyData result = new DomainSignedPolicyData()
             .setSignedPolicyData(signedPolicyData)
@@ -1866,6 +1883,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         long tokenTimeout = determineTokenTimeout(data, roles, minExpiryTime, maxExpiryTime);
         List<String> roleList = new ArrayList<>(roles);
         boolean domainCompleteRoleSet = (includeRoleCompleteFlag && roleNames == null);
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
                     .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKey.getId())
@@ -2292,13 +2310,48 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 .collect(Collectors.toList());
     }
 
+    ServerPrivateKey getServerPrivateKey(final String keyType) {
+
+        // look for the preferred key type - RSA or EC.
+        // if the preferred key type is not available then default
+        // to the other algorithm - e.g. if the preferred is EC
+        // and EC key is not available, then default to RSA.
+
+        ServerPrivateKey serverPrivateKey;
+        switch (keyType) {
+            case ZTSConsts.RSA:
+                serverPrivateKey = privateRSAKey;
+                if (serverPrivateKey == null) {
+                    serverPrivateKey = privateECKey;
+                }
+                break;
+            case ZTSConsts.EC:
+            default:
+                serverPrivateKey = privateECKey;
+                if (serverPrivateKey == null) {
+                    serverPrivateKey = privateRSAKey;
+                }
+                break;
+        }
+
+        // Before returning, check again if we have a valid key
+        // and if not then it indicates that both RSA and EC keys
+        // are null, thus we must have the original single key
+        // specified, so that's what we'll return.
+
+        if (serverPrivateKey == null) {
+            serverPrivateKey = privateOrigKey;
+        }
+        return serverPrivateKey;
+    }
+
     ServerPrivateKey getSignPrivateKey(final String keyType) {
 
         // if we don't have a key-type requested then we'll just
         // to our standard server signing key
 
         if (StringUtil.isEmpty(keyType)) {
-            return privateKey;
+            return getServerPrivateKey(keyAlgoForJsonWebObjects);
         }
 
         // otherwise, look for the expected key type. if the key type
@@ -2315,7 +2368,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 break;
         }
         if (serverPrivateKey == null) {
-            serverPrivateKey = privateKey;
+            serverPrivateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         }
         return serverPrivateKey;
     }
@@ -2545,6 +2598,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             }
         }
 
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         // now let's check to see if we need to create openid token
@@ -3793,6 +3847,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // then we'll generate one and include in the identity object
 
         if (info.getToken() == Boolean.TRUE) {
+            ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
                 .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
                 .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
@@ -4326,6 +4381,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // then we'll generate one and include in the identity object
 
         if (info.getToken() == Boolean.TRUE) {
+            ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
                 .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
                 .ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
