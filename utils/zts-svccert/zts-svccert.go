@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -12,14 +13,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 	"time"
+
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
@@ -385,6 +388,20 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 			return nil, err
 		}
 		return &signer{key: key, algorithm: x509.SHA256WithRSA}, nil
+	case "PRIVATE KEY":
+		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		switch k := key.(type) {
+		case *ecdsa.PrivateKey:
+			return &signer{key: k, algorithm: x509.ECDSAWithSHA256}, nil
+		case *rsa.PrivateKey:
+			return &signer{key: k, algorithm: x509.SHA256WithRSA}, nil
+		default:
+			// PKCS#8 format may contain multiple key types other than RSA / EC, but current ZMS / ZTS server implementation only supports RSA / EC private keys
+			return nil, fmt.Errorf("unsupported private key type: %s", reflect.TypeOf(k).Name())
+		}
 	default:
 		return nil, fmt.Errorf("unsupported private key type: %s", block.Type)
 	}
