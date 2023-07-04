@@ -6,16 +6,20 @@ package devel
 import (
 	"bytes"
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"os"
+	"reflect"
+
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 	"github.com/ardielle/ardielle-go/rdl"
-	"os"
 
 	"gopkg.in/square/go-jose.v2"
 )
@@ -54,6 +58,20 @@ func loadPrivateKey(privateKeyPEM []byte) (crypto.PrivateKey, error) {
 			return nil, err
 		}
 		return key, nil
+	case "PRIVATE KEY":
+		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		switch k := key.(type) {
+		case *ecdsa.PrivateKey:
+			return k, nil
+		case *rsa.PrivateKey:
+			return k, nil
+		default:
+			// PKCS#8 format may contain multiple key types other than RSA / EC, but current ZMS / ZTS server implementation only supports RSA / EC private keys
+			return nil, fmt.Errorf("unsupported private key type: %s", reflect.TypeOf(k).Name())
+		}
 	default:
 		return nil, fmt.Errorf("unsupported private key type: %s", block.Type)
 	}
