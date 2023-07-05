@@ -69,6 +69,7 @@ public class InstanceGCPUtils {
                 .setAudience(List.of(expectedAudience))
                 .build();
     }
+
     public GoogleIdToken.Payload validateGCPIdentityToken(final String token, StringBuilder errMsg) {
 
         try {
@@ -85,6 +86,8 @@ public class InstanceGCPUtils {
                 "email_verified":true,"exp":1678259131,"iat":1678255531,"iss":"https://accounts.google.com","sub":"102023896904281105569"}
                  */
                 return validatedToken.getPayload();
+            } else {
+                errMsg.append("ID token was not verified by GCP. Possible reasons: expired token/invalid issuer or audience/invalid signature");
             }
         } catch (IllegalArgumentException | GeneralSecurityException | IOException e) {
             LOGGER.error("unable to validate GCP instance identity token error={} type={}", e.getMessage(), e.getClass());
