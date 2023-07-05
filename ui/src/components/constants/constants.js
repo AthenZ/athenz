@@ -70,10 +70,6 @@ export const SEGMENTATION_CATEGORIES = [
         label: SEGMENTATION_TYPE_INBOUND_LABEL,
         name: SEGMENTATION_TYPE_INBOUND,
     },
-    {
-        label: SEGMENTATION_TYPE_OUTBOUND_LABEL,
-        name: SEGMENTATION_TYPE_OUTBOUND,
-    },
 ];
 
 export const SEGMENTATION_PROTOCOL_TYPE_TCP = 'TCP';

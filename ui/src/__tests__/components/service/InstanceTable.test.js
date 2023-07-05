@@ -47,5 +47,5 @@ describe('InstanceTable', () => {
         const instanceTable = getByTestId('instancetable');
 
         expect(instanceTable).toMatchSnapshot();
-   });
+    });
 });

@@ -965,6 +965,9 @@ class AddSegmentation extends React.Component {
     }
 
     onEditSubmit(evt, skipValidation = false) {
+        if (this.state.category === 'outbound') {
+            return;
+        }
         this.setState({
             saving: 'saving',
         });
@@ -1278,313 +1281,319 @@ class AddSegmentation extends React.Component {
               })
             : '';
 
-        let sections = (
-            <SectionsDiv>
-                <SectionDiv>
-                    <StyledInputLabel>ACL Category</StyledInputLabel>
-                    <StyledButtonGroup
-                        buttons={SEGMENTATION_CATEGORIES}
-                        selectedName={
-                            this.props.data
-                                ? this.state.data['category']
-                                : this.state.category
-                        }
-                        onClick={this.categoryChanged}
-                        noanim
-                    />
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel>Identifier</StyledInputLabel>
-                    <StyledInput
-                        placeholder='Enter a unique identifier for this ACL policy'
-                        value={this.state.identifier}
-                        onChange={(event) =>
-                            this.inputChanged(event, 'identifier')
-                        }
-                        noanim
-                        fluid
-                        disabled={this.props.editMode}
-                    />
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel>
-                        {this.state.isCategory
-                            ? 'Destination Service'
-                            : 'Source Service'}
-                    </StyledInputLabel>
-                    <StyledInputDropdown
-                        name='destinationService'
-                        options={this.state.destinationServiceList}
-                        value={
-                            this.props.editMode
-                                ? this.state.isCategory
-                                    ? this.state.inboundDestinationService
-                                    : this.state.outboundSourceService
-                                : undefined
-                        }
-                        onChange={(item) =>
-                            this.changeService(
-                                item,
-                                this.state.isCategory
-                                    ? 'inboundDestinationService'
-                                    : 'outboundSourceService'
-                            )
-                        }
-                        placeholder={
-                            this.state.isCategory
-                                ? 'Select Destination Service'
-                                : 'Select Source Service'
-                        }
-                        noanim
-                        filterable
-                        disabled={this.props.editMode}
-                    />
-                </SectionDiv>
-                {this.state.PESList.map((x, i) => {
-                    return (
-                        <div>
-                            <SectionDiv>
-                                <StyledInputLabel>
-                                    Policy Enforcement State
-                                </StyledInputLabel>
-                                <StyledRadioButtonGroup
-                                    name={'enforcementStateRadioButton' + i}
-                                    inputs={inputs}
-                                    selectedValue={x.enforcementstate}
-                                    onChange={(e) =>
-                                        this.handleInputChange(e, i)
-                                    }
-                                    disabled={i == 1}
-                                />
-                                <StyledInputLabelHost>
-                                    Hosts
-                                </StyledInputLabelHost>
-                                <StyledInputHost
-                                    placeholder='Comma separated list, Leave blank to apply to all hosts'
-                                    value={x.instances}
-                                    name={'instances' + i}
-                                    onChange={(e) =>
-                                        this.handleInputChange(e, i)
-                                    }
-                                    noanim
-                                    error={x.instances.length > 2048}
-                                    message={
-                                        x.instances.length > 2048
-                                            ? 'Limit is 2048 characters. Contact #athenz channel on slack'
-                                            : ''
-                                    }
-                                    fluid
-                                />
-                                {this.state.PESList.length < 2 ? (
-                                    <AddCircleDiv>
-                                        <Icon
-                                            icon={'add-circle'}
-                                            isLink
-                                            color={colors.icons}
-                                            size='1.75em'
-                                            onClick={this.handleAddClick}
-                                        />
-                                    </AddCircleDiv>
-                                ) : (
-                                    <RemoveCircleDiv>
-                                        <Icon
-                                            icon={'minus'}
-                                            isLink
-                                            color={colors.icons}
-                                            size='1.75em'
-                                            onClick={() =>
-                                                this.handleRemoveClick(i)
-                                            }
-                                        />
-                                    </RemoveCircleDiv>
-                                )}
-                            </SectionDiv>
-                            <SectionDiv>
-                                <StyledInputLabel>Scope</StyledInputLabel>
-                                <CheckBoxSectionDiv>
-                                    <StyledCheckBox
-                                        checked={x.scopeall === 'true'}
-                                        name={'scopeallCheckBox' + i}
-                                        id={'scopeallCheckBox' + i}
-                                        key={'scopeallCheckBox' + i}
-                                        label='All'
-                                        onChange={(e) =>
-                                            this.handleInputChange(e, i)
-                                        }
-                                    />
-                                    <StyledCheckBox
-                                        checked={x.scopeonprem === 'true'}
-                                        disabled={x.scopeall === 'true'}
-                                        name={'scopeonpremCheckBox' + i}
-                                        id={'scopeonpremCheckBox' + i}
-                                        key={'scopeonpremCheckBox' + i}
-                                        label='On-Prem'
-                                        onChange={(e) =>
-                                            this.handleInputChange(e, i)
-                                        }
-                                    />
-                                    <StyledCheckBox
-                                        checked={x.scopeaws === 'true'}
-                                        disabled={x.scopeall === 'true'}
-                                        name={'scopeawsCheckBox' + i}
-                                        id={'scopeawsCheckBox' + i}
-                                        key={'scopeawsCheckBox' + i}
-                                        label='AWS'
-                                        onChange={(e) =>
-                                            this.handleInputChange(e, i)
-                                        }
-                                    />
-                                </CheckBoxSectionDiv>
-                            </SectionDiv>
-                        </div>
-                    );
-                })}
-
-                <SectionDiv>
-                    <StyledInputLabel>
-                        {this.state.isCategory
-                            ? 'Destination Port(s)'
-                            : 'Source Port(s)'}
-                    </StyledInputLabel>
-                    <ContentDiv>
-                        <StyledInput
-                            placeholder='eg: 4443'
-                            value={
-                                this.state.isCategory
-                                    ? this.state.destinationPort
-                                    : this.state.sourcePort
+        let sections =
+            this.state.category === 'inbound' ? (
+                <SectionsDiv>
+                    <SectionDiv>
+                        <StyledInputLabel>ACL Category</StyledInputLabel>
+                        <StyledButtonGroup
+                            buttons={SEGMENTATION_CATEGORIES}
+                            selectedName={
+                                this.props.data
+                                    ? this.state.data['category']
+                                    : this.state.category
                             }
+                            onClick={this.categoryChanged}
+                            noanim
+                        />
+                    </SectionDiv>
+                    <SectionDiv>
+                        <StyledInputLabel>Identifier</StyledInputLabel>
+                        <StyledInput
+                            placeholder='Enter a unique identifier for this ACL policy'
+                            value={this.state.identifier}
                             onChange={(event) =>
-                                this.inputChanged(
-                                    event,
-                                    this.state.isCategory
-                                        ? 'destinationPort'
-                                        : 'sourcePort'
-                                )
+                                this.inputChanged(event, 'identifier')
                             }
                             noanim
                             fluid
+                            disabled={this.props.editMode}
                         />
-                    </ContentDiv>
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel>
-                        {this.state.isCategory
-                            ? 'Source Service'
-                            : 'Destination Service'}
-                    </StyledInputLabel>
-                    <StyledInput
-                        placeholder='eg: yamas.api, sys.auth.zms'
-                        value={
-                            this.state.isCategory
-                                ? this.state.sourceServiceMembers
-                                : this.state.destinationServiceMembers
-                        }
-                        onChange={(event) =>
-                            this.inputChanged(
-                                event,
+                    </SectionDiv>
+                    <SectionDiv>
+                        <StyledInputLabel>
+                            {this.state.isCategory
+                                ? 'Destination Service'
+                                : 'Source Service'}
+                        </StyledInputLabel>
+                        <StyledInputDropdown
+                            name='destinationService'
+                            options={this.state.destinationServiceList}
+                            value={
+                                this.props.editMode
+                                    ? this.state.isCategory
+                                        ? this.state.inboundDestinationService
+                                        : this.state.outboundSourceService
+                                    : undefined
+                            }
+                            onChange={(item) =>
+                                this.changeService(
+                                    item,
+                                    this.state.isCategory
+                                        ? 'inboundDestinationService'
+                                        : 'outboundSourceService'
+                                )
+                            }
+                            placeholder={
                                 this.state.isCategory
-                                    ? 'sourceServiceMembers'
-                                    : 'destinationServiceMembers'
-                            )
-                        }
-                        noanim
-                        fluid
-                    />
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel />
-                    <StyledIncludedMembersDiv>
-                        {members}
-                    </StyledIncludedMembersDiv>
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel>
-                        {this.state.isCategory
-                            ? 'Source Port(s)'
-                            : 'Destination Port(s)'}
-                    </StyledInputLabel>
-                    <ContentDiv>
-                        <AddMemberDiv>
+                                    ? 'Select Destination Service'
+                                    : 'Select Source Service'
+                            }
+                            noanim
+                            filterable
+                            disabled={this.props.editMode}
+                        />
+                    </SectionDiv>
+                    {this.state.PESList.map((x, i) => {
+                        return (
+                            <div>
+                                <SectionDiv>
+                                    <StyledInputLabel>
+                                        Policy Enforcement State
+                                    </StyledInputLabel>
+                                    <StyledRadioButtonGroup
+                                        name={'enforcementStateRadioButton' + i}
+                                        inputs={inputs}
+                                        selectedValue={x.enforcementstate}
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                        disabled={i == 1}
+                                    />
+                                    <StyledInputLabelHost>
+                                        Hosts
+                                    </StyledInputLabelHost>
+                                    <StyledInputHost
+                                        placeholder='Comma separated list, Leave blank to apply to all hosts'
+                                        value={x.instances}
+                                        name={'instances' + i}
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                        noanim
+                                        error={x.instances.length > 2048}
+                                        message={
+                                            x.instances.length > 2048
+                                                ? 'Limit is 2048 characters. Contact #athenz channel on slack'
+                                                : ''
+                                        }
+                                        fluid
+                                    />
+                                    {this.state.PESList.length < 2 ? (
+                                        <AddCircleDiv>
+                                            <Icon
+                                                icon={'add-circle'}
+                                                isLink
+                                                color={colors.icons}
+                                                size='1.75em'
+                                                onClick={this.handleAddClick}
+                                            />
+                                        </AddCircleDiv>
+                                    ) : (
+                                        <RemoveCircleDiv>
+                                            <Icon
+                                                icon={'minus'}
+                                                isLink
+                                                color={colors.icons}
+                                                size='1.75em'
+                                                onClick={() =>
+                                                    this.handleRemoveClick(i)
+                                                }
+                                            />
+                                        </RemoveCircleDiv>
+                                    )}
+                                </SectionDiv>
+                                <SectionDiv>
+                                    <StyledInputLabel>Scope</StyledInputLabel>
+                                    <CheckBoxSectionDiv>
+                                        <StyledCheckBox
+                                            checked={x.scopeall === 'true'}
+                                            name={'scopeallCheckBox' + i}
+                                            id={'scopeallCheckBox' + i}
+                                            key={'scopeallCheckBox' + i}
+                                            label='All'
+                                            onChange={(e) =>
+                                                this.handleInputChange(e, i)
+                                            }
+                                        />
+                                        <StyledCheckBox
+                                            checked={x.scopeonprem === 'true'}
+                                            disabled={x.scopeall === 'true'}
+                                            name={'scopeonpremCheckBox' + i}
+                                            id={'scopeonpremCheckBox' + i}
+                                            key={'scopeonpremCheckBox' + i}
+                                            label='On-Prem'
+                                            onChange={(e) =>
+                                                this.handleInputChange(e, i)
+                                            }
+                                        />
+                                        <StyledCheckBox
+                                            checked={x.scopeaws === 'true'}
+                                            disabled={x.scopeall === 'true'}
+                                            name={'scopeawsCheckBox' + i}
+                                            id={'scopeawsCheckBox' + i}
+                                            key={'scopeawsCheckBox' + i}
+                                            label='AWS'
+                                            onChange={(e) =>
+                                                this.handleInputChange(e, i)
+                                            }
+                                        />
+                                    </CheckBoxSectionDiv>
+                                </SectionDiv>
+                            </div>
+                        );
+                    })}
+
+                    <SectionDiv>
+                        <StyledInputLabel>
+                            {this.state.isCategory
+                                ? 'Destination Port(s)'
+                                : 'Source Port(s)'}
+                        </StyledInputLabel>
+                        <ContentDiv>
                             <StyledInput
-                                placeholder='eg: 1024-65535'
+                                placeholder='eg: 4443'
                                 value={
                                     this.state.isCategory
-                                        ? this.state.sourcePort
-                                        : this.state.destinationPort
+                                        ? this.state.destinationPort
+                                        : this.state.sourcePort
                                 }
                                 onChange={(event) =>
                                     this.inputChanged(
                                         event,
                                         this.state.isCategory
-                                            ? 'sourcePort'
-                                            : 'destinationPort'
+                                            ? 'destinationPort'
+                                            : 'sourcePort'
                                     )
                                 }
                                 noanim
                                 fluid
                             />
-                        </AddMemberDiv>
-                    </ContentDiv>
-                </SectionDiv>
-                <SectionDiv>
-                    <StyledInputLabel>Protocol</StyledInputLabel>
-                    <StyledInputDropdown
-                        name='protocol'
-                        defaultSelectedValue={this.state.protocol}
-                        options={SEGMENTATION_PROTOCOL}
-                        onChange={this.protocolChanged}
-                        placeholder='Select Protocol'
-                        noanim
-                        filterable
-                    />
-                </SectionDiv>
-                {this.props.pageFeatureFlag['policyValidation'] && (
-                    <SectionDiv>
-                        <StyledInputLabel>Validation</StyledInputLabel>
-                        <CheckBoxSectionDiv>
-                            <StyledCheckBox
-                                disabled={!this.isScopeOnPrem()}
-                                checked={this.state.validationCheckbox}
-                                name={
-                                    'checkbox-validate-policy' +
-                                    this.state.isCategory
-                                }
-                                id={
-                                    'checkbox-validate-policy' +
-                                    this.state.isCategory
-                                }
-                                key={
-                                    'checkbox-validate-policy' +
-                                    this.state.isCategory
-                                }
-                                label='Validate Microsegmentation policy against PES network policy (only for onprem hosts)'
-                                onChange={(event) =>
-                                    this.inputChanged(
-                                        event,
-                                        'validationCheckbox'
-                                    )
-                                }
-                            />
-                        </CheckBoxSectionDiv>
-                    </SectionDiv>
-                )}
-                {this.props.justificationRequired && (
-                    <SectionDiv>
-                        <StyledInputLabel>Justification</StyledInputLabel>
-                        <ContentDiv>
-                            <StyledInput
-                                value={this.state.justification}
-                                onChange={(event) =>
-                                    this.inputChanged(event, 'justification')
-                                }
-                                placeholder='Enter justification here'
-                            />
                         </ContentDiv>
                     </SectionDiv>
-                )}
-            </SectionsDiv>
-        );
+                    <SectionDiv>
+                        <StyledInputLabel>
+                            {this.state.isCategory
+                                ? 'Source Service'
+                                : 'Destination Service'}
+                        </StyledInputLabel>
+                        <StyledInput
+                            placeholder='eg: yamas.api, sys.auth.zms'
+                            value={
+                                this.state.isCategory
+                                    ? this.state.sourceServiceMembers
+                                    : this.state.destinationServiceMembers
+                            }
+                            onChange={(event) =>
+                                this.inputChanged(
+                                    event,
+                                    this.state.isCategory
+                                        ? 'sourceServiceMembers'
+                                        : 'destinationServiceMembers'
+                                )
+                            }
+                            noanim
+                            fluid
+                        />
+                    </SectionDiv>
+                    <SectionDiv>
+                        <StyledInputLabel />
+                        <StyledIncludedMembersDiv>
+                            {members}
+                        </StyledIncludedMembersDiv>
+                    </SectionDiv>
+                    <SectionDiv>
+                        <StyledInputLabel>
+                            {this.state.isCategory
+                                ? 'Source Port(s)'
+                                : 'Destination Port(s)'}
+                        </StyledInputLabel>
+                        <ContentDiv>
+                            <AddMemberDiv>
+                                <StyledInput
+                                    placeholder='eg: 1024-65535'
+                                    value={
+                                        this.state.isCategory
+                                            ? this.state.sourcePort
+                                            : this.state.destinationPort
+                                    }
+                                    onChange={(event) =>
+                                        this.inputChanged(
+                                            event,
+                                            this.state.isCategory
+                                                ? 'sourcePort'
+                                                : 'destinationPort'
+                                        )
+                                    }
+                                    noanim
+                                    fluid
+                                />
+                            </AddMemberDiv>
+                        </ContentDiv>
+                    </SectionDiv>
+                    <SectionDiv>
+                        <StyledInputLabel>Protocol</StyledInputLabel>
+                        <StyledInputDropdown
+                            name='protocol'
+                            defaultSelectedValue={this.state.protocol}
+                            options={SEGMENTATION_PROTOCOL}
+                            onChange={this.protocolChanged}
+                            placeholder='Select Protocol'
+                            noanim
+                            filterable
+                        />
+                    </SectionDiv>
+                    {this.props.pageFeatureFlag['policyValidation'] && (
+                        <SectionDiv>
+                            <StyledInputLabel>Validation</StyledInputLabel>
+                            <CheckBoxSectionDiv>
+                                <StyledCheckBox
+                                    disabled={!this.isScopeOnPrem()}
+                                    checked={this.state.validationCheckbox}
+                                    name={
+                                        'checkbox-validate-policy' +
+                                        this.state.isCategory
+                                    }
+                                    id={
+                                        'checkbox-validate-policy' +
+                                        this.state.isCategory
+                                    }
+                                    key={
+                                        'checkbox-validate-policy' +
+                                        this.state.isCategory
+                                    }
+                                    label='Validate Microsegmentation policy against PES network policy (only for onprem hosts)'
+                                    onChange={(event) =>
+                                        this.inputChanged(
+                                            event,
+                                            'validationCheckbox'
+                                        )
+                                    }
+                                />
+                            </CheckBoxSectionDiv>
+                        </SectionDiv>
+                    )}
+                    {this.props.justificationRequired && (
+                        <SectionDiv>
+                            <StyledInputLabel>Justification</StyledInputLabel>
+                            <ContentDiv>
+                                <StyledInput
+                                    value={this.state.justification}
+                                    onChange={(event) =>
+                                        this.inputChanged(
+                                            event,
+                                            'justification'
+                                        )
+                                    }
+                                    placeholder='Enter justification here'
+                                />
+                            </ContentDiv>
+                        </SectionDiv>
+                    )}
+                </SectionsDiv>
+            ) : (
+                <div>Editing Outbound policies isn't currently supported.</div>
+            );
 
         let validationResponseSections = (
             <SectionsDiv>

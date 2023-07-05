@@ -189,7 +189,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
-        timeZone: selectTimeZone(state)
+        timeZone: selectTimeZone(state),
     };
 };
 
