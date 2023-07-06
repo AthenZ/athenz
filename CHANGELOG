@@ -1,3 +1,19 @@
+Athenz v1.11.33 Release / Jun 28, 2023
+--------------------------------------
+
+#2124 UI: apply timezone settings
+#2202 add wildcard support for ServiceMemberSkipDomains
+#2203 increased/configure json string limit for jackson
+#2204 Generic way to handle tags
+#2207 log Athenz principal as part of the JettyConnectionLogger
+#2209 GCP functions identity support for Java
+#2211 refactor out request pkg in zts client
+#2212 Prevent int/long buffer overflow returning false always
+#2213 correct handling of role cert key path when service key filename is user-specified
+#2214 provide capability to provide proxy host details for gcp-zts-creds
+#2215 update dependency libraries to their latest releases
+#2216 add license headers + full code coverage
+
 Athenz v1.11.32 Release / Jun 05, 2023
 --------------------------------------
 

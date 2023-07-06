@@ -63,7 +63,7 @@ public class InstanceUtils {
         List<String> k8sDnsSuffixes = new ArrayList<>();
         final String k8sDnsSuffix = System.getProperty(propertyName);
         if (StringUtil.isEmpty(k8sDnsSuffix)) {
-            LOGGER.error("K8S DNS Suffix not specified - all requests must satisfy standard dns suffix checks");
+            LOGGER.info("K8S DNS Suffix not specified - all requests must satisfy standard dns suffix checks");
         } else {
             // in our checks we're going to match against the given suffix so
             // when generating the list we'll verify if the suffix starts with
