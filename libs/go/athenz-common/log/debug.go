@@ -18,7 +18,7 @@ func Printf(format string, v ...interface{}) {
 
 func Errorf(format string, v ...interface{}) error {
 	log.Printf(format, v...)
-	return fmt.Errorf(format, v)
+	return fmt.Errorf(format, v...)
 }
 
 func Print(v ...interface{}) {

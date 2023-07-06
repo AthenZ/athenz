@@ -22,6 +22,7 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
@@ -2348,8 +2349,6 @@ public class ZTSImplTest {
         );
 
         ZTSImpl newZts = new ZTSImpl(cloudStore, store);
-        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
-                "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
 
         assertNotNull(newZts.jwkConfig);
         assertNotNull(newZts.jwkConfig.zts);
@@ -9769,9 +9768,10 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9800,7 +9800,7 @@ public class ZTSImplTest {
         assertEquals(Integer.valueOf(100), resp.getExpires_in());
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9887,9 +9887,10 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -9934,9 +9935,10 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10006,9 +10008,10 @@ public class ZTSImplTest {
         String idToken = resp.getId_token();
         assertNotNull(idToken);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10067,9 +10070,10 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10082,7 +10086,7 @@ public class ZTSImplTest {
         assertNotNull(idTokenStr);
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(idTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10122,10 +10126,11 @@ public class ZTSImplTest {
 
         String idToken = resp.getId_token();
         assertNotNull(idToken);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(idToken);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(idToken);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10338,10 +10343,11 @@ public class ZTSImplTest {
 
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10392,9 +10398,10 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -10503,9 +10510,10 @@ public class ZTSImplTest {
         String accessTokenStr = resp.getAccess_token();
         assertNotNull(accessTokenStr);
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -11318,6 +11326,10 @@ public class ZTSImplTest {
     @Test
     public void testLoadServerPrivateKey() {
 
+        zts.privateOrigKey = null;
+        zts.privateECKey = null;
+        zts.privateRSAKey = null;
+
         // first we try with ec private key only
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
@@ -11326,8 +11338,12 @@ public class ZTSImplTest {
 
         zts.loadServicePrivateKey();
         assertNotNull(zts.privateECKey);
-        assertEquals(zts.privateKey, zts.privateECKey);
         assertNull(zts.privateRSAKey);
+        assertNull(zts.privateOrigKey);
+
+        assertEquals(zts.privateECKey, zts.getServerPrivateKey("EC"));
+        assertEquals(zts.privateECKey, zts.getServerPrivateKey("RSA"));
+        assertEquals(zts.privateECKey, zts.getServerPrivateKey("UNKNOWN"));
 
         List<String> algValues = zts.getSupportedSigningAlgValues();
         assertEquals(1, algValues.size());
@@ -11341,11 +11357,35 @@ public class ZTSImplTest {
 
         zts.loadServicePrivateKey();
         assertNotNull(zts.privateRSAKey);
-        assertEquals(zts.privateKey, zts.privateRSAKey);
         assertNull(zts.privateECKey);
+        assertNull(zts.privateOrigKey);
+
+        assertEquals(zts.privateRSAKey, zts.getServerPrivateKey("EC"));
+        assertEquals(zts.privateRSAKey, zts.getServerPrivateKey("RSA"));
+        assertEquals(zts.privateRSAKey, zts.getServerPrivateKey("UNKNOWN"));
 
         algValues = zts.getSupportedSigningAlgValues();
         assertEquals(1, algValues.size());
+        assertTrue(algValues.contains("RS256"));
+
+        // now let's try both keys
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        zts.loadServicePrivateKey();
+        assertNotNull(zts.privateRSAKey);
+        assertNotNull(zts.privateECKey);
+        assertNull(zts.privateOrigKey);
+
+        assertEquals(zts.privateECKey, zts.getServerPrivateKey("EC"));
+        assertEquals(zts.privateRSAKey, zts.getServerPrivateKey("RSA"));
+        assertEquals(zts.privateECKey, zts.getServerPrivateKey("UNKNOWN"));
+
+        algValues = zts.getSupportedSigningAlgValues();
+        assertEquals(2, algValues.size());
+        assertTrue(algValues.contains("ES256"));
         assertTrue(algValues.contains("RS256"));
 
         // now back to our regular key setup
@@ -11355,9 +11395,13 @@ public class ZTSImplTest {
         System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
 
         zts.loadServicePrivateKey();
-        assertNotNull(zts.privateKey);
+        assertNotNull(zts.privateOrigKey);
         assertNull(zts.privateECKey);
         assertNull(zts.privateRSAKey);
+
+        assertEquals(zts.privateOrigKey, zts.getServerPrivateKey("EC"));
+        assertEquals(zts.privateOrigKey, zts.getServerPrivateKey("RSA"));
+        assertEquals(zts.privateOrigKey, zts.getServerPrivateKey("UNKNOWN"));
     }
 
     @Test
@@ -12003,10 +12047,11 @@ public class ZTSImplTest {
         assertNotNull(resp);
         assertNull(resp.getScope());
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         final String accessTokenStr = resp.getAccess_token();
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -12051,10 +12096,11 @@ public class ZTSImplTest {
         assertNotNull(resp);
         assertNull(resp.getScope());
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         String accessTokenStr = resp.getAccess_token();
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -12077,7 +12123,7 @@ public class ZTSImplTest {
 
         accessTokenStr = resp.getAccess_token();
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -12098,7 +12144,7 @@ public class ZTSImplTest {
 
         accessTokenStr = resp.getAccess_token();
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -12337,10 +12383,11 @@ public class ZTSImplTest {
         assertNotNull(resp);
         assertNull(resp.getScope());
 
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         final String accessTokenStr = resp.getAccess_token();
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey())).build().parseClaimsJws(accessTokenStr);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
         }
@@ -13151,7 +13198,8 @@ public class ZTSImplTest {
         JWSObject jwsObject = new JWSObject(Base64URL.from(jwsPolicyData.getProtectedHeader()),
                 Base64URL.from(jwsPolicyData.getPayload()), Base64URL.from(jwsPolicyData.getSignature()));
 
-        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(zts.privateKey.getKey()));
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(privateKey.getKey()));
         assertTrue(jwsObject.verify(verifier));
 
         // verify that with p1363 signature and rsa - it's the same key so validation is successful
@@ -13224,7 +13272,8 @@ public class ZTSImplTest {
         signedPolicyRequest.setPolicyVersions(Collections.emptyMap());
 
         // set the private key to null resulting in an exception
-        ztsImpl.privateKey = null;
+        ztsImpl.privateECKey = null;
+        ztsImpl.privateOrigKey = null;
         Response response = ztsImpl.postSignedPolicyRequest(context, "coretech", signedPolicyRequest, null);
         assertNull(response.getEntity());
         assertEquals(response.getStatus(), 500);
@@ -13261,7 +13310,8 @@ public class ZTSImplTest {
 
         // using standard DER format signature we're going to get failure
 
-        Function<String, PublicKey> keyGetter = s -> Crypto.extractPublicKey(ztsImpl.privateKey.getKey());
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        Function<String, PublicKey> keyGetter = s -> Crypto.extractPublicKey(privateKey.getKey());
         assertFalse(Crypto.validateJWSDocument(jwsPolicyData.getProtectedHeader(), jwsPolicyData.getPayload(),
                 jwsPolicyData.getSignature(), keyGetter));
 
@@ -13546,10 +13596,11 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true);
         store.processSignedDomain(signedDomain, false);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid", null, "nonce", "RSA", Boolean.FALSE, null, null, Boolean.TRUE);
-        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13582,12 +13633,13 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, groups);
         store.processSignedDomain(signedDomain, false);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         // get all the groups
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid groups", null, "nonce", "EC", null, null, null, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13612,7 +13664,7 @@ public class ZTSImplTest {
         String idToken = location.substring(idx + 10, location.length() - stateComp.length());
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
                     .build().parseClaimsJws(idToken);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
@@ -13665,12 +13717,13 @@ public class ZTSImplTest {
 
         signedDomain = createSignedDomain("weather", "sports", "api", true, groups);
         store.processSignedDomain(signedDomain, false);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         // get all the groups from the coretech domain
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid groups weather:domain", null, "nonce", "EC", null, null, null, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals("coretech.api", claims.getBody().getAudience());
@@ -13764,10 +13817,11 @@ public class ZTSImplTest {
 
         int idx = location.indexOf("#id_token=");
         String idToken = location.substring(idx + 10);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         Jws<Claims> claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
                     .build().parseClaimsJws(idToken);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
@@ -13799,7 +13853,7 @@ public class ZTSImplTest {
         idToken = location.substring(idx + 10, location.length() - stateComp.length());
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
                     .build().parseClaimsJws(idToken);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
@@ -13852,7 +13906,7 @@ public class ZTSImplTest {
         idToken = location.substring(idx + 10, location.length() - stateComp.length());
 
         try {
-            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(ztsImpl.privateKey.getKey()))
+            claims = Jwts.parserBuilder().setSigningKey(Crypto.extractPublicKey(privateKey.getKey()))
                     .build().parseClaimsJws(idToken);
         } catch (SignatureException e) {
             throw new ResourceException(ResourceException.UNAUTHORIZED);
@@ -13897,12 +13951,13 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
         store.processSignedDomain(signedDomain, false);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid roles", null, "nonce", "", null, null, output, roleInAudClaim);
-        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), output);
+        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claims.getBody().getAudience());
@@ -13918,7 +13973,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 30 * 60, output, roleInAudClaim);
-        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), output);
+        claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
         assertEquals((roleInAudClaim == Boolean.TRUE) ? "coretech.api:writers" : "coretech.api", claims.getBody().getAudience());
@@ -13934,7 +13989,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60, output, roleInAudClaim);
-        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), output);
+        claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 60 * 60 * 1000);
 
@@ -13946,7 +14001,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60, output, roleInAudClaim);
-        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), output);
+        claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
         assertEquals(claims.getBody().getExpiration().getTime() - claims.getBody().getIssuedAt().getTime(), 120 * 60 * 1000);
 
@@ -14009,12 +14064,13 @@ public class ZTSImplTest {
 
         signedDomain = createSignedDomain("weather", "sports", "api", true, null);
         store.processSignedDomain(signedDomain, false);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid roles weather:domain", null, "nonce", "", null, null, null, Boolean.FALSE);
-        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -14065,13 +14121,14 @@ public class ZTSImplTest {
 
         SignedDomain signedDomain4 = createSignedDomainExpiration("fantasy", "api");
         store.processSignedDomain(signedDomain4, false);
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
 
         // get all the roles
 
         Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
                 "https://localhost:4443/zts", "openid roles coretech:domain weather:domain homepage:domain",
                 null, "nonce", "", null, null, null, null);
-        Jws<Claims> claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -14090,7 +14147,7 @@ public class ZTSImplTest {
                 "openid coretech:role.writers weather:role.writers", null, "nonce", "RSA", Boolean.FALSE,
                 null, null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
-        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -14130,7 +14187,7 @@ public class ZTSImplTest {
 
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid roles homepage:domain fantasy:domain", null, "nonce", "RSA", null, null, null, null);
-        claims = getClaimsFromResponse(response, ztsImpl.privateKey.getKey(), null);
+        claims = getClaimsFromResponse(response, privateKey.getKey(), null);
 
         assertNotNull(claims);
         assertEquals("user_domain.user", claims.getBody().getSubject());
@@ -14143,9 +14200,11 @@ public class ZTSImplTest {
     @Test
     public void testGeSignPrivateKey() {
 
-        assertEquals(zts.privateKey, zts.getSignPrivateKey(null));
-        assertEquals(zts.privateKey, zts.getSignPrivateKey(""));
-        assertEquals(zts.privateKey, zts.getSignPrivateKey("unknown"));
+        // by default, we specify the original key and not rsa/ec keys
+
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey(null));
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey(""));
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("unknown"));
 
         List<String> algValues = zts.getSupportedSigningAlgValues();
         assertEquals(1, algValues.size());
@@ -14179,10 +14238,10 @@ public class ZTSImplTest {
 
         zts.loadServicePrivateKey();
 
-        assertEquals(zts.privateKey, zts.getSignPrivateKey("RSA"));
-        assertEquals(zts.privateKey, zts.getSignPrivateKey("rsa"));
-        assertEquals(zts.privateKey, zts.getSignPrivateKey("EC"));
-        assertEquals(zts.privateKey, zts.getSignPrivateKey("ec"));
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("RSA"));
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("rsa"));
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("EC"));
+        assertEquals(zts.privateOrigKey, zts.getSignPrivateKey("ec"));
     }
 
     @Test
@@ -14395,5 +14454,38 @@ public class ZTSImplTest {
         assertEquals(zts.getIdTokenAudience("id", null, idTokenGroups), "id");
         assertEquals(zts.getIdTokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
         assertEquals(zts.getIdTokenAudience("id", Boolean.TRUE, idTokenGroups), "id");
+    }
+
+    private ServerPrivateKey getServerPrivateKey(ZTSImpl ztsImpl, final String keyType) {
+
+        // look for the preferred key type - RSA or EC.
+        // if the preferred key type is not available then default
+        // to the other algorithm - e.g. if the preferred is EC
+        // and EC key is not available, then default to RSA.
+        // Before returning, check again if we have a valid key
+        // and if not then it indicates that both RSA and EC keys
+        // are null, thus we must have the original single key
+        // specified, so that's what we'll return.
+
+        ServerPrivateKey serverPrivateKey;
+        switch (keyType) {
+            case ZTSConsts.RSA:
+                serverPrivateKey = ztsImpl.privateRSAKey;
+                if (serverPrivateKey == null) {
+                    serverPrivateKey = ztsImpl.privateECKey;
+                }
+                break;
+            case ZTSConsts.EC:
+            default:
+                serverPrivateKey = ztsImpl.privateECKey;
+                if (serverPrivateKey == null) {
+                    serverPrivateKey = ztsImpl.privateRSAKey;
+                }
+                break;
+        }
+        if (serverPrivateKey == null) {
+            serverPrivateKey = ztsImpl.privateOrigKey;
+        }
+        return serverPrivateKey;
     }
 }
