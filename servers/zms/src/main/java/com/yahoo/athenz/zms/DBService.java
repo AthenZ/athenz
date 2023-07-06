@@ -468,7 +468,6 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updatePolicy(domainName, policy);
         }
 
-        requestSuccess = processPolicyTags(policy, policyName, domainName, originalPolicy, con) || requestSuccess;
         // if we didn't update any policies then we need to return failure
 
         if (!requestSuccess) {
@@ -525,6 +524,9 @@ public class DBService implements RolesProvider {
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
         }
 
+        if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
+            return false;
+        }
 
         auditDetails.append('}');
         return true;
@@ -623,7 +625,6 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updateRole(domainName, role);
         }
 
-        requestSuccess = processRoleTags(role, roleName, domainName, originalRole, con) || requestSuccess;
         // if we didn't update any roles then we need to return failure
 
         if (!requestSuccess) {
@@ -660,7 +661,9 @@ public class DBService implements RolesProvider {
             }
         }
 
-
+        if (!processRoleTags(role, roleName, domainName, originalRole, con)) {
+            return false;
+        }
 
         auditDetails.append('}');
         return true;
@@ -690,7 +693,6 @@ public class DBService implements RolesProvider {
             requestSuccess = con.updateGroup(domainName, group);
         }
 
-        requestSuccess = processGroupTags(group, groupName, domainName, originalGroup, con) || requestSuccess;
         // if we didn't update any groups then we need to return failure
 
         if (!requestSuccess) {
@@ -728,6 +730,9 @@ public class DBService implements RolesProvider {
             }
         }
 
+        if (!processGroupTags(group, groupName, domainName, originalGroup, con)) {
+            return false;
+        }
 
         auditDetails.append('}');
         return true;
@@ -747,14 +752,14 @@ public class DBService implements RolesProvider {
                                 BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp,
                                 BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp) {
         
-        if (currentTags != null) {
+        if (currentTags != null && !currentTags.isEmpty()) {
             if (originalTags == null) {
                 return insertOp.apply(con, currentTags);
             } else {
                 return processUpdateTags(currentTags, originalTags, con, insertOp, deleteOp);
             }
         }
-        return false;
+        return true;
     }
 
     boolean processUpdateTags(Map<String, TagValueList> currentTags, Map<String, TagValueList> originalTags,
@@ -764,7 +769,7 @@ public class DBService implements RolesProvider {
         if (originalTags == null || originalTags.isEmpty()) {
             if (currentTags == null || currentTags.isEmpty()) {
                 // no tags to process..
-                return false;
+                return true;
             }
             return insertOp.apply(con, currentTags);
         }
@@ -780,7 +785,7 @@ public class DBService implements RolesProvider {
                         || !originalTags.get(curTag.getKey()).equals(curTag.getValue()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         
-        return (tagsToRemove.size() > 0 || tagsToAdd.size() > 0) && deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
+        return deleteOp.apply(con, tagsToRemove) && insertOp.apply(con, tagsToAdd);
     }
 
     void mergeOriginalRoleAndMetaRoleAttributes(Role originalRole, Role templateRole) {
@@ -3657,16 +3662,14 @@ public class DBService implements RolesProvider {
                     updateDomainMetaFields(updatedDomain, meta);
                 }
 
-                boolean domainChanged = con.updateDomain(updatedDomain);
-
-                domainChanged = processDomainTags(con, meta.getTags(), domain, domainName, true) || domainChanged;
+                con.updateDomain(updatedDomain);
 
                 // if we're only updating our tags then we need to explicitly
                 // update our domain last mod timestamp since it won't be
                 // updated during the updateDomain call if there are no other
                 // changes present in the request
 
-                if (!domainChanged) {
+                if (!processDomainTags(con, meta.getTags(), domain, domainName, true)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError(caller + "Unable to update tags", caller);
                 }
@@ -3709,10 +3712,6 @@ public class DBService implements RolesProvider {
 
     private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
             Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
-
-        if (originalDomain == null && domainTags == null) {
-            return true;
-        }
 
         BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
         BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);

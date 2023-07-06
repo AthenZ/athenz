@@ -10913,11 +10913,18 @@ public class DBServiceTest {
         ArgumentCaptor<String> roleCapture = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
-        Mockito.verify(conn, times(0)).deleteRoleTags(roleCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        Mockito.verify(conn, times(1)).deleteRoleTags(roleCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newRole", roleCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
-        Mockito.verify(conn, times(1)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        Mockito.verify(conn, times(2)).insertRoleTags(roleCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals("newRole", roleCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.isEmpty());
 
         // assert first tag insertion
         Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
@@ -11198,11 +11205,11 @@ public class DBServiceTest {
         ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
-        Mockito.verify(conn, times(0)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
+        Mockito.verify(conn, times(1)).deleteDomainTags(domainCapture.capture(), tagCapture.capture());
 
         // assert tags to add is empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
-        Mockito.verify(conn, times(1)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
+        Mockito.verify(conn, times(2)).insertDomainTags(domainCapture.capture(), tagInsertCapture.capture());
 
         // assert first tag insertion
         Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
@@ -11656,11 +11663,18 @@ public class DBServiceTest {
         ArgumentCaptor<String> groupCapture = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> domainCapture = ArgumentCaptor.forClass(String.class);
 
-        Mockito.verify(conn, times(0)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        Mockito.verify(conn, times(1)).deleteGroupTags(groupCapture.capture(), domainCapture.capture(), tagCapture.capture());
+        assertEquals("newGroup", groupCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        assertTrue(tagCapture.getValue().isEmpty());
 
         // assert tags to add should be empty
         ArgumentCaptor<Map<String, TagValueList>> tagInsertCapture = ArgumentCaptor.forClass(Map.class);
-        Mockito.verify(conn, times(1)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        Mockito.verify(conn, times(2)).insertGroupTags(groupCapture.capture(), domainCapture.capture(), tagInsertCapture.capture());
+        assertEquals("newGroup", groupCapture.getValue());
+        assertEquals("sys.auth", domainCapture.getValue());
+        Map<String, TagValueList> resultInsertTags = tagInsertCapture.getAllValues().get(1);
+        assertTrue(resultInsertTags.isEmpty());
 
         // asert first tag insertion
         Map<String, TagValueList> resultFirstInsertTags = tagInsertCapture.getAllValues().get(0);
@@ -12141,10 +12155,10 @@ public class DBServiceTest {
 
     @Test
     public void testProcessNoTags() {
-        assertFalse(zms.dbService.processUpdateTags(null, null, null, null, null));
-        assertFalse(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null));
-        assertFalse(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null));
-        assertFalse(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
     }
 
     @Test
@@ -12289,7 +12303,7 @@ public class DBServiceTest {
         // process the same policy again with the same tags
         Policy newPolicy = new Policy().setName("policy").setTags(newPolicyTags);
 
-        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(false);
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
         Mockito.when(conn.deletePolicyTags(anyString(), anyString(), anySet(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicyTags(anyString(), anyString(), anyMap(), any())).thenReturn(true);
 
