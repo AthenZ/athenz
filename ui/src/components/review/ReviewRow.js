@@ -85,10 +85,18 @@ export default class ReviewRow extends React.Component {
         let member = this.props.details;
         let color = this.props.color;
         let exp = member.expiration
-            ? this.localDate.getLocalDate(member.expiration, 'UTC', 'UTC')
+            ? this.localDate.getLocalDate(
+                member.expiration,
+                this.props.timeZone,
+                this.props.timeZone
+            )
             : 'N/A';
         let reminder = member.reviewReminder
-            ? this.localDate.getLocalDate(member.reviewReminder, 'UTC', 'UTC')
+            ? this.localDate.getLocalDate(
+                member.reviewReminder,
+                this.props.timeZone,
+                this.props.timeZone
+            )
             : 'N/A';
 
         rows.push(

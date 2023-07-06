@@ -20,12 +20,13 @@ import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleRow', () => {
     it('should render', () => {
-        let details = {
+        const details = {
             name: 'athens:role.ztssia_cert_rotate',
             modified: '2017-08-03T18:44:41.867Z',
         };
-        let domain = 'domain';
-        let color = colors.row;
+        const domain = 'domain';
+        const color = colors.row;
+        const timeZone = 'UTC';
         const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
@@ -33,6 +34,7 @@ describe('RoleRow', () => {
                         details={details}
                         domain={domain}
                         color={color}
+                        timeZone={timeZone}
                     />
                 </tbody>
             </table>

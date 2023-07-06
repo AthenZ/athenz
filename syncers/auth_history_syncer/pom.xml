@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.yahoo.athenz</groupId>
         <artifactId>athenz</artifactId>
-        <version>1.11.32-SNAPSHOT</version>
+        <version>1.11.34-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -33,7 +33,7 @@
 
     <properties>
         <code.coverage.min>0.7738</code.coverage.min>
-        <aws.dynamodb.local.version>1.21.1</aws.dynamodb.local.version>
+        <aws.dynamodb.local.version>1.22.0</aws.dynamodb.local.version>
         <sqlite4java.version>1.0.392</sqlite4java.version>
         <junit.version>4.13.2</junit.version>
     </properties>

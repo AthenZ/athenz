@@ -21,23 +21,26 @@ import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('RoleTable', () => {
     it('should render', () => {
-        let domains = [];
-        let roles = [];
+        const domains = [];
         domains.push('dom1');
         domains.push('dom2');
         domains.push('dom3');
         domains.push('dom4');
-        let role1 = {
+
+        const roles = [];
+        const role1 = {
             name: 'a',
         };
-
-        let role2 = {
+        const role2 = {
             name: 'b',
         };
         roles.push(role1);
         roles.push(role2);
+
+        const timeZone = 'UTC';
+
         const { getByTestId } = renderWithRedux(
-            <RoleTable roles={roles} domain={domains} />
+            <RoleTable roles={roles} domain={domains} timeZone={timeZone} />
         );
         const roletable = getByTestId('roletable');
 

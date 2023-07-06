@@ -44,6 +44,7 @@ class JsonConnectionLogWriter {
                 writeOptionalSeconds(generator, "duration", unwrap(record.durationSeconds()));
                 writeOptionalString(generator, "peerAddress", unwrap(record.peerAddress()));
                 writeOptionalInteger(generator, "peerPort", unwrap(record.peerPort()));
+                writeOptionalString(generator, "athenzPrincipal", unwrap(record.athenzPrincipal()));
 
                 String sslHandshakeFailureException = unwrap(record.sslHandshakeFailureException());
                 String sslHandshakeFailureMessage = unwrap(record.sslHandshakeFailureMessage());

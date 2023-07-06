@@ -24644,11 +24644,11 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
 
-        // include coretech in the skip domain list and try
+        // include coretech and rbac in the skip domain list and try
         // the operation again
 
         System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS,
-                "unix,coretech");
+                "unix,coretech,rbac.*");
         zmsImpl.loadConfigurationSettings();
         zmsImpl.validateServiceRoleMembers = dynamicConfigBoolean;
 
@@ -24666,6 +24666,11 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        // rbac.sre does not exists, but is accepted because rbac.* is included in skipDomains
+
+        zmsImpl.validateRoleMemberPrincipal("rbac.sre.backend", Principal.Type.SERVICE.getValue(),
+                null, null, null ,false, "unittest");
 
         // user principals by default are accepted
 
@@ -25036,6 +25041,8 @@ public class ZMSImplTest {
         members.add(new RoleMember().setMemberName("athenz:group.ops-team")
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
                 .setPrincipalType(Principal.Type.GROUP.getValue()));
+        members.add(new RoleMember().setMemberName("user-headless.api").setExpiration(null)
+                .setPrincipalType(Principal.Type.USER_HEADLESS.getValue()));
 
         // for user members we have 50/125 setup while for service members 75/150
 
@@ -25046,23 +25053,33 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         zmsImpl.updateRoleMemberExpiration(memberDueDays, members);
 
+        assertEquals(members.get(0).getMemberName(), "user.joe");
         Timestamp stamp = members.get(0).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
+        assertEquals(members.get(1).getMemberName(), "user.jane");
         stamp = members.get(1).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
+        assertEquals(members.get(2).getMemberName(), "athenz.api");
         stamp = members.get(2).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
 
+        assertEquals(members.get(3).getMemberName(), "athenz.backend");
         stamp = members.get(3).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
+        assertEquals(members.get(4).getMemberName(), "athenz:group.dev-team");
         stamp = members.get(4).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext125Millis));
 
+        assertEquals(members.get(5).getMemberName(), "athenz:group.ops-team");
         stamp = members.get(5).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
+
+        assertEquals(members.get(6).getMemberName(), "user-headless.api");
+        stamp = members.get(6).getExpiration();
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
     }
 
     @Test
@@ -25087,6 +25104,8 @@ public class ZMSImplTest {
         members.add(new RoleMember().setMemberName("athenz:group.ops-team")
                 .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() + ext100Millis))
                 .setPrincipalType(Principal.Type.GROUP.getValue()));
+        members.add(new RoleMember().setMemberName("user-headless.api").setExpiration(null)
+                .setPrincipalType(Principal.Type.USER_HEADLESS.getValue()));
 
         // for user members we have 0 setup while for service members 75/150
 
@@ -25097,21 +25116,31 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         zmsImpl.updateRoleMemberExpiration(memberDueDays, members);
 
+        assertEquals(members.get(0).getMemberName(), "user.joe");
         assertNull(members.get(0).getExpiration());
 
+        assertEquals(members.get(1).getMemberName(), "user.jane");
         Timestamp stamp = members.get(1).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
+        assertEquals(members.get(2).getMemberName(), "athenz.api");
         stamp = members.get(2).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
 
+        assertEquals(members.get(3).getMemberName(), "athenz.backend");
         stamp = members.get(3).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
 
+        assertEquals(members.get(4).getMemberName(), "athenz:group.dev-team");
         assertNull(members.get(4).getExpiration());
 
+        assertEquals(members.get(5).getMemberName(), "athenz:group.ops-team");
         stamp = members.get(5).getExpiration();
         assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext100Millis));
+
+        assertEquals(members.get(6).getMemberName(), "user-headless.api");
+        stamp = members.get(6).getExpiration();
+        assertTrue(ZMSTestUtils.validateDueDate(stamp.millis(), ext150Millis));
     }
 
     @Test

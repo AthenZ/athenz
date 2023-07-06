@@ -306,6 +306,7 @@ class MemberRow extends React.Component {
                             <GroupMemberList
                                 member={member}
                                 groupName={member.memberName}
+                                timeZone={this.props.timeZone}
                             />
                         </StyledMenu>
                     </GroupTDStyled>
@@ -323,8 +324,8 @@ class MemberRow extends React.Component {
                         {member.expiration
                             ? this.localDate.getLocalDate(
                                   member.expiration,
-                                  'UTC',
-                                  'UTC'
+                                  this.props.timeZone,
+                                  this.props.timeZone
                               )
                             : 'N/A'}
                         <Menu
@@ -352,8 +353,8 @@ class MemberRow extends React.Component {
                             {member.reviewReminder
                                 ? this.localDate.getLocalDate(
                                       member.reviewReminder,
-                                      'UTC',
-                                      'UTC'
+                                      this.props.timeZone,
+                                      this.props.timeZone
                                   )
                                 : 'N/A'}
                             <Menu

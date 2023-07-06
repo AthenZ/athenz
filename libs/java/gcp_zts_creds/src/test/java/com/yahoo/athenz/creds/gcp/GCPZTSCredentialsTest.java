@@ -77,6 +77,45 @@ public class GCPZTSCredentialsTest {
 
         builder.setTokenLifetimeSeconds(600);
         builder.setTokenLifetimeSeconds(43200);
+
+        try {
+            builder.setProxyPort(-5);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        try {
+            builder.setProxyPort(65536);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        builder.setProxyPort(4443);
+        builder.setProxyPort(0);
+        builder.setProxyPort(65535);
+    }
+
+    @Test
+    public void testBuilderWithProxy() {
+
+        // with null proxy host
+
+        GCPZTSCredentials.Builder builder = createBuilder();
+        builder.setProxyHost(null);
+        builder.setProxyPort(4443);
+        assertNotNull(builder.build());
+
+        // with empty proxy host
+
+        builder.setProxyHost("");
+        builder.setProxyPort(4443);
+        assertNotNull(builder.build());
+
+        // with valid hostname
+
+        builder.setProxyHost("athenz.io");
+        builder.setProxyPort(4443);
+        assertNotNull(builder.build());
     }
 
     @Test
@@ -141,7 +180,8 @@ public class GCPZTSCredentialsTest {
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                 keyRefresher.getTrustManagerProxy());
 
-        GCPZTSCredentials.AthenztHttpTransportFactory factory = new GCPZTSCredentials.AthenztHttpTransportFactory(sslContext);
+        GCPZTSCredentials.AthenztHttpTransportFactory factory =
+                new GCPZTSCredentials.AthenztHttpTransportFactory(sslContext, null);
         assertNotNull(factory);
         assertNotNull(factory.create());
         keyRefresher.shutdown();

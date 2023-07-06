@@ -109,8 +109,8 @@ class ServiceRow extends React.Component {
                 <TdStyled color={color} align={left}>
                     {this.localDate.getLocalDate(
                         this.props.modified,
-                        'UTC',
-                        'UTC'
+                        this.props.timeZone,
+                        this.props.timeZone
                     )}
                 </TdStyled>
                 {this.props.featureFlag ? (

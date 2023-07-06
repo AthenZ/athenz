@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 
 class ZMS extends ResourceConfig {
     public ZMS() {
@@ -25,5 +26,6 @@ class ZMS extends ResourceConfig {
         register(JsonProcessingExceptionMapper.class, 1);
         register(ZMSResources.class);
         register(ZMSBinder.getInstance());
+        property(ServerProperties.WADL_FEATURE_DISABLE, true);
     }
 }

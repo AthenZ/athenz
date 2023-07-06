@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import InstanceTable from '../../../components/service/InstanceTable';
 import API from '../../../api';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('InstanceTable', () => {
     it('should render', () => {
-        let domain = 'test.domain';
-        let _csrf = '_csrfToken';
-        let api = API();
-        let instances = [
+        const domain = 'test.domain';
+        const _csrf = '_csrfToken';
+        const api = API();
+        const timeZone = 'UTC';
+        const instances = [
             {
                 domainName: null,
                 serviceName: null,
@@ -41,10 +41,11 @@ describe('InstanceTable', () => {
                 domain={domain}
                 _csrf={_csrf}
                 category={'dynamic'}
+                timeZone={timeZone}
             />
         );
         const instanceTable = getByTestId('instancetable');
 
         expect(instanceTable).toMatchSnapshot();
-    });
+   });
 });

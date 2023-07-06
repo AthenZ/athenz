@@ -22,9 +22,11 @@ public final class ZMSConsts {
 
     // System property names with defaults(where applicable)
 
-    public static final String ZMS_PROP_USER_DOMAIN       = "athenz.user_domain";
-    public static final String ZMS_PROP_HOME_DOMAIN       = "athenz.home_domain";
-    public static final String ZMS_PROP_USER_DOMAIN_ALIAS = "athenz.user_domain_alias";
+    public static final String ZMS_PROP_USER_DOMAIN          = "athenz.user_domain";
+    public static final String ZMS_PROP_HOME_DOMAIN          = "athenz.home_domain";
+    public static final String ZMS_PROP_HEADLESS_USER_DOMAIN = "athenz.headless_user_domain";
+    public static final String ZMS_PROP_USER_DOMAIN_ALIAS    = "athenz.user_domain_alias";
+
     public static final String ZMS_PROP_HTTP_PORT         = "athenz.port";
     public static final String ZMS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZMS_PROP_STATUS_PORT       = "athenz.status_port";
@@ -403,4 +405,8 @@ public final class ZMSConsts {
     //pending member
     public static final String PENDING_REQUEST_ADD_STATE = "ADD";
     public static final String PENDING_REQUEST_DELETE_STATE = "DELETE";
+
+    public static final String ZMS_PROP_JSON_MAX_NESTING_DEPTH = "athenz.zms.json_max_nesting_depth";
+    public static final String ZMS_PROP_JSON_MAX_NUMBER_LENGTH = "athenz.zms.json_max_number_length";
+    public static final String ZMS_PROP_JSON_MAX_STRING_LENGTH = "athenz.zms.json_max_string_length";
 }

@@ -209,8 +209,8 @@ class InstanceRow extends React.Component {
                     <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.certExpiryTime,
-                            'UTC',
-                            'UTC'
+                            this.props.timeZone,
+                            this.props.timeZone
                         )}
                     </TDStyled>
                 )}
@@ -218,8 +218,8 @@ class InstanceRow extends React.Component {
                     <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.updateTime,
-                            'UTC',
-                            'UTC'
+                            this.props.timeZone,
+                            this.props.timeZone
                         )}
                     </TDStyled>
                 )}
@@ -232,8 +232,8 @@ class InstanceRow extends React.Component {
                     <TDStyled color={color} align={left}>
                         {this.localDate.getLocalDate(
                             details.updateTime,
-                            'UTC',
-                            'UTC'
+                            this.props.timeZone,
+                            this.props.timeZone
                         )}
                     </TDStyled>
                 )}

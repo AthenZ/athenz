@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
 import com.oath.auth.KeyRefresherException;
@@ -181,10 +182,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
     protected DynamicConfigBoolean allowUnderscoreInServiceNames;
     protected boolean useMasterCopyForSignedDomains = false;
-    protected Set<String> validateServiceMemberSkipDomains;
+    protected List<String> validateServiceMemberSkipDomains;
     protected static Validator validator;
     protected String userDomain;
     protected String userDomainPrefix;
+    protected String headlessUserDomain;
+    protected String headlessUserDomainPrefix;
     protected String homeDomain;
     protected String homeDomainPrefix;
     protected String userDomainAlias;
@@ -596,7 +599,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // create our json mapper
 
-        jsonMapper = new ObjectMapper();
+        loadJsonMapper();
 
         // before we do anything we need to load our configuration
         // settings
@@ -686,6 +689,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         
         loadDomainChangePublisher();
 
+    }
+
+    void loadJsonMapper() {
+
+        int maxNestingDepth = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_JSON_MAX_NESTING_DEPTH, "1000"));
+        int maxNumberLength = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_JSON_MAX_NUMBER_LENGTH, "1000"));
+        int maxStringLength = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_JSON_MAX_STRING_LENGTH, "200000000"));
+
+        final StreamReadConstraints streamReadConstraints = StreamReadConstraints.builder()
+                .maxNestingDepth(maxNestingDepth)
+                .maxNumberLength(maxNumberLength)
+                .maxStringLength(maxStringLength).build();
+        StreamReadConstraints.overrideDefaultStreamReadConstraints(streamReadConstraints);
+
+        jsonMapper = new ObjectMapper();
     }
 
     void loadDomainChangePublisher() {
@@ -789,6 +807,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             userDomainAliasPrefix = userDomainAlias + ".";
         }
 
+        headlessUserDomain = System.getProperty(ZMSConsts.ZMS_PROP_HEADLESS_USER_DOMAIN, userDomain);
+        headlessUserDomainPrefix = headlessUserDomain + ".";
+
         final String addlUserCheckDomains = System.getProperty(ZMSConsts.ZMS_PROP_ADDL_USER_CHECK_DOMAINS);
         if (!StringUtil.isEmpty(addlUserCheckDomains)) {
             String[] checkDomains = addlUserCheckDomains.split(",");
@@ -825,7 +846,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String skipDomains = System.getProperty(
                 ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS, "");
-        validateServiceMemberSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        validateServiceMemberSkipDomains = Arrays.asList(skipDomains.split(","));
         allowUnderscoreInServiceNames = new DynamicConfigBoolean(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_ALLOW_UNDERSCORE_IN_SERVICE_NAMES, Boolean.FALSE);
 
@@ -928,6 +949,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         reservedSystemDomains.add("sys.auth.audit.domain");
         reservedSystemDomains.add(userDomain);
         reservedSystemDomains.add(homeDomain);
+        reservedSystemDomains.add(headlessUserDomain);
 
         // set up our reserved top level domain names. we will not allow any top level
         // domains to be created with these values
@@ -961,6 +983,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setUserDomain(userDomain);
         zmsConfig.setAddlUserCheckDomainPrefixList(addlUserCheckDomainPrefixList);
         zmsConfig.setUserDomainPrefix(userDomainPrefix);
+        zmsConfig.setHeadlessUserDomainPrefix(headlessUserDomainPrefix);
         zmsConfig.setServerHostName(serverHostName);
         zmsConfig.setServerSolutionTemplates(serverSolutionTemplates);
         zmsConfig.setUserAuthority(userAuthority);
@@ -1281,6 +1304,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (!homeDomain.equals(userDomain)) {
             domain = new Domain().setName(homeDomain).setDescription("The reserved domain for personal user domains")
+                    .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
+            createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
+        }
+        if (!headlessUserDomain.equals(userDomain)) {
+            domain = new Domain().setName(headlessUserDomain).setDescription("The reserved domain for headless users")
                     .setId(UUID.fromCurrentTime()).setModified(Timestamp.fromCurrentTime());
             createTopLevelDomain(null, domain, adminUsers, null, "System Setup");
         }
@@ -3666,7 +3694,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     int principalType(final String principalName) {
-        return ZMSUtils.principalType(principalName, userDomainPrefix, addlUserCheckDomainPrefixList).getValue();
+        return ZMSUtils.principalType(principalName, userDomainPrefix, addlUserCheckDomainPrefixList, headlessUserDomainPrefix).getValue();
     }
 
     String normalizeDomainAliasUser(String user) {
@@ -3977,10 +4005,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // are typically domains (like for ci/cd) where services
         // are dynamic and do not need to be registered in Athenz
 
-        if (!validateServiceMemberSkipDomains.contains(domainName)) {
-            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
-                throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
+        for (String skipDomain : validateServiceMemberSkipDomains) {
+            // first, we perform validation using wildcards
+            if (skipDomain.endsWith("*")) {
+                String skipDomainPrefix = skipDomain.substring(0, skipDomain.length() - 1);
+                if (domainName.startsWith(skipDomainPrefix)) {
+                    return;
+                }
+            } else if (skipDomain.equals(domainName)) {
+                // if skipDomain doesn't have wildcard, we conduct a perfect match search
+                return;
             }
+        }
+        // if it reaches here, check if the service exists
+        if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not a valid service", caller);
         }
     }
 
@@ -4017,6 +4056,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (Principal.Type.getType(principalType)) {
 
             case USER:
+            case USER_HEADLESS:
 
                 // if the account contains a wildcard then we're going
                 // to let the user authority decide if it's valid or not
@@ -4065,6 +4105,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (Principal.Type.getType(principalType)) {
 
             case USER:
+            case USER_HEADLESS:
 
                 // for group members we always validate all members
 
@@ -4261,6 +4302,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     }
                     break;
                 case SERVICE:
+                case USER_HEADLESS:
                     if (cfgServiceMemberDueDateMillis != 0) {
                         Timestamp newDueDate = getMemberDueDate(cfgServiceMemberDueDateMillis, currentDueDate);
                         dueDateSetter.accept(member, newDueDate);
@@ -4442,6 +4484,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case SERVICE:
+            case USER_HEADLESS:
 
                 roleMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                         role.getServiceExpiryDays(), membership.getExpiration()));
@@ -4465,6 +4508,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case SERVICE:
+            case USER_HEADLESS:
                 roleMember.setReviewReminder(memberDueDateTimestamp(null,
                         role.getServiceReviewDays(), membership.getReviewReminder()));
                 break;
@@ -8999,7 +9043,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (RoleMember roleMember : ZMSUtils.emptyIfNull(role.getRoleMembers())) {
 
             final String memberName = roleMember.getMemberName();
-            if (ZMSUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList) != Principal.Type.GROUP) {
+            if (ZMSUtils.principalType(memberName, userDomainPrefix, addlUserCheckDomainPrefixList,
+                    headlessUserDomainPrefix) != Principal.Type.GROUP) {
                 continue;
             }
 
@@ -9898,6 +9943,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 break;
 
             case SERVICE:
+            case USER_HEADLESS:
 
                 groupMember.setExpiration(memberDueDateTimestamp(domain.getDomain().getServiceExpiryDays(),
                         group.getServiceExpiryDays(), membership.getExpiration()));

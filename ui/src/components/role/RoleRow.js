@@ -267,14 +267,18 @@ class RoleRow extends React.Component {
                     {roleNameSpan}
                 </TDStyledName>
                 <TDStyledTime color={color} align={left}>
-                    {this.localDate.getLocalDate(role.modified, 'UTC', 'UTC')}
+                    {this.localDate.getLocalDate(
+                        role.modified,
+                        this.props.timeZone,
+                        this.props.timeZone
+                    )}
                 </TDStyledTime>
                 <TDStyledTime color={color} align={left}>
                     {role.lastReviewedDate
                         ? this.localDate.getLocalDate(
                               role.lastReviewedDate,
-                              'UTC',
-                              'UTC'
+                              this.props.timeZone,
+                              this.props.timeZone
                           )
                         : 'N/A'}
                 </TDStyledTime>

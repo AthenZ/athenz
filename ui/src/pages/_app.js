@@ -18,8 +18,16 @@ import 'flatpickr/dist/themes/light.css';
 import 'denali-css/css/denali.css';
 import { wrapper } from '../redux/store';
 import { Provider } from 'react-redux';
+import { useEffect } from 'react';
+import { getTimeZone } from '../redux/thunks/domains';
+
 function MyApp({ Component, pageProps }) {
     const { store } = wrapper.useWrappedStore(pageProps);
+
+    useEffect(() => {
+        store.dispatch(getTimeZone());
+    }, []);
+
     return (
         <Provider store={store}>
             <Component {...pageProps} />;

@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.11.32-SNAPSHOT</version>
+    <version>1.11.34-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -29,7 +29,7 @@
   <properties>
     <jmh.version>1.35</jmh.version>
     <mock.server.version>5.15.0</mock.server.version>
-    <commons.io.version>2.11.0</commons.io.version>
+    <commons.io.version>2.13.0</commons.io.version>
     <uberjar.name>benchmarks</uberjar.name>
     <code.coverage.min>0.8590</code.coverage.min>
   </properties>

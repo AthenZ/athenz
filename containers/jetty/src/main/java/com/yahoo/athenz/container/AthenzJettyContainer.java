@@ -16,20 +16,19 @@
 
 package com.yahoo.athenz.container;
 
-import java.io.File;
-import java.net.InetAddress;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-
-import jakarta.servlet.DispatcherType;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
+import com.yahoo.athenz.common.server.log.jetty.AthenzConnectionListener;
+import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderAwsParametersStore;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
+import com.yahoo.athenz.container.filter.HealthCheckFilter;
+import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
 import org.eclipse.jetty.deploy.bindings.DebugListenerBinding;
@@ -54,11 +53,11 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.auth.PrivateKeyStoreFactory;
-import com.yahoo.athenz.common.server.util.ConfigProperties;
-import com.yahoo.athenz.container.filter.HealthCheckFilter;
-import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
+import java.io.File;
+import java.net.InetAddress;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
@@ -457,6 +456,10 @@ public class AthenzJettyContainer {
         if (connectionLogger != null) {
             sslConnector.addBean(connectionLogger);
         }
+        
+        // Listen to when HTTP connections open/close/handshake.
+        sslConnector.addBean(new AthenzConnectionListener());
+        
         server.addConnector(sslConnector);
 
         // Reload the key-store if the file is changed

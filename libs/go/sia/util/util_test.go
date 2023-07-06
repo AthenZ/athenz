@@ -1263,3 +1263,94 @@ func TestParseScriptArguments(t *testing.T) {
 		})
 	}
 }
+
+func TestGetCertKeyFileName(t *testing.T) {
+
+	tests := []struct {
+		name       string
+		keyFile    string
+		certFile   string
+		keyDir     string
+		certDir    string
+		keyPrefix  string
+		certPrefix string
+		scriptPath string
+		resultKey  string
+		resultCert string
+	}{
+		{
+			name:       "non-empty full-path key/cert files",
+			keyFile:    "/var/athenz/key.pem",
+			certFile:   "/var/athenz/cert.pem",
+			keyDir:     "not-used",
+			certDir:    "not-used",
+			keyPrefix:  "not-used",
+			certPrefix: "not-used",
+			resultKey:  "/var/athenz/key.pem",
+			resultCert: "/var/athenz/cert.pem",
+		},
+		{
+			name:       "empty key file and full-path cert file",
+			keyFile:    "",
+			certFile:   "/var/athenz/cert.pem",
+			keyDir:     "/var/test1",
+			certDir:    "not-used",
+			keyPrefix:  "key-prefix",
+			certPrefix: "not-used",
+			resultKey:  "/var/test1/key-prefix.key.pem",
+			resultCert: "/var/athenz/cert.pem",
+		},
+		{
+			name:       "non-empty full-path key file and cert file",
+			keyFile:    "/var/athenz/key.pem",
+			certFile:   "cert-file",
+			keyDir:     "not-used",
+			certDir:    "/var/test2",
+			keyPrefix:  "not-used",
+			certPrefix: "not-used",
+			resultKey:  "/var/athenz/key.pem",
+			resultCert: "/var/test2/cert-file",
+		},
+		{
+			name:       "empty key file and full-path cert file",
+			keyFile:    "",
+			certFile:   "cert-file",
+			keyDir:     "/var/test1",
+			certDir:    "/var/test2",
+			keyPrefix:  "key-prefix",
+			certPrefix: "not-used",
+			resultKey:  "/var/test1/key-prefix.key.pem",
+			resultCert: "/var/test2/cert-file",
+		},
+		{
+			name:       "empty key and cert files",
+			keyFile:    "",
+			certFile:   "",
+			keyDir:     "/var/test3",
+			certDir:    "/var/test4",
+			keyPrefix:  "key-prefix",
+			certPrefix: "cert-prefix",
+			resultKey:  "/var/test3/key-prefix.key.pem",
+			resultCert: "/var/test4/cert-prefix.cert.pem",
+		},
+		{
+			name:       "non-empty full-path key file and empty cert files",
+			keyFile:    "/var/athenz/key.pem",
+			certFile:   "",
+			keyDir:     "not-used",
+			certDir:    "/var/test4",
+			keyPrefix:  "not-used",
+			certPrefix: "cert-prefix",
+			resultKey:  "/var/athenz/key.pem",
+			resultCert: "/var/test4/cert-prefix.cert.pem",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			keyFile, certFile := getCertKeyFileName(tt.keyFile, tt.certFile, tt.keyDir, tt.certDir, tt.keyPrefix, tt.certPrefix)
+			assert.Equal(t, tt.resultKey, keyFile)
+			assert.Equal(t, tt.resultCert, certFile)
+		})
+	}
+}

@@ -495,8 +495,8 @@ export class PolicyRow extends React.Component {
                 <TdStyled align={left} width={'20%'}>
                     {this.localDate.getLocalDate(
                         this.state.modified,
-                        'UTC',
-                        'UTC'
+                        this.props.timeZone,
+                        this.props.timeZone
                     )}
                 </TdStyled>
                 {/*Rules*/}

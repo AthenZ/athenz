@@ -84,6 +84,7 @@ export default class InstanceTable extends React.Component {
                         onUpdateSuccess={this.props.onSubmit}
                         color={color}
                         key={item.uuid}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         category={this.props.category}
                     />

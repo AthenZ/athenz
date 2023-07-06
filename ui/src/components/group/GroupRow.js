@@ -220,14 +220,18 @@ class GroupRow extends React.Component {
                     {NameSpan}
                 </TDStyled>
                 <TDStyled color={color} align={center}>
-                    {this.localDate.getLocalDate(group.modified, 'UTC', 'UTC')}
+                    {this.localDate.getLocalDate(
+                        group.modified,
+                        this.props.timeZone,
+                        this.props.timeZone
+                    )}
                 </TDStyled>
                 <TDStyled color={color} align={center}>
                     {group.lastReviewedDate
                         ? this.localDate.getLocalDate(
                               group.lastReviewedDate,
-                              'UTC',
-                              'UTC'
+                              this.props.timeZone,
+                              this.props.timeZone
                           )
                         : 'N/A'}
                 </TDStyled>

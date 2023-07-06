@@ -13,7 +13,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
-	"strings"
+	"reflect"
 )
 
 var hash = crypto.SHA256
@@ -60,6 +60,20 @@ func NewSigner(privateKeyPEM []byte) (Signer, error) {
 			return nil, err
 		}
 		return &sign{key: key}, nil
+	case "PRIVATE KEY":
+		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil, err
+		}
+		switch k := key.(type) {
+		case *ecdsa.PrivateKey:
+			return &sign{key: k}, nil
+		case *rsa.PrivateKey:
+			return &sign{key: k}, nil
+		default:
+			// PKCS#8 format may contain multiple key types other than RSA / EC, but current ZMS / ZTS server implementation only supports RSA / EC private keys
+			return nil, fmt.Errorf("Unsupported private key type: %s", reflect.TypeOf(k).Name())
+		}
 	default:
 		return nil, fmt.Errorf("Unsupported private key type: %s", block.Type)
 	}
@@ -119,9 +133,6 @@ func NewVerifier(publicKeyPEM []byte) (Verifier, error) {
 	block, _ := pem.Decode(publicKeyPEM)
 	if block == nil {
 		return nil, fmt.Errorf("Unable to load public key")
-	}
-	if !strings.HasSuffix(block.Type, "PUBLIC KEY") {
-		return nil, fmt.Errorf("Invalid public key type: %s", block.Type)
 	}
 
 	xkey, err := x509.ParsePKIXPublicKey(block.Bytes)

@@ -23,6 +23,7 @@ import Alert from '../denali/Alert';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import DateUtils from '../utils/DateUtils';
 import { selectIsLoading } from '../../redux/selectors/loading';
+import { selectTimeZone } from '../../redux/selectors/domains';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
@@ -283,8 +284,8 @@ class CollectionHistoryList extends React.Component {
                     <TDStyled color={color} align={left}>
                         {this.dateUtils.getLocalDate(
                             item.created,
-                            'UTC',
-                            'UTC'
+                            this.props.timeZone,
+                            this.props.timeZone
                         )}
                     </TDStyled>
                     <TDStyled color={color} align={left}>
@@ -399,6 +400,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
+        timeZone: selectTimeZone(state),
     };
 };
 

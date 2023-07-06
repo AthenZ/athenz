@@ -131,6 +131,7 @@ public class DBServiceTest {
         System.setProperty(ZMS_PROP_PROVIDER_CERT_PATH, certPath);
         System.setProperty(ZMS_PROP_PROVIDER_TRUST_STORE, "test.truststore");
         System.setProperty(ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD, "test.truststore.password");
+        System.setProperty(ZMS_PROP_HEADLESS_USER_DOMAIN, "user-headless");
         initializeZms();
     }
 
@@ -6804,9 +6805,18 @@ public class DBServiceTest {
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
 
+        Group group1 = createGroupObject(domainName, "group1", "user.john", "user.jane");
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group1", group1, "test", false);
+
+        Group group2 = createGroupObject(domainName, "group2", null, null);
+        zms.dbService.executePutGroup(mockDomRsrcCtx, domainName, "group2", group2, "test", false);
+
+        long now = System.currentTimeMillis();
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
-        Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
-        role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true));
+        Timestamp timExpiry = Timestamp.fromMillis(now + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry)
+                .setApproved(true));
+        role1.getRoleMembers().add(new RoleMember().setMemberName("user-headless.api").setApproved(true));
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
 
         Role role2 = createRoleObject(domainName, "role2", null, "user.john", "user.jane");
@@ -6825,7 +6835,7 @@ public class DBServiceTest {
         Role resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
 
         // verify all users have an expiry of close to 40 days except tim who will maintain
-        // his 10 day expiry value
+        // his 10-day expiry value. the headless user and the group members are with no expiry
 
         long ext40Millis = TimeUnit.MILLISECONDS.convert(40, TimeUnit.DAYS);
 
@@ -6834,17 +6844,38 @@ public class DBServiceTest {
             switch (roleMember.getMemberName()) {
                 case "user.john":
                 case "user.jane":
-                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext40Millis - 5000 &&
-                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext40Millis + 5000);
+                    assertTrue(roleMember.getExpiration().millis() > now + ext40Millis - 5000 &&
+                            roleMember.getExpiration().millis() < now + ext40Millis + 5000);
                     membersChecked += 1;
                     break;
                 case "user.tim":
                     assertEquals(roleMember.getExpiration(), timExpiry);
                     membersChecked += 1;
                     break;
+                case "user-headless.api":
+                    assertNull(roleMember.getExpiration());
+                    membersChecked += 1;
+                    break;
             }
         }
-        assertEquals(membersChecked, 3);
+        assertEquals(membersChecked, 4);
+
+        // verify all group members have an expiry of close to 40 days
+
+        membersChecked = 0;
+        Group resGroup1 = zms.dbService.getGroup(domainName, "group1", false, false);
+
+        for (GroupMember groupMember : resGroup1.getGroupMembers()) {
+            switch (groupMember.getMemberName()) {
+                case "user.john":
+                case "user.jane":
+                    assertTrue(groupMember.getExpiration().millis() > now + ext40Millis - 5000 &&
+                            groupMember.getExpiration().millis() < now + ext40Millis + 5000);
+                    membersChecked += 1;
+                    break;
+            }
+        }
+        assertEquals(membersChecked, 2);
 
         // verify that all users in role2 have not changed since the role already
         // has an expiration
@@ -6863,15 +6894,16 @@ public class DBServiceTest {
         }
         assertEquals(membersChecked, 2);
 
-        // now reduce limit to 5 days
+        // now reduce limit to 5 days and set service to 40 days
 
         meta.setMemberExpiryDays(5);
+        meta.setServiceExpiryDays(40);
         metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
 
         resRole1 = zms.dbService.getRole(domainName, "role1", false, true, false);
 
-        // verify all users have an expiry of 5 days
+        // verify all users have an expiry of 5 days and headless user 40 days
 
         long ext5Millis = TimeUnit.MILLISECONDS.convert(5, TimeUnit.DAYS);
 
@@ -6881,13 +6913,18 @@ public class DBServiceTest {
                 case "user.john":
                 case "user.jane":
                 case "user.tim":
-                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext5Millis - 5000 &&
-                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext5Millis + 5000);
+                    assertTrue(roleMember.getExpiration().millis() > now + ext5Millis - 5000 &&
+                            roleMember.getExpiration().millis() < now + ext5Millis + 5000);
+                    membersChecked += 1;
+                    break;
+                case "user-headless.api":
+                    assertTrue(roleMember.getExpiration().millis() > now + ext40Millis - 5000 &&
+                            roleMember.getExpiration().millis() < now + ext40Millis + 5000);
                     membersChecked += 1;
                     break;
             }
         }
-        assertEquals(membersChecked, 3);
+        assertEquals(membersChecked, 4);
 
         // verify that all users in role2 have not changed since the role already
         // has an expiration
@@ -6920,8 +6957,8 @@ public class DBServiceTest {
                 case "user.john":
                 case "user.jane":
                 case "user.tim":
-                    assertTrue(roleMember.getExpiration().millis() > System.currentTimeMillis() + ext5Millis - 5000 &&
-                            roleMember.getExpiration().millis() < System.currentTimeMillis() + ext5Millis + 5000);
+                    assertTrue(roleMember.getExpiration().millis() > now + ext5Millis - 5000 &&
+                            roleMember.getExpiration().millis() < now + ext5Millis + 5000);
                     membersChecked += 1;
                     break;
             }
@@ -7718,15 +7755,19 @@ public class DBServiceTest {
         List<String> admins = new ArrayList<>();
         admins.add(adminUser);
 
-        Timestamp thirtyDayExpiry = Timestamp.fromMillis(System.currentTimeMillis()
-                + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
+        long now = System.currentTimeMillis();
+        Timestamp thirtyDayExpiry = Timestamp.fromMillis(now + TimeUnit.MILLISECONDS.convert(30, TimeUnit.DAYS)
+                + TimeUnit.MILLISECONDS.convert(2, TimeUnit.MINUTES));
 
         zms.dbService.makeDomain(mockDomRsrcCtx, ZMSTestUtils.makeDomainObject(domainName, "test desc", "org", false,
                 "", 1234, "", 0), admins, null, auditRef);
 
         Role role1 = createRoleObject(domainName, "role1", null, "user.john", "user.jane");
-        Timestamp timExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
-        role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry).setApproved(true).setActive(true));
+        role1.getRoleMembers().add(new RoleMember().setMemberName("user-headless.joe")
+                .setApproved(true).setActive(true));
+        Timestamp timExpiry = Timestamp.fromMillis(now + TimeUnit.MILLISECONDS.convert(10, TimeUnit.DAYS));
+        role1.getRoleMembers().add(new RoleMember().setMemberName("user.tim").setExpiration(timExpiry)
+                .setApproved(true).setActive(true));
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, "role1", role1, "test", "putrole", false);
 
         Role incomingRole = new Role().setName("role1");
@@ -7735,9 +7776,12 @@ public class DBServiceTest {
                 .setExpiration(thirtyDayExpiry).setPrincipalType(Principal.Type.USER.getValue()));
         incomingMembers.add(new RoleMember().setMemberName("user.jane").setActive(true)
                 .setExpiration(thirtyDayExpiry).setPrincipalType(Principal.Type.USER.getValue()));
+        incomingMembers.add(new RoleMember().setMemberName("user-headless.joe").setActive(true)
+                .setPrincipalType(Principal.Type.USER_HEADLESS.getValue()));
         incomingRole.setRoleMembers(incomingMembers);
 
-        MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), new Role().setMemberExpiryDays(10), MemberDueDays.Type.EXPIRY);
+        MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), new Role().setMemberExpiryDays(10),
+                MemberDueDays.Type.EXPIRY);
         MemberDueDays reminderDueDays = new MemberDueDays(new Domain(), new Role(), MemberDueDays.Type.REMINDER);
 
         zms.dbService.executePutRoleReview(mockDomRsrcCtx, domainName, "role1", incomingRole,
@@ -7745,7 +7789,7 @@ public class DBServiceTest {
 
         Role resRole = zms.dbService.getRole(domainName, "role1", false, false, false);
 
-        assertEquals(resRole.getRoleMembers().size(), 2);
+        assertEquals(resRole.getRoleMembers().size(), 3);
 
         int membersChecked = 0;
 
@@ -7762,9 +7806,14 @@ public class DBServiceTest {
                     assertEquals(roleMember.getExpiration(), timExpiry);
                     membersChecked += 1;
                     break;
+                case "user-headless.joe":
+                    // user-headless is processed as service so no changes
+                    assertNull(roleMember.getExpiration());
+                    membersChecked += 1;
+                    break;
             }
         }
-        assertEquals(membersChecked, 2);
+        assertEquals(membersChecked, 3);
         zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName, auditRef, "deletedomain");
     }
 
@@ -9708,18 +9757,20 @@ public class DBServiceTest {
 
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
-        // service users are not processed with regards to elevated-clearance
+        // service users are not processed with regard to elevated-clearance
 
         List<GroupMember> groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("sports.api"));
 
-        List<GroupMember> members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null, 0, "elevated-clearance");
+        List<GroupMember> members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null,
+                0, "elevated-clearance");
         assertTrue(members.isEmpty());
 
         // no expiry and no user filter - no changes
 
         groupMembers.clear();
         groupMembers.add(new GroupMember().setMemberName("user.john"));
+        groupMembers.add(new GroupMember().setMemberName("user-headless.joe"));
         members = zms.dbService.getGroupMembersWithUpdatedDueDates(groupMembers, null, 0, null, 0, null);
         assertTrue(members.isEmpty());
 
@@ -12248,5 +12299,13 @@ public class DBServiceTest {
         assertNull(zms.dbService.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
         assertEquals("athenz", zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"));
 
+    }
+
+    @Test
+    public void testProcessNoTags() {
+        assertTrue(zms.dbService.processUpdateTags(null, null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), null, null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(null, Collections.emptyMap(), null, null, null));
+        assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
     }
 }

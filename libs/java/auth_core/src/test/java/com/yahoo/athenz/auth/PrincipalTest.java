@@ -114,10 +114,14 @@ public class PrincipalTest {
         type = Principal.Type.GROUP;
         assertEquals(type.getValue(), 3);
 
+        type = Principal.Type.USER_HEADLESS;
+        assertEquals(type.getValue(), 4);
+
         assertEquals(Principal.Type.getType(0), Principal.Type.UNKNOWN);
         assertEquals(Principal.Type.getType(1), Principal.Type.USER);
         assertEquals(Principal.Type.getType(2), Principal.Type.SERVICE);
         assertEquals(Principal.Type.getType(3), Principal.Type.GROUP);
-        assertEquals(Principal.Type.getType(4), Principal.Type.UNKNOWN);
+        assertEquals(Principal.Type.getType(4), Principal.Type.USER_HEADLESS);
+        assertEquals(Principal.Type.getType(5), Principal.Type.UNKNOWN);
     }
 }

@@ -250,4 +250,12 @@ public final class ZTSConsts {
     public static final String ZTS_OPENID_RESPONSE_IT_ONLY    = "id_token";
     public static final String ZTS_OPENID_RESPONSE_BOTH_IT_AT = "id_token token";
     public static final String ZTS_OPENID_SUBJECT_TYPE_PUBLIC = "public";
+
+    public static final String ZTS_PROP_JSON_MAX_NESTING_DEPTH = "athenz.zts.json_max_nesting_depth";
+    public static final String ZTS_PROP_JSON_MAX_NUMBER_LENGTH = "athenz.zts.json_max_number_length";
+    public static final String ZTS_PROP_JSON_MAX_STRING_LENGTH = "athenz.zts.json_max_string_length";
+
+    public static final String ZTS_PROP_KEY_ALGO_JSON_WEB_OBJECTS    = "athenz.zts.key_algo_json_web_objects";
+    public static final String ZTS_PROP_KEY_ALGO_PROPRIETARY_OBJECTS = "athenz.zts.key_algo_proprietary_objects";
+    public static final String ZTS_PROP_KEY_ALGO_PLUGINS             = "athenz.zts.key_algo_plugins";
 }

@@ -14,30 +14,31 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
 import GroupTable from '../../../components/group/GroupTable';
-import API from '../../../api';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('GroupTable', () => {
     it('should render', () => {
-        let domains = [];
-        let groups = [];
+        const domains = [];
         domains.push('dom1');
         domains.push('dom2');
         domains.push('dom3');
         domains.push('dom4');
-        let group1 = {
+
+        const groups = [];
+        const group1 = {
             name: 'a',
         };
-
-        let group2 = {
+        const group2 = {
             name: 'b',
         };
         groups.push(group1);
         groups.push(group2);
+
+        const timeZone = 'UTC';
+
         const { getByTestId } = renderWithRedux(
-            <GroupTable groups={groups} domain={domains} />
+            <GroupTable groups={groups} domain={domains} timeZone={timeZone} />
         );
         const grouptable = getByTestId('grouptable');
 
