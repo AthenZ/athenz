@@ -3,9 +3,7 @@
 //
 
 package com.yahoo.athenz.zms;
-
-import com.yahoo.rdl.Schema;
-import com.yahoo.rdl.SchemaBuilder;
+import com.yahoo.rdl.*;
 
 public class ZMSSchema {
 

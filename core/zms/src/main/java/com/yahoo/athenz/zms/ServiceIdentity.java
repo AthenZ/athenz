@@ -3,14 +3,11 @@
 //
 
 package com.yahoo.athenz.zms;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.yahoo.rdl.RdlOptional;
-import com.yahoo.rdl.Timestamp;
-
 import java.util.List;
 import java.util.Map;
+import com.yahoo.rdl.*;
 
 //
 // ServiceIdentity - The representation of the service identity object.

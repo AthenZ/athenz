@@ -6,7 +6,6 @@ package com.yahoo.athenz.zms;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yahoo.rdl.Schema;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
@@ -29,6 +28,7 @@ import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import com.yahoo.rdl.Schema;
 
 public class ZMSRDLGeneratedClient {
 

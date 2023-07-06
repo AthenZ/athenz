@@ -33992,4 +33992,202 @@ public class ZMSImplTest {
         assertFalse(zmsImpl.validateGcpProjectDetails("1234", ""));
         assertFalse(zmsImpl.validateGcpProjectDetails("1234", null));
     }
+
+    private void hasServiceWithTags(ServiceIdentities services, String serviceName, String domain, String tagKey, List<String> tagValues, int tagValuesLength) {
+        ServiceIdentity service = getServiceIdentity(services, serviceName, domain);
+        Assert.assertNotNull(service);
+        if (tagKey != null) {
+            if (tagValues != null) {
+                Assert.assertEquals(service.getTags().get(tagKey).getList().size(), tagValuesLength);
+                for (String tagValue : tagValues) {
+                    Assert.assertTrue(verifyServiceHasTag(service, tagKey, tagValue));
+                }
+            } else {
+                Assert.assertTrue(verifyServiceHasTag(service, tagKey, null));
+            }
+        }
+    }
+
+    private boolean verifyServiceHasTag(ServiceIdentity service, String tagKey, String tagValue) {
+        TagValueList tagValues = service.getTags().get(tagKey);
+        if (tagValue != null) {
+            return tagValues.getList().contains(tagValue);
+        }
+        return (tagValues == null || tagValues.getList().isEmpty());
+    }
+
+    private ServiceIdentity getServiceIdentity(ServiceIdentities services, String serviceName, String domain) {
+        return services.getList().stream()
+                .filter(r -> ZMSUtils.extractServiceName(domain, r.getName()).equalsIgnoreCase(serviceName))
+                .findFirst()
+                .get();
+    }
+
+    @Test
+    public void testQueryPutServiceWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "sys.auth";
+        // put service with multiple tags
+        final String serviceWithTags = "swt-serviceWithTags";
+        final String tagKey = "tag-key";
+        List<String> multipleTagValues = Arrays.asList("val1", "val2");
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceWithTags,
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+//        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceWithTags);
+        service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(multipleTagValues)));
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceWithTags, auditRef, false, service);
+
+        // put service with single tags
+        final String serviceSingleTag = "swt-serviceSingleTag";
+        List<String> singleTagValue = Collections.singletonList("val1");
+        service = zmsTestInitializer.createServiceObject(domainName, serviceSingleTag,
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+//        service = zmsTestInitializer.createServiceObject(domainName, serviceSingleTag);
+        service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceSingleTag, auditRef, false, service);
+
+        //put service without tags
+        final String noTagsService = "swt-noTagsService";
+        service = zmsTestInitializer.createServiceObject(domainName, noTagsService,
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+//        service = zmsTestInitializer.createServiceObject(domainName, noTagsService);
+        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
+
+        // get services without tags query - all 3 services should be  presented
+        ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasServiceWithTags(serviceList, serviceWithTags, domainName, tagKey, multipleTagValues, 2);
+        hasServiceWithTags(serviceList, serviceSingleTag, domainName, tagKey, singleTagValue, 1);
+        hasServiceWithTags(serviceList, noTagsService, domainName, null, null, 0);
+        List<ServiceIdentity> TestPolicies = serviceList.getList().stream().filter(service1 -> ZMSUtils.extractServiceName(domainName, service1.getName()).startsWith("swt-")).collect(Collectors.toList());
+        assertEquals(TestPolicies.size(), 3);
+
+        // get policies with exact tag value
+        serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val1");
+        hasServiceWithTags(serviceList, serviceWithTags, domainName, tagKey, multipleTagValues, 2);
+        hasServiceWithTags(serviceList, serviceSingleTag, domainName, tagKey, singleTagValue, 1);
+        // ensure there are no more policies
+        assertEquals(serviceList.getList().size(), 2);
+
+        // get policies with exact tag value
+        serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val2");
+        hasServiceWithTags(serviceList, serviceWithTags, domainName, tagKey, multipleTagValues, 2);
+        // ensure there are no more policies
+        assertEquals(serviceList.getList().size(), 1);
+
+        // get policies with only tag key without the unactive service version
+        serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.FALSE, tagKey, null);
+        hasServiceWithTags(serviceList, serviceWithTags, domainName, tagKey, multipleTagValues, 2);
+        hasServiceWithTags(serviceList, serviceSingleTag, domainName, tagKey, singleTagValue, 1);
+        // ensure there are no more policies
+        assertEquals(serviceList.getList().size(), 2);
+    }
+
+    @Test
+    public void testServiceTagsLimit() {
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // define limit of 3 service tags
+        System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_SERVICE_TAG, "3");
+        ZMSImpl zmsTest = zmsTestInitializer.zmsInit();
+
+        final String domainName = "sys.auth";
+        final String serviceName = "serviceWithTagLimit";
+        final String tagKey = "tag-key";
+
+        //insert service with 4 tags
+        List<String> tagValues = Arrays.asList("val1", "val2", "val3", "val4");
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceName,
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
+        try {
+            zmsTest.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, service);
+            fail();
+        } catch(ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("service tag quota exceeded - limit: 3, current tags count: 0, new tags count: 4"));
+        }
+
+        try {
+            // service should not be created if fails to process tags...
+            zmsTest.getServiceIdentity(ctx, domainName, serviceName);
+            fail();
+        } catch(ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_SERVICE_TAG);
+    }
+
+
+    @Test
+    public void testQueryUpdateServiceWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "sys.auth";
+        final String tagKey = "tag-key-update";
+
+        //put service without tags
+        final String noTagsService = "uswt-noTagsService";
+        final String withTagsService = "uswt-withTagsService";
+
+        HashMap<String, TagValueList> multipleTags = new HashMap<>();
+
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, noTagsService,
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
+
+
+
+        ServiceIdentity service2 = zmsTestInitializer.createServiceObject(domainName, withTagsService,
+                "http://localhost", "/usr/bin/java", "root", "users", "host1");
+        List<String> tagValues = Arrays.asList("val1", "val2");
+        List<String> tag2Values = Arrays.asList("val3", "val4");
+        multipleTags.put(tagKey, new TagValueList().setList(tagValues));
+        multipleTags.put("tagKey2", new TagValueList().setList(tag2Values));
+        service2.setTags(multipleTags);
+        zmsImpl.putServiceIdentity(ctx, domainName, withTagsService, auditRef, false, service2);
+
+        // assert there are no tags
+        ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasServiceWithTags(serviceList, noTagsService, domainName,null, null, 0);
+        hasServiceWithTags(serviceList, withTagsService, domainName,tagKey, multipleTags.get(tagKey).getList(), 2);
+        hasServiceWithTags(serviceList, withTagsService, domainName,"tagKey2", multipleTags.get("tagKey2").getList(), 2);
+
+        // update tag list
+        List<String> updatedTagValues = Arrays.asList("val1", "val2", "val3");
+        service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(updatedTagValues)));
+        zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
+
+        multipleTags.remove("tagKey2");
+        List<String> newTagValues = Arrays.asList("val3", "val6","val7");
+        multipleTags.put(tagKey, new TagValueList().setList(newTagValues));
+        service2.setTags(multipleTags);
+        zmsImpl.putServiceIdentity(ctx, domainName, withTagsService, auditRef, false, service2);
+
+        // 3 tags should be presented
+        serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasServiceWithTags(serviceList, noTagsService, domainName, tagKey, updatedTagValues, 3);
+        hasServiceWithTags(serviceList, withTagsService, domainName, tagKey, multipleTags.get(tagKey).getList(), 3);
+        hasServiceWithTags(serviceList, withTagsService, domainName, "tagKey2", null, 0);
+
+        // get policies with exact tag value without unactive versions.
+        serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.FALSE, Boolean.FALSE, tagKey, "val3");
+        hasServiceWithTags(serviceList, noTagsService, domainName, tagKey, tagValues, 3);
+        hasServiceWithTags(serviceList, withTagsService, domainName, tagKey, newTagValues, 3);
+        assertEquals(serviceList.getList().size(), 2);
+
+        // get policies with no existing tag value
+        serviceList = zmsImpl.getServiceIdentities(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val10");
+        assertEquals(serviceList.getList().size(), 0);
+    }
 }

@@ -1057,41 +1057,11 @@ public class DBService implements RolesProvider {
 
     private boolean processServiceIdentityTags(ServiceIdentity service, String serviceName, String domainName,
                                     ServiceIdentity originalService, ObjectStoreConnection con) {
-        if (service.getTags() != null && !service.getTags().isEmpty()) {
-            if (originalService == null) {
-                return con.insertServiceTags(serviceName, domainName, service.getTags());
-            } else {
-                return processUpdateServiceTags(service, originalService, con, serviceName, domainName);
-            }
-        }
-        return true;
-    }
 
-    private boolean processUpdateServiceTags(ServiceIdentity service, ServiceIdentity originalService, ObjectStoreConnection con, String serviceName, String domainName) {
-        if (originalService.getTags() == null || originalService.getTags().isEmpty()) {
-            if (service.getTags() == null || service.getTags().isEmpty()) {
-                // no tags to process..
-                return true;
-            }
-            return con.insertServiceTags(serviceName, domainName, service.getTags());
-        }
-        Map<String, TagValueList> originalServiceTags = originalService.getTags();
-        Map<String, TagValueList> currentTags = service.getTags();
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertServiceTags(serviceName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteServiceTags(serviceName, domainName, tagKeys);
 
-        Set<String> tagsToRemove = originalServiceTags.entrySet().stream()
-                .filter(curTag -> currentTags.get(curTag.getKey()) == null
-                        || !currentTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-
-        Map<String, TagValueList> tagsToAdd = currentTags.entrySet().stream()
-                .filter(curTag -> originalServiceTags.get(curTag.getKey()) == null
-                        || !originalServiceTags.get(curTag.getKey()).equals(curTag.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        boolean res = con.deleteServiceTags(serviceName, domainName, tagsToRemove);
-
-        return res && con.insertServiceTags(serviceName, domainName, tagsToAdd);
+        return processTags(con, service.getTags(), (originalService != null ? originalService.getTags() : null) , insertOp, deleteOp);
     }
 
     boolean shouldRetryOperation(ResourceException ex, int retryCount) {

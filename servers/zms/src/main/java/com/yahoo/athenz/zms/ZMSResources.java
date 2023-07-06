@@ -3,17 +3,15 @@
 //
 package com.yahoo.athenz.zms;
 
-import com.yahoo.rdl.Schema;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.inject.Inject;
+import com.yahoo.rdl.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1")
 public class ZMSResources {

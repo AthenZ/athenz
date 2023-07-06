@@ -6788,7 +6788,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
-        int serviceId = getRoleId(domainId, serviceName);
+        int serviceId = getServiceId(domainId, serviceName);
         if (serviceId == 0) {
             throw notFoundError(caller, OBJECT_SERVICE, ResourceUtils.serviceResourceName(domainName, serviceName));
         }
