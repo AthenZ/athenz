@@ -138,6 +138,7 @@ func main() {
 	opts.InstanceId = instanceId
 	opts.Provider = provider
 	opts.PrivateIp = privateIp
+	opts.SpiffeNamespace = "default"
 
 	// Better defaults
 	opts.RotateKey = true

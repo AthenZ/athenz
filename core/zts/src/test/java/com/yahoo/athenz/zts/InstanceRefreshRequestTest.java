@@ -29,16 +29,19 @@ public class InstanceRefreshRequestTest {
         i1.setCsr("test_csr");
         i1.setExpiryTime(123456789);
         i1.setKeyId("v0");
+        i1.setNamespace("default");
 
         InstanceRefreshRequest i2 = new InstanceRefreshRequest();
         i2.setCsr("test_csr");
         i2.setExpiryTime(123456789);
         i2.setKeyId("v0");
+        i2.setNamespace("default");
 
         // getter
         assertEquals(i1.getCsr(), "test_csr");
         assertEquals(i1.getExpiryTime(), (Integer) 123456789);
         assertEquals(i1.getKeyId(), "v0");
+        assertEquals(i1.getNamespace(), "default");
 
         assertEquals(i1, i1);
         assertEquals(i2, i1);
@@ -60,6 +63,13 @@ public class InstanceRefreshRequestTest {
         i2.setExpiryTime(null);
         assertNotEquals(i1, i2);
         i2.setExpiryTime(123456789);
+
+        i2.setNamespace(null);
+        assertNotEquals(i1, i2);
+        i2.setNamespace("non-default");
+        assertNotEquals(i1, i2);
+        i2.setNamespace("default");
+        assertEquals(i1, i2);
 
         assertNotEquals("data", i1);
     }

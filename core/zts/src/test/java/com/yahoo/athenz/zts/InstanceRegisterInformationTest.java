@@ -47,6 +47,7 @@ public class InstanceRegisterInformationTest {
         i1.setSshCertRequest(new SSHCertRequest());
         i1.setAthenzJWK(true);
         i1.setAthenzJWKModified(start);
+        i1.setNamespace("default");
 
         i2.setProvider("provider");
         i2.setAttestationData("doc");
@@ -61,6 +62,7 @@ public class InstanceRegisterInformationTest {
         i2.setSshCertRequest(new SSHCertRequest());
         i2.setAthenzJWK(true);
         i2.setAthenzJWKModified(start);
+        i2.setNamespace("default");
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -76,6 +78,7 @@ public class InstanceRegisterInformationTest {
         assertEquals(i1.getSshCertRequest(), new SSHCertRequest());
         assertEquals(i1.getAthenzJWK(), Boolean.TRUE);
         assertEquals(i1.getAthenzJWKModified(), start);
+        assertEquals(i1.getNamespace(), "default");
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -102,6 +105,13 @@ public class InstanceRegisterInformationTest {
         i2.setProvider("provider2");
         assertNotEquals(i1, i2);
         i2.setProvider("provider");
+        assertEquals(i1, i2);
+
+        i2.setNamespace(null);
+        assertNotEquals(i1, i2);
+        i2.setNamespace("non-default");
+        assertNotEquals(i1, i2);
+        i2.setNamespace("default");
         assertEquals(i1, i2);
 
         i2.setAttestationData(null);
