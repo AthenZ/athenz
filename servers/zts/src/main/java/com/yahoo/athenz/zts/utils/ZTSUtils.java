@@ -159,7 +159,7 @@ public class ZTSUtils {
         if (errorCode < 1) {
             return false;
         }
-        if (caller == null || caller.isEmpty()) {
+        if (StringUtil.isEmpty(caller)) {
             return false;
         }
 

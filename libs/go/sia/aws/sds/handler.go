@@ -220,7 +220,7 @@ func (handler *ServerHandler) getResponse(req *envoyDiscovery.DiscoveryRequest, 
 	// parse the requested resource name
 	for _, spiffeUri := range req.ResourceNames {
 		// let's check if this is a CA Bundle certificate spiffe uri
-		namespace, name := util.ParseCASpiffeUri(spiffeUri)
+		_, namespace, name := util.ParseCASpiffeUri(spiffeUri)
 		if namespace != "" && name != "" {
 			tlsCABundle, err := handler.getTLSCABundleSecret(spiffeUri, namespace, name)
 			if err != nil {
@@ -228,7 +228,7 @@ func (handler *ServerHandler) getResponse(req *envoyDiscovery.DiscoveryRequest, 
 			}
 			resp.Resources = append(resp.Resources, tlsCABundle)
 		} else {
-			domain, service := util.ParseServiceSpiffeUri(spiffeUri)
+			_, _, domain, service := util.ParseServiceSpiffeUri(spiffeUri)
 			if domain == "" || service == "" {
 				log.Printf("Response: %s: unable to parse spiffe uri: %s\n", subId, spiffeUri)
 				continue

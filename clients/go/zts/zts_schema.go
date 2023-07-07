@@ -233,6 +233,7 @@ func init() {
 	tInstanceRefreshRequest.Field("csr", "String", false, nil, "Cert CSR signed by the service's private key (public key registered in ZMS)")
 	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in minutes how long token should be valid for")
 	tInstanceRefreshRequest.Field("keyId", "String", true, nil, "public key identifier")
+	tInstanceRefreshRequest.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
 	sb.AddType(tInstanceRefreshRequest.Build())
 
 	tAWSRoleName := rdl.NewStringTypeBuilder("AWSRoleName")
@@ -375,6 +376,7 @@ func init() {
 	tInstanceRegisterInformation.ArrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
 	tInstanceRegisterInformation.Field("athenzJWK", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
 	tInstanceRegisterInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
+	tInstanceRegisterInformation.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
 	sb.AddType(tInstanceRegisterInformation.Build())
 
 	tInstanceRefreshInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshInformation")
@@ -388,6 +390,7 @@ func init() {
 	tInstanceRefreshInformation.ArrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
 	tInstanceRefreshInformation.Field("athenzJWK", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
 	tInstanceRefreshInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
+	tInstanceRefreshInformation.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
 	sb.AddType(tInstanceRefreshInformation.Build())
 
 	tInstanceRegisterToken := rdl.NewStructTypeBuilder("Struct", "InstanceRegisterToken")

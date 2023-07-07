@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.cache.DataCache;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
@@ -43,7 +44,7 @@ public class X509ServiceCertRequestTest {
 
         StringBuilder errorMsg = new StringBuilder(256);
         assertFalse(certReq.validate("sys", "production", "provider",
-                null, null, null, null, null, null, errorMsg));
+                null, null, null, null, null, null, null, errorMsg));
     }
 
     @Test
@@ -62,7 +63,7 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, null, errorMsg));
     }
 
     @Test
@@ -98,7 +99,7 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("Unable to validate CSR common name"));
     }
 
@@ -118,7 +119,7 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, null, errorMsg));
         assertEquals(errorMsg.toString(), "production.athenz.ostk.athenz.cloud does not end with provider/service configured suffix or hostname");
     }
 
@@ -141,12 +142,12 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertFalse(certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, null, null, null, null, errorMsg));
         assertTrue(errorMsg.toString().contains("Unable to validate Subject O Field"));
 
         validOrgs.add("Athenz");
         assertTrue(certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, null, null, null, null, errorMsg));
     }
 
     @Test
@@ -195,12 +196,12 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
 
         assertTrue(certReq.validate("athenz", "production", "provider",
-                null, athenzSysDomainCache, null, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, null, errorMsg));
 
         HashSet<String> validOrgs = new HashSet<>();
         validOrgs.add("Athenz");
         assertTrue(certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, null, null, null, null, errorMsg));
     }
 
 
@@ -236,7 +237,7 @@ public class X509ServiceCertRequestTest {
         HashSet<String> validOrgs = new HashSet<>();
         validOrgs.add("Athenz");
         boolean ourResult = certReq.validate("athenz", "production", "provider",
-                validOrgs, athenzSysDomainCache, null, null, null, null, errorMsg);
+                validOrgs, athenzSysDomainCache, null, null, null, null, null, errorMsg);
         assertEquals(ourResult, expectedResult);
     }
 
@@ -324,18 +325,54 @@ public class X509ServiceCertRequestTest {
         Mockito.when(athenzSysDomainCache.getProviderHostnameAllowedSuffixList("ostk.provider")).thenReturn(providerHostnameAllowSuffixList);
 
         assertFalse(certReq.validate("athenz.examples", "httpd", "ostk.provider",
-                null, athenzSysDomainCache, null, "def.athenz.com", null, null, errorMsg));
+                null, athenzSysDomainCache, null, "def.athenz.com", null, null, null, errorMsg));
         assertFalse(certReq.validate("athenz.examples", "httpd", "ostk.provider",
-                null, athenzSysDomainCache, null, null, null, null, errorMsg));
+                null, athenzSysDomainCache, null, null, null, null, null, errorMsg));
 
         assertTrue(certReq.validate("athenz.examples", "httpd", "ostk.provider",
-                null, athenzSysDomainCache, null, "abc.athenz.com", null, null, errorMsg));
+                null, athenzSysDomainCache, null, "abc.athenz.com", null, null, null, errorMsg));
 
         HashSet<String> validOrgs = new HashSet<>();
         validOrgs.add("Athenz");
         assertTrue(certReq.validate("athenz.examples", "httpd", "ostk.provider",
-                validOrgs, athenzSysDomainCache, null, "abc.athenz.com", null, null, errorMsg));
+                validOrgs, athenzSysDomainCache, null, "abc.athenz.com", null, null, null, errorMsg));
     }
 
+    @Test
+    public void testValidateSpiffeURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("domain", "api", null));
+        assertTrue(certReq.validateSpiffeURI("domain", "api", "default"));
+    }
+
+    @Test
+    public void testValidateSpiffeURIWithNamespace() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe-namespace.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("athenz", "production", "default"));
+        assertFalse(certReq.validateSpiffeURI("athenz", "production", "test"));
+        assertFalse(certReq.validateSpiffeURI("athenz", "production", null));
+    }
+
+    @Test
+    public void testValidateSpiffeURIMultipleValues() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multiple_uri.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        try {
+            new X509ServiceCertRequest(csr);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid SPIFFE URI present"));
+        }
+    }
 }
 

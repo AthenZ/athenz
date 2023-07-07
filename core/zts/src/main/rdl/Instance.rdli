@@ -19,6 +19,7 @@ type InstanceRegisterInformation Struct {
     Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
     Bool athenzJWK (optional); // if true, return an Athenz JWK public keys file
     Timestamp athenzJWKModified (optional); // return the public keys file only if modified after the given timestamp
+    SimpleName namespace (optional); //spiffe/k8s namespace value
 }
 
 type InstanceRefreshInformation Struct {
@@ -32,6 +33,7 @@ type InstanceRefreshInformation Struct {
     Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
     Bool athenzJWK (optional); // if true, return an Athenz JWK public keys file
     Timestamp athenzJWKModified (optional); // return the public keys file only if modified after the given timestamp
+    SimpleName namespace (optional); //spiffe/k8s namespace value
 }
 
 type InstanceRegisterToken Struct {

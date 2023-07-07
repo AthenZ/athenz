@@ -83,7 +83,15 @@ func GetRoleCertificate(ztsUrl, svcKeyFile, svcCertFile string, opts *options.Op
 	var roleRequest = new(zts.RoleCertificateRequest)
 	for roleName, role := range opts.Roles {
 		certFilePem := util.GetRoleCertFileName(mkDirPath(opts.CertDir), role.Filename, roleName)
-		csr, err := util.GenerateRoleCertCSR(key, opts.CountryName, "", opts.Domain, opts.Services[0].Name, roleName, opts.Services[0].Name, provider, "")
+		roleCertReqOptions := &util.RoleCertReqOptions{
+			Country:    opts.CountryName,
+			Domain:     opts.Domain,
+			Service:    opts.Services[0].Name,
+			RoleName:   roleName,
+			InstanceId: opts.Services[0].Name,
+			Provider:   provider,
+		}
+		csr, err := util.GenerateRoleCertCSR(key, roleCertReqOptions)
 		if err != nil {
 			log.Printf("unable to generate CSR for %s, err: %v\n", roleName, err)
 			failures += 1
@@ -148,7 +156,20 @@ func registerSvc(svc options.Service, data *attestation.Data, ztsUrl string, ide
 	if opts.SanDnsHostname {
 		hostname, _ = os.Hostname()
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, hostname, opts.AddlSanDNSEntries, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
+	svcCertReqOptions := &util.SvcCertReqOptions{
+		Country:           opts.CountryName,
+		Domain:            opts.Domain,
+		Service:           svc.Name,
+		CommonName:        commonName,
+		InstanceId:        identityDocument.VmId,
+		Provider:          provider,
+		Hostname:          hostname,
+		AddlSanDNSEntries: opts.AddlSanDNSEntries,
+		ZtsDomains:        opts.ZTSAzureDomains,
+		WildCardDnsName:   opts.SanDnsWildcard,
+		InstanceIdSanDNS:  false,
+	}
+	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		return err
 	}
@@ -240,7 +261,20 @@ func refreshSvc(svc options.Service, data *attestation.Data, ztsUrl string, iden
 	if opts.SanDnsHostname {
 		hostname, _ = os.Hostname()
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CountryName, "", opts.Domain, svc.Name, commonName, identityDocument.VmId, provider, hostname, opts.AddlSanDNSEntries, opts.ZTSAzureDomains, opts.SanDnsWildcard, false)
+	svcCertReqOptions := &util.SvcCertReqOptions{
+		Country:           opts.CountryName,
+		Domain:            opts.Domain,
+		Service:           svc.Name,
+		CommonName:        commonName,
+		InstanceId:        identityDocument.VmId,
+		Provider:          provider,
+		Hostname:          hostname,
+		AddlSanDNSEntries: opts.AddlSanDNSEntries,
+		ZtsDomains:        opts.ZTSAzureDomains,
+		WildCardDnsName:   opts.SanDnsWildcard,
+		InstanceIdSanDNS:  false,
+	}
+	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err

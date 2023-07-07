@@ -125,7 +125,17 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 		if opts.RolePrincipalEmail {
 			emailDomain = opts.ZTSAWSDomains[0]
 		}
-		csr, err := util.GenerateRoleCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, role.Service, role.Name, opts.InstanceId, opts.Provider.GetName(), emailDomain)
+		roleCertReqOptions := &util.RoleCertReqOptions{
+			Country:     opts.CertCountryName,
+			OrgName:     opts.CertOrgName,
+			Domain:      opts.Domain,
+			Service:     role.Service,
+			RoleName:    role.Name,
+			InstanceId:  opts.InstanceId,
+			Provider:    opts.Provider.GetName(),
+			EmailDomain: emailDomain,
+		}
+		csr, err := util.GenerateRoleCertCSR(key, roleCertReqOptions)
 		if err != nil {
 			log.Printf("unable to generate CSR for %s, err: %v\n", role.Name, err)
 			failures += 1
@@ -249,7 +259,23 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.AddlSanDNSEntries, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	svcCertReqOptions := &util.SvcCertReqOptions{
+		Country:           opts.CertCountryName,
+		OrgName:           opts.CertOrgName,
+		Domain:            opts.Domain,
+		Service:           svc.Name,
+		CommonName:        data.Role,
+		InstanceId:        opts.InstanceId,
+		Provider:          opts.Provider.GetName(),
+		Hostname:          hostname,
+		SpiffeTrustDomain: opts.SpiffeTrustDomain,
+		SpiffeNamespace:   opts.SpiffeNamespace,
+		AddlSanDNSEntries: opts.AddlSanDNSEntries,
+		ZtsDomains:        opts.ZTSAWSDomains,
+		WildCardDnsName:   opts.SanDnsWildcard,
+		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+	}
+	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		return err
 	}
@@ -272,6 +298,7 @@ func registerSvc(svc options.Service, data *attestation.AttestationData, ztsUrl 
 		AthenzJWK:         &athenzJwk,
 		AthenzJWKModified: &athenzJwkModified,
 		Hostname:          zts.DomainName(hostname),
+		Namespace:         zts.SimpleName(opts.SpiffeNamespace),
 	}
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)
@@ -348,7 +375,23 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
-	csr, err := util.GenerateSvcCertCSR(key, opts.CertCountryName, opts.CertOrgName, opts.Domain, svc.Name, data.Role, opts.InstanceId, opts.Provider.GetName(), hostname, opts.AddlSanDNSEntries, opts.ZTSAWSDomains, opts.SanDnsWildcard, opts.InstanceIdSanDNS)
+	svcCertReqOptions := &util.SvcCertReqOptions{
+		Country:           opts.CertCountryName,
+		OrgName:           opts.CertOrgName,
+		Domain:            opts.Domain,
+		Service:           svc.Name,
+		CommonName:        data.Role,
+		InstanceId:        opts.InstanceId,
+		Provider:          opts.Provider.GetName(),
+		Hostname:          hostname,
+		SpiffeTrustDomain: opts.SpiffeTrustDomain,
+		SpiffeNamespace:   opts.SpiffeNamespace,
+		AddlSanDNSEntries: opts.AddlSanDNSEntries,
+		ZtsDomains:        opts.ZTSAWSDomains,
+		WildCardDnsName:   opts.SanDnsWildcard,
+		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+	}
+	csr, err := util.GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		log.Printf("Unable to generate CSR for %s, err: %v\n", opts.Name, err)
 		return err
@@ -369,6 +412,7 @@ func refreshSvc(svc options.Service, data *attestation.AttestationData, ztsUrl s
 		AthenzJWK:         &athenzJwk,
 		AthenzJWKModified: &athenzJwkModified,
 		Hostname:          zts.DomainName(hostname),
+		Namespace:         zts.SimpleName(opts.SpiffeNamespace),
 	}
 	if svc.ExpiryTime > 0 {
 		expiryTime := int32(svc.ExpiryTime)

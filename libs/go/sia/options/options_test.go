@@ -397,6 +397,7 @@ func TestOptionsNoServices(t *testing.T) {
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
 	assert.Equal(t, 120, opts.RefreshInterval)
 	assert.Equal(t, "us-west-2", opts.ZTSRegion)
+	assert.Equal(t, "athenz.io", opts.SpiffeTrustDomain)
 
 	// Make sure one service is set
 	assert.Equal(t, 1, len(opts.Services))
@@ -669,6 +670,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
 	os.Setenv("ATHENZ_SIA_SSH_PRINCIPALS", "host1.athenz.io")
 	os.Setenv("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", "10")
+	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
 
 	provider := MockAWSProvider{
 		Name:     fmt.Sprintf("athenz.aws.us-west-2"),
@@ -694,6 +696,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
+	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
 
 	assert.Equal(t, "123456789012", cfgAccount.Account)
 	assert.Equal(t, "athenz", cfgAccount.Domain)

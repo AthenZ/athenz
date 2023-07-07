@@ -1488,6 +1488,11 @@ type InstanceRefreshRequest struct {
 	// public key identifier
 	//
 	KeyId string `json:"keyId,omitempty" rdl:"optional"`
+
+	//
+	// spiffe/k8s namespace value
+	//
+	Namespace SimpleName `json:"namespace,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRefreshRequest - creates an initialized InstanceRefreshRequest instance, returns a pointer to it
@@ -1529,6 +1534,12 @@ func (self *InstanceRefreshRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.KeyId)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRefreshRequest.keyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Namespace != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Namespace)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshRequest.namespace does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -2739,6 +2750,11 @@ type InstanceRegisterInformation struct {
 	// return the public keys file only if modified after the given timestamp
 	//
 	AthenzJWKModified *rdl.Timestamp `json:"athenzJWKModified,omitempty" rdl:"optional"`
+
+	//
+	// spiffe/k8s namespace value
+	//
+	Namespace SimpleName `json:"namespace,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
@@ -2820,6 +2836,12 @@ func (self *InstanceRegisterInformation) Validate() error {
 			return fmt.Errorf("InstanceRegisterInformation.hostname does not contain a valid DomainName (%v)", val.Error)
 		}
 	}
+	if self.Namespace != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Namespace)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.namespace does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -2878,6 +2900,11 @@ type InstanceRefreshInformation struct {
 	// return the public keys file only if modified after the given timestamp
 	//
 	AthenzJWKModified *rdl.Timestamp `json:"athenzJWKModified,omitempty" rdl:"optional"`
+
+	//
+	// spiffe/k8s namespace value
+	//
+	Namespace SimpleName `json:"namespace,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRefreshInformation - creates an initialized InstanceRefreshInformation instance, returns a pointer to it
@@ -2929,6 +2956,12 @@ func (self *InstanceRefreshInformation) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "DomainName", self.Hostname)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRefreshInformation.hostname does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Namespace != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Namespace)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.namespace does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil
