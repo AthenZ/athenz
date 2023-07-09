@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"net"
 	"net/http"
 	"os"
@@ -472,9 +473,9 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "delete-policy-tag":
 			if argc == 2 {
-				return cli.DeletePolicyTags(dn, args[0], args[1], "")
+				return cli.DeletePolicyTags(dn, args[0], args[1], []string{})
 			} else if argc == 3 {
-				return cli.DeletePolicyTags(dn, args[0], args[1], args[2])
+				return cli.DeletePolicyTags(dn, args[0], args[1], args[2:])
 			}
 		case "show-policies":
 			if argc == 0 {
@@ -3021,6 +3022,39 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-auth-history coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " get-auth-history\n")
+	case "add-policy-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-policy-tag regular_policy tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this policy\n")
+		buf.WriteString("   tag_value       : tag values to be added to this policy, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "delete-policy-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-policy-tag regular_policy tag_key tag_value [tag_value...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this policy\n")
+		buf.WriteString("   tag_value       : tag values to be deleted from this policy, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "show-policies":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-policies [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   tag_key         : optional, query all policies with given tag name\n")
+		buf.WriteString("   tag_value       : optional, query all policies with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-policies readers readers-tag-key reader-tag-value\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")

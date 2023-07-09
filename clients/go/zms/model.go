@@ -2510,7 +2510,7 @@ type Policy struct {
 	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// a description of the policy\
+	// a description of the policy
 	//
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
 

@@ -31,8 +31,8 @@ resource Policies GET "/domain/{domainName}/policies?assertions={assertions}&inc
     DomainName domainName; //name of the domain
     Bool assertions (optional, default=false); // return list of assertions in the policy
     Bool includeNonActive (optional, default=false); // include non-active policy versions
-    CompoundName tagKey (optional); //flag to query all groups that have a given tagName
-    CompoundName tagValue (optional); //flag to query all groups that have a given tag name and value
+    CompoundName tagKey (optional); //flag to query all policies that have a given tagName
+    CompoundName tagValue (optional); //flag to query all policies that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

@@ -2074,8 +2074,8 @@ public class ZMSResources {
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "return list of assertions in the policy", required = false) @QueryParam("assertions") @DefaultValue("false") Boolean assertions,
         @Parameter(description = "include non-active policy versions", required = false) @QueryParam("includeNonActive") @DefaultValue("false") Boolean includeNonActive,
-        @Parameter(description = "flag to query all groups that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
-        @Parameter(description = "flag to query all groups that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
+        @Parameter(description = "flag to query all policies that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all policies that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {

@@ -418,33 +418,26 @@ func (cli Zms) SetActivePolicyVersion(dn string, pn string, version string) (*st
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) DeletePolicyTags(dn string, pn, tagKey string, tagValue string) (*string, error) {
+func (cli Zms) DeletePolicyTags(dn string, pn, tagKey string, tagValues []string) (*string, error) {
 	Policy, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
 	if err != nil {
 		return nil, err
 	}
-	//meta := getPolicyMeta(Policy)
 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 	if Policy.Tags == nil {
-		Policy.Tags = map[zms.CompoundName]*zms.TagValueList{}
-	}
-
-	// except given tagValue, set the same tags map
-	if tagValue != "" && Policy.Tags != nil {
-		currentTagValues := Policy.Tags[zms.CompoundName(tagKey)]
-		if currentTagValues != nil {
-			for _, curTagValue := range currentTagValues.List {
-				if tagValue != string(curTagValue) {
-					tagValueArr = append(tagValueArr, curTagValue)
-				}
-			}
+		s := "[domain " + dn + " Policy " + pn + " has no tags]\n"
+		message := SuccessMessage{
+			Status:  200,
+			Message: s,
 		}
+		return cli.dumpByFormat(message, cli.buildYAMLOutput)
+	} else {
+		tagValueArr = cli.GetTagsAfterDeletion(Policy.Tags[zms.CompoundName(tagKey)], tagValues)
+		Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	}
 
-	Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
-
 	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, Policy)
 	if err != nil {
 		return nil, err

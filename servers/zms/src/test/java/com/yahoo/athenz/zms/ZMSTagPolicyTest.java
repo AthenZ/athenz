@@ -107,20 +107,20 @@ public class ZMSTagPolicyTest {
             hasPolicyWithTags(policyList, noTagsPolicy, domainName, null, null,0);
 
             // get policies with exact tag value
-            policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, null,tagKey, "val1");
+            policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE ,tagKey, "val1");
             hasPolicyWithTags(policyList, policyWithTags, domainName, tagKey, tagValues, 2);
             hasPolicyWithTags(policyList, policiesingleTag, domainName, tagKey, singleTagValue, 1);
             // ensure there are no more policies
             assertEquals(policyList.getList().size(), 2);
 
             // get policies with exact tag value
-            policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, null, tagKey, "val2");
+            policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, tagKey, "val2");
             hasPolicyWithTags(policyList, policyWithTags, domainName, tagKey, tagValues, 2);
             // ensure there are no more policies
             assertEquals(policyList.getList().size(), 1);
 
             // get policies with only tag key
-            policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, null, tagKey, null);
+            policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, tagKey, null);
             hasPolicyWithTags(policyList, policyWithTags, domainName, tagKey, tagValues, 2);
             hasPolicyWithTags(policyList, policiesingleTag, domainName, tagKey, singleTagValue, 1);
             // ensure there are no more policies

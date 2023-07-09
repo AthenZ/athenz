@@ -157,3 +157,23 @@ func (cli Zms) RemoveAll(fullList []string, removeList []string) []string {
 	}
 	return newList
 }
+
+func (cli Zms) GetTagsAfterDeletion(resourceTags *zms.TagValueList, valuesToDelete []string) []zms.TagCompoundValue {
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+	if resourceTags == nil || len(valuesToDelete) == 0 {
+		return tagValueArr
+	}
+
+	var resourceTagsValues []string
+	// except given tagValue, set the same tags map
+	for _, curTagValue := range resourceTags.List {
+		resourceTagsValues = append(resourceTagsValues, string(curTagValue))
+	}
+	newTagValuesArr := cli.RemoveAll(resourceTagsValues, valuesToDelete)
+
+	for _, newTagValue := range newTagValuesArr {
+		tagValueArr = append(tagValueArr, zms.TagCompoundValue(newTagValue))
+	}
+
+	return tagValueArr
+}

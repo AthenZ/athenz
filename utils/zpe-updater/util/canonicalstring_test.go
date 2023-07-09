@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/stretchr/testify/assert"
 )
 
 var signedPolicyData *zts.SignedPolicyData

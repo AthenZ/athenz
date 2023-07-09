@@ -5044,8 +5044,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (tagKey != null) {
             policies = policies.stream()
-                    .filter(policy -> filterByTag(tagKey, tagValue, policy, Policy::getTags))
-                    .filter(policy -> (versions != null && versions) || policy.active)
+                    .filter(policy -> (filterByTag(tagKey, tagValue, policy, Policy::getTags) && ((versions == Boolean.TRUE) || policy.getActive() == Boolean.TRUE)))
                     .collect(Collectors.toList());
         }
 
