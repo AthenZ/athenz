@@ -350,6 +350,17 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
 }
 
 .emotion-36 {
+  margin: 3px;
+  vertical-align: 2px;
+}
+
+.emotion-38 {
+  fill: #0072df;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-39 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -360,18 +371,18 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   flex-flow: row nowrap;
 }
 
-.emotion-36>* {
+.emotion-39>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-37 {
+.emotion-40 {
   padding-top: 18px;
   width: 26%;
 }
 
-.emotion-39 {
+.emotion-42 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -384,7 +395,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   vertical-align: bottom;
 }
 
-.emotion-39>input[type='radio'] {
+.emotion-42>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -393,7 +404,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   visibility: hidden;
 }
 
-.emotion-39>input[type='radio']+label {
+.emotion-42>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -406,7 +417,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   white-space: nowrap;
 }
 
-.emotion-39>input[type='radio']+label:before {
+.emotion-42>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -422,29 +433,29 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 16px;
 }
 
-.emotion-39>input[type='radio']:hover+label:before {
+.emotion-42>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-39>input[type='radio']:focus+label:before {
+.emotion-42>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-39>input[type='radio']:checked+label:before {
+.emotion-42>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-39>input[type='radio']:disabled+label {
+.emotion-42>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-39>input[type='radio']:disabled+label:before {
+.emotion-42>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-39>input[type='radio']:checked+label:after {
+.emotion-42>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -459,14 +470,14 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8px;
 }
 
-.emotion-39>input[type='radio']:disabled:checked+label:after {
+.emotion-42>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-42 {
+.emotion-45 {
   float: left;
   font-size: 14px;
   font-weight: 700;
@@ -474,28 +485,28 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8%;
 }
 
-.emotion-45 {
+.emotion-48 {
   width: 415px;
   padding-top: 12px;
 }
 
-.emotion-47 {
+.emotion-50 {
   margin-top: 5px;
   margin-left: 10px;
   padding-top: 12px;
 }
 
-.emotion-49 {
+.emotion-52 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-55 {
+.emotion-58 {
   padding-top: 15px;
 }
 
-.emotion-57 {
+.emotion-60 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -508,7 +519,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   vertical-align: middle;
 }
 
-.emotion-57>input[type='checkbox'] {
+.emotion-60>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -517,7 +528,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   visibility: hidden;
 }
 
-.emotion-57>input[type='checkbox']+label {
+.emotion-60>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -530,7 +541,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   white-space: nowrap;
 }
 
-.emotion-57>input[type='checkbox']+label:before {
+.emotion-60>input[type='checkbox']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 2px;
@@ -546,33 +557,33 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 16px;
 }
 
-.emotion-57>input[type='checkbox']:hover+label:before {
+.emotion-60>input[type='checkbox']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-57>input[type='checkbox']:focus+label:before {
+.emotion-60>input[type='checkbox']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-57>input[type='checkbox'][data-partial='true']+label:before,
-.emotion-57>input[type='checkbox']:checked+label:before {
+.emotion-60>input[type='checkbox'][data-partial='true']+label:before,
+.emotion-60>input[type='checkbox']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-57>input[type='checkbox']:disabled+label {
+.emotion-60>input[type='checkbox']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-57>input[type='checkbox']:disabled+label:before {
+.emotion-60>input[type='checkbox']:disabled+label:before {
   border: 2px solid #d5d5d5;
 }
 
-.emotion-57>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
+.emotion-60>input[type='checkbox']:checked:not([data-partial='true'])+label:before {
   background: #3697f2;
 }
 
-.emotion-57>input[type='checkbox'][data-partial='true']+label:after {
+.emotion-60>input[type='checkbox'][data-partial='true']+label:after {
   border: solid #3697f2;
   border-width: 2px 0 0 0;
   box-sizing: border-box;
@@ -587,7 +598,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8px;
 }
 
-.emotion-57>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
+.emotion-60>input[type='checkbox']:checked:not([data-partial='true'])+label:after {
   border: solid #fff;
   border-width: 0 2px 2px 0;
   box-sizing: border-box;
@@ -607,18 +618,18 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 4.5px;
 }
 
-.emotion-71 {
+.emotion-74 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 1px;
 }
 
-.emotion-89 {
+.emotion-92 {
   width: 65%;
 }
 
-.emotion-98 {
+.emotion-101 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -743,13 +754,35 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           class="emotion-6 denali-input-label emotion-7 emotion-8"
         >
           Policy Enforcement State
+          <span
+            class="emotion-36 emotion-288"
+          >
+            <svg
+              class="emotion-38"
+              data-testid="icon"
+              height="15px"
+              id=""
+              viewBox="0 0 1024 1024"
+              width="15px"
+            >
+              <path
+                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+              />
+              <path
+                d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+              />
+              <path
+                d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+              />
+            </svg>
+          </span>
         </label>
         <div
-          class="emotion-36 denali-radiobutton-group emotion-37 emotion-38"
+          class="emotion-39 denali-radiobutton-group emotion-40 emotion-41"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-39 denali-radiobutton"
+            class="emotion-42 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -766,7 +799,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             </label>
           </div>
           <div
-            class="emotion-39 denali-radiobutton"
+            class="emotion-42 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -783,12 +816,12 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           </div>
         </div>
         <label
-          class="emotion-6 denali-input-label emotion-42 emotion-285"
+          class="emotion-6 denali-input-label emotion-45 emotion-285"
         >
           Hosts
         </label>
         <div
-          class="emotion-18 denali-input emotion-45 emotion-282"
+          class="emotion-18 denali-input emotion-48 emotion-282"
           data-testid="input-wrapper"
         >
           <input
@@ -804,10 +837,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           />
         </div>
         <div
-          class="emotion-47 emotion-281"
+          class="emotion-50 emotion-281"
         >
           <svg
-            class="emotion-49"
+            class="emotion-52"
             data-testid="icon"
             height="1.75em"
             id=""
@@ -835,10 +868,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           Scope
         </label>
         <div
-          class="emotion-55 emotion-287"
+          class="emotion-58 emotion-289"
         >
           <div
-            class="emotion-57 denali-checkbox emotion-58 emotion-59"
+            class="emotion-60 denali-checkbox emotion-61 emotion-62"
             data-testid="checkbox-wrapper"
           >
             <input
@@ -854,7 +887,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             </label>
           </div>
           <div
-            class="emotion-57 denali-checkbox emotion-58 emotion-59"
+            class="emotion-60 denali-checkbox emotion-61 emotion-62"
             data-testid="checkbox-wrapper"
           >
             <input
@@ -871,7 +904,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             </label>
           </div>
           <div
-            class="emotion-57 denali-checkbox emotion-58 emotion-59"
+            class="emotion-60 denali-checkbox emotion-61 emotion-62"
             data-testid="checkbox-wrapper"
           >
             <input
@@ -898,7 +931,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Destination Port(s)
       </label>
       <div
-        class="emotion-71 emotion-72"
+        class="emotion-74 emotion-75"
       >
         <div
           class="emotion-18 denali-input emotion-19 emotion-20"
@@ -948,7 +981,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         class="emotion-6 denali-input-label emotion-7 emotion-8"
       />
       <div
-        class="emotion-89 emotion-90"
+        class="emotion-92 emotion-93"
       />
     </div>
     <div
@@ -960,10 +993,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Source Port(s)
       </label>
       <div
-        class="emotion-71 emotion-72"
+        class="emotion-74 emotion-75"
       >
         <div
-          class="emotion-98 emotion-99"
+          class="emotion-101 emotion-102"
         >
           <div
             class="emotion-18 denali-input emotion-19 emotion-20"
@@ -1050,10 +1083,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Validation
       </label>
       <div
-        class="emotion-55 emotion-287"
+        class="emotion-58 emotion-289"
       >
         <div
-          class="emotion-57 denali-checkbox emotion-58 emotion-59"
+          class="emotion-60 denali-checkbox emotion-61 emotion-62"
           data-testid="checkbox-wrapper"
         >
           <input
