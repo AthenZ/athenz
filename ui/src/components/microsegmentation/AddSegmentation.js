@@ -25,11 +25,11 @@ import RequestUtils from '../utils/RequestUtils';
 import InputDropdown from '../denali/InputDropdown';
 import Icon from '../denali/icons/Icon';
 import {
+    MICROSEGMENTATION_PES_HELP_TEXT,
     MICROSEGMENTATION_SERVICE_NAME_REGEX,
     MODAL_TIME_OUT,
     SEGMENTATION_CATEGORIES,
     SEGMENTATION_PROTOCOL,
-    SERVICE_NAME_REGEX,
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
 import RadioButtonGroup from '../denali/RadioButtonGroup';
@@ -48,6 +48,7 @@ import {
 import { connect } from 'react-redux';
 import { editMicrosegmentation } from '../../redux/thunks/microsegmentation';
 import AppUtils from '../utils/AppUtils';
+import Menu from '../denali/Menu/Menu';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -58,6 +59,19 @@ const SectionDiv = styled.div`
 
 const CheckBoxSectionDiv = styled.div`
     padding-top: 15px;
+`;
+
+const SectionHeader = styled.span`
+    margin: 3px;
+    vertical-align: 2px;
+`;
+
+const StyledAnchorDiv = styled.div`
+    color: #9a9a9a;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 15px 15px;
 `;
 
 const StyledInputLabel = styled(InputLabel)`
@@ -1350,6 +1364,34 @@ class AddSegmentation extends React.Component {
                                 <SectionDiv>
                                     <StyledInputLabel>
                                         Policy Enforcement State
+                                        <SectionHeader>
+                                            <Menu
+                                                placement='bottom-end'
+                                                trigger={({
+                                                    getTriggerProps,
+                                                    triggerRef,
+                                                }) => (
+                                                    <Icon
+                                                        icon={'help-circle'}
+                                                        {...getTriggerProps({
+                                                            innerRef:
+                                                                triggerRef,
+                                                        })}
+                                                        isLink
+                                                        size={'15px'}
+                                                        color={colors.graphBlue}
+                                                        enableTitle={false}
+                                                    />
+                                                )}
+                                                triggerOn='click'
+                                            >
+                                                <StyledAnchorDiv>
+                                                    {
+                                                        MICROSEGMENTATION_PES_HELP_TEXT
+                                                    }
+                                                </StyledAnchorDiv>
+                                            </Menu>
+                                        </SectionHeader>
                                     </StyledInputLabel>
                                     <StyledRadioButtonGroup
                                         name={'enforcementStateRadioButton' + i}

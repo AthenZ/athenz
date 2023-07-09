@@ -23,6 +23,9 @@ export const MICROSEGMENTATION_SERVICE_NAME_REGEX =
     '\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const GROUP_ROLES_CATEGORY = 'group-roles';
 export const USER_DOMAIN = process.env.NEXT_PUBLIC_USER_DOMAIN || 'user';
+export const MICROSEGMENTATION_PES_HELP_TEXT =
+    process.env.NEXT_PUBLIC_MICROSEGMENTATION_PES_HELP_TEXT ||
+    "In report mode, policy will report the packets but not drop it. In enforce mode, the packets will be dropped if it doesn't match the policy";
 export const GROUP_MEMBER_PLACEHOLDER = `${USER_DOMAIN}.<userid> or <domain>.<service>`;
 export const DISPLAY_SPACE = '\u23b5';
 
