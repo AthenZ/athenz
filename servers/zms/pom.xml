@@ -196,12 +196,6 @@
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>dynamodb-enhanced</artifactId>
     </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-      <version>1.4.7</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>

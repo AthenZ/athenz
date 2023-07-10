@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"gopkg.in/yaml.v3"
 	"net"
 	"net/http"
 	"os"
@@ -3124,6 +3123,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-policy\n")
 	buf.WriteString("   list-policy-versions policy\n")
 	buf.WriteString("   show-policy policy\n")
+	buf.WriteString("   show-policies [tag_key] [tag_value]\n")
 	buf.WriteString("   show-policy-version policy version\n")
 	buf.WriteString("   add-policy policy [assertion] [is_case_sensitive]\n")
 	buf.WriteString("   add-policy-version policy version source_version\n")
@@ -3137,6 +3137,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-resource principal action\n")
+	buf.WriteString("   add-policy-tag regular_policy tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-policy-tag regular_policy tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")
