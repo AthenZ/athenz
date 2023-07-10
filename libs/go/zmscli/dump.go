@@ -634,6 +634,46 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 	}
 }
 
+func (cli Zms) dumpDomainData(buf *bytes.Buffer, domainData zms.DomainData) {
+
+	buf.WriteString(indentLevel1)
+	buf.WriteString("modified: ")
+	buf.WriteString(domainData.Modified.String())
+	buf.WriteString("\n")
+
+	if domainData.Tags != nil {
+		buf.WriteString(indentLevel1)
+		cli.dumpTags(buf, false, "  ", indentLevel1, domainData.Tags)
+	}
+	buf.WriteString(indentLevel1)
+	buf.WriteString("roles:\n")
+	for _, role := range domainData.Roles {
+		cli.dumpRole(buf, *role, false, indentLevel2Dash, indentLevel2DashLvl)
+	}
+
+	buf.WriteString(indentLevel1)
+	buf.WriteString("groups:\n")
+	for _, group := range domainData.Groups {
+		cli.dumpGroup(buf, *group, false, indentLevel2Dash, indentLevel2DashLvl)
+	}
+
+	buf.WriteString(indentLevel1)
+	buf.WriteString("policies:\n")
+	signedPolicies := domainData.Policies
+	domainPolicies := signedPolicies.Contents
+	for _, policy := range domainPolicies.Policies {
+		cli.dumpPolicy(buf, *policy, indentLevel2Dash, indentLevel2DashLvl)
+	}
+
+	if len(domainData.Services) > 0 {
+		buf.WriteString(indentLevel1)
+		buf.WriteString("services:\n")
+		for _, service := range domainData.Services {
+			cli.dumpService(buf, *service, indentLevel2Dash, indentLevel2DashLvl)
+		}
+	}
+}
+
 func (cli Zms) dumpProfile(buf *bytes.Buffer, name, content string) {
 	buf.WriteString("profile:\n")
 	buf.WriteString(indentLevel1)

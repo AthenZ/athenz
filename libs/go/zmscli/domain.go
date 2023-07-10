@@ -5,6 +5,7 @@ package zmscli
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -564,10 +565,19 @@ func (cli Zms) ShowOverdueReview(dn string) (*string, error) {
 }
 
 func (cli Zms) ShowDomain(dn string) (*string, error) {
-	master := true
-	conditions := true
-	signedDomains, _, err := cli.Zms.GetSignedDomains(zms.DomainName(dn), "false", "", &master, &conditions, "")
+	signatureP1363Format := false
+	signedDomains, _, err := cli.Zms.GetJWSDomain(zms.DomainName(dn), &signatureP1363Format, "")
 	if err != nil {
+		return nil, err
+	}
+
+	decodedPayload, err := base64.RawURLEncoding.DecodeString(signedDomains.Payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var domainData zms.DomainData
+	if err := json.Unmarshal(decodedPayload, &domainData); err != nil {
 		return nil, err
 	}
 
@@ -579,15 +589,15 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 		}
 		cli.dumpDomain(&buf, domain)
 
-		// make sure we have a domain and it must be only one
-		if res != nil && len(signedDomains.Domains) == 1 {
-			cli.dumpSignedDomain(&buf, signedDomains.Domains[0], true)
+		// make sure we have a domain
+		if res != nil {
+			cli.dumpDomainData(&buf, domainData)
 		}
 		s := buf.String()
 		return &s, nil
 	}
 
-	return cli.dumpByFormat(signedDomains, oldYamlConverter)
+	return cli.dumpByFormat(domainData, oldYamlConverter)
 }
 
 func (cli Zms) CheckDomain(dn string) (*string, error) {
