@@ -591,7 +591,7 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 
 		// make sure we have a domain
 		if res != nil {
-			cli.dumpJWSDomain(&buf, domainData, signedDomains.Signature, signedDomains.Header["kid"])
+			cli.dumpDomainData(&buf, domainData)
 		}
 		s := buf.String()
 		return &s, nil

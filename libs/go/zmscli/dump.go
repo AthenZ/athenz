@@ -634,15 +634,12 @@ func (cli Zms) dumpSignedDomain(buf *bytes.Buffer, signedDomain *zms.SignedDomai
 	}
 }
 
-func (cli Zms) dumpJWSDomain(buf *bytes.Buffer, signedDomain zms.DomainData, signature string, keyID string) {
+func (cli Zms) dumpDomainData(buf *bytes.Buffer, domainData zms.DomainData) {
 
-	domainData := signedDomain
 	buf.WriteString(indentLevel1)
 	buf.WriteString("modified: ")
 	buf.WriteString(domainData.Modified.String())
 	buf.WriteString("\n")
-	dumpStringValue(buf, indentLevel1, "signature", signature)
-	dumpStringValue(buf, indentLevel1, "keyId", keyID)
 
 	if domainData.Tags != nil {
 		buf.WriteString(indentLevel1)
