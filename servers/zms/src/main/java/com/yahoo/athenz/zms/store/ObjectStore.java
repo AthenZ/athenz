@@ -41,7 +41,7 @@ public interface ObjectStore {
      * @param domainLimit domain tags limit
      * @param roleLimit role tags limit
      * @param groupLimit group tags limit
-     * @param serviceLimit group tags limit
+     * @param serviceLimit service tags limit
      */
     void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int serviceLimit);
 
