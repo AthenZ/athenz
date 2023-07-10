@@ -34037,7 +34037,6 @@ public class ZMSImplTest {
         List<String> multipleTagValues = Arrays.asList("val1", "val2");
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceWithTags,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
-//        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName, serviceWithTags);
         service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(multipleTagValues)));
         zmsImpl.putServiceIdentity(ctx, domainName, serviceWithTags, auditRef, false, service);
 
@@ -34046,7 +34045,6 @@ public class ZMSImplTest {
         List<String> singleTagValue = Collections.singletonList("val1");
         service = zmsTestInitializer.createServiceObject(domainName, serviceSingleTag,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
-//        service = zmsTestInitializer.createServiceObject(domainName, serviceSingleTag);
         service.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
         zmsImpl.putServiceIdentity(ctx, domainName, serviceSingleTag, auditRef, false, service);
 
@@ -34054,7 +34052,6 @@ public class ZMSImplTest {
         final String noTagsService = "swt-noTagsService";
         service = zmsTestInitializer.createServiceObject(domainName, noTagsService,
                 "http://localhost", "/usr/bin/java", "root", "users", "host1");
-//        service = zmsTestInitializer.createServiceObject(domainName, noTagsService);
         zmsImpl.putServiceIdentity(ctx, domainName, noTagsService, auditRef, false, service);
 
         // get services without tags query - all 3 services should be  presented

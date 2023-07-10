@@ -123,11 +123,6 @@ public class ZMSServiceTagsTest {
             assertEquals(serviceList.getList().size(), 2);
         }
 
-        public void testProcessUpdateServiceTags() {
-            ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
-
-        }
-
 
         @Test
         public void testServiceTagsLimit() {

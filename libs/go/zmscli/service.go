@@ -69,28 +69,22 @@ func (cli Zms) ShowUpdatedService(service *zms.ServiceIdentity) (*string, error)
 	return cli.dumpByFormat(service, oldYamlConverter)
 }
 
-func (cli Zms) DeleteServiceTags(dn string, sn, tagKey string, tagValue string) (*string, error) {
+func (cli Zms) DeleteServiceTags(dn string, sn, tagKey string, tagValues []string) (*string, error) {
 	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn))
 	if err != nil {
 		return nil, err
 	}
-	//meta := getServiceMeta(service)
 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 	if service.Tags == nil {
-		service.Tags = map[zms.CompoundName]*zms.TagValueList{}
-	}
-
-	// except given tagValue, set the same tags map
-	if tagValue != "" && service.Tags != nil {
-		currentTagValues := service.Tags[zms.CompoundName(tagKey)]
-		if currentTagValues != nil {
-			for _, curTagValue := range currentTagValues.List {
-				if tagValue != string(curTagValue) {
-					tagValueArr = append(tagValueArr, curTagValue)
-				}
-			}
+		s := "[domain " + dn + " Service " + sn + " has no tags]\n"
+		message := SuccessMessage{
+			Status:  200,
+			Message: s,
 		}
+		return cli.dumpByFormat(message, cli.buildYAMLOutput)
+	} else {
+		tagValueArr = cli.GetTagsAfterDeletion(service.Tags[zms.CompoundName(tagKey)], tagValues)
 	}
 
 	service.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}

@@ -1978,8 +1978,8 @@ public class ZMSClient implements Closeable {
      * @param domainName name of the domain
      * @param publicKeys include all public keys for services as well
      * @param hosts      include all configured hosts for services as well
-     * @param tagKey     query all groups with given tag name
-     * @param tagValue   query all groups with given tag key and value
+     * @param tagKey     query all services with given tag name
+     * @param tagValue   query all services with given tag key and value
      * @return list of services
      * @throws ZMSClientException in case of failure
      */

@@ -6578,7 +6578,6 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private void addTagsToRoles(Map<String, Role> roleMap, String domainName) {
 
-        // TODO change to the generic one
         Map<String, Map<String, TagValueList>> domainRoleTags = getDomainRoleTags(domainName);
         if (domainRoleTags != null) {
             for (Map.Entry<String, Role> roleEntry : roleMap.entrySet()) {
@@ -6592,7 +6591,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     private void addTagsToServices(Map<String, ServiceIdentity> serviceMap, String domainName) {
 
-        Map<String, Map<String, TagValueList>> domainServiceTags = getDomainResourceTags(domainName, "service", SQL_GET_DOMAIN_SERVICE_TAGS);
+        Map<String, Map<String, TagValueList>> domainServiceTags = getServiceResourceTags(domainName);
         if (domainServiceTags != null) {
             for (Map.Entry<String, ServiceIdentity> serviceEntry : serviceMap.entrySet()) {
                 Map<String, TagValueList> serviceTag = domainServiceTags.get(serviceEntry.getKey());
@@ -6845,11 +6844,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
 
-    Map<String, Map<String, TagValueList>> getDomainResourceTags(String domainName, String caller, String sqlStatement) {
-        final String funcCaller = "getDomain" + caller + "Tags";
+    Map<String, Map<String, TagValueList>> getServiceResourceTags(String domainName) {
+        final String funcCaller = "getDomainServiceTags";
         Map<String, Map<String, TagValueList>> domainResourceTags = null;
 
-        try (PreparedStatement ps = con.prepareStatement(sqlStatement)) {
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_SERVICE_TAGS)) {
             ps.setString(1, domainName);
             try (ResultSet rs = executeQuery(ps, funcCaller)) {
                 while (rs.next()) {
