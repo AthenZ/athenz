@@ -368,8 +368,8 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 	return cli.dumpByFormat(roleMembers, oldYamlConverter)
 }
 
-func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) {
-	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.ResourceName(principal), zms.DomainName(dn))
+func (cli Zms) ShowRolesPrincipal(principal string, dn string, expand *bool) (*string, error) {
+	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.ResourceName(principal), zms.DomainName(dn), expand)
 	if err != nil {
 		return nil, err
 	}

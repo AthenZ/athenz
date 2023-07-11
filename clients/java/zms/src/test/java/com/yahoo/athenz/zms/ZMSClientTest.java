@@ -3484,10 +3484,11 @@ public class ZMSClientTest {
         DomainRoleMember domainRoleMember = new DomainRoleMember();
         domainRoleMember.setMemberName("currentPrincipalName");
         domainRoleMember.setMemberRoles(memberRoles);
-        Mockito.when(c.getPrincipalRoles(null, null))
+        Mockito.when(c.getPrincipalRoles(null, null, null))
                 .thenReturn(domainRoleMember)
                 .thenThrow(new ZMSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
+
 
         DomainRoleMember retMember = client.getPrincipalRoles(null, null);
         assertNotNull(retMember);
@@ -3500,6 +3501,14 @@ public class ZMSClientTest {
 
         assertEquals(retMember.getMemberRoles().get(2).getDomainName(), "domain2");
         assertEquals(retMember.getMemberRoles().get(2).getRoleName(), "role3");
+
+        // retry the same operation with expand option enabled
+
+        Mockito.when(c.getPrincipalRoles(null, null, Boolean.TRUE))
+                .thenReturn(domainRoleMember);
+
+        retMember = client.getPrincipalRoles(null, null, Boolean.TRUE);
+        assertNotNull(retMember);
 
         // second time it fails with zms client exception
 

@@ -1128,7 +1128,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public DomainRoleMember getPrincipalRoles(String principal, String domainName) throws URISyntaxException, IOException {
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName, Boolean expand) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/role");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         if (principal != null) {
@@ -1136,6 +1136,9 @@ public class ZMSRDLGeneratedClient {
         }
         if (domainName != null) {
             uriBuilder.setParameter("domain", domainName);
+        }
+        if (expand != null) {
+            uriBuilder.setParameter("expand", String.valueOf(expand));
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())

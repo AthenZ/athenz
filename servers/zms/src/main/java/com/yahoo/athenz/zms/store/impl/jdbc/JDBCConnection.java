@@ -314,6 +314,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN assertion ON assertion.resource=CONCAT(\"*:role.\", role.name) "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE assertion.action='assume_role';";
+    private static final String SQL_LIST_TRUSTED_ROLES_WITH_WILDCARD = "SELECT domain.name, role.name FROM role "
+            + "JOIN domain ON domain.domain_id=role.domain_id "
+            + "WHERE domain.name LIKE ? AND role.name LIKE ? AND role.trust=?;";
     private static final String SQL_GET_QUOTA = "SELECT * FROM quota WHERE domain_id=?;";
     private static final String SQL_INSERT_QUOTA = "INSERT INTO quota (domain_id, role, role_member, "
             + "policy, assertion, service, service_host, public_key, entity, subdomain, principal_group, principal_group_member) "
@@ -2118,6 +2121,27 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         Collections.sort(roles);
+        return roles;
+    }
+
+    @Override
+    public List<String> listTrustedRolesWithWildcards(String domainName, String roleName, String trustDomainName) {
+
+        final String caller = "listTrustedRolesWithWildcards";
+
+        List<String> roles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_TRUSTED_ROLES_WITH_WILDCARD)) {
+            ps.setString(1, domainName.replace('*', '%'));
+            ps.setString(2, roleName.replace('*', '%'));
+            ps.setString(3, trustDomainName);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    roles.add(ResourceUtils.roleResourceName(rs.getString(1), rs.getString(2)));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
         return roles;
     }
 

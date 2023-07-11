@@ -788,6 +788,12 @@ func (cli Zms) dumpRolesPrincipal(buf *bytes.Buffer, roleMember *zms.DomainRoleM
 		if role.SystemDisabled != nil && *role.SystemDisabled != 0 {
 			buf.WriteString(indentLevel1 + "  system-disabled: true\n")
 		}
+		if string(role.MemberName) != "" {
+			buf.WriteString(indentLevel1 + "  member-name: " + string(role.MemberName) + "\n")
+		}
+		if string(role.TrustRoleName) != "" {
+			buf.WriteString(indentLevel1 + "  trust-role-name: " + string(role.TrustRoleName) + "\n")
+		}
 	}
 }
 
