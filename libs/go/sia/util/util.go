@@ -335,12 +335,7 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
-	spiffeUri := ""
-	if options.SpiffeTrustDomain != "" && options.SpiffeNamespace != "" {
-		spiffeUri = fmt.Sprintf("spiffe://%s/ns/%s/sa/%s.%s", options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service)
-	} else {
-		spiffeUri = fmt.Sprintf("spiffe://%s/sa/%s", options.Domain, options.Service)
-	}
+	spiffeUri := GetSvcSpiffeUri(options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>
@@ -348,6 +343,16 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
 
 	return GenerateX509CSR(key, csrDetails)
+}
+
+func GetSvcSpiffeUri(trustDomain, namespace, domain, service string) string {
+	var uriStr string
+	if trustDomain != "" && namespace != "" {
+		uriStr = fmt.Sprintf("spiffe://%s/ns/%s/sa/%s.%s", trustDomain, namespace, domain, service)
+	} else {
+		uriStr = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	}
+	return uriStr
 }
 
 func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (string, error) {
