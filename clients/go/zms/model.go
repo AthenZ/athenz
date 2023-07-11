@@ -1834,6 +1834,12 @@ type MemberRole struct {
 	// for pending membership requests, the request state - e.g. add, delete
 	//
 	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name of the role that handles the membership delegation for the role
+	// specified in roleName
+	//
+	TrustRoleName ResourceName `json:"trustRoleName,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
@@ -1908,6 +1914,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.TrustRoleName != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.TrustRoleName)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.trustRoleName does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
 	return nil

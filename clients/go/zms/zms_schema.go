@@ -294,6 +294,7 @@ func init() {
 	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	tMemberRole.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	tMemberRole.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
+	tMemberRole.Field("trustRoleName", "ResourceName", true, nil, "name of the role that handles the membership delegation for the role specified in roleName")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")
@@ -1444,10 +1445,11 @@ func init() {
 	sb.AddResource(mGetDomainRoleMembers.Build())
 
 	mGetPrincipalRoles := rdl.NewResourceBuilder("DomainRoleMember", "GET", "/role")
-	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal")
+	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
 	mGetPrincipalRoles.Name("getPrincipalRoles")
 	mGetPrincipalRoles.Input("principal", "ResourceName", false, "principal", "", true, nil, "If not present, will return roles for the user making the call")
 	mGetPrincipalRoles.Input("domainName", "DomainName", false, "domain", "", true, nil, "If not present, will return roles from all domains")
+	mGetPrincipalRoles.Input("expand", "Bool", false, "expand", "", true, false, "expand to include group and delegated trust role membership")
 	mGetPrincipalRoles.Auth("", "", true, "")
 	mGetPrincipalRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetPrincipalRoles.Exception("FORBIDDEN", "ResourceError", "")

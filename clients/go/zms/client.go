@@ -1289,9 +1289,9 @@ func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRole
 	}
 }
 
-func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName) (*DomainRoleMember, error) {
+func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName, expand *bool) (*DomainRoleMember, error) {
 	var data *DomainRoleMember
-	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
+	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""), encodeOptionalBoolParam("expand", expand))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

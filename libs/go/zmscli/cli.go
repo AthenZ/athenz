@@ -369,9 +369,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			return cli.ListPendingDomainGroupMembers(principal, "")
 		case "show-roles-principal":
 			if argc == 0 {
-				return cli.ShowRolesPrincipal("", dn)
+				return cli.ShowRolesPrincipal("", dn, nil)
 			} else if argc == 1 {
-				return cli.ShowRolesPrincipal(args[0], dn)
+				return cli.ShowRolesPrincipal(args[0], dn, nil)
+			} else if argc == 2 {
+				expand, err := strconv.ParseBool(args[1])
+				if err == nil {
+					return cli.ShowRolesPrincipal(args[0], dn, &expand)
+				}
+				return nil, err
 			}
 		case "show-groups-principal":
 			if argc == 0 {
@@ -1799,10 +1805,10 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		if !interactive {
 			buf.WriteString("   domain : name of the domain that role belongs to\n")
 		}
-		buf.WriteString("   role   : name of the role to be displayed\n")
-		buf.WriteString("   log    : option argument to specify to display audit logs for role\n")
-		buf.WriteString("   expand : option argument to specify to display delegated members\n")
-		buf.WriteString("   pending : option argument to specify to display pending members\n")
+		buf.WriteString("   role    : name of the role to be displayed\n")
+		buf.WriteString("   log     : optional argument to specify to display audit logs for role\n")
+		buf.WriteString("   expand  : optional argument to specify to display delegated members\n")
+		buf.WriteString("   pending : optional argument to specify to display pending members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-role admin\n")
 		buf.WriteString("   " + domainExample + " show-role admin log\n")
@@ -1810,16 +1816,19 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-role myrole pending\n")
 	case "show-roles-principal":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " show-roles-principal principal\n")
+		buf.WriteString("   " + domainParam + " show-roles-principal principal [expand]\n")
 		if !interactive {
 			buf.WriteString(" parameters:\n")
 			buf.WriteString("   domain    : optional name of the domain that roles belong to\n")
 			buf.WriteString("             : if not specified will retrieve roles from all domains\n")
 			buf.WriteString("   principal : optional name of the principal to retrieve the list of roles for\n")
 			buf.WriteString("             : if not specified will retrieve roles for current principal\n")
+			buf.WriteString("      expand : optional argument to specify to display delegated members\n")
+
 		}
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-roles-principal user.johndoe\n")
+		buf.WriteString("   " + domainExample + " show-roles-principal user.johndoe true\n")
 		buf.WriteString("   " + domainExample + " show-roles-principal\n")
 		buf.WriteString("   show-roles-principal\n")
 	case "add-delegated-role":
@@ -1999,8 +2008,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 			buf.WriteString("   domain : name of the domain that group belongs to\n")
 		}
 		buf.WriteString("   group   : name of the group to be displayed\n")
-		buf.WriteString("   log    : option argument to specify to display audit logs for group\n")
-		buf.WriteString("   pending : option argument to specify to display pending members\n")
+		buf.WriteString("   log     : optional argument to specify to display audit logs for group\n")
+		buf.WriteString("   pending : optional argument to specify to display pending members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-group admin\n")
 		buf.WriteString("   " + domainExample + " show-group admin log\n")
@@ -3090,7 +3099,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-role\n")
 	buf.WriteString("   show-role role [log | expand | pending]\n")
 	buf.WriteString("   show-roles [tag_key] [tag_value]\n")
-	buf.WriteString("   show-roles-principal\n")
+	buf.WriteString("   show-roles-principal [principal] [expand]\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
 	buf.WriteString("   add-regular-role role member [member ... ]\n")
 	buf.WriteString("   add-member regular_role user_or_service [user_or_service ...]\n")
