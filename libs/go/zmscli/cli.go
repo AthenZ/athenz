@@ -683,7 +683,7 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "delete-service-tag":
 			if argc == 2 {
-				return cli.DeleteServiceTags(dn, args[0], args[1], "")
+				return cli.DeleteServiceTags(dn, args[0], args[1], []string{})
 			} else if argc == 3 {
 				return cli.DeleteServiceTags(dn, args[0], args[1], args[:2])
 			}
