@@ -85,7 +85,7 @@ func (tp TestProvider) GetSanDns(string, bool, bool, []string) []string {
 	return nil
 }
 
-func (tp TestProvider) GetSanUri(string, ip.Opts) []*url.URL {
+func (tp TestProvider) GetSanUri(string, ip.Opts, string, string) []*url.URL {
 	return nil
 }
 

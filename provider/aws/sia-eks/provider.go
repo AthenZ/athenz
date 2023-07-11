@@ -58,7 +58,7 @@ func (eks EKSProvider) GetSanDns(service string, includeHost bool, wildcard bool
 	return nil
 }
 
-func (eks EKSProvider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (eks EKSProvider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
 	return nil
 }
 

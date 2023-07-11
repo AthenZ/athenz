@@ -1485,3 +1485,50 @@ func TestGetCertKeyFileName(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSvcSpiffeUri(t *testing.T) {
+
+	tests := map[string]struct {
+		domain      string
+		service     string
+		trustDomain string
+		namespace   string
+		uri         string
+	}{
+		"domain-service-only": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "",
+			namespace:   "",
+			uri:         "spiffe://sports/sa/api",
+		},
+		"only-trust-domain": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "athenz.cloud",
+			namespace:   "",
+			uri:         "spiffe://sports/sa/api",
+		},
+		"only-namespace": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "",
+			namespace:   "default",
+			uri:         "spiffe://sports/sa/api",
+		},
+		"namespace-format": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "athenz.io",
+			namespace:   "default",
+			uri:         "spiffe://athenz.io/ns/default/sa/sports.api",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			spiffeUri := GetSvcSpiffeUri(tt.trustDomain, tt.namespace, tt.domain, tt.service)
+			assert.Equal(t, spiffeUri, tt.uri)
+		})
+	}
+}
