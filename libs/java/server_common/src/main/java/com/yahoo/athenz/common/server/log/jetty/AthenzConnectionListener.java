@@ -108,7 +108,7 @@ public class AthenzConnectionListener implements Connection.Listener {
             }
             
         } catch (Exception exception) {
-            LOG.error("AthenzConnectionListener.onClosed: ", exception);
+            LOG.error("AthenzConnectionListener.onClosed exception: ", exception);
         }
     }
 
