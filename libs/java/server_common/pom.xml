@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.11.34-SNAPSHOT</version>
+    <version>1.11.35-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -27,7 +27,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9237</code.coverage.min>
+    <code.coverage.min>0.9271</code.coverage.min>
     <commons.dbcp2.version>2.9.0</commons.dbcp2.version>
     <commons.pool2.version>2.11.1</commons.pool2.version>
     <jakarta.mail.version>2.0.1</jakarta.mail.version>

@@ -7577,7 +7577,7 @@ public class DBServiceTest {
         role = createRoleObject("domain3", "role1", null, roleMembers);
         zms.dbService.executePutRole(mockDomRsrcCtx, "domain3", "role1", role, "test", "putrole", false);
 
-        DomainRoleMember domainRoleMember = zms.dbService.getPrincipalRoles(principal, null);
+        DomainRoleMember domainRoleMember = zms.dbService.getPrincipalRoles(principal, null, null);
         MemberRole memberRole0 = new MemberRole();
         memberRole0.setDomainName("domain1");
         memberRole0.setRoleName("role1");
@@ -7598,7 +7598,7 @@ public class DBServiceTest {
         assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole2));
 
         // Get all roles for a specific domain
-        domainRoleMember = zms.dbService.getPrincipalRoles(principal, "domain1");
+        domainRoleMember = zms.dbService.getPrincipalRoles(principal, "domain1", null);
         assertEquals(domainRoleMember.getMemberName(), principal);
         assertEquals(domainRoleMember.getMemberRoles().size(), 2);
         assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole0));
@@ -11869,7 +11869,6 @@ public class DBServiceTest {
         zms.dbService.store = savedStore;
     }
 
-
     @Test
     public void testExecuteDeleteAllExpiredRoleMembershipsDeleteMemberFailure() {
 
@@ -12142,7 +12141,6 @@ public class DBServiceTest {
 
     @Test
     public void testAssertionDomainCheck() {
-
         assertNull(zms.dbService.assertionDomainCheck("", "resource.value"));
         assertNull(zms.dbService.assertionDomainCheck("", ":resource.value"));
         assertNull(zms.dbService.assertionDomainCheck("role.value", "athenz:resource.value"));
@@ -12150,7 +12148,6 @@ public class DBServiceTest {
         assertNull(zms.dbService.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
         assertNull(zms.dbService.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
         assertEquals("athenz", zms.dbService.assertionDomainCheck("athenz:role.value", "athenz:resource.value"));
-
     }
 
     @Test
@@ -12340,5 +12337,93 @@ public class DBServiceTest {
                 .collect(Collectors.toList())
                 .contains("tagVal"));
 
+    public void testGetAthenzDomainFromLcoalCache() {
+
+        String domainName = "local-cache-domain";
+        Map<String, AthenzDomain> cache = new HashMap<>();
+
+        // unknown domains will return null and not exceptions
+
+        assertNull(zms.dbService.getAthenzDomainFromLocalCache(cache, domainName));
+
+        // now let's add the domain
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // verify we get a valid domain object. it must also be in our cache now
+
+        assertNotNull(zms.dbService.getAthenzDomainFromLocalCache(cache, domainName));
+        assertNotNull(cache.get(domainName));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetDelegatedMemberRole() {
+
+        String domainName = "delegated-role-domain";
+        Map<String, AthenzDomain> cache = new HashMap<>();
+        MemberRole memberRole = new MemberRole().setDomainName(domainName).setRoleName("delegated-role");
+
+        // unknown domains will return null and not exceptions
+
+        assertNull(zms.dbService.getDelegatedMemberRole(cache, memberRole));
+
+        // now let's add the domain
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // create an empty policy with no assertions
+
+        Policy policy1 = new Policy().setName(ResourceUtils.policyResourceName(domainName, "no-assertion"))
+                .setActive(true).setVersion("0");
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "no-assertion", policy1,
+                auditRef, "unit-test", false);
+
+        // create an inactive policy
+
+        Policy policy2 = new Policy().setName(ResourceUtils.policyResourceName(domainName, "inactive"))
+                .setActive(true).setVersion("0");
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "inactive", policy2,
+                auditRef, "unit-test", false);
+
+        policy2.setActive(false).setVersion("1");
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "inactive", policy2,
+                auditRef, "unit-test", false);
+
+        // create an assume role policy with a different role
+
+        Policy policy3 = createPolicyObject(domainName, "assume-role-policy",
+                "non-matching-role", true, "assume_role", "sports:role.test", AssertionEffect.ALLOW, null, true);
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, "assume-role-policy", policy3,
+                auditRef, "unit-test", false);
+
+        // with no assume role policies we get an empty set
+
+        List<MemberRole> roleList = zms.dbService.getDelegatedMemberRole(cache, memberRole);
+        assertTrue(roleList.isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testGetDelegatedRoleNamesNullCases() {
+
+        // resource name does not contain :
+
+        Map<String, AthenzDomain> cache = new HashMap<>();
+        assertNull(zms.dbService.getDelegatedRoleNames(cache, "resource", "trust-domain"));
+
+        // resource starts with * but not role object
+
+        assertNull(zms.dbService.getDelegatedRoleNames(cache, "*:service", "trust-domain"));
+
+        // unknown domain
+
+        assertNull(zms.dbService.getDelegatedRoleNames(cache, "unknown-domain:role.trust-role", "trust-domain"));
     }
 }

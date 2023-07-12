@@ -39,6 +39,8 @@ public class X509CertRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(X509CertRequest.class);
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
+    protected static final String SPIFFE_TRUST_DOMAIN = System.getProperty(ZTSConsts.ZTS_PROP_SPIFFE_TRUST_DOMAIN, "athenz.io");
+
     protected PKCS10CertificationRequest certReq;
     protected String instanceId;
     protected String uriHostname;
@@ -614,24 +616,6 @@ public class X509CertRequest {
 
         spiffeUri = spUri;
         return true;
-    }
-
-    public boolean validateSpiffeURI(final String domain, final String name, final String value) {
-
-        // the expected format is spiffe://<domain>/<name>/<value>
-
-        if (spiffeUri == null) {
-            return true;
-        }
-
-        final String reqUri = "spiffe://" + domain + "/" + name + "/" + value;
-        boolean uriVerified = reqUri.equalsIgnoreCase(spiffeUri);
-
-        if (!uriVerified) {
-            LOGGER.error("validateSpiffeURI: spiffe uri mismatch: {}/{}", spiffeUri, reqUri);
-        }
-
-        return uriVerified;
     }
 
     public void setNormCsrPublicKey(String normCsrPublicKey) {

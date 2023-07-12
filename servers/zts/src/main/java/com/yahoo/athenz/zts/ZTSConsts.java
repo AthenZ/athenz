@@ -51,6 +51,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_READ_ONLY_MODE         = "athenz.zts.read_only_mode";
     public static final String ZTS_PROP_HEALTH_CHECK_PATH      = "athenz.zts.health_check_path";
     public static final String ZTS_PROP_SERVER_REGION          = "athenz.zts.server_region";
+    public static final String ZTS_PROP_SPIFFE_TRUST_DOMAIN    = "athenz.zts.spiffe_trust_domain";
 
     public static final String ZTS_PROP_AWS_CREDS_CACHE_TIMEOUT             = "athenz.zts.aws_creds_cache_timeout";
     public static final String ZTS_PROP_AWS_CREDS_INVALID_CACHE_TIMEOUT     = "athenz.zts.aws_creds_invalid_cache_timeout";
@@ -258,4 +259,5 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_KEY_ALGO_JSON_WEB_OBJECTS    = "athenz.zts.key_algo_json_web_objects";
     public static final String ZTS_PROP_KEY_ALGO_PROPRIETARY_OBJECTS = "athenz.zts.key_algo_proprietary_objects";
     public static final String ZTS_PROP_KEY_ALGO_PLUGINS             = "athenz.zts.key_algo_plugins";
+
 }

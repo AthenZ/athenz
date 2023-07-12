@@ -1,3 +1,13 @@
+Athenz v1.11.34 Release / Jul 07, 2023
+--------------------------------------
+
+#2220 Go code to get SIA certs from a CGF (Google Cloud Function)
+#2221 exclude bc jdk15on from pom in favor of jdk18on
+#2222 config options to specify preferred key algorithms for zts sign operations
+#2223 Support PKCS#8-formatted private key in zts go tools
+#2224 improve error reporting from gcp identity provider
+#2228 introduce trust-domain/namespace components into service spiffe uri
+
 Athenz v1.11.33 Release / Jun 28, 2023
 --------------------------------------
 

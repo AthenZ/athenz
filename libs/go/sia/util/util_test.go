@@ -223,8 +223,18 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "instance001", "Athenz", "", nil, []string{"athenz.cloud"}, false, false)
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:          "US",
+		Domain:           "domain",
+		Service:          "service",
+		CommonName:       "domain.service",
+		InstanceId:       "instance001",
+		Provider:         "Athenz",
+		ZtsDomains:       []string{"athenz.cloud"},
+		WildCardDnsName:  false,
+		InstanceIdSanDNS: false,
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -243,10 +253,6 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 	}
 	if len(parsedcertreq.DNSNames) != 1 {
 		test.Errorf("CSR has more than 1 san dns name: %d", len(parsedcertreq.DNSNames))
-		return
-	}
-	if len(parsedcertreq.DNSNames) != 1 {
-		test.Errorf("CSR does not have a single dns name")
 		return
 	}
 	if parsedcertreq.DNSNames[0] != "service.domain.athenz.cloud" {
@@ -279,6 +285,52 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 	}
 }
 
+func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:           "US",
+		Domain:            "domain",
+		Service:           "service",
+		CommonName:        "domain.service",
+		InstanceId:        "instance001",
+		Provider:          "Athenz",
+		ZtsDomains:        []string{"athenz.cloud"},
+		WildCardDnsName:   false,
+		InstanceIdSanDNS:  false,
+		SpiffeTrustDomain: "athenz.io",
+		SpiffeNamespace:   "default",
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+	if len(parsedcertreq.URIs) != 2 {
+		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
+		return
+	}
+	if parsedcertreq.URIs[0].String() != "spiffe://athenz.io/ns/default/sa/domain.service" {
+		test.Errorf("CSR does not have expected spiffe uri: %s", parsedcertreq.URIs[0].String())
+		return
+	}
+	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
+		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
+		return
+	}
+}
+
 func TestGenerateRoleCertCSR(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
@@ -286,8 +338,16 @@ func TestGenerateRoleCertCSR(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-
-	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "athenz.cloud")
+	roleCertReqOptions := &RoleCertReqOptions{
+		Country:     "US",
+		Domain:      "domain",
+		Service:     "service",
+		RoleName:    "athenz:role.readers",
+		InstanceId:  "instance001",
+		Provider:    "Athenz",
+		EmailDomain: "athenz.cloud",
+	}
+	csr, err := GenerateRoleCertCSR(key, roleCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -345,8 +405,15 @@ func TestGenerateRoleCertCSRNoEmail(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-
-	csr, err := GenerateRoleCertCSR(key, "US", "", "domain", "service", "athenz:role.readers", "instance001", "Athenz", "")
+	roleCertReqOptions := &RoleCertReqOptions{
+		Country:    "US",
+		Domain:     "domain",
+		Service:    "service",
+		RoleName:   "athenz:role.readers",
+		InstanceId: "instance001",
+		Provider:   "Athenz",
+	}
+	csr, err := GenerateRoleCertCSR(key, roleCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -372,7 +439,19 @@ func TestGenerateWithWildCardHostname(test *testing.T) {
 		test.Errorf("Cannot generate private key: %v", err)
 		return
 	}
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", []string{}, []string{"athenz.cloud"}, true, false)
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:           "US",
+		Domain:            "domain",
+		Service:           "service",
+		CommonName:        "domain.service",
+		Provider:          "Athenz",
+		AddlSanDNSEntries: []string{},
+		ZtsDomains:        []string{"athenz.cloud"},
+		WildCardDnsName:   true,
+		InstanceIdSanDNS:  false,
+		SpiffeNamespace:   "default",
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -406,7 +485,19 @@ func TestGenerateWithHostname(test *testing.T) {
 		return
 	}
 	hostname, _ := os.Hostname()
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", hostname, nil, []string{"athenz.cloud"}, false, false)
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:           "US",
+		Domain:            "domain",
+		Service:           "service",
+		CommonName:        "domain.service",
+		Provider:          "Athenz",
+		Hostname:          hostname,
+		ZtsDomains:        []string{"athenz.cloud"},
+		WildCardDnsName:   false,
+		InstanceIdSanDNS:  false,
+		SpiffeTrustDomain: "athenz.io",
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -441,7 +532,17 @@ func TestGenerateCSRWithMultipleHostname(test *testing.T) {
 	}
 	ztsDomains := []string{"athenz1.cloud"}
 	ztsDomains = append(ztsDomains, "athenz2.cloud")
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", "", nil, ztsDomains, true, false)
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:          "US",
+		Domain:           "domain",
+		Service:          "service",
+		CommonName:       "domain.service",
+		Provider:         "Athenz",
+		ZtsDomains:       ztsDomains,
+		WildCardDnsName:  true,
+		InstanceIdSanDNS: false,
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -483,7 +584,19 @@ func TestGenerateWithAddlSanDNSEntries(test *testing.T) {
 		return
 	}
 	hostname, _ := os.Hostname()
-	csr, err := GenerateSvcCertCSR(key, "US", "", "domain", "service", "domain.service", "", "Athenz", hostname, []string{"10-11-12-13.ns.pod.cluster.local", "svc1.ns.svc.cluster.local"}, []string{"athenz.cloud"}, false, false)
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:           "US",
+		Domain:            "domain",
+		Service:           "service",
+		CommonName:        "domain.service",
+		Provider:          "Athenz",
+		Hostname:          hostname,
+		AddlSanDNSEntries: []string{"10-11-12-13.ns.pod.cluster.local", "svc1.ns.svc.cluster.local"},
+		ZtsDomains:        []string{"athenz.cloud"},
+		WildCardDnsName:   false,
+		InstanceIdSanDNS:  false,
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
 	if err != nil {
 		test.Errorf("Cannot create CSR: %v", err)
 		return
@@ -935,20 +1048,32 @@ func TestParseServiceSpiffeUri(test *testing.T) {
 		uri     string
 		domain  string
 		service string
+		trust   string
+		ns      string
 	}{
-		{"valid", "spiffe://athenz/sa/api", "athenz", "api"},
-		{"not-valid1", "spiffe://athenz/ra/api", "", ""},
-		{"not-valid2", "spiffe://athenz/sa/", "", ""},
-		{"not-valid3", "spiffe:///sa/api", "", ""},
+		{"valid", "spiffe://athenz/sa/api", "athenz", "api", "", ""},
+		{"valid-ns1", "spiffe://athenz.io/ns/default/sa/athenz.api", "athenz", "api", "athenz.io", "default"},
+		{"valid-ns2", "spiffe://athenz.io/ns/prod-deployment/sa/sports.prod.backend", "sports.prod", "backend", "athenz.io", "prod-deployment"},
+		{"not-valid1", "spiffe://athenz/ra/api", "", "", "", ""},
+		{"not-valid2", "spiffe://athenz/sa/", "", "", "", ""},
+		{"not-valid3", "spiffe:///sa/api", "", "", "", ""},
+		{"nov-valid4", "spiffe://athenz.io/ns/default/athenz.api", "", "", "", ""},
+		{"nov-valid5", "spiffe://athenz.io/ns/default/sa/athenz", "", "", "", ""},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
-			domain, service := ParseServiceSpiffeUri(tt.uri)
+			trust, ns, domain, service := ParseServiceSpiffeUri(tt.uri)
 			if domain != tt.domain {
 				test.Errorf("%s: invalid domain returned - expected: %s, received %s", tt.name, tt.domain, domain)
 			}
 			if service != tt.service {
 				test.Errorf("%s: invalid service returned - expected: %s, received %s", tt.name, tt.service, service)
+			}
+			if trust != tt.trust {
+				test.Errorf("%s: invalid trust domain returned - expected: %s, received %s", tt.name, tt.trust, trust)
+			}
+			if ns != tt.ns {
+				test.Errorf("%s: invalid namesparce returned - expected: %s, received %s", tt.name, tt.ns, ns)
 			}
 		})
 	}
@@ -981,25 +1106,31 @@ func TestParseRoleSpiffeUri(test *testing.T) {
 }
 
 func TestParseCASpiffeUri(test *testing.T) {
-
 	tests := []struct {
-		name string
-		uri  string
-		ns   string
-		ca   string
+		name    string
+		uri     string
+		trust   string
+		ns      string
+		cluster string
 	}{
-		{"valid", "spiffe://athenz/ca/default", "athenz", "default"},
-		{"not-valid1", "spiffe://athenz/sa/default", "", ""},
-		{"not-valid2", "spiffe://athenz/sa/", "", ""},
+		{"valid1", "spiffe://athenz.io/ns/default/ca/us-west-2", "athenz.io", "default", "us-west-2"},
+		{"valid2", "spiffe://athenz.io/ns/prod/ca/us-east-1", "athenz.io", "prod", "us-east-1"},
+		{"not-valid1", "spiffe://athenz.io/ns/default", "", "", ""},
+		{"not-valid2", "spiffe://athenz/sa/default", "", "", ""},
+		{"not-valid3", "spiffe://athenz/sa/", "", "", ""},
+		{"not-valid3", "spiffe://athenz.io/ns/default/sa/us-west-2", "", "", ""},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
-			ns, ca := ParseCASpiffeUri(tt.uri)
+			trust, ns, cluster := ParseCASpiffeUri(tt.uri)
+			if trust != tt.trust {
+				test.Errorf("invalid trust doamin returned - expected: %s, received %s", tt.trust, trust)
+			}
 			if ns != tt.ns {
 				test.Errorf("invalid ns returned - expected: %s, received %s", tt.ns, ns)
 			}
-			if ca != tt.ca {
-				test.Errorf("invalid ca returned - expected: %s, received %s", tt.ca, ca)
+			if cluster != tt.cluster {
+				test.Errorf("invalid cluster returned - expected: %s, received %s", tt.cluster, cluster)
 			}
 		})
 	}
@@ -1351,6 +1482,53 @@ func TestGetCertKeyFileName(t *testing.T) {
 			keyFile, certFile := getCertKeyFileName(tt.keyFile, tt.certFile, tt.keyDir, tt.certDir, tt.keyPrefix, tt.certPrefix)
 			assert.Equal(t, tt.resultKey, keyFile)
 			assert.Equal(t, tt.resultCert, certFile)
+		})
+	}
+}
+
+func TestGetSvcSpiffeUri(t *testing.T) {
+
+	tests := map[string]struct {
+		domain      string
+		service     string
+		trustDomain string
+		namespace   string
+		uri         string
+	}{
+		"domain-service-only": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "",
+			namespace:   "",
+			uri:         "spiffe://sports/sa/api",
+		},
+		"only-trust-domain": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "athenz.cloud",
+			namespace:   "",
+			uri:         "spiffe://sports/sa/api",
+		},
+		"only-namespace": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "",
+			namespace:   "default",
+			uri:         "spiffe://sports/sa/api",
+		},
+		"namespace-format": {
+			domain:      "sports",
+			service:     "api",
+			trustDomain: "athenz.io",
+			namespace:   "default",
+			uri:         "spiffe://athenz.io/ns/default/sa/sports.api",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			spiffeUri := GetSvcSpiffeUri(tt.trustDomain, tt.namespace, tt.domain, tt.service)
+			assert.Equal(t, spiffeUri, tt.uri)
 		})
 	}
 }

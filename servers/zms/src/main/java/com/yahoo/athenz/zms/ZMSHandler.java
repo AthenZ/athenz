@@ -43,7 +43,7 @@ public interface ZMSHandler {
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName, String expiration);
     DomainRoleMembers getOverdueReview(ResourceContext context, String domainName);
     DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);
-    DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName);
+    DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName, Boolean expand);
     Response putMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Boolean returnObj, Membership membership);
     void deleteMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void deletePendingMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);

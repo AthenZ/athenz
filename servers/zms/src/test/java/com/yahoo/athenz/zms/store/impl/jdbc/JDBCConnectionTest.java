@@ -1769,6 +1769,23 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testListTrustedRolesWithWildcardsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.listTrustedRolesWithWildcards("*", "*-qa-test", "trust-domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
     public void testCountRoleMembers() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);

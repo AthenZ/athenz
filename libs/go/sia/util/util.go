@@ -45,6 +45,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
 )
 
+// CertReqDetails - struct with details to generate a certificate CSR
 type CertReqDetails struct {
 	CommonName string
 	Country    string
@@ -56,6 +57,36 @@ type CertReqDetails struct {
 	HostList   []string
 	EmailList  []string
 	URIs       []*url.URL
+}
+
+// SvcCertReqOptions - struct with details to generate a service certificate CSR
+type SvcCertReqOptions struct {
+	Country           string
+	OrgName           string
+	Domain            string
+	Service           string
+	CommonName        string
+	InstanceId        string
+	Provider          string
+	Hostname          string
+	SpiffeTrustDomain string
+	SpiffeNamespace   string
+	AddlSanDNSEntries []string
+	ZtsDomains        []string
+	WildCardDnsName   bool
+	InstanceIdSanDNS  bool
+}
+
+// RoleCertReqOptions - struct with details to generate a role certificate CSR
+type RoleCertReqOptions struct {
+	Country     string
+	OrgName     string
+	Domain      string
+	Service     string
+	RoleName    string
+	InstanceId  string
+	Provider    string
+	EmailDomain string
 }
 
 // SSHKeyReq - congruent with certsign-rdl/certsign.rdl
@@ -263,7 +294,7 @@ func PrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	return x509.ParsePKCS1PrivateKey(block.Bytes)
 }
 
-func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, commonName, instanceId, provider, hostname string, addlSanDNSEntries, ztsDomains []string, wildCardDnsName, instanceIdSanDNS bool) (string, error) {
+func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string, error) {
 
 	log.Println("Generating X.509 Service Certificate CSR...")
 
@@ -272,62 +303,72 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, servi
 	//(it is *not* a DNS domain name), and put the host name into the SAN.
 
 	var csrDetails CertReqDetails
-	csrDetails.CommonName = commonName
-	csrDetails.Country = countryName
-	csrDetails.Org = orgName
-	csrDetails.OrgUnit = provider
+	csrDetails.CommonName = options.CommonName
+	csrDetails.Country = options.Country
+	csrDetails.Org = options.OrgName
+	csrDetails.OrgUnit = options.Provider
 
-	hyphenDomain := strings.Replace(domain, ".", "-", -1)
+	hyphenDomain := strings.Replace(options.Domain, ".", "-", -1)
 	csrDetails.HostList = []string{}
-	for _, ztsDomain := range ztsDomains {
-		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+	for _, ztsDomain := range options.ZtsDomains {
+		host := fmt.Sprintf("%s.%s.%s", options.Service, hyphenDomain, ztsDomain)
 		csrDetails.HostList = AppendHostname(csrDetails.HostList, host)
-		if wildCardDnsName {
-			host = fmt.Sprintf("*.%s.%s.%s", service, hyphenDomain, ztsDomain)
+		if options.WildCardDnsName {
+			host = fmt.Sprintf("*.%s.%s.%s", options.Service, hyphenDomain, ztsDomain)
 			csrDetails.HostList = AppendHostname(csrDetails.HostList, host)
 		}
 	}
 	// include hostname if requested
-	if hostname != "" {
-		csrDetails.HostList = AppendHostname(csrDetails.HostList, hostname)
+	if options.Hostname != "" {
+		csrDetails.HostList = AppendHostname(csrDetails.HostList, options.Hostname)
 	}
-	if len(addlSanDNSEntries) > 0 {
-		for _, host := range addlSanDNSEntries {
+	if len(options.AddlSanDNSEntries) > 0 {
+		for _, host := range options.AddlSanDNSEntries {
 			csrDetails.HostList = AppendHostname(csrDetails.HostList, host)
 		}
 	}
 	// for backward compatibility a sanDNS entry with instance id in the hostname
-	if instanceIdSanDNS {
-		instanceIdHost := fmt.Sprintf("%s.instanceid.athenz.%s", instanceId, ztsDomains[0])
+	if options.InstanceIdSanDNS {
+		instanceIdHost := fmt.Sprintf("%s.instanceid.athenz.%s", options.InstanceId, options.ZtsDomains[0])
 		csrDetails.HostList = AppendHostname(csrDetails.HostList, instanceIdHost)
 	}
 
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
-	spiffeUri := fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	spiffeUri := GetSvcSpiffeUri(options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>
-	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
+	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", options.Provider, options.InstanceId)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
 
 	return GenerateX509CSR(key, csrDetails)
 }
 
-func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, service, roleName, instanceId, provider, emailDomain string) (string, error) {
+func GetSvcSpiffeUri(trustDomain, namespace, domain, service string) string {
+	var uriStr string
+	if trustDomain != "" && namespace != "" {
+		uriStr = fmt.Sprintf("spiffe://%s/ns/%s/sa/%s.%s", trustDomain, namespace, domain, service)
+	} else {
+		uriStr = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	}
+	return uriStr
+}
+
+func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (string, error) {
 
 	log.Println("Generating Role Certificate CSR...")
 
 	// for role certificates we're putting the role name in the CN
 	var csrDetails CertReqDetails
-	csrDetails.CommonName = roleName
-	csrDetails.Country = countryName
-	csrDetails.Org = orgName
-	csrDetails.OrgUnit = provider
+	csrDetails.CommonName = options.RoleName
+	csrDetails.Country = options.Country
+	csrDetails.Org = options.OrgName
+	csrDetails.OrgUnit = options.Provider
 
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
-	domainNameRequest, roleNameRequest, err := SplitRoleName(roleName)
+	domainNameRequest, roleNameRequest, err := SplitRoleName(options.RoleName)
 	if err != nil {
 		return "", err
 	}
@@ -335,16 +376,16 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, countryName, orgName, domain, serv
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>
-	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", provider, instanceId)
+	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", options.Provider, options.InstanceId)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
 
 	// include an uri for athenz principal
-	principalUri := fmt.Sprintf("athenz://principal/%s.%s", domain, service)
+	principalUri := fmt.Sprintf("athenz://principal/%s.%s", options.Domain, options.Service)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, principalUri)
 
 	// for backward compatibility an email with the principal as the local part
-	if emailDomain != "" {
-		email := fmt.Sprintf("%s.%s@%s", domain, service, emailDomain)
+	if options.EmailDomain != "" {
+		email := fmt.Sprintf("%s.%s@%s", options.Domain, options.Service, options.EmailDomain)
 		csrDetails.EmailList = []string{email}
 	}
 
@@ -829,23 +870,49 @@ func SaveCertKey(key, cert []byte, keyFile, certFile, keyPrefix, certPrefix stri
 	return nil
 }
 
-func ParseServiceSpiffeUri(uri string) (string, string) {
-	return parseSpiffeUri(uri, "/sa/")
+func ParseServiceSpiffeUri(uri string) (string, string, string, string) {
+	//  spiffe://<athenz-domain>/sa/<athenz-service>
+	//   e.g. spiffe://sports/sa/api
+	//  spiffe://<trust-domain>/ns/<namespace>/sa/<athenz-domain>.<athenz-service>
+	//   e.g. spiffe://athenz.io/ns/default/sa/sports.api
+	idx := strings.Index(uri, "/ns/")
+	if idx == -1 {
+		domain, service := parseSpiffeUriWithoutNamespace(uri, "/sa/")
+		return "", "", domain, service
+	} else {
+		trustDomain, namespace, athenzService := parseSpiffeUriWithNamespace(uri, "/sa/")
+		idx = strings.LastIndex(athenzService, ".")
+		if idx < 0 {
+			return "", "", "", ""
+		} else {
+			return trustDomain, namespace, athenzService[0:idx], athenzService[idx+1:]
+		}
+	}
 }
 
 func ParseRoleSpiffeUri(uri string) (string, string) {
-	return parseSpiffeUri(uri, "/ra/")
+	//  spiffe://<athenz-domain>/ra/<athenz-role>
+	return parseSpiffeUriWithoutNamespace(uri, "/ra/")
 }
 
-func ParseCASpiffeUri(uri string) (string, string) {
-	return parseSpiffeUri(uri, "/ca/")
+func ParseCASpiffeUri(uri string) (string, string, string) {
+	//  spiffe://<trust-domain>/ns/<namespace>/ca/<athenz-cluster>
+	idx := strings.Index(uri, "/ns/")
+	if idx == -1 {
+		return "", "", ""
+	} else {
+		return parseSpiffeUriWithNamespace(uri, "/ca/")
+	}
 }
 
-func parseSpiffeUri(uri, objType string) (string, string) {
+func parseSpiffeUriWithoutNamespace(uri, objType string) (string, string) {
 	if !strings.HasPrefix(uri, "spiffe://") {
 		return "", ""
 	}
 	comp := uri[9:]
+	//supported formats:
+	//  spiffe://<athenz-domain>/sa/<athenz-service>
+	//  spiffe://<athenz-domain>/ra/<athenz-role>
 	idx := strings.Index(comp, objType)
 	if idx == -1 {
 		return "", ""
@@ -856,6 +923,24 @@ func parseSpiffeUri(uri, objType string) (string, string) {
 		return "", ""
 	}
 	return comp1, comp2
+}
+
+func parseSpiffeUriWithNamespace(uri, objType string) (string, string, string) {
+	if !strings.HasPrefix(uri, "spiffe://") {
+		return "", "", ""
+	}
+	comp := uri[9:]
+	//supported formats:
+	//  spiffe://<trust-domain>/ns/<namespace>/sa/<athenz-domain>.<athenz-service>
+	//  spiffe://<trust-domain>/ns/<namespace>/ca/<athenz-cluster>
+	idx := strings.Index(comp, "/ns/")
+	trustDomain := comp[0:idx]
+	nsComp := comp[idx+4:]
+	idx = strings.Index(nsComp, objType)
+	if idx == -1 {
+		return "", "", ""
+	}
+	return trustDomain, nsComp[0:idx], nsComp[idx+len(objType):]
 }
 
 func Nonce() (string, error) {

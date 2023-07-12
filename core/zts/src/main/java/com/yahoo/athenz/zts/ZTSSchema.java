@@ -198,7 +198,8 @@ public class ZTSSchema {
             .comment("InstanceRefreshRequest - a certificate refresh request")
             .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
             .field("expiryTime", "Int32", true, "in minutes how long token should be valid for")
-            .field("keyId", "String", true, "public key identifier");
+            .field("keyId", "String", true, "public key identifier")
+            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value");
 
         sb.stringType("AWSRoleName")
             .comment("AWS role name without the path")
@@ -322,7 +323,8 @@ public class ZTSSchema {
             .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
             .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
-            .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
+            .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp")
+            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value");
 
         sb.structType("InstanceRefreshInformation")
             .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
@@ -334,7 +336,8 @@ public class ZTSSchema {
             .field("hostname", "DomainName", true, "optional hostname in case included in the csr SAN dnsName attribute")
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
             .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
-            .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp");
+            .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp")
+            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value");
 
         sb.structType("InstanceRegisterToken")
             .field("provider", "ServiceName", false, "provider service name")
