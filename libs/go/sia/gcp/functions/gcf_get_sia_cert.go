@@ -103,18 +103,18 @@ func GcfGetSiaCerts(
 		return nil, err
 	}
 
-	siaCertData.privateKey = privateKey
-	siaCertData.privateKeyPem = string(privateKeyPem)
+	siaCertData.PrivateKey = privateKey
+	siaCertData.PrivateKeyPem = string(privateKeyPem)
 	return siaCertData, nil
 }
 
 // SiaCertData response of GcfGetSiaCerts()
 type SiaCertData struct {
-	privateKey               *rsa.PrivateKey
-	privateKeyPem            string
-	x509Certificate          *x509.Certificate
-	x509CertificatePem       string
-	x509CertificateSignerPem string
+	PrivateKey               *rsa.PrivateKey
+	PrivateKeyPem            string
+	X509Certificate          *x509.Certificate
+	X509CertificatePem       string
+	X509CertificateSignerPem string
 }
 
 // CsrSubjectFields are optional fields for the CSR: the fields will appear in the created certificate's "Subject".
@@ -263,8 +263,8 @@ func getCredsFromZts(ztsUrl string, instanceRegisterInformation zts.InstanceRegi
 	}
 
 	return &SiaCertData{
-		x509Certificate:          x509Certificate,
-		x509CertificatePem:       instanceIdentity.X509Certificate,
-		x509CertificateSignerPem: instanceIdentity.X509CertificateSigner,
+		X509Certificate:          x509Certificate,
+		X509CertificatePem:       instanceIdentity.X509Certificate,
+		X509CertificateSignerPem: instanceIdentity.X509CertificateSigner,
 	}, nil
 }
