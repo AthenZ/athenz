@@ -41,6 +41,20 @@ export const selectService = (state, domainName, serviceName) => {
         : {};
 };
 
+export const selectServiceTags = (state, domainName, serviceName) => {
+    return state.services.services &&
+        state.services.services[
+            getFullName(domainName, serviceDelimiter, serviceName)
+        ] &&
+        state.services.services[
+            getFullName(domainName, serviceDelimiter, serviceName)
+        ].tags
+        ? state.services.services[
+              getFullName(domainName, serviceDelimiter, serviceName)
+          ].tags
+        : {};
+};
+
 export const selectServicePublicKeys = (state, domainName, serviceName) => {
     return state.services.services &&
         state.services.services[

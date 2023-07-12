@@ -63,6 +63,10 @@ export const SERVICE_TABS = [
         label: SERVICE_TYPE_DYNAMIC_LABEL,
         name: SERVICE_TYPE_DYNAMIC,
     },
+    {
+        label: 'Tags',
+        name: 'tags',
+    },
 ];
 
 export const SEGMENTATION_CATEGORIES = [

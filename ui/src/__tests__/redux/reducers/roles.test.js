@@ -151,7 +151,10 @@ describe('Roles Reducer', () => {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
                 collectionName: 'dom:role.expiration',
-                collectionTags: { tag: { list: ['tag4', 'tag5'] } },
+                collectionWithTags: {
+                    ...configStoreRoles['dom:role.expiration'],
+                    tags: { tag: { list: ['tag4', 'tag5'] } },
+                },
                 category: 'role',
             },
         };
@@ -160,7 +163,7 @@ describe('Roles Reducer', () => {
             tag: { list: ['tag4', 'tag5'] },
         };
         const newState = roles(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(newState).toEqual(expectedState);
     });
     it('should add role tag the store', () => {
         const initialState = {
@@ -172,7 +175,10 @@ describe('Roles Reducer', () => {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
                 collectionName: 'dom:role.role1',
-                collectionTags: { tag: { list: ['tag1', 'tag2'] } },
+                collectionWithTags: {
+                    ...configStoreRoles['dom:role.role1'],
+                    tags: { tag: { list: ['tag1', 'tag2'] } },
+                },
                 category: 'role',
             },
         };
@@ -181,7 +187,7 @@ describe('Roles Reducer', () => {
             tag: { list: ['tag1', 'tag2'] },
         };
         const newState = roles(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(newState).toEqual(expectedState);
     });
     it('should delete and edit role tag from store', () => {
         const initialState = {
@@ -193,7 +199,10 @@ describe('Roles Reducer', () => {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
                 collectionName: 'dom:role.expiration',
-                collectionTags: { tag: { list: ['tag1'] } },
+                collectionWithTags: {
+                    ...configStoreRoles['dom:role.expiration'],
+                    tags: { tag: { list: ['tag1'] } },
+                },
                 category: 'role',
             },
         };
@@ -202,7 +211,7 @@ describe('Roles Reducer', () => {
             tag: { list: ['tag1'] },
         };
         const newState = roles(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(newState).toEqual(expectedState);
     });
     it('should update role setting to store', () => {
         const initialState = {

@@ -230,38 +230,31 @@ describe('test selectPoliciesThunk', () => {
         expect(
             _.isEqual(
                 selectPoliciesThunk(stateWithPolicies),
-                configStorePolicies
-            )
+                configStorePolicies,
+            ),
         ).toBeTruthy();
     });
     it('should return empty object', () => {
         expect(
-            _.isEqual(selectPoliciesThunk(stateWithoutPolicies), {})
+            _.isEqual(selectPoliciesThunk(stateWithoutPolicies), {}),
         ).toBeTruthy();
     });
 });
 
 describe('test selectPolicies', () => {
     it('should select policies as list', () => {
-        expect(
-            _.isEqual(selectPolicies(stateWithPolicies), policyList)
-        ).toBeTruthy();
+        expect(selectPolicies(stateWithPolicies)).toEqual(policyList);
     });
     it('should return empty list', () => {
-        expect(
-            _.isEqual(selectPolicies(stateWithoutPolicies), [])
-        ).toBeTruthy();
+        expect(selectPolicies(stateWithoutPolicies)).toEqual([]);
     });
 });
 
 describe('test selectOnlyActivePolicies', () => {
     it('should select active policies only', () => {
-        expect(
-            _.isEqual(
-                selectActivePoliciesOnly(stateWithPolicies),
-                activePoliciesOnly
-            )
-        ).toBeTruthy();
+        expect(selectActivePoliciesOnly(stateWithPolicies)).toEqual(
+            activePoliciesOnly,
+        );
     });
 });
 
@@ -285,16 +278,16 @@ describe('test selectPolicy', () => {
         expect(
             _.isEqual(
                 selectPolicy(stateWithPolicies, domainName, 'policy1'),
-                policy
-            )
+                policy,
+            ),
         ).toBeTruthy();
     });
     it('should return null', () => {
         expect(
             _.isEqual(
                 selectPolicy(stateWithPolicies, domainName, 'not_exists'),
-                null
-            )
+                null,
+            ),
         ).toBeTruthy();
     });
 });
@@ -319,16 +312,16 @@ describe('test selectPolicyThunk', () => {
         expect(
             _.isEqual(
                 selectPolicyThunk(stateWithPolicies, domainName, 'policy1'),
-                policy
-            )
+                policy,
+            ),
         ).toBeTruthy();
     });
     it('should return null', () => {
         expect(
             _.isEqual(
                 selectPolicyThunk(stateWithPolicies, domainName, 'not_exists'),
-                null
-            )
+                null,
+            ),
         ).toBeTruthy();
     });
 });
@@ -351,16 +344,8 @@ describe('test selectPolicyVersion', () => {
             active: false,
         };
         expect(
-            _.isEqual(
-                selectPolicyVersion(
-                    stateWithPolicies,
-                    domainName,
-                    'policy1',
-                    '2'
-                ),
-                policy
-            )
-        ).toBeTruthy();
+            selectPolicyVersion(stateWithPolicies, domainName, 'policy1', '2'),
+        ).toEqual(policy);
     });
     it('should return null', () => {
         expect(
@@ -369,10 +354,10 @@ describe('test selectPolicyVersion', () => {
                     stateWithPolicies,
                     domainName,
                     'policy1',
-                    'not_exists'
+                    'not_exists',
                 ),
-                null
-            )
+                null,
+            ),
         ).toBeTruthy();
     });
 });
@@ -395,16 +380,13 @@ describe('test selectPolicyVersionThunk', () => {
             active: false,
         };
         expect(
-            _.isEqual(
-                selectPolicyVersionThunk(
-                    stateWithPolicies,
-                    domainName,
-                    'policy1',
-                    '2'
-                ),
-                policy
-            )
-        ).toBeTruthy();
+            selectPolicyVersionThunk(
+                stateWithPolicies,
+                domainName,
+                'policy1',
+                '2',
+            ),
+        ).toEqual(policy);
     });
     it('should return null', () => {
         expect(
@@ -413,10 +395,10 @@ describe('test selectPolicyVersionThunk', () => {
                     stateWithPolicies,
                     domainName,
                     'policy1',
-                    'not_exists'
+                    'not_exists',
                 ),
-                null
-            )
+                null,
+            ),
         ).toBeTruthy();
     });
 });
@@ -435,13 +417,13 @@ describe('test selectPolicyAssertions', () => {
         expect(
             _.isEqual(
                 selectPolicyAssertions(stateWithPolicies, domainName, 'admin'),
-                assertions
-            )
+                assertions,
+            ),
         ).toBeTruthy();
     });
     it('should return empty list', () => {
         expect(
-            selectPolicyAssertions(stateWithoutPolicies, domainName, 'admin')
+            selectPolicyAssertions(stateWithoutPolicies, domainName, 'admin'),
         ).toEqual([]);
     });
 });

@@ -31,6 +31,7 @@ import {
 import { deleteInstanceFromWorkloadDataDraft, getExpiryTime } from '../utils';
 import produce from 'immer';
 import { SERVICE_TYPE_DYNAMIC } from '../../components/constants/constants';
+import { UPDATE_TAGS_TO_STORE } from '../actions/collections';
 
 export const services = (state = {}, action) => {
     const { type, payload } = action;
@@ -187,6 +188,18 @@ export const services = (state = {}, action) => {
                     serviceFullName
                 ].staticInstances.workLoadMeta.totalRecords += 1;
             });
+            return newState;
+        }
+        case UPDATE_TAGS_TO_STORE: {
+            const { collectionName, collectionWithTags, category } = payload;
+            let newState = state;
+            if (category === 'service') {
+                newState = produce(state, (draft) => {
+                    draft.services[collectionName]
+                        ? (draft.services[collectionName].tags = collectionTags.tags)
+                        : (draft.services[collectionName] = { collectionTags });
+                });
+            }
             return newState;
         }
         case RETURN_SERVICES:

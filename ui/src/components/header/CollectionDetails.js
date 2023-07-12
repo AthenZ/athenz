@@ -16,8 +16,6 @@
 import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import React from 'react';
-import { selectTimeZone } from '../../redux/selectors/domains';
-import { connect } from 'react-redux';
 
 const DomainSectionDiv = styled.div`
     margin: 20px 0;
@@ -42,7 +40,7 @@ const LabelDiv = styled.div`
     text-transform: uppercase;
 `;
 
-class CollectionDetails extends React.Component {
+export default class CollectionDetails extends React.Component {
     constructor(props) {
         super(props);
     }

@@ -49,6 +49,7 @@ import {
 import { loadRole } from '../../../redux/actions/roles';
 import { PENDING_STATE_ENUM } from '../../../components/constants/constants';
 import { updateBellPendingMember } from '../../../redux/actions/domain-data';
+import { expiry, modified } from '../../config/config.test';
 
 const groupsThunk = require('../../../redux/thunks/groups');
 const rolesThunk = require('../../../redux/thunks/roles');
@@ -364,7 +365,27 @@ describe('updateTags method', () => {
     });
     it('successfully update group tag', async () => {
         let collectionName = 'group1';
-        let detail = { tags: ['tag1', 'tag2'] };
+        let detail = {
+            memberExpiryDays: 50,
+            tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
+            name: 'dom:group.expiration',
+            modified: modified,
+            groupMembers: {
+                'user.user4': {
+                    memberName: 'user.user4',
+                    groupName: 'dom:group.expiration',
+                    expiration: '2022-08-25T15:39:23.701Z',
+                },
+                'user.user1': {
+                    memberName: 'user.user1',
+                    groupName: 'dom:group.expiration',
+                    expiration: '2022-08-25T15:39:23.701Z',
+                },
+            },
+            groupPendingMembers: {},
+            lastReviewedDate: '2022-07-18T14:20:45.836Z',
+            expiry: 1658408002704,
+        };
         let auditRef = 'auditRef';
         let _csrf = 'csrf';
         let category = 'group';
@@ -399,20 +420,36 @@ describe('updateTags method', () => {
                     category
                 )
         ).toBeTruthy();
-        expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
-                updateTagsToStore(
-                    domainName + ':group.' + collectionName,
-                    detail.tags,
-                    category
-                )
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            updateTagsToStore(
+                domainName + ':group.' + collectionName,
+                detail,
+                category
             )
-        ).toBeTruthy();
+        );
     });
     it('successfully update role tag', async () => {
-        let collectionName = 'role1';
-        let detail = { tags: ['tag1', 'tag2'] };
+        let collectionName = 'admin';
+        let detail = {
+            tags: { tag: { list: ['tag1'] } },
+            name: 'dom:role.admin',
+            modified: modified,
+            roleMembers: {
+                'user.user2': {
+                    memberName: 'user.user2',
+                    expiration: expiry,
+                    principalType: 1,
+                    memberFullName: null,
+                },
+                'user.user3': {
+                    memberName: 'user.user7',
+                    expiration: expiry,
+                    principalType: 1,
+                    memberFullName: null,
+                },
+            },
+            rolePendingMembers: {},
+        };
         let auditRef = 'auditRef';
         let _csrf = 'csrf';
         let category = 'role';
@@ -446,16 +483,74 @@ describe('updateTags method', () => {
                     category
                 )
         ).toBeTruthy();
+        expect(fakeDispatch.getCall(0).args[0]).toEqual(
+            updateTagsToStore(
+                domainName + ':role.' + collectionName,
+                detail,
+                category
+            )
+        );
+    });
+    it('successfully update service tag', async () => {
+        let collectionName = 'service1';
+        let detail =  {
+            tags: { tag: { list: ['tag1'] } },
+            name: 'dom.service1',
+                description: 'service for test',
+                publicKeys: {
+                1: {
+                    key: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF6WkNVaExjM1Rwdk9iaGpkWThIYgovMHprZldBWVNYTFhhQzlPMVM4QVhvTTcvTDcwWFkrOUtMKzFJeTd4WURUcmJaQjB0Y29sTHdubldIcTVnaVptClV3M3U2RkdTbDVsZDR4cHlxQjAyaUsrY0ZTcVM3S09MTEgwcDlnWFJmeFhpYXFSaVYycktGMFRoenJHb3gyY20KRGYvUW9abGxOZHdJRkdxa3VSY0VEdkJuUlRMV2xFVlYrMVUxMmZ5RXNBMXl2VmI0RjlSc2NaRFltaVBSYmhBKwpjTHpxSEt4WDUxZGw2ZWsxeDdBdlVJTThqczZXUElFZmVseVRSaVV6WHdPZ0laYnF2UkhTUG1GRzBaZ1pEakczCkxsZnkvRThLMFF0Q2sza2kxeThUZ2EySTVrMmhmZngzRHJITW5yMTRaajNCcjBUOVJ3aXFKRDdGb3lUaUQvdGkKeFFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t',
+                        id: '1',
+                },
+                2: {
+                    key: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBb1BqVm5UdXhkOGRwMC9ZTWh6TXIKOURpS0pUUXdrNWphdktKR2RHY29wQ2Ura1lWMHRFQnpGL1VCRWpjYVpuNnd4eGRjZU5wZkhuSVN6SG5abVNFKwpjRGUwY09yc3BPZ1c5d1VGdE9BcGpJZ2krUmxiOC93ck1iMmF1YXV2NUxoRW9ORm9ueCs3TVdSRnptUmZvaG91Cm9pd1h2czJ2V2x4Z0JXelo4UHVHSUlsTERNK3ltWlFxamlPbERjOWF2ZVpraXpUZFJBMG9veTFoRUZyK3ZNRWMKK2ZYY29aQ0F0S0J2aHNuKzFhb2ZPMU9pZ2ljYS9WaCtSSm1ieUNBem1tVFpia0I4emJUaE1vK1cxNmhXeUl0dQpJM1VoMlhHYTZ4dVhyQ0FBQ1FLVVR5TDdGRkl2OXhLUExtVWRXYkdYd3NTZ0FBazZjV2x3WTZJcW4zUHJQSmpTCmNRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ--',
+                        id: '2',
+                },
+            },
+            modified: modified,
+        };
+
+        let auditRef = 'auditRef';
+        let _csrf = 'csrf';
+        let category = 'service';
+
+        const getState = () => {};
+        let myApiMock = {
+            putMeta: jest.fn().mockReturnValue(Promise.resolve([])),
+        };
+        MockApi.setMockApi(myApiMock);
+        sinon.spy(myApiMock, 'putMeta');
+
+        const fakeDispatch = sinon.spy();
+        await updateTags(
+            domainName,
+            collectionName,
+            detail,
+            auditRef,
+            _csrf,
+            category
+        )(fakeDispatch, getState);
+
         expect(
-            _.isEqual(
-                fakeDispatch.getCall(0).args[0],
+            myApiMock.putMeta
+                .getCall(0)
+                .calledWith(
+                    domainName,
+                    collectionName,
+                    detail,
+                    auditRef,
+                    _csrf,
+                    category
+                )
+        ).toBeTruthy();
+        expect(
+                fakeDispatch.getCall(0).args[0]).toEqual(
                 updateTagsToStore(
-                    domainName + ':role.' + collectionName,
-                    detail.tags,
+                    domainName + '.' + collectionName,
+                    detail,
                     category
                 )
             )
-        ).toBeTruthy();
     });
 });
 

@@ -217,6 +217,8 @@ class TagList extends React.Component {
                 tags: collectionDetails.tags,
             };
         }
+        // For Service and Policy just return the collection because we don't build a new metaData object.
+        return collectionDetails;
     }
 
     updateMeta(meta, csrf, successMessage, showSuccess = true) {

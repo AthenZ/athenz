@@ -328,7 +328,7 @@ export const updateTags =
             dispatch(
                 updateTagsToStore(
                     getFullCollectionName(domain, collectionName, category),
-                    detail.tags,
+                    detail,
                     category
                 )
             );

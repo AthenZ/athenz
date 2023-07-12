@@ -157,13 +157,14 @@ export const roles = (state = {}, action) => {
             return newState;
         }
         case UPDATE_TAGS_TO_STORE: {
-            const { collectionName, collectionTags, category } = payload;
+            const { collectionName, collectionWithTags, category } = payload;
             let newState = state;
             if (category === 'role') {
                 newState = produce(state, (draft) => {
                     draft.roles[collectionName]
-                        ? (draft.roles[collectionName].tags = collectionTags)
-                        : (draft.roles[collectionName] = { collectionTags });
+                        ? (draft.roles[collectionName].tags =
+                              collectionWithTags.tags)
+                        : (draft.roles[collectionName] = collectionWithTags);
                 });
             }
             return newState;

@@ -10,7 +10,7 @@ exports[`Service Tabs should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -109,6 +109,12 @@ exports[`Service Tabs should render 1`] = `
     data-active="true"
   >
     Dynamic
+  </div>
+  <div
+    class="emotion-1 denali-tab"
+    data-active="false"
+  >
+    Tags
   </div>
 </div>
 `;

@@ -22,10 +22,14 @@ class ServiceTabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
+        this.state = {
+            currTab: '',
+        };
     }
 
     tabClicked(tab) {
         const { domain, service } = this.props;
+        this.setState({ currTab: tab.name });
         switch (tab.name) {
             case 'static':
                 this.props.router.push(
@@ -37,6 +41,12 @@ class ServiceTabs extends React.Component {
                 this.props.router.push(
                     `/domain/${domain}/service/${service}/instance/dynamic`,
                     `/domain/${domain}/service/${service}/instance/dynamic`
+                );
+                break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/service/${service}/tags`,
+                    `/domain/${domain}/service/${service}/tags`
                 );
                 break;
         }

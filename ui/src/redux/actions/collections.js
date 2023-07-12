@@ -80,13 +80,13 @@ export const updateSettingsToStore = (
 export const UPDATE_TAGS_TO_STORE = 'UPDATE_TAGS_TO_STORE';
 export const updateTagsToStore = (
     collectionName,
-    collectionTags,
+    collectionWithTags,
     category
 ) => ({
     type: UPDATE_TAGS_TO_STORE,
     payload: {
         collectionName,
-        collectionTags,
+        collectionWithTags,
         category,
     },
 });
