@@ -130,10 +130,10 @@ func (cli Zms) ImportDomainNew(dn string, filename string, admins []string, newD
 	}
 
 	if newDomain {
-		if signedDomain.YpmId == nil && cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
-			return nil, fmt.Errorf("top level domains require an integer number specified for the Product ID")
+		if signedDomain.YpmId == nil && signedDomain.ProductId == "" && cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
+			return nil, fmt.Errorf("top level domains require Product ID to be specified")
 		}
-		_, err = cli.AddDomain(dn, signedDomain.YpmId, true, admins)
+		_, err = cli.AddDomain(dn, signedDomain.YpmId, signedDomain.ProductId, true, admins)
 		if err != nil {
 			return nil, err
 		}
@@ -198,14 +198,21 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 	if dn2 != dn {
 		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + dn2)
 	}
-	var productID int
-	if val, ok := dnSpec["product_id"]; ok {
-		productID = val.(int)
-	} else if cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
-		return nil, fmt.Errorf("top level domains require an integer number specified for the Product ID")
+	productIDNumber := -1
+	productIDString := ""
+	if val, ok := dnSpec["ypm_id"]; ok {
+		productIDNumber = val.(int)
+		productIDString = dnSpec["product_id"].(string)
+	} else {
+		if val, ok := dnSpec["product_id"]; ok {
+			productIDNumber = val.(int)
+		}
 	}
-	productID32 := int32(productID)
-	_, err = cli.AddDomain(dn, &productID32, true, admins)
+	if productIDNumber == -1 && productIDString == "" && cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
+		return nil, fmt.Errorf("top level domains require a Product ID")
+	}
+	productIDNumber32 := int32(productIDNumber)
+	_, err = cli.AddDomain(dn, &productIDNumber32, productIDString, true, admins)
 	if err != nil {
 		return nil, err
 	}
@@ -384,18 +391,9 @@ func (cli Zms) SystemBackup(dir string) (*string, error) {
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) AddDomain(dn string, productID *int32, addSelf bool, admins []string) (*string, error) {
-	// sanity check cli usage: sub domain admin list should not contain a productID
-	if productID == nil && admins != nil && len(admins) > 0 {
-		// just checking the first admin to decide if productID was actually added
-		_, err := cli.getInt32(admins[0])
-		if err == nil {
-			s := "Do not specify Product ID when creating a sub domain. Only top level domains require a Product ID. Bad value: " + admins[0]
-			return nil, fmt.Errorf(s)
-		}
-	}
+func (cli Zms) AddDomain(dn string, productIDNumber *int32, productIDString string, addSelf bool, admins []string) (*string, error) {
 	validatedAdmins := cli.validatedUsers(admins, addSelf)
-	s, err := cli.createDomain(dn, productID, validatedAdmins)
+	s, err := cli.createDomain(dn, productIDNumber, productIDString, validatedAdmins)
 	if err != nil {
 		return nil, err
 	}
@@ -406,15 +404,18 @@ func (cli Zms) AddDomain(dn string, productID *int32, addSelf bool, admins []str
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) createDomain(dn string, productID *int32, admins []string) (*string, error) {
+func (cli Zms) createDomain(dn string, productIDNumber *int32, productIDString string, admins []string) (*string, error) {
 	i := strings.LastIndex(dn, ".")
 	name := dn
 	parent := ""
-	if i < 0 {
+	if i == -1 {
 		tld := zms.TopLevelDomain{}
 		tld.Name = zms.SimpleName(dn)
 		tld.AdminUsers = cli.createResourceList(admins)
-		tld.YpmId = productID
+		if productIDNumber != nil && *productIDNumber != -1 {
+			tld.YpmId = productIDNumber
+		}
+		tld.ProductId = productIDString
 		_, err := cli.Zms.PostTopLevelDomain(cli.AuditRef, &tld)
 		if err == nil {
 			s := "[domain created: " + dn + "]"
@@ -1088,11 +1089,21 @@ func (cli Zms) SetDomainOrgName(dn string, org string) (*string, error) {
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) SetDomainProductId(dn string, productID int32) (*string, error) {
-	meta := zms.DomainMeta{
-		YpmId: &productID,
+func (cli Zms) SetDomainProductId(dn string, productIDNumber int32, productIDString string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
 	}
-	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "productid", cli.AuditRef, &meta)
+	meta := zms.DomainMeta{
+		YpmId:     domain.YpmId,
+		ProductId: domain.ProductId,
+	}
+	if productIDNumber != -1 {
+		meta.YpmId = &productIDNumber
+	} else {
+		meta.ProductId = productIDString
+	}
+	err = cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "productid", cli.AuditRef, &meta)
 	if err != nil {
 		return nil, err
 	}
