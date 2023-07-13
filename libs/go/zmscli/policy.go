@@ -434,6 +434,9 @@ func (cli Zms) DeletePolicyTags(dn string, pn, tagKey string, tagValues []string
 		return cli.dumpByFormat(message, cli.buildYAMLOutput)
 	} else {
 		tagValueArr = cli.GetTagsAfterDeletion(Policy.Tags[zms.CompoundName(tagKey)], tagValues)
+		if len(tagValueArr) == 0 {
+			delete(Policy.Tags, zms.CompoundName(tagKey))
+		}
 		Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	}
 

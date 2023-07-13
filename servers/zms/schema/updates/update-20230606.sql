@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`policy_tags` (
     `value` VARCHAR(256) NOT NULL,
     PRIMARY KEY (`policy_id`, `key`, `value`),
     INDEX `tag_key_val_sec_idx` (`key` ASC, `value` ASC),
-    CONSTRAINT `fk_policy_tag_policy0`
+    CONSTRAINT `fk_policy_tag_policy`
     FOREIGN KEY (`policy_id`)
     REFERENCES `zms_server`.`policy` (`policy_id`)
     ON DELETE CASCADE

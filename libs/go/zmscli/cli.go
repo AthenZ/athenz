@@ -3023,7 +3023,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " get-auth-history\n")
 	case "add-policy-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-policy-tag regular_policy tag_key tag_value [tag_value ...]\n")
+		buf.WriteString("   " + domainParam + " add-policy-tag policy tag_key tag_value [tag_value ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
@@ -3034,7 +3034,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
 	case "delete-policy-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " delete-policy-tag regular_policy tag_key tag_value [tag_value...]\n")
+		buf.WriteString("   " + domainParam + " delete-policy-tag policy tag_key tag_value [tag_value...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
@@ -3137,8 +3137,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-resource principal action\n")
-	buf.WriteString("   add-policy-tag regular_policy tag_key tag_value [tag_value ...]\n")
-	buf.WriteString("   delete-policy-tag regular_policy tag_key [tag_value]\n")
+	buf.WriteString("   add-policy-tag policy tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-policy-tag policy tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")

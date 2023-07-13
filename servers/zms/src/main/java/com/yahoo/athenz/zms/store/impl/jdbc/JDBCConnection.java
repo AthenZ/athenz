@@ -4015,7 +4015,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     Map<String, Map<String, TagValueList>> getDomainPolicyTags(String domainName) {
-        final String funcCaller = "getDomain Policy Tags";
+        final String funcCaller = "getDomainPolicyTags";
         Map<String, Map<String, TagValueList>> domainResourceTags = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_POLICY_TAGS)) {
