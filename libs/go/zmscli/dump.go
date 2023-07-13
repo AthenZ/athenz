@@ -32,7 +32,12 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "gcp_project_number", domain.GcpProjectNumber)
 	dumpStringValue(buf, indentLevel1, "application_id", domain.ApplicationId)
 	dumpStringValue(buf, indentLevel1, "business_service", domain.BusinessService)
-	dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
+	if domain.ProductId != "" {
+		dumpStringValue(buf, indentLevel1, "product_id", domain.ProductId)
+		dumpInt32Value(buf, indentLevel1, "ypm_id", domain.YpmId)
+	} else {
+		dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
+	}
 	dumpStringValue(buf, indentLevel1, "org", string(domain.Org))
 	dumpBoolValue(buf, indentLevel1, "audit_enabled", domain.AuditEnabled)
 	dumpStringValue(buf, indentLevel1, "user_authority_filter", domain.UserAuthorityFilter)
