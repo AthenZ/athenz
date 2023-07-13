@@ -43,6 +43,9 @@ public class InstanceRefreshInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp athenzJWKModified;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String namespace;
 
     public InstanceRefreshInformation setAttestationData(String attestationData) {
         this.attestationData = attestationData;
@@ -114,6 +117,13 @@ public class InstanceRefreshInformation {
     public Timestamp getAthenzJWKModified() {
         return athenzJWKModified;
     }
+    public InstanceRefreshInformation setNamespace(String namespace) {
+        this.namespace = namespace;
+        return this;
+    }
+    public String getNamespace() {
+        return namespace;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -150,6 +160,9 @@ public class InstanceRefreshInformation {
                 return false;
             }
             if (athenzJWKModified == null ? a.athenzJWKModified != null : !athenzJWKModified.equals(a.athenzJWKModified)) {
+                return false;
+            }
+            if (namespace == null ? a.namespace != null : !namespace.equals(a.namespace)) {
                 return false;
             }
         }

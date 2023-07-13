@@ -120,15 +120,6 @@ public class JettyConnectionLoggerTest {
         jettyConnectionLogger.doStop();
     }
 
-    @Test
-    public void testLifeCycle() {
-        ConnectionLog connectionLog = Mockito.mock(ConnectionLog.class);
-        Metric metric = Mockito.mock(Metric.class);
-        JettyConnectionLogger jettyConnectionLogger = new JettyConnectionLogger(connectionLog, metric);
-        jettyConnectionLogger.doStart();
-        jettyConnectionLogger.doStop();
-    }
-
     static MockedConnection getMockConnection() throws Exception {
         MockedConnection mockedConnection = new MockedConnection();
         SSLEngine sslEngine = Mockito.mock(SSLEngine.class);

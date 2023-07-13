@@ -64,7 +64,7 @@ func (gke GCEProvider) GetSanDns(service string, includeHost bool, wildcard bool
 	return nil
 }
 
-func (gke GCEProvider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (gke GCEProvider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
 	return nil
 }
 

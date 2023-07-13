@@ -58,7 +58,7 @@ func (ec2 EC2Provider) GetSanDns(service string, includeHost bool, wildcard bool
 	return nil
 }
 
-func (ec2 EC2Provider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (ec2 EC2Provider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
 	return nil
 }
 

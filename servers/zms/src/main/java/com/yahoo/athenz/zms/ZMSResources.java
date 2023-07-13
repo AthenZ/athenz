@@ -1120,16 +1120,17 @@ public class ZMSResources {
     @GET
     @Path("/role")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Fetch all the roles across domains by either calling or specified principal")
+    @Operation(description = "Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
     public DomainRoleMember getPrincipalRoles(
         @Parameter(description = "If not present, will return roles for the user making the call", required = false) @QueryParam("principal") String principal,
-        @Parameter(description = "If not present, will return roles from all domains", required = false) @QueryParam("domain") String domainName) {
+        @Parameter(description = "If not present, will return roles from all domains", required = false) @QueryParam("domain") String domainName,
+        @Parameter(description = "expand to include group and delegated trust role membership", required = false) @QueryParam("expand") @DefaultValue("false") Boolean expand) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPrincipalRoles");
             context.authenticate();
-            return this.delegate.getPrincipalRoles(context, principal, domainName);
+            return this.delegate.getPrincipalRoles(context, principal, domainName, expand);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

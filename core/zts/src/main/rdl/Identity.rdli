@@ -9,6 +9,7 @@ type InstanceRefreshRequest Struct {
      String csr; //Cert CSR signed by the service's private key (public key registered in ZMS)
      Int32 expiryTime (optional); //in minutes how long token should be valid for
      String keyId (optional); //public key identifier
+     SimpleName namespace (optional); //spiffe/k8s namespace value
 }
 
 // Refresh Service tokens into TLS Certificate

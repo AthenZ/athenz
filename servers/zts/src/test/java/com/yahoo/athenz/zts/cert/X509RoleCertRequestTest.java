@@ -229,5 +229,16 @@ public class X509RoleCertRequestTest {
         assertFalse(certReq.validate("athenz.production", null, null));
         assertFalse(certReq.validate("athenz.api", null, null));
     }
+
+    @Test
+    public void testValidateSpiffeURI() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr);
+        assertTrue(certReq.validateSpiffeURI("coretech", "api"));
+        assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
+    }
 }
 

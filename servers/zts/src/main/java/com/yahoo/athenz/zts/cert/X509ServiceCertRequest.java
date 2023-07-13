@@ -20,10 +20,16 @@ import java.util.Set;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.zts.cache.DataCache;
+import org.eclipse.jetty.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class X509ServiceCertRequest extends X509CertRequest {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(X509ServiceCertRequest.class);
+
     public static final String SPIFFE_SERVICE_AGENT = "sa";
+    public static final String SPIFFE_NAMESPACE_AGENT = "ns";
 
     public X509ServiceCertRequest(String csr) throws CryptoException {
         super(csr);
@@ -32,11 +38,11 @@ public class X509ServiceCertRequest extends X509CertRequest {
     public boolean validate(final String domainName, final String serviceName, final String provider,
             final Set<String> validSubjectOValues, final DataCache athenzSysDomainCache,
             final String serviceDnsSuffix, final String instanceHostname, final List<String> instanceHostCnames,
-            HostnameResolver hostnameResolver, StringBuilder errorMsg) {
+            HostnameResolver hostnameResolver, final String namespace, StringBuilder errorMsg) {
 
         // instanceId must be non-empty
 
-        if (instanceId == null || instanceId.isEmpty()) {
+        if (StringUtil.isEmpty(instanceId)) {
             errorMsg.append("InstanceId cannot be empty");
             return false;
         }
@@ -75,11 +81,35 @@ public class X509ServiceCertRequest extends X509CertRequest {
 
         // validate spiffe uri if one is provided
 
-        if (!validateSpiffeURI(domainName, SPIFFE_SERVICE_AGENT, serviceName)) {
+        if (!validateSpiffeURI(domainName, serviceName, namespace)) {
             errorMsg.append("Unable to validate Service SPIFFE URI");
             return false;
         }
 
         return true;
+    }
+
+    public boolean validateSpiffeURI(final String domainName, final String serviceName, final String namespace) {
+
+        // the expected format are:
+        //  spiffe://<athenz-domain>/sa/<service-name>
+        //   e.g. spiffe://sports/sa/api
+        //  spiffe://<trust-domain>/ns/<namespace>/sa/<athenz-service>
+        //   e.g. spiffe://athenz.io/ns/default/sa/sports.api
+
+        if (spiffeUri == null) {
+            return true;
+        }
+
+        final String reqUri1 = "spiffe://" + domainName + "/" + SPIFFE_SERVICE_AGENT + "/" + serviceName;
+        final String reqUri2 = "spiffe://" + SPIFFE_TRUST_DOMAIN + "/" + SPIFFE_NAMESPACE_AGENT + "/" +
+                namespace + "/" + SPIFFE_SERVICE_AGENT + "/" + domainName + "." + serviceName;
+        boolean uriVerified = reqUri1.equalsIgnoreCase(spiffeUri) || reqUri2.equalsIgnoreCase(spiffeUri);
+
+        if (!uriVerified) {
+            LOGGER.error("validateSpiffeURI: spiffe uri mismatch: {}/{}/{}", spiffeUri, reqUri1, reqUri2);
+        }
+
+        return uriVerified;
     }
 }

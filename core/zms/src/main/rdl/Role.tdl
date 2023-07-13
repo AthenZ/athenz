@@ -110,6 +110,7 @@ type MemberRole Struct {
     Timestamp requestTime (optional); //for pending membership requests, the request time
     Int32 systemDisabled (optional); //user disabled by system based on configured role setting
     String pendingState (optional); //for pending membership requests, the request state - e.g. add, delete
+    ResourceName trustRoleName (optional); //name of the role that handles the membership delegation for the role specified in roleName
 }
 
 type DomainRoleMember Struct {

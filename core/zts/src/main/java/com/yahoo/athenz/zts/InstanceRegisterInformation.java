@@ -42,6 +42,9 @@ public class InstanceRegisterInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp athenzJWKModified;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String namespace;
 
     public InstanceRegisterInformation setProvider(String provider) {
         this.provider = provider;
@@ -134,6 +137,13 @@ public class InstanceRegisterInformation {
     public Timestamp getAthenzJWKModified() {
         return athenzJWKModified;
     }
+    public InstanceRegisterInformation setNamespace(String namespace) {
+        this.namespace = namespace;
+        return this;
+    }
+    public String getNamespace() {
+        return namespace;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -179,6 +189,9 @@ public class InstanceRegisterInformation {
                 return false;
             }
             if (athenzJWKModified == null ? a.athenzJWKModified != null : !athenzJWKModified.equals(a.athenzJWKModified)) {
+                return false;
+            }
+            if (namespace == null ? a.namespace != null : !namespace.equals(a.namespace)) {
                 return false;
             }
         }
