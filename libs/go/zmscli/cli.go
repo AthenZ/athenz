@@ -294,17 +294,20 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "add-domain":
 			if argc > 0 {
 				dn = args[0]
-				if cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
+				if cli.ProductIdSupport && strings.LastIndex(dn, ".") == -1 {
 					if argc < 2 {
-						return nil, fmt.Errorf("top level domains require a number specified for the product id")
+						return nil, fmt.Errorf("top level domains require a product id")
 					}
-					productID, err := cli.getInt32(args[1])
+					productIDString := ""
+					productIDNumber, err := cli.getInt32(args[1])
 					if err != nil {
-						return nil, fmt.Errorf("top level domains require an integer number specified for the product id")
+						productIDNumber = -1
+						productIDString = args[1]
 					}
-					return cli.AddDomain(dn, &productID, cli.AddSelf, args[2:])
+					fmt.Println("using id and string: %d/%\n", productIDNumber, productIDString)
+					return cli.AddDomain(dn, &productIDNumber, productIDString, cli.AddSelf, args[2:])
 				}
-				return cli.AddDomain(dn, nil, cli.AddSelf, args[1:])
+				return cli.AddDomain(dn, nil, "", cli.AddSelf, args[1:])
 			}
 			return cli.helpCommand(params)
 		case "delete-domain":
@@ -839,11 +842,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
-				productID, err := cli.getInt32(args[0])
+				productIDString := ""
+				productIDNumber, err := cli.getInt32(args[0])
 				if err != nil {
-					return nil, err
+					productIDNumber = -1
+					productIDString = args[0]
 				}
-				return cli.SetDomainProductId(dn, productID)
+				return cli.SetDomainProductId(dn, productIDNumber, productIDString)
+			} else if argc == 0 {
+				return cli.SetDomainProductId(dn, -1, "")
 			}
 		case "set-application-id":
 			if argc == 1 {
@@ -1372,7 +1379,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		}
 		buf.WriteString("   product-id    : set the Product ID for the domain\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " set-product-id 10001\n")
+		buf.WriteString("   " + domainExample + " set-product-id dom-prd-001\n")
 	case "set-application-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-application-id application-id\n")
