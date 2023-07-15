@@ -1,3 +1,14 @@
+Athenz v1.11.35 Release / Jul 15, 2023
+--------------------------------------
+
+#2230 update zms-cli getDomain call to use JWS domain
+#2232 extend principal role lookup api with expand option
+#2233 Bump semver from 5.7.1 to 5.7.2 in /ui
+#2234 extend GetSanUri method to take spiffe trust domain/namespace arguments
+#2235 Initiate AthenzSslContextFactory as part of AthenzJettyContainer
+#2236 Make the properties of functions.SiaCertData public (Capitalized)
+#2239 support numeric and string product ids in zms-cli
+
 Athenz v1.11.34 Release / Jul 07, 2023
 --------------------------------------
 
