@@ -1981,7 +1981,7 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
-    public Policies getPolicies(String domainName, Boolean assertions, Boolean includeNonActive) throws URISyntaxException, IOException {
+    public Policies getPolicies(String domainName, Boolean assertions, Boolean includeNonActive, String tagKey, String tagValue) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policies")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -1990,6 +1990,12 @@ public class ZMSRDLGeneratedClient {
         }
         if (includeNonActive != null) {
             uriBuilder.setParameter("includeNonActive", String.valueOf(includeNonActive));
+        }
+        if (tagKey != null) {
+            uriBuilder.setParameter("tagKey", tagKey);
+        }
+        if (tagValue != null) {
+            uriBuilder.setParameter("tagValue", tagValue);
         }
         HttpUriRequest httpUriRequest = RequestBuilder.get()
             .setUri(uriBuilder.build())

@@ -15,18 +15,18 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.io.Closeable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-
+import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.yahoo.athenz.common.config.AthenzConfig;
+import com.yahoo.athenz.common.utils.SSLUtils;
+import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Timestamp;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -40,18 +40,16 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.token.PrincipalToken;
-import com.yahoo.athenz.common.config.AthenzConfig;
-import com.yahoo.athenz.common.utils.SSLUtils;
-import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Timestamp;
+import javax.net.ssl.SSLContext;
+import java.io.Closeable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class ZMSClient implements Closeable {
 
@@ -1508,7 +1506,7 @@ public class ZMSClient implements Closeable {
     private Policies getPoliciesImpl(String domainName, Boolean assertions, Boolean includeNonActive) {
         updatePrincipal();
         try {
-            return client.getPolicies(domainName, assertions, includeNonActive);
+            return client.getPolicies(domainName, assertions, includeNonActive, null, null);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

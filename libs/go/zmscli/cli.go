@@ -474,6 +474,24 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetActivePolicyVersion(dn, args[0], args[1])
 			}
+		case "add-policy-tag":
+			if argc >= 3 {
+				return cli.AddPolicyTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-policy-tag":
+			if argc == 2 {
+				return cli.DeletePolicyTags(dn, args[0], args[1], []string{})
+			} else if argc == 3 {
+				return cli.DeletePolicyTags(dn, args[0], args[1], args[2:])
+			}
+		case "show-policies":
+			if argc == 0 {
+				return cli.ShowPolicies(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowPolicies(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowPolicies(dn, args[0], args[1])
+			}
 		case "show-access":
 			if argc >= 2 {
 				var trustDomain *string
@@ -3018,6 +3036,39 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-auth-history coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " get-auth-history\n")
+	case "add-policy-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-policy-tag policy tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this policy\n")
+		buf.WriteString("   tag_value       : tag values to be added to this policy, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "delete-policy-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-policy-tag policy tag_key tag_value [tag_value...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this policy\n")
+		buf.WriteString("   tag_value       : tag values to be deleted from this policy, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "show-policies":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-policies [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   tag_key         : optional, query all policies with given tag name\n")
+		buf.WriteString("   tag_value       : optional, query all policies with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-policies readers readers-tag-key reader-tag-value\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -3087,6 +3138,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-policy\n")
 	buf.WriteString("   list-policy-versions policy\n")
 	buf.WriteString("   show-policy policy\n")
+	buf.WriteString("   show-policies [tag_key] [tag_value]\n")
 	buf.WriteString("   show-policy-version policy version\n")
 	buf.WriteString("   add-policy policy [assertion] [is_case_sensitive]\n")
 	buf.WriteString("   add-policy-version policy version source_version\n")
@@ -3100,6 +3152,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-resource principal action\n")
+	buf.WriteString("   add-policy-tag policy tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-policy-tag policy tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")

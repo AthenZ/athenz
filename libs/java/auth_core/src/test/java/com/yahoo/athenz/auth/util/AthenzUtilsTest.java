@@ -168,6 +168,19 @@ public class AthenzUtilsTest {
     }
 
     @Test
+    public void testExtractPolicyName() {
+        assertEquals(AthenzUtils.extractPolicyName("athenz:policy.readers"), "readers");
+        assertEquals(AthenzUtils.extractPolicyName("athenz.api:policy.readers"), "readers");
+        assertEquals(AthenzUtils.extractPolicyName("athenz.api.test:policy.readers"), "readers");
+
+        assertNull(AthenzUtils.extractPolicyName("athenz:policys.readers"));
+        assertNull(AthenzUtils.extractPolicyName("athenz.policy.readers"));
+        assertNull(AthenzUtils.extractPolicyName("athenz:policy."));
+        assertNull(AthenzUtils.extractPolicyName(":policy.readers"));
+        assertNull(AthenzUtils.extractPolicyName("athenz.readers"));
+    }
+
+    @Test
     public void testExtractGroupName() {
         assertEquals(AthenzUtils.extractGroupName("athenz:group.readers"), "readers");
         assertEquals(AthenzUtils.extractGroupName("athenz.api:group.readers"), "readers");

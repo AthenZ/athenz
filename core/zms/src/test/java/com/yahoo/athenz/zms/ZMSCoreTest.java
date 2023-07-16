@@ -16,21 +16,16 @@
 
 package com.yahoo.athenz.zms;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
-
-import static org.testng.Assert.*;
-import static org.testng.Assert.assertFalse;
-
 import org.testng.annotations.Test;
 
 import java.util.*;
+
+import static org.testng.Assert.*;
 
 public class ZMSCoreTest {
 
@@ -612,7 +607,8 @@ public class ZMSCoreTest {
 
         // Policy test
         Policy p = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L))
-                .setAssertions(al);
+                .setAssertions(al)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         Result result = validator.validate(p, "Policy");
         assertTrue(result.valid);
 
@@ -621,9 +617,10 @@ public class ZMSCoreTest {
         assertEquals(p.getAssertions(), al);
 
         Policy p2 = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L))
-                .setAssertions(al);
+                .setAssertions(al)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue2"))));
 
-        assertTrue(p2.equals(p));
+        assertFalse(p2.equals(p));
         assertTrue(p.equals(p));
 
         p2.setName(null);
@@ -652,6 +649,8 @@ public class ZMSCoreTest {
         assertFalse(p2.equals(p));
         assertFalse(p.equals(p2));
         p2.setCaseSensitive(null);
+
+        assertEquals(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue2"))), p2.getTags());
 
         assertFalse(p.equals(new String()));
         assertFalse(p2.equals(null));
@@ -1938,7 +1937,7 @@ public class ZMSCoreTest {
         Assertion a = new Assertion().setRole("test.role.*").setResource("test.resource.*").setAction("test-action")
                 .setEffect(AssertionEffect.ALLOW).setId(0L);
 
-        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)));
+        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue")))));
 
         Policies ps1 = new Policies().setList(plist);
 
@@ -1966,7 +1965,7 @@ public class ZMSCoreTest {
         Assertion a = new Assertion().setRole("test.role.*").setResource("test.ResourcE.*").setAction("Test-Action")
                 .setEffect(AssertionEffect.ALLOW).setId(0L);
 
-        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(true));
+        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(true).setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue")))));
 
         Policies ps1 = new Policies().setList(plist);
 
@@ -1986,7 +1985,7 @@ public class ZMSCoreTest {
         assertFalse(ps1.equals(null));
         assertFalse(ps1.equals(new String()));
 
-        Policy policyCaseSensitiveCheck = new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(null);
+        Policy policyCaseSensitiveCheck = new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(null).setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(ps1.getList().get(0).equals(policyCaseSensitiveCheck));
         policyCaseSensitiveCheck.setCaseSensitive(false);
         assertFalse(ps1.getList().get(0).equals(policyCaseSensitiveCheck));

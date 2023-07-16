@@ -118,6 +118,7 @@ public class DBService implements RolesProvider {
         int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int policyTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_POLICY_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
 
         DomainOptions domainOptions = new DomainOptions();
         domainOptions.setEnforceUniqueAWSAccounts(Boolean.parseBoolean(
@@ -131,7 +132,7 @@ public class DBService implements RolesProvider {
 
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
-            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit);
             this.store.setDomainOptions(domainOptions);
         }
 
@@ -523,8 +524,23 @@ public class DBService implements RolesProvider {
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
         }
 
+        if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processPolicyTags(Policy policy, String policyName, String domainName,
+                                               Policy originalPolicy, ObjectStoreConnection con) {
+
+        String policyVersion = policy.getVersion();
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertPolicyTags(policyName, domainName, tags, policyVersion);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
+
+        return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null) , insertOp, deleteOp);
     }
 
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
@@ -3759,7 +3775,9 @@ public class DBService implements RolesProvider {
         Policy policy = con.getPolicy(domainName, policyName, version);
         if (policy != null) {
             policy.setAssertions(con.listAssertions(domainName, policyName, version));
+            policy.setTags(con.getPolicyTags(domainName, policyName, version));
         }
+
         return policy;
     }
 
@@ -3892,56 +3910,17 @@ public class DBService implements RolesProvider {
     private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
             Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
 
-        if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
-            if (domainTags == null || domainTags.isEmpty()) {
-                // no tags to process
-                return true;
-            }
-            if (!con.insertDomainTags(domainName, domainTags)) {
-                return false;
-            }
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+
+        if (processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp)) {
             if (updateDomainLastModTimestamp) {
                 con.updateDomainModTimestamp(domainName);
             }
             return true;
         }
 
-        if (domainTags == null) {
-            return true;
-        }
-
-        Map<String, TagValueList> originalDomainTags = originalDomain.getTags();
-
-        Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
-            .filter(curTag -> domainTags.get(curTag.getKey()) == null
-                || !domainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toSet());
-
-        boolean tagsChanged = false;
-        if (tagsToRemove != null && !tagsToRemove.isEmpty()) {
-            if (!con.deleteDomainTags(originalDomain.getName(), tagsToRemove)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        Map<String, TagValueList> tagsToAdd = domainTags.entrySet().stream()
-            .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
-                || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        if (tagsToAdd != null && !tagsToAdd.isEmpty()) {
-            if (!con.insertDomainTags(originalDomain.getName(), tagsToAdd)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        if (tagsChanged && updateDomainLastModTimestamp) {
-            con.updateDomainModTimestamp(domainName);
-        }
-        return true;
+        return false;
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,

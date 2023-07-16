@@ -167,6 +167,17 @@ public class AthenzUtils {
     }
 
     /**
+     * Extract the policy name from the full Athenz policy Name (arn)
+     * which includes the domain name. The format of the policy name
+     * is {domain}:policy.{role-name}
+     * @param policyName the full arn of the role
+     * @return policy name, null if it's not expected full arn format
+     */
+    public static String extractPolicyName(final String policyName) {
+        return extractNameFromArn(policyName, AuthorityConsts.POLICY_SEP);
+    }
+
+    /**
      * Extract the group name from the full Athenz Group Name (arn)
      * which includes the domain name. The format of the group name
      * is {domain}:group.{group-name}

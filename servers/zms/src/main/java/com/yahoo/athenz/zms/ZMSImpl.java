@@ -4237,7 +4237,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (domain == null) {
             throw ZMSUtils.notFoundError(caller + ": Domain not found: '" + domainName + "'", caller);
         }
-        return setupPolicyList(domain, true, true);
+        return setupPolicyList(domain, true, true, null, null);
     }
 
     void validateRoleNotAssociatedToPolicy(List<Policy> policies, final String roleName,
@@ -5073,7 +5073,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeletePolicyVersion(ctx, domainName, policyName, version, auditRef, caller);
     }
 
-    List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions) {
+    List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions, String tagKey, String tagValue) {
 
         // if we're asked to return the assertions as well then we
         // just need to return the data as is without any modifications
@@ -5099,17 +5099,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                             .setName(policy.getName())
                             .setModified(policy.getModified())
                             .setVersion(policy.getVersion())
-                            .setActive(policy.getActive());
+                            .setActive(policy.getActive())
+                            .setTags(policy.getTags());
                     policies.add(newPolicy);
                 }
             }
+        }
+
+        if (tagKey != null) {
+            policies = policies.stream()
+                    .filter(policy -> (filterByTag(tagKey, tagValue, policy, Policy::getTags)))
+                    .collect(Collectors.toList());
         }
 
         return policies;
     }
 
     @Override
-    public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions, Boolean includeNonActive) {
+    public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions, Boolean includeNonActive, String tagKey, String tagValue) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5131,7 +5138,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError(caller + ": Domain not found: '" + domainName + "'", caller);
         }
 
-        result.setList(setupPolicyList(domain, assertions, includeNonActive));
+        result.setList(setupPolicyList(domain, assertions, includeNonActive, tagKey, tagValue));
         return result;
     }
 
