@@ -363,7 +363,7 @@ public class AthenzJettyContainer {
         final String excludedProtocols = System.getProperty(AthenzConsts.ATHENZ_PROP_EXCLUDED_PROTOCOLS, ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS);
         final boolean renegotiationAllowed = Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_RENEGOTIATION_ALLOWED, "false"));
 
-        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+        SslContextFactory.Server sslContextFactory = new AthenzSslContextFactory();
         sslContextFactory.setEndpointIdentificationAlgorithm(null);
 
         if (!StringUtil.isEmpty(keyStorePath)) {

@@ -27,10 +27,12 @@ resource PolicyList GET "/domain/{domainName}/policy?limit={limit}&skip={skip}" 
 }
 
 //List policies provisioned in this namespace.
-resource Policies GET "/domain/{domainName}/policies?assertions={assertions}&includeNonActive={includeNonActive}" {
+resource Policies GET "/domain/{domainName}/policies?assertions={assertions}&includeNonActive={includeNonActive}&tagKey={tagKey}&tagValue={tagValue}" {
     DomainName domainName; //name of the domain
     Bool assertions (optional, default=false); // return list of assertions in the policy
     Bool includeNonActive (optional, default=false); // include non-active policy versions
+    CompoundName tagKey (optional); //flag to query all policies that have a given tagName
+    CompoundName tagValue (optional); //flag to query all policies that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

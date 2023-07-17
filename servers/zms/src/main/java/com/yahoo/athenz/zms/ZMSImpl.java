@@ -3621,12 +3621,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName) {
+    public DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName, Boolean expand) {
         final String caller = context.getApiName();
         logPrincipal(context);
 
+        // If principal not specified, get roles for current user
+
         if (StringUtil.isEmpty(principal)) {
-            // If principal not specified, get roles for current user
             principal = ((RsrcCtxWrapper) context).principal().getFullName();
         }
         validateRequest(context.request(), caller);
@@ -3644,7 +3645,70 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             setRequestDomain(context, domainName);
         }
 
-        return dbService.getPrincipalRoles(principal, domainName);
+        // if we're asked to expand all groups and delegated roles then
+        // we're going to carry out an authorization check
+
+        if (expand == Boolean.TRUE && !isAllowedExpandedRoleLookup(((RsrcCtxWrapper) context).principal(), principal)) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to request expanded role lookup", caller);
+        }
+
+        return dbService.getPrincipalRoles(principal, domainName, expand);
+    }
+
+    boolean isAllowedExpandedRoleLookup(Principal principal, final String checkPrincipal) {
+
+        // Expanded role lookup requires one of these authorization checks
+        // 1. authenticated principal is the same as the check principal
+        // 2. system authorized ("access", "sys.auth:meta.role.lookup")
+        // 3. service admin ("update", "{principal}")
+
+        if (checkPrincipal.equals(principal.getFullName())) {
+            return true;
+        }
+
+        // if the check principal is another user, then this is not allowed
+        // unless the principal is authorized at system level
+
+        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
+
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
+        // our action are always converted to lowercase
+
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
+                "sys.auth:meta.role.lookup", null, null, principal);
+
+        if (accessStatus == AccessStatus.ALLOWED) {
+            return true;
+        }
+
+        // at this point one user cannot ask for another user
+
+        if (ZMSUtils.isUserDomainPrincipal(checkPrincipal, userDomainPrefix, addlUserCheckDomainPrefixList)) {
+            return false;
+        }
+
+        // for service accounts, the principal must have an update action
+        // on the service identity object
+
+        int idx = checkPrincipal.lastIndexOf('.');
+        if (idx == -1) {
+            LOG.debug("invalid check principal: {}", checkPrincipal);
+            return false;
+        }
+
+        final String checkPrincipalDomain = checkPrincipal.substring(0, idx);
+        final String checkResource = checkPrincipalDomain + ":service." + checkPrincipal.substring(idx + 1);
+
+        domain = getAthenzDomain(checkPrincipalDomain, true);
+        if (domain == null) {
+            LOG.debug("invalid check principal domain: {}", checkPrincipal);
+            return false;
+        }
+
+        accessStatus = evaluateAccess(domain, principal.getFullName(), "update",
+                checkResource, null, null, principal);
+        return accessStatus == AccessStatus.ALLOWED;
     }
 
     @Override
@@ -4173,7 +4237,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (domain == null) {
             throw ZMSUtils.notFoundError(caller + ": Domain not found: '" + domainName + "'", caller);
         }
-        return setupPolicyList(domain, true, true);
+        return setupPolicyList(domain, true, true, null, null);
     }
 
     void validateRoleNotAssociatedToPolicy(List<Policy> policies, final String roleName,
@@ -5009,7 +5073,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeletePolicyVersion(ctx, domainName, policyName, version, auditRef, caller);
     }
 
-    List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions) {
+    List<Policy> setupPolicyList(AthenzDomain domain, Boolean assertions, Boolean versions, String tagKey, String tagValue) {
 
         // if we're asked to return the assertions as well then we
         // just need to return the data as is without any modifications
@@ -5035,17 +5099,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                             .setName(policy.getName())
                             .setModified(policy.getModified())
                             .setVersion(policy.getVersion())
-                            .setActive(policy.getActive());
+                            .setActive(policy.getActive())
+                            .setTags(policy.getTags());
                     policies.add(newPolicy);
                 }
             }
+        }
+
+        if (tagKey != null) {
+            policies = policies.stream()
+                    .filter(policy -> (filterByTag(tagKey, tagValue, policy, Policy::getTags)))
+                    .collect(Collectors.toList());
         }
 
         return policies;
     }
 
     @Override
-    public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions, Boolean includeNonActive) {
+    public Policies getPolicies(ResourceContext ctx, String domainName, Boolean assertions, Boolean includeNonActive, String tagKey, String tagValue) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -5067,7 +5138,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError(caller + ": Domain not found: '" + domainName + "'", caller);
         }
 
-        result.setList(setupPolicyList(domain, assertions, includeNonActive));
+        result.setList(setupPolicyList(domain, assertions, includeNonActive, tagKey, tagValue));
         return result;
     }
 
@@ -9861,7 +9932,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         DomainRoleMember drm = null;
         try {
-            drm = dbService.getPrincipalRoles(groupResourceName, null);
+            drm = dbService.getPrincipalRoles(groupResourceName, null, null);
         } catch (ResourceException ignored) {
         }
 

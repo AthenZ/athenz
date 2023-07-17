@@ -189,7 +189,7 @@ public class X509RoleCertRequest extends X509CertRequest {
 
         // validate spiffe uri if one is provided
 
-        return validateSpiffeURI(reqRoleDomain, SPIFFE_ROLE_AGENT, reqRoleName);
+        return validateSpiffeURI(reqRoleDomain, reqRoleName);
     }
 
     public boolean validateIPAddress(X509Certificate cert, final String ip) {
@@ -217,5 +217,24 @@ public class X509RoleCertRequest extends X509CertRequest {
         }
 
         return validateIPAddress(ip);
+    }
+
+    public boolean validateSpiffeURI(final String domainName, final String roleName) {
+
+        // the expected format are: spiffe://<domain>/ra/<role-name>
+        //  e.g. spiffe://sports/ra/hockey-writers
+
+        if (spiffeUri == null) {
+            return true;
+        }
+
+        final String reqUri = "spiffe://" + domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
+        boolean uriVerified = reqUri.equalsIgnoreCase(spiffeUri);
+
+        if (!uriVerified) {
+            LOGGER.error("validateSpiffeURI: spiffe uri mismatch: {}/{}", spiffeUri, reqUri);
+        }
+
+        return uriVerified;
     }
 }

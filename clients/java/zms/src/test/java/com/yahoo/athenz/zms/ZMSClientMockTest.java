@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -880,8 +882,8 @@ public class ZMSClientMockTest {
         retListWithOutAssertions.add(policyWithOutAssertions);
         Policies retPoliciesWithOutAssertions = new Policies().setList(retListWithOutAssertions);
 
-        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, false);
-        Mockito.doReturn(retPoliciesWithOutAssertions).when(mockZMS).getPolicies(domName, false, false);
+        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, false, null, null);
+        Mockito.doReturn(retPoliciesWithOutAssertions).when(mockZMS).getPolicies(domName, false, false, null, null);
 
         // first request with assertions option set
 
@@ -951,7 +953,7 @@ public class ZMSClientMockTest {
         retList.add(policyWithOutAssertions);
         Policies retPoliciesWithAssertions = new Policies().setList(retList);
 
-        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, true);
+        Mockito.doReturn(retPoliciesWithAssertions).when(mockZMS).getPolicies(domName, true, true, null, null);
 
         Policies policies = zclt.getPolicies(domName, true, true);
         assertNotNull(policies);

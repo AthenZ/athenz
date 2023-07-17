@@ -109,6 +109,7 @@ func main() {
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSAWSDomains = strings.Split(*dnsDomains, ",")
+	opts.SpiffeNamespace = "default"
 
 	provider := sia.EC2Provider{
 		Name: fmt.Sprintf("%s.%s", *providerPrefix, region),

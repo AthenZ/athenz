@@ -44,7 +44,7 @@ func (tp MockGCPProvider) GetSanDns(service string, includeHost bool, wildcard b
 	return nil
 }
 
-func (tp MockGCPProvider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (tp MockGCPProvider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
 	return nil
 }
 

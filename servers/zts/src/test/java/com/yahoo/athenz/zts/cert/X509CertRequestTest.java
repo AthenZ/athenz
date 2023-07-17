@@ -820,42 +820,6 @@ public class X509CertRequestTest {
     }
 
     @Test
-    public void testValidateSpiffeURINoValues() throws IOException {
-
-        Path path = Paths.get("src/test/resources/valid.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertTrue(certReq.validateSpiffeURI("domain", "sa", "api"));
-    }
-
-    @Test
-    public void testValidateSpiffeURIMultipleValues() throws IOException {
-
-        Path path = Paths.get("src/test/resources/multiple_uri.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        try {
-            new X509CertRequest(csr);
-            fail();
-        } catch (CryptoException ex) {
-            assertTrue(ex.getMessage().contains("Invalid SPIFFE URI present"));
-        }
-    }
-
-    @Test
-    public void testValidateSpiffeURI() throws IOException {
-
-        Path path = Paths.get("src/test/resources/spiffe_role.csr");
-        String csr = new String(Files.readAllBytes(path));
-
-        X509CertRequest certReq = new X509CertRequest(csr);
-        assertTrue(certReq.validateSpiffeURI("coretech", "ra", "api"));
-        assertFalse(certReq.validateSpiffeURI("coretech", "ra", "backend"));
-        assertFalse(certReq.validateSpiffeURI("coretech", "sa", "api"));
-    }
-
-    @Test
     public void testValidateOUFieldCheck() throws IOException {
 
         // the ou is "Testing Domain"

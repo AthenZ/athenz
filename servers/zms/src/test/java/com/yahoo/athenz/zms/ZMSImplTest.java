@@ -3582,127 +3582,6 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetPrincipalRoles() {
-        createDomain("domain1");
-        createDomain("domain2");
-        createDomain("domain3");
-
-        String principal = "user.johndoe";
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-
-        insertRecordsForGetPrincipalRolesTest(principal);
-        DomainRoleMember domainRoleMember = zmsImpl.getPrincipalRoles(ctx, principal, null);
-        verifyGetPrincipalRoles(principal, domainRoleMember, true);
-        domainRoleMember = zmsImpl.getPrincipalRoles(ctx, principal, "domain1");
-        verifyGetPrincipalRoles(principal, domainRoleMember, false);
-
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef);
-    }
-
-    @Test
-    public void testGetPrincipalRolesCurrentPrincipal() {
-        createDomain("domain1");
-        createDomain("domain2");
-        createDomain("domain3");
-
-        String principalName = "user.johndoe";
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
-        String unsignedCreds = "v=U1;d=user;n=johndoe";
-        Principal principal = SimplePrincipal.create("user", "johndoe", unsignedCreds + ";s=signature",
-                0, principalAuthority);
-        assertNotNull(principal);
-        ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
-
-        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
-
-        insertRecordsForGetPrincipalRolesTest(principalName);
-        DomainRoleMember domainRoleMember = zmsImpl.getPrincipalRoles(rsrcCtx1, null, null); // we'll don't pass a principal. Current user will be used
-        verifyGetPrincipalRoles(principalName, domainRoleMember, true);
-        domainRoleMember = zmsImpl.getPrincipalRoles(rsrcCtx1, null, "domain1"); // we'll don't pass a principal. Current user will be used
-        verifyGetPrincipalRoles(principalName, domainRoleMember, false);
-
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef);
-    }
-
-    private void verifyGetPrincipalRoles(String principal, DomainRoleMember domainRoleMember, boolean isAllDomains) {
-        MemberRole memberRole0 = new MemberRole();
-        memberRole0.setDomainName("domain1");
-        memberRole0.setRoleName("role1");
-
-        MemberRole memberRole1 = new MemberRole();
-        memberRole1.setDomainName("domain1");
-        memberRole1.setRoleName("role2");
-
-        MemberRole memberRole2 = new MemberRole();
-        memberRole2.setDomainName("domain3");
-        memberRole2.setRoleName("role1");
-
-        assertEquals(domainRoleMember.getMemberName(), principal);
-        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole0));
-        assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole1));
-        if (isAllDomains) {
-            assertEquals(domainRoleMember.getMemberRoles().size(), 3);
-            assertTrue(ZMSTestUtils.verifyDomainRoleMember(domainRoleMember, memberRole2));
-        } else {
-            assertEquals(domainRoleMember.getMemberRoles().size(), 2);
-        }
-    }
-
-    private void insertRecordsForGetPrincipalRolesTest(String principal) {
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-
-        List<RoleMember> roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user.test1"));
-        roleMembers.add(new RoleMember().setMemberName("user.test2"));
-        roleMembers.add(new RoleMember().setMemberName(principal));
-
-        // Create role1 in domain1 with members and principal
-        Role role = zmsTestInitializer.createRoleObject("domain1", "Role1", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain1", "Role1", auditRef, false, role);
-
-        // Create role2 in domain1 with members and principal
-        role = zmsTestInitializer.createRoleObject("domain1", "role2", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain1", "Role2", auditRef, false, role);
-
-        roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName("user.test1"));
-        roleMembers.add(new RoleMember().setMemberName("user.test2"));
-
-        // Create role1 in domain2 with members but without the principal
-        role = zmsTestInitializer.createRoleObject("domain2", "role1", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain2", "Role1", auditRef, false, role);
-
-        roleMembers = new ArrayList<>();
-        roleMembers.add(new RoleMember().setMemberName(principal));
-
-        // Create role1 in domain3 only principal
-        role = zmsTestInitializer.createRoleObject("domain3", "role1", null, roleMembers);
-        zmsImpl.putRole(ctx, "domain3", "Role1", auditRef, false, role);
-    }
-
-    private void createDomain(String domainName) {
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-
-        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test " + domainName, "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
-    }
-
-    @Test
     public void testGetMembership() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -5576,7 +5455,7 @@ public class ZMSImplTest {
 
         // get new policy version and verify all assertion and assertion conditions were copied
         // currently assertion conditions are only retrieved in get all policies call
-        Policies policies = zmsImpl.getPolicies(ctx, domainName, true, true);
+        Policies policies = zmsImpl.getPolicies(ctx, domainName, true, true, null, null);
         Policy policyVersion = policies.getList().stream()
                 .filter(policy ->
                         policy.getName().equals("PolicyGetDom1:policy.Policy1".toLowerCase()) && policy.getVersion().equals("new-version2")
@@ -18691,7 +18570,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE, null, null);
         assertEquals(3, policies.size()); // need to account for admin policy
 
         boolean policy1Check = false;
@@ -18735,7 +18614,7 @@ public class ZMSImplTest {
         AthenzDomain domain = new AthenzDomain(domainName);
         domain.setPolicies(policyList);
 
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.FALSE, null, null);
         assertEquals(1, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-active-only:policy.policy1");
     }
@@ -18756,7 +18635,7 @@ public class ZMSImplTest {
         AthenzDomain domain = new AthenzDomain(domainName);
         domain.setPolicies(policyList);
 
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.TRUE, Boolean.TRUE, null, null);
         assertEquals(2, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "ver1");
@@ -18765,7 +18644,7 @@ public class ZMSImplTest {
         assertEquals(policies.get(1).getVersion(), "ver2");
         assertFalse(policies.get(1).getActive());
 
-        policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.TRUE);
+        policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.TRUE, null, null);
         assertEquals(2, policies.size());
         assertEquals(policies.get(0).getName(), "setup-policy-with-assert-all-versions:policy.policy1");
         assertEquals(policies.get(0).getVersion(), "ver1");
@@ -18793,7 +18672,7 @@ public class ZMSImplTest {
         Policy policy2 = zmsTestInitializer.createPolicyObject(domainName, "policy2");
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
 
-        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE);
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, null, null);
         List<Policy> policies = policyList.getList();
         assertEquals(3, policies.size()); // need to account for admin policy
 
@@ -18842,7 +18721,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
         zmsImpl.putPolicyVersion(ctx, domainName, "policy2", new PolicyOptions().setVersion("new-version"), auditRef, false);
 
-        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE);
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
         List<Policy> policies = policyList.getList();
         assertEquals(5, policies.size()); // need to account for admin policy
         // set our default versions for our policy objects
@@ -18876,7 +18755,7 @@ public class ZMSImplTest {
         String domainName = "get-policies-invalid-domain";
 
         try {
-            zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE);
+            zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, null, null);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -18902,7 +18781,7 @@ public class ZMSImplTest {
         zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
 
         AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
-        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, null, null);
         assertEquals(3, policies.size()); // need to account for admin policy
 
         boolean policy1Check = false;
@@ -31594,6 +31473,21 @@ public class ZMSImplTest {
         }
     }
 
+    private void hasPolicyWithTags(Policies policies, String policyName, String version, String tagKey, List<String> tagValues, int tagValuesLength) {
+        Policy policy = getPolicy(policies, policyName, version);
+        Assert.assertNotNull(policy);
+        if (tagKey != null) {
+            if (tagValues != null) {
+                Assert.assertEquals(policy.getTags().get(tagKey).getList().size(), tagValuesLength);
+                for (String tagValue : tagValues) {
+                    Assert.assertTrue(verifyPolicyHasTag(policy, tagKey, tagValue));
+                }
+            } else {
+                Assert.assertTrue(verifyPolicyHasTag(policy, tagKey, null));
+            }
+        }
+    }
+
     private boolean hasTag(Role role, String tagKey, String tagValue) {
         TagValueList tagValues = role.getTags().get(tagKey);
         if (tagValue != null) {
@@ -31605,6 +31499,21 @@ public class ZMSImplTest {
     private Role getRole(Roles roleList, String roleName) {
         return roleList.getList().stream()
                 .filter(r -> AthenzUtils.extractRoleName(r.getName()).equalsIgnoreCase(roleName))
+                .findFirst()
+                .get();
+    }
+
+    private boolean verifyPolicyHasTag(Policy policy, String tagKey, String tagValue) {
+        TagValueList tagValues = policy.getTags().get(tagKey);
+        if (tagValue != null) {
+            return tagValues.getList().contains(tagValue);
+        }
+        return !tagValues.getList().isEmpty();
+    }
+
+    private Policy getPolicy(Policies polices, String policyName, String version) {
+        return polices.getList().stream()
+                .filter(r -> AthenzUtils.extractPolicyName(r.getName()).equalsIgnoreCase(policyName) && r.getVersion().equalsIgnoreCase(version))
                 .findFirst()
                 .get();
     }
@@ -33991,6 +33900,241 @@ public class ZMSImplTest {
         assertFalse(zmsImpl.validateGcpProjectDetails(null, "1234"));
         assertFalse(zmsImpl.validateGcpProjectDetails("1234", ""));
         assertFalse(zmsImpl.validateGcpProjectDetails("1234", null));
+    }
+
+    @Test
+    public void testSetupPolicyListWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "setup-policy-with-tags";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        Map<String, TagValueList> policy1Tags = Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val2", "val3")));
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        policy1.setTags(policy1Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1);
+
+        Policy policy1version2 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        policy1version2.setVersion("2");
+        policy1version2.setActive(false);
+        policy1version2.setTags(policy1Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1version2);
+
+        Map<String, TagValueList> policy2Tags = Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val2")));
+        Policy policy2 = zmsTestInitializer.createPolicyObject(domainName, "policy2");
+        policy2.setTags(policy2Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, policy2);
+
+        AthenzDomain domain = zmsImpl.getAthenzDomain(domainName, false);
+        List<Policy> policies = zmsImpl.setupPolicyList(domain, Boolean.FALSE, Boolean.FALSE, "tag-key", "val3");
+        assertEquals(1, policies.size()); // need to account for admin policy
+
+        assertEquals(policies.get(0).getName(), "setup-policy-with-tags:policy.policy1");
+        assertEquals(policies.get(0).getVersion(), "0");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+
+    @Test
+    public void testQueryPutPolicyWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "sys.auth";
+        final String defaultPolicyVersion = "0";
+        // put policy with multiple tags
+        final String policyWithTags = "pwt_policyWithTags";
+        final String tagKey = "tag-key";
+        List<String> multipleTagValues = Arrays.asList("val1", "val2");
+        addRoleNeededForTest(domainName, "Role1");
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyWithTags);
+        policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(multipleTagValues)));
+        zmsImpl.putPolicy(ctx, domainName, policyWithTags, auditRef, false, policy);
+
+        // put policy with single tags
+        final String policySingleTag = "pwt_policySingleTag";
+        List<String> singleTagValue = Collections.singletonList("val1");
+        policy = zmsTestInitializer.createPolicyObject(domainName, policySingleTag);
+        policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(singleTagValue)));
+        zmsImpl.putPolicy(ctx, domainName, policySingleTag, auditRef, false, policy);
+
+        // put policy version 2 with different tags
+        List<String> version2TagValue = Arrays.asList("val2","val3");
+        String policyVersion = "2";
+        policy = zmsTestInitializer.createPolicyObject(domainName, policyWithTags, policyVersion, Boolean.FALSE);
+        policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(version2TagValue)));
+        zmsImpl.putPolicy(ctx, domainName, policyWithTags, auditRef, false, policy);
+
+        //put policy without tags
+        final String noTagsPolicy = "pwt_noTagsPolicy";
+        policy = zmsTestInitializer.createPolicyObject(domainName, noTagsPolicy);
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+
+        // get policies without tags query - all 4 policies should be  presented and the admin policy
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasPolicyWithTags(policyList, policyWithTags, defaultPolicyVersion, tagKey, multipleTagValues, 2);
+        hasPolicyWithTags(policyList, policyWithTags, policyVersion, tagKey, version2TagValue, 2);
+        hasPolicyWithTags(policyList, policySingleTag, defaultPolicyVersion, tagKey, singleTagValue, 1);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, null, null, 0);
+        List<Policy> TestPolicies = policyList.getList().stream().filter(policy1 -> AthenzUtils.extractPolicyName(policy1.getName()).startsWith("pwt_")).collect(Collectors.toList());
+        assertEquals(TestPolicies.size(), 4);
+
+        // get policies with exact tag value
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val1");
+        hasPolicyWithTags(policyList, policyWithTags, defaultPolicyVersion, tagKey, multipleTagValues, 2);
+        hasPolicyWithTags(policyList, policySingleTag, defaultPolicyVersion, tagKey, singleTagValue, 1);
+        // ensure there are no more policies
+        assertEquals(policyList.getList().size(), 2);
+
+        // get policies with exact tag value
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val2");
+        hasPolicyWithTags(policyList, policyWithTags, defaultPolicyVersion, tagKey, multipleTagValues, 2);
+        hasPolicyWithTags(policyList, policyWithTags, policyVersion, tagKey, version2TagValue, 2);
+        // ensure there are no more policies
+        assertEquals(policyList.getList().size(), 2);
+
+        // get policies with only tag key without the unactive policy version
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, tagKey, null);
+        hasPolicyWithTags(policyList, policyWithTags, defaultPolicyVersion, tagKey, multipleTagValues, 2);
+        hasPolicyWithTags(policyList, policySingleTag, defaultPolicyVersion, tagKey, singleTagValue, 1);
+        // ensure there are no more policies
+        assertEquals(policyList.getList().size(), 2);
+    }
+
+    @Test
+    public void testPolicyTagsLimit() {
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // define limit of 3 policy tags
+        System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_POLICY_TAG, "3");
+        ZMSImpl zmsTest = zmsTestInitializer.zmsInit();
+
+        final String domainName = "sys.auth";
+        final String policyName = "policyWithTagLimit";
+        final String tagKey = "tag-key";
+
+        //insert policy with 4 tags
+        List<String> tagValues = Arrays.asList("val1", "val2", "val3", "val4");
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName);
+        policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
+        try {
+            zmsTest.putPolicy(ctx, domainName, policyName, auditRef, false, policy);
+            fail();
+        } catch(ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("policy tag quota exceeded - limit: 3, current tags count: 0, new tags count: 4"));
+        }
+
+        try {
+            // policy should not be created if fails to process tags...
+            zmsTest.getPolicy(ctx, domainName, policyName);
+            fail();
+        } catch(ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_POLICY_TAG);
+    }
+
+    @Test
+    public void testQueryUpdatePolicyWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "sys.auth";
+        final String tagKey = "tag-key-update";
+        final String defaultPolicyVersion = "0";
+        addRoleNeededForTest(domainName, "Role1");
+
+        //put policy without tags
+        final String noTagsPolicy = "upwt_noTagsPolicy";
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, noTagsPolicy);
+        policy.setVersion("0");
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+        policy = zmsImpl.getPolicy(ctx, domainName, noTagsPolicy);
+
+        // assert there are no tags
+        Policies policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion,null, null, 0);
+
+        // update tag list
+        List<String> tagValues = Arrays.asList("val1", "val2", "val3");
+        policy.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(tagValues)));
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+
+        String policy2Version = "2";
+        Policy policyV2 = zmsTestInitializer.createPolicyObject(domainName, noTagsPolicy, policy2Version, false);
+        List<String> policyV2TagValues = Arrays.asList("v2val1", "val3");
+        policyV2.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(policyV2TagValues)));
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policyV2);
+
+        // 3 tags should be presented
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, tagKey, tagValues, 3);
+        hasPolicyWithTags(policyList, noTagsPolicy, policy2Version, tagKey, policyV2TagValues, 2);
+        List<Policy> TestPolicies = policyList.getList().stream().filter(policy1 -> AthenzUtils.extractPolicyName(policy1.getName()).startsWith("upwt_")).collect(Collectors.toList());
+        assertEquals(TestPolicies.size(), 2);
+
+        // get policies with exact tag value without unactive versions.
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.FALSE, Boolean.FALSE, tagKey, "val3");
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, tagKey, tagValues, 3);
+        assertEquals(policyList.getList().size(), 1);
+
+        // get policies with only tag key without unactive vesrions.
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.FALSE, tagKey, null);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, tagKey, tagValues, 3);
+        assertEquals(policyList.getList().size(), 1);
+
+        // now create a different tags Map, part is from tagValues
+        Map<String, TagValueList> tagsMap = new HashMap<>();
+        List<String> modifiedTagValues = Arrays.asList("val1", "new-val");
+        String newTagKey = "newTagKey";
+        List<String> newTagValues = Arrays.asList("val4", "val5", "val6");
+        tagsMap.put(tagKey, new TagValueList().setList(modifiedTagValues));
+        tagsMap.put(newTagKey, new TagValueList().setList(newTagValues));
+        policy.setTags(tagsMap);
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policy);
+
+        // only the version 0 policy should be updated
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, null, null);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, tagKey, modifiedTagValues, 2);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, newTagKey, newTagValues, 3);
+        hasPolicyWithTags(policyList, noTagsPolicy, policy2Version, tagKey, policyV2TagValues, 2);
+        TestPolicies = policyList.getList().stream().filter(policy1 -> AthenzUtils.extractPolicyName(policy1.getName()).startsWith("upwt_")).collect(Collectors.toList());
+        assertEquals(TestPolicies.size(), 2);
+
+        // get policies with exact tag value only version 0 should be returned
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val1");
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, tagKey, modifiedTagValues, 2);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, newTagKey, newTagValues, 3);
+        assertEquals(policyList.getList().size(), 1);
+
+        // updated policy version 2 to contain only val1 tag
+        policyV2TagValues = Arrays.asList("val1");
+        policyV2.setTags(Collections.singletonMap(tagKey, new TagValueList().setList(policyV2TagValues)));
+        zmsImpl.putPolicy(ctx, domainName, noTagsPolicy, auditRef, false, policyV2);
+
+        // get policies with exact tag value both of the policies versions should be returned
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val1");
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, tagKey, modifiedTagValues, 2);
+        hasPolicyWithTags(policyList, noTagsPolicy, defaultPolicyVersion, newTagKey, newTagValues, 3);
+        hasPolicyWithTags(policyList, noTagsPolicy, policy2Version, tagKey, policyV2TagValues, 1);
+        assertEquals(policyList.getList().size(), 2);
+
+        // get policies with no existing tag value
+        policyList = zmsImpl.getPolicies(ctx, domainName, Boolean.TRUE, Boolean.TRUE, tagKey, "val10");
+        assertEquals(policyList.getList().size(), 0);
     }
 
     private void hasServiceWithTags(ServiceIdentities services, String serviceName, String domain, String tagKey, List<String> tagValues, int tagValuesLength) {

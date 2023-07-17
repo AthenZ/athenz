@@ -43,7 +43,7 @@ public interface ZMSHandler {
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName, String expiration);
     DomainRoleMembers getOverdueReview(ResourceContext context, String domainName);
     DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);
-    DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName);
+    DomainRoleMember getPrincipalRoles(ResourceContext context, String principal, String domainName, Boolean expand);
     Response putMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef, Boolean returnObj, Membership membership);
     void deleteMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
     void deletePendingMembership(ResourceContext context, String domainName, String roleName, String memberName, String auditRef);
@@ -67,7 +67,7 @@ public interface ZMSHandler {
     Response putGroupReview(ResourceContext context, String domainName, String groupName, String auditRef, Boolean returnObj, Group group);
     DomainGroupMembership getPendingDomainGroupMembersList(ResourceContext context, String principal, String domainName);
     PolicyList getPolicyList(ResourceContext context, String domainName, Integer limit, String skip);
-    Policies getPolicies(ResourceContext context, String domainName, Boolean assertions, Boolean includeNonActive);
+    Policies getPolicies(ResourceContext context, String domainName, Boolean assertions, Boolean includeNonActive, String tagKey, String tagValue);
     Policy getPolicy(ResourceContext context, String domainName, String policyName);
     Response putPolicy(ResourceContext context, String domainName, String policyName, String auditRef, Boolean returnObj, Policy policy);
     void deletePolicy(ResourceContext context, String domainName, String policyName, String auditRef);

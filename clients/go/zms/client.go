@@ -1289,9 +1289,9 @@ func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRole
 	}
 }
 
-func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName) (*DomainRoleMember, error) {
+func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName, expand *bool) (*DomainRoleMember, error) {
 	var data *DomainRoleMember
-	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
+	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""), encodeOptionalBoolParam("expand", expand))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
@@ -2111,9 +2111,9 @@ func (client ZMSClient) GetPolicyList(domainName DomainName, limit *int32, skip 
 	}
 }
 
-func (client ZMSClient) GetPolicies(domainName DomainName, assertions *bool, includeNonActive *bool) (*Policies, error) {
+func (client ZMSClient) GetPolicies(domainName DomainName, assertions *bool, includeNonActive *bool, tagKey CompoundName, tagValue CompoundName) (*Policies, error) {
 	var data *Policies
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policies" + encodeParams(encodeOptionalBoolParam("assertions", assertions), encodeOptionalBoolParam("includeNonActive", includeNonActive))
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policies" + encodeParams(encodeOptionalBoolParam("assertions", assertions), encodeOptionalBoolParam("includeNonActive", includeNonActive), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

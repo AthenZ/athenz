@@ -1506,7 +1506,7 @@ public class ZMSClient implements Closeable {
     private Policies getPoliciesImpl(String domainName, Boolean assertions, Boolean includeNonActive) {
         updatePrincipal();
         try {
-            return client.getPolicies(domainName, assertions, includeNonActive);
+            return client.getPolicies(domainName, assertions, includeNonActive, null, null);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3063,15 +3063,28 @@ public class ZMSClient implements Closeable {
      * @return Member with roles in all requested domains
      */
     public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        return getPrincipalRoles(principal, domainName, null);
+    }
+
+    /**
+     * Fetch all the roles across domains by either calling or specified principal. The expand
+     * argument specifies to include any group and/or delegated role membership as well.
+     * @param principal - Requested principal. If null will return roles for the user making the call
+     * @param domainName - Requested domain. If null will return roles from all domains
+     * @param expand - Optional. Include all group and delegated role membership as well.
+     * @return Member with roles in all requested domains
+     */
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName, Boolean expand) {
         updatePrincipal();
         try {
-            return client.getPrincipalRoles(principal, domainName);
+            return client.getPrincipalRoles(principal, domainName, expand);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
+
     /**
      * Set the role system meta parameters
      *

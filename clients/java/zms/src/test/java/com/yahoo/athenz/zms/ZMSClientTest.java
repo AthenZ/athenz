@@ -1659,28 +1659,28 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         try {
-            Mockito.when(c.getPolicies("domain1", true, false)).thenThrow(new NullPointerException());
+            Mockito.when(c.getPolicies("domain1", true, false, null, null)).thenThrow(new NullPointerException());
             client.getPolicies("domain1", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getPolicies("domain2", true, false)).thenThrow(new ResourceException(400));
+            Mockito.when(c.getPolicies("domain2", true, false, null, null)).thenThrow(new ResourceException(400));
             client.getPolicies("domain2", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getPolicies("domain3", true, true)).thenThrow(new ResourceException(400));
+            Mockito.when(c.getPolicies("domain3", true, true, null, null)).thenThrow(new ResourceException(400));
             client.getPolicies("domain3", true, true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
         }
         try {
-            Mockito.when(c.getPolicies("domain3", false, true)).thenThrow(new NullPointerException());
+            Mockito.when(c.getPolicies("domain3", false, true, null, null)).thenThrow(new NullPointerException());
             client.getPolicies("domain3", false, true);
             fail();
         } catch (ZMSClientException ex) {
@@ -3508,10 +3508,11 @@ public class ZMSClientTest {
         DomainRoleMember domainRoleMember = new DomainRoleMember();
         domainRoleMember.setMemberName("currentPrincipalName");
         domainRoleMember.setMemberRoles(memberRoles);
-        Mockito.when(c.getPrincipalRoles(null, null))
+        Mockito.when(c.getPrincipalRoles(null, null, null))
                 .thenReturn(domainRoleMember)
                 .thenThrow(new ZMSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
+
 
         DomainRoleMember retMember = client.getPrincipalRoles(null, null);
         assertNotNull(retMember);
@@ -3524,6 +3525,14 @@ public class ZMSClientTest {
 
         assertEquals(retMember.getMemberRoles().get(2).getDomainName(), "domain2");
         assertEquals(retMember.getMemberRoles().get(2).getRoleName(), "role3");
+
+        // retry the same operation with expand option enabled
+
+        Mockito.when(c.getPrincipalRoles(null, null, Boolean.TRUE))
+                .thenReturn(domainRoleMember);
+
+        retMember = client.getPrincipalRoles(null, null, Boolean.TRUE);
+        assertNotNull(retMember);
 
         // second time it fails with zms client exception
 

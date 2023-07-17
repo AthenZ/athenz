@@ -163,16 +163,11 @@ func (cli Zms) GetTagsAfterDeletion(resourceTags *zms.TagValueList, valuesToDele
 	if resourceTags == nil || len(valuesToDelete) == 0 {
 		return tagValueArr
 	}
-
-	var resourceTagsValues []string
-	// except given tagValue, set the same tags map
+	// extract all the values that not in the valuesToDelete List
 	for _, curTagValue := range resourceTags.List {
-		resourceTagsValues = append(resourceTagsValues, string(curTagValue))
-	}
-	newTagValuesArr := cli.RemoveAll(resourceTagsValues, valuesToDelete)
-
-	for _, newTagValue := range newTagValuesArr {
-		tagValueArr = append(tagValueArr, zms.TagCompoundValue(newTagValue))
+		if !cli.contains(valuesToDelete, string(curTagValue)) {
+			tagValueArr = append(tagValueArr, curTagValue)
+		}
 	}
 
 	return tagValueArr

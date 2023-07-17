@@ -3697,7 +3697,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
-                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
+                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver,
+                info.getNamespace(), errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg,
                     caller, domain, principalDomain);
         }
@@ -3724,7 +3725,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity
-        String sanIpStrForWorkloadStore = InstanceUtils.getInstanceProperty(instance.getAttributes(), InstanceProvider.ZTS_INSTANCE_SAN_IP);
+
+        String sanIpStrForWorkloadStore = InstanceUtils.getInstanceProperty(instance.getAttributes(),
+                InstanceProvider.ZTS_INSTANCE_SAN_IP);
 
         // make sure to close our provider when its no longer needed
 
@@ -3780,8 +3783,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         if (verifyCertSubjectOU && !certReq.validateSubjectOUField(provider, certSubjectOU,
                 validCertSubjectOrgUnitValues)) {
-            throw requestError("CSR Subject OrgUnit validation failed",
-                    caller, domain, principalDomain);
+            throw requestError("CSR Subject OrgUnit validation failed", caller, domain, principalDomain);
         }
 
         // update the expiry time if one is provided in the request
@@ -3789,11 +3791,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         certExpiryTime = getServiceCertRequestExpiryTime(certExpiryTime, info.getExpiryTime());
 
         // generate certificate for the instance
+        // Initial request from the workload gets highest priority
 
-        Priority priority = Priority.High; // Initial request from the workload gets highest priority
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
-                cn, certUsage, certExpiryTime, priority);
+                cn, certUsage, certExpiryTime, Priority.High);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -3833,14 +3835,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             // able to validate the certificate during refresh operations
 
             if (insertX509CertRecord(ctx, cn, provider, certReqInstanceId, certSerial,
-                    InstanceProvider.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage), newCert.getNotAfter(), info.getHostname()) == null) {
+                    InstanceProvider.ZTS_CERT_USAGE_CLIENT.equalsIgnoreCase(certUsage), newCert.getNotAfter(),
+                    info.getHostname()) == null) {
                 throw serverError("unable to update cert db", caller, domain, principalDomain);
             }
         }
 
         if (enableWorkloadStore && !athenzSysDomainCache.isWorkloadStoreExcludedProvider(provider)) {
             // insert into workloads store is on best-effort basis. No errors are thrown if the op is not successful.
-            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore, info.getHostname(), newCert.getNotAfter());
+            insertWorkloadRecord(cn, provider, certReqInstanceId, sanIpStrForWorkloadStore,
+                    info.getHostname(), newCert.getNotAfter());
         }
 
         // if we're asked to return an NToken in addition to ZTS Certificate
@@ -4193,7 +4197,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
-                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver, errorMsg)) {
+                serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver,
+                info.getNamespace(), errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg,
                     caller, domain, principalDomain);
         }
@@ -4660,9 +4665,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // validate that the cn and public key match to the provided details
 
-        X509CertRequest x509CertReq;
+        X509ServiceCertRequest x509CertReq;
         try {
-            x509CertReq = new X509CertRequest(req.getCsr());
+            x509CertReq = new X509ServiceCertRequest(req.getCsr());
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 certificate request",
                     caller, domain, principalDomain);
@@ -4703,7 +4708,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // verify the spiffe uri specified in the request is valid
 
-        if (!x509CertReq.validateSpiffeURI(domain, X509ServiceCertRequest.SPIFFE_SERVICE_AGENT, service)) {
+        if (!x509CertReq.validateSpiffeURI(domain, service, req.getNamespace())) {
             throw requestError("Invalid CSR - spiffe uri mismatch", caller, domain, principalDomain);
         }
 

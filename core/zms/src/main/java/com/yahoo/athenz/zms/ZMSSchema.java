@@ -256,7 +256,8 @@ public class ZMSSchema {
             .field("requestPrincipal", "EntityName", true, "pending members only - name of the principal requesting the change")
             .field("requestTime", "Timestamp", true, "for pending membership requests, the request time")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
-            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
+            .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete")
+            .field("trustRoleName", "ResourceName", true, "name of the role that handles the membership delegation for the role specified in roleName");
 
         sb.structType("DomainRoleMember")
             .field("memberName", "MemberName", false, "name of the member")
@@ -311,7 +312,8 @@ public class ZMSSchema {
             .field("caseSensitive", "Bool", true, "If true, we should store action and resource in their original case")
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
             .field("active", "Bool", true, "if multi-version policy then indicates active version")
-            .field("description", "String", true, "a description of the policy");
+            .field("description", "String", true, "a description of the policy")
+            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")
@@ -1439,10 +1441,11 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainRoleMember", "GET", "/role")
-            .comment("Fetch all the roles across domains by either calling or specified principal")
+            .comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
             .name("getPrincipalRoles")
             .queryParam("principal", "principal", "ResourceName", null, "If not present, will return roles for the user making the call")
             .queryParam("domain", "domainName", "DomainName", null, "If not present, will return roles from all domains")
+            .queryParam("expand", "expand", "Bool", false, "expand to include group and delegated trust role membership")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1940,6 +1943,8 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("assertions", "assertions", "Bool", false, "return list of assertions in the policy")
             .queryParam("includeNonActive", "includeNonActive", "Bool", false, "include non-active policy versions")
+            .queryParam("tagKey", "tagKey", "CompoundName", null, "flag to query all policies that have a given tagName")
+            .queryParam("tagValue", "tagValue", "CompoundName", null, "flag to query all policies that have a given tag name and value")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
