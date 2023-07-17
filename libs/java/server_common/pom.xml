@@ -30,12 +30,13 @@
     <code.coverage.min>0.9271</code.coverage.min>
     <commons.dbcp2.version>2.9.0</commons.dbcp2.version>
     <commons.pool2.version>2.11.1</commons.pool2.version>
-    <jakarta.mail.version>2.0.1</jakarta.mail.version>
+    <jakarta.mail.version>2.1.2</jakarta.mail.version>
+    <angus.mail.version>2.0.2</angus.mail.version>
     <protobuf.java.version>3.21.12</protobuf.java.version>
     <pulsar.client.version>2.11.1</pulsar.client.version>
     <aws.secretmanager.version>1.0.12</aws.secretmanager.version>
     <uuid.version>4.2.0</uuid.version>
-    <hamcrest.json.version>0.2</hamcrest.json.version>
+    <hamcrest.json.version>0.3</hamcrest.json.version>
   </properties>
 
   <dependencies>
@@ -268,9 +269,14 @@
       <version>${aws2.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>jakarta.mail</artifactId>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
       <version>${jakarta.mail.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-mail</artifactId>
+      <version>${angus.mail.version}</version>
     </dependency>
     <dependency>
       <groupId>com.yahoo.athenz</groupId>
