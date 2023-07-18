@@ -453,8 +453,6 @@ func (cli Zms) dumpObjectList(buf *bytes.Buffer, list []string, dn string, objec
 }
 
 func (cli Zms) dumpServices(buf *bytes.Buffer, dn string, tagKey string, tagValue string) {
-	buf.WriteString(indentLevel1)
-	buf.WriteString("services:\n")
 	publickeys := true
 	hosts := true
 	services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publickeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))

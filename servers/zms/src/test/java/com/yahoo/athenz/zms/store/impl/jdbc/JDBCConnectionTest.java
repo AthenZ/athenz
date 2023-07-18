@@ -37,7 +37,6 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.testng.Assert.*;
 
@@ -14716,7 +14715,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testGetDomainReasourceTags() throws Exception {
+    public void testGetDomainResourceTags() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
         Mockito.when(mockResultSet.getString(1))

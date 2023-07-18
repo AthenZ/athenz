@@ -3089,7 +3089,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-policies readers readers-tag-key reader-tag-value\n")
 	case "add-service-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-service-tag regular_service tag_key tag_value [tag_value ...]\n")
+		buf.WriteString("   " + domainParam + " add-service-tag service tag_key tag_value [tag_value ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that service belongs to\n")
@@ -3100,7 +3100,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-service-tag service service-tag-key service-tag-value-1 service-tag-value-2\n")
 	case "delete-service-tag":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " delete-service-tag regular_service tag_key [tag_value]\n")
+		buf.WriteString("   " + domainParam + " delete-service-tag service tag_key [tag_value]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that service belongs to\n")
@@ -3284,8 +3284,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-public-key service key_id\n")
 	buf.WriteString("   delete-public-key service key_id\n")
 	buf.WriteString("   delete-service service\n")
-	buf.WriteString("   add-service-tag regular_service tag_key tag_value [tag_value ...]\n")
-	buf.WriteString("   delete-service-tag regular_service tag_key [tag_value]\n")
+	buf.WriteString("   add-service-tag service tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-service-tag service tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Entity commands:\n")
 	buf.WriteString("   list-entity\n")
