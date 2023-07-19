@@ -31,6 +31,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -39,7 +40,12 @@ import (
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/AthenZ/athenz/clients/go/zts"
 	gcpa "github.com/AthenZ/athenz/libs/go/sia/gcp/attestation"
+	gcpm "github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
+)
+
+const (
+	gcpMetaDataServer = "http://metadata.google.internal"
 )
 
 // SiaCertData response of GetAthenzIdentity()
@@ -62,23 +68,38 @@ type CsrSubjectFields struct {
 
 // GetAthenzIdentity this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
 // See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-go
-func GetAthenzIdentity(athenzDomain, athenzService, gcpProjectId, athenzProvider, ztsUrl, certDomain, spiffeTrustDomain string, optionalSubjectFields CsrSubjectFields) (*SiaCertData, error) {
+func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, certDomain, spiffeTrustDomain string, optionalSubjectFields CsrSubjectFields) (*SiaCertData, error) {
 
 	athenzDomain = strings.ToLower(athenzDomain)
 	athenzService = strings.ToLower(athenzService)
 	athenzProvider = strings.ToLower(athenzProvider)
 
+	// Get the project id from metadata
+	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
+	if err != nil {
+		return nil, fmt.Errorf("unable to extract project id: %v", err)
+	}
+
+	// Get the function name https://cloud.google.com/functions/docs/configuring/env-var#newer_runtimes
+	gcpFunctionName := os.Getenv("K_SERVICE")
+
+	// if we don't have a function name then we'll use our project
+	// id in its place to generate our instance id uri
+	if gcpFunctionName == "" {
+		gcpFunctionName = gcpProjectId
+	}
+
 	// Get an identity-document for this GCF from GCP.
 
-	attestationData, err := gcpa.New("http://metadata", "", ztsUrl)
+	attestationData, err := gcpa.New(gcpMetaDataServer, "", ztsUrl)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get attestation data: %v", err)
 	}
 
 	// Create a private-key.
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to generate private key: %v", err)
 	}
 
 	// Create a CSR (and a private-key).
@@ -92,7 +113,7 @@ func GetAthenzIdentity(athenzDomain, athenzService, gcpProjectId, athenzProvider
 		},
 		[]string{
 			util.GetSvcSpiffeUri(spiffeTrustDomain, "default", athenzDomain, athenzService),
-			util.SanURIInstanceId(athenzProvider, "gcp-function-"+gcpProjectId),
+			util.SanURIInstanceId(athenzProvider, "gcf-"+gcpFunctionName),
 		})
 
 	// Encode the CSR to PEM.
@@ -113,7 +134,7 @@ func GetAthenzIdentity(athenzDomain, athenzService, gcpProjectId, athenzProvider
 			Csr:             csrPemBuffer.String(),
 		})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("uanble to register instance: %v", err)
 	}
 
 	siaCertData.PrivateKey = privateKey
