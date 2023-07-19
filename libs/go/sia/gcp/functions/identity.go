@@ -85,8 +85,11 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, cert
 
 	// if we don't have a function name then we'll use our project
 	// id in its place to generate our instance id uri
+	var instanceId string
 	if gcpFunctionName == "" {
-		gcpFunctionName = gcpProjectId
+		instanceId = gcpProjectId
+	} else {
+		instanceId = gcpProjectId + ":" + gcpFunctionName
 	}
 
 	// Get an identity-document for this GCF from GCP.
@@ -113,7 +116,7 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, cert
 		},
 		[]string{
 			util.GetSvcSpiffeUri(spiffeTrustDomain, "default", athenzDomain, athenzService),
-			util.SanURIInstanceId(athenzProvider, "gcf-"+gcpFunctionName),
+			util.SanURIInstanceId(athenzProvider, "gcf-"+instanceId),
 		})
 
 	// Encode the CSR to PEM.
