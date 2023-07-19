@@ -18,6 +18,7 @@ package functions
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -25,26 +26,41 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"io"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
+
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
-// GcfGetSiaCerts this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
+// SiaCertData response of GetAthenzIdentity()
+type SiaCertData struct {
+	PrivateKey               *rsa.PrivateKey
+	PrivateKeyPem            string
+	X509Certificate          *x509.Certificate
+	X509CertificatePem       string
+	X509CertificateSignerPem string
+}
+
+// CsrSubjectFields are optional fields for the CSR: the fields will appear in the created certificate's "Subject".
+type CsrSubjectFields struct {
+	Country          string
+	State            string
+	Locality         string
+	Organization     string
+	OrganizationUnit string
+}
+
+// GetAthenzIdentity this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
 // See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-go
-func GcfGetSiaCerts(
-	athenzDomain string,
-	athenzService string,
-	gcpProjectId string,
-	athenzProvider string,
-	ztsUrl string,
-	certDomain string,
-	optionalSubjectFields CsrSubjectFields,
-) (*SiaCertData, error) {
+func GetAthenzIdentity(athenzDomain, athenzService, gcpProjectId, athenzProvider, ztsUrl, certDomain, spiffeTrustDomain string, optionalSubjectFields CsrSubjectFields) (*SiaCertData, error) {
 
 	athenzDomain = strings.ToLower(athenzDomain)
 	athenzService = strings.ToLower(athenzService)
@@ -62,11 +78,6 @@ func GcfGetSiaCerts(
 		return nil, err
 	}
 
-	// Convert the private-key to PEM format.
-	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
-	privateKeyBlock := pem.Block{Type: "RSA PRIVATE KEY", Bytes: privateKeyDer}
-	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
-
 	// Create a CSR (and a private-key).
 	csr, err := generateCsr(
 		privateKey,
@@ -74,11 +85,11 @@ func GcfGetSiaCerts(
 		optionalSubjectFields,
 		[]string{},
 		[]string{
-			athenzService + "." + strings.Replace(athenzDomain, ".", "-", -1) + "." + certDomain,
+			util.SanDNSHostname(athenzDomain, athenzService, certDomain),
 		},
 		[]string{
-			"spiffe://" + athenzDomain + "/sa/" + athenzService,
-			"athenz://instanceid/" + athenzProvider + "/gcp-function-" + gcpProjectId,
+			util.GetSvcSpiffeUri(spiffeTrustDomain, "default", athenzDomain, athenzService),
+			util.SanURIInstanceId(athenzProvider, "gcp-function-"+gcpProjectId),
 		})
 
 	// Encode the CSR to PEM.
@@ -87,7 +98,6 @@ func GcfGetSiaCerts(
 	if err != nil {
 		return nil, fmt.Errorf("cannot encode CSR to PEM: %v", err)
 	}
-	csrPem := csrPemBuffer.String()
 
 	// Send CSR to ZTS.
 	siaCertData, err := getCredsFromZts(
@@ -97,33 +107,15 @@ func GcfGetSiaCerts(
 			Service:         zts.SimpleName(athenzService),
 			Provider:        zts.ServiceName(athenzProvider),
 			AttestationData: attestationData,
-			Csr:             csrPem,
+			Csr:             csrPemBuffer.String(),
 		})
 	if err != nil {
 		return nil, err
 	}
 
 	siaCertData.PrivateKey = privateKey
-	siaCertData.PrivateKeyPem = string(privateKeyPem)
+	siaCertData.PrivateKeyPem = util.PrivatePem(privateKey)
 	return siaCertData, nil
-}
-
-// SiaCertData response of GcfGetSiaCerts()
-type SiaCertData struct {
-	PrivateKey               *rsa.PrivateKey
-	PrivateKeyPem            string
-	X509Certificate          *x509.Certificate
-	X509CertificatePem       string
-	X509CertificateSignerPem string
-}
-
-// CsrSubjectFields are optional fields for the CSR: the fields will appear in the created certificate's "Subject".
-type CsrSubjectFields struct {
-	Country          string
-	State            string
-	Locality         string
-	Organization     string
-	OrganizationUnit string
 }
 
 // Get an identity-document for this GCF from GCP.
@@ -151,14 +143,7 @@ func getGcpFunctionAttestationData(ztsUrl string) (string, error) {
 }
 
 // Generate a CSR.
-func generateCsr(
-	privateKey *rsa.PrivateKey,
-	commonName string,
-	csrSubjectFields CsrSubjectFields,
-	altNamesIp []string,
-	altNamesDns []string,
-	altNamesUri []string,
-) ([]byte, error) {
+func generateCsr(privateKey *rsa.PrivateKey, commonName string, csrSubjectFields CsrSubjectFields, altNamesIp, altNamesDns, altNamesUri []string) ([]byte, error) {
 
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name)
 	//exists, it is used, not the CN. So, we will always put the Athenz
@@ -267,4 +252,62 @@ func getCredsFromZts(ztsUrl string, instanceRegisterInformation zts.InstanceRegi
 		X509CertificatePem:       instanceIdentity.X509Certificate,
 		X509CertificateSignerPem: instanceIdentity.X509CertificateSigner,
 	}, nil
+}
+
+func generateSecretJsonData(athenzDomain, athenzService string, siaCertData *SiaCertData) ([]byte, error) {
+
+	siaYield := make(map[string]string)
+	siaYield[athenzDomain+"."+athenzService+".cert.pem"] = siaCertData.X509CertificatePem
+	siaYield[athenzDomain+"."+athenzService+".key.pem"] = siaCertData.PrivateKeyPem
+	siaYield["ca.cert.pem"] = siaCertData.X509CertificateSignerPem
+
+	// Add the current time to the JSON.
+	now := time.Now()
+	siaYield["time"] = now.Format(time.DateTime)
+
+	return json.MarshalIndent(siaYield, "", "  ")
+}
+
+// StoreAthenzIdentityInSecretManager store the retrieved athenz identity in the
+// specified secret. The secret is stored in the following json format:
+//
+//	{
+//	   "<domain>.<service>.cert.pem":"<x509-cert-pem>,
+//	   "<domain>.<service>.key.pem":"<pkey-pem>,
+//	   "ca.cert.pem":"<ca-cert-pem>,
+//	   "time": <utc-timestamp>
+//	}
+//
+// The secret specified by the name must be pre-created and the service account
+// that the function is invoked with must have been authorized to assume the
+// "Secret Manager Secret Version Adder" role
+func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, gcpProjectId, secretName string, siaCertData *SiaCertData) error {
+
+	// Create the GCP secret-manager client.
+	ctx := context.Background()
+	secretManagerClient, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+	defer (func() {
+		_ = secretManagerClient.Close()
+	})()
+
+	// generate our payload
+	keyCertJson, err := generateSecretJsonData(athenzDomain, athenzService, siaCertData)
+	if err != nil {
+		return err
+	}
+
+	// Build the request
+	addSecretVersionReq := &secretmanagerpb.AddSecretVersionRequest{
+		Parent: "projects/" + gcpProjectId + "/secrets/" + secretName,
+		Payload: &secretmanagerpb.SecretPayload{
+			Data: keyCertJson,
+		},
+	}
+
+	// Call the API.
+	_, err = secretManagerClient.AddSecretVersion(ctx, addSecretVersionReq)
+	return err
 }
