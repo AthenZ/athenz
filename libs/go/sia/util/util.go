@@ -122,10 +122,13 @@ func SplitDomain(domain string) (string, string) {
 	return domain[0:i], domain[i+1:]
 }
 
-func ZtsHostName(identity, ztsAwsDomain string) string {
-	domain, service := SplitDomain(identity)
+func SanDNSHostname(domain, service, cloudDomain string) string {
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	return fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsAwsDomain)
+	return fmt.Sprintf("%s.%s.%s", service, hyphenDomain, cloudDomain)
+}
+
+func SanURIInstanceId(athenzProvider, instanceId string) string {
+	return "athenz://instanceid/" + athenzProvider + "/" + instanceId
 }
 
 func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile string) (*zts.ZTSClient, error) {

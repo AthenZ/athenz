@@ -18,6 +18,7 @@ package functions
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -25,90 +26,29 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"io"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
+	"time"
+
+	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"github.com/AthenZ/athenz/clients/go/zts"
+	gcpa "github.com/AthenZ/athenz/libs/go/sia/gcp/attestation"
+	gcpm "github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
-// GcfGetSiaCerts this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
-// See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-go
-func GcfGetSiaCerts(
-	athenzDomain string,
-	athenzService string,
-	gcpProjectId string,
-	athenzProvider string,
-	ztsUrl string,
-	certDomain string,
-	optionalSubjectFields CsrSubjectFields,
-) (*SiaCertData, error) {
+const (
+	gcpMetaDataServer = "http://metadata.google.internal"
+)
 
-	athenzDomain = strings.ToLower(athenzDomain)
-	athenzService = strings.ToLower(athenzService)
-	athenzProvider = strings.ToLower(athenzProvider)
-
-	// Get an identity-document for this GCF from GCP.
-	attestationData, err := getGcpFunctionAttestationData(ztsUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create a private-key.
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert the private-key to PEM format.
-	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
-	privateKeyBlock := pem.Block{Type: "RSA PRIVATE KEY", Bytes: privateKeyDer}
-	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
-
-	// Create a CSR (and a private-key).
-	csr, err := generateCsr(
-		privateKey,
-		athenzDomain+"."+athenzService,
-		optionalSubjectFields,
-		[]string{},
-		[]string{
-			athenzService + "." + strings.Replace(athenzDomain, ".", "-", -1) + "." + certDomain,
-		},
-		[]string{
-			"spiffe://" + athenzDomain + "/sa/" + athenzService,
-			"athenz://instanceid/" + athenzProvider + "/gcp-function-" + gcpProjectId,
-		})
-
-	// Encode the CSR to PEM.
-	var csrPemBuffer bytes.Buffer
-	err = pem.Encode(&csrPemBuffer, &pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csr})
-	if err != nil {
-		return nil, fmt.Errorf("cannot encode CSR to PEM: %v", err)
-	}
-	csrPem := csrPemBuffer.String()
-
-	// Send CSR to ZTS.
-	siaCertData, err := getCredsFromZts(
-		ztsUrl,
-		zts.InstanceRegisterInformation{
-			Domain:          zts.DomainName(athenzDomain),
-			Service:         zts.SimpleName(athenzService),
-			Provider:        zts.ServiceName(athenzProvider),
-			AttestationData: attestationData,
-			Csr:             csrPem,
-		})
-	if err != nil {
-		return nil, err
-	}
-
-	siaCertData.PrivateKey = privateKey
-	siaCertData.PrivateKeyPem = string(privateKeyPem)
-	return siaCertData, nil
-}
-
-// SiaCertData response of GcfGetSiaCerts()
+// SiaCertData response of GetAthenzIdentity()
 type SiaCertData struct {
 	PrivateKey               *rsa.PrivateKey
 	PrivateKeyPem            string
@@ -126,39 +66,87 @@ type CsrSubjectFields struct {
 	OrganizationUnit string
 }
 
-// Get an identity-document for this GCF from GCP.
-func getGcpFunctionAttestationData(ztsUrl string) (string, error) {
-	gcpIdentityUrl := "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=" + ztsUrl + "&format=full"
+// GetAthenzIdentity this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
+// See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-go
+func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, certDomain, spiffeTrustDomain string, optionalSubjectFields CsrSubjectFields) (*SiaCertData, error) {
 
-	req, err := http.NewRequest(http.MethodGet, gcpIdentityUrl, nil)
+	athenzDomain = strings.ToLower(athenzDomain)
+	athenzService = strings.ToLower(athenzService)
+	athenzProvider = strings.ToLower(athenzProvider)
+
+	// Get the project id from metadata
+	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
 	if err != nil {
-		return "", fmt.Errorf("failed to prepare HTTP request to    %q    : %v", gcpIdentityUrl, err)
+		return nil, fmt.Errorf("unable to extract project id: %v", err)
 	}
-	req.Header.Add("Metadata-Flavor", "Google")
-	res, err := http.DefaultClient.Do(req)
+
+	// Get the function name https://cloud.google.com/functions/docs/configuring/env-var#newer_runtimes
+	gcpFunctionName := os.Getenv("K_SERVICE")
+
+	// if we don't have a function name then we'll use our project
+	// id in its place to generate our instance id uri
+	instanceId := "gcf-"
+	if gcpFunctionName == "" {
+		instanceId += gcpProjectId
+	} else {
+		instanceId += gcpProjectId + ":" + gcpFunctionName
+	}
+
+	// Get an identity-document for this GCF from GCP.
+
+	attestationData, err := gcpa.New(gcpMetaDataServer, "", ztsUrl)
 	if err != nil {
-		return "", fmt.Errorf("failed to make HTTP request to    %q    : %v", gcpIdentityUrl, err)
+		return nil, fmt.Errorf("unable to get attestation data: %v", err)
 	}
-	resBody, err := io.ReadAll(res.Body)
+
+	// Create a private-key.
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response of HTTP request to    %q    : %v", gcpIdentityUrl, err)
+		return nil, fmt.Errorf("unable to generate private key: %v", err)
 	}
-	if res.StatusCode != 200 {
-		// Bad HTTP status code.
-		return "", fmt.Errorf("HTTP request to    %q    returned %d (%s). Body:\n%s", gcpIdentityUrl, res.StatusCode, res.Status, string(resBody))
+
+	// Create a CSR (and a private-key).
+	csr, err := generateCsr(
+		privateKey,
+		athenzDomain+"."+athenzService,
+		optionalSubjectFields,
+		[]string{},
+		[]string{
+			util.SanDNSHostname(athenzDomain, athenzService, certDomain),
+		},
+		[]string{
+			util.GetSvcSpiffeUri(spiffeTrustDomain, "default", athenzDomain, athenzService),
+			util.SanURIInstanceId(athenzProvider, instanceId),
+		})
+
+	// Encode the CSR to PEM.
+	var csrPemBuffer bytes.Buffer
+	err = pem.Encode(&csrPemBuffer, &pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csr})
+	if err != nil {
+		return nil, fmt.Errorf("cannot encode CSR to PEM: %v", err)
 	}
-	return "{\"identityToken\":\"" + string(resBody) + "\"}", nil
+
+	// Send CSR to ZTS.
+	siaCertData, err := getCredsFromZts(
+		ztsUrl,
+		zts.InstanceRegisterInformation{
+			Domain:          zts.DomainName(athenzDomain),
+			Service:         zts.SimpleName(athenzService),
+			Provider:        zts.ServiceName(athenzProvider),
+			AttestationData: attestationData,
+			Csr:             csrPemBuffer.String(),
+		})
+	if err != nil {
+		return nil, fmt.Errorf("uanble to register instance: %v", err)
+	}
+
+	siaCertData.PrivateKey = privateKey
+	siaCertData.PrivateKeyPem = util.PrivatePem(privateKey)
+	return siaCertData, nil
 }
 
 // Generate a CSR.
-func generateCsr(
-	privateKey *rsa.PrivateKey,
-	commonName string,
-	csrSubjectFields CsrSubjectFields,
-	altNamesIp []string,
-	altNamesDns []string,
-	altNamesUri []string,
-) ([]byte, error) {
+func generateCsr(privateKey *rsa.PrivateKey, commonName string, csrSubjectFields CsrSubjectFields, altNamesIp, altNamesDns, altNamesUri []string) ([]byte, error) {
 
 	//note: RFC 6125 states that if the SAN (Subject Alternative Name)
 	//exists, it is used, not the CN. So, we will always put the Athenz
@@ -267,4 +255,67 @@ func getCredsFromZts(ztsUrl string, instanceRegisterInformation zts.InstanceRegi
 		X509CertificatePem:       instanceIdentity.X509Certificate,
 		X509CertificateSignerPem: instanceIdentity.X509CertificateSigner,
 	}, nil
+}
+
+func generateSecretJsonData(athenzDomain, athenzService string, siaCertData *SiaCertData) ([]byte, error) {
+
+	siaYield := make(map[string]string)
+	siaYield[athenzDomain+"."+athenzService+".cert.pem"] = siaCertData.X509CertificatePem
+	siaYield[athenzDomain+"."+athenzService+".key.pem"] = siaCertData.PrivateKeyPem
+	siaYield["ca.cert.pem"] = siaCertData.X509CertificateSignerPem
+
+	// Add the current time to the JSON.
+	siaYield["time"] = strconv.FormatInt(time.Now().Unix(), 10)
+
+	return json.MarshalIndent(siaYield, "", "  ")
+}
+
+// StoreAthenzIdentityInSecretManager store the retrieved athenz identity in the
+// specified secret. The secret is stored in the following json format:
+//
+//	{
+//	   "<domain>.<service>.cert.pem":"<x509-cert-pem>,
+//	   "<domain>.<service>.key.pem":"<pkey-pem>,
+//	   "ca.cert.pem":"<ca-cert-pem>,
+//	   "time": <utc-timestamp>
+//	}
+//
+// The secret specified by the name must be pre-created and the service account
+// that the function is invoked with must have been authorized to assume the
+// "Secret Manager Secret Version Adder" role
+func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *SiaCertData) error {
+
+	// Create the GCP secret-manager client.
+	ctx := context.Background()
+	secretManagerClient, err := secretmanager.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to create secret manager client: %v", err)
+	}
+	defer (func() {
+		_ = secretManagerClient.Close()
+	})()
+
+	// generate our payload
+	keyCertJson, err := generateSecretJsonData(athenzDomain, athenzService, siaCertData)
+	if err != nil {
+		return fmt.Errorf("unable to generate secret json data: %v", err)
+	}
+
+	// Get the project id from metadata
+	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
+	if err != nil {
+		return fmt.Errorf("unable to extract project id: %v", err)
+	}
+
+	// Build the request
+	addSecretVersionReq := &secretmanagerpb.AddSecretVersionRequest{
+		Parent: "projects/" + gcpProjectId + "/secrets/" + secretName,
+		Payload: &secretmanagerpb.SecretPayload{
+			Data: keyCertJson,
+		},
+	}
+
+	// Call the API.
+	_, err = secretManagerClient.AddSecretVersion(ctx, addSecretVersionReq)
+	return err
 }
