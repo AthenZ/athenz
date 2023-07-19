@@ -283,13 +283,13 @@ func generateSecretJsonData(athenzDomain, athenzService string, siaCertData *Sia
 // The secret specified by the name must be pre-created and the service account
 // that the function is invoked with must have been authorized to assume the
 // "Secret Manager Secret Version Adder" role
-func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, gcpProjectId, secretName string, siaCertData *SiaCertData) error {
+func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *SiaCertData) error {
 
 	// Create the GCP secret-manager client.
 	ctx := context.Background()
 	secretManagerClient, err := secretmanager.NewClient(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to create secret manager client: %v", err)
 	}
 	defer (func() {
 		_ = secretManagerClient.Close()
@@ -298,7 +298,13 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, gcpProjectI
 	// generate our payload
 	keyCertJson, err := generateSecretJsonData(athenzDomain, athenzService, siaCertData)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to generate secret json data: %v", err)
+	}
+
+	// Get the project id from metadata
+	gcpProjectId, err := gcpm.GetProject(gcpMetaDataServer)
+	if err != nil {
+		return fmt.Errorf("unable to extract project id: %v", err)
 	}
 
 	// Build the request
@@ -311,5 +317,5 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, gcpProjectI
 
 	// Call the API.
 	_, err = secretManagerClient.AddSecretVersion(ctx, addSecretVersionReq)
-	return err
+	return fmt.Errorf("unable to add secret version: %v", err)
 }
