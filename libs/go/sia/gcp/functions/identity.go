@@ -98,6 +98,7 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, cert
 	if err != nil {
 		return nil, fmt.Errorf("unable to get attestation data: %v", err)
 	}
+	log.Printf("attestation data: %s\n", attestationData)
 
 	// Create a private-key.
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
