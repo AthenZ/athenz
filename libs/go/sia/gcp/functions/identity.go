@@ -31,12 +31,14 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/AthenZ/athenz/clients/go/zts"
+	gcpa "github.com/AthenZ/athenz/libs/go/sia/gcp/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 )
 
@@ -67,7 +69,8 @@ func GetAthenzIdentity(athenzDomain, athenzService, gcpProjectId, athenzProvider
 	athenzProvider = strings.ToLower(athenzProvider)
 
 	// Get an identity-document for this GCF from GCP.
-	attestationData, err := getGcpFunctionAttestationData(ztsUrl)
+
+	attestationData, err := gcpa.New("http://metadata", "", ztsUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -116,30 +119,6 @@ func GetAthenzIdentity(athenzDomain, athenzService, gcpProjectId, athenzProvider
 	siaCertData.PrivateKey = privateKey
 	siaCertData.PrivateKeyPem = util.PrivatePem(privateKey)
 	return siaCertData, nil
-}
-
-// Get an identity-document for this GCF from GCP.
-func getGcpFunctionAttestationData(ztsUrl string) (string, error) {
-	gcpIdentityUrl := "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=" + ztsUrl + "&format=full"
-
-	req, err := http.NewRequest(http.MethodGet, gcpIdentityUrl, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to prepare HTTP request to    %q    : %v", gcpIdentityUrl, err)
-	}
-	req.Header.Add("Metadata-Flavor", "Google")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to make HTTP request to    %q    : %v", gcpIdentityUrl, err)
-	}
-	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response of HTTP request to    %q    : %v", gcpIdentityUrl, err)
-	}
-	if res.StatusCode != 200 {
-		// Bad HTTP status code.
-		return "", fmt.Errorf("HTTP request to    %q    returned %d (%s). Body:\n%s", gcpIdentityUrl, res.StatusCode, res.Status, string(resBody))
-	}
-	return "{\"identityToken\":\"" + string(resBody) + "\"}", nil
 }
 
 // Generate a CSR.
@@ -262,8 +241,7 @@ func generateSecretJsonData(athenzDomain, athenzService string, siaCertData *Sia
 	siaYield["ca.cert.pem"] = siaCertData.X509CertificateSignerPem
 
 	// Add the current time to the JSON.
-	now := time.Now()
-	siaYield["time"] = now.Format(time.DateTime)
+	siaYield["time"] = strconv.FormatInt(time.Now().Unix(), 10)
 
 	return json.MarshalIndent(siaYield, "", "  ")
 }

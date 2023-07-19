@@ -42,5 +42,4 @@ func New(base, service, ztsUrl string) (string, error) {
 	}
 
 	return string(data), nil
-
 }
