@@ -107,23 +107,31 @@ func TestSplitDomain(test *testing.T) {
 	}
 }
 
-func TestZtsHostName(test *testing.T) {
+func TestSanDNSHostname(test *testing.T) {
 
-	host := ZtsHostName("athenz.storage", "athenz.cloud")
-	if host != "storage.athenz.athenz.cloud" {
-		test.Errorf("Host is not expected storage.athenz.athenz.cloud value")
+	host := SanDNSHostname("athenz", "storage", "athenz.io")
+	if host != "storage.athenz.athenz.io" {
+		test.Errorf("Host is not expected storage.athenz.athenz.io value: %s", host)
 		return
 	}
 
-	host = ZtsHostName("athenz.ci.storage", "athenz.cloud")
-	if host != "storage.athenz-ci.athenz.cloud" {
-		test.Errorf("Host is not expected storage.athenz-ci.athenz.cloud value")
+	host = SanDNSHostname("athenz.ci", "storage", "athenz.io")
+	if host != "storage.athenz-ci.athenz.io" {
+		test.Errorf("Host is not expected storage.athenz-ci.athenz.io value: %s", host)
 		return
 	}
 
-	host = ZtsHostName("athenz", "athenz.cloud")
-	if host != "..athenz.cloud" {
-		test.Errorf("Host is not expected ..athenz.cloud value")
+	host = SanDNSHostname("athenz", "", "athenz.io")
+	if host != ".athenz.athenz.io" {
+		test.Errorf("Host is not expected .athenz.athenz.io value: %s", host)
+		return
+	}
+}
+
+func TestSanURIInstanceId(test *testing.T) {
+	uri := SanURIInstanceId("athenz.provider", "id001")
+	if uri != "athenz://instanceid/athenz.provider/id001" {
+		test.Errorf("Host is not expected athenz://instanceid/athenz.provider/id001 value: %s", uri)
 		return
 	}
 }

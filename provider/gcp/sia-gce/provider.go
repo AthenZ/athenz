@@ -84,8 +84,8 @@ func (gke GCEProvider) GetSuffix() string {
 	return ""
 }
 
-func (gke GCEProvider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
-	return gcpa.New(base, svc, ztSserverName)
+func (gke GCEProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
+	return gcpa.New(base, svc, ztsServerName)
 }
 
 func (gke GCEProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
