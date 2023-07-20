@@ -159,15 +159,13 @@ class ServiceTagsPage extends React.Component {
                                             collection={serviceName}
                                             collectionDetails={
                                                 serviceDetails
-                                                    ? serviceDetails
-                                                    : {}
+                                                    || {}
                                             }
                                         />
                                         <CollectionDetails
                                             collectionDetails={
                                                 serviceDetails
-                                                    ? serviceDetails
-                                                    : {}
+                                                   || {}
                                             }
                                             _csrf={_csrf}
                                         />
@@ -178,7 +176,7 @@ class ServiceTagsPage extends React.Component {
                                         />
                                     </PageHeaderDiv>
                                     <TagList
-                                        collectionDetails={serviceDetails}
+                                        collectionDetails={serviceDetails || {}}
                                         domain={domainName}
                                         collectionName={serviceName}
                                         tags={serviceTags}
