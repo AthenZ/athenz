@@ -1639,7 +1639,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         try {
             Mockito.when(c.getRoles("domain1", true, null, null)).thenThrow(new NullPointerException());
-            client.getRoles("domain1", true, null, null);
+            client.getRoles("domain1", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);

@@ -1982,14 +1982,7 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public ServiceIdentities getServiceIdentities(String domainName, Boolean publicKeys, Boolean hosts) {
-        updatePrincipal();
-        try {
-            return client.getServiceIdentities(domainName, publicKeys, hosts, null, null);
-        } catch (ResourceException ex) {
-            throw new ZMSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
-        }
+        return getServiceIdentities(domainName, publicKeys, hosts, null, null);
     }
 
     /**

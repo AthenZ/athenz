@@ -1103,7 +1103,7 @@ public class ZMSClientMockTest {
 
         // next with only host option
 
-        services = zclt.getServiceIdentities(domName, false, true, null, null);
+        services = zclt.getServiceIdentities(domName, false, true);
         assertNotNull(services);
         assertNotNull(services.getList());
 
