@@ -3582,6 +3582,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
+        if (!tagKey.isEmpty()) {
+            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+        }
+        if (!tagValue.isEmpty()) {
+            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+        }
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -6050,6 +6056,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
+        if (!tagKey.isEmpty()) {
+            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+        }
+        if (!tagValue.isEmpty()) {
+            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+        }
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -9621,6 +9633,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
+        if (!tagKey.isEmpty()) {
+            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+        }
+        if (!tagValue.isEmpty()) {
+            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+        }
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
