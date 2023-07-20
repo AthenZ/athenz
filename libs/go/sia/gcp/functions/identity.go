@@ -68,7 +68,7 @@ type CsrSubjectFields struct {
 
 // GetAthenzIdentity this method can be called from within a GCF (Google Cloud Function) - to get an Athenz certificate from ZTS.
 // See https://cloud.google.com/functions/docs/writing/write-http-functions#http-example-go
-func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, certDomain, spiffeTrustDomain string, optionalSubjectFields CsrSubjectFields) (*SiaCertData, error) {
+func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, sanDNSDomain, spiffeTrustDomain string, optionalSubjectFields CsrSubjectFields) (*SiaCertData, error) {
 
 	athenzDomain = strings.ToLower(athenzDomain)
 	athenzService = strings.ToLower(athenzService)
@@ -112,7 +112,7 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, cert
 		optionalSubjectFields,
 		[]string{},
 		[]string{
-			util.SanDNSHostname(athenzDomain, athenzService, certDomain),
+			util.SanDNSHostname(athenzDomain, athenzService, sanDNSDomain),
 		},
 		[]string{
 			util.GetSvcSpiffeUri(spiffeTrustDomain, "default", athenzDomain, athenzService),
