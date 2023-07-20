@@ -77,7 +77,8 @@ public class GCPSIACredentialsTest {
                     "optionalState",
                     "optionalLocality",
                     "optionalOrganization",
-                    "optionalOrganizationUnit");
+                    "optionalOrganizationUnit",
+                    "");
             assertEquals(mockGcfAttestationDataHandler.requestedUri, "/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance");
             assertEquals(mockZtsInstanceHandler.requestedUri, "/mock-zts-instance/instance");
             InstanceRegisterInformation requestBody = new ObjectMapper().readValue(mockZtsInstanceHandler.requestedBody, InstanceRegisterInformation.class);
@@ -109,7 +110,8 @@ public class GCPSIACredentialsTest {
                     "optionalState",
                     "optionalLocality",
                     "optionalOrganization",
-                    "optionalOrganizationUnit");
+                    "optionalOrganizationUnit",
+                    "");
             fail("Should have thrown exception");
         } catch (Exception exception) {
             assertEquals(exception.getMessage(), "Unable to generate GCF attestation data from URL \"http://localhost:7356/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance/instance\" : HTTP code 202 != 200");
@@ -135,7 +137,8 @@ public class GCPSIACredentialsTest {
                     "optionalState",
                     "optionalLocality",
                     "optionalOrganization",
-                    "optionalOrganizationUnit");
+                    "optionalOrganizationUnit",
+                    null);
             fail("Should have thrown exception");
         } catch (Exception exception) {
             assertEquals(exception.getMessage(), "Unable to generate GCF attestation data from URL \"http://localhost:7356/mock-gcf-attestation-data?zts=http://localhost:7356/mock-zts-instance/instance\" : ");
@@ -161,7 +164,8 @@ public class GCPSIACredentialsTest {
                     "optionalState",
                     "optionalLocality",
                     "optionalOrganization",
-                    "optionalOrganizationUnit");
+                    "optionalOrganizationUnit",
+                    null);
             fail("Should have thrown exception");
         } catch (Exception exception) {
             assertEquals(exception.getMessage(), "Unable to register instance with Athenz. HTTP status: 403. Response: <MOCK ZTS FORBIDDEN>");
@@ -172,6 +176,13 @@ public class GCPSIACredentialsTest {
     public void testDefaultConstructor() {
         GCPSIACredentials credentials = new GCPSIACredentials();
         assertNotNull(credentials);
+    }
+
+    @Test
+    public void testGetSpiffeUri() {
+        assertEquals("spiffe://sports/sa/api", GCPSIACredentials.getSpiffeUri(null, "sports", "api"));
+        assertEquals("spiffe://sports/sa/api", GCPSIACredentials.getSpiffeUri("", "sports", "api"));
+        assertEquals("spiffe://athenz.io/ns/default/sa/sports.api", GCPSIACredentials.getSpiffeUri("athenz.io", "sports", "api"));
     }
 
     static AutoCloseable startHttpServerForAttestationAndZtsInstance(

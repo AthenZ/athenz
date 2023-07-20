@@ -70,43 +70,30 @@ public class GCPSIACredentials {
      * @param gcpProjectId GCP project-id that the function runs in
      * @param athenzProvider name of the provider service for GCP Cloud-Functions
      * @param ztsUrl ZTS Server URL e.g. https://zts.athenz.io:4443/zts/v1
-     * @param certDomain String identifying the DNS domain for generating SAN fields.
-     *                   For example, for the domain "sports", service "api" and certDomain "athenz.io",
-     *                   the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
+     * @param sanDNSDomain String identifying the DNS domain for generating SAN fields.
+     *                     For example, for the domain "sports", service "api" and certDomain "athenz.io",
+     *                     the sanDNS entry in the certificate will be set to "api.sports.athenz.io"
      * @param rdnCountry Optional field in the certificate's Subject rdn (relative distinguished name).
      * @param rdnState Optional field in the certificate's Subject rdn (relative distinguished name).
      * @param rdnLocality Optional field in the certificate's Subject rdn (relative distinguished name).
      * @param rdnOrganization Optional field in the certificate's Subject rdn (relative distinguished name).
      * @param rdnOrganizationUnit Optional field in the certificate's Subject rdn (relative distinguished name).
+     * @param spiffeTrustDomain Optional spiffe trust domain
      * @return private key and certificate from ZTS server.
      */
-    public static X509KeyPair getGCPFunctionServiceCertificate(
-            String athenzDomain,
-            String athenzService,
-            String gcpProjectId,
-            String athenzProvider,
-            String ztsUrl,
-            String certDomain,
-            String rdnCountry,
-            String rdnState,
-            String rdnLocality,
-            String rdnOrganization,
-            String rdnOrganizationUnit)
-            throws Exception {
+    public static X509KeyPair getGCPFunctionServiceCertificate(String athenzDomain, String athenzService,
+            String gcpProjectId, String athenzProvider, String ztsUrl, String sanDNSDomain, String rdnCountry,
+            String rdnState, String rdnLocality, String rdnOrganization, String rdnOrganizationUnit,
+            String spiffeTrustDomain) throws Exception {
 
-        athenzDomain   = athenzDomain.toLowerCase();
-        athenzService  = athenzService.toLowerCase();
+        athenzDomain = athenzDomain.toLowerCase();
+        athenzService = athenzService.toLowerCase();
         athenzProvider = athenzProvider.toLowerCase();
         String athenzPrincipal = athenzDomain + "." + athenzService;
 
         // Build the certificate's Subject fields - as a single string.
         // At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
-        String certDn = buildCertDn(
-                rdnCountry,
-                rdnState,
-                rdnLocality,
-                rdnOrganization,
-                rdnOrganizationUnit);
+        String certDn = buildCertDn(rdnCountry, rdnState, rdnLocality, rdnOrganization, rdnOrganizationUnit);
 
         // Get GCP attestation data for GCP Function.
         String attestationData = getGcpFunctionAttestationData(ztsUrl);
@@ -117,12 +104,8 @@ public class GCPSIACredentials {
         response.privateKeyPem = Crypto.convertToPEMFormat(response.privateKey);
 
         // Build the Alternative DNS names (SAN's).
-        GeneralName[] sanArray = buildAlternativeDnsNames(
-                athenzDomain,
-                athenzService,
-                athenzProvider,
-                gcpProjectId,
-                certDomain);
+        GeneralName[] sanArray = buildAlternativeDnsNames(athenzDomain, athenzService, athenzProvider,
+                gcpProjectId, sanDNSDomain, spiffeTrustDomain);
 
         // Build a CSR.
         String csr = Crypto.generateX509CSR(
@@ -130,13 +113,8 @@ public class GCPSIACredentials {
                 certDn + ",cn=" + athenzPrincipal, sanArray);
 
         // Request the Athenz certificate from ZTS server.
-        InstanceIdentity identity = postInstanceRegisterInformation(
-                athenzDomain,
-                athenzService,
-                athenzProvider,
-                ztsUrl,
-                attestationData,
-                csr);
+        InstanceIdentity identity = postInstanceRegisterInformation(athenzDomain, athenzService,
+                athenzProvider, ztsUrl, attestationData, csr);
 
         response.certificatePem = identity.x509Certificate;
         response.certificate = Crypto.loadX509Certificate(identity.x509Certificate);
@@ -148,12 +126,9 @@ public class GCPSIACredentials {
      * Build the certificate's Subject fields - as a single string.
      * At the end, certDn would look something like this:    "c=US, s=CA, ou=Eng"
      */
-    private static String buildCertDn(
-            String rdnCountry,
-            String rdnState,
-            String rdnLocality,
-            String rdnOrganization,
-            String rdnOrganizationUnit) {
+    private static String buildCertDn(final String rdnCountry, final String rdnState, final String rdnLocality,
+            final String rdnOrganization, final String rdnOrganizationUnit) {
+
         String certDn = "";
         if ((rdnCountry != null) && (!rdnCountry.isEmpty())) {
             certDn += "c=" + rdnCountry + ", ";
@@ -198,20 +173,26 @@ public class GCPSIACredentials {
         }
     }
 
+    static String getSpiffeUri(final String spiffeTrustDomain, final String athenzDomain, final String athenzService) {
+        if (spiffeTrustDomain != null && !spiffeTrustDomain.isEmpty()) {
+            return "spiffe://" + spiffeTrustDomain + "/ns/default/sa/" + athenzDomain + "." + athenzService;
+        } else {
+            return "spiffe://" + athenzDomain + "/sa/" + athenzService;
+        }
+    }
+
     /** Build the Alternative DNS names (SAN's) */
-    private static GeneralName[] buildAlternativeDnsNames(
-            String athenzDomain,
-            String athenzService,
-            String athenzProvider,
-            String gcpProjectId,
-            String certDomain) {
+    private static GeneralName[] buildAlternativeDnsNames(final String athenzDomain, final String athenzService,
+            final String athenzProvider, final String gcpProjectId, final String sanDNSDomain,
+            final String spiffeTrustDomain) {
+
         return new GeneralName[]{
                 new GeneralName(
                         GeneralName.dNSName,
-                        new DERIA5String(athenzService + '.' + athenzDomain.replace('.', '-') + '.' + certDomain)),
+                        new DERIA5String(athenzService + '.' + athenzDomain.replace('.', '-') + '.' + sanDNSDomain)),
                 new GeneralName(
                         GeneralName.uniformResourceIdentifier,
-                        new DERIA5String("spiffe://" + athenzDomain + "/sa/" + athenzService)),
+                        new DERIA5String(getSpiffeUri(spiffeTrustDomain, athenzDomain, athenzService))),
                 new GeneralName(
                         GeneralName.uniformResourceIdentifier,
                         new DERIA5String("athenz://instanceid/" + athenzProvider + "/gcp-function-" + gcpProjectId)),
@@ -219,14 +200,9 @@ public class GCPSIACredentials {
     }
 
     /** Request the Athenz certificate from ZTS server */
-    private static InstanceIdentity postInstanceRegisterInformation(
-            String athenzDomain,
-            String athenzService,
-            String athenzProvider,
-            String ztsUrl,
-            String attestationData,
-            String csr)
-            throws Exception {
+    private static InstanceIdentity postInstanceRegisterInformation(final String athenzDomain,
+            final String athenzService, final String athenzProvider, final String ztsUrl,
+            final String attestationData, final String csr) throws Exception {
 
         // Construct an HTTP client.
         RequestConfig config = RequestConfig.custom()
@@ -239,12 +215,13 @@ public class GCPSIACredentials {
                 .build()) {
 
             // Construct an HTTP POST request.
-            InstanceRegisterInformation postPayloadObject = new InstanceRegisterInformation();
-            postPayloadObject.domain = athenzDomain;
-            postPayloadObject.service = athenzService;
-            postPayloadObject.provider = athenzProvider;
-            postPayloadObject.attestationData = attestationData;
-            postPayloadObject.csr = csr;
+            InstanceRegisterInformation postPayloadObject = new InstanceRegisterInformation()
+                    .setDomain(athenzDomain)
+                    .setService(athenzService)
+                    .setProvider(athenzProvider)
+                    .setAttestationData(attestationData)
+                    .setCsr(csr);
+
             final String postPayload = OBJECT_MAPPER.writeValueAsString(postPayloadObject);
             HttpEntity httpEntity = new StringEntity(postPayload, ContentType.APPLICATION_JSON);
             HttpUriRequest httpUriRequest = RequestBuilder.post()
