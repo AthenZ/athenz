@@ -6,6 +6,7 @@ package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
@@ -38,6 +39,9 @@ public class ServiceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String group;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, TagValueList> tags;
 
     public ServiceIdentity setName(String name) {
         this.name = name;
@@ -102,6 +106,13 @@ public class ServiceIdentity {
     public String getGroup() {
         return group;
     }
+    public ServiceIdentity setTags(Map<String, TagValueList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, TagValueList> getTags() {
+        return tags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -135,6 +146,9 @@ public class ServiceIdentity {
                 return false;
             }
             if (group == null ? a.group != null : !group.equals(a.group)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
         }

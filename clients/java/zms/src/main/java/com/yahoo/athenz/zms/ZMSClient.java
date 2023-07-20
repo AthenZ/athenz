@@ -1982,9 +1982,25 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public ServiceIdentities getServiceIdentities(String domainName, Boolean publicKeys, Boolean hosts) {
+        return getServiceIdentities(domainName, publicKeys, hosts, null, null);
+    }
+
+    /**
+     * Retrieve the list of services defined for the specified domain. The services
+     * will contain their attributes and, if specified, the list of publickeys and hosts.
+     *
+     * @param domainName name of the domain
+     * @param publicKeys include all public keys for services as well
+     * @param hosts      include all configured hosts for services as well
+     * @param tagKey     query all services with given tag name
+     * @param tagValue   query all services with given tag key and value
+     * @return list of services
+     * @throws ZMSClientException in case of failure
+     */
+    public ServiceIdentities getServiceIdentities(String domainName, Boolean publicKeys, Boolean hosts, String tagKey, String tagValue) {
         updatePrincipal();
         try {
-            return client.getServiceIdentities(domainName, publicKeys, hosts);
+            return client.getServiceIdentities(domainName, publicKeys, hosts, tagKey, tagValue);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

@@ -703,6 +703,24 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteService(dn, args[0])
 			}
+		case "add-service-tag":
+			if argc >= 3 {
+				return cli.AddServiceTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-service-tag":
+			if argc == 2 {
+				return cli.DeleteServiceTags(dn, args[0], args[1], []string{})
+			} else if argc == 3 {
+				return cli.DeleteServiceTags(dn, args[0], args[1], args[:2])
+			}
+		case "show-services":
+			if argc == 0 {
+				return cli.ShowServices(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowServices(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowServices(dn, args[0], args[1])
+			}
 		case "list-entity", "list-entities":
 			if argc == 0 {
 				return cli.ListEntities(dn)
@@ -3069,6 +3087,39 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   tag_value       : optional, query all policies with given tag key and value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-policies readers readers-tag-key reader-tag-value\n")
+	case "add-service-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-service-tag service tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this service\n")
+		buf.WriteString("   tag_value       : tag values to be added to this service, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-service-tag service service-tag-key service-tag-value-1 service-tag-value-2\n")
+	case "delete-service-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-service-tag service tag_key [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be removed from to this service\n")
+		buf.WriteString("   tag_value       : optional, tag value to be removed from this tag value list\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-service-tag service service-tag-key service-tag-value-1\n")
+	case "show-services":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-services [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   tag_key         : optional, query all services with given tag name\n")
+		buf.WriteString("   tag_value       : optional, query all services with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-services readers readers-tag-key reader-tag-value\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -3222,6 +3273,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Service commands:\n")
 	buf.WriteString("   list-service\n")
 	buf.WriteString("   show-service service\n")
+	buf.WriteString("   show-services [tag_key] [tag_value]\n")
 	buf.WriteString("   add-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   add-provider-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   set-service-endpoint service endpoint\n")
@@ -3232,6 +3284,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-public-key service key_id\n")
 	buf.WriteString("   delete-public-key service key_id\n")
 	buf.WriteString("   delete-service service\n")
+	buf.WriteString("   add-service-tag service tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-service-tag service tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Entity commands:\n")
 	buf.WriteString("   list-entity\n")

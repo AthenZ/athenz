@@ -119,6 +119,7 @@ public class DBService implements RolesProvider {
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int policyTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_POLICY_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int serviceTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_SERVICE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
 
         DomainOptions domainOptions = new DomainOptions();
         domainOptions.setEnforceUniqueAWSAccounts(Boolean.parseBoolean(
@@ -132,7 +133,7 @@ public class DBService implements RolesProvider {
 
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
-            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit, serviceTagsLimit);
             this.store.setDomainOptions(domainOptions);
         }
 
@@ -1062,8 +1063,21 @@ public class DBService implements RolesProvider {
         }
         auditLogStrings(auditDetails, "added-hosts", newHosts);
 
+        if (!processServiceIdentityTags(service, serviceName, domainName, originalService, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processServiceIdentityTags(ServiceIdentity service, String serviceName, String domainName,
+                                    ServiceIdentity originalService, ObjectStoreConnection con) {
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertServiceTags(serviceName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteServiceTags(serviceName, domainName, tagKeys);
+
+        return processTags(con, service.getTags(), (originalService != null ? originalService.getTags() : null) , insertOp, deleteOp);
     }
 
     boolean shouldRetryOperation(ResourceException ex, int retryCount) {
@@ -2845,6 +2859,11 @@ public class DBService implements RolesProvider {
             List<String> hosts = con.listServiceHosts(domainName, serviceName);
             if (hosts != null && !hosts.isEmpty()) {
                 service.setHosts(hosts);
+            }
+
+            Map<String, TagValueList> serviceTags = con.getServiceTags(domainName, serviceName);
+            if (serviceTags != null) {
+                service.setTags(serviceTags);
             }
         }
         return service;

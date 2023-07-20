@@ -630,7 +630,7 @@ func (cli Zms) showDomainOld(dn string) (*string, error) {
 	cli.dumpRoles(&buf, dn, "", "")
 	cli.dumpGroups(&buf, dn, "", "")
 	cli.dumpPolicies(&buf, dn, "", "")
-	cli.dumpServices(&buf, dn)
+	cli.dumpServices(&buf, dn, "", "")
 
 	var names []string
 	names, err = cli.entityNames(dn)

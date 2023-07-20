@@ -2901,13 +2901,15 @@ public class ZMSResources {
     public ServiceIdentities getServiceIdentities(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "return list of public keys in the service", required = false) @QueryParam("publickeys") @DefaultValue("false") Boolean publickeys,
-        @Parameter(description = "return list of hosts in the service", required = false) @QueryParam("hosts") @DefaultValue("false") Boolean hosts) {
+        @Parameter(description = "return list of hosts in the service", required = false) @QueryParam("hosts") @DefaultValue("false") Boolean hosts,
+        @Parameter(description = "flag to query all services that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all services that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentities");
             context.authenticate();
-            return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
+            return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts, tagKey, tagValue);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {

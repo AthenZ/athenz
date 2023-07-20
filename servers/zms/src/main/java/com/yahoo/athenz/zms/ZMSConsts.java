@@ -159,7 +159,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_DOMAIN_TAG   = "athenz.zms.quota_domain_tag";
     public static final String ZMS_PROP_QUOTA_GROUP_TAG   = "athenz.zms.quota_group_tag";
     public static final String ZMS_PROP_QUOTA_POLICY_TAG   = "athenz.zms.quota_policy_tag";
-    
+    public static final String ZMS_PROP_QUOTA_SERVICE_TAG   = "athenz.zms.quota_service_tag";
+
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
 
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";

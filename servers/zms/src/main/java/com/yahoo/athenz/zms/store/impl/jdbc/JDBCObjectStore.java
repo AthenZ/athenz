@@ -30,6 +30,7 @@ public class JDBCObjectStore implements ObjectStore {
     private int roleTagsLimit;
     private int domainTagsLimit;
     private int groupTagsLimit;
+    private int serviceTagsLimit;
     private int policyTagsLimit;
     private DomainOptions domainOptions;
 
@@ -52,7 +53,7 @@ public class JDBCObjectStore implements ObjectStore {
             PoolableDataSource src = readWrite ? rwSrc : roSrc;
             JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
             jdbcConn.setOperationTimeout(opTimeout);
-            jdbcConn.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit);
+            jdbcConn.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit, serviceTagsLimit);
             jdbcConn.setDomainOptions(domainOptions);
             return jdbcConn;
         } catch (Exception ex) {
@@ -83,12 +84,12 @@ public class JDBCObjectStore implements ObjectStore {
     }
 
     @Override
-    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit) {
+    public void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit, int serviceLimit) {
         this.domainTagsLimit = domainLimit;
         this.roleTagsLimit = roleLimit;
         this.groupTagsLimit = groupLimit;
         this.policyTagsLimit = policyLimit;
-
+        this.serviceTagsLimit = serviceLimit;
     }
     
     /**

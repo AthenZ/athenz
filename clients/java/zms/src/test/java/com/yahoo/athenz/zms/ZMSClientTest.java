@@ -1639,7 +1639,7 @@ public class ZMSClientTest {
         client.setZMSRDLGeneratedClient(c);
         try {
             Mockito.when(c.getRoles("domain1", true, null, null)).thenThrow(new NullPointerException());
-            client.getRoles("domain1", true, null, null);
+            client.getRoles("domain1", true);
             fail();
         } catch (ZMSClientException ex) {
             assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
@@ -2306,6 +2306,33 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetServiceIdentityTags() {
+
+        final String domainName = "get-service-identity-tags";
+
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        try {
+            Mockito.when(c.getServiceIdentities(domainName, false, false, "key", "value"))
+                    .thenThrow(new ResourceException(401));
+            client.getServiceIdentities(domainName, false, false, "key", "value");
+            fail();
+        } catch (URISyntaxException | IOException | ZMSClientException ex) {
+            assertEquals(((ZMSClientException)ex).getCode(), 401);
+        }
+        try {
+            Mockito.when(c.getServiceIdentities(domainName, false, true, "key", "value"))
+                    .thenThrow(new IOException());
+            client.getServiceIdentities(domainName, false, true, "key", "value");
+            fail();
+        } catch (IOException | URISyntaxException | ZMSClientException e){
+            assertEquals(((ZMSClientException)e).getCode(), 400);
+        }
+    }
+
+    @Test
     public void testPutServiceIdentityReturnObj() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -2365,26 +2392,26 @@ public class ZMSClientTest {
         ServiceIdentities serviceIdentities = new ServiceIdentities();
         serviceIdentities.setList(serviceIdentitiesList);
 
-        Mockito.when(c.getServiceIdentities("dom1", false, true)).thenReturn(serviceIdentities);
+        Mockito.when(c.getServiceIdentities("dom1", false, true, null, null)).thenReturn(serviceIdentities);
 
 
         try {
-            Mockito.when(c.getServiceIdentities("domain1", true, true)).thenThrow(new ResourceException(403));
-            client.getServiceIdentities("domain1", true, true);
+            Mockito.when(c.getServiceIdentities("domain1", true, true, null, null)).thenThrow(new ResourceException(403));
+            client.getServiceIdentities("domain1", true, true, null, null);
             fail();
         } catch  (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
 
         try {
-            Mockito.when(c.getServiceIdentities("domain2", true, true)).thenThrow(new NullPointerException());
-            client.getServiceIdentities("domain2", true, true);
+            Mockito.when(c.getServiceIdentities("domain2", true, true, null, null)).thenThrow(new NullPointerException());
+            client.getServiceIdentities("domain2", true, true, null, null);
             fail();
         } catch  (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
         // test that getServiceIdentities returns the description for services for athenz-ui
-        ServiceIdentities serviceIdentities1 = client.getServiceIdentities("dom1", false, true);
+        ServiceIdentities serviceIdentities1 = client.getServiceIdentities("dom1", false, true, null, null);
         assertEquals(serviceIdentities1.getList().get(0).getDescription(), "test");
     }
 

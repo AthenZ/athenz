@@ -88,7 +88,7 @@ public interface ZMSHandler {
     Response putServiceIdentity(ResourceContext context, String domain, String service, String auditRef, Boolean returnObj, ServiceIdentity detail);
     ServiceIdentity getServiceIdentity(ResourceContext context, String domain, String service);
     void deleteServiceIdentity(ResourceContext context, String domain, String service, String auditRef);
-    ServiceIdentities getServiceIdentities(ResourceContext context, String domainName, Boolean publickeys, Boolean hosts);
+    ServiceIdentities getServiceIdentities(ResourceContext context, String domainName, Boolean publickeys, Boolean hosts, String tagKey, String tagValue);
     ServiceIdentityList getServiceIdentityList(ResourceContext context, String domainName, Integer limit, String skip);
     PublicKeyEntry getPublicKeyEntry(ResourceContext context, String domain, String service, String id);
     void putPublicKeyEntry(ResourceContext context, String domain, String service, String id, String auditRef, PublicKeyEntry publicKeyEntry);
