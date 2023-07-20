@@ -3582,10 +3582,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (!tagKey.isEmpty()) {
+        if (tagKey != null && !tagKey.isEmpty()) {
             validate(tagKey, TYPE_COMPOUND_NAME, caller);
         }
-        if (!tagValue.isEmpty()) {
+        if (tagValue != null && !tagValue.isEmpty()) {
             validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
@@ -6056,10 +6056,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (!tagKey.isEmpty()) {
+        if (tagKey != null && !tagKey.isEmpty()) {
             validate(tagKey, TYPE_COMPOUND_NAME, caller);
         }
-        if (!tagValue.isEmpty()) {
+        if (tagValue != null && !tagValue.isEmpty()) {
             validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
@@ -9633,10 +9633,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (!tagKey.isEmpty()) {
+        if (tagKey != null && !tagKey.isEmpty()) {
             validate(tagKey, TYPE_COMPOUND_NAME, caller);
         }
-        if (!tagValue.isEmpty()) {
+        if (tagValue != null && !tagValue.isEmpty()) {
             validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
