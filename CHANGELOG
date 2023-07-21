@@ -1,3 +1,17 @@
+Athenz v1.11.36 Release / Jul 21, 2023
+--------------------------------------
+
+#2195 Add support in service tags
+#2219 Adding policy tags
+#2240 update deps and move from sun.jakarta.mail to angus-mail
+#2243 Bump word-wrap from 1.2.3 to 1.2.4 in /ui
+#2244 for go gcp function sia - provide method to store identity in secret manager
+#2246 add support for new spiffe format in gcp java cloud function support
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230606.sql
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230717.sql
+
 Athenz v1.11.35 Release / Jul 15, 2023
 --------------------------------------
 
