@@ -68,6 +68,10 @@ public class JettyConnectionLoggerTest {
         when(mockConnection2.getEndPoint().isOpen()).thenReturn(false);
 
         jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
+
+        // need to sleep for short period to give a chance for the invocation to take
+        // place and mockito to capture the required details
+        Thread.sleep(2000);
         
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(CONNECTION_LOGGER_METRIC_DEFAULT_NAME), metricArgumentCaptor.capture());
@@ -113,6 +117,10 @@ public class JettyConnectionLoggerTest {
         when(mockConnection.getEndPoint().isOpen()).thenReturn(false);
 
         jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
+
+        // need to sleep for short period to give a chance for the invocation to take
+        // place and mockito to capture the required details
+        Thread.sleep(2000);
 
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         assertEquals(GENERAL_SSL_ERROR, connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
