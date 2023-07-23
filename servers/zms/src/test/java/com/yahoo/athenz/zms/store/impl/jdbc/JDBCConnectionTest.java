@@ -4404,7 +4404,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testListAssertionsInvalidPolicuy() throws Exception {
+    public void testListAssertionsInvalidPolicy() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
@@ -13160,6 +13160,20 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testGetRoleTagsCountError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getRoleTagsCount(101);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
     public void testInsertRoleTags() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -13238,6 +13252,40 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testInsertRoleTagsInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+        try {
+            Map<String, TagValueList> roleTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+            );
+            jdbcConn.insertRoleTags("role", "domain", roleTags);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertRoleTagsInvalidRole() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next()).thenReturn(true, false);
+        try {
+            Map<String, TagValueList> roleTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+            );
+            jdbcConn.insertRoleTags("role", "domain", roleTags);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
     public void testDeleteRoleTags() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -13303,6 +13351,36 @@ public class JDBCConnectionTest {
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteRoleTagsInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+        try {
+            Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+            jdbcConn.deleteRoleTags("role", "domain", tagKeys);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteRoleTagsInvalidRole() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next()).thenReturn(true, false);
+        try {
+            Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+            jdbcConn.deleteRoleTags("role", "domain", tagKeys);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
         jdbcConn.close();
     }
@@ -14661,13 +14739,15 @@ public class JDBCConnectionTest {
     public void testGetPolicyTags() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
+
         Mockito.when(mockResultSet.getString(1))
                 .thenReturn("tagKey");
         Mockito.when(mockResultSet.getString(2))
                 .thenReturn("tagVal1", "tagVal2");
 
         Mockito.when(mockResultSet.next())
-                .thenReturn(true, true, false);
+                .thenReturn(true, true, true, true, false);
 
         Map<String, TagValueList> policyTags = jdbcConn.getPolicyTags("domain", "policy", "1");
         assertNotNull(policyTags);
@@ -14688,8 +14768,10 @@ public class JDBCConnectionTest {
     public void testGetPolicyTagsEmpty() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
+
         Mockito.when(mockResultSet.next())
-                .thenReturn(false);
+                .thenReturn(true, true, false);
 
         Map<String, TagValueList> policyTags = jdbcConn.getPolicyTags("domain", "policy", "0");
         assertNull(policyTags);
@@ -14701,10 +14783,51 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testGetPolicyTagInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        try {
+            jdbcConn.getPolicyTags("domain", "policy", "0");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyTagInvalidPolicy() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // return domain id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(false); // this is for policy id
+
+        try {
+            jdbcConn.getPolicyTags("domain", "policy", "0");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
     public void testGetPolicyTagsError() throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next())
-                .thenReturn(true).thenThrow(new SQLException("sql error"));
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for policy id
+                .thenThrow(new SQLException("sql error"));
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
+
         try {
             jdbcConn.getPolicyTags("domain", "policy", "0");
             fail();
@@ -14772,4 +14895,175 @@ public class JDBCConnectionTest {
         jdbcConn.close();
     }
 
+    @Test
+    public void testInsertPolicyTagsInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+        try {
+            Map<String, TagValueList> policyTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+            );
+            jdbcConn.insertPolicyTags("policy", "domain", policyTags, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyTagsInvalidRole() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next()).thenReturn(true, false);
+        try {
+            Map<String, TagValueList> policyTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+            );
+            jdbcConn.insertPolicyTags("policy", "domain", policyTags, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5) // domain id
+                .thenReturn(7); // role id
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for policy id
+        Mockito.when(mockPrepStmt.executeUpdate())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            Map<String, TagValueList> policyTags = Collections.singletonMap(
+                    "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+            );
+            jdbcConn.insertPolicyTags("policy", "domain", policyTags, null);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyTagsInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+        try {
+            Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+            jdbcConn.deletePolicyTags("policy", "domain", tagKeys, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyTagsInvalidRole() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next()).thenReturn(true, false);
+        try {
+            Set<String> tagKeys = new HashSet<>(Collections.singletonList("tagKey"));
+            jdbcConn.deletePolicyTags("policy", "domain", tagKeys, "0");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testPolicyRoleTagsCountError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getPolicyTagsCount(101);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDomainTagsCountError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getDomainTagsCount(101);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetServiceTagsCountError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getServiceTagsCount(101);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupTagsCountError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getGroupTagsCount(101);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainPolicyTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getDomainPolicyTags("domain");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetServiceResourceTagsError() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next())
+                .thenThrow(new SQLException("sql error"));
+        try {
+            jdbcConn.getServiceResourceTags("domain");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
 }

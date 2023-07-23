@@ -2856,14 +2856,10 @@ public class DBService implements RolesProvider {
         ServiceIdentity service = con.getServiceIdentity(domainName, serviceName);
         if (service != null && !attrsOnly) {
             service.setPublicKeys(con.listPublicKeys(domainName, serviceName));
+            service.setTags(con.getServiceTags(domainName, serviceName));
             List<String> hosts = con.listServiceHosts(domainName, serviceName);
-            if (hosts != null && !hosts.isEmpty()) {
+            if (!ZMSUtils.isListEmpty(hosts)) {
                 service.setHosts(hosts);
-            }
-
-            Map<String, TagValueList> serviceTags = con.getServiceTags(domainName, serviceName);
-            if (serviceTags != null) {
-                service.setTags(serviceTags);
             }
         }
         return service;

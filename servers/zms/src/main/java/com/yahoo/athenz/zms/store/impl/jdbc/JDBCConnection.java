@@ -638,14 +638,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " AND (D.member_purge_expiry_days = 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL ? DAY)"
             + " OR D.member_purge_expiry_days != 0 AND CURRENT_DATE() >= DATE_ADD(DATE(M.expiration), INTERVAL D.member_purge_expiry_days DAY))"
             + " limit ? offset ?";
-
     private static final String SQL_INSERT_POLICY_TAG = "INSERT INTO policy_tags"
             + "(policy_id, policy_tags.key, policy_tags.value) VALUES (?,?,?);";
     private static final String SQL_POLICY_TAG_COUNT = "SELECT COUNT(*) FROM policy_tags WHERE policy_id=?";
     private static final String SQL_DELETE_POLICY_TAG = "DELETE FROM policy_tags WHERE policy_id=? AND policy_tags.key=?;";
-    private static final String SQL_GET_POLICY_TAGS = "SELECT pt.key, pt.value FROM policy_tags pt "
-            + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
-            + "WHERE domain.name=? AND p.name=? AND p.version=?";
+    private static final String SQL_GET_POLICY_TAGS = "SELECT pt.key, pt.value FROM policy_tags pt WHERE pt.policy_id=?;";
     private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT p.name, pt.key, pt.value, p.version FROM policy_tags pt "
             + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
             + "WHERE domain.name=?";
@@ -1392,7 +1389,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
 
-    private int getDomainTagsCount(int domainId) {
+    int getDomainTagsCount(int domainId) {
         final String caller = "getDomainTagsCount";
         int count = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_DOMAIN_TAG_COUNT)) {
@@ -4111,7 +4108,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return res;
     }
 
-    private int getPolicyTagsCount(int policyId) {
+    int getPolicyTagsCount(int policyId) {
         final String caller = "getPolicyTagsCount";
         int count = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_POLICY_TAG_COUNT)) {
@@ -4154,13 +4151,19 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public Map<String, TagValueList> getPolicyTags(String domainName, String policyName, String version) {
-        final String caller = "getPolicyTags";
-        Map<String, TagValueList> policyTag = null;
 
+        final String caller = "getPolicyTags";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int policyId = getPolicyId(domainId, policyName, version);
+        if (policyId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
+        }
+        Map<String, TagValueList> policyTag = null;
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_TAGS)) {
-            ps.setString(1, domainName);
-            ps.setString(2, policyName);
-            ps.setString(3, version);
+            ps.setInt(1, policyId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String tagKey = rs.getString(1);
@@ -4177,7 +4180,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         return policyTag;
     }
-
 
     void getAthenzDomainServices(String domainName, int domainId, AthenzDomain athenzDomain) {
 
@@ -6869,7 +6871,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return res;
     }
 
-    private int getRoleTagsCount(int roleId) {
+    int getRoleTagsCount(int roleId) {
         final String caller = "getRoleTagsCount";
         int count = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_ROLE_TAG_COUNT)) {
@@ -6945,7 +6947,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return res;
     }
 
-    private int getServiceTagsCount(int serviceId) {
+    int getServiceTagsCount(int serviceId) {
         final String caller = "getServiceTagsCount";
         int count = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_SERVICE_TAG_COUNT)) {
@@ -7138,7 +7140,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     }
 
-    private int getGroupTagsCount(int groupId) {
+    int getGroupTagsCount(int groupId) {
         final String caller = "getGroupTagsCount";
         int count = 0;
         try (PreparedStatement ps = con.prepareStatement(SQL_GROUP_TAG_COUNT)) {
