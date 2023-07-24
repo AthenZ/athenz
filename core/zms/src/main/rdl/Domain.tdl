@@ -29,6 +29,7 @@ type DomainMeta Struct {
     String businessService (optional, x_allowempty="true"); //associated business service with domain
     Int32 memberPurgeExpiryDays (optional); //purge role/group members with expiry date configured days in the past
     String productId (optional); //associated product id (system attribute - uniqueness check - if enabled)
+    Int32 featureFlags (optional); //features enabled per domain (system attribute)
 }
 
 //A domain is an independent partition of users, roles, and resources.

@@ -273,6 +273,11 @@ type DomainMeta struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -518,6 +523,11 @@ type Domain struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -3646,6 +3656,11 @@ type TopLevelDomain struct {
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3913,6 +3928,11 @@ type SubDomain struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -4196,6 +4216,11 @@ type UserDomain struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -6658,6 +6683,11 @@ type DomainData struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain

@@ -3863,7 +3863,8 @@ public class DBService implements RolesProvider {
                         .setBusinessService(domain.getBusinessService())
                         .setTags(domain.getTags())
                         .setBusinessService(domain.getBusinessService())
-                        .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
+                        .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays())
+                        .setFeatureFlags(domain.getFeatureFlags());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4233,6 +4234,9 @@ public class DBService implements RolesProvider {
                 break;
             case ZMSConsts.SYSTEM_META_BUSINESS_SERVICE:
                 domain.setBusinessService(meta.getBusinessService());
+                break;
+            case ZMSConsts.SYSTEM_META_FEATURE_FLAGS:
+                domain.setFeatureFlags(meta.getFeatureFlags());
                 break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);
@@ -5629,6 +5633,7 @@ public class DBService implements RolesProvider {
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\", \"productId\": \"").append(domain.getProductId())
+                .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags())
                 .append("\"}");
     }
 

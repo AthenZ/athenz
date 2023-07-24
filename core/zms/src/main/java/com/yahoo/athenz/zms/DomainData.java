@@ -83,6 +83,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String productId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer featureFlags;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -252,6 +255,13 @@ public class DomainData {
     public String getProductId() {
         return productId;
     }
+    public DomainData setFeatureFlags(Integer featureFlags) {
+        this.featureFlags = featureFlags;
+        return this;
+    }
+    public Integer getFeatureFlags() {
+        return featureFlags;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -376,6 +386,9 @@ public class DomainData {
                 return false;
             }
             if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
+                return false;
+            }
+            if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

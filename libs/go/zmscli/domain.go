@@ -766,6 +766,23 @@ func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetDomainFeatureFlags(dn string, flags int32) (*string, error) {
+	meta := zms.DomainMeta{
+		FeatureFlags: &flags,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "featureflags", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetDomainMemberExpiryDays(dn string, days int32) (*string, error) {
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {

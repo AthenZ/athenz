@@ -87,6 +87,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String productId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer featureFlags;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -256,6 +259,13 @@ public class Domain {
     public String getProductId() {
         return productId;
     }
+    public Domain setFeatureFlags(Integer featureFlags) {
+        this.featureFlags = featureFlags;
+        return this;
+    }
+    public Integer getFeatureFlags() {
+        return featureFlags;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -352,6 +362,9 @@ public class Domain {
                 return false;
             }
             if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
+                return false;
+            }
+            if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {
