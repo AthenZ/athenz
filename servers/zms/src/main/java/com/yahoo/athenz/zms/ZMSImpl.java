@@ -1369,9 +1369,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (LOG.isDebugEnabled()) {
             LOG.debug("getDomainList: limit: {}, skip: {}, prefix: {}, depth: {}, account: {}, productNumber: {}, " +
                     "roleMember: {}, roleName: {}, modifiedSince: {}, subscription: {}, project: {}, " +
-                    "businessService: {}, productId: {}",
+                    "businessService: {}, productId: {}, tagKey: {}, tagValue: {}",
                     limit, skip, prefix, depth, account, productNumber, roleMember, roleName,
-                    modifiedSince, subscription, project, businessService, productId);
+                    modifiedSince, subscription, project, businessService, productId, tagKey, tagValue);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -1394,6 +1394,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
         if (limit != null && limit <= 0) {
             throw ZMSUtils.requestError("getDomainList: limit must be positive: " + limit, caller);
+        }
+        if (!StringUtil.isEmpty(tagKey)) {
+            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+        }
+        if (!StringUtil.isEmpty(tagValue)) {
+            validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
         long modTime = 0;
@@ -3582,10 +3588,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (tagKey != null && !tagKey.isEmpty()) {
+        if (!StringUtil.isEmpty(tagKey)) {
             validate(tagKey, TYPE_COMPOUND_NAME, caller);
         }
-        if (tagValue != null && !tagValue.isEmpty()) {
+        if (!StringUtil.isEmpty(tagValue)) {
             validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
@@ -6056,10 +6062,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (tagKey != null && !tagKey.isEmpty()) {
+        if (!StringUtil.isEmpty(tagKey)) {
             validate(tagKey, TYPE_COMPOUND_NAME, caller);
         }
-        if (tagValue != null && !tagValue.isEmpty()) {
+        if (!StringUtil.isEmpty(tagValue)) {
             validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
@@ -9633,10 +9639,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
-        if (tagKey != null && !tagKey.isEmpty()) {
+        if (!StringUtil.isEmpty(tagKey)) {
             validate(tagKey, TYPE_COMPOUND_NAME, caller);
         }
-        if (tagValue != null && !tagValue.isEmpty()) {
+        if (!StringUtil.isEmpty(tagValue)) {
             validate(tagValue, TYPE_COMPOUND_NAME, caller);
         }
 
