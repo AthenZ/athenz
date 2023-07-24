@@ -11,7 +11,7 @@
   <logger name="com.yahoo.athenz.common.server.util.config.ConfigManager" level="DEBUG"/>
 
   <root>
-    <level value="ERROR" />
+    <level value="INFO" />
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>

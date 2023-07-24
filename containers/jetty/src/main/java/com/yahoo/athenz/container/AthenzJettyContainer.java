@@ -73,6 +73,7 @@ public class AthenzJettyContainer {
     private String banner = null;
     private HandlerCollection handlers = null;
     private PrivateKeyStore privateKeyStore;
+    private final AthenzConnectionListener connectionListener = new AthenzConnectionListener();
     private final JettyConnectionLoggerFactory jettyConnectionLoggerFactory = new JettyConnectionLoggerFactory();
     
     public AthenzJettyContainer() {
@@ -458,8 +459,8 @@ public class AthenzJettyContainer {
         }
         
         // Listen to when HTTP connections open/close/handshake.
-        sslConnector.addBean(new AthenzConnectionListener());
-        
+
+        sslConnector.addBean(connectionListener);
         server.addConnector(sslConnector);
 
         // Reload the key-store if the file is changed
@@ -661,6 +662,7 @@ public class AthenzJettyContainer {
 
     public void stop() {
         try {
+            connectionListener.shutdown();
             server.stop();
         } catch (Exception ignored) {
         }
