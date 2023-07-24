@@ -863,6 +863,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainTokenExpiryMins(dn, mins)
 			}
+		case "set-domain-feature-flags":
+			if argc == 1 {
+				flags, err := cli.getInt32(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainFeatureFlags(dn, flags)
+			}
 		case "set-audit-enabled":
 			if argc == 1 {
 				auditEnabled, err := strconv.ParseBool(args[0])
@@ -1525,6 +1533,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   mins          : ZTS will not issue any tokens for this domain longer than these mins\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-token-expiry-mins 1800\n")
+	case "set-domain-feature-flags":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-feature-flags flags\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   flags         : Optional features enabled for this domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-feature-flags 3\n")
 	case "set-org-name":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-org-name org-name\n")
@@ -3165,6 +3183,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
 	buf.WriteString("   set-domain-user-authority-filter filter\n")
+	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")

@@ -83,6 +83,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String productId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer featureFlags;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -245,6 +248,13 @@ public class DomainMeta {
     public String getProductId() {
         return productId;
     }
+    public DomainMeta setFeatureFlags(Integer featureFlags) {
+        this.featureFlags = featureFlags;
+        return this;
+    }
+    public Integer getFeatureFlags() {
+        return featureFlags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -320,6 +330,9 @@ public class DomainMeta {
                 return false;
             }
             if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
+                return false;
+            }
+            if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
                 return false;
             }
         }

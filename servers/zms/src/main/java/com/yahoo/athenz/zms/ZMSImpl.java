@@ -1581,7 +1581,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setUserAuthorityFilter(detail.getUserAuthorityFilter())
                 .setTags(detail.getTags())
                 .setBusinessService(detail.getBusinessService())
-                .setCertDnsDomain(detail.getCertDnsDomain());
+                .setCertDnsDomain(detail.getCertDnsDomain())
+                .setFeatureFlags(detail.getFeatureFlags());
 
         // before processing validate the fields
 
@@ -2143,8 +2144,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // verify that request is properly authenticated for this request
 
-        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
-                caller);
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDomainMeta: name={}, meta={}", domainName, meta);
@@ -2194,6 +2194,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(domain.getGroupExpiryDays(), "groupExpiryDays");
         validateIntegerValue(domain.getTokenExpiryMins(), "tokenExpiryMins");
+        validateIntegerValue(domain.getFeatureFlags(), "featureFlags");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
@@ -2331,6 +2332,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getGroupExpiryDays(), "groupExpiryDays");
         validateIntegerValue(meta.getTokenExpiryMins(), "tokenExpiryMins");
         validateIntegerValue(meta.getYpmId(), "ypmId");
+        validateIntegerValue(meta.getFeatureFlags(), "featureFlags");
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);

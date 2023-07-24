@@ -160,6 +160,7 @@ func init() {
 	tDomainMeta.Field("businessService", "String", true, nil, "associated business service with domain")
 	tDomainMeta.Field("memberPurgeExpiryDays", "Int32", true, nil, "purge role/group members with expiry date configured days in the past")
 	tDomainMeta.Field("productId", "String", true, nil, "associated product id (system attribute - uniqueness check - if enabled)")
+	tDomainMeta.Field("featureFlags", "Int32", true, nil, "features enabled per domain (system attribute)")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")

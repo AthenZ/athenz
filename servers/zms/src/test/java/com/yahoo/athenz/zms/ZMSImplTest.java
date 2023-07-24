@@ -2015,15 +2015,17 @@ public class ZMSImplTest {
     @Test
     public void testPutDomainMeta() {
 
+        final String domainName = "domain-meta-test";
+
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("MetaDom1",
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
-        Domain resDom1 = zmsImpl.getDomain(ctx, "MetaDom1");
+        Domain resDom1 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom1);
         assertEquals(resDom1.getDescription(), "Test Domain1");
         assertEquals(resDom1.getOrg(), "testorg");
@@ -2046,17 +2048,17 @@ public class ZMSImplTest {
         meta.setMemberPurgeExpiryDays(90);
         meta.setSignAlgorithm("ec");
         meta.setProductId("abcd-1234");
-        zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "auditenabled", auditRef, meta);
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "account", auditRef, meta);
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "certdnsdomain", auditRef, meta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "certdnsdomain", auditRef, meta);
 
         zmsTestInitializer.setupPrincipalSystemMetaDelete(zmsImpl, ctx.principal().getFullName(),
-                "metadom1", "productid", "org", "certdnsdomain");
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "org", auditRef, meta);
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "productid", auditRef, meta);
+                domainName, "productid", "org", "certdnsdomain");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "org", auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "productid", auditRef, meta);
 
-        Domain resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
+        Domain resDom3 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "Test2 Domain");
         assertEquals(resDom3.getOrg(), "neworg");
@@ -2084,9 +2086,9 @@ public class ZMSImplTest {
         meta.setGroupExpiryDays(375);
         meta.setTokenExpiryMins(400);
         meta.setProductId("abcd-1234");
-        zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, meta);
 
-        resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
+        resDom3 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "just a new desc");
         //org is system attr. so it won't be changed by putdomainmeta call
@@ -2104,8 +2106,8 @@ public class ZMSImplTest {
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(400));
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(90));
 
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "org", auditRef, meta);
-        resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "org", auditRef, meta);
+        resDom3 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom3);
         assertEquals(resDom3.getOrg(), "organs");
 
@@ -2123,10 +2125,10 @@ public class ZMSImplTest {
         meta.setTokenExpiryMins(20);
         meta.setMemberPurgeExpiryDays(120);
         meta.setSignAlgorithm("rsa");
-        zmsImpl.putDomainMeta(ctx, "MetaDom1", auditRef, meta);
-        zmsImpl.putDomainSystemMeta(ctx, "MetaDom1", "productid", auditRef, meta);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "productid", auditRef, meta);
 
-        resDom3 = zmsImpl.getDomain(ctx, "MetaDom1");
+        resDom3 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom3);
         assertEquals(resDom3.getDescription(), "just a new desc");
         assertEquals(resDom3.getOrg(), "organs");
@@ -2143,9 +2145,42 @@ public class ZMSImplTest {
         assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(20));
         assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(120));
         assertEquals(resDom3.getSignAlgorithm(), "rsa");
+        assertNull(resDom3.getFeatureFlags());
+
+        // put new feature flags for the domain
+
+        meta.setFeatureFlags(3);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, meta);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "featureflags", auditRef, meta);
+
+        resDom3 = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(resDom3);
+        assertEquals(resDom3.getDescription(), "just a new desc");
+        assertEquals(resDom3.getOrg(), "organs");
+        assertTrue(resDom3.getEnabled());
+        assertTrue(resDom3.getAuditEnabled());
+        assertEquals(resDom3.getAccount(), "12345");
+        assertEquals(resDom3.getProductId(), "abcd-1234-5678");
+        assertEquals(newProductId, resDom3.getYpmId());
+        assertEquals(resDom3.getServiceCertExpiryMins(), Integer.valueOf(5));
+        assertNull(resDom3.getRoleCertExpiryMins());
+        assertEquals(resDom3.getMemberExpiryDays(), Integer.valueOf(15));
+        assertEquals(resDom3.getServiceExpiryDays(), Integer.valueOf(17));
+        assertEquals(resDom3.getGroupExpiryDays(), Integer.valueOf(18));
+        assertEquals(resDom3.getTokenExpiryMins(), Integer.valueOf(20));
+        assertEquals(resDom3.getMemberPurgeExpiryDays(), Integer.valueOf(120));
+        assertEquals(resDom3.getSignAlgorithm(), "rsa");
+        assertEquals(resDom3.getFeatureFlags().intValue(), 3);
+
+        // update the feature flags value
+
+        meta.setFeatureFlags(7);
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "featureflags", auditRef, meta);
+        resDom3 = zmsImpl.getDomain(ctx, domainName);
+        assertEquals(resDom3.getFeatureFlags().intValue(), 7);
 
         zmsTestInitializer.cleanupPrincipalSystemMetaDelete(zmsImpl);
-        zmsImpl.deleteTopLevelDomain(ctx, "MetaDom1", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test

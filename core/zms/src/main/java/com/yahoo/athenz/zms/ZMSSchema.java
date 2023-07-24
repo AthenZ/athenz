@@ -136,7 +136,8 @@ public class ZMSSchema {
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("businessService", "String", true, "associated business service with domain")
             .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past")
-            .field("productId", "String", true, "associated product id (system attribute - uniqueness check - if enabled)");
+            .field("productId", "String", true, "associated product id (system attribute - uniqueness check - if enabled)")
+            .field("featureFlags", "Int32", true, "features enabled per domain (system attribute)");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")

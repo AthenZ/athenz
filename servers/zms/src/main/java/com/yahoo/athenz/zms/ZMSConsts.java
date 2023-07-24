@@ -268,6 +268,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_ACTIVE             = "active";
     public static final String DB_COLUMN_VERSION            = "version";
     public static final String DB_COLUMN_POLICY_ID          = "policy_id";
+    public static final String DB_COLUMN_FEATURE_FLAGS      = "feature_flags";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
@@ -319,6 +320,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_GCP_PROJECT        = "gcpproject";
     public static final String SYSTEM_META_BUSINESS_SERVICE   = "businessservice";
     public static final String SYSTEM_META_YPM_ID             = "ypmid";
+    public static final String SYSTEM_META_FEATURE_FLAGS      = "featureflags";
     public static final String SYSTEM_META_ATTR_ALL           = "all";
 
     // HTTP operation types used in metrics

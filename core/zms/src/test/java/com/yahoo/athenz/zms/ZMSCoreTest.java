@@ -845,7 +845,7 @@ public class ZMSCoreTest {
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure").setGcpProject("gcp")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235")
-                .setProductId("abcd-1234");
+                .setProductId("abcd-1234").setFeatureFlags(3);
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -881,6 +881,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getBusinessService(), "business-service");
         assertEquals(dd.getMemberPurgeExpiryDays(), 10);
         assertEquals(dd.getProductId(), "abcd-1234");
+        assertEquals(dd.getFeatureFlags(), 3);
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -890,7 +891,7 @@ public class ZMSCoreTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1235").setProductId("abcd-1234");
+                .setGcpProjectNumber("1235").setProductId("abcd-1234").setFeatureFlags(3);
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
@@ -1008,6 +1009,13 @@ public class ZMSCoreTest {
         dd2.setServiceCertExpiryMins(null);
         assertNotEquals(dd, dd2);
         dd2.setServiceCertExpiryMins(150);
+        assertEquals(dd, dd2);
+
+        dd2.setFeatureFlags(7);
+        assertNotEquals(dd, dd2);
+        dd2.setFeatureFlags(null);
+        assertNotEquals(dd, dd2);
+        dd2.setFeatureFlags(3);
         assertEquals(dd, dd2);
 
         dd2.setDescription("new domain");

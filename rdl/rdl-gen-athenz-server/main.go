@@ -49,7 +49,7 @@ func main() {
 
 // GenerateJavaServer generates the server code for the RDL-defined service
 func GenerateZMSJavaServer(banner string, schema *rdl.Schema, outdir string, ns string, base string) error {
-	fmt.Fprintln(os.Stderr, "Staring ZMS Server code generation...")
+	fmt.Fprintln(os.Stderr, "Starting ZMS Server code generation...")
 	reg := rdl.NewTypeRegistry(schema)
 	packageDir, err := javaGenerationDir(outdir, schema, ns)
 	if err != nil {
