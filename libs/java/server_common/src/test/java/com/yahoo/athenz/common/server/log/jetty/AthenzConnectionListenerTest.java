@@ -24,6 +24,7 @@ public class AthenzConnectionListenerTest {
         Thread.sleep(1000);
         con = AthenzConnectionListener.getConnectionDataBySslEngine(mockConnection.getSSLEngine());
         assertNull(con);
+        athenzConnectionListener.shutdown();
         System.clearProperty(ATHENZ_PROP_CLEANUP_CLOSED_CONNECTION_INTERVAL);
     }
 
@@ -42,6 +43,6 @@ public class AthenzConnectionListenerTest {
 
         con = AthenzConnectionListener.getConnectionDataBySslEngine(mockConnection.getSSLEngine());
         assertNull(con);
+        athenzConnectionListener.shutdown();
     }
-            
 }
