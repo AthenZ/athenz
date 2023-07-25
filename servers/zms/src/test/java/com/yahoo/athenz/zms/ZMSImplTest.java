@@ -21690,6 +21690,25 @@ public class ZMSImplTest {
         assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
         assertFalse(zmsImpl2.isValidServiceName("athenz", "service_name2"));
 
+        // by default the feature flag is not enabled for the domain
+
+        assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 1));
+        assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 2));
+
+        // enable the domain to have the underscore feature flag enabled
+        // services should now be allowed
+
+        DomainMeta meta = new DomainMeta().setFeatureFlags(1);
+        zmsImpl2.putDomainSystemMeta(ctx, "athenz", "featureflags", auditRef, meta);
+
+        assertTrue(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 1));
+        assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 2));
+
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name2"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name3"));
+
         zmsImpl2.deleteDomain(ctx, auditRef, "athenz", "unit-test");
 
         zmsImpl.objectStore.clearConnections();

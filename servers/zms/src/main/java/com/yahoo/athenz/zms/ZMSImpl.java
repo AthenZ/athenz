@@ -5850,10 +5850,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if we're not allowed to have underscores in service names then
         // we need to check if the service exists or not since we do not
         // want to block managing service accounts that were created before
-        // the option was enforced
+        // the option was enforced or the domain is configured to allow
+        // services with underscores
 
         if (allowUnderscoreInServiceNames.get() == Boolean.FALSE && serviceName.indexOf('_') != -1) {
-            if (dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+            if ((!isDomainFeatureFlagEnabled(domainName, ZMSConsts.ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE)) &&
+                    dbService.getServiceIdentity(domainName, serviceName, true) == null) {
                 return false;
             }
         }
@@ -5861,6 +5863,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // finally, return result based on the configured minimum length of the service name
 
         return serviceNameMinLength <= 0 || serviceNameMinLength <= serviceName.length();
+    }
+
+    boolean isDomainFeatureFlagEnabled(final String domainName, int flag) {
+        Domain domain = dbService.getDomain(domainName, false);
+        Integer featureFlags = domain.getFeatureFlags();
+        return featureFlags != null && (featureFlags & flag) != 0;
     }
 
     @Override
