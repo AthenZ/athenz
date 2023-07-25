@@ -33957,6 +33957,40 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetPolicyWithTags() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "setup-policy-with-tags";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+        Map<String, TagValueList> policy1Tags = Collections.singletonMap("tag-key", new TagValueList().setList(Arrays.asList("val2", "val3")));
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        policy1.setTags(policy1Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1);
+
+        Policy policy1version2 = zmsTestInitializer.createPolicyObject(domainName, "policy1");
+        Map<String, TagValueList> policy2Tags = Collections.singletonMap("tag-key2", new TagValueList().setList(Arrays.asList("val5", "val6")));
+        policy1version2.setVersion("2");
+        policy1version2.setActive(false);
+        policy1version2.setTags(policy2Tags);
+        zmsImpl.putPolicy(ctx, domainName, "policy1", auditRef, false, policy1version2);
+
+        Policy returnedPolicy = zmsImpl.getPolicy(ctx, domainName, "policy1");
+        verifyPolicyHasTag(returnedPolicy, "tag-key", "val2");
+
+        zmsImpl.setActivePolicyVersion(ctx,domainName, "policy1",new PolicyOptions().setFromVersion("0").setVersion("2"), "test");
+
+        Policy returnedPolicy2 = zmsImpl.getPolicy(ctx, domainName, "policy1");
+        verifyPolicyHasTag(returnedPolicy2, "tag-key2", "val6");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
     public void testSetupPolicyListWithTags() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
