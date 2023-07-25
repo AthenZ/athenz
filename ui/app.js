@@ -16,6 +16,7 @@
 process.chdir(__dirname);
 const https = require('https');
 const express = require('express');
+const { constants } = require('crypto');
 const next = require('next');
 const appConfig = require('./src/config/config')();
 const secrets = require('./src/server/secrets');
@@ -78,6 +79,9 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                 {
                     cert: secrets.serverCert,
                     key: secrets.serverKey,
+                    secureOptions:
+                        constants.SSL_OP_NO_TLSv1 | constants.SSL_OP_NO_TLSv1_1,
+                    ciphers: appConfig.serverCipherSuites,
                 },
                 expressApp
             );

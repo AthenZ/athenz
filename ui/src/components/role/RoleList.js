@@ -30,7 +30,10 @@ import { selectRoles } from '../../redux/selectors/roles';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import AddMemberToRoles from './AddMemberToRoles';
 import { selectIsLoading } from '../../redux/selectors/loading';
-import { selectHeaderDetails, selectTimeZone } from '../../redux/selectors/domains';
+import {
+    selectHeaderDetails,
+    selectTimeZone,
+} from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const RolesSectionDiv = styled.div`
