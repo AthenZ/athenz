@@ -3794,7 +3794,7 @@ public class DBService implements RolesProvider {
         Policy policy = con.getPolicy(domainName, policyName, version);
         if (policy != null) {
             policy.setAssertions(con.listAssertions(domainName, policyName, version));
-            policy.setTags(con.getPolicyTags(domainName, policyName, version));
+            policy.setTags(con.getPolicyTags(domainName, policyName, version != null ? version : policy.getVersion()));
         }
 
         return policy;
