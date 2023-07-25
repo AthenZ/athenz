@@ -28,7 +28,10 @@ import { deleteSubDomain } from '../../redux/thunks/domains';
 import { connect } from 'react-redux';
 import { withRouter } from 'next/router';
 import { selectBusinessServices } from '../../redux/selectors/domainData';
-import { selectBusinessServicesAll, selectTimeZone } from '../../redux/selectors/domains';
+import {
+    selectBusinessServicesAll,
+    selectTimeZone,
+} from '../../redux/selectors/domains';
 
 const ManageDomainSectionDiv = styled.div`
     margin: 20px;

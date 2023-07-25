@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import React from 'react';
-import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';;
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import CollectionDetails from '../../../components/header/CollectionDetails';
 
 describe('RoleDetails', () => {
