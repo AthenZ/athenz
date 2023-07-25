@@ -1031,6 +1031,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetRoleTokenSignAlgorithm(dn, args[0], args[1])
 			}
+		case "set-role-description":
+			if argc == 2 {
+				return cli.SetRoleDescription(dn, args[0], args[1])
+			}
 		case "set-role-notify-roles":
 			if argc == 2 {
 				return cli.SetRoleNotifyRoles(dn, args[0], args[1])
@@ -2814,6 +2818,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   alg     : either rsa or ec: token algorithm to be used for signing\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-token-sign-algorithm writers rsa\n")
+	case "set-role-description":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-description role \"description\"\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role        : name of the role to be modified\n")
+		buf.WriteString("   description : role description\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-description writers \"contains our hockey writers\"\n")
 	case "set-role-notify-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-notify-roles role rolename[,rolename...]]\n")
@@ -3260,6 +3275,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-notify-roles regular_role rolename[,rolename...]\n")
 	buf.WriteString("   set-role-user-authority-filter regular_role attribute[,attribute...]\n")
 	buf.WriteString("   set-role-user-authority-expiration regular_role attribute\n")
+	buf.WriteString("   set-role-description regular_role description\n")
 	buf.WriteString("   add-role-tag regular_role tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-role-tag regular_role tag_key [tag_value]\n")
 	buf.WriteString("   put-membership-decision regular_role user_or_service [expiration] decision\n")
