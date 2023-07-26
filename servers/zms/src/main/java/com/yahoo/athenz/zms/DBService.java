@@ -5431,14 +5431,14 @@ public class DBService implements RolesProvider {
         return athenzDomain;
     }
 
-    DomainMetaList listModifiedDomains(long modifiedSince) {
+    DomainMetaList listModifiedDomains(long modifiedSince, boolean readWrite) {
 
         // since this is the operation executed by ZTS servers to
         // retrieve latest domain changes, we're going to use
-        // the read-write store as oppose to read-only store to
+        // the read-write store as opposed to read-only store to
         // get our up-to-date data
 
-        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             return con.listModifiedDomains(modifiedSince);
         }
     }

@@ -6516,7 +6516,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
         boolean masterCopy = (useMasterCopyForSignedDomains || master == Boolean.TRUE)
-                && principal.getFullName().startsWith("sys.");
+                && principal.getFullName().startsWith("sys.") && !readOnlyMode.get();
 
         // if we're given a specific domain then we don't need to
         // retrieve the list of modified domains
@@ -6550,7 +6550,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 // generate our signed domain object
 
-                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly, masterCopy, includeConditions);
+                SignedDomain signedDomain = retrieveSignedDomain(domain, metaAttr, setMetaDataOnly,
+                        masterCopy, includeConditions);
 
                 if (signedDomain != null) {
                     sdList.add(signedDomain);
@@ -6579,7 +6580,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 matchingTag = eTag.toString();
             }
 
-            DomainMetaList dmlist = dbService.listModifiedDomains(timestamp);
+            // fetching the list of modified domains must always be carried out
+            // against our master write database unless the server is running in
+            // read-only mode in which case it indicates that our master write
+            // db is not available thus we'll use the read replica
+
+            DomainMetaList dmlist = dbService.listModifiedDomains(timestamp, !readOnlyMode.get());
             List<Domain> modlist = dmlist.getDomains();
             if (modlist == null || modlist.size() == 0) {
                 return Response.status(ResourceException.NOT_MODIFIED)
@@ -6597,7 +6603,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 // generate our signed domain object
 
-                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly, masterCopy, includeConditions);
+                SignedDomain signedDomain = retrieveSignedDomain(dmod, metaAttr, setMetaDataOnly,
+                        masterCopy, includeConditions);
 
                 // it's possible that our domain was deleted by another
                 // thread while we were processing this request so
