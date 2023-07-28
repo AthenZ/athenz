@@ -16,7 +16,7 @@
 package com.yahoo.athenz.creds.gcp;
 
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.http.apache.v2.ApacheHttpTransport;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.auth.http.HttpTransportFactory;
@@ -26,46 +26,44 @@ import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zts.ZTSClient;
+import org.apache.http.*;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestExecutor;
 
 import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
+
 public class GCPZTSCredentials {
 
-    private final String keyFile;
-    private final String certFile;
-    private final String trustStorePath;
     private final String audience;
     private final String serviceUrl;
     private final String tokenUrl;
-    private final char[] trustStorePassword;
-    private Proxy proxy = null;
     int certRefreshTimeout;
     int tokenLifetimeSeconds = 3600;
-    KeyRefresher keyRefresher = null;
+    KeyRefresher keyRefresher;
+    HttpHost proxy = null;
+    SSLConnectionSocketFactory sslConnectionSocketFactory;
 
     /**
      * Internal constructor with required details. See {@link GCPZTSCredentials.Builder}.
      *
      * @param builder the {@code Builder} object used to construct the credentials.
      */
-    GCPZTSCredentials(Builder builder) {
+    GCPZTSCredentials(Builder builder) throws KeyRefresherException, IOException, InterruptedException {
 
-        this.keyFile = builder.keyFile;
-        this.certFile = builder.certFile;
-        this.trustStorePath = builder.trustStorePath;
-        this.trustStorePassword = builder.trustStorePassword;
         this.certRefreshTimeout = builder.certRefreshTimeout;
-        if (builder.tokenLifetimeSeconds > 0) {
-            this.tokenLifetimeSeconds = builder.tokenLifetimeSeconds;
-        }
+        this.tokenLifetimeSeconds = builder.tokenLifetimeSeconds;
+
         audience = String.format("//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s",
                 builder.projectNumber, builder.workloadPoolName, builder.workloadProviderName);
         serviceUrl = String.format("https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s@%s.iam.gserviceaccount.com:generateAccessToken",
@@ -74,8 +72,23 @@ public class GCPZTSCredentials {
         final String redirectUri = URLEncoder.encode(ZTSClient.generateRedirectUri(builder.clientId, builder.redirectUriSuffix), StandardCharsets.UTF_8);
         tokenUrl = String.format("%s/oauth2/auth?response_type=id_token&client_id=%s&redirect_uri=%s&scope=%s&nonce=%s&keyType=EC&fullArn=true&output=json",
                 builder.ztsUrl, builder.clientId, redirectUri, scope, Crypto.randomSalt());
+
+        // generate the key refresher object based on your provided details
+
+        keyRefresher = Utils.generateKeyRefresher(builder.trustStorePath, builder.trustStorePassword,
+                builder.certFile, builder.keyFile);
+        if (certRefreshTimeout > 0) {
+            keyRefresher.startup(certRefreshTimeout);
+        }
+
+        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
+                keyRefresher.getTrustManagerProxy());
+
+        sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext,
+                new String[]{"TLSv1.2", "TLSv1.3"}, null, getDefaultHostnameVerifier());
+
         if (builder.proxyHost != null && !builder.proxyHost.isEmpty()) {
-            proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(builder.proxyHost, builder.proxyPort));
+            proxy = new HttpHost(builder.proxyHost, builder.proxyPort);
         }
     }
 
@@ -90,7 +103,6 @@ public class GCPZTSCredentials {
         }
     }
 
-
     /**
      * Return ExternalAccountCredentials object based on the configured details
      * that could be used in other GCP SDK APIs as credentials to access requested
@@ -98,18 +110,22 @@ public class GCPZTSCredentials {
      *
      * @return ExternalAccountCredentials credentials object
      */
-    public ExternalAccountCredentials getTokenAPICredentials() throws KeyRefresherException,
-            IOException, InterruptedException {
+    public ExternalAccountCredentials getTokenAPICredentials() throws IOException {
+        return getTokenAPICredentials(null);
+    }
 
-        keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
-                certFile, keyFile);
-        if (certRefreshTimeout > 0) {
-            keyRefresher.startup(certRefreshTimeout);
-        }
-        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
-                keyRefresher.getTrustManagerProxy());
+    /**
+     * Return ExternalAccountCredentials object based on the configured details
+     * that could be used in other GCP SDK APIs as credentials to access requested
+     * GCP resources.
+     *
+     * @param proxyAuth proxy authentication value
+     * @return ExternalAccountCredentials credentials object
+     */
+    public ExternalAccountCredentials getTokenAPICredentials(final String proxyAuth) throws IOException {
 
-        final AthenztHttpTransportFactory transportFactory = new AthenztHttpTransportFactory(sslContext, proxy);
+        final AthenztHttpTransportFactory transportFactory =
+                new AthenztHttpTransportFactory(sslConnectionSocketFactory, proxy, proxyAuth);
         final InputStream inputStream = createTokenAPIStream();
         return ExternalAccountCredentials.fromStream(inputStream, transportFactory);
     }
@@ -145,19 +161,42 @@ public class GCPZTSCredentials {
 
     static class AthenztHttpTransportFactory implements HttpTransportFactory {
 
-        final SSLContext sslContext;
-        final Proxy proxy;
+        final HttpTransport httpTransport;
 
-        AthenztHttpTransportFactory(SSLContext sslContext, Proxy proxy) {
-            this.sslContext = sslContext;
-            this.proxy = proxy;
+        AthenztHttpTransportFactory(SSLConnectionSocketFactory sslConnectionSocketFactory, HttpHost proxy,
+                final String proxyAuth) {
+
+            HttpClientBuilder httpClientBuilder = ApacheHttpTransport.newDefaultHttpClientBuilder()
+                    .setSSLSocketFactory(sslConnectionSocketFactory);
+
+            if (proxy != null) {
+                httpClientBuilder.setRoutePlanner(new DefaultProxyRoutePlanner(proxy));
+                if (proxyAuth != null && !proxyAuth.isEmpty()) {
+                    httpClientBuilder.setRequestExecutor(new AthenzProxyHttpRequestExecutor(proxyAuth));
+                }
+            }
+
+            httpTransport = new ApacheHttpTransport(httpClientBuilder.build());
         }
 
         public HttpTransport create() {
-            return new NetHttpTransport.Builder()
-                    .setSslSocketFactory(sslContext.getSocketFactory())
-                    .setProxy(proxy)
-                    .build();
+            return httpTransport;
+        }
+    }
+
+    static class AthenzProxyHttpRequestExecutor extends HttpRequestExecutor {
+        final String proxyAuth;
+        public AthenzProxyHttpRequestExecutor(final String proxyAuth) {
+            super();
+            this.proxyAuth = proxyAuth;
+        }
+        @Override
+        public HttpResponse execute(HttpRequest request, HttpClientConnection conn, HttpContext context)
+                throws IOException, HttpException {
+            if ("CONNECT".equalsIgnoreCase(request.getRequestLine().getMethod())) {
+                request.setHeader(HttpHeaders.PROXY_AUTHORIZATION, proxyAuth);
+            }
+            return super.execute(request, conn, context);
         }
     }
 
@@ -179,9 +218,9 @@ public class GCPZTSCredentials {
         private String trustStorePath;
         private char[] trustStorePassword;
         private String proxyHost;
-        private int proxyPort = 443;
-        int certRefreshTimeout;
-        int tokenLifetimeSeconds;
+        private int proxyPort = 4080;
+        int certRefreshTimeout = 0;
+        int tokenLifetimeSeconds = 3600;
 
         public Builder() {
         }
@@ -378,6 +417,7 @@ public class GCPZTSCredentials {
         /**
          * Sets the requested lifetime for the Google access tokens.
          * GCP requires that the value must be between 600 and 43200 seconds.
+         * Default value is 600 seconds.
          *
          * @param tokenLifetimeSeconds token lifetime in seconds
          * @return this {@code Builder} object
@@ -404,9 +444,8 @@ public class GCPZTSCredentials {
 
         /**
          * Sets the proxy port number for the request. The default
-         * value for the proxy port is 443. A valid port value is between
-         * 0 and 65535. A port number of zero will let the system
-         * pick up an ephemeral port in a bind operation.
+         * value for the proxy port is 4080. A valid port value is between
+         * 0 and 65535.
          *
          * @param proxyPort proxy server port number
          * @return this {@code Builder} object
@@ -426,7 +465,7 @@ public class GCPZTSCredentials {
          *
          * @return GCPZTSCredentials object
          */
-        public GCPZTSCredentials build() {
+        public GCPZTSCredentials build() throws KeyRefresherException, IOException, InterruptedException {
             return new GCPZTSCredentials(this);
         }
     }

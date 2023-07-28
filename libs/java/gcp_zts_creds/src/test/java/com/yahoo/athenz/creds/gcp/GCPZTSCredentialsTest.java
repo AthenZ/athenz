@@ -21,6 +21,10 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
+import org.apache.http.*;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.protocol.HttpContext;
+import org.mockito.Mockito;
 import org.testng.annotations.*;
 
 import javax.net.ssl.SSLContext;
@@ -29,6 +33,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 import static org.testng.Assert.*;
 
 public class GCPZTSCredentialsTest {
@@ -57,7 +62,7 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testBuilder() {
+    public void testBuilder() throws KeyRefresherException, IOException, InterruptedException {
         GCPZTSCredentials.Builder builder = createBuilder();
         assertNotNull(builder.build());
 
@@ -96,7 +101,7 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testBuilderWithProxy() {
+    public void testBuilderWithProxy() throws KeyRefresherException, IOException, InterruptedException {
 
         // with null proxy host
 
@@ -119,7 +124,7 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testCreateTokenAPIStream() {
+    public void testCreateTokenAPIStream() throws KeyRefresherException, IOException, InterruptedException {
         GCPZTSCredentials.Builder builder = createBuilder();
         GCPZTSCredentials creds = builder.build();
         InputStream stream = creds.createTokenAPIStream();
@@ -160,17 +165,15 @@ public class GCPZTSCredentialsTest {
         GCPZTSCredentials.Builder builder = createBuilder();
         builder.setCertRefreshTimeout(-1);
         builder.setTrustStorePath("/var/lib/sia/cacert");
-        GCPZTSCredentials creds = builder.build();
         try {
-            creds.getTokenAPICredentials();
+            builder.build();
             fail();
         } catch (FileNotFoundException ignored) {
         }
-        creds.close();
     }
 
     @Test
-    public void testAthenztHttpTransportFactory() throws KeyRefresherException, IOException, InterruptedException {
+    public void testAthenztHttpProxyTransportFactory() throws KeyRefresherException, IOException, InterruptedException {
 
         KeyRefresher keyRefresher = Utils.generateKeyRefresher(
                 Objects.requireNonNull(classLoader.getResource("truststore.jks")).getPath(),
@@ -180,10 +183,35 @@ public class GCPZTSCredentialsTest {
         SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
                 keyRefresher.getTrustManagerProxy());
 
+        SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext,
+                new String[]{"TLSv1.2", "TLSv1.3"}, null, getDefaultHostnameVerifier());
+
+        // create transport factory without proxy
+
+        HttpHost proxy = new HttpHost("localhost", 4080);
         GCPZTSCredentials.AthenztHttpTransportFactory factory =
-                new GCPZTSCredentials.AthenztHttpTransportFactory(sslContext, null);
+                new GCPZTSCredentials.AthenztHttpTransportFactory(sslConnectionSocketFactory, proxy, "auth");
         assertNotNull(factory);
         assertNotNull(factory.create());
+
         keyRefresher.shutdown();
+    }
+
+    @Test
+    public void testAthenzProxyHttpRequestExecutor() throws IOException, HttpException {
+        GCPZTSCredentials.AthenzProxyHttpRequestExecutor executor =
+                new GCPZTSCredentials.AthenzProxyHttpRequestExecutor("auth");
+        HttpRequest request = Mockito.mock(HttpRequest.class);
+        RequestLine requestLine = Mockito.mock(RequestLine.class);
+        Mockito.when(request.getRequestLine()).thenReturn(requestLine);
+        Mockito.when(requestLine.getMethod()).thenReturn("CONNECT");
+        HttpClientConnection conn = Mockito.mock(HttpClientConnection.class);
+        HttpContext context = Mockito.mock(HttpContext.class);
+        HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.when(conn.receiveResponseHeader()).thenReturn(response);
+        StatusLine statusLine = Mockito.mock(StatusLine.class);
+        Mockito.when(response.getStatusLine()).thenReturn(statusLine);
+        Mockito.when(statusLine.getStatusCode()).thenReturn(204);
+        executor.execute(request, conn, context);
     }
 }
