@@ -1,3 +1,19 @@
+Athenz v1.11.37 Release / Jul 28, 2023
+--------------------------------------
+
+#2248 fix policy tags fetch + increase unit test coverage
+#2249 introduce shutdown method for connection logger
+#2250 introduce feature-flags system attribute for domains
+#2251 support new allow service underscore feature flag
+#2252 allow specifying cipher suites for the ui server via config
+#2254 Add test for get policy
+#2255 add set-role-description option in zms-cli
+#2256 use read replica when fetching domain change list in read-only mode
+#2261 support proxy auth with gcp http transport
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230724.sql
+
 Athenz v1.11.36 Release / Jul 21, 2023
 --------------------------------------
 
