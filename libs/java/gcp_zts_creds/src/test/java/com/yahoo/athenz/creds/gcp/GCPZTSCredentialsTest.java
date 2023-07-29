@@ -15,12 +15,17 @@
  */
 package com.yahoo.athenz.creds.gcp;
 
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.GenericJson;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.Utils;
+import org.apache.http.*;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.protocol.HttpContext;
+import org.mockito.Mockito;
 import org.testng.annotations.*;
 
 import javax.net.ssl.SSLContext;
@@ -29,6 +34,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 import static org.testng.Assert.*;
 
 public class GCPZTSCredentialsTest {
@@ -57,7 +63,7 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testBuilder() {
+    public void testBuilder() throws KeyRefresherException, IOException, InterruptedException {
         GCPZTSCredentials.Builder builder = createBuilder();
         assertNotNull(builder.build());
 
@@ -96,7 +102,7 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testBuilderWithProxy() {
+    public void testBuilderWithProxy() throws KeyRefresherException, IOException, InterruptedException {
 
         // with null proxy host
 
@@ -119,37 +125,21 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testCreateTokenAPIStream() {
-        GCPZTSCredentials.Builder builder = createBuilder();
-        GCPZTSCredentials creds = builder.build();
-        InputStream stream = creds.createTokenAPIStream();
-        String confData = new BufferedReader(new InputStreamReader(stream))
-                .lines().collect(Collectors.joining("\n"));
-        GenericJson json = new Gson().fromJson(confData, GenericJson.class);
-        assertNotNull(json);
-        assertEquals(json.get("type"), "external_account");
-        assertEquals(json.get("audience"), "//iam.googleapis.com/projects/project-number/locations/global/workloadIdentityPools/athenz/providers/athenz");
-        assertEquals(json.get("subject_token_type"), "urn:ietf:params:oauth:token-type:jwt");
-        assertEquals(json.get("token_url"), "https://sts.googleapis.com/v1/token");
-        assertEquals(json.get("service_account_impersonation_url"), "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/admin-service@project-id.iam.gserviceaccount.com:generateAccessToken");
-        LinkedTreeMap<String, Object> serviceAccountImpersonation = (LinkedTreeMap<String, Object>) json.get("service_account_impersonation");
-        assertEquals(serviceAccountImpersonation.get("token_lifetime_seconds"), 3600.0);
-        LinkedTreeMap<String, Object> credentialSource = (LinkedTreeMap<String, Object>) json.get("credential_source");
-        assertTrue(credentialSource.get("url").toString().startsWith("https://localhost:4443/oauth2/auth?response_type=id_token&client_id=sports.gcp&redirect_uri=https%3A%2F%2Fgcp.sports.gcp.athenz.io&scope=openid+sports%3Arole.hockey&nonce="));
-        LinkedTreeMap<String, Object> credentialSourceFormat = (LinkedTreeMap<String, Object>) credentialSource.get("format");
-        assertEquals(credentialSourceFormat.get("type"), "json");
-        assertEquals(credentialSourceFormat.get("subject_token_field_name"), "id_token");
-    }
-
-    @Test
     public void testGetTokenAPICredentials() throws KeyRefresherException, IOException, InterruptedException {
-        testGetTokenAPICredentials(-1);
-        testGetTokenAPICredentials(60000);
+        testGetTokenAPICredentials(-1, true);
+        testGetTokenAPICredentials(-1, false);
+        testGetTokenAPICredentials(60000, true);
+        testGetTokenAPICredentials(60000, false);
     }
 
-    private void testGetTokenAPICredentials(int certRefreshTimeout) throws KeyRefresherException, IOException, InterruptedException {
+    private void testGetTokenAPICredentials(int certRefreshTimeout, boolean proxy) throws KeyRefresherException, IOException, InterruptedException {
         GCPZTSCredentials.Builder builder = createBuilder();
         builder.setCertRefreshTimeout(certRefreshTimeout);
+        if (proxy) {
+            builder = builder.setProxyHost("localhost")
+                    .setProxyPort(4080)
+                    .setProxyAuth("auth");
+        }
         GCPZTSCredentials creds = builder.build();
         assertNotNull(creds.getTokenAPICredentials());
         creds.close();
@@ -160,30 +150,36 @@ public class GCPZTSCredentialsTest {
         GCPZTSCredentials.Builder builder = createBuilder();
         builder.setCertRefreshTimeout(-1);
         builder.setTrustStorePath("/var/lib/sia/cacert");
-        GCPZTSCredentials creds = builder.build();
         try {
-            creds.getTokenAPICredentials();
+            builder.build();
             fail();
         } catch (FileNotFoundException ignored) {
         }
-        creds.close();
     }
 
     @Test
-    public void testAthenztHttpTransportFactory() throws KeyRefresherException, IOException, InterruptedException {
+    public void testAthenztHttpProxyTransportFactory() throws KeyRefresherException, IOException, InterruptedException {
 
-        KeyRefresher keyRefresher = Utils.generateKeyRefresher(
-                Objects.requireNonNull(classLoader.getResource("truststore.jks")).getPath(),
-                "123456".toCharArray(),
-                Objects.requireNonNull(classLoader.getResource("ec_public_x509.cert")).getPath(),
-                Objects.requireNonNull(classLoader.getResource("unit_test_ec_private.key")).getPath());
-        SSLContext sslContext = Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),
-                keyRefresher.getTrustManagerProxy());
-
-        GCPZTSCredentials.AthenztHttpTransportFactory factory =
-                new GCPZTSCredentials.AthenztHttpTransportFactory(sslContext, null);
-        assertNotNull(factory);
+        HttpTransport httpTransport = Mockito.mock(HttpTransport.class);
+        GCPZTSCredentials.AthenztHttpTransportFactory factory = new GCPZTSCredentials.AthenztHttpTransportFactory(httpTransport);
         assertNotNull(factory.create());
-        keyRefresher.shutdown();
+    }
+
+    @Test
+    public void testAthenzProxyHttpRequestExecutor() throws IOException, HttpException {
+        GCPZTSCredentials.AthenzProxyHttpRequestExecutor executor =
+                new GCPZTSCredentials.AthenzProxyHttpRequestExecutor("auth");
+        HttpRequest request = Mockito.mock(HttpRequest.class);
+        RequestLine requestLine = Mockito.mock(RequestLine.class);
+        Mockito.when(request.getRequestLine()).thenReturn(requestLine);
+        Mockito.when(requestLine.getMethod()).thenReturn("CONNECT");
+        HttpClientConnection conn = Mockito.mock(HttpClientConnection.class);
+        HttpContext context = Mockito.mock(HttpContext.class);
+        HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.when(conn.receiveResponseHeader()).thenReturn(response);
+        StatusLine statusLine = Mockito.mock(StatusLine.class);
+        Mockito.when(response.getStatusLine()).thenReturn(statusLine);
+        Mockito.when(statusLine.getStatusCode()).thenReturn(204);
+        executor.execute(request, conn, context);
     }
 }
