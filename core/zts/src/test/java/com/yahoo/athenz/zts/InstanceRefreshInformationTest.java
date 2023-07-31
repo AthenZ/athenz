@@ -45,6 +45,7 @@ public class InstanceRefreshInformationTest {
         i1.setAthenzJWK(true);
         i1.setAthenzJWKModified(start);
         i1.setNamespace("default");
+        i1.setCloud("aws");
 
         i2.setAttestationData("doc");
         i2.setCsr("sample_csr");
@@ -57,6 +58,7 @@ public class InstanceRefreshInformationTest {
         i2.setAthenzJWK(true);
         i2.setAthenzJWKModified(start);
         i2.setNamespace("default");
+        i2.setCloud("aws");
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -70,6 +72,7 @@ public class InstanceRefreshInformationTest {
         assertEquals(i1.getAthenzJWK(), Boolean.TRUE);
         assertEquals(i1.getAthenzJWKModified(), start);
         assertEquals(i1.getNamespace(), "default");
+        assertEquals(i1.getCloud(), "aws");
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -152,6 +155,13 @@ public class InstanceRefreshInformationTest {
         i2.setAthenzJWKModified(null);
         assertNotEquals(i1, i2);
         i2.setAthenzJWKModified(start);
+        assertEquals(i1, i2);
+
+        i2.setCloud(null);
+        assertNotEquals(i1, i2);
+        i2.setCloud("gcp");
+        assertNotEquals(i1, i2);
+        i2.setCloud("aws");
         assertEquals(i1, i2);
     }
 }

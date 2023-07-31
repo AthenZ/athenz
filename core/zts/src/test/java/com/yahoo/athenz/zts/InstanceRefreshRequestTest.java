@@ -30,18 +30,21 @@ public class InstanceRefreshRequestTest {
         i1.setExpiryTime(123456789);
         i1.setKeyId("v0");
         i1.setNamespace("default");
+        i1.setCloud("aws");
 
         InstanceRefreshRequest i2 = new InstanceRefreshRequest();
         i2.setCsr("test_csr");
         i2.setExpiryTime(123456789);
         i2.setKeyId("v0");
         i2.setNamespace("default");
+        i2.setCloud("aws");
 
         // getter
         assertEquals(i1.getCsr(), "test_csr");
         assertEquals(i1.getExpiryTime(), (Integer) 123456789);
         assertEquals(i1.getKeyId(), "v0");
         assertEquals(i1.getNamespace(), "default");
+        assertEquals(i1.getCloud(), "aws");
 
         assertEquals(i1, i1);
         assertEquals(i2, i1);
@@ -69,6 +72,13 @@ public class InstanceRefreshRequestTest {
         i2.setNamespace("non-default");
         assertNotEquals(i1, i2);
         i2.setNamespace("default");
+        assertEquals(i1, i2);
+
+        i2.setCloud(null);
+        assertNotEquals(i1, i2);
+        i2.setCloud("gcp");
+        assertNotEquals(i1, i2);
+        i2.setCloud("aws");
         assertEquals(i1, i2);
 
         assertNotEquals("data", i1);
