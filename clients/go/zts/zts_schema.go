@@ -234,6 +234,7 @@ func init() {
 	tInstanceRefreshRequest.Field("expiryTime", "Int32", true, nil, "in minutes how long token should be valid for")
 	tInstanceRefreshRequest.Field("keyId", "String", true, nil, "public key identifier")
 	tInstanceRefreshRequest.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
+	tInstanceRefreshRequest.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
 	sb.AddType(tInstanceRefreshRequest.Build())
 
 	tAWSRoleName := rdl.NewStringTypeBuilder("AWSRoleName")
@@ -377,6 +378,7 @@ func init() {
 	tInstanceRegisterInformation.Field("athenzJWK", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
 	tInstanceRegisterInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
 	tInstanceRegisterInformation.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
+	tInstanceRegisterInformation.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
 	sb.AddType(tInstanceRegisterInformation.Build())
 
 	tInstanceRefreshInformation := rdl.NewStructTypeBuilder("Struct", "InstanceRefreshInformation")
@@ -391,6 +393,7 @@ func init() {
 	tInstanceRefreshInformation.Field("athenzJWK", "Bool", true, nil, "if true, return an Athenz JWK public keys file")
 	tInstanceRefreshInformation.Field("athenzJWKModified", "Timestamp", true, nil, "return the public keys file only if modified after the given timestamp")
 	tInstanceRefreshInformation.Field("namespace", "SimpleName", true, nil, "spiffe/k8s namespace value")
+	tInstanceRefreshInformation.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
 	sb.AddType(tInstanceRefreshInformation.Build())
 
 	tInstanceRegisterToken := rdl.NewStructTypeBuilder("Struct", "InstanceRegisterToken")

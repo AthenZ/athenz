@@ -1493,6 +1493,12 @@ type InstanceRefreshRequest struct {
 	// spiffe/k8s namespace value
 	//
 	Namespace SimpleName `json:"namespace,omitempty" rdl:"optional"`
+
+	//
+	// optional cloud name where the instance is bootstrapped. e.g. aws / gcp /
+	// azure / openstack etc.
+	//
+	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRefreshRequest - creates an initialized InstanceRefreshRequest instance, returns a pointer to it
@@ -1540,6 +1546,12 @@ func (self *InstanceRefreshRequest) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Namespace)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRefreshRequest.namespace does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Cloud != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Cloud)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshRequest.cloud does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -2755,6 +2767,12 @@ type InstanceRegisterInformation struct {
 	// spiffe/k8s namespace value
 	//
 	Namespace SimpleName `json:"namespace,omitempty" rdl:"optional"`
+
+	//
+	// optional cloud name where the instance is bootstrapped. e.g. aws / gcp /
+	// azure / openstack etc.
+	//
+	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
@@ -2842,6 +2860,12 @@ func (self *InstanceRegisterInformation) Validate() error {
 			return fmt.Errorf("InstanceRegisterInformation.namespace does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
+	if self.Cloud != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Cloud)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.cloud does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -2905,6 +2929,12 @@ type InstanceRefreshInformation struct {
 	// spiffe/k8s namespace value
 	//
 	Namespace SimpleName `json:"namespace,omitempty" rdl:"optional"`
+
+	//
+	// optional cloud name where the instance is bootstrapped. e.g. aws / gcp /
+	// azure / openstack etc.
+	//
+	Cloud SimpleName `json:"cloud,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRefreshInformation - creates an initialized InstanceRefreshInformation instance, returns a pointer to it
@@ -2962,6 +2992,12 @@ func (self *InstanceRefreshInformation) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Namespace)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRefreshInformation.namespace does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Cloud != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.Cloud)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRefreshInformation.cloud does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil

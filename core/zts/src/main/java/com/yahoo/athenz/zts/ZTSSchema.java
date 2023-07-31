@@ -199,7 +199,8 @@ public class ZTSSchema {
             .field("csr", "String", false, "Cert CSR signed by the service's private key (public key registered in ZMS)")
             .field("expiryTime", "Int32", true, "in minutes how long token should be valid for")
             .field("keyId", "String", true, "public key identifier")
-            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value");
+            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
+            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.");
 
         sb.stringType("AWSRoleName")
             .comment("AWS role name without the path")
@@ -324,7 +325,8 @@ public class ZTSSchema {
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
             .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
             .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp")
-            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value");
+            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
+            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.");
 
         sb.structType("InstanceRefreshInformation")
             .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
@@ -337,7 +339,8 @@ public class ZTSSchema {
             .arrayField("hostCnames", "DomainName", true, "optional host CNAMEs included in the csr SAN dnsName attribute")
             .field("athenzJWK", "Bool", true, "if true, return an Athenz JWK public keys file")
             .field("athenzJWKModified", "Timestamp", true, "return the public keys file only if modified after the given timestamp")
-            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value");
+            .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
+            .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.");
 
         sb.structType("InstanceRegisterToken")
             .field("provider", "ServiceName", false, "provider service name")

@@ -16,10 +16,11 @@ type InstanceRegisterInformation Struct {
     Bool token (optional); //if true, return a service token signed by ZTS for this service
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
-    Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
-    Bool athenzJWK (optional); // if true, return an Athenz JWK public keys file
-    Timestamp athenzJWKModified (optional); // return the public keys file only if modified after the given timestamp
+    Array<DomainName> hostCnames (optional); //optional host CNAMEs included in the csr SAN dnsName attribute
+    Bool athenzJWK (optional); //if true, return an Athenz JWK public keys file
+    Timestamp athenzJWKModified (optional); //return the public keys file only if modified after the given timestamp
     SimpleName namespace (optional); //spiffe/k8s namespace value
+    SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
 }
 
 type InstanceRefreshInformation Struct {
@@ -30,10 +31,11 @@ type InstanceRefreshInformation Struct {
     Bool token (optional); //if true, return a service token signed by ZTS for this service
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
     DomainName hostname (optional); //optional hostname in case included in the csr SAN dnsName attribute
-    Array<DomainName> hostCnames (optional); // optional host CNAMEs included in the csr SAN dnsName attribute
-    Bool athenzJWK (optional); // if true, return an Athenz JWK public keys file
-    Timestamp athenzJWKModified (optional); // return the public keys file only if modified after the given timestamp
+    Array<DomainName> hostCnames (optional); //optional host CNAMEs included in the csr SAN dnsName attribute
+    Bool athenzJWK (optional); //if true, return an Athenz JWK public keys file
+    Timestamp athenzJWKModified (optional); //return the public keys file only if modified after the given timestamp
     SimpleName namespace (optional); //spiffe/k8s namespace value
+    SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
 }
 
 type InstanceRegisterToken Struct {
