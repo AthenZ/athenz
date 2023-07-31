@@ -30,6 +30,8 @@ import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+import static com.yahoo.athenz.instance.provider.impl.IdTokenTestsHelper.createOpenIdConfigFile;
+import static com.yahoo.athenz.instance.provider.impl.IdTokenTestsHelper.removeOpenIdConfigFile;
 import static org.testng.Assert.*;
 
 public class InstanceCodeSigningProviderTest {
@@ -272,41 +274,5 @@ public class InstanceCodeSigningProviderTest {
         System.clearProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_OIDC_PROVIDER_OPENID_CONFIG_URI);
         System.clearProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_ATTESTATION_EXPECTED_AUDIENCE);
         System.clearProperty(InstanceCodeSigningProvider.ZTS_PROP_CODE_SIGNING_ATTR_VALIDATOR_FACTORY_CLASS);
-    }
-
-    private void removeOpenIdConfigFile(File configFile, File jwksUri) {
-        try {
-            Files.delete(configFile.toPath());
-        } catch (Exception ignored) {
-        }
-        try {
-            Files.delete(jwksUri.toPath());
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void createOpenIdConfigFile(File configFile, File jwksUri, boolean createJkws) throws IOException {
-
-        final String fileContents = "{\n" +
-                "    \"jwks_uri\": \"file://" + jwksUri.getCanonicalPath() + "\"\n" +
-                "}";
-        Files.write(configFile.toPath(), fileContents.getBytes());
-
-        if (createJkws) {
-            final String keyContents = "{\n" +
-                    "    \"keys\": [\n" +
-                    "        {\n" +
-                    "        \"kty\": \"EC\",\n" +
-                    "        \"kid\": \"c9986ee3-7b2a-4f20-d86a-0839356f2541\",\n" +
-                    "        \"alg\": \"ES256\",\n" +
-                    "        \"use\": \"sig\",\n" +
-                    "        \"crv\": \"P-256\",\n" +
-                    "        \"x\": \"Rbb6kjqP5au-I7BKfclt2nmizr5CbeYBFjCs7hMBUDU\"\n" +
-                    "        \"y\": \"VMHAvuMYRntAmIYMN80exPpplufSMeehuNHWXTRICs8\"\n" +
-                    "        }\n" +
-                    "    ]\n" +
-                    "}";
-            Files.write(jwksUri.toPath(), keyContents.getBytes());
-        }
     }
 }

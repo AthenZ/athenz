@@ -20,11 +20,11 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
 
-public class CodeSigningAttestationDataTest {
+public class IdTokenAttestationDataTest {
 
     @Test
     public void testFields() {
-        CodeSigningAttestationData attestationData = new CodeSigningAttestationData();
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
         attestationData.setIdentityToken("abc");
         assertEquals(attestationData.getIdentityToken(), "abc");
     }

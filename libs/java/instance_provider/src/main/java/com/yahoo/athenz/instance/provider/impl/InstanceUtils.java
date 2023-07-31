@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class InstanceUtils {
 
@@ -31,6 +33,11 @@ public class InstanceUtils {
 
     static final String ZTS_CERT_INSTANCE_ID_URI  = "athenz://instanceid/";
     static final int ZTS_CERT_INSTANCE_ID_URI_LEN = ZTS_CERT_INSTANCE_ID_URI.length();
+
+    static final String URL_REGEX = "^https://([^/?]+)";
+    static final Pattern URL_PATTERN = java.util.regex.Pattern.compile(URL_REGEX);
+
+    static final String K8S_SERVICE_ACCOUNT_PREFIX = "system:serviceaccount:";
 
     public static String getInstanceProperty(final Map<String, String> attributes,
             final String propertyName) {
@@ -313,5 +320,29 @@ public class InstanceUtils {
         }
 
         return false;
+    }
+
+    public static String extractURLDomainName(final String url) {
+
+        if (StringUtil.isEmpty(url)) {
+            return null;
+        }
+        Matcher matcher = URL_PATTERN.matcher(url);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        // Return null if no domain name found
+        return null;
+    }
+
+    public static String getServiceAccountNameFromIdTokenSubject(final String sub) {
+        if (StringUtil.isEmpty(sub) || !sub.startsWith(K8S_SERVICE_ACCOUNT_PREFIX)) {
+            return null;
+        }
+        String[] components = sub.split(":");
+        if (components.length != 4) {
+            return null;
+        }
+        return components[3];
     }
 }
