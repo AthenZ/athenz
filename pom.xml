@@ -76,7 +76,7 @@
     <jackson.version>2.13.4</jackson.version>
     <jackson-databind.version>2.13.4.2</jackson-databind.version>
     <rdl.version>1.5.4</rdl.version>
-    <bouncycastle.version>1.70</bouncycastle.version>
+    <bouncycastle.version>1.75</bouncycastle.version>
     <aws.version>1.12.325</aws.version>
     <aws2.version>2.17.294</aws2.version>
     <guava.version>31.1-jre</guava.version>
