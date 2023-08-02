@@ -277,6 +277,15 @@ func PrivatePem(privateKey *rsa.PrivateKey) string {
 	return string(block)
 }
 
+func ParseCertificate(certPem string) (*x509.Certificate, error) {
+	// Decode the certificate from PEM format.
+	x509CertificateBlock, _ := pem.Decode([]byte(certPem))
+	if x509CertificateBlock == nil || x509CertificateBlock.Type != "CERTIFICATE" {
+		return nil, fmt.Errorf("failed to decode PEM block containing the certificate")
+	}
+	return x509.ParseCertificate(x509CertificateBlock.Bytes)
+}
+
 func FileExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
