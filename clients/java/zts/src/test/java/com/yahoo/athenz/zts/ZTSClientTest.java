@@ -17,6 +17,8 @@ package com.yahoo.athenz.zts;
 
 import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupInvalidTokenFile;
 import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -814,8 +816,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -913,8 +915,8 @@ public class ZTSClientTest {
         final Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1026,8 +1028,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1150,8 +1152,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1294,8 +1296,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -1388,8 +1390,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -1484,7 +1486,7 @@ public class ZTSClientTest {
         assertNotEquals(awsCred4.getAccessKeyId(), awsCred5.getAccessKeyId());
 
         // Assert no notifications were sent
-        Mockito.verify(notificationSender, Mockito.times(0)).sendNotification(Mockito.any(ZTSClientNotification.class));
+        Mockito.verify(notificationSender, Mockito.times(0)).sendNotification(any(ZTSClientNotification.class));
 
         ZTSClient.cancelPrefetch();
         client.close();
@@ -1504,8 +1506,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClientNotificationSender notificationSender = Mockito.mock(ZTSClientNotificationSender.class);
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
@@ -1591,8 +1593,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -3500,8 +3502,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -3959,8 +3961,8 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
 
         ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
-        Mockito.when(siaProvider.getIdentity(Mockito.any(),
-                Mockito.any())).thenReturn(principal);
+        Mockito.when(siaProvider.getIdentity(any(),
+                any())).thenReturn(principal);
 
         ZTSClient client = new ZTSClient("http://localhost:4080/", "user_domain",
                 "user", siaProvider);
@@ -4022,5 +4024,45 @@ public class ZTSClientTest {
 
         ZTSClient.cancelPrefetch();
         client.close();
+    }
+
+    @Test
+    public void testPostExternalCredentialsRequest() throws IOException, URISyntaxException {
+
+        ZTSRDLGeneratedClient c = Mockito.mock(ZTSRDLGeneratedClient.class);
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(c);
+
+        ExternalCredentialsRequest request = new ExternalCredentialsRequest()
+                .setClientId("athenz.api")
+                .setExpiryTime(3600);
+        ExternalCredentialsResponse response = new ExternalCredentialsResponse();
+        Mockito.when(c.postExternalCredentialsRequest(anyString(), anyString(), any()))
+                .thenReturn(response)
+                .thenThrow(new ZTSClientException(401, "fail"))
+                .thenThrow(new IllegalArgumentException("other-error"));
+
+        ExternalCredentialsResponse creds = client.postExternalCredentialsRequest("gcp", "athenz", request);
+        assertNotNull(creds);
+
+        // second time it fails
+
+        try {
+            client.postExternalCredentialsRequest("gcp", "athenz", request);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(401, ex.getCode());
+        }
+
+        // last time with std exception
+
+        try {
+            client.postExternalCredentialsRequest("gcp", "athenz", request);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(400, ex.getCode());
+        }
     }
 }

@@ -2794,6 +2794,25 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Request external credentials for the principal
+     * @param provider provider name to request credentials from
+     * @param domainName request credentials from account/project associated with this athenz domain
+     * @param request request object with optional and required attributes
+     * @return ExternalCredentialsResponse object that includes requested external credentials
+     */
+    public ExternalCredentialsResponse postExternalCredentialsRequest(String provider,
+            String domainName, ExternalCredentialsRequest request) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.postExternalCredentialsRequest(provider, domainName, request);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve the list of all policies (not just names) from the ZTS Server that
      * is signed with both ZTS's and ZMS's private keys. It will pass an option matchingTag
      * so that ZTS can skip returning signed policies if no changes have taken

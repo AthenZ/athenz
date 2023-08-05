@@ -69,10 +69,9 @@ public class HttpDriver implements Closeable {
     private final int clientReadTimeoutMs;
 
     private CloseableHttpClient client;
-    private final PoolingHttpClientConnectionManager connManager;
+    private PoolingHttpClientConnectionManager connManager;
 
     public static class Builder {
-        // Required Parameters
         private final String baseUrl;
         private String truststorePath = null;
         private char[] truststorePassword = null;
@@ -146,7 +145,7 @@ public class HttpDriver implements Closeable {
         clientReadTimeoutMs = builder.clientReadTimeoutMs;
 
         SSLContext sslContext = builder.sslContext;
-        if (sslContext == null) {
+        if (sslContext == null && builder.keyPath != null && builder.certPath != null) {
             try {
                 sslContext = createSSLContext(builder.truststorePath, builder.truststorePassword, builder.certPath, builder.keyPath);
             } catch (IOException | InterruptedException | KeyRefresherException e) {
@@ -196,7 +195,8 @@ public class HttpDriver implements Closeable {
     }
 
     protected CloseableHttpClient createHttpClient(int connTimeoutMs, int readTimeoutMs, SSLContext sslContext,
-                                         PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+            PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
+
         //apache http client expects in milliseconds
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connTimeoutMs)

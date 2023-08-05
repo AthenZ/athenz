@@ -1445,7 +1445,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         if (getCloudStore() != null) {
             getCloudStore().updateAwsAccount(name, dataCache.getDomainData().getAccount());
             getCloudStore().updateAzureSubscription(name, dataCache.getDomainData().getAzureSubscription());
-            getCloudStore().updateGCPProject(name, dataCache.getDomainData().getGcpProject());
+            getCloudStore().updateGCPProject(name, dataCache.getDomainData().getGcpProject(), dataCache.getDomainData().getGcpProjectNumber());
         }
 
         /* update the cache for the given domain */

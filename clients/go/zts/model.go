@@ -4081,3 +4081,206 @@ func (self *Info) Validate() error {
 	}
 	return nil
 }
+
+// ExternalCredentialsRequest -
+type ExternalCredentialsRequest struct {
+
+	//
+	// client id to be referenced in the ID token as audience
+	//
+	ClientId ServiceName `json:"clientId"`
+
+	//
+	// optional expiry period specified in seconds
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// credential request attributes
+	//
+	Attributes map[string]string `json:"attributes,omitempty" rdl:"optional"`
+}
+
+// NewExternalCredentialsRequest - creates an initialized ExternalCredentialsRequest instance, returns a pointer to it
+func NewExternalCredentialsRequest(init ...*ExternalCredentialsRequest) *ExternalCredentialsRequest {
+	var o *ExternalCredentialsRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExternalCredentialsRequest)
+	}
+	return o
+}
+
+type rawExternalCredentialsRequest ExternalCredentialsRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExternalCredentialsRequest
+func (self *ExternalCredentialsRequest) UnmarshalJSON(b []byte) error {
+	var m rawExternalCredentialsRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExternalCredentialsRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExternalCredentialsRequest) Validate() error {
+	if self.ClientId == "" {
+		return fmt.Errorf("ExternalCredentialsRequest.clientId is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "ServiceName", self.ClientId)
+		if !val.Valid {
+			return fmt.Errorf("ExternalCredentialsRequest.clientId does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// ExternalCredentialsResponse -
+type ExternalCredentialsResponse struct {
+
+	//
+	// credential response attributes
+	//
+	Attributes map[string]string `json:"attributes"`
+
+	//
+	// credential expiry timestamp
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional"`
+}
+
+// NewExternalCredentialsResponse - creates an initialized ExternalCredentialsResponse instance, returns a pointer to it
+func NewExternalCredentialsResponse(init ...*ExternalCredentialsResponse) *ExternalCredentialsResponse {
+	var o *ExternalCredentialsResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExternalCredentialsResponse)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *ExternalCredentialsResponse) Init() *ExternalCredentialsResponse {
+	if self.Attributes == nil {
+		self.Attributes = make(map[string]string)
+	}
+	return self
+}
+
+type rawExternalCredentialsResponse ExternalCredentialsResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExternalCredentialsResponse
+func (self *ExternalCredentialsResponse) UnmarshalJSON(b []byte) error {
+	var m rawExternalCredentialsResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExternalCredentialsResponse(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExternalCredentialsResponse) Validate() error {
+	if self.Attributes == nil {
+		return fmt.Errorf("ExternalCredentialsResponse: Missing required field: attributes")
+	}
+	return nil
+}
+
+// DomainDetails -
+type DomainDetails struct {
+
+	//
+	// name of the athenz domain
+	//
+	Name DomainName `json:"name"`
+
+	//
+	// associated aws account id
+	//
+	AwsAccount string `json:"awsAccount,omitempty" rdl:"optional"`
+
+	//
+	// associated azure subscription id
+	//
+	AzureSubscription string `json:"azureSubscription,omitempty" rdl:"optional"`
+
+	//
+	// associated gcp project id
+	//
+	GcpProjectId string `json:"gcpProjectId,omitempty" rdl:"optional"`
+
+	//
+	// associated gcp project number
+	//
+	GcpProjectNumber string `json:"gcpProjectNumber,omitempty" rdl:"optional"`
+}
+
+// NewDomainDetails - creates an initialized DomainDetails instance, returns a pointer to it
+func NewDomainDetails(init ...*DomainDetails) *DomainDetails {
+	var o *DomainDetails
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainDetails)
+	}
+	return o
+}
+
+type rawDomainDetails DomainDetails
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainDetails
+func (self *DomainDetails) UnmarshalJSON(b []byte) error {
+	var m rawDomainDetails
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainDetails(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainDetails) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("DomainDetails.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "DomainName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.name does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.AwsAccount != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.AwsAccount)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.awsAccount does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AzureSubscription != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.AzureSubscription)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.azureSubscription does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.GcpProjectId != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.GcpProjectId)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.gcpProjectId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.GcpProjectNumber != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.GcpProjectNumber)
+		if !val.Valid {
+			return fmt.Errorf("DomainDetails.gcpProjectNumber does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}

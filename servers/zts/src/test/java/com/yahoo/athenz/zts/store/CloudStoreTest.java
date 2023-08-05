@@ -1105,11 +1105,13 @@ public class CloudStoreTest {
     @Test
     public void testGetGcpProject() {
         CloudStore cloudStore = new CloudStore();
-        assertNull(cloudStore.getGCPProject("athenz"));
-        cloudStore.updateGCPProject("athenz", "athenz-gcp-xsdc");
-        assertEquals(cloudStore.getGCPProject("athenz"), "athenz-gcp-xsdc");
-        cloudStore.updateGCPProject("athenz", "");
-        assertNull(cloudStore.getGCPProject("athenz"));
+        assertNull(cloudStore.getGCPProjectId("athenz"));
+        cloudStore.updateGCPProject("athenz", "athenz-gcp-xsdc", "1234");
+        assertEquals(cloudStore.getGCPProjectId("athenz"), "athenz-gcp-xsdc");
+        assertEquals(cloudStore.getGCPProjectNumber("athenz"), "1234");
+        cloudStore.updateGCPProject("athenz", "", "");
+        assertNull(cloudStore.getGCPProjectId("athenz"));
+        assertNull(cloudStore.getGCPProjectNumber("athenz"));
         cloudStore.close();
     }
 }
