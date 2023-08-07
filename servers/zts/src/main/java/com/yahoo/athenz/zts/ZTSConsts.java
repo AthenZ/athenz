@@ -260,4 +260,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_KEY_ALGO_PROPRIETARY_OBJECTS = "athenz.zts.key_algo_proprietary_objects";
     public static final String ZTS_PROP_KEY_ALGO_PLUGINS             = "athenz.zts.key_algo_plugins";
 
+    public static final String ZTS_PROP_GCP_WORKLOAD_POOL_NAME     = "athenz.zts.gcp_workload_pool_name";
+    public static final String ZTS_PROP_GCP_WORKLOAD_PROVIDER_NAME = "athenz.zts.gcp_workload_provider_name";
+
+    public static final String ZTS_EXTERNAL_CREDS_PROVIDER_GCP = "gcp";
+    public static final String ZTS_EXTERNAL_CREDS_PROVIDER_AWS = "aws";
+
+    public static final String ZTS_EXTERNAL_ATTR_ROLE_NAME = "athenzRoleName";
+    public static final String ZTS_EXTERNAL_ATTR_SCOPE     = "athenzScope";
+    public static final String ZTS_EXTERNAL_ATTR_FULL_ARN  = "athenzFullArn";
 }
