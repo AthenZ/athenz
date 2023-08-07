@@ -653,7 +653,9 @@ public class CloudStore {
 
         if (!StringUtil.isEmpty(gcpProjectId)) {
             gcpProjectIdCache.put(domainName, gcpProjectId);
-            gcpProjectNumberCache.put(domainName, gcpProjectNumber);
+            if (!StringUtil.isEmpty(gcpProjectNumber)) {
+                gcpProjectNumberCache.put(domainName, gcpProjectNumber);
+            }
         } else if (gcpProjectIdCache.get(domainName) != null) {
             gcpProjectIdCache.remove(domainName);
             gcpProjectNumberCache.remove(domainName);
