@@ -4946,7 +4946,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 .setAwsAccount(cloudStore.getAwsAccount(domainName))
                 .setAzureSubscription(cloudStore.getAzureSubscription(domainName));
 
-        return externalCredentialsProvider.getCredentials(principal, domainDetails, signedIdToken, extCredsRequest);
+        try {
+            return externalCredentialsProvider.getCredentials(principal, domainDetails, signedIdToken, extCredsRequest);
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            throw forbiddenError(ex.getMessage(), caller, domainName, principalDomain);
+        }
     }
 
     @Override

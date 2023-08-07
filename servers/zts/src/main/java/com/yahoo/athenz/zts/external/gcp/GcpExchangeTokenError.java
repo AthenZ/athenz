@@ -17,26 +17,29 @@
 package com.yahoo.athenz.zts.external.gcp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GcpAccessTokenResponse {
+public class GcpExchangeTokenError {
 
-    private String accessToken;
-    private String expireTime;
+    private String error;
 
-    public String getAccessToken() {
-        return accessToken;
+    @JsonProperty("error_description")
+    private String errorDescription;
+
+    public String getError() {
+        return error;
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setError(String error) {
+        this.error = error;
     }
 
-    public String getExpireTime() {
-        return expireTime;
+    public String getErrorDescription() {
+        return errorDescription;
     }
 
-    public void setExpireTime(String expireTime) {
-        this.expireTime = expireTime;
+    public void setErrorDescription(String errorDescription) {
+        this.errorDescription = errorDescription;
     }
 }

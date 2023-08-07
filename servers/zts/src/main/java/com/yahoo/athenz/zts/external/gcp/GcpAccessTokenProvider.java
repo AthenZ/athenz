@@ -21,6 +21,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.http.HttpDriver;
+import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.ResourceException;
 import com.yahoo.athenz.zts.DomainDetails;
 import com.yahoo.athenz.zts.ExternalCredentialsRequest;
@@ -28,6 +29,7 @@ import com.yahoo.athenz.zts.ExternalCredentialsResponse;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.rdl.Timestamp;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -118,8 +120,12 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
         HttpPost httpPost = new HttpPost(GCP_STS_TOKEN_URL);
         httpPost.setEntity(new StringEntity(jsonMapper.writeValueAsString(exchangeTokenRequest), ContentType.APPLICATION_JSON));
 
-        final String requestResponse = httpDriver.doPost(httpPost);
-        return jsonMapper.readValue(requestResponse, GcpExchangeTokenResponse.class);
+        final HttpDriverResponse httpResponse = httpDriver.doPostHttpResponse(httpPost);
+        if (httpResponse.getStatusCode() != HttpStatus.SC_OK) {
+            GcpExchangeTokenError error = jsonMapper.readValue(httpResponse.getMessage(), GcpExchangeTokenError.class);
+            throw new ResourceException(httpResponse.getStatusCode(), error.getErrorDescription());
+        }
+        return jsonMapper.readValue(httpResponse.getMessage(), GcpExchangeTokenResponse.class);
     }
 
     /**
@@ -178,8 +184,13 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
             httpPost.addHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
             httpPost.setEntity(new StringEntity(jsonMapper.writeValueAsString(accessTokenRequest), ContentType.APPLICATION_JSON));
 
-            final String requestResponse = httpDriver.doPost(httpPost);
-            GcpAccessTokenResponse gcpAccessTokenResponse = jsonMapper.readValue(requestResponse, GcpAccessTokenResponse.class);
+            final HttpDriverResponse httpResponse = httpDriver.doPostHttpResponse(httpPost);
+            if (httpResponse.getStatusCode() != HttpStatus.SC_OK) {
+                GcpAccessTokenError error = jsonMapper.readValue(httpResponse.getMessage(), GcpAccessTokenError.class);
+                throw new ResourceException(httpResponse.getStatusCode(), error.getErrorMessage());
+            }
+
+            GcpAccessTokenResponse gcpAccessTokenResponse = jsonMapper.readValue(httpResponse.getMessage(), GcpAccessTokenResponse.class);
 
             ExternalCredentialsResponse externalCredentialsResponse = new ExternalCredentialsResponse();
             attributes = new HashMap<>();

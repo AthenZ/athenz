@@ -32,6 +32,7 @@ import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.http.HttpDriver;
+import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
@@ -14520,8 +14521,11 @@ public class ZTSImplTest {
         provider.setAuthorizer(authorizer);
 
         HttpDriver httpDriver = Mockito.mock(HttpDriver.class);
-        Mockito.when(httpDriver.doPost(any())).thenReturn(GcpAccessTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR,
-                GcpAccessTokenProviderTest.ACCESS_TOKEN_RESPONSE_STR);
+        HttpDriverResponse exchangeTokenResponse = new HttpDriverResponse(200,
+                GcpAccessTokenProviderTest.EXCHANGE_TOKEN_RESPONSE_STR, null);
+        HttpDriverResponse accessTokenResponse = new HttpDriverResponse(200,
+                GcpAccessTokenProviderTest.ACCESS_TOKEN_RESPONSE_STR, null);
+        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse, accessTokenResponse);
 
         provider.setHttpDriver(httpDriver);
         Mockito.when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
@@ -14538,6 +14542,20 @@ public class ZTSImplTest {
         ExternalCredentialsResponse extCredsResponse = ztsImpl.postExternalCredentialsRequest(context,
                 "gcp", "coretech", extCredsRequest);
         assertNotNull(extCredsResponse);
+
+        // now let's configure our http driver to return failure
+
+        exchangeTokenResponse = new HttpDriverResponse(403, GcpAccessTokenProviderTest.EXCHANGE_TOKEN_ERROR_STR, null);
+        Mockito.when(httpDriver.doPostHttpResponse(any())).thenReturn(exchangeTokenResponse);
+        attributes.put("athenzScope", "openid coretech:role.writers");
+
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(403, ex.getCode());
+            assertTrue(ex.getMessage().contains("gcp exchange token error"));
+        }
     }
 
     @Test
