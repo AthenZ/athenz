@@ -42,6 +42,7 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
     Map<String, JwtsSigningKeyResolver> issuersMap = new ConcurrentHashMap<>();
     JwtsHelper jwtsHelper = new JwtsHelper();
 
+    @Override
     public void initialize() {
         k8sAttestationExpectedAudience = System.getProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "");
     }

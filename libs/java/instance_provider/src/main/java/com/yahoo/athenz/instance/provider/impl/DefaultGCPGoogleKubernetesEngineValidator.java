@@ -41,7 +41,7 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
     }
 
     @Override
-    public void initialize(final String region) {
+    public void initialize() {
         super.initialize();
         final String dnsSuffix = System.getProperty(GCP_PROP_DNS_SUFFIX);
         if (!StringUtil.isEmpty(dnsSuffix)) {

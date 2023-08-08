@@ -32,7 +32,7 @@ public class MockKubernetesDistributionValidatorFactory implements KubernetesDis
         Map<String, KubernetesDistributionValidator> map = new HashMap<>();
         KubernetesDistributionValidator mockValidator = new KubernetesDistributionValidator() {
             @Override
-            public void initialize(String region) {
+            public void initialize() {
 
             }
             @Override

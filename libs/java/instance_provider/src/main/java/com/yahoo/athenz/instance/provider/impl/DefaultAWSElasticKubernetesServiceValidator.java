@@ -61,12 +61,12 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
     private DefaultAWSElasticKubernetesServiceValidator() {
     }
     @Override
-    public void initialize(final String region) {
+    public void initialize() {
         super.initialize();
-        serverRegion = region;
+        serverRegion = System.getProperty(AWS_PROP_REGION_NAME);
         // Create an STS client using default credentials
         stsClient = AWSSecurityTokenServiceClientBuilder.standard()
-                .withRegion(region)
+                .withRegion(serverRegion)
                 .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
                 .build();
 

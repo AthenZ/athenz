@@ -25,9 +25,8 @@ import com.yahoo.athenz.instance.provider.impl.IdTokenAttestationData;
 public interface KubernetesDistributionValidator {
     /**
      * Optionally initialize the validator with the given region
-     * @param region server region
      */
-    void initialize(final String region);
+    void initialize();
 
     /**
      * Retrieves issuer from id_token in attestation data and validates it

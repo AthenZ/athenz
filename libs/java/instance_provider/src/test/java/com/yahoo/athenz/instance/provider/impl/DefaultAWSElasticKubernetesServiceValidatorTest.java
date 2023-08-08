@@ -25,9 +25,10 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
-import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
@@ -43,6 +44,16 @@ import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
 
 public class DefaultAWSElasticKubernetesServiceValidatorTest {
+
+    @BeforeMethod
+    public void setup() {
+        System.setProperty(InstanceAWSProvider.AWS_PROP_REGION_NAME, "us-west-2");
+    }
+
+    @AfterMethod
+    public void shutdown() {
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_REGION_NAME);
+    }
     @Test
     public void testVerifyIssuerPresenceInDomainAWSAccount() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
@@ -125,14 +136,14 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testInit() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         assertNotNull(validator.stsClient);
     }
 
     @Test
     public void testValidateIssuer() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -164,7 +175,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNoIssuerInToken() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -175,7 +186,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNullIssuerDomain() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -187,7 +198,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNullInvalidIssuerDomain() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -198,7 +209,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     @Test
     public void testValidateIssuerNoIssuerMatch() {
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
@@ -232,7 +243,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateSanDNSEntries() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -248,7 +259,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateSanDNSEntriesNoAccount() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -263,7 +274,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
     public void testValidateSanDNSEntriesIncorrectEntries() {
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "aws.athenz.cloud");
         DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");

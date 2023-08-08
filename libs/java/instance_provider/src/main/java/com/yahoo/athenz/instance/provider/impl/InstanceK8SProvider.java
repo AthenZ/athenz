@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider.AWS_PROP_REGION_NAME;
-
 public class InstanceK8SProvider implements InstanceProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstanceK8SProvider.class);
@@ -37,7 +35,6 @@ public class InstanceK8SProvider implements InstanceProvider {
     long certValidityTime;
 
     KubernetesDistributionValidatorFactory kubernetesDistributionValidatorFactory;
-    String serverRegion;
 
     Map<String, KubernetesDistributionValidator> kubernetesDistributionValidatorMap;
     @Override
@@ -58,13 +55,11 @@ public class InstanceK8SProvider implements InstanceProvider {
     public void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore) {
         int certValidityDays = Integer.parseInt(System.getProperty(ZTS_PROP_K8S_CERT_VALIDITY, "7"));
         certValidityTime = TimeUnit.MINUTES.convert(certValidityDays, TimeUnit.DAYS);
-
-        serverRegion = System.getProperty(AWS_PROP_REGION_NAME);
         kubernetesDistributionValidatorFactory = newKubernetesDistributionValidatorFactory();
         if (kubernetesDistributionValidatorFactory != null) {
             kubernetesDistributionValidatorFactory.initialize();
             kubernetesDistributionValidatorMap = kubernetesDistributionValidatorFactory.getSupportedDistributions();
-            kubernetesDistributionValidatorMap.forEach((key, value) -> value.initialize(serverRegion));
+            kubernetesDistributionValidatorMap.forEach((key, value) -> value.initialize());
         }
     }
 

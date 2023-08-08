@@ -51,7 +51,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         System.setProperty(GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         System.setProperty(GCP_PROP_GKE_DNS_SUFFIX, "gke.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize("us-west1");
+        validator.initialize();
         System.clearProperty(GCP_PROP_DNS_SUFFIX);
         System.clearProperty(GCP_PROP_GKE_DNS_SUFFIX);
     }
@@ -271,7 +271,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSanDNSEntries() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -287,7 +287,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSanDNSEntriesNoAccount() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
@@ -302,7 +302,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     public void testValidateSanDNSEntriesIncorrectEntries() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
-        validator.initialize("us-east-1");
+        validator.initialize();
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setDomain("my-domain");
         instanceConfirmation.setService("my-service");
