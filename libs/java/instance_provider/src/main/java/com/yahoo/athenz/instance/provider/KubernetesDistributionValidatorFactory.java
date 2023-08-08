@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider.impl;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+package com.yahoo.athenz.instance.provider;
+
+import java.util.Map;
 
 /**
- * CodeSigningAttestationData - the information a code signing certificate
- * requester must provide to ZTS to authenticate.
+ * Factory for creating KubernetesDistributionValidators
  */
-@JsonInclude()
-public class CodeSigningAttestationData {
-    private String identityToken;
+public interface KubernetesDistributionValidatorFactory {
 
-    public String getIdentityToken() {
-        return identityToken;
-    }
+    /**
+     * Initialize the factory
+     */
+    void initialize();
 
-    public void setIdentityToken(String identityToken) {
-        this.identityToken = identityToken;
-    }
+    /**
+     * Returns the supported Kubernetes distributions
+     * @return Map of KubernetesDistributionValidators
+     */
+    Map<String, KubernetesDistributionValidator> getSupportedDistributions();
 }

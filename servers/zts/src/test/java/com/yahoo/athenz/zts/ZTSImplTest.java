@@ -14280,7 +14280,8 @@ public class ZTSImplTest {
                 "1001",
                 "athenz-example1.host.com",
                 certRequest,
-                InstanceProvider.Scheme.CLASS
+                InstanceProvider.Scheme.CLASS,
+                "aws"
         );
 
         assertNotNull(confirmation);
@@ -14298,7 +14299,8 @@ public class ZTSImplTest {
                 "1001",
                 "athenz-example1.host.com",
                 certRequest,
-                InstanceProvider.Scheme.CLASS
+                InstanceProvider.Scheme.CLASS,
+                "aws"
         );
         assertNotNull(confirmation);
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN));

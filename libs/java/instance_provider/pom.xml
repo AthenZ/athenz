@@ -150,6 +150,10 @@
       <artifactId>google-api-client</artifactId>
       <version>${gcp.api-client.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-iam</artifactId>
+    </dependency>
   </dependencies>
 
 </project>

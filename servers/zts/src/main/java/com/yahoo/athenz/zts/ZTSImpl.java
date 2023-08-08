@@ -3732,7 +3732,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         InstanceConfirmation instance = newInstanceConfirmationForRegister(ctx, provider, domain,
                 service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
-                certReq, instanceProvider.getProviderScheme());
+                certReq, instanceProvider.getProviderScheme(), info.getCloud());
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity
@@ -3975,7 +3975,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
             final String instanceId, final String instanceHostname, final String certHostname, X509CertRequest certReq,
-            InstanceProvider.Scheme providerScheme) {
+            InstanceProvider.Scheme providerScheme, final String cloud) {
 
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
@@ -4043,6 +4043,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             attributes.put(InstanceProvider.ZTS_REQUEST_PRINCIPAL, principal.getFullName());
         }
 
+        if (cloud != null && !cloud.isEmpty()) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD, cloud);
+        }
+
         instance.setAttributes(attributes);
         return instance;
     }
@@ -4050,10 +4054,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceConfirmation newInstanceConfirmationForRegister(ResourceContext ctx, final String provider,
                                                             final String domain, final String service, final String attestationData,
                                                             final String instanceId, final String instanceHostname, X509CertRequest certReq,
-                                                            InstanceProvider.Scheme providerScheme) {
+                                                            InstanceProvider.Scheme providerScheme, final String cloud) {
         InstanceConfirmation instanceConfirmation = generateInstanceConfirmObject(ctx, provider,
                 domain, service, attestationData, instanceId,
-                instanceHostname, null, certReq, providerScheme
+                instanceHostname, null, certReq, providerScheme, cloud
         );
 
         // include the request cert attributes, if available
@@ -4235,7 +4239,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
                 domain, service, info.getAttestationData(), instanceId, info.getHostname(), certHostname,
-                certReq, instanceProvider.getProviderScheme());
+                certReq, instanceProvider.getProviderScheme(), info.getCloud());
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity

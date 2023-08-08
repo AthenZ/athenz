@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -368,5 +369,30 @@ public class InstanceUtilsTest {
         clusterNames.add("cluster-us-west-2");
         assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
                 Collections.singleton("athenz.cloud"), null, clusterNames, true, id));
+    }
+
+    @Test
+    public void testExtractURLDomainName() {
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://athenz.io/path/to/page"), "athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://athenz.io/"), "athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://athenz.io"), "athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://dev.athenz.io"), "dev.athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://dev.athenz.io/path/to/page"), "dev.athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://dev.athenz.io?name=value"), "dev.athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://dev.athenz.io/?name=value"), "dev.athenz.io");
+        Assert.assertEquals(InstanceUtils.extractURLDomainName("https://dev.athenz.io/path/to/page?name=value"), "dev.athenz.io");
+        Assert.assertNull(InstanceUtils.extractURLDomainName(null));
+        Assert.assertNull(InstanceUtils.extractURLDomainName(""));
+        Assert.assertNull(InstanceUtils.extractURLDomainName("some-random-string"));
+    }
+
+    @Test
+    public void testGetServiceAccountNameFromIdTokenSubject() {
+        Assert.assertEquals(InstanceUtils.getServiceAccountNameFromIdTokenSubject("system:serviceaccount:my-ns:my-sa"), "my-sa");
+        Assert.assertEquals(InstanceUtils.getServiceAccountNameFromIdTokenSubject("system:serviceaccount:my-ns:athenz.api"), "athenz.api");
+        Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject(""));
+        Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject(null));
+        Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject("my:invalid:ns:xyz"));
+        Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject("system:serviceaccount:invalid"));
     }
 }
