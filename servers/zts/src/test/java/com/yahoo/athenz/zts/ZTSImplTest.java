@@ -189,7 +189,7 @@ public class ZTSImplTest {
                 "src/test/resources/cert_refresh_ipblocks.txt");
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_ALLOWED_O_VALUES, "Athenz, Inc.|My Test Company|Athenz|Yahoo");
         System.setProperty(ZTSConsts.ZTS_PROP_NOAUTH_URI_LIST, "/zts/v1/schema,/zts/v1/status");
-        System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "screwdriver");
+        System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "screwdriver,rbac.*");
         System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
 
         // setup our metric class
@@ -11605,7 +11605,7 @@ public class ZTSImplTest {
     @Test
     public void testValidateInstanceServiceIdentity() {
 
-        DomainData domainData = new DomainData();
+        DomainData domainData = new DomainData().setName("athenz");
 
         zts.validateInstanceServiceIdentity = new DynamicConfigBoolean(true);
 
@@ -11652,6 +11652,12 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
         }
+
+        // rbac.sre does not exists, but is accepted because rbac.* is included in skipDomains
+
+        domainData = new DomainData().setName("rbac.sre");
+        zts.validateInstanceServiceIdentity(domainData, "rbac.sre.backend", "unit-test");
+        zts.validateInstanceServiceIdentity(domainData, "rbac.sre.frontend", "unit-test");
 
         // screwdriver services are excluded from the check since they're dynamic
         // screwdriver is configured as service skip domain

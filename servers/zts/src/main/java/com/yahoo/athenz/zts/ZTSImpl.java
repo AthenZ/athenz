@@ -145,7 +145,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
-    protected Set<String> validateServiceSkipDomains;
+    protected List<String> validateServiceSkipDomains;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -694,7 +694,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // dynamic - e.g. screwdriver projects
 
         final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
-        validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        validateServiceSkipDomains = Arrays.asList(skipDomains.split(","));
 
         validateInstanceServiceIdentity = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, true);
 
@@ -3537,8 +3537,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // need to check anything
 
         final String domainName = domainData.getName();
-        if (validateServiceSkipDomains.contains(domainName)) {
-            return;
+        for (String serviceSkipDomain : validateServiceSkipDomains) {
+            // first, we perform validation using wildcards
+            if (serviceSkipDomain.endsWith("*")) {
+                String serviceSkipDomainPrefix = serviceSkipDomain.substring(0, serviceSkipDomain.length() - 1);
+                if (domainName.startsWith(serviceSkipDomainPrefix)) {
+                    return;
+                }
+            } else if (serviceSkipDomain.equals(domainName)) {
+                // if skipDomain doesn't have wildcard, we conduct a perfect match search
+                return;
+            }
         }
 
         List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
