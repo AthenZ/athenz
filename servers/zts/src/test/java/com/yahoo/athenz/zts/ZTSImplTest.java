@@ -11600,7 +11600,7 @@ public class ZTSImplTest {
     @Test
     public void testValidateInstanceServiceIdentity() {
 
-        DomainData domainData = new DomainData();
+        DomainData domainData = new DomainData().setName("athenz");
 
         zts.validateInstanceServiceIdentity = new DynamicConfigBoolean(true);
 

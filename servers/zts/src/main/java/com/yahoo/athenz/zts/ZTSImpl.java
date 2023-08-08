@@ -3526,18 +3526,16 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // need to check anything
 
         final String domainName = domainData.getName();
-        if (domainName != null) {
-            for (String serviceSkipDomain : validateServiceSkipDomains) {
-                // first, we perform validation using wildcards
-                if (serviceSkipDomain.endsWith("*")) {
-                    String serviceSkipDomainPrefix = serviceSkipDomain.substring(0, serviceSkipDomain.length() - 1);
-                    if (domainName.startsWith(serviceSkipDomainPrefix)) {
-                        return;
-                    }
-                } else if (serviceSkipDomain.equals(domainName)) {
-                    // if skipDomain doesn't have wildcard, we conduct a perfect match search
+        for (String serviceSkipDomain : validateServiceSkipDomains) {
+            // first, we perform validation using wildcards
+            if (serviceSkipDomain.endsWith("*")) {
+                String serviceSkipDomainPrefix = serviceSkipDomain.substring(0, serviceSkipDomain.length() - 1);
+                if (domainName.startsWith(serviceSkipDomainPrefix)) {
                     return;
                 }
+            } else if (serviceSkipDomain.equals(domainName)) {
+                // if skipDomain doesn't have wildcard, we conduct a perfect match search
+                return;
             }
         }
 
