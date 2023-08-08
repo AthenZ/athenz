@@ -3534,7 +3534,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     if (domainName.startsWith(serviceSkipDomainPrefix)) {
                         return;
                     }
-                } else if (validateServiceSkipDomains.contains(domainName)) {
+                } else if (serviceSkipDomain.equals(domainName)) {
                     // if skipDomain doesn't have wildcard, we conduct a perfect match search
                     return;
                 }
