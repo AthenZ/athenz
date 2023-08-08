@@ -9,13 +9,13 @@
 - [Build Athenz](#build-athenz)
 - [Deploy Athenz](#deploy-athenz)
 - [Verify Athenz Deployment](#verify-athenz-deployment)
-    - [JAVA Remote debugging](#java-remote-debugging)
+  - [JAVA Remote debugging](#java-remote-debugging)
 - [Cleanup](#cleanup)
 - [Appendix](#appendix)
-    - [Important Files](#important-files)
-    - [Default server ports](#default-server-ports)
-    - [Useful Commands](#useful-commands)
-    - [TODO](#todo)
+  - [Important Files](#important-files)
+  - [Default server ports](#default-server-ports)
+  - [Useful Commands](#useful-commands)
+  - [TODO](#todo)
 
 <!-- /TOC -->
 
@@ -46,7 +46,7 @@ make build
 ## Deploy Athenz
 
 - production environment
-    - [Athenz-bootstrap](./docs/Athenz-bootstrap.md)
+  - [Athenz-bootstrap](./docs/Athenz-bootstrap.md)
 - development environment
     ```bash
     make deploy-dev
@@ -56,7 +56,7 @@ make build
 ## Verify Athenz Deployment
 
 - production environment
-    - [acceptance-test](./docs/acceptance-test.md)
+  - [acceptance-test](./docs/acceptance-test.md)
 - development environment
     ```bash
     make verify
@@ -128,23 +128,23 @@ make clean
 <a id="markdown-default-server-ports" name="default-server-ports"></a>
 ### Default server ports
 - `3306->3306/tcp`: ZMS DB
-    - [env.sh](./env.sh): `ZMS_DB_PORT`
-    - related configuration:
-        - [zms-db.cnf](./db/zms/zms-db.cnf): `mysqld.port`
-        - [zms.properties](./zms/conf/zms.properties): `athenz.zms.jdbc_store`
+  - [env.sh](./env.sh): `ZMS_DB_PORT`
+  - related configuration:
+    - [zms-db.cnf](./db/zms/zms-db.cnf): `mysqld.port`
+    - [zms.properties](./zms/conf/zms.properties): `athenz.zms.jdbc_store`
 - `4443->4443/tcp`: ZMS server
-    - [env.sh](./env.sh): `ZMS_PORT`
-    - related configuration:
-        - [athenz.properties](./zms/conf/athenz.properties): `athenz.tls_port`
+  - [env.sh](./env.sh): `ZMS_PORT`
+  - related configuration:
+    - [athenz.properties](./zms/conf/athenz.properties): `athenz.tls_port`
 - `3307->3306/tcp`: ZTS DB
-    - [env.sh](./env.sh): `ZTS_DB_PORT`
-    - related configuration:
-        - [zts-db.cnf](./db/zts/zts-db.cnf): `mysqld.port`
-        - [zts.properties](./zts/conf/zts.properties): `athenz.zts.cert_jdbc_store`
+  - [env.sh](./env.sh): `ZTS_DB_PORT`
+  - related configuration:
+    - [zts-db.cnf](./db/zts/zts-db.cnf): `mysqld.port`
+    - [zts.properties](./zts/conf/zts.properties): `athenz.zts.cert_jdbc_store`
 - `8443->8443/tcp`: ZTS server
-    - [env.sh](./env.sh): `ZTS_PORT`
-    - related configuration:
-        - [athenz.properties](./zts/conf/athenz.properties): `athenz.tls_port`
+  - [env.sh](./env.sh): `ZTS_PORT`
+  - related configuration:
+    - [athenz.properties](./zts/conf/athenz.properties): `athenz.tls_port`
 
 <a id="markdown-useful-commands" name="useful-commands"></a>
 ### Useful Commands
@@ -191,8 +191,9 @@ keytool -list -keystore ./zts/var/certs/zts_truststore.jks
 - [Athenz-bootstrap#todo](./docs/Athenz-bootstrap.md#todo)
 - UI
     1. convert `default-config.js` parameters to ENV
-    1. `server.js`, `login.js`, `serviceFQN`; `keys` folder is hard coded
-    1. configurable listening port
+    1. add CA certificate settings for ZMS and ZTS server, so that `NODE_TLS_REJECT_UNAUTHORIZED=0` can be removed
+    1. find a safe `serverCipherSuites` list for deploying locally
+    1. show hint for using `user.github-7654321` to login when deploying locally
 - ZMS
     1. need server health check, e.g. readiness probe
 - ZPU
