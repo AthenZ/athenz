@@ -1,3 +1,14 @@
+Athenz v1.11.38 Release / Aug 08, 2023
+--------------------------------------
+
+#2262 new optional attribute in instance identity register/refresh request
+#2263 skip tests if -DskipTests=true is provided
+#2264 support adding cert to secret manager
+#2265 Generic Kubernetes provider for Athenz
+#2266 support external gcp access token support from registered projects
+#2267 add wildcard support for ServiceSkipDomains
+#2268 fix for deploying Athenz UI container locally
+
 Athenz v1.11.37 Release / Jul 28, 2023
 --------------------------------------
 
