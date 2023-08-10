@@ -167,7 +167,8 @@ type Options struct {
 	Account             string            //name of the account
 	Service             string            //name of the service for the identity
 	Zts                 string            //the ZTS to contact
-	InstanceId          string            //instance id if ec2, task id if running within eks/ecs
+	InstanceId          string            //instance id if ec2/vm, task id if running within eks/ecs/gke
+	InstanceName        string            //instance name if ec2/vm
 	Roles               []Role            //map of roles to retrieve certificates for
 	Region              string            //region name
 	SanDnsWildcard      bool              //san dns wildcard support

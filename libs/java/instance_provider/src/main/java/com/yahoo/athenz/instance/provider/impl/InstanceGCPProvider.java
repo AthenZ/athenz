@@ -103,8 +103,8 @@ public class InstanceGCPProvider implements InstanceProvider {
         gcpRegion = System.getProperty(GCP_PROP_REGION_NAME);
 
         // get our dynamic list of gke cluster names
-        gkeClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, GCP_PROP_GKE_CLUSTER_NAMES, null);
 
+        gkeClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, GCP_PROP_GKE_CLUSTER_NAMES, null);
     }
 
     public ResourceException error(String message) {
@@ -242,6 +242,11 @@ public class InstanceGCPProvider implements InstanceProvider {
         validateAttestationData(confirmation, attestationData, derivedAttestationData, gcpProject,
                 instanceId.toString(), true, errMsg);
 
+        // if we're given an instance name uri in the csr, then we should
+        // validate that as well
+
+        validateInstanceNameUri(derivedAttestationData.getAdditionalAttestationData(), instanceAttributes);
+
         // validate that the domain/service given in the confirmation
         // request match the attestation data
         // we are using gcpProject name instead of domain name here since there is a 1:1
@@ -295,11 +300,19 @@ public class InstanceGCPProvider implements InstanceProvider {
         validateAttestationData(confirmation, attestationData, derivedAttestationData,
                 gcpProject, instanceId, false, errMsg);
 
+        // if we're given an instance name uri in the csr, then we should
+        // validate that as well
+
+        validateInstanceNameUri(derivedAttestationData.getAdditionalAttestationData(), instanceAttributes);
+
+        // validate that the domain/service given in the confirmation
+        // request match the attestation data
+
         validateAthenzService(derivedAttestationData, instanceService, gcpProject);
 
         // set the attributes to be returned to the ZTS server
-        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData());
 
+        setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData());
 
         return confirmation;
     }
@@ -312,6 +325,36 @@ public class InstanceGCPProvider implements InstanceProvider {
         if (!validateIdentityToken(confirmation.getProvider(), attestationData, derivedAttestationData, gcpProject,
                 instanceId, checkTime, errMsg)) {
             throw error("Unable to validate instance identity token: " + errMsg);
+        }
+    }
+
+    void validateInstanceNameUri(GCPAdditionalAttestationData attestationData, final Map<String, String> attributes) {
+
+        final String uriList = InstanceUtils.getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_SAN_URI);
+        if (StringUtil.isEmpty(uriList)) {
+            return;
+        }
+
+        String instanceNameUri = null;
+        if (attestationData != null) {
+            instanceNameUri = InstanceUtils.ZTS_CERT_INSTANCE_NAME_URI + attestationData.getProjectId()
+                    + "/" + attestationData.getInstanceName();
+        }
+
+        String[] uris = uriList.split(",");
+        for (String uri : uris) {
+
+            // ignore attributes that don't start with instance name uri prefix
+
+            if (!uri.startsWith(InstanceUtils.ZTS_CERT_INSTANCE_NAME_URI)) {
+                continue;
+            }
+
+            // if the instance name uri does not match, then we need to reject this request
+
+            if (!uri.equals(instanceNameUri)) {
+                throw error("Instance name URI mismatch: " + uri + " vs. " + instanceNameUri);
+            }
         }
     }
 
@@ -344,5 +387,4 @@ public class InstanceGCPProvider implements InstanceProvider {
         }
         confirmation.setAttributes(attributes);
     }
-
 }

@@ -34,6 +34,8 @@ public class InstanceUtils {
     static final String ZTS_CERT_INSTANCE_ID_URI  = "athenz://instanceid/";
     static final int ZTS_CERT_INSTANCE_ID_URI_LEN = ZTS_CERT_INSTANCE_ID_URI.length();
 
+    static final String ZTS_CERT_INSTANCE_NAME_URI = "athenz://instancename/";
+
     static final String URL_REGEX = "^https://([^/?]+)";
     static final Pattern URL_PATTERN = java.util.regex.Pattern.compile(URL_REGEX);
 

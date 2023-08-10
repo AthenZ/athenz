@@ -122,6 +122,13 @@ func main() {
 		log.Fatalf("Unable to get instance id, error: %v\n", err)
 	}
 
+	// not being able to get an instance name is not a fatal error
+	instanceName, err := meta.GetInstanceName(*gceMetaEndPoint)
+	if err != nil {
+		instanceName = ""
+		log.Printf("Unable to get instance name, error: %v\n", err)
+	}
+
 	privateIp, err := meta.GetInstancePrivateIp(*gceMetaEndPoint)
 	if err != nil {
 		log.Fatalf("Unable to get instance private ip, error: %v\n", err)
@@ -136,6 +143,7 @@ func main() {
 	opts.ZTSServerName = *ztsServerName
 	opts.ZTSCloudDomains = strings.Split(*dnsDomains, ",")
 	opts.InstanceId = instanceId
+	opts.InstanceName = instanceName
 	opts.Provider = provider
 	opts.PrivateIp = privateIp
 	opts.SpiffeNamespace = "default"

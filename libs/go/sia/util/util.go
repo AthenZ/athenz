@@ -66,6 +66,8 @@ type SvcCertReqOptions struct {
 	Domain            string
 	Service           string
 	CommonName        string
+	Account           string
+	InstanceName      string
 	InstanceId        string
 	Provider          string
 	Hostname          string
@@ -353,6 +355,12 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 	// athenz://instanceid/<provider>/<instance-id>
 	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", options.Provider, options.InstanceId)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
+
+	// athenz://instancename/<account>/<instance-name>
+	if options.Account != "" && options.InstanceName != "" {
+		instanceNameUri := fmt.Sprintf("athenz://instancename/%s/%s", options.Account, options.InstanceName)
+		csrDetails.URIs = AppendUri(csrDetails.URIs, instanceNameUri)
+	}
 
 	return GenerateX509CSR(key, csrDetails)
 }

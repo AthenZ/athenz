@@ -305,6 +305,8 @@ func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 		Domain:            "domain",
 		Service:           "service",
 		CommonName:        "domain.service",
+		Account:           "gcp-project1",
+		InstanceName:      "api-instance",
 		InstanceId:        "instance001",
 		Provider:          "Athenz",
 		ZtsDomains:        []string{"athenz.cloud"},
@@ -325,7 +327,7 @@ func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 		test.Errorf("Cannot parse CSR: %v", err)
 		return
 	}
-	if len(parsedcertreq.URIs) != 2 {
+	if len(parsedcertreq.URIs) != 3 {
 		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
 		return
 	}
@@ -334,7 +336,11 @@ func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 		return
 	}
 	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
-		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
+		test.Errorf("CSR does not have expected instance id uri: %s", parsedcertreq.URIs[1].String())
+		return
+	}
+	if parsedcertreq.URIs[2].String() != "athenz://instancename/gcp-project1/api-instance" {
+		test.Errorf("CSR does not have expected instance name uri: %s", parsedcertreq.URIs[2].String())
 		return
 	}
 }
