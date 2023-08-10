@@ -341,18 +341,19 @@ class DomainDetails extends React.Component {
                     </SectionDiv>
                     <SectionDiv>
                         <ValueDiv>
-                            {this.props.domainDetails.ypmId ? (
+                            {this.props.domainDetails.productId ? (
                                 <StyledAnchorDiv
                                     data-testid='pm-id'
                                     onClick={() =>
                                         window.open(
                                             this.props.productMasterLink.url +
-                                                this.props.domainDetails.ypmId,
+                                                this.props.domainDetails
+                                                    .productId,
                                             this.props.productMasterLink.target
                                         )
                                     }
                                 >
-                                    {this.props.domainDetails.ypmId}
+                                    {this.props.domainDetails.productId}
                                 </StyledAnchorDiv>
                             ) : (
                                 'N/A'

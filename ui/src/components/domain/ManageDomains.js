@@ -364,7 +364,9 @@ class ManageDomains extends React.Component {
                               )}
                           </TDStyled>
                           <TDStyled color={color} align={center}>
-                              {item.domain.ypmId ? item.domain.ypmId : ''}
+                              {item.domain.productId
+                                  ? item.domain.productId
+                                  : ''}
                           </TDStyled>
                           <TDStyled color={color} align={center}>
                               <Switch
