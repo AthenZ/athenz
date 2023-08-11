@@ -40,6 +40,5 @@ deployProject "com.yahoo.athenz:athenz-msd-java-client"
 deployProject "com.yahoo.athenz:athenz-server-common"
 deployProject "com.yahoo.athenz:athenz-instance-provider"
 deployProject "com.yahoo.athenz:athenz-jetty-container"
-deployProject "com.yahoo.athenz:athenz-utils"
 
 rm -rf screwdriver/deploy
