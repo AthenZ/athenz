@@ -1,3 +1,18 @@
+Athenz v1.10.56 Release / Aug 10, 2023
+--------------------------------------
+
+#2257 set the locale to be used for log testing
+#2259 update bouncy castle library
+
+Athenz v1.10.55 Release / Oct 21, 2022
+--------------------------------------
+
+#xxxx updated dependencies to address databind CVE 
+#1857 UI: validate source/destination service in microsegmentation
+#1858 Provide support to write host document in sia libs
+#1859 test: use T.TempDir to create temporary test directory
+#1861 fix logic in go IsExpiryAfterThreshold
+
 Athenz v1.10.54 Release / Apr 19, 2022
 --------------------------------------
 
