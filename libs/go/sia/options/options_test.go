@@ -54,6 +54,13 @@ const iamAccessProfileJson = `{
   "InstanceProfileId" : "XXXXPROFILEIDYYYY"
 }`
 
+const iamAccessProfileJsonServiceNameOnly = `{
+  "Code" : "Success",
+  "LastUpdated" : "2019-05-06T15:35:48Z",
+  "InstanceProfileArn" : "arn:aws:iam::123456789012:instance-profile/hockey-service@test-profile",
+  "InstanceProfileId" : "XXXXPROFILEIDYYYY"
+}`
+
 type testServer struct {
 	listener net.Listener
 	addr     string
@@ -764,4 +771,38 @@ func TestOptionsWithSiaDirs(t *testing.T) {
 	assert.Equal(t, "/var/athenz/certs", opts.CertDir)
 	assert.Equal(t, "/var/athenz/tokens", opts.TokenDir)
 	assert.Equal(t, "/var/athenz/backup", opts.BackupDir)
+}
+
+func TestOptionsWithServiceOnlySetup(t *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, iamAccessProfileJsonServiceNameOnly)
+	})
+	router.GET("/latest/meta-data/tags/instance/athenz-domain", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /latest/dynamic/instance-identity/document")
+		io.WriteString(w, "athenz")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	configAccount, profileConfig, err := InitProfileConfig(metaServer.httpUrl(), "-service", "@")
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+
+	opts, e := setOptions(nil, configAccount, profileConfig, "/tmp", "1.0.0")
+	require.Nilf(t, e, "error should be empty, error: %v", e)
+	require.NotNil(t, opts, "should be able to get Options")
+
+	// Make sure one service is set
+	assert.Equal(t, len(opts.Services), 1)
+	assert.True(t, opts.OmitDomain)
+	assert.Equal(t, opts.Domain, "athenz")
+	assert.Equal(t, opts.Name, "athenz.hockey")
+	assert.Equal(t, opts.Profile, "test-profile")
+
+	assert.Equal(t, opts.Threshold, DefaultThreshold)
+	assert.Equal(t, opts.SshThreshold, DefaultThreshold)
 }

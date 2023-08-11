@@ -713,10 +713,14 @@ func ParseTaskArn(taskArn string) (string, string, string, error) {
 	return account, taskId, region, nil
 }
 
-func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string) (string, string, string, string, error) {
-	//arn:aws:iam::123456789012:role/athenz.zts
-	//arn:aws:iam::123456789012:instance-profile/athenz.zts
-	//arn:aws:iam::123456789012:instance-profile/athenz.zts@access-profile
+func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string, roleServiceNameOnly bool) (string, string, string, string, error) {
+	// supported formats are
+	//  arn:aws:iam::123456789012:role/athenz.zts
+	//  arn:aws:iam::123456789012:instance-profile/athenz.zts
+	//  arn:aws:iam::123456789012:instance-profile/athenz.zts@access-profile
+	// if roleServiceNameOnly option is true then we also support
+	//  arn:aws:iam::123456789012:instance-profile/zts
+	// where domain name can be derived server side from the account number
 
 	if !strings.HasPrefix(roleArn, "arn:aws:iam:") {
 		return "", "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
@@ -753,11 +757,17 @@ func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string) (str
 	// get service details without suffix
 	serviceData := serviceRole[:len(serviceRole)-len(roleSuffix)]
 	idx := strings.LastIndex(serviceData, ".")
+	var domain, service string
 	if idx < 0 {
-		return "", "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+		if !roleServiceNameOnly {
+			return "", "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+		} else {
+			service = serviceData
+		}
+	} else {
+		domain = serviceData[:idx]
+		service = serviceData[idx+1:]
 	}
-	domain := serviceData[:idx]
-	service := serviceData[idx+1:]
 	account := arn[4]
 	return account, domain, service, profile, nil
 }

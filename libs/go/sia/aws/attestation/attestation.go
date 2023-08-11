@@ -29,31 +29,38 @@ import (
 )
 
 type AttestationData struct {
-	Role      string `json:"role,omitempty"`      //the IAM role. This must match the athenz service identity
-	Access    string `json:"access,omitempty"`    //the temp creds access key id
-	Secret    string `json:"secret,omitempty"`    //the temp creds secret key
-	Token     string `json:"token,omitempty"`     //the temp creds session token
-	Document  string `json:"document,omitempty"`  //for EC2 instance document
-	Signature string `json:"signature,omitempty"` //for EC2 instance document pkcs7 signature
+	Role       string `json:"role,omitempty"`       //the IAM role. This must match the athenz service identity
+	CommonName string `json:"commonName,omitempty"` //The common name for CSR. Different from Role if we're using service name only
+	Access     string `json:"access,omitempty"`     //the temp creds access key id
+	Secret     string `json:"secret,omitempty"`     //the temp creds secret key
+	Token      string `json:"token,omitempty"`      //the temp creds session token
+	Document   string `json:"document,omitempty"`   //for EC2 instance document
+	Signature  string `json:"signature,omitempty"`  //for EC2 instance document pkcs7 signature
 }
 
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
 func New(opts *options.Options, service string) (*AttestationData, error) {
-
-	role := fmt.Sprintf("%s.%s", opts.Domain, service)
+	commonName := fmt.Sprintf("%s.%s", opts.Domain, service)
+	var role string
+	if opts.OmitDomain {
+		role = service
+	} else {
+		role = commonName
+	}
 	tok, err := getSTSToken(opts.UseRegionalSTS, opts.Region, opts.Account, role)
 	if err != nil {
 		return nil, err
 	}
 	return &AttestationData{
-		Role:      role,
-		Document:  opts.EC2Document,
-		Signature: opts.EC2Signature,
-		Access:    *tok.Credentials.AccessKeyId,
-		Secret:    *tok.Credentials.SecretAccessKey,
-		Token:     *tok.Credentials.SessionToken,
+		Role:       role,
+		CommonName: commonName,
+		Document:   opts.EC2Document,
+		Signature:  opts.EC2Signature,
+		Access:     *tok.Credentials.AccessKeyId,
+		Secret:     *tok.Credentials.SecretAccessKey,
+		Token:      *tok.Credentials.SessionToken,
 	}, nil
 }
 
