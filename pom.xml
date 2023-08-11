@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.10.56</version>
+  <version>1.10.57-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
