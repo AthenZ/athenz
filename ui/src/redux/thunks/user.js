@@ -60,3 +60,12 @@ export const getUserResourceAccessList =
             dispatch(returnUserResourceAccessList());
         }
     };
+
+export const getUsers = async (prefix, dispatch) => {
+    try {
+        const userList = await API().getUsers(prefix);
+        return Promise.resolve(userList);
+    } catch (e) {
+        throw e;
+    }
+};

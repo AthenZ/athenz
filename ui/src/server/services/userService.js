@@ -15,21 +15,50 @@
  */
 'use strict';
 
-let usersHash = {};
+let usersArray = [];
 let prevContentLength = 0;
 let userServiceImpl = require('./userServiceImpl');
+const fs = require('fs');
+const util = require('util');
 const debug = require('debug')('AthenzUI:server:service:userService');
+const DEFAULT_USER_DOMAINS = 'user';
 let VALID_USER_DOMAINS = [];
 
 function getUserFullName(userName) {
     const userArr = userName.split('.');
     if (VALID_USER_DOMAINS.indexOf(userArr[0]) !== -1) {
         const shortId = userArr[1];
-        return shortId !== undefined && usersHash[shortId] !== undefined
-            ? usersHash[shortId].name
-            : null;
+        let userObj = usersArray.filter((user) => user.login === shortId);
+        return userObj && userObj[0] ? userObj[0].name : null;
     }
     return null;
+}
+
+function getUsers(prefix) {
+    const escapedPrefix = prefix.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+    return usersArray
+        .map((userData) => {
+            // filter like 'startWith' (top score = 1)
+            if (
+                new RegExp(
+                    `[(\\s]${escapedPrefix}|^${escapedPrefix}`,
+                    'i'
+                ).test(userData.name) ||
+                new RegExp(`^${escapedPrefix}`, 'i').test(userData.login)
+            ) {
+                return { ...userData, score: 1 };
+            }
+            // filter like 'contains' (low score = 0)
+            if (
+                new RegExp(escapedPrefix, 'i').test(userData.name) ||
+                new RegExp(escapedPrefix, 'i').test(userData.login)
+            ) {
+                return { ...userData, score: 0 };
+            }
+        })
+        .filter((scoredUserData) => scoredUserData)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
 }
 
 function prepareUserData(userData, userDomains) {
@@ -38,16 +67,14 @@ function prepareUserData(userData, userDomains) {
         let usersObj = JSON.parse(userData);
         usersObj.forEach((user) => {
             if (user.enabled_status && user.is_human) {
-                usersHash[user.login] = {
+                let userNameObj = {
                     login: user.login,
                     name: user.gecos,
                 };
+                usersArray.push(userNameObj);
             }
         });
-        debug(
-            'updateUserData - Active users count: %o',
-            Object.keys(usersHash).length
-        );
+        debug('updateUserData - Active users count: %o', usersArray.length);
     } else {
         debug('usersFile is undefined - Cannot process users data');
     }
@@ -77,5 +104,26 @@ function refreshUserData(config, extServiceClient) {
         });
 }
 
+async function readUsersFileFromDisk(fileName) {
+    try {
+        prepareUserData.call(
+            this,
+            await util.promisify(fs.readFile)(
+                process.env.HOME + '/.' + fileName,
+                'utf8'
+            ),
+            DEFAULT_USER_DOMAINS
+        );
+    } catch (reason) {
+        console.error(
+            'Cant fetch users data: ',
+            reason,
+            ', Do NOT abort process'
+        );
+    }
+}
+
 module.exports.getUserFullName = getUserFullName;
 module.exports.refreshUserData = refreshUserData;
+module.exports.readUsersFileFromDisk = readUsersFileFromDisk;
+module.exports.getUsers = getUsers;

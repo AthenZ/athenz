@@ -1024,6 +1024,21 @@ const Api = (req) => {
             });
         },
 
+        getUsers(prefix) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('user-prefix')
+                    .params({ prefix })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getPolicy(domainName, policyName) {
             return new Promise((resolve, reject) => {
                 fetchr
