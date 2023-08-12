@@ -1,14 +1,14 @@
 # athenz mvn base
 
-FROM rdl-athenz-server AS rdl
+FROM athenz/rdl-athenz-server AS rdl
 
-FROM rdl-athenz-java-model AS rdl-java-model
+FROM athenz/rdl-athenz-java-model AS rdl-java-model
 
-FROM rdl-athenz-go-model AS rdl-go-model
+FROM athenz/rdl-athenz-go-model AS rdl-go-model
 
-FROM rdl-athenz-java-client AS rdl-java-client
+FROM athenz/rdl-athenz-java-client AS rdl-java-client
 
-FROM maven:3.8.6-eclipse-temurin-11-alpine AS mvn
+FROM maven:3-eclipse-temurin-11-focal AS mvn
 # date -u +'%Y-%m-%dT%H:%M:%SZ'
 ARG BUILD_DATE
 # git rev-parse --short HEAD
@@ -81,7 +81,7 @@ COPY ./assembly/utils/pom.xml ./assembly/utils/pom.xml
 # RUN mvn -U -B dependency:resolve --fail-never
 # RUN mvn -U -B dependency:resolve --fail-never -DexcludeGroupIds=com.yahoo.athenz
 
-RUN mvn -U -B dependency:go-offline --fail-never
+RUN mvn -U -B dependency:go-offline --fail-never -DdockerBuild=true
 # RUN mvn -U -B dependency:go-offline --fail-never -DexcludeGroupIds=com.yahoo.athenz
 
 # docker run -it --name athenz-base-mvn athenz-base-mvn sh; docker rm athenz-base-mvn
