@@ -187,7 +187,7 @@ class AddMember extends React.Component {
     }
 
     userSearch(part) {
-        if (part.startsWith('user.')) {
+        if (part.startsWith(USER_DOMAIN)) {
             part = part.substring(5);
         }
         return getUsers(part).then((r) => {

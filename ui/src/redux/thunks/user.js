@@ -66,6 +66,6 @@ export const getUsers = async (prefix, dispatch) => {
         const userList = await API().getUsers(prefix);
         return Promise.resolve(userList);
     } catch (e) {
-        throw e;
+        return Promise.reject(e);
     }
 };
