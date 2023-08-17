@@ -15,6 +15,7 @@
  */
 
 import {
+    ADD_ALL_USERS,
     LOAD_PENDING_MEMBERS,
     LOAD_RESOURCE_ACCESS_LIST,
 } from '../actions/user';
@@ -40,12 +41,12 @@ export const user = (state = {}, action) => {
             let newState = produce(state, (draft) => {
                 if (
                     draft.pendingMembers[
-                        domainName + member.memberName + roleName
-                    ]
+                    domainName + member.memberName + roleName
+                        ]
                 ) {
                     delete draft.pendingMembers[
-                        domainName + member.memberName + roleName
-                    ];
+                    domainName + member.memberName + roleName
+                        ];
                 }
             });
             return newState;
@@ -55,15 +56,21 @@ export const user = (state = {}, action) => {
             let newState = produce(state, (draft) => {
                 if (
                     draft.pendingMembers[
-                        domainName + member.memberName + groupName
-                    ]
+                    domainName + member.memberName + groupName
+                        ]
                 ) {
                     delete draft.pendingMembers[
-                        domainName + member.memberName + groupName
-                    ];
+                    domainName + member.memberName + groupName
+                        ];
                 }
             });
             return newState;
+        }
+        case ADD_ALL_USERS: {
+            const { userList } = payload;
+            return produce(state, (draft) => {
+                draft.userList = userList;
+            });
         }
         default:
             return state;

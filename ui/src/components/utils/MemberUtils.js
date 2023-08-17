@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import RegexUtils from './RegexUtils';
+import { getUsers } from '../../redux/utils';
+import { USER_DOMAIN } from '../constants/constants';
 
 export default class MemberUtils {
     static getUserNames(name, regex) {
@@ -37,5 +39,21 @@ export default class MemberUtils {
             invalidUsers,
             validUsers,
         };
+    }
+
+    static userSearch(part, userList) {
+        if (part.startsWith(USER_DOMAIN)) {
+            part = part.substring(5);
+        }
+        return getUsers(part, userList).then((r) => {
+            let usersArr = [];
+            r.forEach((u) =>
+                usersArr.push({
+                    name: u.name + ' [user.' + u.login + ']',
+                    value: 'user.' + u.login,
+                })
+            );
+            return usersArr;
+        });
     }
 }

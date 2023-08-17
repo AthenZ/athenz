@@ -191,3 +191,7 @@ export const mockAllDomainDataApiCalls = (domainDetails, headerDetails) => {
         ),
     };
 };
+
+export const getStateWithUserList = (userList, initialState = {}) => {
+    return { ...initialState, user: userList };
+};

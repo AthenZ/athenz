@@ -1024,11 +1024,11 @@ const Api = (req) => {
             });
         },
 
-        getUsers(prefix) {
+        getAllUsers() {
             return new Promise((resolve, reject) => {
                 fetchr
-                    .read('user-prefix')
-                    .params({ prefix })
+                    .read('all-users')
+                    .params()
                     .end((err, data) => {
                         if (err) {
                             reject(err);

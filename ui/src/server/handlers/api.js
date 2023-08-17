@@ -1151,10 +1151,10 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
-    name: 'user-prefix',
+    name: 'all-users',
     read(req, resource, params, config, callback) {
         callback(null, {
-            users: userService.getUsers(params.prefix),
+            users: userService.getAllUsers(),
         });
     },
 });

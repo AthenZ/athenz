@@ -34,31 +34,8 @@ function getUserFullName(userName) {
     return null;
 }
 
-function getUsers(prefix) {
-    const escapedPrefix = prefix.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
-    return usersArray
-        .map((userData) => {
-            // filter like 'startWith' (top score = 1)
-            if (
-                new RegExp(
-                    `[(\\s]${escapedPrefix}|^${escapedPrefix}`,
-                    'i'
-                ).test(userData.name) ||
-                new RegExp(`^${escapedPrefix}`, 'i').test(userData.login)
-            ) {
-                return { ...userData, score: 1 };
-            }
-            // filter like 'contains' (low score = 0)
-            if (
-                new RegExp(escapedPrefix, 'i').test(userData.name) ||
-                new RegExp(escapedPrefix, 'i').test(userData.login)
-            ) {
-                return { ...userData, score: 0 };
-            }
-        })
-        .filter((scoredUserData) => scoredUserData)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
+function getAllUsers() {
+    return usersArray;
 }
 
 function prepareUserData(userData, userDomains) {
@@ -126,4 +103,4 @@ async function readUsersFileFromDisk(fileName) {
 module.exports.getUserFullName = getUserFullName;
 module.exports.refreshUserData = refreshUserData;
 module.exports.readUsersFileFromDisk = readUsersFileFromDisk;
-module.exports.getUsers = getUsers;
+module.exports.getAllUsers = getAllUsers;

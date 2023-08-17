@@ -34,6 +34,8 @@ import Alert from '../../../components/denali/Alert';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../components/denali/ReduxPageLoader';
+import { getAllUsers } from '../../../redux/thunks/user';
+import { selectAllUsers } from '../../../redux/selectors/user';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -105,9 +107,15 @@ class GroupPage extends React.Component {
     }
 
     componentDidMount() {
-        const { getDomainData, getGroupsList, domainName, userName } =
-            this.props;
+        const {
+            getAllUsers,
+            getDomainData,
+            getGroupsList,
+            domainName,
+            userName,
+        } = this.props;
         Promise.all([
+            getAllUsers(),
             getDomainData(domainName, userName),
             getGroupsList(domainName),
         ]).catch((err) => {
@@ -189,10 +197,12 @@ const mapStateToProps = (state, props) => {
         ...props,
         domainData: selectDomainData(state),
         isLoading: selectIsLoading(state),
+        userList: selectAllUsers(state),
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
+    getAllUsers: () => dispatch(getAllUsers()),
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
     getGroupsList: (domainName) => dispatch(getGroups(domainName)),

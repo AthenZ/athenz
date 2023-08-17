@@ -16,9 +16,9 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import AddMember from '../../../components/member/AddMember';
-import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import {getStateWithUserList, renderWithRedux} from '../../../tests_utils/ComponentsTestUtils';
 import {USER_DOMAIN} from "../../../components/constants/constants";
-import MockApi from "../../../mock/MockApi";
+import { act } from 'react-dom/test-utils';
 
 describe('AddMember', () => {
     it('should render', () => {
@@ -40,6 +40,7 @@ describe('AddMember', () => {
     it('search member', async() => {
         let domain = 'domain';
         let role = 'roleName';
+        let userList = {userList: [{login: "mock", name: "Mock User"}]};
         const onCancelMock = jest.fn();
         renderWithRedux(
             <AddMember
@@ -48,26 +49,21 @@ describe('AddMember', () => {
                 justificationRequired={true}
                 onCancel={onCancelMock}
                 showAddMember={true}
-            />
+            />,
+            getStateWithUserList(userList)
         );
-        
-        const api = {
-            getUsers: function (params) {
-                return new Promise((resolve, reject) => {
-                    resolve({users: [{login: "mock", name: "Mock User"}]});
-                });
-            },
-        };
-        MockApi.setMockApi(api);
         
         // change input to mocked user
-        await waitFor(() =>
-            fireEvent.change(screen.getByPlaceholderText(`${USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group>`), {
-                target: { value: 'member-name' },
-            })
+        await act( async() => {
+                fireEvent.change(screen.getByPlaceholderText(`${USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group>`), {
+                    target: { value: 'mock' },
+                })
+            }
         );
-
+        
         // verify the correct input 'Mock User [user.mock]' is presented
-        await waitFor(() => expect(screen.getByText('Mock User [user.mock]')).toBeInTheDocument());
+        await waitFor(() => 
+            expect(screen.getByText('Mock User [user.mock]')).toBeInTheDocument()
+        );
     });
 });

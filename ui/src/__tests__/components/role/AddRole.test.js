@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 import React from 'react';
-import { waitFor } from '@testing-library/react';
+import {fireEvent, screen, waitFor} from '@testing-library/react';
 import AddRole from '../../../components/role/AddRole';
 import {
     buildDomainDataForState,
-    getStateWithDomainData,
+    getStateWithDomainData, getStateWithUserList,
     renderWithRedux,
 } from '../../../tests_utils/ComponentsTestUtils';
+import AddMember from "../../../components/member/AddMember";
+import {act} from "react-dom/test-utils";
+import {ADD_ROLE_MEMBER_PLACEHOLDER, USER_DOMAIN} from "../../../components/constants/constants";
 
 describe('AddRole', () => {
     it('should render', () => {
@@ -85,4 +88,32 @@ describe('AddRole', () => {
         const addRoleForm = getByTestId('add-modal-message');
         expect(addRoleForm).toMatchSnapshot();
     });
+
+    it('search member add role', async() => {
+        let domain = 'domain';
+        let userList = {userList: [{login: "mock", name: "Mock User"}]};
+        const onCancelMock = jest.fn();
+        renderWithRedux(
+            <AddRole
+                domain={domain}
+                showAddRole={true}
+                onCancel={onCancelMock}
+            />,
+            getStateWithUserList(userList)
+        );
+
+        // change input to mocked user
+        await act( async() => {
+                fireEvent.change(screen.getByPlaceholderText(ADD_ROLE_MEMBER_PLACEHOLDER), {
+                    target: { value: 'mock' },
+                })
+            }
+        );
+
+        // verify the correct input 'Mock User [user.mock]' is presented
+        await waitFor(() =>
+            expect(screen.getByText('Mock User [user.mock]')).toBeInTheDocument()
+        );
+    });
+
 });

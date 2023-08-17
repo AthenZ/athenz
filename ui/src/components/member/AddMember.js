@@ -27,7 +27,8 @@ import RegexUtils from '../utils/RegexUtils';
 import { connect } from 'react-redux';
 import { addMember } from '../../redux/thunks/collections';
 import InputDropdown from '../denali/InputDropdown';
-import { getUsers } from '../../redux/thunks/user';
+import MemberUtils from '../utils/MemberUtils';
+import { selectAllUsers } from '../../redux/selectors/user';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -183,23 +184,11 @@ class AddMember extends React.Component {
     }
 
     inputChanged(key, evt) {
-        this.setState({ [key]: evt ? evt.value : '' });
+        this.setState({ [key]: evt.target.value });
     }
 
     userSearch(part) {
-        if (part.startsWith(USER_DOMAIN)) {
-            part = part.substring(5);
-        }
-        return getUsers(part).then((r) => {
-            let usersArr = [];
-            r.users.forEach((u) =>
-                usersArr.push({
-                    name: u.name + ' [user.' + u.login + ']',
-                    value: 'user.' + u.login,
-                })
-            );
-            return usersArr;
-        });
+        return MemberUtils.userSearch(part, this.props.userList);
     }
 
     render() {
@@ -215,12 +204,13 @@ class AddMember extends React.Component {
                             fluid={true}
                             id='member-name'
                             name='member-name'
-                            value={this.state.memberName}
+                            itemToString={(i) => (i === null ? '' : i.value)}
                             asyncSearchFunc={this.userSearch}
-                            onChange={this.inputChanged.bind(
-                                this,
-                                'memberName'
-                            )}
+                            onChange={(evt) =>
+                                this.setState({
+                                    ['memberName']: evt ? evt.value : '',
+                                })
+                            }
                             placeholder={
                                 this.props.category === 'role' &&
                                 this.props.collection !== 'admin'
@@ -301,6 +291,7 @@ class AddMember extends React.Component {
 const mapStateToProps = (state, props) => {
     return {
         ...props,
+        userList: selectAllUsers(state),
     };
 };
 

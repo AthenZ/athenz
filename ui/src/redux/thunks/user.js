@@ -14,13 +14,11 @@
  *  limitations under the License.
  */
 
-import { getExpiryTime, isExpired } from '../utils';
-import {
-    selectUserPendingMembers,
-    selectUserResourceAccessList,
-} from '../selectors/user';
+import {getExpiryTime, isExpired} from '../utils';
+import {selectAllUsers, selectUserPendingMembers, selectUserResourceAccessList,} from '../selectors/user';
 import API from '../../api';
 import {
+    addUsersToStore,
     loadUserPendingMembers,
     loadUserResourceAccessList,
     returnUserResourceAccessList,
@@ -61,10 +59,12 @@ export const getUserResourceAccessList =
         }
     };
 
-export const getUsers = async (prefix, dispatch) => {
+export const getAllUsers = () => async (dispatch, getState) => {
     try {
-        const userList = await API().getUsers(prefix);
-        return Promise.resolve(userList);
+        if (!selectAllUsers(getState())) {
+            const userList = await API().getAllUsers();
+            dispatch(addUsersToStore(userList.users));
+        }
     } catch (e) {
         return Promise.reject(e);
     }
