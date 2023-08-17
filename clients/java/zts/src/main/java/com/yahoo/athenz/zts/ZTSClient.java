@@ -1768,13 +1768,14 @@ public class ZTSClient implements Closeable {
 
             LOG.error("PrefetchTask: Error while trying to prefetch token", ex);
 
-            // if we get either invalid credential or the request
-            // is forbidden then there is no point of retrying
-            // so we'll mark the item as invalid otherwise we'll
-            // keep the item in the queue and retry later
+            // if we get either invalid credential, the request is forbidden,
+            // or the request is invalid, then there is no point of retrying.
+            // so, we'll mark the item as invalid otherwise we'll keep the item
+            // in the queue and retry later
 
             int code = ex.getCode();
-            if (code == ResourceException.UNAUTHORIZED || code == ResourceException.FORBIDDEN) {
+            if (code == ResourceException.UNAUTHORIZED || code == ResourceException.FORBIDDEN
+                    || code == ResourceException.BAD_REQUEST) {
 
                 // we need to mark it as invalid and then remove it from
                 // our list so that we don't match other active requests
