@@ -14551,6 +14551,18 @@ public class ZTSImplTest {
                 "gcp", "coretech", extCredsRequest);
         assertNotNull(extCredsResponse);
 
+        // let's temporarily disable gcp provider
+
+        ztsImpl.enabledExternalCredentialsProviders.remove("gcp");
+        try {
+            ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(400, ex.getCode());
+            assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
+        }
+        ztsImpl.enabledExternalCredentialsProviders.add("gcp");
+
         // now let's configure our http driver to return failure
 
         exchangeTokenResponse = new HttpDriverResponse(403, GcpAccessTokenProviderTest.EXCHANGE_TOKEN_ERROR_STR, null);

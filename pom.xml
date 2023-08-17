@@ -426,6 +426,60 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>docker-build</id>
+      <activation>
+        <property>
+          <name>dockerBuild</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <modules>
+        <module>rdl/rdl-gen-athenz-server</module>
+        <module>rdl/rdl-gen-athenz-go-model</module>
+        <module>rdl/rdl-gen-athenz-go-client</module>
+        <module>rdl/rdl-gen-athenz-java-model</module>
+        <module>rdl/rdl-gen-athenz-java-client</module>
+        <module>core/zms</module>
+        <module>core/zts</module>
+        <module>libs/java/auth_core</module>
+        <module>libs/java/client_common</module>
+        <module>libs/java/cert_refresher</module>
+        <module>libs/java/server_common</module>
+        <module>libs/java/syncer_common</module>
+        <module>libs/java/instance_provider</module>
+        <module>libs/java/dynamodb_client_factory</module>
+        <module>clients/java/zms</module>
+        <module>clients/java/zts</module>
+        <module>clients/java/zpe</module>
+        <module>servers/zms</module>
+        <module>servers/zts</module>
+        <module>containers/jetty</module>
+        <module>clients/go/zms</module>
+        <module>clients/go/zts</module>
+        <module>libs/go/zmscli</module>
+        <module>libs/go/zmssvctoken</module>
+        <module>libs/go/athenzutils</module>
+        <module>libs/go/athenzconf</module>
+        <module>utils/zms-cli</module>
+        <module>utils/athenz-conf</module>
+        <module>utils/zms-svctoken</module>
+        <module>utils/zpe-updater</module>
+        <module>utils/zts-roletoken</module>
+        <module>utils/zts-accesstoken</module>
+        <module>utils/zts-idtoken</module>
+        <module>utils/zts-rolecert</module>
+        <module>utils/zts-svccert</module>
+        <module>libs/nodejs/auth_core</module>
+        <module>clients/nodejs/zts</module>
+        <module>clients/nodejs/zpe</module>
+        <module>ui</module>
+        <module>assembly/zms</module>
+        <module>assembly/zts</module>
+        <module>assembly/ui</module>
+        <module>assembly/utils</module>
+      </modules>
+    </profile>
   </profiles>
 
   <distributionManagement>

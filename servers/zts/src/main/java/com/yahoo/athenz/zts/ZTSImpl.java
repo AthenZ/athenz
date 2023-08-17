@@ -178,7 +178,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private long lastAthenzJWKUpdateTime = 0;
     protected int millisBetweenAthenzJWKUpdates = 0;
     private final Object updateJWKMutex = new Object();
-    final Map<String, ExternalCredentialsProvider> externalCredentialsProviders;
+    protected Map<String, ExternalCredentialsProvider> externalCredentialsProviders;
+    protected Set<String> enabledExternalCredentialsProviders;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -380,10 +381,23 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // initialize our external credentials providers
 
+        loadExternalCredentialsProviders();
+    }
+
+    void loadExternalCredentialsProviders() {
+
+        // initialize and load our known providers
+
         externalCredentialsProviders = new HashMap<>();
         ExternalCredentialsProvider gcpProvider = new GcpAccessTokenProvider();
         gcpProvider.setAuthorizer(authorizer);
         externalCredentialsProviders.put(ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP, gcpProvider);
+
+        // configure which providers are enabled
+
+        final String providerList = System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_CREDS_PROVIDERS,
+                ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP);
+        enabledExternalCredentialsProviders = new HashSet<>(Arrays.asList(providerList.split(",")));
     }
 
     void loadJsonMapper() {
@@ -4859,7 +4873,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // before doing anything verify that our provider is valid
 
         ExternalCredentialsProvider externalCredentialsProvider = externalCredentialsProviders.get(provider);
-        if (externalCredentialsProvider == null) {
+        if (externalCredentialsProvider == null || !enabledExternalCredentialsProviders.contains(provider)) {
             throw requestError("Invalid external credentials provider: " + provider, caller, domainName, principalDomain);
         }
 

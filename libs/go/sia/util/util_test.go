@@ -305,6 +305,8 @@ func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 		Domain:            "domain",
 		Service:           "service",
 		CommonName:        "domain.service",
+		Account:           "gcp-project1",
+		InstanceName:      "api-instance",
 		InstanceId:        "instance001",
 		Provider:          "Athenz",
 		ZtsDomains:        []string{"athenz.cloud"},
@@ -325,7 +327,7 @@ func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 		test.Errorf("Cannot parse CSR: %v", err)
 		return
 	}
-	if len(parsedcertreq.URIs) != 2 {
+	if len(parsedcertreq.URIs) != 3 {
 		test.Errorf("CSR does not have expected number of URI fields: %d", len(parsedcertreq.URIs))
 		return
 	}
@@ -334,7 +336,11 @@ func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 		return
 	}
 	if parsedcertreq.URIs[1].String() != "athenz://instanceid/Athenz/instance001" {
-		test.Errorf("CSR does not have expected instance uri: %s", parsedcertreq.URIs[1].String())
+		test.Errorf("CSR does not have expected instance id uri: %s", parsedcertreq.URIs[1].String())
+		return
+	}
+	if parsedcertreq.URIs[2].String() != "athenz://instancename/gcp-project1/api-instance" {
+		test.Errorf("CSR does not have expected instance name uri: %s", parsedcertreq.URIs[2].String())
 		return
 	}
 }
@@ -869,7 +875,7 @@ func TestParseAssumedRoleArnValid(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidPrefix(test *testing.T) {
-	_, _, _, _, err := ParseRoleArn("arn:aws:sts:123456789012:role/athenz.zts-service", "role/", "", "")
+	_, _, _, _, err := ParseRoleArn("arn:aws:sts:123456789012:role/athenz.zts-service", "role/", "", "", false)
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn prefix")
 	}
@@ -879,7 +885,7 @@ func TestParseRoleArnInvalidPrefix(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
-	_, _, _, _, err := ParseRoleArn("arn:aws:iam::role/athenz.zts-service", "role/", "-service", "")
+	_, _, _, _, err := ParseRoleArn("arn:aws:iam::role/athenz.zts-service", "role/", "-service", "", false)
 	if err == nil {
 		test.Errorf("Unable to verify proper role arn number of components")
 	}
@@ -889,7 +895,7 @@ func TestParseRoleArnInvalidNumberOfComponents(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
-	_, _, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:assumed-role/athenz.zts-service", "role/", "-service", "")
+	_, _, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:assumed-role/athenz.zts-service", "role/", "-service", "", false)
 	if err == nil {
 		test.Errorf("Unable to verify proper role assumed-role prefix")
 	}
@@ -899,7 +905,7 @@ func TestParseRoleArnInvalidAssumedRoleComponent(test *testing.T) {
 }
 
 func TestParseRoleArnInvalidAthenzService(test *testing.T) {
-	_, _, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz-service", "role/", "-service", "@")
+	_, _, _, _, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz-service", "role/", "-service", "@", false)
 	if err == nil {
 		test.Errorf("Unable to verify proper athenz service name")
 	}
@@ -909,69 +915,176 @@ func TestParseRoleArnInvalidAthenzService(test *testing.T) {
 }
 
 func TestParseRoleArnValid(test *testing.T) {
-	account, domain, service, profile, err := ParseRoleArn("arn:aws:iam::123456789012:role/athenz.zts-service", "role/", "-service", "@")
-	if err != nil {
-		test.Errorf("Unable to parse valid arn, error %v", err)
+
+	tests := map[string]struct {
+		roleArn             string
+		rolePrefix          string
+		roleSuffix          string
+		profileSeparator    string
+		roleServiceNameOnly bool
+		account             string
+		domain              string
+		service             string
+		profile             string
+	}{
+		"valid-role": {
+			roleArn:             "arn:aws:iam::123456789012:role/athenz.zts-service",
+			rolePrefix:          "role/",
+			roleSuffix:          "-service",
+			profileSeparator:    "@",
+			roleServiceNameOnly: false,
+			account:             "123456789012",
+			domain:              "athenz",
+			service:             "zts",
+			profile:             "",
+		},
+		"valid-role-service-only-true": {
+			roleArn:             "arn:aws:iam::123456789012:role/athenz.zts-service",
+			rolePrefix:          "role/",
+			roleSuffix:          "-service",
+			profileSeparator:    "@",
+			roleServiceNameOnly: true,
+			account:             "123456789012",
+			domain:              "athenz",
+			service:             "zts",
+			profile:             "",
+		},
+		"valid-instance-profile": {
+			roleArn:             "arn:aws:iam::123456789012:instance-profile/sys.auth.zms",
+			rolePrefix:          "instance-profile/",
+			roleSuffix:          "",
+			profileSeparator:    "@",
+			roleServiceNameOnly: false,
+			account:             "123456789012",
+			domain:              "sys.auth",
+			service:             "zms",
+			profile:             "",
+		},
+		"valid-instance-profile-service-only-true": {
+			roleArn:             "arn:aws:iam::123456789012:instance-profile/sys.auth.zms",
+			rolePrefix:          "instance-profile/",
+			roleSuffix:          "",
+			profileSeparator:    "@",
+			roleServiceNameOnly: true,
+			account:             "123456789012",
+			domain:              "sys.auth",
+			service:             "zms",
+			profile:             "",
+		},
+		"valid-instance-sia-profile": {
+			roleArn:             "arn:aws:iam::123456789012:instance-profile/sys.auth.zms@sia_profile",
+			rolePrefix:          "instance-profile/",
+			roleSuffix:          "",
+			profileSeparator:    "@",
+			roleServiceNameOnly: false,
+			account:             "123456789012",
+			domain:              "sys.auth",
+			service:             "zms",
+			profile:             "sia_profile",
+		},
+		"valid-instance-sia-profile-service-only-true": {
+			roleArn:             "arn:aws:iam::123456789012:instance-profile/sys.auth.zms@sia_profile",
+			rolePrefix:          "instance-profile/",
+			roleSuffix:          "",
+			profileSeparator:    "@",
+			roleServiceNameOnly: true,
+			account:             "123456789012",
+			domain:              "sys.auth",
+			service:             "zms",
+			profile:             "sia_profile",
+		},
+		"valid-role-sia-profile": {
+			roleArn:             "arn:aws:iam::123456789012:role/athenz.zts-service@sia_profile",
+			rolePrefix:          "role/",
+			roleSuffix:          "-service",
+			profileSeparator:    "@",
+			roleServiceNameOnly: false,
+			account:             "123456789012",
+			domain:              "athenz",
+			service:             "zts",
+			profile:             "sia_profile",
+		},
+		"valid-role-sia-profile-service-only-true": {
+			roleArn:             "arn:aws:iam::123456789012:role/athenz.zts-service@sia_profile",
+			rolePrefix:          "role/",
+			roleSuffix:          "-service",
+			profileSeparator:    "@",
+			roleServiceNameOnly: true,
+			account:             "123456789012",
+			domain:              "athenz",
+			service:             "zts",
+			profile:             "sia_profile",
+		},
 	}
-	if account != "123456789012" {
-		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
+
+	for name, tt := range tests {
+		test.Run(name, func(t *testing.T) {
+			account, domain, service, profile, _ := ParseRoleArn(tt.roleArn, tt.rolePrefix, tt.roleSuffix, tt.profileSeparator, tt.roleServiceNameOnly)
+			assert.Equal(t, account, tt.account)
+			assert.Equal(t, domain, tt.domain)
+			assert.Equal(t, service, tt.service)
+			assert.Equal(t, profile, tt.profile)
+		})
 	}
-	if domain != "athenz" {
-		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
+}
+
+func TestParseRoleArnServiceNameOnly(test *testing.T) {
+
+	tests := map[string]struct {
+		roleArn          string
+		rolePrefix       string
+		roleSuffix       string
+		profileSeparator string
+		account          string
+		service          string
+		profile          string
+	}{
+		"valid-role": {
+			roleArn:          "arn:aws:iam::123456789012:role/zts-service",
+			rolePrefix:       "role/",
+			roleSuffix:       "-service",
+			profileSeparator: "@",
+			account:          "123456789012",
+			service:          "zts",
+			profile:          "",
+		},
+		"valid-instance-profile": {
+			roleArn:          "arn:aws:iam::123456789012:instance-profile/zms",
+			rolePrefix:       "instance-profile/",
+			roleSuffix:       "",
+			profileSeparator: "@",
+			account:          "123456789012",
+			service:          "zms",
+			profile:          "",
+		},
+		"valid-instance-sia-profile": {
+			roleArn:          "arn:aws:iam::123456789012:instance-profile/zms@sia_profile",
+			rolePrefix:       "instance-profile/",
+			roleSuffix:       "",
+			profileSeparator: "@",
+			account:          "123456789012",
+			service:          "zms",
+			profile:          "sia_profile",
+		},
+		"valid-role-sia-profile": {
+			roleArn:          "arn:aws:iam::123456789012:role/zts-service@sia_profile",
+			rolePrefix:       "role/",
+			roleSuffix:       "-service",
+			profileSeparator: "@",
+			account:          "123456789012",
+			service:          "zts",
+			profile:          "sia_profile",
+		},
 	}
-	if service != "zts" {
-		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
-	}
-	if profile != "" {
-		test.Errorf("Unable to parse valid arn, invalid profile: %s", service)
-	}
-	account, domain, service, profile, err = ParseRoleArn("arn:aws:iam::123456789012:instance-profile/sys.auth.zms", "instance-profile/", "", "@")
-	if err != nil {
-		test.Errorf("Unable to parse valid arn, error %v", err)
-	}
-	if account != "123456789012" {
-		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
-	}
-	if domain != "sys.auth" {
-		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
-	}
-	if service != "zms" {
-		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
-	}
-	if profile != "" {
-		test.Errorf("Unable to parse valid arn, invalid profile: %s", service)
-	}
-	account, domain, service, profile, err = ParseRoleArn("arn:aws:iam::123456789012:instance-profile/sys.auth.zms@sia_profile", "instance-profile/", "", "@")
-	if err != nil {
-		test.Errorf("Unable to parse valid arn, error %v", err)
-	}
-	if account != "123456789012" {
-		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
-	}
-	if domain != "sys.auth" {
-		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
-	}
-	if service != "zms" {
-		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
-	}
-	if profile != "sia_profile" {
-		test.Errorf("Unable to parse valid arn, invalid profile: %s", service)
-	}
-	account, domain, service, profile, err = ParseRoleArn("arn:aws:iam::123456789012:role/athenz.zts-service@sia_profile", "role/", "-service", "@")
-	if err != nil {
-		test.Errorf("Unable to parse valid arn, error %v", err)
-	}
-	if account != "123456789012" {
-		test.Errorf("Unable to parse valid arn, invalid account: %s", account)
-	}
-	if domain != "athenz" {
-		test.Errorf("Unable to parse valid arn, invalid domain: %s", domain)
-	}
-	if service != "zts" {
-		test.Errorf("Unable to parse valid arn, invalid service: %s", service)
-	}
-	if profile != "sia_profile" {
-		test.Errorf("Unable to parse valid arn, invalid profile: %s", service)
+
+	for name, tt := range tests {
+		test.Run(name, func(t *testing.T) {
+			account, domain, service, profile, _ := ParseRoleArn(tt.roleArn, tt.rolePrefix, tt.roleSuffix, tt.profileSeparator, true)
+			assert.Equal(t, account, tt.account)
+			assert.Equal(t, domain, "")
+			assert.Equal(t, service, tt.service)
+			assert.Equal(t, profile, tt.profile)
+		})
 	}
 }
 

@@ -107,7 +107,8 @@ func (tp TestProvider) GetSuffix() string {
 
 func (tp TestProvider) CloudAttestationData(string, string, string) (string, error) {
 	a, _ := json.Marshal(&attestation.AttestationData{
-		Role: "athenz.hockey",
+		Role:       "athenz.hockey",
+		CommonName: "athenz.hockey",
 	})
 
 	return string(a), nil
@@ -223,7 +224,8 @@ func TestRegisterInstance(test *testing.T) {
 	}
 
 	a := &attestation.AttestationData{
-		Role: "athenz.hockey",
+		Role:       "athenz.hockey",
+		CommonName: "athenz.hockey",
 	}
 
 	err := RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5084/zts/v1", opts, false)
@@ -302,7 +304,8 @@ func refreshServiceCertSetup(test *testing.T) (*options.Options, *attestation.At
 	}
 
 	attestationData := &attestation.AttestationData{
-		Role: "athenz.hockey",
+		Role:       "athenz.hockey",
+		CommonName: "athenz.hockey",
 	}
 
 	return opts, attestationData, certFile
