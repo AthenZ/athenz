@@ -1,3 +1,14 @@
+Athenz v1.11.39 Release / Aug 18, 2023
+--------------------------------------
+
+#2270 include gcp instance name in identity cert uri
+#2271 UI - Update product Id link
+#2273 allow aws attestation role only include service name
+#2274 [skip ci] docker build using actions
+#2275 provide config option to specify external creds providers
+#2276 remove item from fetch queue if zts reports bad request
+#2277 avoid ConcurrentModificationExceptions when processing domain updates
+
 Athenz v1.11.38 Release / Aug 08, 2023
 --------------------------------------
 
