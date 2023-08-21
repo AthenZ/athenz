@@ -43,14 +43,14 @@ export default class MemberUtils {
 
     static userSearch(part, userList) {
         if (part.startsWith(USER_DOMAIN)) {
-            part = part.substring(5);
+            part = part.substring(USER_DOMAIN.length + 1);
         }
         return getUsers(part, userList).then((r) => {
             let usersArr = [];
             r.forEach((u) =>
                 usersArr.push({
-                    name: u.name + ' [user.' + u.login + ']',
-                    value: 'user.' + u.login,
+                    name: u.name + ' [' + USER_DOMAIN + '.' + u.login + ']',
+                    value: USER_DOMAIN + '.' + u.login,
                 })
             );
             return usersArr;
