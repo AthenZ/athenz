@@ -97,7 +97,7 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
     public boolean validateAttestationData(InstanceConfirmation confirmation, IdTokenAttestationData attestationData, String issuer, StringBuilder errMsg) {
         IdToken idToken = validateIdToken(issuer, attestationData, errMsg);
         if (idToken == null) {
-            LOGGER.warn("No valid id_token found. Refresh public keys and retry once.");
+            LOGGER.warn("No valid id_token found. Refresh public keys and retry once. current error={}", errMsg);
             this.issuersMap.get(issuer).loadPublicKeysFromServer();
             idToken = validateIdToken(issuer, attestationData, errMsg);
             if (idToken == null) {

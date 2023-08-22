@@ -1192,6 +1192,7 @@ const (
 	CLOUD_NAT
 	EXTERNAL_APPLIANCE
 	VIP_LB
+	CLOUD_MANAGED
 )
 
 var namesStaticWorkloadType = []string{
@@ -1201,6 +1202,7 @@ var namesStaticWorkloadType = []string{
 	CLOUD_NAT:            "CLOUD_NAT",
 	EXTERNAL_APPLIANCE:   "EXTERNAL_APPLIANCE",
 	VIP_LB:               "VIP_LB",
+	CLOUD_MANAGED:        "CLOUD_MANAGED",
 }
 
 // NewStaticWorkloadType - return a string representation of the enum
