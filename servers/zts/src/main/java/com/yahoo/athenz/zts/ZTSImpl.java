@@ -3107,6 +3107,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate uriHostname in request matches the uriHostname in cert
 
         if (!validateUriHostname(certReq.getUriHostname(), cert)) {
+            LOGGER.error("unable to validate uri hostname: {}", certReq.getUriHostname());
             return false;
         }
 
