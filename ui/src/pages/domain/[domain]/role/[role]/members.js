@@ -38,6 +38,8 @@ import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
+import { getAllUsers } from '../../../../../redux/thunks/user';
+import { selectAllUsers } from '../../../../../redux/selectors/user';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -108,9 +110,16 @@ class MemberPage extends React.Component {
     }
 
     componentDidMount() {
-        const { getRole, getDomainData, domainName, roleName, userName } =
-            this.props;
+        const {
+            getAllUsers,
+            getRole,
+            getDomainData,
+            domainName,
+            roleName,
+            userName,
+        } = this.props;
         Promise.all([
+            getAllUsers(),
             getDomainData(domainName, userName),
             getRole(domainName, roleName),
         ]).catch((err) => {
@@ -200,10 +209,12 @@ const mapStateToProps = (state, props) => {
         isDomainAuditEnabled: selectDomainAuditEnabled(state),
         roleDetails: selectRole(state, props.domainName, props.roleName),
         members: selectRoleMembers(state, props.domainName, props.roleName),
+        userList: selectAllUsers(state),
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
+    getAllUsers: () => dispatch(getAllUsers()),
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),
     getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName)),

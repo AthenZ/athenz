@@ -33,8 +33,9 @@ import { selectDomainData } from '../../../redux/selectors/domainData';
 import Alert from '../../../components/denali/Alert';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import Loader from '../../../components/denali/Loader';
 import { ReduxPageLoader } from '../../../components/denali/ReduxPageLoader';
+import { getAllUsers } from '../../../redux/thunks/user';
+import { selectAllUsers } from '../../../redux/selectors/user';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -112,8 +113,10 @@ class RolePage extends React.Component {
     }
 
     componentDidMount() {
-        const { getRoles, domainName, getDomainData, userName } = this.props;
+        const { getAllUsers, getRoles, domainName, getDomainData, userName } =
+            this.props;
         Promise.all([
+            getAllUsers(),
             getDomainData(domainName, userName),
             getRoles(domainName),
         ]).catch((err) => {
@@ -218,10 +221,12 @@ const mapStateToProps = (state, props) => {
         ...props,
         isLoading: selectIsLoading(state),
         domainData: selectDomainData(state),
+        userList: selectAllUsers(state),
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
+    getAllUsers: () => dispatch(getAllUsers()),
     getRoles: (domainName) => dispatch(getRoles(domainName)),
     getDomainData: (domainName, userName) =>
         dispatch(getDomainData(domainName, userName)),

@@ -20,15 +20,15 @@ import { colors } from '../denali/styles';
 import Input from '../denali/Input';
 import InputLabel from '../denali/InputLabel';
 import styled from '@emotion/styled';
-import Checkbox from '../denali/CheckBox';
 import DateUtils from '../utils/DateUtils';
-import NameUtils from '../utils/NameUtils';
 import RequestUtils from '../utils/RequestUtils';
-import MemberUtils from '../utils/MemberUtils';
 import { GROUP_MEMBER_NAME_REGEX, USER_DOMAIN } from '../constants/constants';
 import RegexUtils from '../utils/RegexUtils';
 import { connect } from 'react-redux';
 import { addMember } from '../../redux/thunks/collections';
+import InputDropdown from '../denali/InputDropdown';
+import MemberUtils from '../utils/MemberUtils';
+import { selectAllUsers } from '../../redux/selectors/user';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -55,7 +55,7 @@ const StyledInputLabel = styled(InputLabel)`
     line-height: 36px;
 `;
 
-const StyledInput = styled(Input)`
+const StyledInput = styled(InputDropdown)`
     max-width: 800px;
     margin-right: 10px;
     width: ${(props) => (props.category === 'group' ? '500px' : '580px')};
@@ -84,7 +84,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -97,6 +97,8 @@ class AddMember extends React.Component {
     constructor(props) {
         super(props);
         this.onSubmit = this.onSubmit.bind(this);
+        this.userSearch = this.userSearch.bind(this);
+
         this.state = {
             showModal: !!this.props.showAddMember,
         };
@@ -139,15 +141,15 @@ class AddMember extends React.Component {
             expiration:
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberExpiry
-                      )
+                        this.state.memberExpiry
+                    )
                     : '',
             reviewReminder:
                 this.state.memberReviewReminder &&
                 this.state.memberReviewReminder.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberReviewReminder
-                      )
+                        this.state.memberReviewReminder
+                    )
                     : '',
         };
 
@@ -185,6 +187,10 @@ class AddMember extends React.Component {
         this.setState({ [key]: evt.target.value });
     }
 
+    userSearch(part) {
+        return MemberUtils.userSearch(part, this.props.userList);
+    }
+
     render() {
         let sections = (
             <SectionsDiv autoComplete={'off'} data-testid='add-member-form'>
@@ -195,13 +201,16 @@ class AddMember extends React.Component {
                     <ContentDiv>
                         <StyledInput
                             category={this.props.category}
+                            fluid={true}
                             id='member-name'
                             name='member-name'
-                            value={this.state.memberName}
-                            onChange={this.inputChanged.bind(
-                                this,
-                                'memberName'
-                            )}
+                            itemToString={(i) => (i === null ? '' : i.value)}
+                            asyncSearchFunc={this.userSearch}
+                            onChange={(evt) =>
+                                this.setState({
+                                    ['memberName']: evt ? evt.value : '',
+                                })
+                            }
                             placeholder={
                                 this.props.category === 'role' &&
                                 this.props.collection !== 'admin'
@@ -282,6 +291,7 @@ class AddMember extends React.Component {
 const mapStateToProps = (state, props) => {
     return {
         ...props,
+        userList: selectAllUsers(state),
     };
 };
 

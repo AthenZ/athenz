@@ -35,3 +35,11 @@ export const RETURN_USER_RESOURCE_ACCESS_LIST =
 export const returnUserResourceAccessList = () => ({
     type: RETURN_USER_RESOURCE_ACCESS_LIST,
 });
+
+export const ADD_ALL_USERS = 'ADD_ALL_USERS';
+export const addUsersToStore = (userList) => ({
+    type: ADD_ALL_USERS,
+    payload: {
+        userList: userList,
+    },
+});
