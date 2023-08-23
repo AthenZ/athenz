@@ -103,12 +103,12 @@ public class InstanceK8SProvider implements InstanceProvider {
 
         // now that we have verified the issuer, lets validate the id_token signature in attestationData
         if (!kubernetesDistributionValidator.validateAttestationData(confirmation, attestationData, issuer, errMsg)) {
-            throw error("id_token in the attestation data is invalid.");
+            throw error("id_token in the attestation data is invalid. Additional details=" + errMsg);
         }
 
         // next validate the san dns entries in the certificate request
         if (!kubernetesDistributionValidator.validateSanDNSEntries(confirmation, errMsg)) {
-            throw error("Unable to validate certificate request hostnames");
+            throw error("Unable to validate certificate request hostnames. Additional details=" + errMsg);
         }
 
         Map<String, String> attributes = new HashMap<>();
