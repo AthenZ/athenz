@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import RegexUtils from './RegexUtils';
-import { getUsers } from '../../redux/utils';
 import { USER_DOMAIN } from '../constants/constants';
 
 export default class MemberUtils {
@@ -45,7 +44,7 @@ export default class MemberUtils {
         if (part.startsWith(USER_DOMAIN)) {
             part = part.substring(USER_DOMAIN.length + 1);
         }
-        return getUsers(part, userList).then((r) => {
+        return MemberUtils.getUsers(part, userList).then((r) => {
             let usersArr = [];
             r.forEach((u) =>
                 usersArr.push({
@@ -56,4 +55,34 @@ export default class MemberUtils {
             return usersArr;
         });
     }
+
+    static getUsers(prefix, userList) {
+        const escapedPrefix = prefix.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+        return Promise.resolve(
+            userList
+                .map((userData) => {
+                    // filter like 'startWith' (top score = 1)
+                    if (
+                        new RegExp(
+                            `[(\\s]${escapedPrefix}|^${escapedPrefix}`,
+                            'i'
+                        ).test(userData.name) ||
+                        new RegExp(`^${escapedPrefix}`, 'i').test(userData.login)
+                    ) {
+                        return { ...userData, score: 1 };
+                    }
+                    // filter like 'contains' (low score = 0)
+                    if (
+                        new RegExp(escapedPrefix, 'i').test(userData.name) ||
+                        new RegExp(escapedPrefix, 'i').test(userData.login)
+                    ) {
+                        return { ...userData, score: 0 };
+                    }
+                })
+                .filter((scoredUserData) => scoredUserData)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 10)
+        );
+    };
+
 }
