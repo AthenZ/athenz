@@ -34,8 +34,8 @@ import { connect } from 'react-redux';
 import { addGroup } from '../../redux/thunks/groups';
 import Switch from '../denali/Switch';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
-import InputDropdown from "../denali/InputDropdown";
-import {selectAllUsers} from "../../redux/selectors/user";
+import InputDropdown from '../denali/InputDropdown';
+import { selectAllUsers } from '../../redux/selectors/user';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -296,18 +296,18 @@ class AddGroup extends React.Component {
 
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                // dummy place holder so that it can be be used in the form
-                item.approved = true;
-                let remove = this.deleteMember.bind(this, idx);
-                return (
-                    <Member
-                        key={idx}
-                        item={item}
-                        onClickRemove={remove}
-                        noanim
-                    />
-                );
-            })
+                  // dummy place holder so that it can be be used in the form
+                  item.approved = true;
+                  let remove = this.deleteMember.bind(this, idx);
+                  return (
+                      <Member
+                          key={idx}
+                          item={item}
+                          onClickRemove={remove}
+                          noanim
+                      />
+                  );
+              })
             : '';
         let auditToolTip = this.state.auditEnabled
             ? ADD_GROUP_AUDIT_ENABLED_TOOLTIP

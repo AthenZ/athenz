@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 import React from 'react';
-import {cleanup, fireEvent, getByTestId, screen, waitFor,} from '@testing-library/react';
+import {
+    cleanup,
+    fireEvent,
+    getByTestId,
+    screen,
+    waitFor,
+} from '@testing-library/react';
 import AddGroup from '../../../components/group/AddGroup';
-import {ADD_GROUP_AUDIT_ENABLED_TOOLTIP, GROUP_MEMBER_PLACEHOLDER,} from '../../../components/constants/constants';
+import {
+    ADD_GROUP_AUDIT_ENABLED_TOOLTIP,
+    GROUP_MEMBER_PLACEHOLDER,
+} from '../../../components/constants/constants';
 import {
     buildDomainDataForState,
     buildGroupsForState,
@@ -27,8 +36,8 @@ import {
     renderWithRedux,
 } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
-import {singleApiGroup} from '../../redux/config/group.test';
-import {act} from "react-dom/test-utils";
+import { singleApiGroup } from '../../redux/config/group.test';
+import { act } from 'react-dom/test-utils';
 
 describe('AddGroup', () => {
     afterEach(() => {
@@ -232,7 +241,7 @@ describe('AddGroup', () => {
         const domainMetadata = {
             auditEnabled: true,
         };
-        const userList = {userList: []};
+        const userList = { userList: [] };
         const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
@@ -259,19 +268,22 @@ describe('AddGroup', () => {
             }
         );
 
-        await act( async() => {
-                fireEvent.change(screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER), {
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
+                {
                     target: { value: 'home.test:group.test' },
-                })
-            }
-        );
+                }
+            );
+        });
 
         await waitFor(() => {
-                expect(screen.getByText('home.test:group.test')).toBeInTheDocument();
-            }
-        );
+            expect(
+                screen.getByText('home.test:group.test')
+            ).toBeInTheDocument();
+        });
         fireEvent.click(screen.getByText('home.test:group.test'));
-        
+
         const button = getByText('Add');
         fireEvent.click(button);
         await waitFor(() => {
@@ -288,7 +300,7 @@ describe('AddGroup', () => {
         const domainMetadata = {
             auditEnabled: true,
         };
-        const userList = {userList: []};
+        const userList = { userList: [] };
         const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
@@ -315,19 +327,20 @@ describe('AddGroup', () => {
             }
         );
 
-        await act( async() => {
-                fireEvent.change(screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER), {
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
+                {
                     target: { value: 'user.test1.' },
-                })
-            }
-        );
-        
+                }
+            );
+        });
+
         await waitFor(() => {
-                expect(screen.getByText('test1.')).toBeInTheDocument();
-            }
-        );
+            expect(screen.getByText('test1.')).toBeInTheDocument();
+        });
         fireEvent.click(screen.getByText('test1.'));
-        
+
         const button = getByText('Add');
         fireEvent.click(button);
         await waitFor(() => {
@@ -344,7 +357,7 @@ describe('AddGroup', () => {
         const domainMetadata = {
             auditEnabled: true,
         };
-        const userList = {userList: []};
+        const userList = { userList: [] };
         const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
@@ -371,19 +384,20 @@ describe('AddGroup', () => {
             }
         );
 
-        await act( async() => {
-                fireEvent.change(screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER), {
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
+                {
                     target: { value: 'unix.service.test/' },
-                })
-            }
-        );
+                }
+            );
+        });
 
         await waitFor(() => {
-                expect(screen.getByText('unix.service.test/')).toBeInTheDocument();
-            }
-        );
+            expect(screen.getByText('unix.service.test/')).toBeInTheDocument();
+        });
         fireEvent.click(screen.getByText('unix.service.test/'));
-        
+
         const button = getByText('Add');
         fireEvent.click(button);
         await waitFor(() => {
@@ -488,7 +502,7 @@ describe('AddGroup', () => {
         const domainMetadata = {
             auditEnabled: true,
         };
-        const userList = {userList: [{login: "test", name: "Test User"}]};
+        const userList = { userList: [{ login: 'test', name: 'Test User' }] };
         const domainData = buildDomainDataForState(domainMetadata, domain);
         const onClose = jest.fn();
         const onSubmit = jest.fn();
@@ -504,18 +518,21 @@ describe('AddGroup', () => {
             />,
             getStateWithDomainDataAndUserList(domainData, userList)
         );
-        
-        await act( async() => {
-                fireEvent.change(screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER), {
+
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
+                {
                     target: { value: 'user.test' },
-                })
-            }
-        );
-        
+                }
+            );
+        });
+
         await waitFor(() => {
-                expect(screen.getByText('Test User [user.test]')).toBeInTheDocument();
-            }
-        );
+            expect(
+                screen.getByText('Test User [user.test]')
+            ).toBeInTheDocument();
+        });
         fireEvent.click(screen.getByText('Test User [user.test]'));
 
         const button = getByText('Add');
@@ -581,9 +598,9 @@ describe('AddGroup', () => {
         expect(auditEnabledSwitch).toBeNull();
     });
 
-    it('search member add group', async() => {
+    it('search member add group', async () => {
         let domain = 'domain';
-        let userList = {userList: [{login: "mock", name: "Mock User"}]};
+        let userList = { userList: [{ login: 'mock', name: 'Mock User' }] };
         const onCancelMock = jest.fn();
         renderWithRedux(
             <AddGroup
@@ -595,16 +612,20 @@ describe('AddGroup', () => {
         );
 
         // change input to mocked user
-        await act( async() => {
-                fireEvent.change(screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER), {
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(GROUP_MEMBER_PLACEHOLDER),
+                {
                     target: { value: 'mock' },
-                })
-            }
-        );
+                }
+            );
+        });
 
         // verify the correct input 'Mock User [user.mock]' is presented
         await waitFor(() =>
-            expect(screen.getByText('Mock User [user.mock]')).toBeInTheDocument()
+            expect(
+                screen.getByText('Mock User [user.mock]')
+            ).toBeInTheDocument()
         );
     });
 });

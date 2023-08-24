@@ -56,7 +56,7 @@ export default class MemberUtils {
                 usersArr.push({
                     name: part,
                     value: part,
-                })
+                });
             }
             return usersArr;
         });
@@ -73,7 +73,9 @@ export default class MemberUtils {
                             `[(\\s]${escapedPrefix}|^${escapedPrefix}`,
                             'i'
                         ).test(userData.name) ||
-                        new RegExp(`^${escapedPrefix}`, 'i').test(userData.login)
+                        new RegExp(`^${escapedPrefix}`, 'i').test(
+                            userData.login
+                        )
                     ) {
                         return { ...userData, score: 1 };
                     }
@@ -89,6 +91,5 @@ export default class MemberUtils {
                 .sort((a, b) => b.score - a.score)
                 .slice(0, 10)
         );
-    };
-
+    }
 }
