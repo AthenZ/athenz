@@ -52,6 +52,12 @@ export default class MemberUtils {
                     value: USER_DOMAIN + '.' + u.login,
                 })
             );
+            if (usersArr.length === 0) {
+                usersArr.push({
+                    name: part,
+                    value: part,
+                })
+            }
             return usersArr;
         });
     }
