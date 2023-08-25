@@ -1,3 +1,12 @@
+Athenz v1.11.40 Release / Aug 25, 2023
+--------------------------------------
+
+#2272 UI: ability to add members by searching for their names
+#2278 add a new static validator type in msd
+#2279 improve error logging when validating role cert csr
+#2280 UI: Add search capability for Add Group component
+#2283 libs/go/sia/agent/devel/ztsmock: fix dropped error
+
 Athenz v1.11.39 Release / Aug 18, 2023
 --------------------------------------
 
