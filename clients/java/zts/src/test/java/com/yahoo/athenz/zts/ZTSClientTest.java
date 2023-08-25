@@ -4065,4 +4065,29 @@ public class ZTSClientTest {
             assertEquals(400, ex.getCode());
         }
     }
+
+    @Test
+    public void testCanSetProxyConfiguration() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        ZTSClient client = new ZTSClient("http://localhost:4080/",
+                "http://localhost:8080", "iaas.athenz", "ci", siaProvider);
+        client.close();
+    }
+
+    @Test
+    public void testInvalidProxyException() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+
+        ZTSClient client = null;
+        try {
+            client = new ZTSClient("http://localhost:4080/",
+                    "invalid-proxy", "iaas.athenz", "ci", siaProvider);
+            fail();
+        } catch (IllegalArgumentException ignored) {
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
 }
