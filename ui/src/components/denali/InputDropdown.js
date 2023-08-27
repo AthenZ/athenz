@@ -43,8 +43,8 @@ const makeCssInputDropdown = (props) => css`
 `;
 
 const fadeIn = keyframes`
-  from { opacity: 0 }
-  to { opacity: 1 }
+    from { opacity: 0 }
+    to { opacity: 1 }
 `;
 
 const cssMenuDropdown = (props) => css`
@@ -155,11 +155,6 @@ class InputDropdown extends React.Component {
     };
 
     /**
-     * Used by Downshift to determine string value of an item
-     */
-    itemToString = (i) => (i === null ? '' : i.name);
-
-    /**
      * If `asyncSearchFunc` is defined, then this function is called upon
      * input onChange. See the `asyncSearchFunc` prop description below for
      * expected output.
@@ -199,61 +194,61 @@ class InputDropdown extends React.Component {
      */
     renderIcons =
         ({
-            clearSelection,
-            isOpen,
-            showArrow,
-            showClose,
-            toggleMenu,
-            disabled,
-        }) =>
-        ({ sizePx }) => {
-            return (
-                <React.Fragment>
-                    {showClose && (
-                        <Icon
-                            icon={'close-circle'}
-                            className='clear-selection'
-                            color={colors.grey500}
-                            colorHover={
-                                !disabled ? colors.grey600 : colors.grey500
-                            }
-                            isLink={!disabled}
-                            size='16px'
-                            onClick={() => {
-                                if (!disabled) {
-                                    this.setState({ results: null });
-                                    clearSelection();
-                                }
-                            }}
-                        />
-                    )}
-                    {showArrow &&
-                        (isOpen ? (
+             clearSelection,
+             isOpen,
+             showArrow,
+             showClose,
+             toggleMenu,
+             disabled,
+         }) =>
+            ({ sizePx }) => {
+                return (
+                    <React.Fragment>
+                        {showClose && (
                             <Icon
-                                icon='arrowhead-up'
+                                icon={'close-circle'}
+                                className='clear-selection'
                                 color={colors.grey500}
                                 colorHover={
                                     !disabled ? colors.grey600 : colors.grey500
                                 }
                                 isLink={!disabled}
-                                size={sizePx}
-                                onClick={!disabled ? toggleMenu : undefined}
+                                size='16px'
+                                onClick={() => {
+                                    if (!disabled) {
+                                        this.setState({ results: null });
+                                        clearSelection();
+                                    }
+                                }}
                             />
-                        ) : (
-                            <Icon
-                                icon='arrowhead-down'
-                                color={colors.grey500}
-                                colorHover={
-                                    !disabled ? colors.grey600 : colors.grey500
-                                }
-                                isLink={!disabled}
-                                size={sizePx}
-                                onClick={!disabled ? toggleMenu : undefined}
-                            />
-                        ))}
-                </React.Fragment>
-            );
-        };
+                        )}
+                        {showArrow &&
+                            (isOpen ? (
+                                <Icon
+                                    icon='arrowhead-up'
+                                    color={colors.grey500}
+                                    colorHover={
+                                        !disabled ? colors.grey600 : colors.grey500
+                                    }
+                                    isLink={!disabled}
+                                    size={sizePx}
+                                    onClick={!disabled ? toggleMenu : undefined}
+                                />
+                            ) : (
+                                <Icon
+                                    icon='arrowhead-down'
+                                    color={colors.grey500}
+                                    colorHover={
+                                        !disabled ? colors.grey600 : colors.grey500
+                                    }
+                                    isLink={!disabled}
+                                    size={sizePx}
+                                    onClick={!disabled ? toggleMenu : undefined}
+                                />
+                            ))}
+                    </React.Fragment>
+                );
+            };
 
     /**
      * Render the dropdown menu with options
@@ -300,7 +295,7 @@ class InputDropdown extends React.Component {
                                     selected:
                                         options.selectedItem &&
                                         options.selectedItem.value ===
-                                            item.value,
+                                        item.value,
                                 }),
                                 index,
                                 item,
@@ -345,20 +340,20 @@ class InputDropdown extends React.Component {
                 <Downshift
                     initialSelectedItem={defaultSelectedItem}
                     inputValue={this.props.value}
-                    itemToString={this.itemToString}
+                    itemToString={this.props.itemToString}
                     onChange={(selected) => this.props.onChange(selected)}
                 >
                     {({
-                        clearSelection,
-                        getInputProps,
-                        getItemProps,
-                        getMenuProps,
-                        highlightedIndex,
-                        inputValue,
-                        isOpen,
-                        selectedItem,
-                        toggleMenu,
-                    }) => (
+                          clearSelection,
+                          getInputProps,
+                          getItemProps,
+                          getMenuProps,
+                          highlightedIndex,
+                          inputValue,
+                          isOpen,
+                          selectedItem,
+                          toggleMenu,
+                      }) => (
                         <div className={classes} data-testid='input-dropdown'>
                             <Reference>
                                 {({ ref }) => (
@@ -377,7 +372,7 @@ class InputDropdown extends React.Component {
                                             placeholder: this.props.placeholder,
                                             readOnly: Boolean(
                                                 !this.props.asyncSearchFunc &&
-                                                    !this.props.filterable
+                                                !this.props.filterable
                                             ),
                                             renderIcon: this.renderIcons({
                                                 showClose:
@@ -520,6 +515,8 @@ InputDropdown.propTypes = {
     onChange: PropTypes.func.isRequired,
     /** Handler for `<input>` onFocus event */
     onFocus: PropTypes.func,
+    /** The itemToString function for getting the string value from one of the options */
+    itemToString: PropTypes.func,
 };
 
 InputDropdown.defaultProps = {
@@ -531,6 +528,10 @@ InputDropdown.defaultProps = {
     noanim: false,
     noclear: false,
     noOptionsMessage: 'No items found',
+    /**
+     * Used by Downshift to determine string value of an item
+     */
+    itemToString: (i) => (i === null ? '' : i.name),
 };
 
 export default InputDropdown;

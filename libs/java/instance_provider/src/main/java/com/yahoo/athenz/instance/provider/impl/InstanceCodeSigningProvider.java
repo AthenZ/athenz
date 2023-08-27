@@ -97,8 +97,8 @@ public class InstanceCodeSigningProvider implements InstanceProvider {
 
     @Override
     public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
-        CodeSigningAttestationData attestationData = JSON.fromString(confirmation.getAttestationData(),
-                CodeSigningAttestationData.class);
+        IdTokenAttestationData attestationData = JSON.fromString(confirmation.getAttestationData(),
+                IdTokenAttestationData.class);
 
         IdToken idToken;
         // first make sure we have a valid id_token provided by the configured OIDC provider

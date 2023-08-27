@@ -2217,12 +2217,17 @@ public class DataStoreTest {
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
     }
-    
+
     @Test
     public void testProcessDomainRoles() {
+        testProcessDomainRoles(false, false);
+        testProcessDomainRoles(true, true);
+        testProcessDomainRoles(true, false);
+    }
+
+    private void testProcessDomainRoles(boolean existingDomainWithNullRoles, boolean existingDomainWithEmptyRoles) {
     
-        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
-                pkey, "0");
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
         DataStore store = new DataStore(clogStore, null, ztsMetric);
 
         List<Role> roles = new ArrayList<>();
@@ -2246,6 +2251,19 @@ public class DataStoreTest {
         domainData.setRoles(roles);
         
         DataCache dataCache = new DataCache();
+
+        // if configured, create an empty domain with no roles
+        // in our cache (either null roles or empty set)
+
+        if (existingDomainWithNullRoles) {
+            DomainData existingDomain = new DomainData();
+            existingDomain.setName("coretech");
+            if (existingDomainWithEmptyRoles) {
+                existingDomain.setRoles(Collections.emptyList());
+            }
+            store.processDomainData(existingDomain);
+        }
+
         store.processDomainRoles(domainData, dataCache);
         assertEquals(dataCache.getMemberRoleSet("user_domain.user").size(), 2);
         

@@ -368,8 +368,8 @@ func (cli Zms) ListDomainRoleMembers(dn string) (*string, error) {
 	return cli.dumpByFormat(roleMembers, oldYamlConverter)
 }
 
-func (cli Zms) ShowRolesPrincipal(principal string, dn string) (*string, error) {
-	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.ResourceName(principal), zms.DomainName(dn))
+func (cli Zms) ShowRolesPrincipal(principal string, dn string, expand *bool) (*string, error) {
+	domainRoleMember, err := cli.Zms.GetPrincipalRoles(zms.ResourceName(principal), zms.DomainName(dn), expand)
 	if err != nil {
 		return nil, err
 	}
@@ -813,6 +813,27 @@ func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*str
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " role-token-sign-algorithm attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetRoleDescription(dn string, rn string, description string) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.Description = description
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " description attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

@@ -83,6 +83,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String productId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer featureFlags;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -251,6 +254,13 @@ public class SubDomain {
     public String getProductId() {
         return productId;
     }
+    public SubDomain setFeatureFlags(Integer featureFlags) {
+        this.featureFlags = featureFlags;
+        return this;
+    }
+    public Integer getFeatureFlags() {
+        return featureFlags;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -354,6 +364,9 @@ public class SubDomain {
                 return false;
             }
             if (productId == null ? a.productId != null : !productId.equals(a.productId)) {
+                return false;
+            }
+            if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

@@ -1,0 +1,12 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+type DomainDetails Struct {
+    DomainName name; //name of the athenz domain
+    String awsAccount (optional); //associated aws account id
+    String azureSubscription (optional); //associated azure subscription id
+    String gcpProjectId (optional); //associated gcp project id
+    String gcpProjectNumber (optional); //associated gcp project number
+}

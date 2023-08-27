@@ -319,14 +319,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   text-transform: uppercase;
 }
 
-.emotion-14 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-28 {
+.emotion-26 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -343,7 +336,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   position: relative;
 }
 
-.emotion-28>input[type='checkbox'] {
+.emotion-26>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -351,7 +344,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   visibility: hidden;
 }
 
-.emotion-28>input[type='checkbox']+label {
+.emotion-26>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -362,7 +355,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   white-space: nowrap;
 }
 
-.emotion-28>input[type='checkbox']+label .label-content {
+.emotion-26>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -371,12 +364,12 @@ exports[`DomainDetails should render with mock data 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-28>input[type='checkbox']+label .label-content {
+  .emotion-26>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-28>input[type='checkbox']+label:before {
+.emotion-26>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -392,7 +385,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   width: 34px;
 }
 
-.emotion-28>input[type='checkbox']+label::after {
+.emotion-26>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -409,36 +402,36 @@ exports[`DomainDetails should render with mock data 1`] = `
   width: 18px;
 }
 
-.emotion-28>input[type='checkbox']:checked+label::before {
+.emotion-26>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-28>input[type='checkbox']:checked+label::after {
+.emotion-26>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-28>input[type='checkbox']:disabled+label {
+.emotion-26>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-28>input[type='checkbox']:disabled+label::before {
+.emotion-26>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-28>input[type='checkbox']:disabled+label::after {
+.emotion-26>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-28>input[type='checkbox']:checked:disabled+label::after {
+.emotion-26>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-45 {
+.emotion-43 {
   font-weight: 600;
   title: add;
   word-break: break-all;
@@ -448,7 +441,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   max-width: 400px;
 }
 
-.emotion-47 {
+.emotion-45 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -456,7 +449,7 @@ exports[`DomainDetails should render with mock data 1`] = `
   font-weight: '';
 }
 
-.emotion-53 {
+.emotion-51 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -482,21 +475,21 @@ exports[`DomainDetails should render with mock data 1`] = `
   color: #3697f2;
 }
 
-.emotion-53:first-of-type {
+.emotion-51:first-of-type {
   margin-left: 0;
 }
 
-.emotion-53:disabled {
+.emotion-51:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-53:disabled {
+.emotion-51:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-53:hover:not(:disabled) {
+.emotion-51:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
@@ -527,12 +520,7 @@ exports[`DomainDetails should render with mock data 1`] = `
       <div
         class="emotion-6 emotion-7"
       >
-        <div
-          class="emotion-14 emotion-15"
-          data-testid="pm-id"
-        >
-          test
-        </div>
+        N/A
       </div>
       <div
         class="emotion-8 emotion-9"
@@ -561,7 +549,7 @@ exports[`DomainDetails should render with mock data 1`] = `
         class="emotion-6 emotion-7"
       >
         <div
-          class="emotion-28 denali-switch"
+          class="emotion-26 denali-switch"
           data-testid="switch-wrapper"
         >
           <input
@@ -616,11 +604,11 @@ exports[`DomainDetails should render with mock data 1`] = `
       class="emotion-4 emotion-5"
     >
       <div
-        class="emotion-45 emotion-46"
+        class="emotion-43 emotion-44"
         title="add"
       >
         <a
-          class="emotion-47 emotion-48"
+          class="emotion-45 emotion-46"
         >
           add
         </a>
@@ -635,7 +623,7 @@ exports[`DomainDetails should render with mock data 1`] = `
       class="emotion-4 emotion-5"
     >
       <button
-        class="emotion-53 denali-button"
+        class="emotion-51 denali-button"
       >
         Onboard to AWS
       </button>

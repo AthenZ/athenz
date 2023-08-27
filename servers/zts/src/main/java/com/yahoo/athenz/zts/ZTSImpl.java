@@ -35,6 +35,7 @@ import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
+import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -63,6 +64,7 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.*;
+import com.yahoo.athenz.zts.external.gcp.GcpAccessTokenProvider;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -143,7 +145,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
-    protected Set<String> validateServiceSkipDomains;
+    protected List<String> validateServiceSkipDomains;
     protected boolean secureRequestsOnly = true;
     protected int svcTokenTimeout = 86400;
     protected Set<String> authFreeUriSet = null;
@@ -176,6 +178,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private long lastAthenzJWKUpdateTime = 0;
     protected int millisBetweenAthenzJWKUpdates = 0;
     private final Object updateJWKMutex = new Object();
+    protected Map<String, ExternalCredentialsProvider> externalCredentialsProviders;
+    protected Set<String> enabledExternalCredentialsProviders;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -192,6 +196,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_PATH_ELEMENT = "PathElement";
     private static final String TYPE_AWS_ARN_ROLE_NAME = "AWSArnRoleName";
     private static final String TYPE_SIGNED_POLICY_REQUEST = "SignedPolicyRequest";
+    private static final String TYPE_EXTERNAL_CREDENTIALS_REQUEST = "ExternalCredentialsRequest";
 
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
     private static final String ZTS_REQUEST_LOG_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
@@ -373,6 +378,26 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // load Athenz JWK configuration
 
         loadAthenzJWK();
+
+        // initialize our external credentials providers
+
+        loadExternalCredentialsProviders();
+    }
+
+    void loadExternalCredentialsProviders() {
+
+        // initialize and load our known providers
+
+        externalCredentialsProviders = new HashMap<>();
+        ExternalCredentialsProvider gcpProvider = new GcpAccessTokenProvider();
+        gcpProvider.setAuthorizer(authorizer);
+        externalCredentialsProviders.put(ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP, gcpProvider);
+
+        // configure which providers are enabled
+
+        final String providerList = System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_CREDS_PROVIDERS,
+                ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP);
+        enabledExternalCredentialsProviders = new HashSet<>(Arrays.asList(providerList.split(",")));
     }
 
     void loadJsonMapper() {
@@ -683,7 +708,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // dynamic - e.g. screwdriver projects
 
         final String skipDomains = System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS, "");
-        validateServiceSkipDomains = new HashSet<>(Arrays.asList(skipDomains.split(",")));
+        validateServiceSkipDomains = Arrays.asList(skipDomains.split(","));
 
         validateInstanceServiceIdentity = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, true);
 
@@ -3082,6 +3107,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // validate uriHostname in request matches the uriHostname in cert
 
         if (!validateUriHostname(certReq.getUriHostname(), cert)) {
+            LOGGER.error("unable to validate uri hostname: {}", certReq.getUriHostname());
             return false;
         }
 
@@ -3526,8 +3552,17 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // need to check anything
 
         final String domainName = domainData.getName();
-        if (validateServiceSkipDomains.contains(domainName)) {
-            return;
+        for (String serviceSkipDomain : validateServiceSkipDomains) {
+            // first, we perform validation using wildcards
+            if (serviceSkipDomain.endsWith("*")) {
+                String serviceSkipDomainPrefix = serviceSkipDomain.substring(0, serviceSkipDomain.length() - 1);
+                if (domainName.startsWith(serviceSkipDomainPrefix)) {
+                    return;
+                }
+            } else if (serviceSkipDomain.equals(domainName)) {
+                // if skipDomain doesn't have wildcard, we conduct a perfect match search
+                return;
+            }
         }
 
         List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
@@ -3721,7 +3756,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         InstanceConfirmation instance = newInstanceConfirmationForRegister(ctx, provider, domain,
                 service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
-                certReq, instanceProvider.getProviderScheme());
+                certReq, instanceProvider.getProviderScheme(), info.getCloud());
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity
@@ -3964,7 +3999,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
             final String instanceId, final String instanceHostname, final String certHostname, X509CertRequest certReq,
-            InstanceProvider.Scheme providerScheme) {
+            InstanceProvider.Scheme providerScheme, final String cloud) {
 
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
@@ -4007,7 +4042,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
         }
 
-        final String gcpProject = cloudStore.getGCPProject(domain);
+        final String gcpProject = cloudStore.getGCPProjectId(domain);
         if (gcpProject != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, gcpProject);
         }
@@ -4032,6 +4067,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             attributes.put(InstanceProvider.ZTS_REQUEST_PRINCIPAL, principal.getFullName());
         }
 
+        if (cloud != null && !cloud.isEmpty()) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD, cloud);
+        }
+
         instance.setAttributes(attributes);
         return instance;
     }
@@ -4039,10 +4078,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     InstanceConfirmation newInstanceConfirmationForRegister(ResourceContext ctx, final String provider,
                                                             final String domain, final String service, final String attestationData,
                                                             final String instanceId, final String instanceHostname, X509CertRequest certReq,
-                                                            InstanceProvider.Scheme providerScheme) {
+                                                            InstanceProvider.Scheme providerScheme, final String cloud) {
         InstanceConfirmation instanceConfirmation = generateInstanceConfirmObject(ctx, provider,
                 domain, service, attestationData, instanceId,
-                instanceHostname, null, certReq, providerScheme
+                instanceHostname, null, certReq, providerScheme, cloud
         );
 
         // include the request cert attributes, if available
@@ -4224,7 +4263,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
                 domain, service, info.getAttestationData(), instanceId, info.getHostname(), certHostname,
-                certReq, instanceProvider.getProviderScheme());
+                certReq, instanceProvider.getProviderScheme(), info.getCloud());
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity
@@ -4814,6 +4853,132 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         return Response.status(ResourceException.CREATED).entity(certs).build();
+    }
+
+    @Override
+    public ExternalCredentialsResponse postExternalCredentialsRequest(ResourceContext ctx, String provider, String domainName, ExternalCredentialsRequest extCredsRequest) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+        validate(extCredsRequest, TYPE_EXTERNAL_CREDENTIALS_REQUEST, principalDomain, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(provider, TYPE_SIMPLE_NAME, principalDomain, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        domainName = domainName.toLowerCase();
+        provider = provider.toLowerCase();
+        extCredsRequest.setClientId(extCredsRequest.getClientId().toLowerCase());
+
+        // before doing anything verify that our provider is valid
+
+        ExternalCredentialsProvider externalCredentialsProvider = externalCredentialsProviders.get(provider);
+        if (externalCredentialsProvider == null || !enabledExternalCredentialsProviders.contains(provider)) {
+            throw requestError("Invalid external credentials provider: " + provider, caller, domainName, principalDomain);
+        }
+
+        // make sure we have a valid set of attributes
+
+        Map<String, String> extCredsAttributes = extCredsRequest.getAttributes();
+        if (extCredsAttributes == null) {
+            throw requestError("Missing credentials attributes", caller, domainName, principalDomain);
+        }
+
+        // first we need to get our id token for our external credentials
+        // so we'll verify that we have either scope or role name specified
+        // in our request
+
+        String athenzRoleName = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_ROLE_NAME);
+        if (!StringUtil.isEmpty(athenzRoleName)) {
+            validate(athenzRoleName, TYPE_ENTITY_NAME, principalDomain, caller);
+            athenzRoleName = athenzRoleName.toLowerCase();
+        }
+
+        String athenzScope = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_SCOPE);
+        if (StringUtil.isEmpty(athenzRoleName) && StringUtil.isEmpty(athenzScope)) {
+            throw requestError("Either athenzRoleName or athenzScope must be specified", caller, domainName, principalDomain);
+        }
+
+        boolean fullArn = true;
+        final String fullArnValue = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_FULL_ARN);
+        if (!StringUtil.isEmpty(fullArnValue)) {
+            fullArn = Boolean.parseBoolean(fullArnValue);
+        }
+
+        // get our principal's name
+
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        String principalName = principal.getFullName();
+
+        // verify we have a valid client id
+
+        final String clientIdDomain = AthenzUtils.extractPrincipalDomainName(extCredsRequest.getClientId());
+        if (clientIdDomain == null) {
+            throw requestError("Invalid client id", caller, principal.getDomain(), principalDomain);
+        }
+        setRequestDomain(ctx, clientIdDomain);
+
+        // first retrieve our domain data object from the cache
+
+        DataCache data = dataStore.getDataCache(clientIdDomain);
+        if (data == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("No such domain: " + clientIdDomain, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // our scopes are space separated list of values. We'll auto generate
+        // our scope and include openid since we need an id token.
+
+        final String scope = StringUtil.isEmpty(athenzScope) ?
+                "openid " + ResourceUtils.roleResourceName(domainName, athenzRoleName) : athenzScope;
+        IdTokenRequest tokenRequest = new IdTokenRequest(scope);
+
+        // check if the authorized service domain matches to the
+        // requested domain name
+
+        checkRoleTokenAuthorizedServiceRequest(principal, clientIdDomain, caller);
+
+        // validate principal object to make sure we're not
+        // processing a role identity, and instead we require
+        // a service identity
+
+        validatePrincipalNotRoleIdentity(principal, caller);
+
+        // now let's process our requests and see if we need to extract
+        // either groups or roles for our response
+
+        List<String> idTokenGroups = processIdTokenRoles(principalName, tokenRequest,
+                clientIdDomain, fullArn, principalDomain, caller);
+
+        long iat = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = new IdToken();
+        idToken.setVersion(1);
+        idToken.setAudience(getIdTokenAudience(extCredsRequest.getClientId(), false, idTokenGroups));
+        idToken.setSubject(principalName);
+        idToken.setIssuer(isOidcPortRequest(ctx.request().getLocalPort()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        idToken.setNonce(Crypto.randomSalt());
+        idToken.setGroups(idTokenGroups);
+        idToken.setIssueTime(iat);
+        idToken.setAuthTime(iat);
+        idToken.setExpiryTime(iat + idTokenMaxTimeout);
+
+        ServerPrivateKey signPrivateKey = getSignPrivateKey(null);
+        final String signedIdToken = idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(),
+                signPrivateKey.getAlgorithm());
+
+        DomainDetails domainDetails = new DomainDetails().setName(domainName)
+                .setGcpProjectId(cloudStore.getGCPProjectId(domainName))
+                .setGcpProjectNumber(cloudStore.getGCPProjectNumber(domainName))
+                .setAwsAccount(cloudStore.getAwsAccount(domainName))
+                .setAzureSubscription(cloudStore.getAzureSubscription(domainName));
+
+        try {
+            return externalCredentialsProvider.getCredentials(principal, domainDetails, signedIdToken, extCredsRequest);
+        } catch (com.yahoo.athenz.common.server.rest.ResourceException ex) {
+            throw forbiddenError(ex.getMessage(), caller, domainName, principalDomain);
+        }
     }
 
     @Override

@@ -22,7 +22,6 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.DataProvider;
@@ -39,7 +38,7 @@ public class AuthzHelperTest {
 
     AuthzHelper.GroupMembersFetcher nullFetcher = groupName -> null;
     AuthzHelper.GroupMembersFetcher devTeamFetcher = new AuthzHelper.GroupMembersFetcher() {
-        List<GroupMember> groupMembers;
+        final List<GroupMember> groupMembers;
 
         {
             groupMembers = new ArrayList<>();
@@ -967,5 +966,20 @@ public class AuthzHelperTest {
             fail();
         } catch (Exception ignored) {
         }
+    }
+
+    @Test
+    public void testAssumeRoleNameMatch() {
+        Assertion assertion = new Assertion()
+                .setAction("test")
+                .setEffect(AssertionEffect.ALLOW)
+                .setRole("domain1:role.role1")
+                .setResource("domain2:role.role1");
+        assertFalse(AuthzHelper.assumeRoleNameMatch("domain1:role.role1", assertion));
+        assertFalse(AuthzHelper.assumeRoleNameMatch("domain2:role.role1", assertion));
+
+        assertion.setAction("assume_role");
+        assertTrue(AuthzHelper.assumeRoleNameMatch("domain1:role.role1", assertion));
+        assertFalse(AuthzHelper.assumeRoleNameMatch("domain2:role.role1", assertion));
     }
 }

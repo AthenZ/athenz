@@ -43,6 +43,9 @@ public class MemberRole {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String pendingState;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String trustRoleName;
 
     public MemberRole setRoleName(String roleName) {
         this.roleName = roleName;
@@ -121,6 +124,13 @@ public class MemberRole {
     public String getPendingState() {
         return pendingState;
     }
+    public MemberRole setTrustRoleName(String trustRoleName) {
+        this.trustRoleName = trustRoleName;
+        return this;
+    }
+    public String getTrustRoleName() {
+        return trustRoleName;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -160,6 +170,9 @@ public class MemberRole {
                 return false;
             }
             if (pendingState == null ? a.pendingState != null : !pendingState.equals(a.pendingState)) {
+                return false;
+            }
+            if (trustRoleName == null ? a.trustRoleName != null : !trustRoleName.equals(a.trustRoleName)) {
                 return false;
             }
         }

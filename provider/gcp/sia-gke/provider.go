@@ -64,7 +64,7 @@ func (gke GKEProvider) GetSanDns(service string, includeHost bool, wildcard bool
 	return nil
 }
 
-func (gke GKEProvider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (gke GKEProvider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
 	return nil
 }
 
@@ -84,8 +84,8 @@ func (gke GKEProvider) GetSuffix() string {
 	return ""
 }
 
-func (gke GKEProvider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
-	return gcpa.New(base, svc, ztSserverName)
+func (gke GKEProvider) CloudAttestationData(base, svc, ztsServerName string) (string, error) {
+	return gcpa.New(base, svc, ztsServerName)
 }
 
 func (gke GKEProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {

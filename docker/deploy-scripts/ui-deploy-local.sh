@@ -49,6 +49,10 @@ docker run -d -h "${UI_HOST}" \
     -v "${DOCKER_DIR}/ui/var/keys:/opt/athenz/ui/keys" \
     -v "${DOCKER_DIR}/ui/conf:/opt/athenz/ui/conf/ui_server" \
     -v "${DOCKER_DIR}/logs/ui:/opt/athenz/ui/logs/ui_server" \
+    -v "${DOCKER_DIR}/ui/conf/extended-config.js:/opt/athenz/ui/src/config/extended-config.js" \
+    -e 'NODE_TLS_REJECT_UNAUTHORIZED=0' \
+    -e "ZTS_LOGIN_URL=https://localhost:${ZTS_PORT}/zts/v1/" \
+    -e "DEBUG=AthenzUI:*" \
     -e "PORT=${UI_CONTAINER_PORT}" \
     -e "UI_CONF_PATH=/opt/athenz/ui/conf/ui_server" \
     -e "ZMS_SERVER_URL=https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/" \

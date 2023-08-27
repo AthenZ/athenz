@@ -266,10 +266,13 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         // validate that the domain/service given in the confirmation
-        // request match the attestation data
+        // request match the attestation data. the role can represent
+        // either one of two formats: <domain>.<service> or <service>.
+        // with just the <service> format we already verify the <domain>
+        // component based on the aws account id in the arn
         
         final String serviceName = instanceDomain + "." + instanceService;
-        if (!serviceName.equals(info.getRole())) {
+        if (!(serviceName.equals(info.getRole()) || instanceService.equals(info.getRole()))) {
             throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
         }
         
@@ -348,10 +351,13 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
 
         // validate that the domain/service given in the confirmation
-        // request match the attestation data
-        
+        // request match the attestation data. the role can represent
+        // either one of two formats: <domain>.<service> or <service>.
+        // with just the <service> format we already verify the <domain>
+        // component based on the aws account id in the arn
+
         final String serviceName = instanceDomain + "." + instanceService;
-        if (!serviceName.equals(info.getRole())) {
+        if (!(serviceName.equals(info.getRole()) || instanceService.equals(info.getRole()))) {
             throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
         }
 

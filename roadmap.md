@@ -3,6 +3,15 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q3 2023
+
+- Integration with Cert-Manager (cont. from Q2)
+- K8S operator for Athenz to manage Athenz resources using CRDs (cont. from Q2)
+- Provide role membership lookup in ZMS including indirect membership (groups and delegated roles)
+- Introduce server options attribute in domains to enable/disable specific features using specific bit values
+- Investigate support for using OpenTelemetry Metrics API to reporting metrics
+- Introduce slack notification support for member expiry notifications in addition to emails currently supported.
+
 # Q2 2023
 
 - Athenz Integration with Google Cloud Platform (GCP)

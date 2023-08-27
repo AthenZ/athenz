@@ -34,6 +34,8 @@ import { connect } from 'react-redux';
 import { addGroup } from '../../redux/thunks/groups';
 import Switch from '../denali/Switch';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import InputDropdown from '../denali/InputDropdown';
+import { selectAllUsers } from '../../redux/selectors/user';
 
 const SectionDiv = styled.div`
     align-items: flex-start;
@@ -61,7 +63,7 @@ const StyledInput = styled(Input)`
     width: 500px;
 `;
 
-const StyledInputUser = styled(Input)`
+const StyledInputAutoComplete = styled(InputDropdown)`
     margin-top: 5px;
 `;
 
@@ -109,6 +111,7 @@ class AddGroup extends React.Component {
         this.addMember = this.addMember.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.toggleAuditEnabled = this.toggleAuditEnabled.bind(this);
+        this.userSearch = this.userSearch.bind(this);
         this.dateUtils = new DateUtils();
         this.state = {
             saving: 'nope',
@@ -284,9 +287,11 @@ class AddGroup extends React.Component {
             });
     }
 
-    render() {
-        let memberNameChanged = this.inputChanged.bind(this, 'newMemberName');
+    userSearch(part) {
+        return MemberUtils.userSearch(part, this.props.userList);
+    }
 
+    render() {
         let nameChanged = this.inputChanged.bind(this, 'name');
 
         let members = this.state.members
@@ -331,12 +336,23 @@ class AddGroup extends React.Component {
                         </StyledInputLabelPadding>
                         <ContentDiv style={auditTriggerStyle}>
                             <AddMemberDiv>
-                                <StyledInputUser
+                                <StyledInputAutoComplete
                                     placeholder={GROUP_MEMBER_PLACEHOLDER}
-                                    value={this.state.newMemberName}
-                                    onChange={memberNameChanged}
-                                    noanim
-                                    fluid
+                                    itemToString={(i) =>
+                                        i === null ? '' : i.value
+                                    }
+                                    id='member-name'
+                                    name='member-name'
+                                    onChange={(evt) =>
+                                        this.setState({
+                                            ['newMemberName']: evt
+                                                ? evt.value
+                                                : '',
+                                        })
+                                    }
+                                    asyncSearchFunc={this.userSearch}
+                                    noanim={true}
+                                    fluid={true}
                                 />
                                 <ButtonDiv style={auditTriggerStyle}>
                                     <StyledButton
@@ -391,6 +407,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isDomainAuditEnabled: selectDomainAuditEnabled(state),
+        userList: selectAllUsers(state),
     };
 };
 

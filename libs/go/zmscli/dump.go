@@ -32,7 +32,12 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "gcp_project_number", domain.GcpProjectNumber)
 	dumpStringValue(buf, indentLevel1, "application_id", domain.ApplicationId)
 	dumpStringValue(buf, indentLevel1, "business_service", domain.BusinessService)
-	dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
+	if domain.ProductId != "" {
+		dumpStringValue(buf, indentLevel1, "product_id", domain.ProductId)
+		dumpInt32Value(buf, indentLevel1, "ypm_id", domain.YpmId)
+	} else {
+		dumpInt32Value(buf, indentLevel1, "product_id", domain.YpmId)
+	}
 	dumpStringValue(buf, indentLevel1, "org", string(domain.Org))
 	dumpBoolValue(buf, indentLevel1, "audit_enabled", domain.AuditEnabled)
 	dumpStringValue(buf, indentLevel1, "user_authority_filter", domain.UserAuthorityFilter)
@@ -347,12 +352,12 @@ func (cli Zms) dumpMetadata(buf *bytes.Buffer, data *zms.TemplateMetaData, inden
 	dumpBoolValue(buf, indent1, "auto-update", data.AutoUpdate)
 }
 
-func (cli Zms) dumpPolicies(buf *bytes.Buffer, dn string) {
+func (cli Zms) dumpPolicies(buf *bytes.Buffer, dn string, tagkey string, tagValue string) {
 	buf.WriteString(indentLevel1)
 	buf.WriteString("policies:\n")
 	assertions := true
 	versions := false
-	policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &assertions, &versions)
+	policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &assertions, &versions, zms.CompoundName(tagkey), zms.CompoundName(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get policy list - error: %v", err)
 	}
@@ -447,10 +452,10 @@ func (cli Zms) dumpObjectList(buf *bytes.Buffer, list []string, dn string, objec
 	}
 }
 
-func (cli Zms) dumpServices(buf *bytes.Buffer, dn string) {
+func (cli Zms) dumpServices(buf *bytes.Buffer, dn string, tagKey string, tagValue string) {
 	publickeys := true
 	hosts := true
-	services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publickeys, &hosts)
+	services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publickeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get service list - error: %v", err)
 	}
@@ -787,6 +792,12 @@ func (cli Zms) dumpRolesPrincipal(buf *bytes.Buffer, roleMember *zms.DomainRoleM
 		}
 		if role.SystemDisabled != nil && *role.SystemDisabled != 0 {
 			buf.WriteString(indentLevel1 + "  system-disabled: true\n")
+		}
+		if string(role.MemberName) != "" {
+			buf.WriteString(indentLevel1 + "  member-name: " + string(role.MemberName) + "\n")
+		}
+		if string(role.TrustRoleName) != "" {
+			buf.WriteString(indentLevel1 + "  trust-role-name: " + string(role.TrustRoleName) + "\n")
 		}
 	}
 }

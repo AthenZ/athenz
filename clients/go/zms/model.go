@@ -273,6 +273,11 @@ type DomainMeta struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -518,6 +523,11 @@ type Domain struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -1834,6 +1844,12 @@ type MemberRole struct {
 	// for pending membership requests, the request state - e.g. add, delete
 	//
 	PendingState string `json:"pendingState" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// name of the role that handles the membership delegation for the role
+	// specified in roleName
+	//
+	TrustRoleName ResourceName `json:"trustRoleName,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewMemberRole - creates an initialized MemberRole instance, returns a pointer to it
@@ -1908,6 +1924,12 @@ func (self *MemberRole) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.PendingState)
 		if !val.Valid {
 			return fmt.Errorf("MemberRole.pendingState does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.TrustRoleName != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.TrustRoleName)
+		if !val.Valid {
+			return fmt.Errorf("MemberRole.trustRoleName does not contain a valid ResourceName (%v)", val.Error)
 		}
 	}
 	return nil
@@ -2513,6 +2535,11 @@ type Policy struct {
 	// a description of the policy
 	//
 	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewPolicy - creates an initialized Policy instance, returns a pointer to it
@@ -2792,6 +2819,11 @@ type ServiceIdentity struct {
 	// local (unix) group name this service can run as
 	//
 	Group string `json:"group" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// key-value pair tags, tag might contain multiple values
+	//
+	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3624,6 +3656,11 @@ type TopLevelDomain struct {
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3891,6 +3928,11 @@ type SubDomain struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -4174,6 +4216,11 @@ type UserDomain struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -6636,6 +6683,11 @@ type DomainData struct {
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	ProductId string `json:"productId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per domain (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain

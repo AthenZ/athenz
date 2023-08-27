@@ -160,6 +160,7 @@ func init() {
 	tDomainMeta.Field("businessService", "String", true, nil, "associated business service with domain")
 	tDomainMeta.Field("memberPurgeExpiryDays", "Int32", true, nil, "purge role/group members with expiry date configured days in the past")
 	tDomainMeta.Field("productId", "String", true, nil, "associated product id (system attribute - uniqueness check - if enabled)")
+	tDomainMeta.Field("featureFlags", "Int32", true, nil, "features enabled per domain (system attribute)")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -294,6 +295,7 @@ func init() {
 	tMemberRole.Field("requestTime", "Timestamp", true, nil, "for pending membership requests, the request time")
 	tMemberRole.Field("systemDisabled", "Int32", true, nil, "user disabled by system based on configured role setting")
 	tMemberRole.Field("pendingState", "String", true, nil, "for pending membership requests, the request state - e.g. add, delete")
+	tMemberRole.Field("trustRoleName", "ResourceName", true, nil, "name of the role that handles the membership delegation for the role specified in roleName")
 	sb.AddType(tMemberRole.Build())
 
 	tDomainRoleMember := rdl.NewStructTypeBuilder("Struct", "DomainRoleMember")
@@ -359,6 +361,7 @@ func init() {
 	tPolicy.Field("version", "SimpleName", true, nil, "optional version string, defaults to 0")
 	tPolicy.Field("active", "Bool", true, nil, "if multi-version policy then indicates active version")
 	tPolicy.Field("description", "String", true, nil, "a description of the policy")
+	tPolicy.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tPolicy.Build())
 
 	tPolicies := rdl.NewStructTypeBuilder("Struct", "Policies")
@@ -389,6 +392,7 @@ func init() {
 	tServiceIdentity.ArrayField("hosts", "String", true, "list of host names that this service can run on")
 	tServiceIdentity.Field("user", "String", true, nil, "local (unix) user name this service can run as")
 	tServiceIdentity.Field("group", "String", true, nil, "local (unix) group name this service can run as")
+	tServiceIdentity.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	sb.AddType(tServiceIdentity.Build())
 
 	tServiceIdentities := rdl.NewStructTypeBuilder("Struct", "ServiceIdentities")
@@ -1444,10 +1448,11 @@ func init() {
 	sb.AddResource(mGetDomainRoleMembers.Build())
 
 	mGetPrincipalRoles := rdl.NewResourceBuilder("DomainRoleMember", "GET", "/role")
-	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal")
+	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
 	mGetPrincipalRoles.Name("getPrincipalRoles")
 	mGetPrincipalRoles.Input("principal", "ResourceName", false, "principal", "", true, nil, "If not present, will return roles for the user making the call")
 	mGetPrincipalRoles.Input("domainName", "DomainName", false, "domain", "", true, nil, "If not present, will return roles from all domains")
+	mGetPrincipalRoles.Input("expand", "Bool", false, "expand", "", true, false, "expand to include group and delegated trust role membership")
 	mGetPrincipalRoles.Auth("", "", true, "")
 	mGetPrincipalRoles.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetPrincipalRoles.Exception("FORBIDDEN", "ResourceError", "")
@@ -1827,6 +1832,8 @@ func init() {
 	mGetPolicies.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetPolicies.Input("assertions", "Bool", false, "assertions", "", true, false, "return list of assertions in the policy")
 	mGetPolicies.Input("includeNonActive", "Bool", false, "includeNonActive", "", true, false, "include non-active policy versions")
+	mGetPolicies.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all policies that have a given tagName")
+	mGetPolicies.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all policies that have a given tag name and value")
 	mGetPolicies.Auth("", "", true, "")
 	mGetPolicies.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetPolicies.Exception("NOT_FOUND", "ResourceError", "")
@@ -2150,6 +2157,8 @@ func init() {
 	mGetServiceIdentities.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetServiceIdentities.Input("publickeys", "Bool", false, "publickeys", "", true, false, "return list of public keys in the service")
 	mGetServiceIdentities.Input("hosts", "Bool", false, "hosts", "", true, false, "return list of hosts in the service")
+	mGetServiceIdentities.Input("tagKey", "CompoundName", false, "tagKey", "", true, nil, "flag to query all services that have a given tagName")
+	mGetServiceIdentities.Input("tagValue", "CompoundName", false, "tagValue", "", true, nil, "flag to query all services that have a given tag name and value")
 	mGetServiceIdentities.Auth("", "", true, "")
 	mGetServiceIdentities.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetServiceIdentities.Exception("NOT_FOUND", "ResourceError", "")

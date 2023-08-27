@@ -73,11 +73,19 @@ class Member extends React.Component {
     render() {
         let exp = this.props.item.expiration;
         if (exp) {
-            exp = this.localDate.getLocalDate(exp, this.props.timeZone, this.props.timeZone);
+            exp = this.localDate.getLocalDate(
+                exp,
+                this.props.timeZone,
+                this.props.timeZone
+            );
         }
         let review = this.props.item.reviewReminder;
         if (review) {
-            review = this.localDate.getLocalDate(review, this.props.timeZone, this.props.timeZone);
+            review = this.localDate.getLocalDate(
+                review,
+                this.props.timeZone,
+                this.props.timeZone
+            );
         }
 
         let fullName = '';

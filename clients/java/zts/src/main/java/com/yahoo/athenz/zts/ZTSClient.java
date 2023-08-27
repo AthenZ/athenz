@@ -1768,13 +1768,14 @@ public class ZTSClient implements Closeable {
 
             LOG.error("PrefetchTask: Error while trying to prefetch token", ex);
 
-            // if we get either invalid credential or the request
-            // is forbidden then there is no point of retrying
-            // so we'll mark the item as invalid otherwise we'll
-            // keep the item in the queue and retry later
+            // if we get either invalid credential, the request is forbidden,
+            // or the request is invalid, then there is no point of retrying.
+            // so, we'll mark the item as invalid otherwise we'll keep the item
+            // in the queue and retry later
 
             int code = ex.getCode();
-            if (code == ResourceException.UNAUTHORIZED || code == ResourceException.FORBIDDEN) {
+            if (code == ResourceException.UNAUTHORIZED || code == ResourceException.FORBIDDEN
+                    || code == ResourceException.BAD_REQUEST) {
 
                 // we need to mark it as invalid and then remove it from
                 // our list so that we don't match other active requests
@@ -2791,6 +2792,25 @@ public class ZTSClient implements Closeable {
         }
 
         return URLEncoder.encode(URLEncoder.encode(roleName, StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Request external credentials for the principal
+     * @param provider provider name to request credentials from
+     * @param domainName request credentials from account/project associated with this athenz domain
+     * @param request request object with optional and required attributes
+     * @return ExternalCredentialsResponse object that includes requested external credentials
+     */
+    public ExternalCredentialsResponse postExternalCredentialsRequest(String provider,
+            String domainName, ExternalCredentialsRequest request) {
+        updateServicePrincipal();
+        try {
+            return ztsClient.postExternalCredentialsRequest(provider, domainName, request);
+        } catch (ResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+        }
     }
 
     /**

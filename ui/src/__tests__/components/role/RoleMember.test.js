@@ -22,7 +22,9 @@ describe('Member', () => {
     it('should render', () => {
         let member = { memberName: 'user.test2' };
 
-        const { getByTestId } = renderWithRedux(<Member item={member} idx={0} />);
+        const { getByTestId } = renderWithRedux(
+            <Member item={member} idx={0} />
+        );
         const roleMember = getByTestId('tag');
         expect(roleMember).toMatchSnapshot();
     });

@@ -31,6 +31,9 @@ import { getDomainData } from '../../redux/thunks/domain';
 import { connect } from 'react-redux';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import { USER_DOMAIN } from '../constants/constants';
+import InputDropdown from '../denali/InputDropdown';
+import { selectAllUsers } from '../../redux/selectors/user';
+import MemberUtils from '../utils/MemberUtils';
 
 const SectionsDiv = styled.div`
     width: 800px;
@@ -62,7 +65,7 @@ const StyledSearchInputDiv = styled.div`
     padding-bottom: 10px;
 `;
 
-const StyledInput = styled(Input)`
+const StyledInput = styled(InputDropdown)`
     max-width: 500px;
     margin-right: 10px;
     width: 300px;
@@ -91,7 +94,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -120,6 +123,7 @@ class AddMemberToRoles extends React.Component {
     constructor(props) {
         super(props);
         this.onSubmit = this.onSubmit.bind(this);
+        this.userSearch = this.userSearch.bind(this);
         this.state = {
             showModal: !!this.props.showAddMemberToRoles,
             checkedRoles: [],
@@ -162,15 +166,15 @@ class AddMemberToRoles extends React.Component {
             expiration:
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberExpiry
-                      )
+                        this.state.memberExpiry
+                    )
                     : '',
             reviewReminder:
                 this.state.memberReviewReminder &&
                 this.state.memberReviewReminder.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          this.state.memberReviewReminder
-                      )
+                        this.state.memberReviewReminder
+                    )
                     : '',
         };
         // send api call and then reload existing members component
@@ -217,6 +221,10 @@ class AddMemberToRoles extends React.Component {
         this.setState({ checkedRoles });
     }
 
+    userSearch(part) {
+        return MemberUtils.userSearch(part, this.props.userList);
+    }
+
     render() {
         let roleCheckboxes = [];
         let roleNames;
@@ -253,13 +261,16 @@ class AddMemberToRoles extends React.Component {
                     </StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            fluid={true}
                             id='member-name'
                             name='member-name'
-                            value={this.state.memberName}
-                            onChange={this.inputChanged.bind(
-                                this,
-                                'memberName'
-                            )}
+                            itemToString={(i) => (i === null ? '' : i.value)}
+                            asyncSearchFunc={this.userSearch}
+                            onChange={(evt) =>
+                                this.setState({
+                                    ['memberName']: evt ? evt.value : '',
+                                })
+                            }
                             placeholder={
                                 USER_DOMAIN + '.<shortid> or <domain>.<service>'
                             }
@@ -344,6 +355,7 @@ const mapStateToProps = (state, props) => {
         ...props,
         roles: selectRoles(state),
         justificationRequired: selectDomainAuditEnabled(state),
+        userList: selectAllUsers(state),
     };
 };
 

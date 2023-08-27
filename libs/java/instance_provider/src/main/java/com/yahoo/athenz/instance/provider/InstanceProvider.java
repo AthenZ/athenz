@@ -67,6 +67,7 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_CERT_RSA_MOD_HASH           = "certRsaModHash";
     String ZTS_INSTANCE_CERT_SUBJECT_DN             = "certSubjectDn";
     String ZTS_INSTANCE_CERT_ISSUER_DN              = "certIssuerDn";
+    String ZTS_INSTANCE_CLOUD                       = "instanceCloud";
 
     /**
      * Host cert specific attribute names

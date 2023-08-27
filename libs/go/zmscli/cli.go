@@ -294,17 +294,19 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "add-domain":
 			if argc > 0 {
 				dn = args[0]
-				if cli.ProductIdSupport && strings.LastIndex(dn, ".") < 0 {
+				if cli.ProductIdSupport && strings.LastIndex(dn, ".") == -1 {
 					if argc < 2 {
-						return nil, fmt.Errorf("top level domains require a number specified for the product id")
+						return nil, fmt.Errorf("top level domains require a product id")
 					}
-					productID, err := cli.getInt32(args[1])
+					productIDString := ""
+					productIDNumber, err := cli.getInt32(args[1])
 					if err != nil {
-						return nil, fmt.Errorf("top level domains require an integer number specified for the product id")
+						productIDNumber = -1
+						productIDString = args[1]
 					}
-					return cli.AddDomain(dn, &productID, cli.AddSelf, args[2:])
+					return cli.AddDomain(dn, &productIDNumber, productIDString, cli.AddSelf, args[2:])
 				}
-				return cli.AddDomain(dn, nil, cli.AddSelf, args[1:])
+				return cli.AddDomain(dn, nil, "", cli.AddSelf, args[1:])
 			}
 			return cli.helpCommand(params)
 		case "delete-domain":
@@ -369,9 +371,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			return cli.ListPendingDomainGroupMembers(principal, "")
 		case "show-roles-principal":
 			if argc == 0 {
-				return cli.ShowRolesPrincipal("", dn)
+				return cli.ShowRolesPrincipal("", dn, nil)
 			} else if argc == 1 {
-				return cli.ShowRolesPrincipal(args[0], dn)
+				return cli.ShowRolesPrincipal(args[0], dn, nil)
+			} else if argc == 2 {
+				expand, err := strconv.ParseBool(args[1])
+				if err == nil {
+					return cli.ShowRolesPrincipal(args[0], dn, &expand)
+				}
+				return nil, err
 			}
 		case "show-groups-principal":
 			if argc == 0 {
@@ -465,6 +473,24 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "set-active-policy-version":
 			if argc == 2 {
 				return cli.SetActivePolicyVersion(dn, args[0], args[1])
+			}
+		case "add-policy-tag":
+			if argc >= 3 {
+				return cli.AddPolicyTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-policy-tag":
+			if argc == 2 {
+				return cli.DeletePolicyTags(dn, args[0], args[1], []string{})
+			} else if argc == 3 {
+				return cli.DeletePolicyTags(dn, args[0], args[1], args[2:])
+			}
+		case "show-policies":
+			if argc == 0 {
+				return cli.ShowPolicies(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowPolicies(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowPolicies(dn, args[0], args[1])
 			}
 		case "show-access":
 			if argc >= 2 {
@@ -677,6 +703,24 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.DeleteService(dn, args[0])
 			}
+		case "add-service-tag":
+			if argc >= 3 {
+				return cli.AddServiceTags(dn, args[0], args[1], args[2:])
+			}
+		case "delete-service-tag":
+			if argc == 2 {
+				return cli.DeleteServiceTags(dn, args[0], args[1], []string{})
+			} else if argc == 3 {
+				return cli.DeleteServiceTags(dn, args[0], args[1], args[:2])
+			}
+		case "show-services":
+			if argc == 0 {
+				return cli.ShowServices(dn, "", "")
+			} else if argc == 1 {
+				return cli.ShowServices(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowServices(dn, args[0], args[1])
+			}
 		case "list-entity", "list-entities":
 			if argc == 0 {
 				return cli.ListEntities(dn)
@@ -819,6 +863,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainTokenExpiryMins(dn, mins)
 			}
+		case "set-domain-feature-flags":
+			if argc == 1 {
+				flags, err := cli.getInt32(args[0])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetDomainFeatureFlags(dn, flags)
+			}
 		case "set-audit-enabled":
 			if argc == 1 {
 				auditEnabled, err := strconv.ParseBool(args[0])
@@ -833,11 +885,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
-				productID, err := cli.getInt32(args[0])
+				productIDString := ""
+				productIDNumber, err := cli.getInt32(args[0])
 				if err != nil {
-					return nil, err
+					productIDNumber = -1
+					productIDString = args[0]
 				}
-				return cli.SetDomainProductId(dn, productID)
+				return cli.SetDomainProductId(dn, productIDNumber, productIDString)
+			} else if argc == 0 {
+				return cli.SetDomainProductId(dn, -1, "")
 			}
 		case "set-application-id":
 			if argc == 1 {
@@ -974,6 +1030,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "set-role-token-sign-algorithm":
 			if argc == 2 {
 				return cli.SetRoleTokenSignAlgorithm(dn, args[0], args[1])
+			}
+		case "set-role-description":
+			if argc == 2 {
+				return cli.SetRoleDescription(dn, args[0], args[1])
 			}
 		case "set-role-notify-roles":
 			if argc == 2 {
@@ -1366,7 +1426,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		}
 		buf.WriteString("   product-id    : set the Product ID for the domain\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " set-product-id 10001\n")
+		buf.WriteString("   " + domainExample + " set-product-id dom-prd-001\n")
 	case "set-application-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-application-id application-id\n")
@@ -1477,6 +1537,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   mins          : ZTS will not issue any tokens for this domain longer than these mins\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-token-expiry-mins 1800\n")
+	case "set-domain-feature-flags":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-feature-flags flags\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   flags         : Optional features enabled for this domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-feature-flags 3\n")
 	case "set-org-name":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-org-name org-name\n")
@@ -1799,10 +1869,10 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		if !interactive {
 			buf.WriteString("   domain : name of the domain that role belongs to\n")
 		}
-		buf.WriteString("   role   : name of the role to be displayed\n")
-		buf.WriteString("   log    : option argument to specify to display audit logs for role\n")
-		buf.WriteString("   expand : option argument to specify to display delegated members\n")
-		buf.WriteString("   pending : option argument to specify to display pending members\n")
+		buf.WriteString("   role    : name of the role to be displayed\n")
+		buf.WriteString("   log     : optional argument to specify to display audit logs for role\n")
+		buf.WriteString("   expand  : optional argument to specify to display delegated members\n")
+		buf.WriteString("   pending : optional argument to specify to display pending members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-role admin\n")
 		buf.WriteString("   " + domainExample + " show-role admin log\n")
@@ -1810,16 +1880,19 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-role myrole pending\n")
 	case "show-roles-principal":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " show-roles-principal principal\n")
+		buf.WriteString("   " + domainParam + " show-roles-principal principal [expand]\n")
 		if !interactive {
 			buf.WriteString(" parameters:\n")
 			buf.WriteString("   domain    : optional name of the domain that roles belong to\n")
 			buf.WriteString("             : if not specified will retrieve roles from all domains\n")
 			buf.WriteString("   principal : optional name of the principal to retrieve the list of roles for\n")
 			buf.WriteString("             : if not specified will retrieve roles for current principal\n")
+			buf.WriteString("      expand : optional argument to specify to display delegated members\n")
+
 		}
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-roles-principal user.johndoe\n")
+		buf.WriteString("   " + domainExample + " show-roles-principal user.johndoe true\n")
 		buf.WriteString("   " + domainExample + " show-roles-principal\n")
 		buf.WriteString("   show-roles-principal\n")
 	case "add-delegated-role":
@@ -1999,8 +2072,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 			buf.WriteString("   domain : name of the domain that group belongs to\n")
 		}
 		buf.WriteString("   group   : name of the group to be displayed\n")
-		buf.WriteString("   log    : option argument to specify to display audit logs for group\n")
-		buf.WriteString("   pending : option argument to specify to display pending members\n")
+		buf.WriteString("   log     : optional argument to specify to display audit logs for group\n")
+		buf.WriteString("   pending : optional argument to specify to display pending members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-group admin\n")
 		buf.WriteString("   " + domainExample + " show-group admin log\n")
@@ -2745,6 +2818,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   alg     : either rsa or ec: token algorithm to be used for signing\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-token-sign-algorithm writers rsa\n")
+	case "set-role-description":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-description role \"description\"\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role        : name of the role to be modified\n")
+		buf.WriteString("   description : role description\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-description writers \"contains our hockey writers\"\n")
 	case "set-role-notify-roles":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-notify-roles role rolename[,rolename...]]\n")
@@ -3003,6 +3087,72 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-auth-history coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " get-auth-history\n")
+	case "add-policy-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-policy-tag policy tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this policy\n")
+		buf.WriteString("   tag_value       : tag values to be added to this policy, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "delete-policy-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-policy-tag policy tag_key tag_value [tag_value...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that policy belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this policy\n")
+		buf.WriteString("   tag_value       : tag values to be deleted from this policy, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-policy-tag readers readers-tag-key reader-tag-value-1 reader-tag-value-2\n")
+	case "show-policies":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-policies [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   tag_key         : optional, query all policies with given tag name\n")
+		buf.WriteString("   tag_value       : optional, query all policies with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-policies readers readers-tag-key reader-tag-value\n")
+	case "add-service-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-service-tag service tag_key tag_value [tag_value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be added to this service\n")
+		buf.WriteString("   tag_value       : tag values to be added to this service, multiple values are allowed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-service-tag service service-tag-key service-tag-value-1 service-tag-value-2\n")
+	case "delete-service-tag":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-service-tag service tag_key [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   tag_key         : tag key to be removed from to this service\n")
+		buf.WriteString("   tag_value       : optional, tag value to be removed from this tag value list\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-service-tag service service-tag-key service-tag-value-1\n")
+	case "show-services":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-services [tag_key] [tag_value]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   tag_key         : optional, query all services with given tag name\n")
+		buf.WriteString("   tag_value       : optional, query all services with given tag key and value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-services readers readers-tag-key reader-tag-value\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -3048,6 +3198,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
 	buf.WriteString("   set-domain-user-authority-filter filter\n")
+	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")
@@ -3072,6 +3223,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-policy\n")
 	buf.WriteString("   list-policy-versions policy\n")
 	buf.WriteString("   show-policy policy\n")
+	buf.WriteString("   show-policies [tag_key] [tag_value]\n")
 	buf.WriteString("   show-policy-version policy version\n")
 	buf.WriteString("   add-policy policy [assertion] [is_case_sensitive]\n")
 	buf.WriteString("   add-policy-version policy version source_version\n")
@@ -3085,12 +3237,14 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-resource principal action\n")
+	buf.WriteString("   add-policy-tag policy tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-policy-tag policy tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Role commands:\n")
 	buf.WriteString("   list-role\n")
 	buf.WriteString("   show-role role [log | expand | pending]\n")
 	buf.WriteString("   show-roles [tag_key] [tag_value]\n")
-	buf.WriteString("   show-roles-principal\n")
+	buf.WriteString("   show-roles-principal [principal] [expand]\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
 	buf.WriteString("   add-regular-role role member [member ... ]\n")
 	buf.WriteString("   add-member regular_role user_or_service [user_or_service ...]\n")
@@ -3121,6 +3275,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-notify-roles regular_role rolename[,rolename...]\n")
 	buf.WriteString("   set-role-user-authority-filter regular_role attribute[,attribute...]\n")
 	buf.WriteString("   set-role-user-authority-expiration regular_role attribute\n")
+	buf.WriteString("   set-role-description regular_role description\n")
 	buf.WriteString("   add-role-tag regular_role tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-role-tag regular_role tag_key [tag_value]\n")
 	buf.WriteString("   put-membership-decision regular_role user_or_service [expiration] decision\n")
@@ -3153,6 +3308,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Service commands:\n")
 	buf.WriteString("   list-service\n")
 	buf.WriteString("   show-service service\n")
+	buf.WriteString("   show-services [tag_key] [tag_value]\n")
 	buf.WriteString("   add-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   add-provider-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   set-service-endpoint service endpoint\n")
@@ -3163,6 +3319,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-public-key service key_id\n")
 	buf.WriteString("   delete-public-key service key_id\n")
 	buf.WriteString("   delete-service service\n")
+	buf.WriteString("   add-service-tag service tag_key tag_value [tag_value ...]\n")
+	buf.WriteString("   delete-service-tag service tag_key [tag_value]\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Entity commands:\n")
 	buf.WriteString("   list-entity\n")

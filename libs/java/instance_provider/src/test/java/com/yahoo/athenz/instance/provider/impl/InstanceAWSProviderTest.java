@@ -328,9 +328,14 @@ public class InstanceAWSProviderTest {
         } catch (ResourceException ignored) {
         }
     }
-    
+
     @Test
     public void testConfirmInstance() {
+        testConfirmInstance("athenz.service");
+        testConfirmInstance("service");
+    }
+
+    private void testConfirmInstance(final String service) {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -343,7 +348,7 @@ public class InstanceAWSProviderTest {
                 .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
                         + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\","
                         + "\\\"privateIp\\\": \\\"10.10.10.11\\\"}\","
-                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                        + "\"signature\": \"signature\",\"role\": \"" + service + "\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("awsAccount", "1234");
@@ -646,9 +651,14 @@ public class InstanceAWSProviderTest {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
     }
-    
+
     @Test
     public void testRefreshInstance() {
+        testRefreshInstance("athenz.service");
+        testRefreshInstance("service");
+    }
+
+    private void testRefreshInstance(final String serviceName) {
         
         System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
         MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
@@ -660,7 +670,7 @@ public class InstanceAWSProviderTest {
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
                         + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\"}\","
-                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                        + "\"signature\": \"signature\",\"role\": \"" + serviceName + "\"}")
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("awsAccount", "1234");

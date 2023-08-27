@@ -28,7 +28,10 @@ import { deleteService } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
 import { selectServices } from '../../redux/selectors/services';
 import { selectIsLoading } from '../../redux/selectors/loading';
-import { selectTimeZone, selectFeatureFlag } from '../../redux/selectors/domains';
+import {
+    selectTimeZone,
+    selectFeatureFlag,
+} from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
 const ServicesSectionDiv = styled.div`

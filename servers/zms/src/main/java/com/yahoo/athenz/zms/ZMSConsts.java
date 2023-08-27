@@ -158,7 +158,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_ROLE_TAG     = "athenz.zms.quota_role_tag";
     public static final String ZMS_PROP_QUOTA_DOMAIN_TAG   = "athenz.zms.quota_domain_tag";
     public static final String ZMS_PROP_QUOTA_GROUP_TAG   = "athenz.zms.quota_group_tag";
-    
+    public static final String ZMS_PROP_QUOTA_POLICY_TAG   = "athenz.zms.quota_policy_tag";
+    public static final String ZMS_PROP_QUOTA_SERVICE_TAG   = "athenz.zms.quota_service_tag";
+
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
 
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
@@ -266,6 +268,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_ACTIVE             = "active";
     public static final String DB_COLUMN_VERSION            = "version";
     public static final String DB_COLUMN_POLICY_ID          = "policy_id";
+    public static final String DB_COLUMN_FEATURE_FLAGS      = "feature_flags";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";
@@ -317,6 +320,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_GCP_PROJECT        = "gcpproject";
     public static final String SYSTEM_META_BUSINESS_SERVICE   = "businessservice";
     public static final String SYSTEM_META_YPM_ID             = "ypmid";
+    public static final String SYSTEM_META_FEATURE_FLAGS      = "featureflags";
     public static final String SYSTEM_META_ATTR_ALL           = "all";
 
     // HTTP operation types used in metrics
@@ -408,4 +412,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JSON_MAX_NESTING_DEPTH = "athenz.zms.json_max_nesting_depth";
     public static final String ZMS_PROP_JSON_MAX_NUMBER_LENGTH = "athenz.zms.json_max_number_length";
     public static final String ZMS_PROP_JSON_MAX_STRING_LENGTH = "athenz.zms.json_max_string_length";
+
+    // ZMS feature flag bits
+    public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;
 }

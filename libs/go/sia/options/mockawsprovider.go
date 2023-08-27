@@ -44,7 +44,7 @@ func (tp MockAWSProvider) GetSanDns(string, bool, bool, []string) []string {
 	return nil
 }
 
-func (tp MockAWSProvider) GetSanUri(string, ip.Opts) []*url.URL {
+func (tp MockAWSProvider) GetSanUri(string, ip.Opts, string, string) []*url.URL {
 	return nil
 }
 

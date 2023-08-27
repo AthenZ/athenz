@@ -1151,6 +1151,15 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'all-users',
+    read(req, resource, params, config, callback) {
+        callback(null, {
+            users: userService.getAllUsers(),
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'role',
     read(req, resource, params, config, callback) {
         let promises = [];
