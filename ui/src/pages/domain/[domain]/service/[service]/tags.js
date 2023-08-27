@@ -36,6 +36,7 @@ import {
 } from '../../../../../redux/selectors/services';
 import ServiceTabs from '../../../../../components/header/ServiceTabs';
 import { getServices } from '../../../../../redux/thunks/services';
+import { selectFeatureFlag } from '../../../../../redux/selectors/domains';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -158,18 +159,18 @@ class ServiceTagsPage extends React.Component {
                                             domain={domainName}
                                             collection={serviceName}
                                             collectionDetails={
-                                                serviceDetails
-                                                    || {}
+                                                serviceDetails || {}
                                             }
                                         />
                                         <CollectionDetails
+                                            categroy={'service'}
                                             collectionDetails={
-                                                serviceDetails
-                                                   || {}
+                                                serviceDetails || {}
                                             }
                                             _csrf={_csrf}
                                         />
                                         <ServiceTabs
+                                            featureFlag={this.props.featureFlag}
                                             domain={domainName}
                                             service={serviceName}
                                             selectedName={'tags'}
@@ -203,6 +204,7 @@ const mapStateToProps = (state, props) => {
             props.domainName,
             props.serviceName
         ),
+        featureFlag: selectFeatureFlag(state),
         serviceTags: selectServiceTags(
             state,
             props.domainName,
