@@ -545,7 +545,7 @@ exports[`Policies Tag Page should render 1`] = `
   text-transform: uppercase;
 }
 
-.emotion-48 {
+.emotion-54 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -560,7 +560,7 @@ exports[`Policies Tag Page should render 1`] = `
   position: relative;
 }
 
-.emotion-48.vertical {
+.emotion-54.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -576,7 +576,7 @@ exports[`Policies Tag Page should render 1`] = `
   width: 300px;
 }
 
-.emotion-49 {
+.emotion-55 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -600,11 +600,11 @@ exports[`Policies Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-49:hover {
+.emotion-55:hover {
   color: #3570f4;
 }
 
-.emotion-49.active {
+.emotion-55.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -612,11 +612,11 @@ exports[`Policies Tag Page should render 1`] = `
   cursor: initial;
 }
 
-.emotion-49.active:hover {
+.emotion-55.active:hover {
   color: #303030;
 }
 
-.emotion-49.vertical {
+.emotion-55.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -628,21 +628,21 @@ exports[`Policies Tag Page should render 1`] = `
   text-align: left;
 }
 
-.emotion-49.vertical.active {
+.emotion-55.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-49.vertical.active:hover {
+.emotion-55.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-50 {
+.emotion-56 {
   margin: 20px;
 }
 
-.emotion-52 {
+.emotion-58 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -662,7 +662,7 @@ exports[`Policies Tag Page should render 1`] = `
   float: right;
 }
 
-.emotion-54 {
+.emotion-60 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -688,25 +688,25 @@ exports[`Policies Tag Page should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-54:first-of-type {
+.emotion-60:first-of-type {
   margin-left: 0;
 }
 
-.emotion-54:disabled {
+.emotion-60:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-54:disabled {
+.emotion-60:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-54:hover:not(:disabled) {
+.emotion-60:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-55 {
+.emotion-61 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -714,20 +714,8 @@ exports[`Policies Tag Page should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-57 {
+.emotion-63 {
   text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-61 {
-  text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
   font-weight: 600;
@@ -739,6 +727,18 @@ exports[`Policies Tag Page should render 1`] = `
 }
 
 .emotion-67 {
+  text-align: center;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 15px;
+  word-break: break-all;
+}
+
+.emotion-73 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -746,7 +746,7 @@ exports[`Policies Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-71 {
+.emotion-77 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -769,11 +769,11 @@ exports[`Policies Tag Page should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-71:hover {
+.emotion-77:hover {
   background: #cbd9f9;
 }
 
-.emotion-71 .tag-remove {
+.emotion-77 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -801,13 +801,13 @@ exports[`Policies Tag Page should render 1`] = `
   width: 28px;
 }
 
-.emotion-71:hover .tag-remove {
+.emotion-77:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-72 {
+.emotion-78 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -817,22 +817,22 @@ exports[`Policies Tag Page should render 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-72:hover {
+.emotion-78:hover {
   background: #ffffff;
 }
 
-.emotion-74 {
+.emotion-80 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-76 {
+.emotion-82 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-83 {
+.emotion-89 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -840,27 +840,27 @@ exports[`Policies Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-85 {
+.emotion-91 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-91 {
+.emotion-97 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-101 {
+.emotion-107 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-107 {
+.emotion-113 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -886,13 +886,13 @@ exports[`Policies Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-109 {
+.emotion-115 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-110 {
+.emotion-116 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -907,7 +907,7 @@ exports[`Policies Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-112 {
+.emotion-118 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -926,28 +926,28 @@ exports[`Policies Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-114 {
+.emotion-120 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-116 {
+.emotion-122 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-118 {
+.emotion-124 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-122 {
+.emotion-128 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-124 {
+.emotion-130 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -955,12 +955,12 @@ exports[`Policies Tag Page should render 1`] = `
   display: flex;
 }
 
-.emotion-126 {
+.emotion-132 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-128 {
+.emotion-134 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1151,13 +1151,27 @@ exports[`Policies Tag Page should render 1`] = `
                   </div>
                 </div>
               </div>
+              <div
+                class="emotion-36 emotion-37"
+              >
+                <div
+                  class="emotion-38 emotion-39"
+                >
+                  2
+                </div>
+                <div
+                  class="emotion-40 emotion-41"
+                >
+                  POLICY VERSION
+                </div>
+              </div>
             </div>
             <div
-              class="emotion-48 denali-tab-group"
+              class="emotion-54 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-49 denali-tab active"
+                class="emotion-55 denali-tab active"
                 data-active="true"
               >
                 Tags
@@ -1165,42 +1179,42 @@ exports[`Policies Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-50 emotion-51"
+            class="emotion-56 emotion-57"
             data-testid="tag-list"
           >
             <div
-              class="emotion-52 emotion-53"
+              class="emotion-58 emotion-59"
             >
               <div>
                 <button
-                  class="emotion-54 denali-button"
+                  class="emotion-60 denali-button"
                 >
                   Add Tag
                 </button>
               </div>
             </div>
             <table
-              class="emotion-55 emotion-56"
+              class="emotion-61 emotion-62"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-57 emotion-58"
+                    class="emotion-63 emotion-64"
                   >
                     TAG NAME
                   </th>
                   <th
-                    class="emotion-57 emotion-58"
+                    class="emotion-63 emotion-64"
                   >
                     TAG VALUES
                   </th>
                   <th
-                    class="emotion-61 emotion-58"
+                    class="emotion-67 emotion-64"
                   >
                     EDIT
                   </th>
                   <th
-                    class="emotion-61 emotion-58"
+                    class="emotion-67 emotion-64"
                   >
                     DELETE
                   </th>
@@ -1208,25 +1222,25 @@ exports[`Policies Tag Page should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-65 emotion-66"
+                  class="emotion-71 emotion-72"
                   data-testid="tag-row"
                 >
                   <td
-                    class="emotion-67 emotion-68"
+                    class="emotion-73 emotion-74"
                     color="#3570f40D"
                   >
                     tag
                   </td>
                   <td
-                    class="emotion-67 emotion-68"
+                    class="emotion-73 emotion-74"
                     color="#3570f40D"
                   >
                     <div
-                      class="emotion-71 denali-tag emotion-72 emotion-73"
+                      class="emotion-77 denali-tag emotion-78 emotion-79"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-74 emotion-75"
+                        class="emotion-80 emotion-81"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1237,7 +1251,7 @@ exports[`Policies Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-76"
+                          class="emotion-82"
                           data-testid="icon"
                           height="20px"
                           id=""
@@ -1254,11 +1268,11 @@ exports[`Policies Tag Page should render 1`] = `
                       </div>
                     </div>
                     <div
-                      class="emotion-71 denali-tag emotion-72 emotion-73"
+                      class="emotion-77 denali-tag emotion-78 emotion-79"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-74 emotion-75"
+                        class="emotion-80 emotion-81"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1269,7 +1283,7 @@ exports[`Policies Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-76"
+                          class="emotion-82"
                           data-testid="icon"
                           height="20px"
                           id=""
@@ -1287,12 +1301,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-83 emotion-68"
+                    class="emotion-89 emotion-74"
                     color="#3570f40D"
                   >
                     <span>
                       <svg
-                        class="emotion-85"
+                        class="emotion-91"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1309,12 +1323,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </span>
                   </td>
                   <td
-                    class="emotion-83 emotion-68"
+                    class="emotion-89 emotion-74"
                     color="#3570f40D"
                   >
                     <span>
                       <svg
-                        class="emotion-85"
+                        class="emotion-91"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1335,25 +1349,25 @@ exports[`Policies Tag Page should render 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="emotion-65 emotion-66"
+                  class="emotion-71 emotion-72"
                   data-testid="tag-row"
                 >
                   <td
-                    class="emotion-91 emotion-68"
+                    class="emotion-97 emotion-74"
                     color=""
                   >
                     tag2
                   </td>
                   <td
-                    class="emotion-91 emotion-68"
+                    class="emotion-97 emotion-74"
                     color=""
                   >
                     <div
-                      class="emotion-71 denali-tag emotion-72 emotion-73"
+                      class="emotion-77 denali-tag emotion-78 emotion-79"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-74 emotion-75"
+                        class="emotion-80 emotion-81"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1364,7 +1378,7 @@ exports[`Policies Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-76"
+                          class="emotion-82"
                           data-testid="icon"
                           height="20px"
                           id=""
@@ -1382,12 +1396,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-101 emotion-68"
+                    class="emotion-107 emotion-74"
                     color=""
                   >
                     <span>
                       <svg
-                        class="emotion-85"
+                        class="emotion-91"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1404,12 +1418,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </span>
                   </td>
                   <td
-                    class="emotion-101 emotion-68"
+                    class="emotion-107 emotion-74"
                     color=""
                   >
                     <span>
                       <svg
-                        class="emotion-85"
+                        class="emotion-91"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1438,11 +1452,11 @@ exports[`Policies Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-107 emotion-108"
+          class="emotion-113 emotion-114"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-109"
+            class="emotion-115"
             data-testid="icon"
             height="1em"
             id=""
@@ -1458,45 +1472,45 @@ exports[`Policies Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-110 emotion-111"
+          class="emotion-116 emotion-117"
         >
           <div
-            class="emotion-112 emotion-113"
+            class="emotion-118 emotion-119"
           >
             <div
-              class="emotion-114 emotion-115"
+              class="emotion-120 emotion-121"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-116 emotion-117"
+                class="emotion-122 emotion-123"
               >
                 Create
               </a>
               <span
-                class="emotion-118 emotion-119"
+                class="emotion-124 emotion-125"
               >
                  | 
               </span>
               <a
-                class="emotion-116 emotion-117"
+                class="emotion-122 emotion-123"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-122 emotion-123"
+            class="emotion-128 emotion-129"
           >
             <div
-              class="emotion-124 emotion-125"
+              class="emotion-130 emotion-131"
             >
               <div
-                class="emotion-126 emotion-127"
+                class="emotion-132 emotion-133"
               >
                 <svg
-                  class="emotion-128"
+                  class="emotion-134"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1518,19 +1532,19 @@ exports[`Policies Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-116 emotion-117"
+                class="emotion-122 emotion-123"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-124 emotion-125"
+              class="emotion-130 emotion-131"
             >
               <div
-                class="emotion-126 emotion-127"
+                class="emotion-132 emotion-133"
               >
                 <svg
-                  class="emotion-128"
+                  class="emotion-134"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1552,7 +1566,7 @@ exports[`Policies Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-116 emotion-117"
+                class="emotion-122 emotion-123"
               >
                 athens.ci
               </a>

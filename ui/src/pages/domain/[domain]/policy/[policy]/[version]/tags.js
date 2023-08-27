@@ -169,6 +169,7 @@ class PolicyTagsPage extends React.Component {
                                             }
                                         />
                                         <CollectionDetails
+                                            category={'policy'}
                                             collectionDetails={
                                                 policyDetails
                                                     ? policyDetails

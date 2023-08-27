@@ -71,6 +71,14 @@ export default class CollectionDetails extends React.Component {
                         <LabelDiv>REVIEWED DATE</LabelDiv>
                     </SectionDiv>
                 </DetailsDiv>
+                {this.props.category === 'policy' ? (
+                    <SectionDiv>
+                        <ValueDiv>
+                            {this.props.collectionDetails.version}
+                        </ValueDiv>
+                        <LabelDiv>POLICY VERSION</LabelDiv>
+                    </SectionDiv>
+                ) : null}
             </DomainSectionDiv>
         );
     }
