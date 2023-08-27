@@ -16,7 +16,11 @@
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
-import { SERVICE_TABS } from '../constants/constants';
+import {
+    SERVICE_TABS,
+    SERVICE_TYPE_DYNAMIC,
+    SERVICE_TYPE_STATIC,
+} from '../constants/constants';
 
 class ServiceTabs extends React.Component {
     constructor(props) {
@@ -55,7 +59,15 @@ class ServiceTabs extends React.Component {
     render() {
         return (
             <TabGroup
-                tabs={SERVICE_TABS}
+                tabs={
+                    this.props.featureFlag
+                        ? SERVICE_TABS.filter(
+                              (tab) =>
+                                  tab.name !== SERVICE_TYPE_STATIC &&
+                                  tab.name !== SERVICE_TYPE_DYNAMIC
+                          )
+                        : SERVICE_TABS
+                }
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim
