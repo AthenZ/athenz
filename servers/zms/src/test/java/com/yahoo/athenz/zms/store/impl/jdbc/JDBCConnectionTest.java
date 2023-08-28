@@ -4326,8 +4326,10 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(true) // this one is for domain id
             .thenReturn(true) // this one is for policy id
-            .thenReturn(true)
-            .thenReturn(true)
+            .thenReturn(true) // for first assertion
+            .thenReturn(false) // for first assertion condition
+            .thenReturn(true) // for second assertion
+            .thenReturn(false) // for second assertion condition
             .thenReturn(false);
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1")

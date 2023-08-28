@@ -3109,6 +3109,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setAction(rs.getString(ZMSConsts.DB_COLUMN_ACTION));
                     assertion.setEffect(AssertionEffect.valueOf(rs.getString(ZMSConsts.DB_COLUMN_EFFECT)));
                     assertion.setId((long) rs.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID));
+                    List<AssertionCondition> list = getAssertionConditions(assertion.getId());
+                    assertion.setConditions(list.isEmpty() ? null : new AssertionConditions().setConditionsList(list));
                     assertions.add(assertion);
                 }
             }
