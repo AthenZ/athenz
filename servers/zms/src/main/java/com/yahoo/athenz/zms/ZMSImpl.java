@@ -1594,7 +1594,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     @Override
-    public void deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
+    public void  deleteTopLevelDomain(ResourceContext ctx, String domainName, String auditRef) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
