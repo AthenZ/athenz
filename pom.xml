@@ -20,7 +20,7 @@
   <groupId>com.yahoo.athenz</groupId>
   <artifactId>athenz</artifactId>
   <packaging>pom</packaging>
-  <version>1.11.35-SNAPSHOT</version>
+  <version>1.11.41-SNAPSHOT</version>
 
   <name>AthenZ</name>
   <description>
@@ -72,13 +72,13 @@
 
   <properties>
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
-    <aws.version>1.12.497</aws.version>
-    <aws2.version>2.20.94</aws2.version>
-    <gcp.bom.version>26.17.0</gcp.bom.version>
+    <aws.version>1.12.506</aws.version>
+    <aws2.version>2.20.103</aws2.version>
+    <gcp.bom.version>26.18.0</gcp.bom.version>
     <gcp.api-client.version>2.2.0</gcp.api-client.version>
     <bouncycastle.version>1.75</bouncycastle.version>
     <commons.daemon.version>1.3.4</commons.daemon.version>
-    <guava.version>32.0.1-jre</guava.version>
+    <guava.version>32.1.1-jre</guava.version>
     <hamcrest.version>2.2</hamcrest.version>
     <jackson-core.version>2.15.2</jackson-core.version>
     <jackson-databind.version>2.15.2</jackson-databind.version>
@@ -86,8 +86,8 @@
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
     <jakarta.ws.version>3.1.0</jakarta.ws.version>
-    <jaxb.api.version>3.0.1</jaxb.api.version>
-    <jaxb.impl.version>3.0.2</jaxb.impl.version>
+    <jaxb.api.version>4.0.0</jaxb.api.version>
+    <jaxb.impl.version>4.0.3</jaxb.impl.version>
     <jersey.version>3.1.2</jersey.version>
     <jetty.version>11.0.15</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
@@ -116,7 +116,7 @@
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.7</slf4j.server.version>
     <testng.version>7.8.0</testng.version>
-    <swagger.version>2.2.14</swagger.version>
+    <swagger.version>2.2.15</swagger.version>
     <commons.logging.version>1.2</commons.logging.version>
 
     <code.coverage.min>0.95</code.coverage.min>
@@ -425,6 +425,60 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>docker-build</id>
+      <activation>
+        <property>
+          <name>dockerBuild</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <modules>
+        <module>rdl/rdl-gen-athenz-server</module>
+        <module>rdl/rdl-gen-athenz-go-model</module>
+        <module>rdl/rdl-gen-athenz-go-client</module>
+        <module>rdl/rdl-gen-athenz-java-model</module>
+        <module>rdl/rdl-gen-athenz-java-client</module>
+        <module>core/zms</module>
+        <module>core/zts</module>
+        <module>libs/java/auth_core</module>
+        <module>libs/java/client_common</module>
+        <module>libs/java/cert_refresher</module>
+        <module>libs/java/server_common</module>
+        <module>libs/java/syncer_common</module>
+        <module>libs/java/instance_provider</module>
+        <module>libs/java/dynamodb_client_factory</module>
+        <module>clients/java/zms</module>
+        <module>clients/java/zts</module>
+        <module>clients/java/zpe</module>
+        <module>servers/zms</module>
+        <module>servers/zts</module>
+        <module>containers/jetty</module>
+        <module>clients/go/zms</module>
+        <module>clients/go/zts</module>
+        <module>libs/go/zmscli</module>
+        <module>libs/go/zmssvctoken</module>
+        <module>libs/go/athenzutils</module>
+        <module>libs/go/athenzconf</module>
+        <module>utils/zms-cli</module>
+        <module>utils/athenz-conf</module>
+        <module>utils/zms-svctoken</module>
+        <module>utils/zpe-updater</module>
+        <module>utils/zts-roletoken</module>
+        <module>utils/zts-accesstoken</module>
+        <module>utils/zts-idtoken</module>
+        <module>utils/zts-rolecert</module>
+        <module>utils/zts-svccert</module>
+        <module>libs/nodejs/auth_core</module>
+        <module>clients/nodejs/zts</module>
+        <module>clients/nodejs/zpe</module>
+        <module>ui</module>
+        <module>assembly/zms</module>
+        <module>assembly/zts</module>
+        <module>assembly/ui</module>
+        <module>assembly/utils</module>
+      </modules>
     </profile>
   </profiles>
 

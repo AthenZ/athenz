@@ -57,7 +57,7 @@ func (fargate FargateProvider) GetSanDns(service string, includeHost bool, wildc
 	return nil
 }
 
-func (fargate FargateProvider) GetSanUri(svc string, opts ip.Opts) []*url.URL {
+func (fargate FargateProvider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
 	return nil
 }
 

@@ -181,7 +181,8 @@ public class MSDSchema {
             .element("CLOUD_LB")
             .element("CLOUD_NAT")
             .element("EXTERNAL_APPLIANCE")
-            .element("VIP_LB");
+            .element("VIP_LB")
+            .element("CLOUD_MANAGED");
 
         sb.structType("DynamicWorkload")
             .comment("workload type describing workload bootstrapped with an identity")
@@ -508,6 +509,25 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("TransportPolicyRules", "GET", "/domain/{domainName}/transportpolicies")
+            .comment("API endpoint to get the transport policy rules defined in Athenz for a given domain")
+            .name("getTransportPolicyRulesByDomain")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("Workloads", "GET", "/domain/{domainName}/service/{serviceName}/workloads")
             .name("getWorkloadsByService")
             .pathParam("domainName", "DomainName", "name of the domain")
@@ -626,6 +646,24 @@ public class MSDSchema {
             .name("getStaticWorkloadServicesByType")
             .pathParam("serviceType", "EntityName", "type of the service")
             .queryParam("value", "serviceValue", "EntityName", null, "specific service value")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("Workloads", "GET", "/domain/{domainName}/workloads")
+            .name("getWorkloadsByDomain")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

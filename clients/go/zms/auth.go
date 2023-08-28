@@ -42,7 +42,7 @@ func (ath zmsAuthenticator) Authenticate(nToken string) rdl.Principal {
 	return nil
 }
 
-//zmsPrincipal implements rdl.Principal the interface
+// zmsPrincipal implements rdl.Principal the interface
 type zmsPrincipal struct {
 	domain string
 	name   string

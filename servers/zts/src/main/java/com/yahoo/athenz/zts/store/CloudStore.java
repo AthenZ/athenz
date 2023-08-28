@@ -66,7 +66,8 @@ public class CloudStore {
     final private Map<String, String> awsAccountCache;
     final private Map<String, String> azureSubscriptionCache;
 
-    final private Map<String, String> gcpProjectCache;
+    final private Map<String, String> gcpProjectIdCache;
+    final private Map<String, String> gcpProjectNumberCache;
     ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
     ConcurrentHashMap<String, Long> awsInvalidCredsCache;
     private HttpClient httpClient;
@@ -87,7 +88,8 @@ public class CloudStore {
 
         // initialize gcp cache
 
-        gcpProjectCache = new ConcurrentHashMap<>();
+        gcpProjectIdCache = new ConcurrentHashMap<>();
+        gcpProjectNumberCache = new ConcurrentHashMap<>();
 
         // Instantiate and start our HttpClient
 
@@ -606,8 +608,12 @@ public class CloudStore {
         return azureSubscriptionCache.get(domainName);
     }
 
-    public String getGCPProject(String domainName) {
-        return gcpProjectCache.get(domainName);
+    public String getGCPProjectId(String domainName) {
+        return gcpProjectIdCache.get(domainName);
+    }
+
+    public String getGCPProjectNumber(String domainName) {
+        return gcpProjectNumberCache.get(domainName);
     }
 
     void updateAwsAccount(final String domainName, final String awsAccount) {
@@ -638,17 +644,21 @@ public class CloudStore {
         }
     }
 
-    void updateGCPProject(final String domainName, final String gcpProject) {
+    void updateGCPProject(final String domainName, final String gcpProjectId, final String gcpProjectNumber) {
 
         /* if we have a value specified for the domain, then we're just
          * going to insert it into our map and update the record. If
          * the new value is not present, and we had a value stored before
          * then let's remove it */
 
-        if (!StringUtil.isEmpty(gcpProject)) {
-            gcpProjectCache.put(domainName, gcpProject);
-        } else if (gcpProjectCache.get(domainName) != null) {
-            gcpProjectCache.remove(domainName);
+        if (!StringUtil.isEmpty(gcpProjectId)) {
+            gcpProjectIdCache.put(domainName, gcpProjectId);
+            if (!StringUtil.isEmpty(gcpProjectNumber)) {
+                gcpProjectNumberCache.put(domainName, gcpProjectNumber);
+            }
+        } else if (gcpProjectIdCache.get(domainName) != null) {
+            gcpProjectIdCache.remove(domainName);
+            gcpProjectNumberCache.remove(domainName);
         }
     }
 

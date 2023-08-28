@@ -731,4 +731,72 @@ public class InstanceGCPProviderTest {
         System.clearProperty(InstanceGCPProvider.GCP_PROP_BOOT_TIME_OFFSET);
         provider.close();
     }
+
+    @Test
+    public void testValidateInstanceNameUri() {
+        InstanceGCPProvider provider = new InstanceGCPProvider();
+
+        // without any name attributes there is no work to be done
+
+        Map<String, String> attributes = new HashMap<>();
+        provider.validateInstanceNameUri(null, attributes);
+
+        // no attestation data and no instance name attribute uri - ok
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, "spiffe://sports/sa/api,athenz://instanceid/gcp/id-001");
+        provider.validateInstanceNameUri(null, attributes);
+
+        // no attestation data and instance name uri - failure
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI,
+                "spiffe://sports/sa/api,athenz://instanceid/gcp/id-001,athenz://instancename/gcp-project/vm-name");
+
+        try {
+            provider.validateInstanceNameUri(null, attributes);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/vm-name vs. null");
+        }
+
+        // attestation data and instance name uri - mismatch
+
+        GCPAdditionalAttestationData attestationData = new GCPAdditionalAttestationData();
+        attestationData.setProjectId("gcp-project2");
+
+        try {
+            provider.validateInstanceNameUri(attestationData, attributes);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/vm-name vs. athenz://instancename/gcp-project2/null");
+        }
+
+        attestationData.setInstanceName("gcp-name");
+
+        try {
+            provider.validateInstanceNameUri(attestationData, attributes);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/vm-name vs. athenz://instancename/gcp-project2/gcp-name");
+        }
+
+        // finally a valid match
+
+        attestationData.setProjectId("gcp-project");
+        attestationData.setInstanceName("vm-name");
+        provider.validateInstanceNameUri(attestationData, attributes);
+
+        // now include multiple uri fields and mismatch with second value
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI,
+                "spiffe://sports/sa/api,athenz://instanceid/gcp/id-001,athenz://instancename/gcp-project/vm-name,athenz://instancename/gcp-project/gcp-name");
+
+        try {
+            provider.validateInstanceNameUri(attestationData, attributes);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (403): Instance name URI mismatch: athenz://instancename/gcp-project/gcp-name vs. athenz://instancename/gcp-project/vm-name");
+        }
+
+        provider.close();
+    }
 }

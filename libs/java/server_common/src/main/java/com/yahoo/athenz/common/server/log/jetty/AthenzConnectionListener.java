@@ -28,13 +28,15 @@ import java.lang.invoke.MethodHandles;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class AthenzConnectionListener implements Connection.Listener {
 
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final Map<SSLEngine, ConnectionData> OPENED_SSL_ENGINES_MAP = new ConcurrentHashMap<>();
-    
+    private final ScheduledExecutorService scheduledExecutor;
+
     public static final String ATHENZ_PROP_CLEANUP_CLOSED_CONNECTION_INTERVAL = "athenz.cleanup_closed_connection_interval";
 
     /** Get the {@link ConnectionData} for a given {@link SSLEngine} */
@@ -49,7 +51,8 @@ public class AthenzConnectionListener implements Connection.Listener {
         // Add a cleaner thread to remove closed connections who were not deleted from the map.
         // this map should not grow at all since we are removing the entries when the connection is closed.
         // but in case of a bug, we want to make sure that we are not leaking memory.
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutor.scheduleAtFixedRate(
                 this::cleanupClosedConnections,
                 cleanupClosedConnectionsRefreshInterval,
                 cleanupClosedConnectionsRefreshInterval,
@@ -69,6 +72,15 @@ public class AthenzConnectionListener implements Connection.Listener {
                 }
                 return !openConnection;
             });
+        }
+    }
+
+    /**
+     * Shutdown hook for the scheduler
+     */
+    public void shutdown() {
+        if (scheduledExecutor != null) {
+            scheduledExecutor.shutdownNow();
         }
     }
 
@@ -108,7 +120,7 @@ public class AthenzConnectionListener implements Connection.Listener {
             }
             
         } catch (Exception exception) {
-            LOG.error("AthenzConnectionListener.onClosed: ", exception);
+            LOG.error("AthenzConnectionListener.onClosed exception: ", exception);
         }
     }
 

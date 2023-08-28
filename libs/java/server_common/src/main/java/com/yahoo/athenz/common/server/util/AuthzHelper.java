@@ -133,7 +133,7 @@ public class AuthzHelper {
 
     public static boolean shouldRunDelegatedTrustCheck(final String trust, final String trustDomain) {
 
-        // if no trust field field then no delegated trust check
+        // if no trust field then no delegated trust check
 
         if (trust == null) {
             return false;
@@ -253,6 +253,15 @@ public class AuthzHelper {
         }
 
         return checkRoleMemberValidity(members, member, groupMembersFetcher);
+    }
+
+    public static boolean assumeRoleNameMatch(final String roleName, Assertion assertion) {
+
+        if (!ASSUME_ROLE.equalsIgnoreCase(assertion.getAction())) {
+            return false;
+        }
+
+        return roleName.equals(assertion.getRole());
     }
 
     public static boolean assumeRoleResourceMatch(String roleName, Assertion assertion) {

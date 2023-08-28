@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.common.server.http;
 
+import com.oath.auth.KeyRefresherException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -34,21 +35,34 @@ import org.testng.annotations.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.fail;
 
 public class HttpDriverTest {
     private ClassLoader classLoader = this.getClass().getClassLoader();
 
-    @Test(expectedExceptions = IllegalArgumentException.class)
+    @Test
     public void testDriverThrowsException() throws IllegalArgumentException {
-        new HttpDriver.Builder("", "/tmp/truststore-path", "asdf".toCharArray(), null, null)
-                .maxPoolPerRoute(20)
-                .maxPoolTotal(30)
-                .clientRetryIntervalMs(5000)
-                .clientMaxRetries(2)
-                .clientConnectTimeoutMs(5000)
-                .clientReadTimeoutMs(5000)
-                .build();
+        String certFile = classLoader.getResource("driver.cert.pem").getFile();
+        String keyFile = classLoader.getResource("unit_test_driver.key.pem").getFile();
+        System.setProperty("athenz.cert_refresher.tls_algorithm", "unknown");
+        try {
+            new HttpDriver.Builder("", "/tmp/truststore-path", "asdf".toCharArray(), keyFile, certFile)
+                    .maxPoolPerRoute(20)
+                    .maxPoolTotal(30)
+                    .clientRetryIntervalMs(5000)
+                    .clientMaxRetries(2)
+                    .clientConnectTimeoutMs(5000)
+                    .clientReadTimeoutMs(5000)
+                    .build();
+            fail();
+        } catch (Exception ignored) {
+        }
+        System.clearProperty("athenz.cert_refresher.tls_algorithm");
     }
 
     @Test
@@ -91,7 +105,9 @@ public class HttpDriverTest {
 
         String url = "https://localhost:4443/sample.html";
 
-        String out = httpDriver.doGet(url);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "Unit Tests");
+        String out = httpDriver.doGet(url, headers);
         Assert.assertEquals(out, data);
     }
 
@@ -108,9 +124,7 @@ public class HttpDriverTest {
         Mockito.when(httpResponse.getEntity()).thenReturn(entity);
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(httpResponse);
 
-        HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
-                .build();
-
+        HttpDriver httpDriver = new HttpDriver.Builder(null, null).build();
         httpDriver.setHttpClient(httpClient);
 
         String url = "https://localhost:4443/sample.html";
@@ -369,7 +383,7 @@ public class HttpDriverTest {
     }
 
     @Test
-    public void testClose() throws IOException {
+    public void testClose() {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         HttpDriver httpDriver = new HttpDriver.Builder("", null, "asdf".toCharArray(), null, null)
                 .build();
@@ -378,6 +392,11 @@ public class HttpDriverTest {
 
         httpDriver.setHttpClient(null);
         httpDriver.close();
+    }
+
+    @Test
+    public void testCreateSSLContext() throws KeyRefresherException, IOException, InterruptedException {
+        assertNull(HttpDriver.createSSLContext(null, null, null, null));
     }
 }
 

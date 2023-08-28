@@ -45,6 +45,9 @@ public class InstanceRegisterInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String namespace;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String cloud;
 
     public InstanceRegisterInformation setProvider(String provider) {
         this.provider = provider;
@@ -144,6 +147,13 @@ public class InstanceRegisterInformation {
     public String getNamespace() {
         return namespace;
     }
+    public InstanceRegisterInformation setCloud(String cloud) {
+        this.cloud = cloud;
+        return this;
+    }
+    public String getCloud() {
+        return cloud;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -192,6 +202,9 @@ public class InstanceRegisterInformation {
                 return false;
             }
             if (namespace == null ? a.namespace != null : !namespace.equals(a.namespace)) {
+                return false;
+            }
+            if (cloud == null ? a.cloud != null : !cloud.equals(a.cloud)) {
                 return false;
             }
         }

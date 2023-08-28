@@ -129,7 +129,7 @@ public class ZMSUtils {
     }
     
     /**
-     * Setup a new AuditLogMsgBuilder object with common values.
+     * Set up a new AuditLogMsgBuilder object with common values.
      * @param ctx resource context object
      * @param auditLogger audit logger object
      * @param domainName domain name
@@ -163,7 +163,7 @@ public class ZMSUtils {
                     sb.append(",who-fullname=").append(fullName);
                     List<String> roles = princ.getRoles();
                     if (roles != null && roles.size() > 0) {
-                        sb.append(",who-roles=").append(roles.toString());
+                        sb.append(",who-roles=").append(roles);
                     }
                     unsignedCreds = sb.toString();
                 }
@@ -317,7 +317,7 @@ public class ZMSUtils {
 
     public static boolean isUserAuthorityFilterValid(Authority userAuthority, final String filterList, final String memberName) {
 
-        // in most cases we're going to have a single filter configured
+        // in most cases we're going to have a single filter configured,
         // so we'll optimize for that case and not create an array
 
         if (filterList.indexOf(',') == -1) {
@@ -393,7 +393,7 @@ public class ZMSUtils {
         }
 
         // we need to tokenize our attr values and compare. we want to
-        // make sure all original attribute values are present in the check list
+        // make sure all original attribute values are present in the checklist
 
         Set<String> checkValues = new HashSet<>(Arrays.asList(checkAttrList.split(",")));
         for (String attr : origAttrList.split(",")) {
@@ -429,7 +429,7 @@ public class ZMSUtils {
     }
 
     public static boolean metaValueChanged(Object domainValue, Object metaValue) {
-        return (metaValue == null) ? false : !metaValue.equals(domainValue);
+        return metaValue != null && !metaValue.equals(domainValue);
     }
 
     public static long configuredDueDateMillis(Integer domainDueDateDays, Integer roleDueDateDays) {
@@ -467,7 +467,7 @@ public class ZMSUtils {
                 : Response.status(ResourceException.NO_CONTENT).build();
     }
 
-    public static boolean isListEmpty(List list) {
+    public static boolean isListEmpty(List<?> list) {
         return list == null || list.isEmpty();
     }
 

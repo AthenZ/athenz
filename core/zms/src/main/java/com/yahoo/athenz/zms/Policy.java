@@ -6,6 +6,7 @@ package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
+import java.util.Map;
 import com.yahoo.rdl.*;
 
 //
@@ -30,6 +31,9 @@ public class Policy {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String description;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, TagValueList> tags;
 
     public Policy setName(String name) {
         this.name = name;
@@ -80,6 +84,13 @@ public class Policy {
     public String getDescription() {
         return description;
     }
+    public Policy setTags(Map<String, TagValueList> tags) {
+        this.tags = tags;
+        return this;
+    }
+    public Map<String, TagValueList> getTags() {
+        return tags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -107,6 +118,9 @@ public class Policy {
                 return false;
             }
             if (description == null ? a.description != null : !description.equals(a.description)) {
+                return false;
+            }
+            if (tags == null ? a.tags != null : !tags.equals(a.tags)) {
                 return false;
             }
         }

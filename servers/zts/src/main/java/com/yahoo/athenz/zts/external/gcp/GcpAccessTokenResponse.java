@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.instance.provider.impl;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+package com.yahoo.athenz.zts.external.gcp;
 
-/**
- * CodeSigningAttestationData - the information a code signing certificate
- * requester must provide to ZTS to authenticate.
- */
-@JsonInclude()
-public class CodeSigningAttestationData {
-    private String identityToken;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-    public String getIdentityToken() {
-        return identityToken;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GcpAccessTokenResponse {
+
+    private String accessToken;
+    private String expireTime;
+
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setIdentityToken(String identityToken) {
-        this.identityToken = identityToken;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getExpireTime() {
+        return expireTime;
+    }
+
+    public void setExpireTime(String expireTime) {
+        this.expireTime = expireTime;
     }
 }

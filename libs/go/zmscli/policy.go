@@ -417,3 +417,93 @@ func (cli Zms) SetActivePolicyVersion(dn string, pn string, version string) (*st
 	}
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
+
+func (cli Zms) DeletePolicyTags(dn string, pn, tagKey string, tagValues []string) (*string, error) {
+	Policy, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+	if Policy.Tags == nil {
+		s := "[domain " + dn + " Policy " + pn + " has no tags]\n"
+		message := SuccessMessage{
+			Status:  200,
+			Message: s,
+		}
+		return cli.dumpByFormat(message, cli.buildYAMLOutput)
+	} else {
+		tagValueArr = cli.GetTagsAfterDeletion(Policy.Tags[zms.CompoundName(tagKey)], tagValues)
+		if len(tagValueArr) == 0 {
+			delete(Policy.Tags, zms.CompoundName(tagKey))
+		}
+		Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	}
+
+	returnObj := false
+	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, Policy)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " Policy " + pn + " tags successfully deleted]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) AddPolicyTags(dn string, pn, tagKey string, tagValues []string) (*string, error) {
+	Policy, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(pn))
+	if err != nil {
+		return nil, err
+	}
+
+	tagValueArr := make([]zms.TagCompoundValue, 0)
+
+	if Policy.Tags == nil {
+		Policy.Tags = map[zms.CompoundName]*zms.TagValueList{}
+	} else {
+		// append current tags
+		currentTagValues := Policy.Tags[zms.CompoundName(tagKey)]
+		if currentTagValues != nil {
+			tagValueArr = append(tagValueArr, currentTagValues.List...)
+		}
+	}
+
+	for _, tagValue := range tagValues {
+		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
+	}
+
+	Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	returnObj := false
+	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, Policy)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " Policy " + pn + " tags successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) ShowPolicies(dn string, tagKey string, tagValue string) (*string, error) {
+	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
+		publicKeys := true
+		hosts := true
+		Policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &publicKeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		if err != nil {
+			return nil, fmt.Errorf("unable to get Policy list - error: %v", err)
+		}
+		return cli.dumpByFormat(Policies, cli.buildYAMLOutput)
+	} else {
+		var buf bytes.Buffer
+		cli.dumpPolicies(&buf, dn, tagKey, tagValue)
+		s := buf.String()
+		return &s, nil
+	}
+}

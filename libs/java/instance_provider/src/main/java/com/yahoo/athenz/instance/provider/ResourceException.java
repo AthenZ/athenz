@@ -22,6 +22,7 @@ public class ResourceException extends RuntimeException {
     public final static int NOT_FOUND = 404;
     public final static int NOT_IMPLEMENTED = 501;
     public final static int GATEWAY_TIMEOUT = 504;
+    public final static int BAD_REQUEST     = 400;
 
     final private int code;
 

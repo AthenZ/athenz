@@ -20,7 +20,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.11.35-SNAPSHOT</version>
+    <version>1.11.41-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9958</code.coverage.min>
+    <code.coverage.min>0.9967</code.coverage.min>
   </properties>
 
   <dependencyManagement>
@@ -149,6 +149,10 @@
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
       <version>${gcp.api-client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-iam</artifactId>
     </dependency>
   </dependencies>
 

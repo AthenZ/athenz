@@ -46,6 +46,9 @@ public class InstanceRefreshInformation {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String namespace;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String cloud;
 
     public InstanceRefreshInformation setAttestationData(String attestationData) {
         this.attestationData = attestationData;
@@ -124,6 +127,13 @@ public class InstanceRefreshInformation {
     public String getNamespace() {
         return namespace;
     }
+    public InstanceRefreshInformation setCloud(String cloud) {
+        this.cloud = cloud;
+        return this;
+    }
+    public String getCloud() {
+        return cloud;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -163,6 +173,9 @@ public class InstanceRefreshInformation {
                 return false;
             }
             if (namespace == null ? a.namespace != null : !namespace.equals(a.namespace)) {
+                return false;
+            }
+            if (cloud == null ? a.cloud != null : !cloud.equals(a.cloud)) {
                 return false;
             }
         }

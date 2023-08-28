@@ -397,6 +397,44 @@ func (client MSDClient) GetTransportPolicyValidationStatus(domainName DomainName
 	}
 }
 
+func (client MSDClient) GetTransportPolicyRulesByDomain(domainName DomainName, matchingTag string) (*TransportPolicyRules, string, error) {
+	var data *TransportPolicyRules
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/transportpolicies"
+	resp, err := client.httpGet(url, headers)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
 func (client MSDClient) GetWorkloadsByService(domainName DomainName, serviceName EntityName, matchingTag string) (*Workloads, string, error) {
 	var data *Workloads
 	headers := map[string]string{
@@ -620,6 +658,44 @@ func (client MSDClient) GetStaticWorkloadServicesByType(serviceType EntityName, 
 			errobj.Message = string(contentBytes)
 		}
 		return data, errobj
+	}
+}
+
+func (client MSDClient) GetWorkloadsByDomain(domainName DomainName, matchingTag string) (*Workloads, string, error) {
+	var data *Workloads
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/workloads"
+	resp, err := client.httpGet(url, headers)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
 	}
 }
 

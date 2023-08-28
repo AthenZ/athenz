@@ -1,3 +1,75 @@
+Athenz v1.11.40 Release / Aug 25, 2023
+--------------------------------------
+
+#2272 UI: ability to add members by searching for their names
+#2278 add a new static validator type in msd
+#2279 improve error logging when validating role cert csr
+#2280 UI: Add search capability for Add Group component
+#2283 libs/go/sia/agent/devel/ztsmock: fix dropped error
+
+Athenz v1.11.39 Release / Aug 18, 2023
+--------------------------------------
+
+#2270 include gcp instance name in identity cert uri
+#2271 UI - Update product Id link
+#2273 allow aws attestation role only include service name
+#2274 [skip ci] docker build using actions
+#2275 provide config option to specify external creds providers
+#2276 remove item from fetch queue if zts reports bad request
+#2277 avoid ConcurrentModificationExceptions when processing domain updates
+
+Athenz v1.11.38 Release / Aug 08, 2023
+--------------------------------------
+
+#2262 new optional attribute in instance identity register/refresh request
+#2263 skip tests if -DskipTests=true is provided
+#2264 support adding cert to secret manager
+#2265 Generic Kubernetes provider for Athenz
+#2266 support external gcp access token support from registered projects
+#2267 add wildcard support for ServiceSkipDomains
+#2268 fix for deploying Athenz UI container locally
+
+Athenz v1.11.37 Release / Jul 28, 2023
+--------------------------------------
+
+#2248 fix policy tags fetch + increase unit test coverage
+#2249 introduce shutdown method for connection logger
+#2250 introduce feature-flags system attribute for domains
+#2251 support new allow service underscore feature flag
+#2252 allow specifying cipher suites for the ui server via config
+#2254 Add test for get policy
+#2255 add set-role-description option in zms-cli
+#2256 use read replica when fetching domain change list in read-only mode
+#2261 support proxy auth with gcp http transport
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230724.sql
+
+Athenz v1.11.36 Release / Jul 21, 2023
+--------------------------------------
+
+#2195 Add support in service tags
+#2219 Adding policy tags
+#2240 update deps and move from sun.jakarta.mail to angus-mail
+#2243 Bump word-wrap from 1.2.3 to 1.2.4 in /ui
+#2244 for go gcp function sia - provide method to store identity in secret manager
+#2246 add support for new spiffe format in gcp java cloud function support
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230606.sql
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20230717.sql
+
+Athenz v1.11.35 Release / Jul 15, 2023
+--------------------------------------
+
+#2230 update zms-cli getDomain call to use JWS domain
+#2232 extend principal role lookup api with expand option
+#2233 Bump semver from 5.7.1 to 5.7.2 in /ui
+#2234 extend GetSanUri method to take spiffe trust domain/namespace arguments
+#2235 Initiate AthenzSslContextFactory as part of AthenzJettyContainer
+#2236 Make the properties of functions.SiaCertData public (Capitalized)
+#2239 support numeric and string product ids in zms-cli
+
 Athenz v1.11.34 Release / Jul 07, 2023
 --------------------------------------
 

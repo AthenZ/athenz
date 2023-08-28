@@ -20,22 +20,25 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"log"
-	"net/url"
-	"strings"
-
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
+	"github.com/AthenZ/athenz/libs/go/sia/aws/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"strings"
 )
 
-func getLambdaAttestationData(domain, service, account string) (*attestation.AttestationData, error) {
+func getLambdaAttestationData(domain, service, account string) ([]byte, error) {
 	data := &attestation.AttestationData{
 		Role: fmt.Sprintf("%s.%s", domain, service),
 	}
-	stsSession := sts.New(session.New())
+	clientSession, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	stsSession := sts.New(clientSession)
 	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, data.Role)
 	tok, err := stsSession.AssumeRole(&sts.AssumeRoleInput{
 		RoleArn:         &roleArn,
@@ -47,70 +50,74 @@ func getLambdaAttestationData(domain, service, account string) (*attestation.Att
 	data.Access = *tok.Credentials.AccessKeyId
 	data.Secret = *tok.Credentials.SecretAccessKey
 	data.Token = *tok.Credentials.SessionToken
-	return data, nil
+
+	return json.Marshal(data)
 }
 
-func GetAWSLambdaServiceCertificate(ztsUrl, provider, domain, service, account string, ztsDomains []string, instanceIdSanDNS bool) (tls.Certificate, error) {
-	key, err := util.GenerateKeyPair(2048)
+func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl string, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields) (*util.SiaCertData, error) {
+	awsAccount := meta.GetAccountId()
+	return getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, awsAccount, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, false)
+}
+
+// Deprecated: Use GetAthenzIdentity functions to get identity certificates
+func GetAWSLambdaServiceCertificate(ztsUrl, athenzProvider, athenzDomain, service, awsAccount string, sanDNSDomains []string, instanceIdSanDNS bool) (tls.Certificate, error) {
+
+	csrSubjectFields := util.CsrSubjectFields{
+		Country:          "US",
+		OrganizationUnit: athenzProvider,
+	}
+	siaCertData, err := getInternalAthenzIdentity(athenzDomain, service, athenzProvider, ztsUrl, awsAccount, sanDNSDomains, "", csrSubjectFields, instanceIdSanDNS)
 	if err != nil {
 		return tls.Certificate{}, err
 	}
 
-	var csrDetails util.CertReqDetails
-	csrDetails.CommonName = fmt.Sprintf("%s.%s", domain, service)
-	csrDetails.Country = "US"
-	csrDetails.OrgUnit = provider
-	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	csrDetails.HostList = []string{}
-	for _, ztsDomain := range ztsDomains {
-		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
-		csrDetails.HostList = append(csrDetails.HostList, host)
-	}
-	csrDetails.URIs = []*url.URL{}
-	spiffeUri := fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
-	csrDetails.URIs = util.AppendUri(csrDetails.URIs, spiffeUri)
+	return siaCertData.TLSCertificate, nil
+}
 
-	// athenz://instanceid/<provider>/<instance-id>
-	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/lambda-%s-%s", provider, account, service)
-	csrDetails.URIs = util.AppendUri(csrDetails.URIs, instanceIdUri)
-	// for backward compatibility a sanDNS entry with instance id in the hostname if requested
-	if instanceIdSanDNS {
-		instanceIdHost := fmt.Sprintf("lambda-%s-%s.instanceid.athenz.%s", account, service, ztsDomains[0])
-		csrDetails.HostList = append(csrDetails.HostList, instanceIdHost)
-	}
+func getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, awsAccount string, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields, instanceIdSanDNS bool) (*util.SiaCertData, error) {
 
-	csr, err := util.GenerateX509CSR(key, csrDetails)
+	athenzDomain = strings.ToLower(athenzDomain)
+	athenzService = strings.ToLower(athenzService)
+	athenzProvider = strings.ToLower(athenzProvider)
+
+	privateKey, err := util.GenerateKeyPair(2048)
 	if err != nil {
-		return tls.Certificate{}, err
+		return nil, err
 	}
-
-	data, err := getLambdaAttestationData(domain, service, account)
+	attestationData, err := getLambdaAttestationData(athenzDomain, athenzService, awsAccount)
 	if err != nil {
-		return tls.Certificate{}, err
+		return nil, err
 	}
 
-	client, err := util.ZtsClient(ztsUrl, "", "", "", "")
+	instanceId := fmt.Sprintf("lambda-%s-%s", awsAccount, athenzService)
+	return util.RegisterIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, instanceId, string(attestationData), spiffeTrustDomain, sanDNSDomains, csrSubjectFields, instanceIdSanDNS, privateKey)
+}
+
+// StoreAthenzIdentityInSecretManager store the retrieved athenz identity in the
+// specified secret. The secret is stored in the following keys:
+//
+//	"<domain>.<service>.cert.pem":"<x509-cert-pem>,
+//	"<domain>.<service>.key.pem":"<pkey-pem>,
+//	"ca.cert.pem":"<ca-cert-pem>,
+//	"time": <utc-timestamp>
+//
+// The secret specified by the name must be pre-created
+func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData) error {
+
+	// generate our payload
+	keyCertJson, err := util.GenerateSecretJsonData(athenzDomain, athenzService, siaCertData)
 	if err != nil {
-		return tls.Certificate{}, err
+		return fmt.Errorf("unable to generate secret json data: %v", err)
 	}
-
-	var info zts.InstanceRegisterInformation
-	info.Provider = zts.ServiceName(provider)
-	info.Domain = zts.DomainName(domain)
-	info.Service = zts.SimpleName(service)
-	info.Csr = csr
-
-	attestData, err := json.Marshal(data)
+	clientSession, err := session.NewSession()
 	if err != nil {
-		return tls.Certificate{}, err
+		return err
 	}
-	info.AttestationData = string(attestData)
-
-	identity, _, err := client.PostInstanceRegisterInformation(&info)
-	if err != nil {
-		log.Printf("Unable to do PostInstanceRegisterInformation, err: %v\n", err)
-		return tls.Certificate{}, err
+	svc := secretsmanager.New(clientSession)
+	input := &secretsmanager.PutSecretValueInput{
+		SecretId:     aws.String(secretName),
+		SecretString: aws.String(string(keyCertJson)),
 	}
-
-	return tls.X509KeyPair([]byte(identity.X509Certificate), util.GetPEMBlock(key))
+	_, err = svc.PutSecretValue(input)
+	return err
 }

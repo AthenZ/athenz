@@ -43,6 +43,9 @@ import {
     selectUserLink,
 } from '../../redux/selectors/domains';
 import produce from 'immer';
+import InputDropdown from '../denali/InputDropdown';
+import MemberUtils from '../utils/MemberUtils';
+import { selectAllUsers } from '../../redux/selectors/user';
 
 const CATEGORIES = [
     {
@@ -75,6 +78,10 @@ const StyledButtonGroup = styled(ButtonGroup)`
 `;
 
 const StyledInput = styled(Input)`
+    width: 100%;
+`;
+
+const StyledInputAutoComplete = styled(InputDropdown)`
     width: 100%;
 `;
 
@@ -125,7 +132,7 @@ const FlatPickrStyled = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 77%;
     }
 `;
@@ -155,6 +162,7 @@ class AddRole extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.expandSettings = this.expandSettings.bind(this);
         this.toggleAuditEnabled = this.toggleAuditEnabled.bind(this);
+        this.userSearch = this.userSearch.bind(this);
         this.dateUtils = new DateUtils();
 
         let role = {
@@ -264,8 +272,8 @@ class AddRole extends React.Component {
                     : '',
                 reviewReminder: reviewReminderDate
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                          reviewReminderDate
-                      )
+                        reviewReminderDate
+                    )
                     : '',
             });
         }
@@ -388,8 +396,11 @@ class AddRole extends React.Component {
         });
     }
 
+    userSearch(part) {
+        return MemberUtils.userSearch(part, this.props.userList);
+    }
+
     render() {
-        let memberNameChanged = this.inputChanged.bind(this, 'newMemberName');
         let memberExpiryDateChanged = this.inputChanged.bind(
             this,
             'memberExpiry'
@@ -404,28 +415,28 @@ class AddRole extends React.Component {
         let deleteProtectionChanged = this.inputChanged.bind(this);
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                  // dummy place holder so that it can be be used in the form
-                  let member = { ...item };
-                  member.approved = true;
-                  // item.approved = true;
-                  let remove = this.deleteMember.bind(this, idx);
-                  return (
-                      <Member
-                          key={idx}
-                          item={member}
-                          onClickRemove={remove}
-                          noanim
-                      />
-                  );
-              })
+                // dummy place holder so that it can be be used in the form
+                let member = { ...item };
+                member.approved = true;
+                // item.approved = true;
+                let remove = this.deleteMember.bind(this, idx);
+                return (
+                    <Member
+                        key={idx}
+                        item={member}
+                        onClickRemove={remove}
+                        noanim
+                    />
+                );
+            })
             : '';
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
         let reviewToolTip =
             this.state.reviewEnabled || this.state.role.auditEnabled
                 ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP +
-                  '\n' +
-                  ADD_ROLE_AUDIT_ENABLED_TOOLTIP
+                '\n' +
+                ADD_ROLE_AUDIT_ENABLED_TOOLTIP
                 : null;
         let reviewTriggerStyle =
             this.state.reviewEnabled || this.state.role.auditEnabled
@@ -464,12 +475,23 @@ class AddRole extends React.Component {
                         </StyledInputLabel>
                         <ContentDiv style={reviewTriggerStyle}>
                             <AddMemberDiv>
-                                <StyledInput
+                                <StyledInputAutoComplete
                                     placeholder={ADD_ROLE_MEMBER_PLACEHOLDER}
-                                    value={this.state.newMemberName}
-                                    onChange={memberNameChanged}
-                                    noanim
-                                    fluid
+                                    itemToString={(i) =>
+                                        i === null ? '' : i.value
+                                    }
+                                    id='member-name'
+                                    name='member-name'
+                                    onChange={(evt) =>
+                                        this.setState({
+                                            ['newMemberName']: evt
+                                                ? evt.value
+                                                : '',
+                                        })
+                                    }
+                                    asyncSearchFunc={this.userSearch}
+                                    noanim={true}
+                                    fluid={true}
                                 />
                             </AddMemberDiv>
                         </ContentDiv>
@@ -551,26 +573,26 @@ class AddRole extends React.Component {
                 {this.state.showSettings && (
                     <StyleTable data-testid='advanced-setting-table'>
                         <tbody>
-                            <AddRoleAdvancedSettings
-                                userAuthorityAttributes={
-                                    this.props.userAuthorityAttributes
-                                }
-                                userProfileLink={this.props.userProfileLink}
-                                advancedSettingsChanged={
-                                    advancedSettingsChanged
-                                }
-                                reviewEnabledChanged={reviewEnabledChanged}
-                                deleteProtectionChanged={
-                                    deleteProtectionChanged
-                                }
-                                auditEnabledChanged={this.toggleAuditEnabled}
-                                isDomainAuditEnabled={
-                                    this.props.isDomainAuditEnabled
-                                }
-                                members={members}
-                                role={this.state.role}
-                                reviewEnabled={this.state.reviewEnabled}
-                            />
+                        <AddRoleAdvancedSettings
+                            userAuthorityAttributes={
+                                this.props.userAuthorityAttributes
+                            }
+                            userProfileLink={this.props.userProfileLink}
+                            advancedSettingsChanged={
+                                advancedSettingsChanged
+                            }
+                            reviewEnabledChanged={reviewEnabledChanged}
+                            deleteProtectionChanged={
+                                deleteProtectionChanged
+                            }
+                            auditEnabledChanged={this.toggleAuditEnabled}
+                            isDomainAuditEnabled={
+                                this.props.isDomainAuditEnabled
+                            }
+                            members={members}
+                            role={this.state.role}
+                            reviewEnabled={this.state.reviewEnabled}
+                        />
                         </tbody>
                     </StyleTable>
                 )}
@@ -598,6 +620,7 @@ const mapStateToProps = (state, props) => {
         isDomainAuditEnabled: selectDomainAuditEnabled(state),
         userProfileLink: selectUserLink(state),
         userAuthorityAttributes: selectAuthorityAttributes(state),
+        userList: selectAllUsers(state),
     };
 };
 

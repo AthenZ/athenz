@@ -10,6 +10,7 @@ type InstanceRefreshRequest Struct {
      Int32 expiryTime (optional); //in minutes how long token should be valid for
      String keyId (optional); //public key identifier
      SimpleName namespace (optional); //spiffe/k8s namespace value
+     SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
 }
 
 // Refresh Service tokens into TLS Certificate

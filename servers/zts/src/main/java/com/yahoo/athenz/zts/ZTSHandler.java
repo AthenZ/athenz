@@ -46,6 +46,7 @@ public interface ZTSHandler {
     Workloads getWorkloadsByIP(ResourceContext context, String ip);
     TransportRules getTransportRules(ResourceContext context, String domainName, String serviceName);
     Info getInfo(ResourceContext context);
+    ExternalCredentialsResponse postExternalCredentialsRequest(ResourceContext context, String provider, String domainName, ExternalCredentialsRequest request);
     Schema getRdlSchema(ResourceContext context);
     ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, String apiName);
     void recordMetrics(ResourceContext ctx, int httpStatus);

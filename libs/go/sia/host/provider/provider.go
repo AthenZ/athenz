@@ -50,7 +50,7 @@ type Provider interface {
 	GetSanDns(string, bool, bool, []string) []string
 
 	// GetSanUri returns an array of provider specific SAN URI entries
-	GetSanUri(string, ip.Opts) []*url.URL
+	GetSanUri(string, ip.Opts, string, string) []*url.URL
 
 	// GetEmail retuns an array of one email which can be used to identify the principal
 	GetEmail(string) []string

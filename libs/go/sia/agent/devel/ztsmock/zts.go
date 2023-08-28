@@ -303,6 +303,9 @@ func generateCertInMemory(csrPem string, caKey *rsa.PrivateKey, caCert *x509.Cer
 	}
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return "", err
+	}
 	algo := x509.SHA256WithRSA
 	now := time.Now()
 	tolerance := 15 * time.Minute // to account for time imprecision across machines

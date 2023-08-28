@@ -66,6 +66,8 @@ type SvcCertReqOptions struct {
 	Domain            string
 	Service           string
 	CommonName        string
+	Account           string
+	InstanceName      string
 	InstanceId        string
 	Provider          string
 	Hostname          string
@@ -122,10 +124,13 @@ func SplitDomain(domain string) (string, string) {
 	return domain[0:i], domain[i+1:]
 }
 
-func ZtsHostName(identity, ztsAwsDomain string) string {
-	domain, service := SplitDomain(identity)
+func SanDNSHostname(domain, service, cloudDomain string) string {
 	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	return fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsAwsDomain)
+	return fmt.Sprintf("%s.%s.%s", service, hyphenDomain, cloudDomain)
+}
+
+func SanURIInstanceId(athenzProvider, instanceId string) string {
+	return "athenz://instanceid/" + athenzProvider + "/" + instanceId
 }
 
 func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile string) (*zts.ZTSClient, error) {
@@ -274,6 +279,15 @@ func PrivatePem(privateKey *rsa.PrivateKey) string {
 	return string(block)
 }
 
+func ParseCertificate(certPem string) (*x509.Certificate, error) {
+	// Decode the certificate from PEM format.
+	x509CertificateBlock, _ := pem.Decode([]byte(certPem))
+	if x509CertificateBlock == nil || x509CertificateBlock.Type != "CERTIFICATE" {
+		return nil, fmt.Errorf("failed to decode PEM block containing the certificate")
+	}
+	return x509.ParseCertificate(x509CertificateBlock.Bytes)
+}
+
 func FileExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
@@ -335,19 +349,30 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
-	spiffeUri := ""
-	if options.SpiffeTrustDomain != "" && options.SpiffeNamespace != "" {
-		spiffeUri = fmt.Sprintf("spiffe://%s/ns/%s/sa/%s.%s", options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service)
-	} else {
-		spiffeUri = fmt.Sprintf("spiffe://%s/sa/%s", options.Domain, options.Service)
-	}
+	spiffeUri := GetSvcSpiffeUri(options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>
 	instanceIdUri := fmt.Sprintf("athenz://instanceid/%s/%s", options.Provider, options.InstanceId)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, instanceIdUri)
 
+	// athenz://instancename/<account>/<instance-name>
+	if options.Account != "" && options.InstanceName != "" {
+		instanceNameUri := fmt.Sprintf("athenz://instancename/%s/%s", options.Account, options.InstanceName)
+		csrDetails.URIs = AppendUri(csrDetails.URIs, instanceNameUri)
+	}
+
 	return GenerateX509CSR(key, csrDetails)
+}
+
+func GetSvcSpiffeUri(trustDomain, namespace, domain, service string) string {
+	var uriStr string
+	if trustDomain != "" && namespace != "" {
+		uriStr = fmt.Sprintf("spiffe://%s/ns/%s/sa/%s.%s", trustDomain, namespace, domain, service)
+	} else {
+		uriStr = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+	}
+	return uriStr
 }
 
 func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (string, error) {
@@ -688,10 +713,14 @@ func ParseTaskArn(taskArn string) (string, string, string, error) {
 	return account, taskId, region, nil
 }
 
-func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string) (string, string, string, string, error) {
-	//arn:aws:iam::123456789012:role/athenz.zts
-	//arn:aws:iam::123456789012:instance-profile/athenz.zts
-	//arn:aws:iam::123456789012:instance-profile/athenz.zts@access-profile
+func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string, roleServiceNameOnly bool) (string, string, string, string, error) {
+	// supported formats are
+	//  arn:aws:iam::123456789012:role/athenz.zts
+	//  arn:aws:iam::123456789012:instance-profile/athenz.zts
+	//  arn:aws:iam::123456789012:instance-profile/athenz.zts@access-profile
+	// if roleServiceNameOnly option is true then we also support
+	//  arn:aws:iam::123456789012:instance-profile/zts
+	// where domain name can be derived server side from the account number
 
 	if !strings.HasPrefix(roleArn, "arn:aws:iam:") {
 		return "", "", "", "", fmt.Errorf("unable to parse role arn (prefix): %s", roleArn)
@@ -728,11 +757,17 @@ func ParseRoleArn(roleArn, rolePrefix, roleSuffix, profileSeparator string) (str
 	// get service details without suffix
 	serviceData := serviceRole[:len(serviceRole)-len(roleSuffix)]
 	idx := strings.LastIndex(serviceData, ".")
+	var domain, service string
 	if idx < 0 {
-		return "", "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+		if !roleServiceNameOnly {
+			return "", "", "", "", fmt.Errorf("cannot determine domain/service from arn: %s", roleArn)
+		} else {
+			service = serviceData
+		}
+	} else {
+		domain = serviceData[:idx]
+		service = serviceData[idx+1:]
 	}
-	domain := serviceData[:idx]
-	service := serviceData[idx+1:]
 	account := arn[4]
 	return account, domain, service, profile, nil
 }

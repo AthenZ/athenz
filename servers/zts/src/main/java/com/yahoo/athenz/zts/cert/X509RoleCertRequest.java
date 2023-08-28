@@ -126,7 +126,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         if (!StringUtil.isEmpty(rolePrincipal)) {
 
             if (!principal.equalsIgnoreCase(rolePrincipal)) {
-                LOGGER.error("validateRolePrincipal: role principal mismatch {} vs {}", principal, rolePrincipal);
+                LOGGER.error("role principal mismatch {} vs {}", principal, rolePrincipal);
                 return false;
             }
 
@@ -151,16 +151,14 @@ public class X509RoleCertRequest extends X509CertRequest {
         // and we must have only a single value specified
 
         if (emails.size() != 1) {
-            LOGGER.error("validateRoleCertificateRequest: csr has incorrect number of emails: {}",
-                    emails.size());
+            LOGGER.error("csr has incorrect number of emails: {}", emails.size());
             return false;
         }
 
         final String email = emails.get(0);
         final String emailPrefix = principal + "@";
         if (!email.startsWith(emailPrefix) || !ZTSUtils.valueEndsWith(email, ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
-            LOGGER.error("validateRoleCertificateRequest: fail to validate email {} format {}*{}",
-                    email, emailPrefix, ZTSUtils.ZTS_CERT_DNS_SUFFIX);
+            LOGGER.error("unable to validate email {} format {}*{}", email, emailPrefix, ZTSUtils.ZTS_CERT_DNS_SUFFIX);
             return false;
         }
 
@@ -212,11 +210,22 @@ public class X509RoleCertRequest extends X509CertRequest {
             // validation based on the connection ip
 
             if (!certIPs.isEmpty()) {
-                return certIPs.containsAll(ipAddresses);
+                if (!certIPs.containsAll(ipAddresses)) {
+                    LOGGER.error("unable to validate certificate IP addresses: '{}' against CSR IP addresses: '{}'",
+                            certIPs, ipAddresses);
+                    return false;
+                }
+                return true;
             }
         }
 
-        return validateIPAddress(ip);
+        if (!validateIPAddress(ip)) {
+            LOGGER.error("unable to validate connection IP address: '{}' against CSR IP addresses: '{}'",
+                    ip, ipAddresses);
+            return false;
+        }
+
+        return true;
     }
 
     public boolean validateSpiffeURI(final String domainName, final String roleName) {
@@ -229,12 +238,11 @@ public class X509RoleCertRequest extends X509CertRequest {
         }
 
         final String reqUri = "spiffe://" + domainName + "/" + SPIFFE_ROLE_AGENT + "/" + roleName;
-        boolean uriVerified = reqUri.equalsIgnoreCase(spiffeUri);
-
-        if (!uriVerified) {
-            LOGGER.error("validateSpiffeURI: spiffe uri mismatch: {}/{}", spiffeUri, reqUri);
+        if (!reqUri.equalsIgnoreCase(spiffeUri)) {
+            LOGGER.error("spiffe uri mismatch: {}/{}", spiffeUri, reqUri);
+            return false;
         }
 
-        return uriVerified;
+        return true;
     }
 }

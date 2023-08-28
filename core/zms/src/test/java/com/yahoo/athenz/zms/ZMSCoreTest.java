@@ -16,21 +16,16 @@
 
 package com.yahoo.athenz.zms;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.Validator;
 import com.yahoo.rdl.Validator.Result;
-
-import static org.testng.Assert.*;
-import static org.testng.Assert.assertFalse;
-
 import org.testng.annotations.Test;
 
 import java.util.*;
+
+import static org.testng.Assert.*;
 
 public class ZMSCoreTest {
 
@@ -612,7 +607,8 @@ public class ZMSCoreTest {
 
         // Policy test
         Policy p = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L))
-                .setAssertions(al);
+                .setAssertions(al)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         Result result = validator.validate(p, "Policy");
         assertTrue(result.valid);
 
@@ -621,9 +617,10 @@ public class ZMSCoreTest {
         assertEquals(p.getAssertions(), al);
 
         Policy p2 = new Policy().setName("test-policy").setModified(Timestamp.fromMillis(123456789123L))
-                .setAssertions(al);
+                .setAssertions(al)
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue2"))));
 
-        assertTrue(p2.equals(p));
+        assertFalse(p2.equals(p));
         assertTrue(p.equals(p));
 
         p2.setName(null);
@@ -652,6 +649,8 @@ public class ZMSCoreTest {
         assertFalse(p2.equals(p));
         assertFalse(p.equals(p2));
         p2.setCaseSensitive(null);
+
+        assertEquals(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue2"))), p2.getTags());
 
         assertFalse(p.equals(new String()));
         assertFalse(p2.equals(null));
@@ -744,7 +743,8 @@ public class ZMSCoreTest {
         ServiceIdentity si = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
                 .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
-                .setDescription("description");
+                .setDescription("description")
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         result = validator.validate(si, "ServiceIdentity");
         assertTrue(result.valid);
 
@@ -757,33 +757,57 @@ public class ZMSCoreTest {
         assertEquals(si.getUser(), "user.test");
         assertEquals(si.getGroup(), "test.group");
         assertEquals(si.getDescription(), "description");
+        assertEquals(si.getTags().get("tagKey").getList().get(0), "tagValue");
 
         ServiceIdentity si2 = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
                 .setExecutable("exec/path").setHosts(hosts).setUser("user.test").setGroup("test.group")
-                .setDescription("description");
+                .setDescription("description")
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
 
         assertTrue(si2.equals(si));
         assertTrue(si.equals(si));
 
         si2.setGroup(null);
         assertFalse(si2.equals(si));
+        si2.setGroup(si.getGroup());
+        assertTrue(si2.equals(si));
         si2.setUser(null);
         assertFalse(si2.equals(si));
+        si2.setUser(si.getUser());
+        assertTrue(si2.equals(si));
         si2.setHosts(null);
         assertFalse(si2.equals(si));
+        si2.setHosts(si.getHosts());
+        assertTrue(si2.equals(si));
         si2.setExecutable(null);
         assertFalse(si2.equals(si));
+        si2.setExecutable(si.getExecutable());
+        assertTrue(si2.equals(si));
         si2.setModified(null);
         assertFalse(si2.equals(si));
+        si2.setModified(si.getModified());
+        assertTrue(si2.equals(si));
         si2.setProviderEndpoint(null);
         assertFalse(si2.equals(si));
+        si2.setProviderEndpoint(si.getProviderEndpoint());
+        assertTrue(si2.equals(si));
         si2.setPublicKeys(null);
         assertFalse(si2.equals(si));
+        si2.setPublicKeys(si.getPublicKeys());
+        assertTrue(si2.equals(si));
         si2.setDescription(null);
         assertFalse(si2.equals(si));
+        si2.setDescription(si.getDescription());
+        assertTrue(si2.equals(si));
         si2.setName(null);
         assertFalse(si2.equals(si));
+        si2.setName(si.getName());
+        assertTrue(si2.equals(si));
+        si2.setTags(null);
+        assertFalse(si2.equals(si));
+        si2.setTags(si.getTags());
+        assertTrue(si2.equals(si));
         assertFalse(si.equals(new String()));
 
         List<ServiceIdentity> sil = Arrays.asList(si);
@@ -821,7 +845,7 @@ public class ZMSCoreTest {
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure").setGcpProject("gcp")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235")
-                .setProductId("abcd-1234");
+                .setProductId("abcd-1234").setFeatureFlags(3);
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -857,6 +881,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getBusinessService(), "business-service");
         assertEquals(dd.getMemberPurgeExpiryDays(), 10);
         assertEquals(dd.getProductId(), "abcd-1234");
+        assertEquals(dd.getFeatureFlags(), 3);
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -866,7 +891,7 @@ public class ZMSCoreTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1235").setProductId("abcd-1234");
+                .setGcpProjectNumber("1235").setProductId("abcd-1234").setFeatureFlags(3);
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
@@ -984,6 +1009,13 @@ public class ZMSCoreTest {
         dd2.setServiceCertExpiryMins(null);
         assertNotEquals(dd, dd2);
         dd2.setServiceCertExpiryMins(150);
+        assertEquals(dd, dd2);
+
+        dd2.setFeatureFlags(7);
+        assertNotEquals(dd, dd2);
+        dd2.setFeatureFlags(null);
+        assertNotEquals(dd, dd2);
+        dd2.setFeatureFlags(3);
         assertEquals(dd, dd2);
 
         dd2.setDescription("new domain");
@@ -1938,7 +1970,7 @@ public class ZMSCoreTest {
         Assertion a = new Assertion().setRole("test.role.*").setResource("test.resource.*").setAction("test-action")
                 .setEffect(AssertionEffect.ALLOW).setId(0L);
 
-        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)));
+        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue")))));
 
         Policies ps1 = new Policies().setList(plist);
 
@@ -1966,7 +1998,7 @@ public class ZMSCoreTest {
         Assertion a = new Assertion().setRole("test.role.*").setResource("test.ResourcE.*").setAction("Test-Action")
                 .setEffect(AssertionEffect.ALLOW).setId(0L);
 
-        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(true));
+        List<Policy> plist = Arrays.asList(new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(true).setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue")))));
 
         Policies ps1 = new Policies().setList(plist);
 
@@ -1986,7 +2018,7 @@ public class ZMSCoreTest {
         assertFalse(ps1.equals(null));
         assertFalse(ps1.equals(new String()));
 
-        Policy policyCaseSensitiveCheck = new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(null);
+        Policy policyCaseSensitiveCheck = new Policy().setName("test").setAssertions(Arrays.asList(a)).setCaseSensitive(null).setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
         assertFalse(ps1.getList().get(0).equals(policyCaseSensitiveCheck));
         policyCaseSensitiveCheck.setCaseSensitive(false);
         assertFalse(ps1.getList().get(0).equals(policyCaseSensitiveCheck));
@@ -2477,131 +2509,6 @@ public class ZMSCoreTest {
 
         assertFalse(quota2.equals(null));
         assertFalse(quota2.equals(new String()));
-    }
-
-    @Test
-    public void testMemberRole() {
-
-        MemberRole mbr1 = new MemberRole();
-        mbr1.setRoleName("role1");
-        mbr1.setExpiration(Timestamp.fromMillis(100));
-        mbr1.setActive(false);
-        mbr1.setAuditRef("audit-ref");
-        mbr1.setDomainName("athenz");
-        mbr1.setMemberName("mbr");
-        mbr1.setRequestTime(Timestamp.fromMillis(100));
-        mbr1.setRequestPrincipal("user.admin");
-        mbr1.setSystemDisabled(1);
-        mbr1.setReviewReminder(Timestamp.fromMillis(100));
-        mbr1.setPendingState("ADD");
-
-        assertEquals("role1", mbr1.getRoleName());
-        assertEquals(Timestamp.fromMillis(100), mbr1.getExpiration());
-        assertEquals(Timestamp.fromMillis(100), mbr1.getRequestTime());
-        assertFalse(mbr1.getActive());
-        assertEquals(mbr1.getAuditRef(), "audit-ref");
-        assertEquals(mbr1.getDomainName(), "athenz");
-        assertEquals(mbr1.getMemberName(), "mbr");
-        assertEquals(mbr1.getRequestPrincipal(), "user.admin");
-        assertEquals(mbr1.getSystemDisabled(), Integer.valueOf(1));
-        assertEquals(Timestamp.fromMillis(100), mbr1.getReviewReminder());
-        assertEquals(mbr1.getPendingState(), "ADD");
-
-        assertTrue(mbr1.equals(mbr1));
-        assertFalse(mbr1.equals(null));
-        assertFalse(mbr1.equals("data"));
-
-        MemberRole mbr2 = new MemberRole()
-                .setRoleName("role1")
-                .setExpiration(Timestamp.fromMillis(100))
-                .setActive(false)
-                .setAuditRef("audit-ref")
-                .setDomainName("athenz")
-                .setMemberName("mbr")
-                .setRequestTime(Timestamp.fromMillis(100))
-                .setRequestPrincipal("user.admin")
-                .setSystemDisabled(1)
-                .setReviewReminder(Timestamp.fromMillis(100))
-                .setPendingState("ADD");
-
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setMemberName("mbr2");
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setMemberName(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setMemberName("mbr");
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setRoleName("role2");
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setRoleName(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setRoleName("role1");
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setAuditRef("audit-ref2");
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setAuditRef(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setAuditRef("audit-ref");
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setDomainName("athenz2");
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setDomainName(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setDomainName("athenz");
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setExpiration(Timestamp.fromMillis(101));
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setExpiration(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setExpiration(Timestamp.fromMillis(100));
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setRequestTime(Timestamp.fromMillis(101));
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setRequestTime(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setRequestTime(Timestamp.fromMillis(100));
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setReviewReminder(Timestamp.fromMillis(101));
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setReviewReminder(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setReviewReminder(Timestamp.fromMillis(100));
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setRequestPrincipal("athenz2");
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setRequestPrincipal(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setRequestPrincipal("user.admin");
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setSystemDisabled(2);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setSystemDisabled(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setSystemDisabled(1);
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setActive(true);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setActive(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setActive(false);
-        assertTrue(mbr2.equals(mbr1));
-
-        mbr2.setPendingState("DELETE");
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setPendingState(null);
-        assertFalse(mbr2.equals(mbr1));
-        mbr2.setPendingState("ADD");
-        assertTrue(mbr2.equals(mbr1));
     }
 
     @Test

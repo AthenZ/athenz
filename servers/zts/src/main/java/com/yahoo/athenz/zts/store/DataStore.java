@@ -897,22 +897,27 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         }
 
         // Determine which roles have been deleted and should be removed from cache
-        final Set<String> validRoles = (roles != null) ? roles.stream().map(Role::getName).collect(Collectors.toSet()) : new HashSet<>();
+        // first we're going to extract our original roles. if we don't have
+        // any, then there is nothing to process, so we can return away
 
-        List<Role> deletedRoles = null;
         DataCache dataCache = getCacheStore().getIfPresent(domainData.getName());
-        if (dataCache != null) {
-            deletedRoles = dataCache.getDomainData().getRoles();
-            if (deletedRoles != null && !validRoles.isEmpty()) {
-                deletedRoles.removeIf(item -> validRoles.contains(item.getName()));
-            }
+        if (dataCache == null) {
+            return;
+        }
+        List<Role> originalRoles = dataCache.getDomainData().getRoles();
+        if (originalRoles == null || originalRoles.isEmpty()) {
+            return;
         }
 
-        // Process our deleted roles
+        // get the set of role names in the original and updated domains to
+        // compare and see which ones have been deleted
 
-        if (deletedRoles != null) {
-            for (Role deletedRole : deletedRoles) {
-                requireRoleCertCache.processRoleCacheDelete(deletedRole);
+        final Set<String> newRoleNames = (roles != null) ?
+                roles.stream().map(Role::getName).collect(Collectors.toSet()) : new HashSet<>();
+
+        for (Role originalRole : originalRoles) {
+            if (!newRoleNames.contains(originalRole.getName())) {
+                requireRoleCertCache.processRoleCacheDelete(originalRole);
             }
         }
     }
@@ -1325,7 +1330,9 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         }
 
         List<Role> deletedRoles = dataCache.getDomainData().getRoles();
-
+        if (deletedRoles == null) {
+            return;
+        }
         for (Role role : deletedRoles) {
             requireRoleCertCache.processRoleCacheDelete(role);
         }
@@ -1445,7 +1452,7 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         if (getCloudStore() != null) {
             getCloudStore().updateAwsAccount(name, dataCache.getDomainData().getAccount());
             getCloudStore().updateAzureSubscription(name, dataCache.getDomainData().getAzureSubscription());
-            getCloudStore().updateGCPProject(name, dataCache.getDomainData().getGcpProject());
+            getCloudStore().updateGCPProject(name, dataCache.getDomainData().getGcpProject(), dataCache.getDomainData().getGcpProjectNumber());
         }
 
         /* update the cache for the given domain */

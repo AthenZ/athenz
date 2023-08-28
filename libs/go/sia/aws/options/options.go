@@ -74,6 +74,7 @@ type ConfigAccount struct {
 	Version      string                `json:"version,omitempty"`                    //sia version number
 	Threshold    float64               `json:"cert_threshold_to_check,omitempty"`    //threshold to verify for all certs
 	SshThreshold float64               `json:"sshcert_threshold_to_check,omitempty"` //threshold to verify for ssh certs
+	OmitDomain   bool                  `json:"omit_domain,omitempty"`                //attestation role only includes service name
 }
 
 // Config represents entire sia_config file
@@ -211,6 +212,7 @@ type Options struct {
 	RunAfterTokensParts []string          //run after token parsed parts
 	SpiffeTrustDomain   string            //spiffe uri trust domain
 	SpiffeNamespace     string            //spiffe uri namespace
+	OmitDomain          bool              //attestation role only includes service name
 }
 
 const (
@@ -264,11 +266,17 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 	if err != nil {
 		return nil, nil, err
 	}
-	account, domain, service, profile, err := util.ParseRoleArn(arn, "instance-profile/", roleSuffix, accessProfileSeparator)
+	athenzDomain, _ := meta.GetData(metaEndPoint, "/latest/meta-data/tags/instance/athenz-domain")
+	roleServiceNameOnly := string(athenzDomain) != ""
+	account, domain, service, profile, err := util.ParseRoleArn(arn, "instance-profile/", roleSuffix, accessProfileSeparator, roleServiceNameOnly)
 	if err != nil {
 		return nil, nil, err
 	}
-
+	omitDomain := false
+	if domain == "" {
+		domain = string(athenzDomain)
+		omitDomain = true
+	}
 	return &ConfigAccount{
 			Domain:       domain,
 			Service:      service,
@@ -276,6 +284,7 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 			Name:         fmt.Sprintf("%s.%s", domain, service),
 			Threshold:    DefaultThreshold,
 			SshThreshold: DefaultThreshold,
+			OmitDomain:   omitDomain,
 		}, &AccessProfileConfig{
 			Profile:           profile,
 			ProfileRestrictTo: "",
@@ -440,7 +449,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if roleArn == "" {
 		return config, nil, fmt.Errorf("athenz role arn env variable not configured")
 	}
-	account, domain, service, _, err := util.ParseRoleArn(roleArn, "role/", "", "")
+	account, domain, service, _, err := util.ParseRoleArn(roleArn, "role/", "", "", false)
 	if err != nil {
 		return config, nil, fmt.Errorf("unable to parse athenz role arn: %v", err)
 	}
@@ -528,7 +537,6 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		dropPrivileges = config.DropPrivileges
 		fileDirectUpdate = config.FileDirectUpdate
 		accessManagement = config.AccessManagement
-
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
@@ -737,6 +745,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		RunAfterParts:       util.ParseScriptArguments(runAfter),
 		RunAfterTokensParts: util.ParseScriptArguments(runAfterTokens),
 		SpiffeTrustDomain:   spiffeTrustDomain,
+		OmitDomain:          account.OmitDomain,
 	}, nil
 }
 

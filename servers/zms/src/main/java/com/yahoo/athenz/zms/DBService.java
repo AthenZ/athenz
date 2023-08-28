@@ -118,6 +118,8 @@ public class DBService implements RolesProvider {
         int roleTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_ROLE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int domainTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_DOMAIN_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
         int groupTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_GROUP_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int policyTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_POLICY_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
+        int serviceTagsLimit = Integer.getInteger(ZMSConsts.ZMS_PROP_QUOTA_SERVICE_TAG, ZMSConsts.ZMS_DEFAULT_TAG_LIMIT);
 
         DomainOptions domainOptions = new DomainOptions();
         domainOptions.setEnforceUniqueAWSAccounts(Boolean.parseBoolean(
@@ -131,7 +133,7 @@ public class DBService implements RolesProvider {
 
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
-            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit);
+            this.store.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit, serviceTagsLimit);
             this.store.setDomainOptions(domainOptions);
         }
 
@@ -523,8 +525,23 @@ public class DBService implements RolesProvider {
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
         }
 
+        if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processPolicyTags(Policy policy, String policyName, String domainName,
+                                               Policy originalPolicy, ObjectStoreConnection con) {
+
+        String policyVersion = policy.getVersion();
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertPolicyTags(policyName, domainName, tags, policyVersion);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
+
+        return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null) , insertOp, deleteOp);
     }
 
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
@@ -1046,8 +1063,21 @@ public class DBService implements RolesProvider {
         }
         auditLogStrings(auditDetails, "added-hosts", newHosts);
 
+        if (!processServiceIdentityTags(service, serviceName, domainName, originalService, con)) {
+            return false;
+        }
+
         auditDetails.append('}');
         return true;
+    }
+
+    private boolean processServiceIdentityTags(ServiceIdentity service, String serviceName, String domainName,
+                                    ServiceIdentity originalService, ObjectStoreConnection con) {
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertServiceTags(serviceName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteServiceTags(serviceName, domainName, tagKeys);
+
+        return processTags(con, service.getTags(), (originalService != null ? originalService.getTags() : null) , insertOp, deleteOp);
     }
 
     boolean shouldRetryOperation(ResourceException ex, int retryCount) {
@@ -2826,8 +2856,9 @@ public class DBService implements RolesProvider {
         ServiceIdentity service = con.getServiceIdentity(domainName, serviceName);
         if (service != null && !attrsOnly) {
             service.setPublicKeys(con.listPublicKeys(domainName, serviceName));
+            service.setTags(con.getServiceTags(domainName, serviceName));
             List<String> hosts = con.listServiceHosts(domainName, serviceName);
-            if (hosts != null && !hosts.isEmpty()) {
+            if (!ZMSUtils.isListEmpty(hosts)) {
                 service.setHosts(hosts);
             }
         }
@@ -3188,10 +3219,211 @@ public class DBService implements RolesProvider {
         }
     }
 
-    DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+    DomainRoleMember getPrincipalRoles(String principal, String domainName, Boolean expand) {
+
+        DomainRoleMember principalRoles;
+        DomainGroupMember principalGroups;
+
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return con.getPrincipalRoles(principal, domainName);
+            if (expand != Boolean.TRUE) {
+                return con.getPrincipalRoles(principal, domainName);
+            }
+
+            principalRoles = con.getPrincipalRoles(principal, null);
+
+            // if we're asked to return expanded list of roles (including indirect
+            // membership through group and delegated roles), we need to get the list
+            // of groups that the principal is a member of, and then for each one
+            // extract the roles the group is a member of, and add those roles to
+            // our return list for further processing
+
+            principalGroups = con.getPrincipalGroups(principal, null);
+            for (GroupMember groupMember : principalGroups.getMemberGroups()) {
+                final String groupName = ResourceUtils.groupResourceName(groupMember.getDomainName(), groupMember.getGroupName());
+                try {
+                    DomainRoleMember roleGroupMembers = con.getPrincipalRoles(groupName, null);
+                    for (MemberRole memberRole : roleGroupMembers.getMemberRoles()) {
+                        memberRole.setMemberName(groupName);
+                    }
+                    principalRoles.getMemberRoles().addAll(roleGroupMembers.getMemberRoles());
+                } catch (ResourceException ex) {
+                    if (ex.getCode() == ResourceException.NOT_FOUND) {
+                        continue;
+                    }
+                    throw ex;
+                }
+            }
         }
+
+        // at this point we have determined the full list of roles that the principal
+        // is a member of directly or through group membership. so we only need to
+        // process the delegated roles. To determine that list, we need to go
+        // through each role in our result set and see if there is a policy
+        // assertion with the assume_role role action and the given role.
+        // Since there is a highly likely chance the same service might exist in the
+        // same domain multiple times, we'll maintain our local cache of
+        // athenz domain objects to reduce the number of DB calls when checking
+        // the last modified timestamp for the domain
+
+        Map<String, AthenzDomain> localDomainCache = new HashMap<>();
+        List<MemberRole> delegatedMemberRoles = new ArrayList<>();
+        for (MemberRole memberRole : principalRoles.getMemberRoles()) {
+            List<MemberRole> roleList = getDelegatedMemberRole(localDomainCache, memberRole);
+            if (!ZMSUtils.isListEmpty(roleList)) {
+                delegatedMemberRoles.addAll(roleList);
+            }
+        }
+
+        // combine our delegated role list to our result set
+
+        principalRoles.getMemberRoles().addAll(delegatedMemberRoles);
+
+        // if we're asked to filter the domain field, then we'll go
+        // through the full list and filter out the unwanted domains
+
+        if (!StringUtil.isEmpty(domainName)) {
+            principalRoles.getMemberRoles().removeIf(item -> !domainName.equals(item.getDomainName()));
+        }
+
+        return principalRoles;
+    }
+
+    AthenzDomain getAthenzDomainFromLocalCache(Map<String, AthenzDomain> domainCache, final String domainName) {
+
+        // first we're going to check our local cache and if we find
+        // the domain object, return right away
+
+        AthenzDomain athenzDomain = domainCache.get(domainName);
+        if (athenzDomain != null) {
+            return athenzDomain;
+        }
+
+        // obtain the domain from service cache and from DB if necessary
+        // add the domain to our local cache before returning
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            try {
+                athenzDomain = getAthenzDomain(con, domainName);
+            } catch (ResourceException ex) {
+                LOG.debug("unable to fetch role athenz domain {}: {}", domainName, ex.getMessage());
+                return null;
+            }
+        }
+
+        domainCache.put(domainName, athenzDomain);
+        return athenzDomain;
+    }
+
+    List<MemberRole> getDelegatedMemberRole(Map<String, AthenzDomain> domainCache, MemberRole memberRole) {
+
+        // first get the domain object for this role
+
+        AthenzDomain athenzDomain = getAthenzDomainFromLocalCache(domainCache, memberRole.getDomainName());
+        if (athenzDomain == null) {
+            return null;
+        }
+
+        // let's go through all assertions and look for an assume role
+        // action with a given role
+
+        final String trustRoleName = ResourceUtils.roleResourceName(memberRole.getDomainName(), memberRole.getRoleName());
+        List<MemberRole> memberRoles = new ArrayList<>();
+        for (Policy policy : athenzDomain.getPolicies()) {
+
+            // ignore any inactive/multi-version policies
+
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+
+            List<Assertion> assertions = policy.getAssertions();
+            if (assertions == null) {
+                continue;
+            }
+
+            for (Assertion assertion : assertions) {
+
+                if (!AuthzHelper.assumeRoleNameMatch(trustRoleName, assertion)) {
+                    continue;
+                }
+
+                // get the list of all roles in the resource domain that
+                // have been delegated to our member role domain
+
+                final String resource = assertion.getResource();
+                List<String> trustRoles = getDelegatedRoleNames(domainCache, resource, memberRole.getDomainName());
+                if (ZMSUtils.isListEmpty(trustRoles)) {
+                    continue;
+                }
+
+                // go through the list of trusted role names and see if they
+                // match our resource definition which might include wildcards
+
+                final String rolePattern = StringUtils.patternFromGlob(resource);
+                for (String trustedRole : trustRoles) {
+                    if (trustedRole.matches(rolePattern)) {
+                        int idx = trustedRole.indexOf(AuthorityConsts.ROLE_SEP);
+                        memberRoles.add(new MemberRole()
+                                .setRoleName(trustedRole.substring(idx + AuthorityConsts.ROLE_SEP.length()))
+                                .setDomainName(trustedRole.substring(0, idx))
+                                .setTrustRoleName(trustRoleName)
+                                .setMemberName(memberRole.getMemberName())
+                                .setExpiration(memberRole.getExpiration()));
+                    }
+                }
+
+            }
+        }
+        return memberRoles;
+    }
+
+    List<String> getDelegatedRoleNames(Map<String, AthenzDomain> domainCache, final String resource,
+            final String trustDomainName) {
+
+        // determine our resource domain name from the arn
+
+        int idx = resource.indexOf(':');
+        if (idx == -1) {
+            return null;
+        }
+
+        // get the list of all roles in the resource domain that
+        // have been delegated to our member role domain
+
+        final String resourceDomainName = resource.substring(0, idx);
+
+        // if our resource domain '*' then we have to carry out
+        // a db lookup to get all the domains that have a role
+        // with the matching name and trust set to our trustDomainName
+
+        if ("*".equals(resourceDomainName)) {
+            final String resourceObject = resource.substring(idx + 1);
+            if (!resourceObject.startsWith(ROLE_PREFIX)) {
+                return null;
+            }
+            try (ObjectStoreConnection con = store.getConnection(true, false)) {
+                return con.listTrustedRolesWithWildcards(resourceDomainName,
+                        resourceObject.substring(ROLE_PREFIX.length()), trustDomainName);
+            }
+        }
+
+        // first get the domain details for this resource domain name
+
+        AthenzDomain athenzDomain = getAthenzDomainFromLocalCache(domainCache, resourceDomainName);
+        if (athenzDomain == null) {
+            return null;
+        }
+
+        // go through the list of roles and return all with the given
+        // domain name set as its trust value
+
+        List<String> roleNames = new ArrayList<>();
+        for (Role role : athenzDomain.getRoles()) {
+            if (trustDomainName.equals(role.getTrust())) {
+                roleNames.add(role.getName());
+            }
+        }
+        return roleNames;
     }
 
     DomainGroupMember getPrincipalGroups(String principal, String domainName) {
@@ -3558,7 +3790,9 @@ public class DBService implements RolesProvider {
         Policy policy = con.getPolicy(domainName, policyName, version);
         if (policy != null) {
             policy.setAssertions(con.listAssertions(domainName, policyName, version));
+            policy.setTags(con.getPolicyTags(domainName, policyName, version));
         }
+
         return policy;
     }
 
@@ -3629,7 +3863,8 @@ public class DBService implements RolesProvider {
                         .setBusinessService(domain.getBusinessService())
                         .setTags(domain.getTags())
                         .setBusinessService(domain.getBusinessService())
-                        .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
+                        .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays())
+                        .setFeatureFlags(domain.getFeatureFlags());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -3691,56 +3926,17 @@ public class DBService implements RolesProvider {
     private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
             Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
 
-        if (originalDomain == null || originalDomain.getTags() == null || originalDomain.getTags().isEmpty()) {
-            if (domainTags == null || domainTags.isEmpty()) {
-                // no tags to process
-                return true;
-            }
-            if (!con.insertDomainTags(domainName, domainTags)) {
-                return false;
-            }
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+
+        if (processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp)) {
             if (updateDomainLastModTimestamp) {
                 con.updateDomainModTimestamp(domainName);
             }
             return true;
         }
 
-        if (domainTags == null) {
-            return true;
-        }
-
-        Map<String, TagValueList> originalDomainTags = originalDomain.getTags();
-
-        Set<String> tagsToRemove = originalDomainTags.entrySet().stream()
-            .filter(curTag -> domainTags.get(curTag.getKey()) == null
-                || !domainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toSet());
-
-        boolean tagsChanged = false;
-        if (tagsToRemove != null && !tagsToRemove.isEmpty()) {
-            if (!con.deleteDomainTags(originalDomain.getName(), tagsToRemove)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        Map<String, TagValueList> tagsToAdd = domainTags.entrySet().stream()
-            .filter(curTag -> originalDomainTags.get(curTag.getKey()) == null
-                || !originalDomainTags.get(curTag.getKey()).equals(curTag.getValue()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        if (tagsToAdd != null && !tagsToAdd.isEmpty()) {
-            if (!con.insertDomainTags(originalDomain.getName(), tagsToAdd)) {
-                return false;
-            }
-            tagsChanged = true;
-        }
-
-        if (tagsChanged && updateDomainLastModTimestamp) {
-            con.updateDomainModTimestamp(domainName);
-        }
-        return true;
+        return false;
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
@@ -4038,6 +4234,9 @@ public class DBService implements RolesProvider {
                 break;
             case ZMSConsts.SYSTEM_META_BUSINESS_SERVICE:
                 domain.setBusinessService(meta.getBusinessService());
+                break;
+            case ZMSConsts.SYSTEM_META_FEATURE_FLAGS:
+                domain.setFeatureFlags(meta.getFeatureFlags());
                 break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);
@@ -5232,14 +5431,14 @@ public class DBService implements RolesProvider {
         return athenzDomain;
     }
 
-    DomainMetaList listModifiedDomains(long modifiedSince) {
+    DomainMetaList listModifiedDomains(long modifiedSince, boolean readWrite) {
 
         // since this is the operation executed by ZTS servers to
         // retrieve latest domain changes, we're going to use
-        // the read-write store as oppose to read-only store to
+        // the read-write store as opposed to read-only store to
         // get our up-to-date data
 
-        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+        try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
             return con.listModifiedDomains(modifiedSince);
         }
     }
@@ -5434,6 +5633,7 @@ public class DBService implements RolesProvider {
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\", \"productId\": \"").append(domain.getProductId())
+                .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags())
                 .append("\"}");
     }
 

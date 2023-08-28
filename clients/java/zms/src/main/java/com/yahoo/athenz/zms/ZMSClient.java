@@ -15,18 +15,18 @@
  */
 package com.yahoo.athenz.zms;
 
-import java.io.Closeable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-
+import com.yahoo.athenz.auth.Authority;
+import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.impl.PrincipalAuthority;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.PrincipalToken;
+import com.yahoo.athenz.common.config.AthenzConfig;
+import com.yahoo.athenz.common.utils.SSLUtils;
+import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
+import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Timestamp;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -40,18 +40,16 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.yahoo.athenz.auth.Authority;
-import com.yahoo.athenz.auth.AuthorityConsts;
-import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.PrivateKeyStore;
-import com.yahoo.athenz.auth.impl.PrincipalAuthority;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
-import com.yahoo.athenz.auth.token.PrincipalToken;
-import com.yahoo.athenz.common.config.AthenzConfig;
-import com.yahoo.athenz.common.utils.SSLUtils;
-import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
-import com.yahoo.rdl.JSON;
-import com.yahoo.rdl.Timestamp;
+import javax.net.ssl.SSLContext;
+import java.io.Closeable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class ZMSClient implements Closeable {
 
@@ -1508,7 +1506,7 @@ public class ZMSClient implements Closeable {
     private Policies getPoliciesImpl(String domainName, Boolean assertions, Boolean includeNonActive) {
         updatePrincipal();
         try {
-            return client.getPolicies(domainName, assertions, includeNonActive);
+            return client.getPolicies(domainName, assertions, includeNonActive, null, null);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -1984,9 +1982,25 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public ServiceIdentities getServiceIdentities(String domainName, Boolean publicKeys, Boolean hosts) {
+        return getServiceIdentities(domainName, publicKeys, hosts, null, null);
+    }
+
+    /**
+     * Retrieve the list of services defined for the specified domain. The services
+     * will contain their attributes and, if specified, the list of publickeys and hosts.
+     *
+     * @param domainName name of the domain
+     * @param publicKeys include all public keys for services as well
+     * @param hosts      include all configured hosts for services as well
+     * @param tagKey     query all services with given tag name
+     * @param tagValue   query all services with given tag key and value
+     * @return list of services
+     * @throws ZMSClientException in case of failure
+     */
+    public ServiceIdentities getServiceIdentities(String domainName, Boolean publicKeys, Boolean hosts, String tagKey, String tagValue) {
         updatePrincipal();
         try {
-            return client.getServiceIdentities(domainName, publicKeys, hosts);
+            return client.getServiceIdentities(domainName, publicKeys, hosts, tagKey, tagValue);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -3063,15 +3077,28 @@ public class ZMSClient implements Closeable {
      * @return Member with roles in all requested domains
      */
     public DomainRoleMember getPrincipalRoles(String principal, String domainName) {
+        return getPrincipalRoles(principal, domainName, null);
+    }
+
+    /**
+     * Fetch all the roles across domains by either calling or specified principal. The expand
+     * argument specifies to include any group and/or delegated role membership as well.
+     * @param principal - Requested principal. If null will return roles for the user making the call
+     * @param domainName - Requested domain. If null will return roles from all domains
+     * @param expand - Optional. Include all group and delegated role membership as well.
+     * @return Member with roles in all requested domains
+     */
+    public DomainRoleMember getPrincipalRoles(String principal, String domainName, Boolean expand) {
         updatePrincipal();
         try {
-            return client.getPrincipalRoles(principal, domainName);
+            return client.getPrincipalRoles(principal, domainName, expand);
         } catch (ResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
             throw new ZMSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
+
     /**
      * Set the role system meta parameters
      *

@@ -35,7 +35,7 @@ public interface ObjectStoreConnection extends Closeable {
     void rollbackChanges();
     void close();
     void setOperationTimeout(int opTimout);
-    void setTagLimit(int domainLimit, int roleLimit, int groupLimit);
+    void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit, int serviceLimit);
 
     // Domain commands
 
@@ -83,6 +83,8 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteRole(String domainName, String roleName);
     boolean updateRoleModTimestamp(String domainName, String roleName);
     List<String> listRoles(String domainName);
+    List<String> listTrustedRolesWithWildcards(String domainName, String roleName, String trustDomainName);
+
     int countRoles(String domainName);
     List<RoleAuditLog> listRoleAuditLogs(String domainName, String roleName);
     boolean updateRoleReviewTimestamp(String domainName, String roleName);
@@ -224,6 +226,10 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deleteGroupTags(String groupName, String domainName, Set<String> tagKeys);
     Map<String, TagValueList> getGroupTags(String domainName, String groupName);
 
+    boolean insertServiceTags(String serviceName, String domainName, Map<String, TagValueList> serviceTags);
+    boolean deleteServiceTags(String serviceName, String domainName, Set<String> tagKeys);
+    Map<String, TagValueList> getServiceTags(String domainName, String serviceName);
+
     int countAssertionConditions(long assertionId);
     int getNextConditionId(long assertionId, String caller);
     List<AssertionCondition> getAssertionConditions(long assertionId);
@@ -244,4 +250,9 @@ public interface ObjectStoreConnection extends Closeable {
 
     List<ExpiryMember> getAllExpiredRoleMembers(int limit, int offset, int serverPurgeExpiryDays);
     List<ExpiryMember> getAllExpiredGroupMembers(int limit, int offset, int serverPurgeExpiryDays);
+
+    boolean insertPolicyTags(String policyName, String domainName, Map<String, TagValueList> policyTags, String version);
+    boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys, String version);
+    Map<String, TagValueList> getPolicyTags(String domainName, String policyName, String version);
+
 }

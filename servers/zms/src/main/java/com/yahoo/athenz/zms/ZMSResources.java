@@ -1120,16 +1120,17 @@ public class ZMSResources {
     @GET
     @Path("/role")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Fetch all the roles across domains by either calling or specified principal")
+    @Operation(description = "Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
     public DomainRoleMember getPrincipalRoles(
         @Parameter(description = "If not present, will return roles for the user making the call", required = false) @QueryParam("principal") String principal,
-        @Parameter(description = "If not present, will return roles from all domains", required = false) @QueryParam("domain") String domainName) {
+        @Parameter(description = "If not present, will return roles from all domains", required = false) @QueryParam("domain") String domainName,
+        @Parameter(description = "expand to include group and delegated trust role membership", required = false) @QueryParam("expand") @DefaultValue("false") Boolean expand) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPrincipalRoles");
             context.authenticate();
-            return this.delegate.getPrincipalRoles(context, principal, domainName);
+            return this.delegate.getPrincipalRoles(context, principal, domainName, expand);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2073,13 +2074,15 @@ public class ZMSResources {
     public Policies getPolicies(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "return list of assertions in the policy", required = false) @QueryParam("assertions") @DefaultValue("false") Boolean assertions,
-        @Parameter(description = "include non-active policy versions", required = false) @QueryParam("includeNonActive") @DefaultValue("false") Boolean includeNonActive) {
+        @Parameter(description = "include non-active policy versions", required = false) @QueryParam("includeNonActive") @DefaultValue("false") Boolean includeNonActive,
+        @Parameter(description = "flag to query all policies that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all policies that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicies");
             context.authenticate();
-            return this.delegate.getPolicies(context, domainName, assertions, includeNonActive);
+            return this.delegate.getPolicies(context, domainName, assertions, includeNonActive, tagKey, tagValue);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
@@ -2898,13 +2901,15 @@ public class ZMSResources {
     public ServiceIdentities getServiceIdentities(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "return list of public keys in the service", required = false) @QueryParam("publickeys") @DefaultValue("false") Boolean publickeys,
-        @Parameter(description = "return list of hosts in the service", required = false) @QueryParam("hosts") @DefaultValue("false") Boolean hosts) {
+        @Parameter(description = "return list of hosts in the service", required = false) @QueryParam("hosts") @DefaultValue("false") Boolean hosts,
+        @Parameter(description = "flag to query all services that have a given tagName", required = false) @QueryParam("tagKey") String tagKey,
+        @Parameter(description = "flag to query all services that have a given tag name and value", required = false) @QueryParam("tagValue") String tagValue) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getServiceIdentities");
             context.authenticate();
-            return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts);
+            return this.delegate.getServiceIdentities(context, domainName, publickeys, hosts, tagKey, tagValue);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
