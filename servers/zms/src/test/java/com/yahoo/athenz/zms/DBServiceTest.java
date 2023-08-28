@@ -12332,6 +12332,72 @@ public class DBServiceTest {
         assertTrue(zms.dbService.processUpdateTags(Collections.emptyMap(), Collections.emptyMap(), null, null, null));
     }
 
+    private AssertionCondition createAssertionConditionObject(Integer conditionId, String key, String value) {
+        Map<String, AssertionConditionData> map = new HashMap<>();
+        AssertionConditionData cd = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue(value);
+        map.put(key, cd);
+        return new AssertionCondition().setId(conditionId).setConditionsMap(map);
+    }
+
+    @Test
+    public void testMapAssertionsToConditions() {
+        Map<Long, List<AssertionCondition>> assertionConditionsMap = new HashMap<>();
+        zms.dbService.mapAssertionsToConditions(null, assertionConditionsMap);
+        assertTrue(assertionConditionsMap.isEmpty());
+        List<Assertion> assertions = new ArrayList<>();
+        zms.dbService.mapAssertionsToConditions(assertions, assertionConditionsMap);
+        assertTrue(assertionConditionsMap.isEmpty());
+
+        Assertion a1 = new Assertion().setId(1L);
+        assertions.add(a1);
+
+        AssertionCondition ac1 = createAssertionConditionObject(1, "test1", "test1");
+        AssertionCondition ac2 = createAssertionConditionObject(2, "test2", "test2");
+        Assertion a2 = new Assertion().setId(2L).setConditions(
+                new AssertionConditions()
+                        .setConditionsList(List.of(ac1, ac2))
+        );
+        assertions.add(a2);
+
+        AssertionCondition ac3 = createAssertionConditionObject(1, "test3", "test3");
+        Assertion a3 = new Assertion().setId(3L).setConditions(
+                new AssertionConditions()
+                        .setConditionsList(List.of(ac3))
+        );
+        assertions.add(a3);
+
+        zms.dbService.mapAssertionsToConditions(assertions, assertionConditionsMap);
+        assertEquals(assertionConditionsMap.size(), 2);
+        assertEquals(assertionConditionsMap.get(2L), List.of(ac1, ac2));
+        assertEquals(assertionConditionsMap.get(3L), List.of(ac3));
+
+    }
+
+    @Test
+    public void testIsAssertionConditionsHasChanged() {
+        List<AssertionCondition> list1 = null;
+        List<AssertionCondition> list2 = null;
+        assertFalse(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+
+        list1 = new ArrayList<>();
+        list1.add(createAssertionConditionObject(1, "test1", "test1"));
+        assertTrue(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+
+        list2 = new ArrayList<>();
+        list2.add(createAssertionConditionObject(null, "test1", "test1"));
+        assertFalse(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+
+        list1.add(createAssertionConditionObject(2, "test2", "test2"));
+        list2.add(createAssertionConditionObject(null, "test2", "test2"));
+        assertFalse(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+
+        list1.add(createAssertionConditionObject(3, "test3", "test3"));
+        assertTrue(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+
+        list2.add(createAssertionConditionObject(null, "test4", "test4"));
+        assertTrue(zms.dbService.isAssertionConditionsHasChanged(list1, list2));
+    }
+
     @Test
     public void testProcessPolicyConReturnFalse() {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
@@ -12349,6 +12415,59 @@ public class DBServiceTest {
                 policy, false, auditDetails);
 
         assertFalse(success);
+
+    }
+
+    @Test
+    public void testProcessPolicyAssertionConditionsConReturnFalse() {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Policy policy = new Policy().setName("newPolicy");
+
+        Assertion policyAssertion = new Assertion()
+                .setId(1L)
+                .setAction("testAction")
+                .setResource("sys.auth:testResource")
+                .setRole("sys.auth:role.testRole")
+                .setEffect(AssertionEffect.ALLOW)
+                .setConditions(
+                        new AssertionConditions()
+                                .setConditionsList(List.of(createAssertionConditionObject(1, "test1", "test1")))
+                );
+
+        policy.setAssertions(new LinkedList<>(Collections.singletonList(policyAssertion)));
+        Mockito.when(conn.insertAssertionConditions(1L, policyAssertion.getConditions())).thenReturn(false).thenReturn(true);
+        Mockito.when(conn.insertAssertion("sys.auth", "newPolicy", null, policyAssertion)).thenReturn(true).thenReturn(true);
+        Mockito.when(conn.insertPolicy("sys.auth", policy)).thenReturn(true).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, null, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+        assertFalse(success);
+
+        Policy oldPolicy = new Policy().setName("oldPolicy");
+        Assertion oldPolicyAssertion = new Assertion()
+                .setId(1L)
+                .setAction("testAction")
+                .setResource("sys.auth:testResource")
+                .setRole("sys.auth:role.testRole")
+                .setEffect(AssertionEffect.ALLOW);
+        oldPolicy.setAssertions(new LinkedList<>(Collections.singletonList(oldPolicyAssertion)));
+        Mockito.when(conn.updatePolicy("sys.auth", policy)).thenReturn(true).thenReturn(true);
+        Mockito.when(conn.insertAssertion("sys.auth", "newPolicy", null, policyAssertion)).thenReturn(true).thenReturn(true);
+        Mockito.when(conn.insertAssertionConditions(1L, policyAssertion.getConditions())).thenReturn(false).thenReturn(true);
+        success = zms.dbService.processPolicy(conn, oldPolicy, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+        assertFalse(success);
+
+        oldPolicy.setAssertions(policy.getAssertions());
+        policy.setAssertions(new LinkedList<>(Collections.singletonList(oldPolicyAssertion)));
+        Mockito.when(conn.updatePolicy("sys.auth", policy)).thenReturn(true).thenReturn(true);
+        Mockito.when(conn.deleteAssertionConditions(1L)).thenReturn(false).thenReturn(true);
+        success = zms.dbService.processPolicy(conn, oldPolicy, "sys.auth", "newPolicy",
+                policy, false, auditDetails);
+        assertFalse(success);
+
 
     }
     @Test
