@@ -4321,16 +4321,15 @@ public class JDBCConnectionTest {
     public void testListAssertions() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/policy id
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true) // this one is for domain id
             .thenReturn(true) // this one is for policy id
             .thenReturn(true) // for first assertion
-            .thenReturn(false) // for first assertion condition
             .thenReturn(true) // for second assertion
-            .thenReturn(false) // for second assertion condition
-            .thenReturn(false);
+            .thenReturn(false) // for assertion
+            .thenReturn(false); // for assertion condition
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1")
             .thenReturn("role2");
@@ -4343,6 +4342,9 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
             .thenReturn("ALLOW")
             .thenReturn("DENY");
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID))
+                .thenReturn(11)
+                .thenReturn(12);
 
         List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
 
