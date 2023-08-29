@@ -55,7 +55,7 @@ jobs:
       - name: Get Tag Name
         id: get_tag
         run: |
-          RELEASE_TAG=${{ github.ref }}
+          RELEASE_TAG=${{ env.CI_REF_NAME }}
           echo "ATHENZ_TAG=${RELEASE_TAG#v}" >> $GITHUB_ENV
 
       - name: Set Default Environment Variables
