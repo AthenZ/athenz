@@ -32,16 +32,18 @@ public enum DisableNotificationEnum {
         return EnumUtils.processBitVector(DisableNotificationEnum.class, mask);
     }
 
-    public static <T> EnumSet<DisableNotificationEnum> getDisabledNotificationState(T collection, Function<T, Map<String, TagValueList>> tagsGetter, final String disableNotificationTag) {
+    public static <T> EnumSet<DisableNotificationEnum> getDisabledNotificationState(T collection,
+            Function<T, Map<String, TagValueList>> tagsGetter, final String disableNotificationTag) {
+
         if (collection == null) {
             return DisableNotificationEnum.getEnumSet(0);
         }
-        Map<String, TagValueList> tags = tagsGetter.apply(collection);
 
+        Map<String, TagValueList> tags = tagsGetter.apply(collection);
         if (tags != null &&
                 tags.get(disableNotificationTag) != null &&
                 tags.get(disableNotificationTag).getList() != null &&
-                tags.get(disableNotificationTag).getList().size() > 0) {
+                !tags.get(disableNotificationTag).getList().isEmpty()) {
             String value = tags.get(disableNotificationTag).getList().get(0);
             return DisableNotificationEnum.getEnumSet(Integer.parseInt(value));
         }

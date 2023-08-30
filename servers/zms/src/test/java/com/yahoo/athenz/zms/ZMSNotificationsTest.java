@@ -80,7 +80,7 @@ public class ZMSNotificationsTest {
 
             RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask =
                     new RoleMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            notificationToEmailConverterCommon);
+                            notificationToEmailConverterCommon, false);
             List<Notification> notifications = roleMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days while metrics should be recorded every day
@@ -145,7 +145,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days
@@ -201,17 +201,17 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days
-            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(new String[]{
+            Set<String> emailNotificationMembers = new HashSet<>(Arrays.asList(
                     "user.expireddays0",
                     "user.expireddays1",
                     "user.expireddays7",
                     "user.expireddays14",
                     "user.expireddays21",
-                    "user.expireddays28"}));
+                    "user.expireddays28"));
             assertEquals(notifications.size(), 1, "notificationRecipients: " + notificationsToRecipientString(notifications));
             Notification notification = notifications.get(0);
             assertEquals(notification.getRecipients().size(), 1, "notificationRecipients: "
@@ -255,7 +255,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
 
             // Email notifications should be sent every 7 days
@@ -305,7 +305,7 @@ public class ZMSNotificationsTest {
             zmsImpl.putGroup(ctx, domainName, "Group1", auditRef, false, group1);
             GroupMemberExpiryNotificationTask groupMemberExpiryNotificationTask =
                     new GroupMemberExpiryNotificationTask(zmsImpl.dbService, zmsImpl.userDomainPrefix,
-                            zmsImpl.notificationToEmailConverterCommon);
+                            zmsImpl.notificationToEmailConverterCommon, false);
             List<Notification> notifications = groupMemberExpiryNotificationTask.getNotifications();
             assertEquals(notifications.size(), 0, "notificationRecipients: " + notificationsToRecipientString(notifications));
         } finally {

@@ -49,7 +49,8 @@ public class RoleMemberExpiryNotificationTaskTest {
         Mockito.when(dbsvc.getRoleExpiryMembers(1, false)).thenThrow(new IllegalArgumentException());
         NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), false);
         // to make sure we're not creating any notifications, we're going
         // to configure our mock to throw an exception
 
@@ -77,7 +78,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(mockNotificationService.notify(any())).thenThrow(new IllegalArgumentException());
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null));
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), false);
         assertEquals(roleMemberExpiryNotificationTask.getNotifications(), new ArrayList<>());
 
         notificationManager.shutdown();
@@ -124,7 +126,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
 
-        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null)).getNotifications();
+        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
+                new NotificationToEmailConverterCommon(null), false).getNotifications();
 
 
         // we should get 2 notifications - one for user and one for domain
@@ -133,17 +136,23 @@ public class RoleMemberExpiryNotificationTaskTest {
         // Verify contents of notifications is as expected
         Notification expectedFirstNotification = new Notification();
         expectedFirstNotification.addRecipient("user.joe");
-        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;1970-01-01T00:00:00.100Z");
+        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
         expectedFirstNotification.addDetails("member", "user.joe");
-        expectedFirstNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
-        expectedFirstNotification.setNotificationToMetricConverter(new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter());
+        expectedFirstNotification.setNotificationToEmailConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null)));
+        expectedFirstNotification.setNotificationToMetricConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter());
 
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
-        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "user.joe;role1;1970-01-01T00:00:00.100Z");
+        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
         expectedSecondNotification.addDetails("domain", "athenz1");
-        expectedSecondNotification.setNotificationToEmailConverter(new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(new NotificationToEmailConverterCommon(null)));
-        expectedSecondNotification.setNotificationToMetricConverter(new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
+        expectedSecondNotification.setNotificationToEmailConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null)));
+        expectedSecondNotification.setNotificationToMetricConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
 
         assertEquals(notifications.get(0), expectedFirstNotification);
         assertEquals(notifications.get(1), expectedSecondNotification);
@@ -180,7 +189,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Mockito.when(dbsvc.getAthenzDomain("athenz1", false)).thenReturn(null);
 
-        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null)).getNotifications();
+        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
+                new NotificationToEmailConverterCommon(null), false).getNotifications();
 
         // we should get 0 notifications
         assertEquals(notifications, new ArrayList<>());
@@ -201,7 +211,9 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         Notification notification = new Notification();
         notification.setDetails(details);
-        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter = new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter =
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
 
         String body = notificationAsEmail.getBody();
@@ -217,7 +229,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         // with one bad entry that should be skipped
 
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
-                "user.joe;role1;2020-12-01T12:00:00.000Z|user.jane;role1;2020-12-01T12:00:00.000Z|user.bad;role3");
+                "athenz;role1;user.joe;2020-12-01T12:00:00.000Z|athenz;role1;user.jane;2020-12-01T12:00:00.000Z|athenz;role3;user.bad");
 
         NotificationEmail notificationAsEmailWithMembers = converter.getNotificationAsEmail(notification);
         body = notificationAsEmailWithMembers.getBody();
@@ -241,8 +253,10 @@ public class RoleMemberExpiryNotificationTaskTest {
         notification = new Notification();
         notification.setDetails(details);
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
-                "athenz1;role1;2020-12-01T12:00:00.000Z|athenz2;role2;2020-12-01T12:00:00.000Z");
-        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter = new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+                "athenz1;role1;user.joe;2020-12-01T12:00:00.000Z|athenz2;role2;user.joe;2020-12-01T12:00:00.000Z");
+        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter =
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null));
         NotificationEmail principalNotificationAsEmail = principalConverter.getNotificationAsEmail(notification);
 
         body = principalNotificationAsEmail.getBody();
@@ -266,13 +280,17 @@ public class RoleMemberExpiryNotificationTaskTest {
     @Test
     public void testGetEmailSubject() {
         Notification notification = new Notification();
-        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter = new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+        RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter converter =
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null));
         NotificationEmail notificationAsEmail = converter.getNotificationAsEmail(notification);
         String subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Domain Role Member Expiration Notification");
 
         notification = new Notification();
-        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter = new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(new NotificationToEmailConverterCommon(null));
+        RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter principalConverter =
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null));
         notificationAsEmail = principalConverter.getNotificationAsEmail(notification);
         subject = notificationAsEmail.getSubject();
         assertEquals(subject, "Athenz Role Member Expiration Notification");
@@ -280,7 +298,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
     @Test
     public void testExpiryRoleMemberDetailStringer() {
-        RoleMemberNotificationCommon.RoleMemberDetailStringer stringer = new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer();
+        RoleMemberNotificationCommon.RoleMemberDetailStringer stringer =
+                new RoleMemberExpiryNotificationTask.ExpiryRoleMemberDetailStringer();
 
         final Timestamp expirationTs = Timestamp.fromMillis(100);
         final Timestamp reviewTs = Timestamp.fromMillis(50);
@@ -298,7 +317,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         memberRole.setAuditRef("testAuditRef");
 
         StringBuilder detailStringBuilder = stringer.getDetailString(memberRole);
-        String expectedStringBuilder = "testRoleName;1970-01-01T00:00:00.100Z";
+        String expectedStringBuilder = "testDomainName;testRoleName;testMemberName;1970-01-01T00:00:00.100Z";
         assertEquals(detailStringBuilder.toString(), expectedStringBuilder);
     }
 
@@ -311,7 +330,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         Map<String, String> details = new HashMap<>();
         details.put(NOTIFICATION_DETAILS_DOMAIN, "dom1");
         details.put(NOTIFICATION_DETAILS_MEMBERS_LIST,
-                "user.joe;role1;" + twentyFiveDaysFromNow + "|user.jane;role1;" + twentyDaysFromNow + "|user.bad;role1");
+                "dom1;role1;user.joe;" + twentyFiveDaysFromNow + "|dom1;role1;user.jane;" + twentyDaysFromNow + "|dom1;role1;user.bad");
 
         Notification notification = new Notification();
         notification.setDetails(details);
@@ -319,21 +338,22 @@ public class RoleMemberExpiryNotificationTaskTest {
         RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter domainConverter =
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter();
 
-        final NotificationMetric notificationAsMetrics = domainConverter.getNotificationAsMetrics(notification, currentTimeStamp);
+        final NotificationMetric notificationAsMetrics = domainConverter.getNotificationAsMetrics(notification,
+                currentTimeStamp);
 
         final String[] expectedRecord1 = new String[] {
                 METRIC_NOTIFICATION_TYPE_KEY, "domain_role_membership_expiry",
                 METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
-                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
                 METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
                 METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
         };
 
         final String[] expectedRecord2 = new String[] {
                 METRIC_NOTIFICATION_TYPE_KEY, "domain_role_membership_expiry",
                 METRIC_NOTIFICATION_DOMAIN_KEY, "dom1",
-                METRIC_NOTIFICATION_MEMBER_KEY, "user.jane",
                 METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.jane",
                 METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "20"
         };
 
@@ -344,7 +364,7 @@ public class RoleMemberExpiryNotificationTaskTest {
         assertEquals(new NotificationMetric(expectedAttributes), notificationAsMetrics);
 
         details.put(NOTIFICATION_DETAILS_ROLES_LIST,
-                "athenz1;role1;" + twentyFiveDaysFromNow + "|athenz2;role2;" + twentyDaysFromNow);
+                "athenz1;role1;user.joe;" + twentyFiveDaysFromNow + "|athenz2;role2;user.joe;" + twentyDaysFromNow);
         details.put(NOTIFICATION_DETAILS_MEMBER, "user.joe");
 
         notification = new Notification();
@@ -353,21 +373,22 @@ public class RoleMemberExpiryNotificationTaskTest {
         RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter principalConverter =
                 new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter();
 
-        final NotificationMetric notificationAsMetricsPrincipal = principalConverter.getNotificationAsMetrics(notification, currentTimeStamp);
+        final NotificationMetric notificationAsMetricsPrincipal = principalConverter.getNotificationAsMetrics(
+                notification, currentTimeStamp);
 
         final String[] expectedRecord3 = new String[] {
                 METRIC_NOTIFICATION_TYPE_KEY, "principal_role_membership_expiry",
-                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
                 METRIC_NOTIFICATION_DOMAIN_KEY, "athenz1",
                 METRIC_NOTIFICATION_ROLE_KEY, "role1",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
                 METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "25"
         };
 
         final String[] expectedRecord4 = new String[] {
                 METRIC_NOTIFICATION_TYPE_KEY, "principal_role_membership_expiry",
-                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
                 METRIC_NOTIFICATION_DOMAIN_KEY, "athenz2",
                 METRIC_NOTIFICATION_ROLE_KEY, "role2",
+                METRIC_NOTIFICATION_MEMBER_KEY, "user.joe",
                 METRIC_NOTIFICATION_EXPIRY_DAYS_KEY, "20"
         };
 
@@ -438,8 +459,10 @@ public class RoleMemberExpiryNotificationTaskTest {
                 .setDomainName("athenz1")
                 .setMemberName("user.user5");
 
-        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon);
-        RoleMemberExpiryNotificationTask.ReviewDisableRoleMemberNotificationFilter notificationFilter = roleMemberExpiryNotificationTask.new ReviewDisableRoleMemberNotificationFilter();
+        RoleMemberExpiryNotificationTask roleMemberExpiryNotificationTask = new RoleMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, notificationToEmailConverterCommon, false);
+        RoleMemberExpiryNotificationTask.ReviewDisableRoleMemberNotificationFilter notificationFilter =
+                roleMemberExpiryNotificationTask.new ReviewDisableRoleMemberNotificationFilter();
         EnumSet<DisableNotificationEnum> disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRole);
         assertTrue(disabledNotificationState.isEmpty());
 
@@ -453,7 +476,8 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleDisabledNotifs);
         assertEquals(2, disabledNotificationState.size());
-        assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN, DisableNotificationEnum.USER)));
+        assertTrue(disabledNotificationState.containsAll(Arrays.asList(DisableNotificationEnum.ADMIN,
+                DisableNotificationEnum.USER)));
 
         disabledNotificationState = notificationFilter.getDisabledNotificationState(memberRoleInvalid);
         assertTrue(disabledNotificationState.isEmpty());

@@ -16,17 +16,37 @@
 
 package com.yahoo.athenz.common.server.notification;
 
+import com.yahoo.athenz.common.metrics.Metric;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.METRIC_NOTIFICATION_REVIEW_DAYS_KEY;
-import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class NotificationMetricTest {
+
+    @Test
+    public void testNotificationMetric() {
+
+        NotificationMetric metric1 = new NotificationMetric(Collections.emptyList());
+        assertTrue(metric1.equals(metric1));
+        assertFalse(metric1.equals(null));
+        assertFalse(metric1.equals("null"));
+
+        NotificationMetric metric2 = new NotificationMetric(Collections.emptyList());
+        assertTrue(metric1.equals(metric2));
+        assertEquals(metric1.hashCode(), metric2.hashCode());
+
+        List<String[]> attributes = new ArrayList<>();
+        attributes.add(new String[]{"attr1"});
+        NotificationMetric metric3 = new NotificationMetric(attributes);
+        assertFalse(metric1.equals(metric3));
+    }
 
     @Test
     public void testNotificationMetricToString() {

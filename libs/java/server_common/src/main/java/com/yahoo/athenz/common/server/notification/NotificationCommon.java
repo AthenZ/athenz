@@ -107,17 +107,15 @@ public class NotificationCommon {
             notification.getRecipients().addAll(domainRoleMembers);
         } catch (ResourceException ex) {
             LOGGER.error("Error getting domain role members ", ex);
-            return;
         }
     }
 
     void addNotificationRecipient(Notification notification, final String recipient, boolean ignoreService) {
 
         int roleDomainIndex = recipient.indexOf(AuthorityConsts.ROLE_SEP);
-        int groupDomainIndex = recipient.indexOf(AuthorityConsts.GROUP_SEP);
         if (roleDomainIndex != -1) {
             addDomainRoleRecipients(notification, recipient.substring(0, roleDomainIndex), recipient);
-        } else if (groupDomainIndex != -1) {
+        } else if (recipient.contains(AuthorityConsts.GROUP_SEP)) {
             // Do nothing. Group members will not get individual notifications.
         } else if (recipient.startsWith(userDomainPrefix)) {
             notification.addRecipient(recipient);
@@ -130,11 +128,11 @@ public class NotificationCommon {
     }
 
     public List<Notification> printNotificationDetailsToLog(List<Notification> notificationDetails, String description, Logger logger) {
-        if (notificationDetails != null && notificationDetails.size() > 0) {
+        if (notificationDetails != null && !notificationDetails.isEmpty()) {
             StringBuilder detailsForLog = new StringBuilder();
-            detailsForLog.append("Notifications details for " + description + " :\n");
+            detailsForLog.append("Notifications details for ").append(description).append(" :\n");
             for (Notification notification : notificationDetails) {
-                detailsForLog.append(notification + "\n");
+                detailsForLog.append(notification).append("\n");
             }
             logger.info(detailsForLog.toString());
         } else {

@@ -2858,7 +2858,7 @@ public class DBService implements RolesProvider {
             service.setPublicKeys(con.listPublicKeys(domainName, serviceName));
             service.setTags(con.getServiceTags(domainName, serviceName));
             List<String> hosts = con.listServiceHosts(domainName, serviceName);
-            if (!ZMSUtils.isListEmpty(hosts)) {
+            if (!ZMSUtils.isCollectionEmpty(hosts)) {
                 service.setHosts(hosts);
             }
         }
@@ -3269,7 +3269,7 @@ public class DBService implements RolesProvider {
         List<MemberRole> delegatedMemberRoles = new ArrayList<>();
         for (MemberRole memberRole : principalRoles.getMemberRoles()) {
             List<MemberRole> roleList = getDelegatedMemberRole(localDomainCache, memberRole);
-            if (!ZMSUtils.isListEmpty(roleList)) {
+            if (!ZMSUtils.isCollectionEmpty(roleList)) {
                 delegatedMemberRoles.addAll(roleList);
             }
         }
@@ -3352,7 +3352,7 @@ public class DBService implements RolesProvider {
 
                 final String resource = assertion.getResource();
                 List<String> trustRoles = getDelegatedRoleNames(domainCache, resource, memberRole.getDomainName());
-                if (ZMSUtils.isListEmpty(trustRoles)) {
+                if (ZMSUtils.isCollectionEmpty(trustRoles)) {
                     continue;
                 }
 
@@ -7119,7 +7119,7 @@ public class DBService implements RolesProvider {
                                  final String auditRef, final String caller, final String principal) {
 
         if (auditEnabled == Boolean.TRUE) {
-            if (auditRef == null || auditRef.length() == 0) {
+            if (StringUtil.isEmpty(auditRef)) {
                 con.rollbackChanges();
                 throw ZMSUtils.requestError(caller + ": Audit reference required for object: " + objectName, caller);
             }

@@ -3968,7 +3968,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateRoleStructure(final Role role, final String domainName, final String caller) {
 
-        if (!ZMSUtils.isListEmpty(role.getMembers()) && !ZMSUtils.isListEmpty(role.getRoleMembers())) {
+        if (!ZMSUtils.isCollectionEmpty(role.getMembers()) && !ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
             throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
         }
 
@@ -3983,11 +3983,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
             }
 
-            if (!ZMSUtils.isListEmpty(role.getRoleMembers())) {
+            if (!ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
             }
 
-            if (!ZMSUtils.isListEmpty(role.getMembers())) {
+            if (!ZMSUtils.isCollectionEmpty(role.getMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
             }
 

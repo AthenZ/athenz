@@ -162,7 +162,7 @@ public class ZMSUtils {
                     sb.append(",who-domain=").append(princ.getDomain());
                     sb.append(",who-fullname=").append(fullName);
                     List<String> roles = princ.getRoles();
-                    if (roles != null && roles.size() > 0) {
+                    if (roles != null && !roles.isEmpty()) {
                         sb.append(",who-roles=").append(roles);
                     }
                     unsignedCreds = sb.toString();
@@ -467,11 +467,11 @@ public class ZMSUtils {
                 : Response.status(ResourceException.NO_CONTENT).build();
     }
 
-    public static boolean isListEmpty(List<?> list) {
-        return list == null || list.isEmpty();
+    public static boolean isCollectionEmpty(Collection<?> collection) {
+        return collection == null || collection.isEmpty();
     }
 
-    public static <T> Collection<T> emptyIfNull(final Collection<T> c) {
+    public static <T> List<T> emptyIfNull(final List<T> c) {
         return c == null ? Collections.emptyList() : c;
     }
 }

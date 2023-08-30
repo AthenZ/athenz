@@ -113,7 +113,7 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
                     emailAwsZtsHealthBody,
                     NOTIFICATION_DETAILS_AFFECTED_ZTS,
                     NOTIFICATION_DETAILS_AWS_ZTS_HEALTH,
-                    5);
+                    5, null);
         }
 
         @Override
