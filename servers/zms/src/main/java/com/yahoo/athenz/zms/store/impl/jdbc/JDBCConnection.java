@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
 
@@ -611,6 +612,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "FROM assertion_condition JOIN assertion ON assertion_condition.assertion_id=assertion.assertion_id "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
+
+    private static final String SQL_GET_POLICY_ASSERTIONS_CONDITIONS = "SELECT assertion.assertion_id, "
+            + "assertion_condition.condition_id, assertion_condition.key, assertion_condition.operator, assertion_condition.value "
+            + "FROM assertion_condition JOIN assertion ON assertion_condition.assertion_id=assertion.assertion_id "
+            + "JOIN policy ON policy.policy_id=assertion.policy_id "
+            + "WHERE policy.policy_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
+
     private static final String SQL_GET_OBJECT_SYSTEM_COUNT = "SELECT COUNT(*) FROM ";
     private static final String SQL_GET_OBJECT_DOMAIN_COUNT = "SELECT COUNT(*) FROM ";
     private static final String SQL_GET_OBJECT_DOMAIN_COUNT_QUERY = " WHERE domain_id=?";
@@ -3183,6 +3191,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
+
+        // assertion fetch
         List<Assertion> assertions = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ASSERTION)) {
             ps.setInt(1, policyId);
@@ -3200,6 +3210,48 @@ public class JDBCConnection implements ObjectStoreConnection {
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+
+        // assertion conditions fetch
+        Map<Long, Assertion> assertionsMap = assertions.stream().collect(Collectors.toMap(Assertion::getId, assertion -> assertion));
+        Map<String, AssertionCondition> assertionConditionMap = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_ASSERTIONS_CONDITIONS)) {
+            ps.setInt(1, policyId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    long assertionId = rs.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID);
+                    Assertion assertion = assertionsMap.get(assertionId);
+                    if (assertion == null) {
+                        continue;
+                    }
+                    AssertionConditions assertionConditions = assertion.getConditions();
+                    if (assertionConditions == null) {
+                        assertionConditions = new AssertionConditions();
+                        List<AssertionCondition> assertionConditionList = new ArrayList<>();
+                        assertionConditions.setConditionsList(assertionConditionList);
+                        assertion.setConditions(assertionConditions);
+                    }
+                    int conditionId = rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID);
+                    AssertionCondition assertionCondition = assertionConditionMap.get(assertionId + ":" + conditionId);
+                    if (assertionCondition == null) {
+                        assertionCondition = new AssertionCondition();
+                        Map<String, AssertionConditionData> assertionConditionDataMap = new HashMap<>();
+                        assertionCondition.setConditionsMap(assertionConditionDataMap);
+                        assertionCondition.setId(conditionId);
+                        assertionConditionMap.put(assertionId + ":" + conditionId, assertionCondition);
+                        assertionConditions.getConditionsList().add(assertionCondition);
+                    }
+                    AssertionConditionData assertionConditionData = new AssertionConditionData();
+                    if (rs.getString(ZMSConsts.DB_COLUMN_OPERATOR) != null) {
+                        assertionConditionData.setOperator(AssertionConditionOperator.fromString(rs.getString(ZMSConsts.DB_COLUMN_OPERATOR)));
+                    }
+                    assertionConditionData.setValue(rs.getString(ZMSConsts.DB_COLUMN_VALUE));
+                    assertionCondition.getConditionsMap().put(rs.getString(ZMSConsts.DB_COLUMN_KEY), assertionConditionData);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
         return assertions;
     }
 

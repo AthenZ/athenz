@@ -5035,6 +5035,74 @@ public class ZMSImplTest {
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyGetDom1", auditRef);
     }
+    @Test
+    public void testGetPolicyWithAssertionConditions() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        List<String> aLogMsgs = alogger.getLogMsgList();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("PolicyGetDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject("PolicyGetDom1", "Policy1");
+        zmsImpl.putPolicy(ctx, "PolicyGetDom1", "Policy1", auditRef, false, policy1);
+
+        Policy policy = zmsImpl.getPolicy(ctx, "PolicyGetDom1", "Policy1");
+        assertNotNull(policy);
+        assertEquals(policy.getName(), "PolicyGetDom1:policy.Policy1".toLowerCase());
+
+        List<Assertion> assertList = policy.getAssertions();
+        assertNotNull(assertList);
+        assertEquals(assertList.size(), 1);
+        Assertion obj = assertList.get(0);
+        assertEquals(obj.getAction(), "*");
+        assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
+        assertEquals(obj.getResource(), "policygetdom1:*");
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
+        // Put assertion conditions for the new assertion
+        AssertionConditionData assertionConditionData = new AssertionConditionData();
+        assertionConditionData.setOperator(AssertionConditionOperator.EQUALS);
+        assertionConditionData.setValue("testVal1");
+
+        Map<String, AssertionConditionData> conditionsMap1 = new HashMap<>();
+        conditionsMap1.put("cond1", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval1"));
+        conditionsMap1.put("cond2", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval2"));
+        AssertionCondition assertionCondition1 = new AssertionCondition();
+        assertionCondition1.setConditionsMap(conditionsMap1);
+        Map<String, AssertionConditionData> conditionsMap2 = new HashMap<>();
+        conditionsMap2.put("cond3", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval3"));
+        conditionsMap2.put("cond4", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval4"));
+        AssertionCondition assertionCondition2 = new AssertionCondition();
+        assertionCondition2.setConditionsMap(conditionsMap2);
+        List<AssertionCondition> conditionsList = new ArrayList<>();
+        conditionsList.add(assertionCondition1);
+        conditionsList.add(assertionCondition2);
+        AssertionConditions assertionConditions = new AssertionConditions();
+        assertionConditions.setConditionsList(conditionsList);
+        zmsImpl.putAssertionConditions(ctx, "PolicyGetDom1", "Policy1", obj.getId(), auditRef, assertionConditions);
+
+        policy = zmsImpl.getPolicy(ctx, "PolicyGetDom1", "Policy1");
+        assertNotNull(policy);
+        assertEquals(policy.getName(), "PolicyGetDom1:policy.Policy1".toLowerCase());
+
+        assertList = policy.getAssertions();
+        assertNotNull(assertList);
+        assertEquals(assertList.size(), 1);
+
+        List<AssertionCondition> conditionsListReturned = assertList.get(0).getConditions().getConditionsList();
+        assertEquals(conditionsListReturned.size(), 2);
+        assertEquals(conditionsListReturned.get(0).getConditionsMap().get("cond1").getValue(), "testval1");
+        assertEquals(conditionsListReturned.get(0).getConditionsMap().get("cond2").getValue(), "testval2");
+        assertEquals(conditionsListReturned.get(1).getConditionsMap().get("cond3").getValue(), "testval3");
+        assertEquals(conditionsListReturned.get(1).getConditionsMap().get("cond4").getValue(), "testval4");
+
+        zmsImpl.deleteTopLevelDomain(ctx, "PolicyGetDom1", auditRef);
+    }
 
     @Test
     public void testPolicyVersions() {

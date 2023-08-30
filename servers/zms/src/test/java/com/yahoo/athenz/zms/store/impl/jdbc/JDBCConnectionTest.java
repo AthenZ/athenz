@@ -4361,14 +4361,15 @@ public class JDBCConnectionTest {
     public void testListAssertions() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7); // return domain/policy id
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true) // this one is for domain id
             .thenReturn(true) // this one is for policy id
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false);
+            .thenReturn(true) // for first assertion
+            .thenReturn(true) // for second assertion
+            .thenReturn(false) // for assertion
+            .thenReturn(false); // for assertion condition
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
             .thenReturn("role1")
             .thenReturn("role2");
@@ -4381,6 +4382,9 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
             .thenReturn("ALLOW")
             .thenReturn("DENY");
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID))
+                .thenReturn(11)
+                .thenReturn(12);
 
         List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
 
@@ -4394,6 +4398,86 @@ public class JDBCConnectionTest {
         assertEquals("my-domain:service.*", assertions.get(1).getResource());
         assertEquals("read", assertions.get(1).getAction());
         assertEquals("DENY", assertions.get(1).getEffect().toString());
+        jdbcConn.close();
+    }
+
+
+    @Test
+    public void testListAssertionsWithAssertionConditions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)  // this one is for domain id
+                .thenReturn(true)  // this one is for policy id
+                .thenReturn(true)  // for first assertion
+                .thenReturn(true)  // for second assertion
+                .thenReturn(false) // for assertion
+                .thenReturn(true)  // for first assertion condition
+                .thenReturn(true)  // for second assertion condition
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
+                .thenReturn("role1")
+                .thenReturn("role2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
+                .thenReturn("my-domain:*")
+                .thenReturn("my-domain:service.*");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
+                .thenReturn("*")
+                .thenReturn("read");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
+                .thenReturn("ALLOW")
+                .thenReturn("DENY");
+        int assertionId1 = 11;
+        int assertionId2 = 12;
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID))
+                .thenReturn(assertionId1)
+                .thenReturn(assertionId2);
+
+        Mockito.when(mockResultSet.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID))
+                .thenReturn((long) assertionId1)
+                .thenReturn((long) assertionId2);
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_KEY))
+                .thenReturn("key1")
+                .thenReturn("key2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_OPERATOR))
+                .thenReturn("EQUALS")
+                .thenReturn("EQUALS");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_VALUE))
+                .thenReturn("value1")
+                .thenReturn("value2");
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID))
+                .thenReturn(1)
+                .thenReturn(2);
+
+        List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
+
+        assertEquals(2, assertions.size());
+        assertEquals("my-domain:role.role1", assertions.get(0).getRole());
+        assertEquals("my-domain:*", assertions.get(0).getResource());
+        assertEquals("*", assertions.get(0).getAction());
+        assertEquals("ALLOW", assertions.get(0).getEffect().toString());
+
+        assertEquals(assertions.get(0).getConditions().getConditionsList().size(), 1);
+        AssertionCondition ac1 = new AssertionCondition().setId(1);
+        Map<String, AssertionConditionData> m1 = new HashMap<>();
+        m1.put("key1", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value1"));
+        ac1.setConditionsMap(m1);
+        assertEquals(assertions.get(0).getConditions().getConditionsList().get(0), ac1);
+
+        assertEquals("my-domain:role.role2", assertions.get(1).getRole());
+        assertEquals("my-domain:service.*", assertions.get(1).getResource());
+        assertEquals("read", assertions.get(1).getAction());
+        assertEquals("DENY", assertions.get(1).getEffect().toString());
+
+        assertEquals(assertions.get(1).getConditions().getConditionsList().size(), 1);
+        AssertionCondition ac2 = new AssertionCondition().setId(2);
+        Map<String, AssertionConditionData> m2 = new HashMap<>();
+        m2.put("key2", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value2"));
+        ac2.setConditionsMap(m2);
+        assertEquals(assertions.get(1).getConditions().getConditionsList().get(0), ac2);
+
         jdbcConn.close();
     }
 
@@ -4430,6 +4514,66 @@ public class JDBCConnectionTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+    @Test
+    public void testListAssertionsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet) // this one is for domain id
+                .thenReturn(mockResultSet) // this one is for policy id
+                .thenThrow(new SQLException("failed operation", "state", 1001)); // for assertion conditions query
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true); // this one is for policy id
+
+        try {
+            jdbcConn.listAssertions("my-domain", "policy1", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+    @Test
+    public void testListAssertionsAssertionConditionsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(7);
+
+        Mockito.when(mockPrepStmt.executeQuery())
+                .thenReturn(mockResultSet) // this one is for domain id
+                .thenReturn(mockResultSet) // this one is for policy id
+                .thenReturn(mockResultSet) // for assertion query
+                .thenThrow(new SQLException("failed operation", "state", 1001)); // for assertion conditions query
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // this one is for domain id
+                .thenReturn(true) // this one is for policy id
+                .thenReturn(true) // for first assertion
+                .thenReturn(false);
+
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ROLE))
+                .thenReturn("role1");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_RESOURCE))
+                .thenReturn("my-domain:*");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ACTION))
+                .thenReturn("*");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_EFFECT))
+                .thenReturn("ALLOW");
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_ASSERT_ID))
+                .thenReturn(100);
+
+        try {
+            jdbcConn.listAssertions("my-domain", "policy1", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
