@@ -668,6 +668,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_FILE_DIRECT_UPDATE", "true")
 	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
 	os.Setenv("ATHENZ_SIA_ACCOUNT_ROLES", "{\"sports:role.readers\":{\"service\":\"api\"},\"sports:role.writers\":{\"user\": \"nobody\"}}")
+	os.Setenv("ATHENZ_SIA_ACCESS_TOKENS", "{\"sports/api\":{\"roles\":[\"sports:role.readers\"],\"expires_in\":3600}}")
 	os.Setenv("ATHENZ_SIA_KEY_DIR", "/var/athenz/keys")
 	os.Setenv("ATHENZ_SIA_CERT_DIR", "/var/athenz/certs")
 	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
@@ -696,6 +697,12 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
+
+	assert.Equal(t, 1, len(cfg.AccessTokens))
+	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
+	assert.Equal(t, 1, len(cfg.AccessTokens["sports/api"].Roles))
+	assert.Equal(t, "sports:role.readers", cfg.AccessTokens["sports/api"].Roles[0])
+	assert.Equal(t, 3600, cfg.AccessTokens["sports/api"].Expiry)
 
 	assert.Equal(t, "123456789012", cfgAccount.Account)
 	assert.Equal(t, "athenz", cfgAccount.Domain)
