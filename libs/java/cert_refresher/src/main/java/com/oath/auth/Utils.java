@@ -306,7 +306,8 @@ public class Utils {
         SSLContext sslContext;
         try {
             sslContext = SSLContext.getInstance(protocol);
-            sslContext.init(new KeyManager[]{keyManagerProxy}, new TrustManager[]{trustManagerProxy}, null);
+            sslContext.init(new KeyManager[]{keyManagerProxy},
+                    trustManagerProxy == null ? null : new TrustManager[]{trustManagerProxy}, null);
         } catch (NoSuchAlgorithmException e) {
             throw new KeyRefresherException("No Provider supports a SSLContextSpi implementation for the specified protocol " + protocol, e);
         } catch (KeyManagementException e) {
@@ -362,8 +363,11 @@ public class Utils {
     public static SSLContext buildSSLContext(final String caCertsPem, final String athenzPublicCertPem,
             final String athenzPrivateKeyPem) throws KeyRefresherException, IOException {
 
-        TrustStore trustStore = new TrustStore(null, new CaCertKeyStoreProvider(inputStreamSupplierFromString(caCertsPem)));
-        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
+        TrustManagerProxy trustManagerProxy = null;
+        if (caCertsPem != null) {
+            TrustStore trustStore = new TrustStore(null, new CaCertKeyStoreProvider(inputStreamSupplierFromString(caCertsPem)));
+            trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
+        }
 
         KeyManagerProxy keyManagerProxy =
                 new KeyManagerProxy(getKeyManagersFromPems(athenzPublicCertPem, athenzPrivateKeyPem));

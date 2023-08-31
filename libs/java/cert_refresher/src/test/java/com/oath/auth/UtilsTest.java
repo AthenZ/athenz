@@ -39,10 +39,32 @@ public class UtilsTest {
         fail("Should have thrown FileNotFoundException.");
     }
     
-    @Test (expectedExceptions = {FileNotFoundException.class})
-    public void createKeyStoreTest() throws IOException, KeyRefresherException, InterruptedException {
-        Utils.createKeyStore(null, null);
-        fail("Should have thrown FileNotFoundException.");
+    @Test
+    public void testCreateKeyStoreFailures() throws IOException, KeyRefresherException, InterruptedException {
+
+        final String certPath = Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile();
+        final String keyPath = Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile();
+
+        try {
+            Utils.createKeyStore(null, null);
+            fail();
+        } catch (FileNotFoundException ignored) {
+        }
+        try {
+            Utils.createKeyStore("", keyPath);
+            fail();
+        } catch (FileNotFoundException ignored) {
+        }
+        try {
+            Utils.createKeyStore(certPath, null);
+            fail();
+        } catch (FileNotFoundException ignored) {
+        }
+        try {
+            Utils.createKeyStore(certPath, "");
+            fail();
+        } catch (FileNotFoundException ignored) {
+        }
     }
     
     @Test (expectedExceptions = {FileNotFoundException.class})
@@ -62,6 +84,11 @@ public class UtilsTest {
                 Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile()));
 
         SSLContext sslContext = Utils.buildSSLContext(caCertsPem, certPem, keyPem);
+        assertNotNull(sslContext);
+
+        // now try without the ca certs pem - using jdk default truststore
+
+        sslContext = Utils.buildSSLContext(null, certPem, keyPem);
         assertNotNull(sslContext);
     }
 
