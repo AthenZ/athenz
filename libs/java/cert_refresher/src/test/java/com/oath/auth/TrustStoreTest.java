@@ -15,7 +15,9 @@
  */
 package com.oath.auth;
 
-import static org.junit.Assert.assertEquals;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.security.cert.X509Certificate;
@@ -24,7 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import org.junit.Test;
 
 public class TrustStoreTest {
 
@@ -35,7 +36,7 @@ public class TrustStoreTest {
 
         String filePath = Objects.requireNonNull(classLoader.getResource("truststore.jks")).getFile();
 
-        JavaKeyStoreProvider provider = new JavaKeyStoreProvider(filePath, "123456".toCharArray());
+        JavaKeyStoreProvider provider = new JavaKeyStoreProvider(filePath, "secret".toCharArray());
         TrustStore trustStore = new TrustStore(filePath, provider);
 
         assertEquals(filePath, trustStore.getFilePath());

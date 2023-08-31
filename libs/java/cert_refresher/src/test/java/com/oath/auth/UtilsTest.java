@@ -16,29 +16,66 @@
 
 package com.oath.auth;
 
+import org.testng.annotations.Test;
+
+import javax.net.ssl.SSLContext;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Objects;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
 public class UtilsTest {
 
-    @Test (expected = FileNotFoundException.class)
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
+
+    @Test(expectedExceptions = {FileNotFoundException.class})
     public void getKeyStoreTest() throws IOException, KeyRefresherException {
         Utils.getKeyStore(null);
-        Assert.fail("Should have thrown FileNotFoundException.");
+        fail("Should have thrown FileNotFoundException.");
     }
     
-    @Test (expected = FileNotFoundException.class)
+    @Test (expectedExceptions = {FileNotFoundException.class})
     public void createKeyStoreTest() throws IOException, KeyRefresherException, InterruptedException {
         Utils.createKeyStore(null, null);
-        Assert.fail("Should have thrown FileNotFoundException.");
+        fail("Should have thrown FileNotFoundException.");
     }
     
-    @Test (expected = FileNotFoundException.class)
+    @Test (expectedExceptions = {FileNotFoundException.class})
     public void getKeyManagersTest() throws IOException, InterruptedException, KeyRefresherException {
         Utils.getKeyManagers(null, null);
-        Assert.fail("Should have thrown FileNotFoundException.");
+        fail("Should have thrown FileNotFoundException.");
+    }
+
+    @Test
+    public void testBuildSSLContextPEM() throws KeyRefresherException, IOException {
+
+        String caCertsPem = new String(readFileContents(
+                Objects.requireNonNull(classLoader.getResource("ca.cert.pem")).getFile()));
+        String certPem = new String(readFileContents(
+                Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile()));
+        String keyPem = new String(readFileContents(
+                Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile()));
+
+        SSLContext sslContext = Utils.buildSSLContext(caCertsPem, certPem, keyPem);
+        assertNotNull(sslContext);
+    }
+
+    public static byte[] readFileContents(final String filename) {
+
+        File file = new File(filename);
+
+        byte[] data = null;
+        try {
+            data = Files.readAllBytes(Paths.get(file.toURI()));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        return data;
     }
 }

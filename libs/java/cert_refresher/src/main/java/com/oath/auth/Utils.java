@@ -117,6 +117,17 @@ public class Utils {
             throws IOException, InterruptedException, KeyRefresherException {
 
         final KeyStore keystore = createKeyStore(athenzPublicCert, athenzPrivateKey);
+        return getKeyManagersFromKeyStore(keystore);
+    }
+
+    public static KeyManager[] getKeyManagersFromPems(final String athenzPublicCertPem, final String athenzPrivateKeyPem)
+            throws IOException, KeyRefresherException {
+
+        final KeyStore keystore = Utils.createKeyStoreFromPems(athenzPublicCertPem, athenzPrivateKeyPem);
+        return getKeyManagersFromKeyStore(keystore);
+    }
+
+    private static KeyManager[] getKeyManagersFromKeyStore(final KeyStore keystore) throws KeyRefresherException {
         KeyManagerFactory keyManagerFactory;
         try {
             keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
@@ -337,6 +348,33 @@ public class Utils {
         }
     }
 
+    /**
+     * this method will create a new SSLContext object based on the given strings representing
+     * the trust CA certificates, x.509 certificate and private key all in PEM format. There is
+     * no refresh capability for the SSL context since it is created based on given strings
+     * that cannot change.
+     *
+     * @param caCertsPem CA certificates in PEM format
+     * @param athenzPublicCertPem x.509 certificate in PEM format
+     * @param athenzPrivateKeyPem private key in PEM format
+     * @return a valid SSLContext object
+     */
+    public static SSLContext buildSSLContext(final String caCertsPem, final String athenzPublicCertPem,
+            final String athenzPrivateKeyPem) throws KeyRefresherException, IOException {
+
+        TrustStore trustStore = new TrustStore(null, new CaCertKeyStoreProvider(inputStreamSupplierFromString(caCertsPem)));
+        TrustManagerProxy trustManagerProxy = new TrustManagerProxy(trustStore.getTrustManagers());
+
+        KeyManagerProxy keyManagerProxy =
+                new KeyManagerProxy(getKeyManagersFromPems(athenzPublicCertPem, athenzPrivateKeyPem));
+
+        // if the user has configured our tls property then that's what we'll
+        // be using for our ssl context otherwise we'll default to TLS 1.3
+
+        final String protocol = System.getProperty(PROP_TLS_ALGORITHM, SSLCONTEXT_ALGORITHM_TLS13);
+        return buildSSLContext(keyManagerProxy, trustManagerProxy, protocol);
+    }
+
     static Supplier<InputStream> inputStreamSupplierFromFile(File file) throws UncheckedIOException {
         return () -> {
             try {
@@ -437,7 +475,7 @@ public class Utils {
      * @param athenzPublicCertInputStream      Supplier of the certificate input stream
      * @param athenzPublicCertLocationSupplier Supplier of the location of the certificate (for error logging)
      * @param athenzPrivateKeyInputStream      Supplier of the private key input stream
-     * @param athenzPrivateKeyLocationSupplier Supplier of the location of the certificate (for error logging)
+     * @param athenzPrivateKeyLocationSupplier Supplier of the location of the private key (for error logging)
      * @return a KeyStore with loaded key and certificate
      * @throws KeyRefresherException in case of any key refresher errors processing the request
      * @throws IOException in case of any errors with reading files
@@ -488,7 +526,9 @@ public class Utils {
                     certificates.toArray((Certificate[]) new X509Certificate[certificates.size()]));
 
         } catch (CertificateException | NoSuchAlgorithmException ex) {
-            String keyStoreFailMsg = "Unable to load " + athenzPublicCertLocationSupplier.get() + " as a KeyStore. Please check the validity of the file.";
+            String keyStoreFailMsg = "Unable to load private key: " + athenzPrivateKeyLocationSupplier.get() +
+                    " and certificate: " + athenzPublicCertLocationSupplier.get() +
+                    " as a KeyStore. Please check the validity of the files.";
             throw new KeyRefresherException(keyStoreFailMsg, ex);
         } catch (KeyStoreException ex) {
             LOG.error("No Provider supports a KeyStoreSpi implementation for the specified type.", ex);

@@ -15,49 +15,41 @@
  */
 package com.oath.auth;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.mockito.Mockito;
+import org.testng.annotations.Test;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedTrustManager;
 
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.assertNull;
 
 public class TrustManagerProxyTest {
 
     @Test
-    public void testTrustManagerProxyCheckClientTrusted(@Mocked X509ExtendedTrustManager mockedTrustManager) throws CertificateException {
-        new Expectations() {{
-            mockedTrustManager.checkClientTrusted((X509Certificate[]) any, "cert"); times = 1;
-        }};
-
+    public void testTrustManagerProxyCheckClientTrusted() throws CertificateException {
+        X509ExtendedTrustManager mockedTrustManager = Mockito.mock(X509ExtendedTrustManager.class);
+        Mockito.doNothing().when(mockedTrustManager).checkClientTrusted(null, "cert");
         TrustManagerProxy trustManagerProxy = new TrustManagerProxy(new TrustManager[]{mockedTrustManager});
         trustManagerProxy.checkClientTrusted(null, "cert");
+        Mockito.verify(mockedTrustManager, Mockito.times(1)).checkClientTrusted(null, "cert");
     }
 
     @Test
-    public void testTrustManagerProxyCheckServerTrusted(@Mocked X509ExtendedTrustManager mockedTrustManager) throws CertificateException {
-        new Expectations() {{
-            mockedTrustManager.checkServerTrusted((X509Certificate[]) any, "cert"); times = 1;
-        }};
-
+    public void testTrustManagerProxyCheckServerTrusted() throws CertificateException {
+        X509ExtendedTrustManager mockedTrustManager = Mockito.mock(X509ExtendedTrustManager.class);
+        Mockito.doNothing().when(mockedTrustManager).checkServerTrusted(null, "cert");
         TrustManagerProxy trustManagerProxy = new TrustManagerProxy(new TrustManager[]{mockedTrustManager});
-
         trustManagerProxy.checkServerTrusted(null, "cert");
+        Mockito.verify(mockedTrustManager, Mockito.times(1)).checkServerTrusted(null, "cert");
     }
 
     @Test
-    public void testTrustManagerProxyGetAcceptedIssuers(@Mocked X509ExtendedTrustManager mockedTrustManager) {
-        new Expectations() {{
-            mockedTrustManager.getAcceptedIssuers(); times = 1; result = null;
-        }};
-
+    public void testTrustManagerProxyGetAcceptedIssuers() {
+        X509ExtendedTrustManager mockedTrustManager = Mockito.mock(X509ExtendedTrustManager.class);
+        Mockito.when(mockedTrustManager.getAcceptedIssuers()).thenReturn(null);
         TrustManagerProxy trustManagerProxy = new TrustManagerProxy(new TrustManager[]{mockedTrustManager});
         assertNull(trustManagerProxy.getAcceptedIssuers());
     }
-
 }

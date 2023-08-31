@@ -16,15 +16,14 @@
 package com.oath.auth;
 
 import com.google.common.io.Resources;
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 
 public class KeyStoreTest {
 
@@ -33,18 +32,20 @@ public class KeyStoreTest {
     @Test
     public void testGetKeyStore() throws Exception {
 
-        KeyStore keyStore = Utils.getKeyStore("truststore.jks", "123456".toCharArray());
+        // default password is secret
+
+        KeyStore keyStore = Utils.getKeyStore("truststore.jks", "secret".toCharArray());
         assertNotNull(keyStore);
 
-        // default password is secret - key exception
+        keyStore = Utils.getKeyStore("truststore.jks");
+        assertNotNull(keyStore);
 
         try {
-            Utils.getKeyStore("truststore.jks");
+            Utils.getKeyStore("truststore.jks", "123456".toCharArray());
             fail();
         } catch (Exception ignored) {
         }
     }
-
 
     @Test
     public void testCreateKeyStoreRSA() throws Exception {
@@ -57,7 +58,7 @@ public class KeyStoreTest {
         }
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertTrue(chain.length == 1);
+        assertEquals(1, chain.length);
     }
 
     @Test
@@ -71,7 +72,7 @@ public class KeyStoreTest {
         }
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertTrue(chain.length == 1);
+        assertEquals(1, chain.length);
     }
 
     @Test
@@ -120,7 +121,7 @@ public class KeyStoreTest {
 
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertTrue(chain.length == 2);
+        assertEquals(2, chain.length);
     }
 
     @Test
@@ -139,10 +140,10 @@ public class KeyStoreTest {
 
         X509Certificate[] chain = (X509Certificate[]) keyStore.getCertificateChain(alias);
         assertNotNull(chain);
-        assertTrue(chain.length == 2);
+        assertEquals(2, chain.length);
     }
 
-    @Test(expected = KeyRefresherException.class)
+    @Test(expectedExceptions = {KeyRefresherException.class})
     public void testCreateKeyStoreEmpty() throws Exception {
         Utils.createKeyStore("rsa_public_x510_empty.cert", "unit_test_rsa_private.key");
     }
