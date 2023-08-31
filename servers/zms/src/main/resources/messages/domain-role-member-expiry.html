@@ -12,14 +12,15 @@
             <img src="cid:logo" class="athenzlogowhite" alt="Athenz logo"/>
         </div>
         <div class="hdr">Domain Membership Expiry Details</div>
-        <div class="bt">You have one or more principals in your Athenz domain <b>{0}</b> whose access will expire soon:</div>
+        <div class="bt">You have one or more principals in your Athenz roles whose access will expire soon:</div>
         <hr>
         <div class="divScroll">
             <table id="t02">
                 <thead>
                     <tr>
-                        <th class="ch">MEMBER</th>
+                        <th class="ch">DOMAIN</th>
                         <th class="ch">ROLE</th>
+                        <th class="ch">MEMBER</th>
                         <th class="ch">EXPIRATION</th>
                     </tr>
                 </thead>
@@ -27,7 +28,7 @@
             </table>
         </div>
         <hr>
-        <div class="bt"><br>Please review this list and, if necessary, login to <a href="{1}/domain/{0}/role">Athenz UI</a> to extend their expiration dates.</div>
+        <div class="bt"><br>Please review this list and, if necessary, login to <a href="{1}">Athenz UI</a> to extend their expiration dates.</div>
     </div>
     <div class="footer-container">
         <div class="footer">This is a generated email from <a href="{1}">Athenz</a>. Please do not respond.</div>

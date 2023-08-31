@@ -258,7 +258,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
                     bodyWithDeleteEndpoint,
                     NOTIFICATION_DETAILS_DOMAIN,
                     NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                    6);
+                    6, null);
         }
 
         private String addInstanceDeleteEndpointDetails(Map<String, String> metaDetails, String messageWithoutZtsDeleteEndpoint) {

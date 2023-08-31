@@ -20,6 +20,7 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
+import org.checkerframework.checker.units.qual.N;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -286,5 +287,11 @@ public class ZMSNotificationManagerTest {
         // going to get null notification
 
         assertNull(notificationCommon.createNotification("athenz.service", details, converter, metricConverter));
+    }
+
+    @Test
+    public void testNotificationUtils() {
+        NotificationUtils utils = new NotificationUtils();
+        assertNotNull(utils);
     }
 }

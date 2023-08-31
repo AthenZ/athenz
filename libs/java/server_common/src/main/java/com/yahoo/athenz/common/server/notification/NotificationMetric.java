@@ -59,7 +59,7 @@ public class NotificationMetric {
 
     @Override
     public int hashCode() {
-        if (attributes == null || attributes.size() == 0) {
+        if (attributes == null || attributes.isEmpty()) {
             return Objects.hash(attributes);
         }
 
