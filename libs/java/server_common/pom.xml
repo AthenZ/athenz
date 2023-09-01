@@ -32,9 +32,9 @@
     <commons.pool2.version>2.11.1</commons.pool2.version>
     <jakarta.mail.version>2.1.2</jakarta.mail.version>
     <angus.mail.version>2.0.2</angus.mail.version>
-    <protobuf.java.version>3.21.12</protobuf.java.version>
-    <pulsar.client.version>2.11.1</pulsar.client.version>
-    <aws.secretmanager.version>1.0.12</aws.secretmanager.version>
+    <protobuf.java.version>3.24.2</protobuf.java.version>
+    <pulsar.client.version>3.1.0</pulsar.client.version>
+    <aws.secretmanager.version>2.0.0</aws.secretmanager.version>
     <uuid.version>4.2.0</uuid.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
   </properties>
