@@ -1,3 +1,17 @@
+Athenz v1.11.40\1 Release / Sep 01, 2023
+--------------------------------------
+
+#2284 add constructor to allow proxy configuration
+#2285 include assertion conditions in get policy response
+#2286 use better env variable to get just the tag name
+#2287 create sbom for athenz components
+#2288 consolidate all email notifications so the user gets only one email per notification type
+#2289 fix review group page error with expiry settings
+#2290 support getting SIA access token config from env variable
+#2291 new buildSSLContext method based on ca/cert/key pem strings
+#2292 update jetty/java/go dependencies to their latest releases
+#2293 dump description in zms-cli show-role command
+
 Athenz v1.11.40 Release / Aug 25, 2023
 --------------------------------------
 
