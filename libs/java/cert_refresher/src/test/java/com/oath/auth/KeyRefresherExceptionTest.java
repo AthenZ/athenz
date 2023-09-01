@@ -16,8 +16,10 @@
 
 package com.oath.auth;
 
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 
 public class KeyRefresherExceptionTest {
 
@@ -25,7 +27,7 @@ public class KeyRefresherExceptionTest {
     public void testKeyRefresherException() {
 
         KeyRefresherException keyRefresherException = new KeyRefresherException();
-        assertEquals(null, keyRefresherException.getMessage());
+        assertNull(keyRefresherException.getMessage());
         
         keyRefresherException = new KeyRefresherException("exception");
         assertEquals("exception", keyRefresherException.getMessage());
@@ -35,6 +37,5 @@ public class KeyRefresherExceptionTest {
 
         keyRefresherException = new KeyRefresherException("exception", new Throwable("new throwable"));
         assertEquals("exception", keyRefresherException.getMessage());
-
     }
 }

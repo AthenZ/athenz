@@ -91,7 +91,6 @@
     <jersey.version>3.1.2</jersey.version>
     <jetty.version>11.0.15</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
-    <jmockit.version>1.49</jmockit.version>
     <logback.client.version>1.2.11</logback.client.version>
     <logback.server.version>1.4.8</logback.server.version>
     <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
