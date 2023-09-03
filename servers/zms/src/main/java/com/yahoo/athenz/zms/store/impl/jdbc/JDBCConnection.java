@@ -25,6 +25,7 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1104,7 +1105,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throws SQLException {
 
         PreparedStatement ps;
-        if (prefix != null && prefix.length() > 0) {
+        if (!StringUtil.isEmpty(prefix)) {
             int len = prefix.length();
             char c = (char) (prefix.charAt(len - 1) + 1);
             String stop = prefix.substring(0, len - 1) + c;
@@ -1871,7 +1872,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throws SQLException {
 
         PreparedStatement ps;
-        if (domainName != null && domainName.length() > 0) {
+        if (!StringUtils.isEmpty(domainName)) {
             final String principalPattern = domainName + ".%";
             ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN);
             ps.setString(1, principalPattern);
@@ -4404,7 +4405,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throws SQLException {
 
         PreparedStatement ps;
-        if (action != null && action.length() > 0) {
+        if (!StringUtils.isEmpty(action)) {
             ps = con.prepareStatement(SQL_LIST_ROLE_ASSERTIONS + SQL_LIST_ROLE_ASSERTION_QUERY_ACTION);
             ps.setString(1, action);
         } else {

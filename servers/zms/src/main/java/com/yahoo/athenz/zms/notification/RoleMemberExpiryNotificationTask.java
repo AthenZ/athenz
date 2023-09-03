@@ -139,7 +139,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
         private static final String PRINCIPAL_EXPIRY_SUBJECT = "athenz.notification.email.role_member.expiry.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailPrincipalExpiryBody;
+        private final String emailPrincipalExpiryBody;
 
         public RoleExpiryPrincipalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
@@ -175,7 +175,7 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
         private static final String DOMAIN_MEMBER_EXPIRY_SUBJECT = "athenz.notification.email.domain.role_member.expiry.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailDomainMemberExpiryBody;
+        private final String emailDomainMemberExpiryBody;
 
         public RoleExpiryDomainNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;

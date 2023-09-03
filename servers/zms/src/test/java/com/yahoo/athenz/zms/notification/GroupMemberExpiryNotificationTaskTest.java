@@ -20,7 +20,6 @@ import com.yahoo.athenz.common.server.notification.*;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.store.AthenzDomain;
 import com.yahoo.rdl.Timestamp;
-import org.checkerframework.checker.units.qual.C;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 

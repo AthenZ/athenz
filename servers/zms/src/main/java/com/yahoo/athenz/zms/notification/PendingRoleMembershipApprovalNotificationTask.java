@@ -34,7 +34,7 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
     private final DBService dbService;
     private final int pendingRoleMemberLifespan;
     private final String monitorIdentity;
-    private NotificationCommon notificationCommon;
+    private final NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "pending role membership approvals reminders";
     private final PendingRoleMembershipApprovalNotificationToEmailConverter pendingMembershipApprovalNotificationToEmailConverter;
     private final PendingRoleMembershipApprovalNotificationToMetricConverter pendingRoleMembershipApprovalNotificationToMetricConverter;
@@ -70,7 +70,7 @@ public class PendingRoleMembershipApprovalNotificationTask implements Notificati
         private static final String MEMBERSHIP_APPROVAL_REMINDER_SUBJECT = "athenz.notification.email.membership.reminder.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailMembershipApprovalReminderBody;
+        private final String emailMembershipApprovalReminderBody;
 
         public PendingRoleMembershipApprovalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
