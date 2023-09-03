@@ -76,6 +76,7 @@ import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.ServletContext;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
@@ -231,6 +232,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected static Validator validator;
     protected NotificationManager notificationManager = null;
     protected StatusChecker statusChecker = null;
+
+    private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
+            RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
 
     enum AthenzObject {
         INSTANCE_REGISTER_INFO {
@@ -1321,7 +1325,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Timestamp modified = domainData.getModified();
         EntityTag eTag = new EntityTag(modified.toString());
-        final String tag = eTag.toString();
+        final String tag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
 
         // Set timestamp for domain rather than youngest policy.
         // Since a policy could have been deleted, and can only be detected
@@ -1461,7 +1465,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Timestamp modified = domainData.getModified();
         EntityTag eTag = new EntityTag(modified.toString());
-        String tag = eTag.toString();
+        final String tag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
 
         // Set timestamp for domain rather than youngest policy.
         // Since a policy could have been deleted, and can only be detected
