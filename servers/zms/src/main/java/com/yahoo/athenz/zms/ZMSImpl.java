@@ -71,6 +71,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +107,8 @@ import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
+    private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
+            RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
 
     private static String ROOT_DIR;
 
@@ -6541,7 +6544,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (timestamp != 0 && youngestDomMod <= timestamp) {
                     EntityTag eTag = new EntityTag(domain.getModified().toString());
                     return Response.status(ResourceException.NOT_MODIFIED)
-                            .header("ETag", eTag.toString()).build();
+                            .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag)).build();
                 }
 
                 // generate our signed domain object
@@ -6573,7 +6576,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             if (matchingTag == null) {
                 EntityTag eTag = new EntityTag(Timestamp.fromMillis(0).toString());
-                matchingTag = eTag.toString();
+                matchingTag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
             }
 
             // fetching the list of modified domains must always be carried out
@@ -6624,7 +6627,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         EntityTag eTag = new EntityTag(youngest.toString());
 
         return Response.status(ResourceException.OK).entity(sdoms)
-                .header("ETag", eTag.toString()).build();
+                .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag)).build();
     }
 
     @Override
@@ -6656,7 +6659,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (timestamp != 0 && domainModTime <= timestamp) {
             return Response
                     .status(ResourceException.NOT_MODIFIED)
-                    .header("ETag", eTag.toString())
+                    .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag))
                     .build();
         }
 
@@ -6665,7 +6668,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return Response
                 .status(ResourceException.OK)
                 .entity(generateJWSDomain(athenzDomain, signatureP1363Format))
-                .header("ETag", eTag.toString())
+                .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag))
                 .build();
     }
 
@@ -11052,7 +11055,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
     
-    static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
+    public static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
 
         DBService dbService;
         ZMSGroupMembersFetcher(DBService dbService) {
