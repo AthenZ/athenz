@@ -162,7 +162,7 @@ public class RequireRoleCertCache {
         if (roleMembers == null) {
             roleMembers = new ArrayList<>();
         }
-        List<String> roles = roleMembers.stream().map(roleMemberCache -> roleMemberCache.getRole()).collect(Collectors.toList());
+        List<String> roles = roleMembers.stream().map(RoleMemberCache::getRole).collect(Collectors.toList());
         roles.addAll(requireRoleCertWildcard);
         roles.addAll(requireRoleCertPrefixTrie.findMatchingValues(principal));
         return roles;
@@ -215,7 +215,7 @@ public class RequireRoleCertCache {
                 AuthzHelper.isMemberExpired(member.getRoleMember().getExpiration(), currentTime);
     }
 
-    class RoleMemberCache {
+    static class RoleMemberCache {
         public RoleMemberCache(RoleMember roleMember, String role) {
             this.roleMember = roleMember;
             this.role = role;

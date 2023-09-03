@@ -147,7 +147,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         }
 
         List<String> snoozeTagValues = domainData.getTags().get(SNOOZED_DOMAIN_TAG_KEY).getList();
-        return snoozeTagValues.stream().anyMatch(value -> value.toLowerCase().equals(SNOOZED_DOMAIN_TAG_VALUE));
+        return snoozeTagValues.stream().anyMatch(value -> value.equalsIgnoreCase(SNOOZED_DOMAIN_TAG_VALUE));
     }
 
     private List<Notification> generateNotificationsForAdmins(Map<String, List<X509CertRecord>> domainToCertRecordsMap) {
@@ -170,7 +170,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
     private List<X509CertRecord> getRecordsWithValidHosts(List<X509CertRecord> unrefreshedCerts) {
         unrefreshedCerts.stream()
                 .filter(record -> StringUtil.isEmpty(record.getHostName()))
-                .peek(record -> LOGGER.warn("Record with empty hostName: {}", record.toString()))
+                .peek(record -> LOGGER.warn("Record with empty hostName: {}", record))
                 .collect(Collectors.toList());
 
         // Filter all records with non existing hosts or hosts not recognized by DNS
@@ -234,7 +234,7 @@ public class CertFailedRefreshNotificationTask implements NotificationTask {
         private static final String DEFAULT_ATHENZ_GUIDE = "https://athenz.github.io/athenz/";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailUnrefreshedCertsBody;
+        private final String emailUnrefreshedCertsBody;
         private final String serverName;
         private final int httpsPort;
         private final String athenzGuide;

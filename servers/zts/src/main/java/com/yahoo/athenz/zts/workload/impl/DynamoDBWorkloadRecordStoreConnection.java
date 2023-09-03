@@ -57,12 +57,12 @@ public class DynamoDBWorkloadRecordStoreConnection implements WorkloadRecordStor
 
     private static long expiryTime = 3660 * Long.parseLong(
             System.getProperty(ZTSConsts.ZTS_PROP_WORKLOAD_DYNAMODB_ITEM_TTL_HOURS, "720"));
-    private Table table;
+    private final Table table;
     private final Index serviceIndex;
     private final Index ipIndex;
 
     public DynamoDBWorkloadRecordStoreConnection(DynamoDB dynamoDB, final String tableName, final String serviceIndex, final String ipIndex) {
-        table = dynamoDB.getTable(tableName);
+        this.table = dynamoDB.getTable(tableName);
         this.serviceIndex = table.getIndex(serviceIndex);
         this.ipIndex = table.getIndex(ipIndex);
     }

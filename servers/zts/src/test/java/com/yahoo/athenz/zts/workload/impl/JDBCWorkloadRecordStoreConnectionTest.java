@@ -40,7 +40,7 @@ public class JDBCWorkloadRecordStoreConnectionTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.doReturn(mockConn).when(mockDataSrc).getConnection();
         Mockito.doReturn(mockStmt).when(mockConn).createStatement();
         Mockito.doReturn(mockResultSet).when(mockPrepStmt).executeQuery();
