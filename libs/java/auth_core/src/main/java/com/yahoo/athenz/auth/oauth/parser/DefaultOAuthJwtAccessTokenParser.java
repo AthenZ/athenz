@@ -32,7 +32,7 @@ public class DefaultOAuthJwtAccessTokenParser implements OAuthJwtAccessTokenPars
 
     public static final int ALLOWED_CLOCK_SKEW_SECONDS = 60;
 
-    protected JwtParser parser = null;
+    protected JwtParser parser;
 
     /**
      * Create parser for DefaultOAuthJwtAccessToken
@@ -54,7 +54,7 @@ public class DefaultOAuthJwtAccessTokenParser implements OAuthJwtAccessTokenPars
 
     @Override
     public OAuthJwtAccessToken parse(String jwtString) throws OAuthJwtAccessTokenException {
-        OAuthJwtAccessToken accessToken = null;
+        OAuthJwtAccessToken accessToken;
         try {
             Jws<Claims> jws = this.parser.parseClaimsJws(jwtString);
             accessToken = new DefaultOAuthJwtAccessToken(jws);

@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 public class CertificateIdentityParserTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
-    private final X509Certificate readCert(String resourceName) throws Exception {
+    private X509Certificate readCert(String resourceName) throws Exception {
         try (FileInputStream certIs = new FileInputStream(this.classLoader.getResource(resourceName).getFile())) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return (X509Certificate) cf.generateCertificate(certIs);
@@ -57,7 +57,7 @@ public class CertificateIdentityParserTest {
         for (Field f : parser.getClass().getDeclaredFields()) {
             switch (f.getName()) {
             case "excludedPrincipalSet":
-                assertEquals(getFieldValue.apply(f, parser), null);
+                assertNull(getFieldValue.apply(f, parser));
                 break;
             case "excludeRoleCertificates":
                 assertEquals(getFieldValue.apply(f, parser), false);

@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 public class CertificateIdentityTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
-    private final X509Certificate readCert(String resourceName) throws Exception {
+    private X509Certificate readCert(String resourceName) throws Exception {
         try (FileInputStream certIs = new FileInputStream(this.classLoader.getResource(resourceName).getFile())) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return (X509Certificate) cf.generateCertificate(certIs);

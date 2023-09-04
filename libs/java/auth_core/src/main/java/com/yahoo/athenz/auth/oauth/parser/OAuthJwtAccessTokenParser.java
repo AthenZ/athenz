@@ -29,5 +29,5 @@ public interface OAuthJwtAccessTokenParser {
      * @return                              OAuthJwtAccessToken
      * @throws OAuthJwtAccessTokenException parse error
      */
-    public OAuthJwtAccessToken parse(String jwtString) throws OAuthJwtAccessTokenException;
+    OAuthJwtAccessToken parse(String jwtString) throws OAuthJwtAccessTokenException;
 }

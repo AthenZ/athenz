@@ -74,7 +74,7 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
                 LOG.debug("DefaultOAuthJwtAccessToken:getAudiences treat audience as string, err: {}", e.getMessage());
             }
             // found but class mismatch
-            audiences = Arrays.asList(new String[]{ this.body.getAudience() });
+            audiences = Arrays.asList(this.body.getAudience());
         }
         return audiences;
     }
@@ -87,7 +87,7 @@ public class DefaultOAuthJwtAccessToken implements OAuthJwtAccessToken {
     @Override
     public String getCertificateThumbprint() {
         // https://github.com/jwtk/jjwt/issues/404, custom model class not supported
-        LinkedHashMap<?, ?> certConf = null;
+        LinkedHashMap<?, ?> certConf;
         try {
             certConf = this.body.get(OAuthJwtAccessToken.CLAIM_CONFIRM, LinkedHashMap.class);
             if (certConf == null) {

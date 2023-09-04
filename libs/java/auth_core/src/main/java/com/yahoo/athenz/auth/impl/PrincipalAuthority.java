@@ -54,7 +54,7 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
     private int allowedOffset;
     IpCheckMode ipCheckMode;
     final String userDomain;
-    private String headerName;
+    private final String headerName;
     
     public PrincipalAuthority() {
         allowedOffset = Integer.parseInt(System.getProperty(ATHENZ_PROP_TOKEN_OFFSET, "300"));

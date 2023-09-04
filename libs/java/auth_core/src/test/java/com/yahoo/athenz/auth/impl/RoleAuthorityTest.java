@@ -47,7 +47,7 @@ public class RoleAuthorityTest {
     private String ztsPrivateKeyStringK1 = null;
     private static final String ZMS_USER_DOMAIN = "athenz.user_domain";
 
-    private static String userDomain = System.getProperty(ZMS_USER_DOMAIN, "user");
+    private static final String userDomain = System.getProperty(ZMS_USER_DOMAIN, "user");
     
     @BeforeTest
     private void loadKeys() throws IOException {
@@ -103,8 +103,8 @@ public class RoleAuthorityTest {
         }
 
         return "v=" + version + ";d=" + domain
-                + ";r=" + flattenedRoles + ";t=" + Long.toString(timestamp)
-                + ";e=" + Long.toString(expiryTime) + ";s=" + signature;
+                + ";r=" + flattenedRoles + ";t=" + timestamp
+                + ";e=" + expiryTime + ";s=" + signature;
     }
 
     @Test
@@ -211,7 +211,7 @@ public class RoleAuthorityTest {
 
         // Role Authority should return null when authenticate() fails
         assertNull(principal);
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
         assertTrue(errMsg.toString().contains("authenticate"));
 
         principal = rollAuthority.authenticate(tamperWithRoleToken(tokenToTamper),
@@ -256,7 +256,7 @@ public class RoleAuthorityTest {
         // Create and sign token with keyVersion = 0
         RoleToken roleToken = new RoleToken.Builder(rolVersion, svcDomain, roles)
             .salt(salt).ip("127.0.0.1").expirationWindow(expirationTime)
-            .principal("" + userDomain + ".joe").keyId(testKeyVersionK0).build();
+            .principal(userDomain + ".joe").keyId(testKeyVersionK0).build();
         roleToken.sign(ztsPrivateKeyStringK0);
 
         // mismatch IP but should be OK since it's not write operation
@@ -280,7 +280,7 @@ public class RoleAuthorityTest {
         // Create and sign token with keyVersion = 0
         RoleToken roleToken = new RoleToken.Builder(rolVersion, svcDomain, roles)
             .salt(salt).ip("127.0.0.1").expirationWindow(expirationTime)
-            .principal("" + userDomain + ".joe").keyId(testKeyVersionK0).build();
+            .principal(userDomain + ".joe").keyId(testKeyVersionK0).build();
         roleToken.sign(ztsPrivateKeyStringK0);
 
         // mismatch IP should fail
@@ -289,7 +289,7 @@ public class RoleAuthorityTest {
                 "127.0.0.2", "DELETE", errMsg);
 
         assertNull(principal);
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
         assertTrue(errMsg.toString().contains("authenticate"));
         
         errMsg = new StringBuilder(); // get a fresh one
@@ -297,7 +297,7 @@ public class RoleAuthorityTest {
                 "127.0.0.2", "PUT", errMsg);
 
         assertNull(principal);
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
         assertTrue(errMsg.toString().contains("authenticate"));
         
         // final check should be ok with valid IP

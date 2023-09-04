@@ -154,7 +154,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
                 }
                 publicKeys.put(id, Crypto.loadPublicKey(Crypto.ybase64DecodeString(key)));
             }
-            if (publicKeys.size() == 0) {
+            if (publicKeys.isEmpty()) {
                 LOGGER.error("No valid public json web keys in conf file: {}", confFileName);
             }
         } catch (IOException ex) {

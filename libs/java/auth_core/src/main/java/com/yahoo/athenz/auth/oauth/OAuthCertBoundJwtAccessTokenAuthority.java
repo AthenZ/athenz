@@ -169,22 +169,23 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         // this.userDomain = userDomain;
 
         // certificate parser
-        boolean excludeRoleCertificates = Boolean.valueOf(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CERT_EXCLUDE_ROLE_CERTIFICATES, "false"));
+        boolean excludeRoleCertificates = Boolean.parseBoolean(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CERT_EXCLUDE_ROLE_CERTIFICATES, "false"));
         Set<String> excludedPrincipals = OAuthAuthorityUtils.csvToSet(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_CERT_EXCLUDED_PRINCIPALS, ""), OAuthAuthorityConsts.CSV_DELIMITER);
         this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipals, excludeRoleCertificates);
 
         // JWT parser
         String jwtParserFactoryClass = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_PARSER_FACTORY_CLASS, "com.yahoo.athenz.auth.oauth.parser.DefaultOAuthJwtAccessTokenParserFactory");
         try {
-            OAuthJwtAccessTokenParserFactory jwtParserFactory = (OAuthJwtAccessTokenParserFactory) Class.forName(jwtParserFactoryClass).newInstance();
+            OAuthJwtAccessTokenParserFactory jwtParserFactory = (OAuthJwtAccessTokenParserFactory)
+                    Class.forName(jwtParserFactoryClass).getDeclaredConstructor().newInstance();
             this.parser = jwtParserFactory.create(this);
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid OAuthJwtAccessTokenParserFactory class: {} error: {}", jwtParserFactoryClass, e.getMessage());
-            throw new IllegalArgumentException("Invalid JWT parser class", e);
+        } catch (Exception ex) {
+            LOG.error("Invalid OAuthJwtAccessTokenParserFactory class: {}", jwtParserFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid JWT parser class", ex);
         }
 
         // JWT validator controls
-        this.shouldVerifyCertThumbprint = Boolean.valueOf(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_VERIFY_CERT_THUMBPRINT, "true"));
+        this.shouldVerifyCertThumbprint = Boolean.parseBoolean(OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_VERIFY_CERT_THUMBPRINT, "true"));
         // JWT validator client ID mapping
         String authorizedClientIdsPath = OAuthAuthorityUtils.getProperty(OAuthAuthorityConsts.JA_PROP_AUTHORIZED_CLIENT_IDS_PATH, "");
         Map<String, Set<String>> authorizedClientIds = new HashMap<>();
@@ -223,7 +224,7 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         }
 
         // parse certificate
-        CertificateIdentity certificateIdentity = null;
+        CertificateIdentity certificateIdentity;
         try {
             certificateIdentity = this.certificateIdentityParser.parse(request);
         } catch (CertificateIdentityException e) {
@@ -234,7 +235,7 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         String clientCertPrincipal = certificateIdentity.getPrincipalName();
 
         // parse JWT
-        OAuthJwtAccessToken at = null;
+        OAuthJwtAccessToken at;
         try {
             at = this.parser.parse(jwsString);
         } catch (OAuthJwtAccessTokenException e) {
@@ -268,13 +269,12 @@ public class OAuthCertBoundJwtAccessTokenAuthority implements Authority, Authori
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create(domain, service, jwsString, at.getIssuedAt(), this);
         principal.setUnsignedCreds(at.toString());
         principal.setX509Certificate(clientCert);
-        // principal.setRoles(at.getScopes());
         principal.setApplicationId(clientCertPrincipal);
         principal.setAuthorizedService(this.authorizedServices.getOrDefault(clientCertPrincipal, clientCertPrincipal));
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: client certificate name={}", clientCertPrincipal);
-            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: valid user={}", principal.toString());
+            LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: valid user={}", principal);
             LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: unsignedCredentials={}", principal.getUnsignedCredentials());
             LOG.debug("OAuthCertBoundJwtAccessTokenAuthority.authenticate: credentials={}", principal.getCredentials());
         }

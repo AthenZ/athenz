@@ -25,9 +25,8 @@ public class DefaultOAuthJwtAccessTokenParserFactory implements OAuthJwtAccessTo
 
     public static final String SYSTEM_PROP_PREFIX = "athenz.auth.oauth.jwt.parser.";
     public static final String JWKS_URL = "jwks_url";
-    public static final BiFunction<String, String, String> GET_PROPERTY = (String key, String def) -> {
-        return System.getProperty(SYSTEM_PROP_PREFIX + key, def);
-    };
+    public static final BiFunction<String, String, String> GET_PROPERTY =
+            (String key, String def) -> System.getProperty(SYSTEM_PROP_PREFIX + key, def);
 
     @Override
     public OAuthJwtAccessTokenParser create(KeyStore keyStore) throws IllegalArgumentException {

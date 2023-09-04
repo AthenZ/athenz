@@ -230,7 +230,7 @@ public class SimplePrincipalTest {
 
         Principal p3 = SimplePrincipal.create("user", "jdoe1", fakeCreds, 101, userAuthority);
         assertFalse(p.equals(p3));
-        assertTrue(p.hashCode() != p3.hashCode());
+        assertNotEquals(p.hashCode(), p3.hashCode());
     }
 
     @Test

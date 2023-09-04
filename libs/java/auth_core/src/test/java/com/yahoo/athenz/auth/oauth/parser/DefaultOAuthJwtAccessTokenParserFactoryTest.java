@@ -25,23 +25,17 @@ import org.testng.annotations.Test;
 public class DefaultOAuthJwtAccessTokenParserFactoryTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
-    private final KeyStore baseKeyStore = new KeyStore() {
-        @Override
-        public String getPublicKey(String domain, String service, String keyId) {
-            return null;
-        }
-    };
+    private final KeyStore baseKeyStore = (domain, service, keyId) -> null;
 
     @Test
     public void testCreate() throws OAuthJwtAccessTokenException {
-        OAuthJwtAccessTokenParser parser = null;
         DefaultOAuthJwtAccessTokenParserFactory factory = new DefaultOAuthJwtAccessTokenParserFactory();
 
         // check internal
         assertThrows(IllegalArgumentException.class, () -> factory.create(null));
 
         // check default
-        parser = factory.create(baseKeyStore);
+        OAuthJwtAccessTokenParser parser = factory.create(baseKeyStore);
         assertNotNull(parser);
 
         // check custom property

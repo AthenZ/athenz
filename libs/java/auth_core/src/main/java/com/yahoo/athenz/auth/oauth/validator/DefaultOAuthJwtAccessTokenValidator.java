@@ -27,10 +27,10 @@ import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
  */
 public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenValidator {
 
-    private String trustedIssuer = null;
-    private Set<String> requiredAudiences = null;
-    private Set<String> requiredScopes = null;
-    private Map<String, Set<String>> authorizedClientIds = null;
+    private final String trustedIssuer;
+    private final Set<String> requiredAudiences;
+    private final Set<String> requiredScopes;
+    private final Map<String, Set<String>> authorizedClientIds;
 
     /**
      * create DefaultOAuthJwtAccessTokenValidator
@@ -68,6 +68,7 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
             throw new OAuthJwtAccessTokenException("iss not trusted: got=" + issuer);
         }
     }
+
     private void verifyAudiences(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException {
         List<String> audiences = jwt.getAudiences();
         if (audiences == null || !(new HashSet<>(audiences)).containsAll(this.requiredAudiences)) {
@@ -76,6 +77,7 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
             throw new OAuthJwtAccessTokenException("required aud not found: got=" + got);
         }
     }
+
     private void verifyScopes(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException {
         List<String> scopes = jwt.getScopes();
         if (scopes == null || !(new HashSet<>(scopes)).containsAll(this.requiredScopes)) {
@@ -83,17 +85,19 @@ public class DefaultOAuthJwtAccessTokenValidator implements OAuthJwtAccessTokenV
             throw new OAuthJwtAccessTokenException("required scope not found: got=" + jwt.getScope());
         }
     }
+
     private void verifyCertificateThumbprint(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException {
         String certThumbprint = jwt.getCertificateThumbprint();
-        if (certificateThumbprint == certThumbprint) {
+        if (certificateThumbprint == null && certThumbprint == null) {
             // skip when both null
             return;
         }
-        if (certificateThumbprint == null || certThumbprint == null || !certificateThumbprint.equals(certThumbprint)) {
+        if (certificateThumbprint == null || !certificateThumbprint.equals(certThumbprint)) {
             // certificate thumbprint NOT match with JWT
             throw new OAuthJwtAccessTokenException(String.format("client certificate thumbprint (%s) not match: got=%s", certificateThumbprint, certThumbprint));
         }
     }
+
     private void verifyClientId(OAuthJwtAccessToken jwt, String certificatePrincipal) throws OAuthJwtAccessTokenException {
         String clientId = jwt.getClientId();
         Set<String> validClientIds = this.authorizedClientIds.get(certificatePrincipal);
