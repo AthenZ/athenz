@@ -18,18 +18,12 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.AttrValidatorFactory;
-import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 
 import javax.net.ssl.SSLContext;
 
 public class MockAttrValidatorFactory implements AttrValidatorFactory {
     @Override
     public AttrValidator create(final SSLContext sslContext) {
-        return new AttrValidator() {
-            @Override
-            public boolean confirm(InstanceConfirmation instanceConfirmation) {
-                return true;
-            }
-        };
+        return instanceConfirmation -> true;
     }
 }

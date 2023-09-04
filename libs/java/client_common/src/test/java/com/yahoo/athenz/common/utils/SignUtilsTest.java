@@ -226,8 +226,8 @@ public class SignUtilsTest {
     public void testAsCannonicalStringObject() {
 
         Struct struct = new Struct();
-        struct.append("long", Long.valueOf(100));
-        struct.append("float", Float.valueOf(100f));
+        struct.append("long", 100L);
+        struct.append("float", 100f);
 
         final String check = SignUtils.asCanonicalString(struct);
         final String expected = "{\"float\":100.0,\"long\":100}";

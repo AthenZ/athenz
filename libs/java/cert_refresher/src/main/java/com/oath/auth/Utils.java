@@ -510,7 +510,6 @@ public class Utils {
                 throw new KeyRefresherException("Unknown object type: " + (key == null ? "null" : key.getClass().getName()));
             }
 
-            //noinspection unchecked
             certificates = (List<? extends Certificate>) cf.generateCertificates(publicCertStream);
             if (certificates.isEmpty()) {
                 throw new KeyRefresherException("Certificate file contains empty certificate or an invalid certificate.");

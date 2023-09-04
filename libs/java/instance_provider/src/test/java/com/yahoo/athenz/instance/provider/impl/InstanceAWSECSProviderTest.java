@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;

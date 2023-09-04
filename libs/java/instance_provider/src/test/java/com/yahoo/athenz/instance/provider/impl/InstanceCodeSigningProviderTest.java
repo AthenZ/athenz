@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -40,7 +39,7 @@ public class InstanceCodeSigningProviderTest {
     private final File ecPublicKey = new File("./src/test/resources/unit_test_ec_public.key");
 
     @Test
-    public void testInitializeDefaults() throws IOException {
+    public void testInitializeDefaults() {
         InstanceCodeSigningProvider provider = new InstanceCodeSigningProvider();
         System.setProperty(InstanceCodeSigningProvider.ZTS_PROP_ZTS_OPENID_ISSUER, "https://zts.athenz.io");
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceCodeSigningProvider", null, null);
@@ -79,7 +78,7 @@ public class InstanceCodeSigningProviderTest {
 
     @Test
     public void testGetProviderScheme() {
-        assertTrue(new InstanceCodeSigningProvider().getProviderScheme().equals(InstanceProvider.Scheme.CLASS));
+        assertEquals(InstanceProvider.Scheme.CLASS, new InstanceCodeSigningProvider().getProviderScheme());
     }
 
     @Test

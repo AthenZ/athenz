@@ -181,12 +181,7 @@ public class SecureBootProviderTest {
 
     @Test
     public void testConfirmInstanceAttributeMismatch() {
-        AttrValidator attrValidator = new AttrValidator() {
-            @Override
-            public boolean confirm(InstanceConfirmation instanceConfirmation) {
-                return false;
-            }
-        };
+        AttrValidator attrValidator = instanceConfirmation -> false;
 
         SecureBootProvider provider = new SecureBootProvider();
         provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
@@ -337,7 +332,7 @@ public class SecureBootProviderTest {
 
     @Test
     public void testGetProviderScheme() {
-        assertTrue(new SecureBootProvider().getProviderScheme().equals(InstanceProvider.Scheme.CLASS));
+        assertEquals(InstanceProvider.Scheme.CLASS, new SecureBootProvider().getProviderScheme());
     }
 
     @Test
@@ -482,7 +477,7 @@ public class SecureBootProviderTest {
         assertTrue(dnSet.contains("CN=Duke,OU=JavaSoft,O=Sun Microsystems,C=US"));
         assertTrue(dnSet.contains("CN=Count,OU=BobInc,O=Bob Systems,C=US"));
         assertTrue(dnSet.contains("C=US,O=Alice Systems,OU=Alice,CN=Ellington"));
-        assertTrue(dnSet.size() == 3);
+        assertEquals(dnSet.size(), 3);
 
     }
 
@@ -491,7 +486,7 @@ public class SecureBootProviderTest {
         List<String> list = new ArrayList<>();
         list.add("unparseable");
 
-        Set<String> dnSet = SecureBootProvider.parseDnList(list);
+        SecureBootProvider.parseDnList(list);
         fail();
     }
 

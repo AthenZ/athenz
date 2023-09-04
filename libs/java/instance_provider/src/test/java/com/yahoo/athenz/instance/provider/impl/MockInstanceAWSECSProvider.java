@@ -22,7 +22,6 @@ import javax.net.ssl.SSLContext;
 
 public class MockInstanceAWSECSProvider extends InstanceAWSECSProvider {
 
-    boolean signatureResult = true;
     boolean identityResult = true;
     boolean identitySuper = false;
     AWSSecurityTokenService stsClient;

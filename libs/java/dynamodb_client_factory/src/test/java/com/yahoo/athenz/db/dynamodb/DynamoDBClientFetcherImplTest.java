@@ -37,10 +37,8 @@ public class DynamoDBClientFetcherImplTest {
     private static final String ZTS_PROP_DYNAMODB_ROLE                = "athenz.zts.dynamodb_aws_role";
     private static final String ZTS_PROP_DYNAMODB_TRUSTSTORE          = "athenz.zts.dynamodb_trust_store_path";
     private static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_PASSWORD = "athenz.zts.dynamodb_trust_store_password";
-    private static final String ZTS_PROP_DYNAMODB_TRUSTSTORE_APPNAME  = "athenz.zts.dynamodb_trust_store_app_name";
     private static final String ZTS_PROP_DYNAMODB_REGION              = "athenz.zts.dynamodb_region";
     private static final String ZTS_PROP_DYNAMODB_ZTS_URL             = "athenz.zts.dynamodb_zts_url";
-    private static final String ZTS_PROP_DYNAMODB_EXTERNAL_ID         = "athenz.zts.dynamodb_external_id";
     private static final String ZTS_PROP_DYNAMODB_MIN_EXPIRY_TIME     = "athenz.zts.dynamodb_min_expiry_time";
     private static final String ZTS_PROP_DYNAMODB_MAX_EXPIRY_TIME     = "athenz.zts.dynamodb_max_expiry_time";
 

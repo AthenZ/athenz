@@ -23,9 +23,9 @@ import com.yahoo.athenz.zts.AWSCredentialsProviderImpl;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
 public class DynamoDBClientAndCredentials {
-    private AmazonDynamoDB amazonDynamoDB;
-    private DynamoDbAsyncClient amazonDynamoAsyncDB;
-    private AWSCredentialsProviderImpl awsCredentialsProvider;
+    private final AmazonDynamoDB amazonDynamoDB;
+    private final DynamoDbAsyncClient amazonDynamoAsyncDB;
+    private final AWSCredentialsProviderImpl awsCredentialsProvider;
 
     public DynamoDBClientAndCredentials(AmazonDynamoDB amazonDynamoDB, DynamoDbAsyncClient amazonDynamoAsyncDB, AWSCredentialsProviderImpl awsCredentialsProvider) {
         this.amazonDynamoDB = amazonDynamoDB;
