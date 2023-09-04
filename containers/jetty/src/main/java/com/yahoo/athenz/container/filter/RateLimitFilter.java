@@ -62,13 +62,13 @@ public class RateLimitFilter implements jakarta.servlet.Filter {
                 AthenzConsts.ATHENZ_RATE_LIMIT_FACTORY_CLASS);
         RateLimitFactory rateLimitFactory;
         try {
-            rateLimitFactory = (RateLimitFactory) Class.forName(ratelimitFactoryClass).newInstance();
+            rateLimitFactory = (RateLimitFactory) Class.forName(ratelimitFactoryClass).getDeclaredConstructor().newInstance();
             this.rateLimit = rateLimitFactory.create();
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Registered rate limit filter: {}", ratelimitFactoryClass);
             }
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid RateLimitFactory class: {} error: {}", ratelimitFactoryClass, e.getMessage());
+        } catch (Exception ex) {
+            LOGGER.error("Invalid RateLimitFactory class: {}", ratelimitFactoryClass, ex);
             throw new IllegalArgumentException("Invalid RateLimitFactory class");
         }
     }

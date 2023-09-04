@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 public class RateLimitFilterTest {
 
     @SuppressWarnings("RedundantThrows")
-    private class RateLimitFilterChain implements FilterChain {
+    private static class RateLimitFilterChain implements FilterChain {
         @Override
         public void doFilter(ServletRequest request, ServletResponse servletResponse) throws IOException, ServletException {
             HttpServletResponse response = (HttpServletResponse) servletResponse;
