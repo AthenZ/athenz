@@ -159,7 +159,7 @@ public class Http {
         
         if (authErrMsg.length() > 0) {
             request.setAttribute(INVALID_CRED_ATTR, authErrMsg.toString());
-            LOG.error("authenticate: {}", authErrMsg.toString());
+            LOG.error("authenticate: {}", authErrMsg);
         } else {
             request.setAttribute(INVALID_CRED_ATTR, "No credentials provided");
             LOG.error("authenticate: No credentials provided");

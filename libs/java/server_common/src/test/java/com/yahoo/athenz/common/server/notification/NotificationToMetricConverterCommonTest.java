@@ -34,10 +34,6 @@ public class NotificationToMetricConverterCommonTest {
         Timestamp yesterdayTimeStamp = Timestamp.fromMillis(1601828361000L);
         Timestamp monthFromNowTimeStamp = Timestamp.fromMillis(1604594993000L);
 
-        System.out.println("current: " + currentTimeStamp.toString());
-        System.out.println("tomorrow: " + tomorrowTimeStamp.toString());
-        System.out.println("yesterday: " + yesterdayTimeStamp.toString());
-
         assertEquals("0", notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStamp.toString(), currentTimeStamp.toString()));
         assertEquals("1", notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStamp.toString(), tomorrowTimeStamp.toString()));
         assertEquals("-1", notificationToMetricConverterCommon.getNumberOfDaysBetweenTimestamps(currentTimeStamp.toString(), yesterdayTimeStamp.toString()));

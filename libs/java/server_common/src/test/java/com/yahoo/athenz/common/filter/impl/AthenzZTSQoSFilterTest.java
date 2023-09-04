@@ -32,7 +32,7 @@ import static org.testng.Assert.*;
 
 public class AthenzZTSQoSFilterTest {
 
-    private class QoSFilterChain implements FilterChain {
+    private static class QoSFilterChain implements FilterChain {
         @Override
         public void doFilter(ServletRequest request, ServletResponse servletResponse) {
             HttpServletResponse response = (HttpServletResponse) servletResponse;

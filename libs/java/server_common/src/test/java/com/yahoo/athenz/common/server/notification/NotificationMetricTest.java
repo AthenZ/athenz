@@ -16,7 +16,6 @@
 
 package com.yahoo.athenz.common.server.notification;
 
-import com.yahoo.athenz.common.metrics.Metric;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;

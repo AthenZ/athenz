@@ -117,7 +117,7 @@ public class PulsarChangeSubscriberTest {
     }
 
     @Test
-    public void test_subscriber_creation() throws IOException, InterruptedException {
+    public void test_subscriber_creation() {
         System.setProperty(PROP_MESSAGING_CLI_SERVICE_URL, "some-service");
         PulsarChangeSubscriber<DomainChangeMessage> subscriber = new PulsarChangeSubscriber<>("service-url",
             "topic",

@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLContext;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,7 @@ public class HttpDriver implements Closeable {
     private final int clientReadTimeoutMs;
 
     private CloseableHttpClient client;
-    private PoolingHttpClientConnectionManager connManager;
+    private final PoolingHttpClientConnectionManager connManager;
 
     public static class Builder {
         private final String baseUrl;
@@ -166,12 +165,13 @@ public class HttpDriver implements Closeable {
         client = httpClient;
     }
 
-    public static SSLContext createSSLContext(String trustorePath, char[] trustorePassword, String certPath,
-                                          String keyPath) throws FileNotFoundException, IOException, InterruptedException, KeyRefresherException {
-        if (trustorePath == null) {
+    public static SSLContext createSSLContext(String trustStorePath, char[] trustStorePassword, String certPath, String keyPath)
+            throws IOException, InterruptedException, KeyRefresherException {
+
+        if (trustStorePath == null) {
             return null;
         }
-        KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustorePath, trustorePassword,
+        KeyRefresher keyRefresher = Utils.generateKeyRefresher(trustStorePath, trustStorePassword,
                 certPath, keyPath);
         keyRefresher.startup();
         return Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(),

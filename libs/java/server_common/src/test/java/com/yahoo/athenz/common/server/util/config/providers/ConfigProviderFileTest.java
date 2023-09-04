@@ -31,8 +31,7 @@ public class ConfigProviderFileTest {
 
         File configFile = File.createTempFile("ConfigProviderFileTest", ".conf");
         try (PrintWriter out = new PrintWriter(configFile)) {
-            out.print("" +
-                    "  ConfigProviderFileTest-1 : value-1 \n" +
+            out.print("  ConfigProviderFileTest-1 : value-1 \n" +
                     "  # remark \n" +
                     "  ConfigProviderFileTest-2 : value-2 \n");
         }

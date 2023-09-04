@@ -128,7 +128,7 @@ public interface ChangeLogStore {
      * the last modification time for the request. If data store
      * successfully updates the local entries in the cache then
      * it will call setLastModificationTimestamp with the same value
-     * @return Array of JWSDomain objects
+     * @return List of JWSDomain objects
      */
     default List<JWSDomain> getUpdatedJWSDomains(StringBuilder lastModTimeBuffer) {
         return null;

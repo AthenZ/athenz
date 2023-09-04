@@ -90,9 +90,9 @@ public class NotificationToEmailConverterCommon {
 
         Authority authority;
         try {
-            authority = (Authority) Class.forName(className).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid Notification user Authority class: {} error: {}", className, e.getMessage());
+            authority = (Authority) Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid Notification user Authority class: {}", className, ex);
             return null;
         }
         return authority;

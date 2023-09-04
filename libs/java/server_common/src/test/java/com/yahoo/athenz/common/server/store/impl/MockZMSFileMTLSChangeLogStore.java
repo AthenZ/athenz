@@ -17,7 +17,6 @@ package com.yahoo.athenz.common.server.store.impl;
 
 import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.zms.*;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.ArrayList;

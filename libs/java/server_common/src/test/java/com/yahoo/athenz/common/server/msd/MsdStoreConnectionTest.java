@@ -28,7 +28,7 @@ import static org.testng.Assert.*;
 
 public class MsdStoreConnectionTest {
 
-    class TestMsdStorageConnection implements MsdStoreConnection {
+    static class TestMsdStorageConnection implements MsdStoreConnection {
     }
 
     @Test

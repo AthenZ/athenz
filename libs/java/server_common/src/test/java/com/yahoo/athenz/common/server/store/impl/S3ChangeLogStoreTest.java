@@ -174,7 +174,7 @@ public class S3ChangeLogStoreTest {
         try {
             when(store.executorService.awaitTermination(defaultTimeoutSeconds, TimeUnit.SECONDS)).thenThrow(new InterruptedException());
             assertFalse(store.getAllDomains(temp));
-            assertTrue(store.getLocalDomainList().size() > 0);
+            assertFalse(store.getLocalDomainList().isEmpty());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -28,8 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -93,11 +91,7 @@ public class AthenzPulsarClient {
   
   private static ClientConfigurationData getClientConfiguration(TlsConfig tlsConfig) {
     ClientConfigurationData config = new ClientConfigurationData();
-    AuthenticationTls authenticationTls = new AuthenticationTls();
-    Map<String, String> authParams = new HashMap<>();
-    authParams.put("tlsKeyFile", tlsConfig.tlsKeyFilePath);
-    authParams.put("tlsCertFile", tlsConfig.tlsCertFilePath);
-    authenticationTls.configure(authParams);
+    AuthenticationTls authenticationTls = new AuthenticationTls(tlsConfig.tlsCertFilePath, tlsConfig.tlsKeyFilePath);
     config.setAuthentication(authenticationTls);
     config.setTlsAllowInsecureConnection(false);
     config.setTlsHostnameVerificationEnable(true);
@@ -110,9 +104,9 @@ public class AthenzPulsarClient {
     AthenzPulsarClient instance;
     String pulsarClientClassName = System.getProperty(PROP_ATHENZ_PULSAR_CLIENT_CLASS, PROP_ATHENZ_PULSAR_CLIENT_CLASS_DEFAULT);
     try {
-      instance = (AthenzPulsarClient) Class.forName(pulsarClientClassName).newInstance();
-    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-      throw new ExceptionInInitializerError(e);
+      instance = (AthenzPulsarClient) Class.forName(pulsarClientClassName).getDeclaredConstructor().newInstance();
+    } catch (Exception ex) {
+      throw new ExceptionInInitializerError(ex);
     }
     return instance;
   }

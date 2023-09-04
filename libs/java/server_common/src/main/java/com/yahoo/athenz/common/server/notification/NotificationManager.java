@@ -32,9 +32,9 @@ public class NotificationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationManager.class);
 
-    private List<NotificationService> notificationServices = new ArrayList<>();
+    private final List<NotificationService> notificationServices = new ArrayList<>();
     private ScheduledExecutorService scheduledExecutor;
-    private List<NotificationTask> notificationTasks;
+    private final List<NotificationTask> notificationTasks;
     private final Authority notificationUserAuthority;
 
     public NotificationManager(List<NotificationTask> notificationTasks, Authority notificationUserAuthority) {
@@ -46,13 +46,14 @@ public class NotificationManager {
             for (String notificationServiceFactoryClass : notificationServiceFactoryClassArray) {
                 NotificationServiceFactory notificationServiceFactory;
                 try {
-                    notificationServiceFactory = (NotificationServiceFactory) Class.forName(notificationServiceFactoryClass.trim()).newInstance();
+                    notificationServiceFactory = (NotificationServiceFactory) Class.forName(
+                            notificationServiceFactoryClass.trim()).getDeclaredConstructor().newInstance();
                     NotificationService notificationService = notificationServiceFactory.create();
                     if (notificationService != null) {
                         notificationServices.add(notificationService);
                     }
-                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                    LOGGER.error("Invalid NotificationServiceFactory class: {} error: {}", notificationServiceFactoryClass, e.getMessage());
+                } catch (Exception ex) {
+                    LOGGER.error("Invalid NotificationServiceFactory class: {}", notificationServiceFactoryClass, ex);
                 }
             }
             LOGGER.info("Loaded Notification Services: {}", String.join(",", getLoadedNotificationServices()));
@@ -87,14 +88,14 @@ public class NotificationManager {
 
     public void sendNotifications(List<Notification> notifications) {
         if (isNotificationFeatureAvailable()) {
-            notifications.stream().filter(Objects::nonNull).forEach(notification -> {
-                notificationServices.stream().filter(Objects::nonNull).forEach(service -> service.notify(notification));
-            });
+            notifications.stream().filter(Objects::nonNull).forEach(
+                    notification -> notificationServices.stream()
+                            .filter(Objects::nonNull).forEach(service -> service.notify(notification)));
         }
     }
 
     public boolean isNotificationFeatureAvailable () {
-        return notificationServices != null && notificationServices.size() > 0;
+        return !notificationServices.isEmpty();
     }
 
     private boolean enableScheduledNotifications() {
@@ -126,11 +127,9 @@ public class NotificationManager {
                     List<Notification> notifications = notificationTask.getNotifications();
                     notifications.stream()
                             .filter(Objects::nonNull)
-                            .forEach(notification -> {
-                                notificationServices.forEach(service -> service.notify(notification));
-                            });
-                    int numberOfNotificationsSent = (notifications != null) ? notifications.size() : 0;
-                    LOGGER.info("PeriodicNotificationsSender: Sent {} notifications of type {}.", numberOfNotificationsSent, notificationTask.getDescription());
+                            .forEach(notification -> notificationServices.forEach(service -> service.notify(notification)));
+                    LOGGER.info("PeriodicNotificationsSender: Sent {} notifications of type {}.",
+                            notifications.size(), notificationTask.getDescription());
                 } catch (Throwable t) {
                     LOGGER.error(String.format("PeriodicNotificationsSender: unable to send %s: ", notificationTask.getDescription()), t);
                 }

@@ -18,10 +18,8 @@ package com.yahoo.athenz.common.server.store.impl;
 import static org.mockito.Mockito.mock;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.yahoo.athenz.zms.SignedDomain;
 import org.mockito.Mockito;
 
-import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 class MockS3ChangeLogStore extends S3ChangeLogStore {

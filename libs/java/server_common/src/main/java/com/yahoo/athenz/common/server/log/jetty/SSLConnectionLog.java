@@ -25,15 +25,15 @@ import java.io.IOException;
 
 public class SSLConnectionLog implements ConnectionLog {
 
-    private JsonConnectionLogWriter jsonConnectionLogWriter = new JsonConnectionLogWriter();
+    private final JsonConnectionLogWriter jsonConnectionLogWriter = new JsonConnectionLogWriter();
     private static final Logger LOG = LoggerFactory.getLogger("SSLConnectionLog");
 
     @Override
     public void log(ConnectionLogEntry connectionLogEntry) {
         try {
             LOG.info(jsonConnectionLogWriter.logEntryToString(connectionLogEntry));
-        } catch (IOException exception) {
-            LOG.error("Failed to write connectionLogEntry. ex: {}", exception);
+        } catch (IOException ex) {
+            LOG.error("Failed to write connectionLogEntry", ex);
         }
     }
 }
