@@ -46,7 +46,7 @@ public class DynamicConfigTest {
 
         File configFile = File.createTempFile("ConfigProviderFileTest.testStatic", ".conf");
 
-        writeFile(configFile, "" +
+        writeFile(configFile,
                 "string-key-ok: string-value\n" +
                 "\n" +
                 "int-key-ok: 100\n" +

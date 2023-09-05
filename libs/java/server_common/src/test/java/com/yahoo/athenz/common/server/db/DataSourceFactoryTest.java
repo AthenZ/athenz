@@ -17,6 +17,7 @@ package com.yahoo.athenz.common.server.db;
 
 import static org.testng.Assert.*;
 
+import java.time.Duration;
 import java.util.Properties;
 
 import org.apache.commons.pool2.impl.BaseObjectPoolConfig;
@@ -88,9 +89,9 @@ public class DataSourceFactoryTest {
         assertEquals(config.getMaxTotal(), GenericObjectPoolConfig.DEFAULT_MAX_TOTAL);
         assertEquals(config.getMaxIdle(), GenericObjectPoolConfig.DEFAULT_MAX_IDLE);
         assertEquals(config.getMinIdle(), GenericObjectPoolConfig.DEFAULT_MIN_IDLE);
-        assertEquals(config.getMaxWaitMillis(), GenericObjectPoolConfig.DEFAULT_MAX_WAIT_MILLIS);
-        assertEquals(config.getMinEvictableIdleTimeMillis(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS);
-        assertEquals(config.getTimeBetweenEvictionRunsMillis(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS);
+        assertEquals(config.getMaxWaitDuration(), GenericObjectPoolConfig.DEFAULT_MAX_WAIT);
+        assertEquals(config.getMinEvictableIdleDuration(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_DURATION);
+        assertEquals(config.getDurationBetweenEvictionRuns(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_DURATION);
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
     }
@@ -110,9 +111,9 @@ public class DataSourceFactoryTest {
         assertEquals(config.getMaxTotal(), 10);
         assertEquals(config.getMaxIdle(), 20);
         assertEquals(config.getMinIdle(), 30);
-        assertEquals(config.getMaxWaitMillis(), 40);
-        assertEquals(config.getMinEvictableIdleTimeMillis(), 50);
-        assertEquals(config.getTimeBetweenEvictionRunsMillis(), 60);
+        assertEquals(config.getMaxWaitDuration(), Duration.ofMillis(40));
+        assertEquals(config.getMinEvictableIdleDuration(), Duration.ofMillis(50));
+        assertEquals(config.getDurationBetweenEvictionRuns(), Duration.ofMillis(60));
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
         
@@ -140,9 +141,9 @@ public class DataSourceFactoryTest {
         assertEquals(config.getMaxTotal(), GenericObjectPoolConfig.DEFAULT_MAX_TOTAL);
         assertEquals(config.getMaxIdle(), GenericObjectPoolConfig.DEFAULT_MAX_IDLE);
         assertEquals(config.getMinIdle(), GenericObjectPoolConfig.DEFAULT_MIN_IDLE);
-        assertEquals(config.getMaxWaitMillis(), GenericObjectPoolConfig.DEFAULT_MAX_WAIT_MILLIS);
-        assertEquals(config.getMinEvictableIdleTimeMillis(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS);
-        assertEquals(config.getTimeBetweenEvictionRunsMillis(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS);
+        assertEquals(config.getMaxWaitDuration(), GenericObjectPoolConfig.DEFAULT_MAX_WAIT);
+        assertEquals(config.getMinEvictableIdleDuration(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_DURATION);
+        assertEquals(config.getDurationBetweenEvictionRuns(), BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_DURATION);
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
         
@@ -171,9 +172,9 @@ public class DataSourceFactoryTest {
         assertEquals(config.getMaxTotal(), -1);
         assertEquals(config.getMaxIdle(), -1);
         assertEquals(config.getMinIdle(), 0);
-        assertEquals(config.getMaxWaitMillis(), 0);
-        assertEquals(config.getMinEvictableIdleTimeMillis(), 0);
-        assertEquals(config.getTimeBetweenEvictionRunsMillis(), 0);
+        assertEquals(config.getMaxWaitDuration(), Duration.ofMillis(0));
+        assertEquals(config.getMinEvictableIdleDuration(), Duration.ofMillis(0));
+        assertEquals(config.getDurationBetweenEvictionRuns(), Duration.ofMillis(0));
         assertTrue(config.getTestWhileIdle());
         assertTrue(config.getTestOnBorrow());
         
@@ -248,9 +249,7 @@ public class DataSourceFactoryTest {
         props.setProperty("user", "user");
         props.setProperty("password", "password");
 
-        assertThrows(RuntimeException.class, () -> {
-            DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz", props);
-        });
+        assertThrows(RuntimeException.class, () -> DataSourceFactory.create("jdbc:mysql:localhost:3306/athenz", props));
         System.clearProperty(DataSourceFactory.DRIVER_CLASS_NAME);
     }
 }

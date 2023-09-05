@@ -19,7 +19,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.debug.DebugKerberosAuthority;
 
 import static org.testng.Assert.*;
 

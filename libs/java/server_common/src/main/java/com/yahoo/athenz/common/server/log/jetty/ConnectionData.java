@@ -29,17 +29,17 @@ import static com.yahoo.athenz.common.server.log.jetty.ExceptionCauseFetcher.get
 /**
  * The life-cycle of the SSL connection is made of 3 steps.
  * A {@link ConnectionData} instance is attached to every SSL connection, and is known at any step, as follows:
- *
+ * <p>
  *    1. {@link AthenzConnectionListener#onOpened} is called when the connection is opened (before the SSL handshake).
  *       At this point, extracts the {@link SSLEngine} instance from the {@link SslConnection} and create a new 
  *       {@link ConnectionData} instance. 
  *       it is accessible by the {@link SSLEngine} instances, using {@link AthenzConnectionListener#getConnectionDataBySslEngine}.
- *
+ * <p>
  *    2. {@link JettyConnectionLogger} implements the {@link org.eclipse.jetty.io.ssl.SslHandshakeListener} and provides the
  *       {@link JettyConnectionLogger#handshakeFailed} that is being called after a failed handshake.
  *       At this point, the {@link SSLEngine} instance is known and we are able to use it to get the {@link ConnectionData} from step-1
  *        (using {@link AthenzConnectionListener#getConnectionDataBySslEngine}).
- *
+ * <p>
  *    3. {@link AthenzConnectionListener#onClosed} is called when the connection is closed.
  *       At this point, extracts the {@link SSLEngine} instance from the {@link SslConnection} and 
  *       use it to remove the map entries from OPENED_SSL_ENGINES_MAP.

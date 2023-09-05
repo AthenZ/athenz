@@ -23,7 +23,6 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -38,7 +37,6 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.testng.Assert.*;
 
 public class ZMSFileChangeLogStoreCommonTest {

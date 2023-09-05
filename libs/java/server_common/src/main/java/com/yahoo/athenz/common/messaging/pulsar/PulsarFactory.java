@@ -55,7 +55,7 @@ public class PulsarFactory<T> implements ChangePublisherFactory<T>, ChangeSubscr
     String serviceUrl = System.getProperty(PROP_MESSAGING_CLI_SERVICE_URL);
 
     if (serviceUrl == null) {
-      LOG.error("Pulsar client invalid service url: [{}]", serviceUrl);
+      LOG.error("Pulsar client null service url");
       throw new IllegalArgumentException("invalid pulsar service url");
     }
 

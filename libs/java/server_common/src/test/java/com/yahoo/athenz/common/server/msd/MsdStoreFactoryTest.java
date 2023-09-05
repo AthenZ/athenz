@@ -20,8 +20,6 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import java.security.PrivateKey;
-
 import static org.testng.Assert.assertNotNull;
 
 public class MsdStoreFactoryTest {

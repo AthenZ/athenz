@@ -25,8 +25,7 @@ public class NoOpTransportPolicyValidator implements TransportPolicyValidator {
 
     @Override
     public TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy) {
-        TransportPolicyValidationResponse response = new TransportPolicyValidationResponse().setStatus(TransportPolicyValidationStatus.VALID);
-        return response;
+        return new TransportPolicyValidationResponse().setStatus(TransportPolicyValidationStatus.VALID);
     }
 
 }

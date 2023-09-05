@@ -15,11 +15,9 @@
  */
 package com.yahoo.athenz.common.server.ssh;
 
-import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 public class SSHCertRecordTest {
 

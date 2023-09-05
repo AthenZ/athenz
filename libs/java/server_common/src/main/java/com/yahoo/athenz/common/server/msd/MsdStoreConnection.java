@@ -33,7 +33,7 @@ public interface MsdStoreConnection extends Closeable {
      * @param workload static workload to be stored in the underlying storage
      */
     default void putStaticWorkload(StaticWorkload workload) {
-    };
+    }
 
     /**
      * deleteStaticWorkload deletes the Workload from the underlying storage that can be an RDMS or NoSQL
@@ -42,7 +42,7 @@ public interface MsdStoreConnection extends Closeable {
      * @param instanceId instance id
      */
     default void deleteStaticWorkload(String domainName, String serviceName, String instanceId) {
-    };
+    }
 
     /**
      * putDynamicWorkLoad stores the Workload value into the underlying storage that can be an RDMS or NoSQL
@@ -50,7 +50,7 @@ public interface MsdStoreConnection extends Closeable {
      * @param options workload options to be passed to the api
      */
     default void putDynamicWorkload(DynamicWorkload workload, WorkloadOptions options) {
-    };
+    }
 
     /**
      * deleteDynamicWorkLoad delete the Workload from the underlying storage that can be an RDMS or NoSQL
@@ -59,14 +59,14 @@ public interface MsdStoreConnection extends Closeable {
      * @param instanceId instance id
      */
     default void deleteDynamicWorkload(String domainName, String serviceName, String instanceId) {
-    };
+    }
 
     /**
      * putTransportPolicyValidationStatus stores the validation status into the underlying storage that can be an RDMS or NoSQL
      * @param validationResponse response object to be stored in the underlying storage
      */
     default void putTransportPolicyValidationStatus(TransportPolicyValidationResponse validationResponse) {
-    };
+    }
 
     /**
      * getWorkloadsBySvc looks up all workloads for the requested service in the MSD storage
@@ -131,17 +131,17 @@ public interface MsdStoreConnection extends Closeable {
     }
 
     default void commitChanges() {
-    };
+    }
 
     default void rollbackChanges() {
-    };
+    }
 
     /**
      * set timeout for operations with underlying storage
      * @param opTimout
      */
     default void setOperationTimeout(int opTimout) {
-    };
+    }
 
     /**
      * construct IP to Workload mapping for building cache
@@ -149,5 +149,5 @@ public interface MsdStoreConnection extends Closeable {
      */
     default InetWorkload buildIpToWorkload() {
         return new InetWorkload(new InetAddressMap<>(new TreeMap<>(), new TreeMap<>()), new InetAddressMap<>(new TreeMap<>(), new TreeMap<>()));
-    };
+    }
 }

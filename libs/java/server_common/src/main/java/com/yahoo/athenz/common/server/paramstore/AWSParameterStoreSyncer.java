@@ -38,7 +38,7 @@ import java.util.concurrent.locks.StampedLock;
 /**
  * Periodically (configurable) loads all AWS Parameters Store and store it in memory.
  * Provides api to retrieve the parameters.
- *
+ * <p>
  * Required permissions: ssm:GetParameters, ssm:DescribeParameters
  */
 public class AWSParameterStoreSyncer implements DynamicParameterStore {
@@ -80,8 +80,8 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
             return SsmClient.builder()
                 .region(Region.of(region))
                 .build();
-        } catch (Exception e) {
-            LOG.error("Failed to init aws ssm client. error: {}, {}", e.getMessage(), e);
+        } catch (Exception ex) {
+            LOG.error("Failed to init aws ssm client", ex);
         }
         return null;
     }
@@ -105,10 +105,9 @@ public class AWSParameterStoreSyncer implements DynamicParameterStore {
             return;
         }
         try {
-            List<ParameterMetadata> params = getParameterList();
-            storeParameters(params);
-        } catch (Exception e) {
-            LOG.error("Failed to reload AWS Parameters store. error: {}, {}", e.getMessage(), e);
+            storeParameters(getParameterList());
+        } catch (Exception ex) {
+            LOG.error("Failed to reload AWS Parameters store", ex);
         }
     }
 

@@ -17,16 +17,10 @@
 package com.yahoo.athenz.common.server.notification.impl;
 
 import com.yahoo.athenz.common.server.notification.EmailProvider;
-import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.*;
-
-import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static org.mockito.Mockito.mock;
 import static org.testng.Assert.*;
 

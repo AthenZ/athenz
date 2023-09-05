@@ -21,9 +21,6 @@ import org.testng.annotations.Test;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class MetricsTest {
 
     @Test

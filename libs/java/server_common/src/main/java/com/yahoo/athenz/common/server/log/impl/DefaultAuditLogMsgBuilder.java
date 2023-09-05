@@ -16,6 +16,7 @@
 package com.yahoo.athenz.common.server.log.impl;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import com.fasterxml.uuid.EthernetAddress;
 import com.fasterxml.uuid.Generators;
@@ -370,10 +371,7 @@ public class DefaultAuditLogMsgBuilder implements AuditLogMsgBuilder {
 
     @Override
     public String whoFullName() {
-        if (this.whoFullName == null) {
-            return NULL_STR;
-        }
-        return this.whoFullName;
+        return Objects.requireNonNullElse(this.whoFullName, NULL_STR);
     }
 
 }

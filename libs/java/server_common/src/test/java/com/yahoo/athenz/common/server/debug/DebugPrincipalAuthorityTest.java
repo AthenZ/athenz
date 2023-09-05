@@ -17,9 +17,7 @@ package com.yahoo.athenz.common.server.debug;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority;
 
 import static org.testng.Assert.*;
 
@@ -28,11 +26,11 @@ public class DebugPrincipalAuthorityTest {
     @Test
     public void testPrincipalAuthority() {
 
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        DebugPrincipalAuthority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         assertNotNull(principalAuthority);
         
         principalAuthority.initialize();
-        ((DebugPrincipalAuthority) principalAuthority).setKeyStore(null);
+        principalAuthority.setKeyStore(null);
         
         assertNull(principalAuthority.getDomain());
         assertEquals(principalAuthority.getHeader(), "Athenz-Principal-Auth");

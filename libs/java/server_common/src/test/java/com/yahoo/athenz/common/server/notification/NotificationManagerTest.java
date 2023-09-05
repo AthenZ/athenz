@@ -39,7 +39,7 @@ public class NotificationManagerTest {
 
     @BeforeClass
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @BeforeMethod
@@ -251,7 +251,6 @@ public class NotificationManagerTest {
     @Test
     public void testNotificationManagerFail() {
         System.setProperty(NOTIFICATION_PROP_SERVICE_FACTORY_CLASS, "aa");
-        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
 
         NotificationManager notificationManager = getNotificationManager(null);
         assertNotNull(notificationManager);

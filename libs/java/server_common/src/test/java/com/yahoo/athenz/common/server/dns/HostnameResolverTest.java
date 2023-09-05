@@ -27,7 +27,7 @@ import static org.testng.Assert.assertFalse;
 
 public class HostnameResolverTest {
 
-    class TestHostnameResolver implements HostnameResolver {
+    static class TestHostnameResolver implements HostnameResolver {
     }
 
     @Test

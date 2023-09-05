@@ -31,7 +31,7 @@ import jakarta.servlet.http.HttpServletRequest;
 /**
  * AthenzZTSQoSFilter extends Jetty's QoSFilter to allow separate
  * handling of URIs for certificates and tokens
- *
+ * <p>
  * {@literal
  * <filter>
  *   <filter-name>AthenzZTSQoSFilterCerts</filter-name>

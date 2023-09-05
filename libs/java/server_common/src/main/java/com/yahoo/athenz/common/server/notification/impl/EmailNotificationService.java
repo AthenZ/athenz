@@ -58,7 +58,7 @@ public class EmailNotificationService implements NotificationService {
     private final String emailDomainFrom;
     private final String from;
 
-    private byte[] logoImage;
+    private final byte[] logoImage;
 
     public EmailNotificationService(EmailProvider emailProvider) {
         this.emailProvider = emailProvider;

@@ -17,8 +17,6 @@
 
 package com.yahoo.athenz.common.server.msd.validator;
 
-import com.yahoo.athenz.common.server.msd.MsdStore;
-import com.yahoo.athenz.common.server.msd.MsdStoreConnection;
 import com.yahoo.athenz.msd.TransportPolicyValidationRequest;
 import com.yahoo.athenz.msd.TransportPolicyValidationStatus;
 import org.testng.annotations.Test;
@@ -29,14 +27,8 @@ public class NoOpTransportPolicyValidatorTest {
 
     @Test
     public void testNoOpValidator() {
-        MsdStore store = new MsdStore() {
-            @Override
-            public MsdStoreConnection getConnection() {
-                return MsdStore.super.getConnection();
-            }
-        };
 
-        TransportPolicyValidatorFactory factory = () -> new NoOpTransportPolicyValidator();
+        TransportPolicyValidatorFactory factory = NoOpTransportPolicyValidator::new;
         TransportPolicyValidator validator = factory.create();
         assertTrue(validator instanceof NoOpTransportPolicyValidator);
         TransportPolicyValidationRequest request = new TransportPolicyValidationRequest();

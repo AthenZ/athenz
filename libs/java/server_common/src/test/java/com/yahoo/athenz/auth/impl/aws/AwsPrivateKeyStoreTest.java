@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import static org.mockito.BDDMockito.given;
@@ -227,7 +226,7 @@ public class AwsPrivateKeyStoreTest {
         S3Object s3ObjectKey = mock(S3Object.class);
         Mockito.when(s3.getObject(bucketName, algKeyName)).thenReturn(s3ObjectKey);
         File privKeyFile = new File("src/test/resources/unit_test_zts_private.pem");
-        final String privKey = new String(Files.readAllBytes(privKeyFile.toPath()), StandardCharsets.UTF_8);
+        final String privKey = Files.readString(privKeyFile.toPath());
         InputStream isKey = new ByteArrayInputStream( privKey.getBytes() );
         S3ObjectInputStream s3ObjectKeyInputStream = new S3ObjectInputStream(isKey, null);
         Mockito.when(s3ObjectKey.getObjectContent()).thenReturn(s3ObjectKeyInputStream);

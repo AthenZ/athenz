@@ -52,8 +52,8 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
-    private int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
-    private int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
+    private final int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
+    private final int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     protected Map<String, SignedDomain> tempSignedDomainMap = new ConcurrentHashMap<>();
     protected Map<String, JWSDomain> tempJWSDomainMap = new ConcurrentHashMap<>();
 

@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  *  and (optionally) periodically reload them into the system-properties - possibly calling change-callbacks. <br>
  * These configs can then be accessed via {@link System#getProperty}, or directly from the ConfigManager -
  *  either via {@link #getConfigValue} or {@link #getAllConfigValues()}.
- *
+ * <p>
  * <h3>Simple usage example:</h3>
  * <pre>{@code
  *      new ConfigManager()

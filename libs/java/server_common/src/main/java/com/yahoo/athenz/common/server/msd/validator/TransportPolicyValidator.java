@@ -21,12 +21,12 @@ import com.yahoo.athenz.msd.TransportPolicyValidationResponse;
 
 public interface TransportPolicyValidator {
 
-    default public void init(MsdStore store) {
+    default void init(MsdStore store) {
     }
 
     /**
      * validateTransportPolicy validates the transport policy against other pre-defined policies
      * @param transportPolicy transport policy to be validated
      */
-    public TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy);
+    TransportPolicyValidationResponse validateTransportPolicy(TransportPolicyValidationRequest transportPolicy);
 }
