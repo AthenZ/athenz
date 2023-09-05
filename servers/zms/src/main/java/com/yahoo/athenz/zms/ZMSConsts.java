@@ -71,8 +71,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_AWS_RDS_IAM_ROLE           = "athenz.zms.aws_rds_iam_role";
     public static final String ZMS_PROP_AWS_RDS_ENGINE             = "athenz.zms.aws_rds_engine";
     public static final String ZMS_PROP_AWS_RDS_DATABASE           = "athenz.zms.aws_rds_database";
-    public static final String ZMS_PROP_AWS_RDS_MASTER_INSTANCE    = "athenz.zms.aws_rds_master_instance";
-    public static final String ZMS_PROP_AWS_RDS_MASTER_PORT        = "athenz.zms.aws_rds_master_port";
+    public static final String ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE   = "athenz.zms.aws_rds_master_instance";
+    public static final String ZMS_PROP_AWS_RDS_PRIMARY_PORT       = "athenz.zms.aws_rds_master_port";
     public static final String ZMS_PROP_AWS_RDS_REPLICA_INSTANCE   = "athenz.zms.aws_rds_replica_instance";
     public static final String ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME = "athenz.zms.aws_rds_creds_refresh_time";
     public static final String ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG = "athenz.zms.auto_update_template_feature_flag";

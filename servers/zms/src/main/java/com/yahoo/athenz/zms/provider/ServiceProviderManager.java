@@ -103,7 +103,8 @@ public class ServiceProviderManager {
             serviceProviders = Collections.emptyMap();
             return;
         }
-        Map<String, DomainDependencyProvider> serviceProvidersUpdatedMap = role.getRoleMembers().stream()
+
+        serviceProviders = role.getRoleMembers().stream()
                 .filter(roleMember -> !StringUtil.isEmpty(roleMember.getMemberName()))
                 .map(roleMember -> {
                     final String provider = roleMember.getMemberName();
@@ -119,8 +120,6 @@ public class ServiceProviderManager {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(DomainDependencyProvider::getProvider, Function.identity()));
-
-        serviceProviders = serviceProvidersUpdatedMap;
     }
 
     private boolean isServiceProviderAuthorizedLaunch(ServiceIdentity provSvcIdentity) {
@@ -134,11 +133,11 @@ public class ServiceProviderManager {
 
     /**
      * Checks if the given principal is an authorized service provider
-     * @param principal
+     * @param principal the service identity to check
      * @return True if principal is an authorized service provider. False otherwise
      */
     public boolean isServiceProvider(String principal) {
-        return !StringUtil.isEmpty(principal) && serviceProviders.keySet().contains(principal);
+        return !StringUtil.isEmpty(principal) && serviceProviders.containsKey(principal);
     }
 
     public void setServiceProviders(Map<String, DomainDependencyProvider> serviceProviders) {
@@ -149,13 +148,13 @@ public class ServiceProviderManager {
         return this.serviceProviders.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue() != null && !StringUtil.isEmpty(entry.getValue().getProviderEndpoint()))
-                .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public static class DomainDependencyProvider {
-        private String provider;
-        private String providerEndpoint;
-        private boolean isInstanceProvider;
+        private final String provider;
+        private final String providerEndpoint;
+        private final boolean isInstanceProvider;
 
         public DomainDependencyProvider(String provider, String providerEndpoint, boolean isInstanceProvider) {
             this.provider = provider;

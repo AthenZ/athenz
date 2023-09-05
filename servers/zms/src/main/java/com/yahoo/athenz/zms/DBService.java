@@ -87,7 +87,7 @@ public class DBService implements RolesProvider {
     private static final String GCP_ARN_PREFIX  = "projects/";
 
     AuditReferenceValidator auditReferenceValidator;
-    private ScheduledExecutorService userAuthorityFilterExecutor;
+    private final ScheduledExecutorService userAuthorityFilterExecutor;
     protected DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
     protected DynamicConfigInteger purgeMembersLimitPerCall;
     protected DynamicConfigInteger purgeMemberExpiryDays;
@@ -6446,17 +6446,17 @@ public class DBService implements RolesProvider {
     boolean updateUserAuthorityExpiry(RoleMember roleMember, final String userAuthorityExpiry) {
         return updateUserAuthorityExpiry(roleMember,
                 userAuthorityExpiry,
-                member -> member.getExpiration(),
-                (member, timestamp) -> member.setExpiration(timestamp),
-                member -> member.getMemberName());
+                RoleMember::getExpiration,
+                RoleMember::setExpiration,
+                RoleMember::getMemberName);
     }
 
     boolean updateUserAuthorityExpiry(GroupMember groupMember, final String userAuthorityExpiry) {
         return updateUserAuthorityExpiry(groupMember,
                 userAuthorityExpiry,
-                member -> member.getExpiration(),
-                (member, timestamp) -> member.setExpiration(timestamp),
-                member -> member.getMemberName());
+                GroupMember::getExpiration,
+                GroupMember::setExpiration,
+                GroupMember::getMemberName);
     }
 
     List<RoleMember> getRoleMembersWithUpdatedDisabledState(List<RoleMember> roleMembers, final String roleUserAuthorityFilter,
@@ -6553,11 +6553,11 @@ public class DBService implements RolesProvider {
                 userAuthorityExpiry,
                 null,
                 0,
-                member -> member.getExpiration(),
+                GroupMember::getExpiration,
                 member -> null,
-                (member, timestamp) -> member.setExpiration(timestamp),
+                GroupMember::setExpiration,
                 (member, timestamp) -> { },
-                member -> member.getMemberName());
+                GroupMember::getMemberName);
     }
 
     <T> List<T> getMembersWithUpdatedDueDates(List<T> members, Timestamp userExpiration,
@@ -6660,11 +6660,11 @@ public class DBService implements RolesProvider {
                 userAuthorityExpiry,
                 groupReview,
                 groupReviewMillis,
-                member -> member.getExpiration(),
-                member -> member.getReviewReminder(),
-                (member, timestamp) -> member.setExpiration(timestamp),
-                (member, timestamp) -> member.setReviewReminder(timestamp),
-                member -> member.getMemberName());
+                RoleMember::getExpiration,
+                RoleMember::getReviewReminder,
+                RoleMember::setExpiration,
+                RoleMember::setReviewReminder,
+                RoleMember::getMemberName);
     }
 
     private boolean insertRoleMembers(ResourceContext ctx, ObjectStoreConnection con, List<RoleMember> roleMembers,

@@ -22,7 +22,6 @@ import com.yahoo.athenz.zms.ZMSTestUtils;
 import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
-import org.testng.internal.junit.ArrayAsserts;
 
 import java.util.*;
 

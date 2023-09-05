@@ -116,7 +116,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         private static final String PRINCIPAL_REVIEW_SUBJECT = "athenz.notification.email.role_member.review.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailPrincipalReviewBody;
+        private final String emailPrincipalReviewBody;
 
         public RoleReviewPrincipalNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
@@ -153,7 +153,7 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
         private static final String DOMAIN_MEMBER_REVIEW_SUBJECT = "athenz.notification.email.domain.role_member.review.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailDomainMemberReviewBody;
+        private final String emailDomainMemberReviewBody;
 
         public RoleReviewDomainNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;

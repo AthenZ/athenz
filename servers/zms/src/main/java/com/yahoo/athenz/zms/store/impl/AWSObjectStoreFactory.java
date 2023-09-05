@@ -42,12 +42,12 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
     private static final String JDBC_TLS_VERSIONS = "TLSv1.2,TLSv1.3";
 
-    private static Properties mysqlMasterConnectionProperties = new Properties();
-    private static Properties mysqlReplicaConnectionProperties = new Properties();
+    private static final Properties MYSQL_PRIMARY_CONNECTION_PROPERTIES = new Properties();
+    private static final Properties MYSQL_REPLICA_CONNECTION_PROPERTIES = new Properties();
     @SuppressWarnings("FieldCanBeLocal")
     private static ScheduledExecutorService scheduledThreadPool;
     private static String rdsUser = null;
-    private static String rdsMaster = null;
+    private static String rdsPrimary = null;
     private static String rdsReplica = null;
     private int rdsPort = 3306;
     
@@ -55,22 +55,22 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
     public ObjectStore create(PrivateKeyStore keyStore) {
         
         rdsUser = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_USER);
-        rdsMaster = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_INSTANCE);
+        rdsPrimary = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
         rdsReplica = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
-        rdsPort = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_MASTER_PORT, "3306"));
+        rdsPort = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_PRIMARY_PORT, "3306"));
         
         final String rdsEngine = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_ENGINE, "mysql");
         final String rdsDatabase = System.getProperty(ZMSConsts.ZMS_PROP_AWS_RDS_DATABASE, "zms_server");
-        final String jdbcMasterStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
-                rdsMaster, rdsPort, rdsDatabase);
-        final String rdsMasterToken = getAuthToken(rdsMaster, rdsPort, rdsUser);
+        final String jdbcPrimaryStore = String.format("jdbc:%s://%s:%d/%s", rdsEngine,
+                rdsPrimary, rdsPort, rdsDatabase);
+        final String rdsPrimaryToken = getAuthToken(rdsPrimary, rdsPort, rdsUser);
         
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Connecting to master {} with auth token {}", jdbcMasterStore, rdsMasterToken);
+            LOG.debug("Connecting to primary {} with auth token {}", jdbcPrimaryStore, rdsPrimaryToken);
         }
 
-        setConnectionProperties(mysqlMasterConnectionProperties, rdsMasterToken);
-        PoolableDataSource dataMasterSource = DataSourceFactory.create(jdbcMasterStore, mysqlMasterConnectionProperties);
+        setConnectionProperties(MYSQL_PRIMARY_CONNECTION_PROPERTIES, rdsPrimaryToken);
+        PoolableDataSource dataPrimarySource = DataSourceFactory.create(jdbcPrimaryStore, MYSQL_PRIMARY_CONNECTION_PROPERTIES);
         
         // now check to see if we also have a read-only replica jdbc store configured
 
@@ -85,8 +85,8 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 LOG.debug("Connecting to replica {} with auth token {}", jdbcReplicaStore, rdsReplicaToken);
             }
 
-            setConnectionProperties(mysqlReplicaConnectionProperties, rdsReplicaToken);
-            dataReplicaSource = DataSourceFactory.create(jdbcReplicaStore, mysqlReplicaConnectionProperties);
+            setConnectionProperties(MYSQL_REPLICA_CONNECTION_PROPERTIES, rdsReplicaToken);
+            dataReplicaSource = DataSourceFactory.create(jdbcReplicaStore, MYSQL_REPLICA_CONNECTION_PROPERTIES);
         }
         
         // start our credentials refresh task
@@ -97,7 +97,7 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         scheduledThreadPool.scheduleAtFixedRate(new CredentialsUpdater(), credsRefreshTime,
                 credsRefreshTime, TimeUnit.SECONDS);
         
-        return new JDBCObjectStore(dataMasterSource, dataReplicaSource);
+        return new JDBCObjectStore(dataPrimarySource, dataReplicaSource);
     }
 
     void setConnectionProperties(Properties mysqlProperties, final String token) {
@@ -173,8 +173,8 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
                 LOG.debug("CredentialsUpdater: Starting credential updater thread...");
             }
             
-            updateCredentials(rdsMaster, mysqlMasterConnectionProperties);
-            updateCredentials(rdsReplica, mysqlReplicaConnectionProperties);
+            updateCredentials(rdsPrimary, MYSQL_PRIMARY_CONNECTION_PROPERTIES);
+            updateCredentials(rdsReplica, MYSQL_REPLICA_CONNECTION_PROPERTIES);
         }
     }
 }

@@ -21,7 +21,7 @@ import com.yahoo.athenz.common.server.notification.NotificationServiceFactory;
 
 public class MockNotificationServiceFactory implements NotificationServiceFactory {
 
-    private NotificationService notificationService = new MockNotificationService();
+    private final NotificationService notificationService = new MockNotificationService();
 
     @Override
     public NotificationService create() {

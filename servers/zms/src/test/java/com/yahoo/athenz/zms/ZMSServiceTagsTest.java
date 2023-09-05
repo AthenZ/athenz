@@ -19,8 +19,6 @@
 package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.util.AthenzUtils;
-import com.yahoo.athenz.zms.store.ObjectStoreConnection;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
@@ -63,7 +61,7 @@ public class ZMSServiceTagsTest {
         void deleteAllCreatedServices() {
             ServiceIdentities serviceList = zmsImpl.getServiceIdentities(ctx, domainName, false, null,null, null);
             for (ServiceIdentity service : serviceList.getList()) {
-                String serviceName = service.getName().toString().replace(domainName + ".", "");
+                String serviceName = service.getName().replace(domainName + ".", "");
                     zmsImpl.deleteServiceIdentity(ctx, domainName, serviceName, "");
             }
         }

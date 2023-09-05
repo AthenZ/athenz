@@ -35,16 +35,15 @@ public class AllowedOperationTest {
         assertEquals(gottenName, name);
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testSetItems() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("key", item);
             }
@@ -70,16 +69,15 @@ public class AllowedOperationTest {
         assertTrue(op.isOperationAllowedOn("opItemType", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testIsOperationAllowedOnOpItemTypeIsNull() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("key", item);
             }
@@ -88,16 +86,15 @@ public class AllowedOperationTest {
         assertFalse(op.isOperationAllowedOn(null, "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testIsOperationAllowedOnOpItemValueIsNull() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("key", item);
             }
@@ -106,16 +103,15 @@ public class AllowedOperationTest {
         assertFalse(op.isOperationAllowedOn("opItemType", null, AllowedOperation.MatchType.EQUALS));
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testIsOperationAllowedOnOpItemTypeIsNotDefined() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("key", item);
             }
@@ -124,16 +120,15 @@ public class AllowedOperationTest {
         assertFalse(op.isOperationAllowedOn("opItemType", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testIsOperationAllowedOnOpItemValueIsNotAllowed() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("key", item);
             }
@@ -142,16 +137,15 @@ public class AllowedOperationTest {
         assertFalse(op.isOperationAllowedOn("key", "opItemValue", AllowedOperation.MatchType.EQUALS));
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testIsOperationAllowedOnOpItemValueIsAllowed() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("key", item);
             }
@@ -216,16 +210,15 @@ public class AllowedOperationTest {
         assertFalse(op1.equals(op2));
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testEqualsSameHashCode() {
         AllowedOperation op1 = new AllowedOperation();
-        Set<String> item1 = new HashSet<String>() {
+        Set<String> item1 = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items1 = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items1 = new HashMap<>() {
             {
                 put("key", item1);
             }
@@ -233,12 +226,12 @@ public class AllowedOperationTest {
         op1.setItems(items1);
 
         AllowedOperation op2 = new AllowedOperation();
-        Set<String> item2 = new HashSet<String>() {
+        Set<String> item2 = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items2 = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items2 = new HashMap<>() {
             {
                 put("key", item2);
             }
@@ -248,16 +241,15 @@ public class AllowedOperationTest {
         assertEquals(op1.hashCode(), op2.hashCode());
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void testEqualsDifferentHashCode() {
         AllowedOperation op1 = new AllowedOperation();
-        Set<String> item1 = new HashSet<String>() {
+        Set<String> item1 = new HashSet<>() {
             {
                 add("hoge");
             }
         };
-        Map<String, Set<String>> items1 = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items1 = new HashMap<>() {
             {
                 put("key", item1);
             }
@@ -265,12 +257,12 @@ public class AllowedOperationTest {
         op1.setItems(items1);
 
         AllowedOperation op2 = new AllowedOperation();
-        Set<String> item2 = new HashSet<String>() {
+        Set<String> item2 = new HashSet<>() {
             {
                 add("fuga");
             }
         };
-        Map<String, Set<String>> items2 = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items2 = new HashMap<>() {
             {
                 put("key", item2);
             }
@@ -283,13 +275,13 @@ public class AllowedOperationTest {
     @Test
     public void testIsOperationAllowedStartsWith() {
         AllowedOperation op = new AllowedOperation();
-        Set<String> item = new HashSet<String>() {
+        Set<String> item = new HashSet<>() {
             {
                 add("config.reader.");
                 add("config.writer.");
             }
         };
-        Map<String, Set<String>> items = new HashMap<String, Set<String>>() {
+        Map<String, Set<String>> items = new HashMap<>() {
             {
                 put("cfg", item);
             }
