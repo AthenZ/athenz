@@ -16,25 +16,16 @@
 package com.yahoo.athenz.creds.gcp;
 
 import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.GenericJson;
-import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
-import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
-import com.oath.auth.Utils;
 import org.apache.http.*;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.mockito.Mockito;
 import org.testng.annotations.*;
 
-import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
-import static org.apache.http.conn.ssl.SSLConnectionSocketFactory.getDefaultHostnameVerifier;
 import static org.testng.Assert.*;
 
 public class GCPZTSCredentialsTest {
@@ -158,7 +149,7 @@ public class GCPZTSCredentialsTest {
     }
 
     @Test
-    public void testAthenztHttpProxyTransportFactory() throws KeyRefresherException, IOException, InterruptedException {
+    public void testAthenztHttpProxyTransportFactory() {
 
         HttpTransport httpTransport = Mockito.mock(HttpTransport.class);
         GCPZTSCredentials.AthenztHttpTransportFactory factory = new GCPZTSCredentials.AthenztHttpTransportFactory(httpTransport);

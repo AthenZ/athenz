@@ -59,10 +59,10 @@ public class Syncer {
                 SyncerConsts.DEFAULT_STATUS_SENDER_FACTORY_CLASS);
         StatusSenderFactory statusSenderFactory;
         try {
-            statusSenderFactory = (StatusSenderFactory) Class.forName(statusSenderClass).newInstance();
+            statusSenderFactory = (StatusSenderFactory) Class.forName(statusSenderClass).getDeclaredConstructor().newInstance();
             return statusSenderFactory.create();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            System.out.println("Invalid StatusSenderFactory class: " + statusSenderClass + " error: " + e.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Invalid StatusSenderFactory class: " + statusSenderClass + " error: " + ex);
             System.exit(1);
         }
         return null;

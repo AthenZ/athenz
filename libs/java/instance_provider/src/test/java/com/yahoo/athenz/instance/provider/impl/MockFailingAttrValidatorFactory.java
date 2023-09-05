@@ -18,7 +18,6 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.AttrValidatorFactory;
-import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 
 import javax.net.ssl.SSLContext;
 
