@@ -379,6 +379,9 @@ func (cli Zms) SystemBackup(dir string) (*string, error) {
 		if err == nil && data != nil {
 			s := *data
 			err = os.WriteFile(filename, []byte(s), 0644)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	cli.Verbose = verbose
