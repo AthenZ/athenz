@@ -70,6 +70,6 @@ public class ResourceExceptionTest {
     public void testGetDataCast() {
         
         ResourceException exc = new ResourceException(400, 5000);
-        assertEquals(exc.getData(Integer.class), new Integer(5000));
+        assertEquals(exc.getData(Integer.class), Integer.valueOf(5000));
     }
 }

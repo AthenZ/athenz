@@ -37,8 +37,8 @@ public class RsrcCtxWrapper implements ResourceContext {
     com.yahoo.athenz.common.server.rest.ResourceContext ctx;
     boolean optionalAuth;
     Metric metric;
-    private Object timerMetric;
-    private String apiName;
+    private final Object timerMetric;
+    private final String apiName;
 
     public RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
                           Http.AuthorityList authList, boolean optionalAuth, Authorizer authorizer,

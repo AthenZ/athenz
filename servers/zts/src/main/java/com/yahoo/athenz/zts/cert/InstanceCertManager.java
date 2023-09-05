@@ -59,16 +59,16 @@ public class InstanceCertManager {
 
     private static final String CA_TYPE_X509 = "x509";
 
-    private Authorizer authorizer;
+    private final Authorizer authorizer;
     private CertSigner certSigner;
     private SSHSigner sshSigner;
-    private HostnameResolver hostnameResolver;
+    private final HostnameResolver hostnameResolver;
     private CertRecordStore certStore = null;
     private SSHRecordStore sshStore = null;
     private WorkloadRecordStore workloadStore = null;
     private ScheduledExecutorService certScheduledExecutor;
     private ScheduledExecutorService sshScheduledExecutor;
-    private List<IPBlock> certRefreshIPBlocks;
+    private final List<IPBlock> certRefreshIPBlocks;
     private Map<String, List<IPBlock>> instanceCertIPBlocks;
     private String caX509CertificateSigner = null;
     private Map<String, String> caX509ProviderCertificateSigners = null;
@@ -76,7 +76,7 @@ public class InstanceCertManager {
     private String sshHostCertificateSigner = null;
     private boolean responseSendSSHSignerCerts;
     private boolean responseSendX509SignerCerts;
-    private ObjectMapper jsonMapper;
+    private final ObjectMapper jsonMapper;
     private Map<String, CertificateAuthorityBundle> certAuthorityBundles = null;
     private final Authority notificationUserAuthority;
 
@@ -123,7 +123,6 @@ public class InstanceCertManager {
         // it can track of some details if enabled
 
         loadWorkloadObjectStore(keyStore);
-
 
         // load any configuration wrt certificate signers and any
         // configured certificate bundles
@@ -345,9 +344,9 @@ public class InstanceCertManager {
                 ZTSConsts.ZTS_CERT_SIGNER_FACTORY_CLASS);
         CertSignerFactory certSignerFactory;
         try {
-            certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid CertSignerFactory class: {} error: {}", certSignerFactoryClass, e.getMessage());
+            certSignerFactory = (CertSignerFactory) Class.forName(certSignerFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid CertSignerFactory class: {}", certSignerFactoryClass, ex);
             throw new IllegalArgumentException("Invalid certsigner class");
         }
 
@@ -366,9 +365,9 @@ public class InstanceCertManager {
         }
         SSHSignerFactory sshSignerFactory;
         try {
-            sshSignerFactory = (SSHSignerFactory) Class.forName(sshSignerFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid SSHSignerFactory class: {} error: {}", sshSignerFactoryClass, e.getMessage());
+            sshSignerFactory = (SSHSignerFactory) Class.forName(sshSignerFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid SSHSignerFactory class: {}", sshSignerFactoryClass, ex);
             throw new IllegalArgumentException("Invalid sshsigner class");
         }
 
@@ -457,10 +456,9 @@ public class InstanceCertManager {
                 ZTSConsts.ZTS_CERT_RECORD_STORE_FACTORY_CLASS);
         CertRecordStoreFactory certRecordStoreFactory;
         try {
-            certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid CertRecordStoreFactory class: {} error: {}",
-                    certRecordStoreFactoryClass, e.getMessage());
+            certRecordStoreFactory = (CertRecordStoreFactory) Class.forName(certRecordStoreFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid CertRecordStoreFactory class: {}", certRecordStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid cert record store factory class");
         }
 
@@ -478,10 +476,9 @@ public class InstanceCertManager {
 
         SSHRecordStoreFactory sshRecordStoreFactory;
         try {
-            sshRecordStoreFactory = (SSHRecordStoreFactory) Class.forName(sshRecordStoreFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid SSHRecordStoreFactory class: {} error: {}",
-                    sshRecordStoreFactoryClass, e.getMessage());
+            sshRecordStoreFactory = (SSHRecordStoreFactory) Class.forName(sshRecordStoreFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid SSHRecordStoreFactory class: {}", sshRecordStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid ssh record store factory class");
         }
 
@@ -499,10 +496,9 @@ public class InstanceCertManager {
 
         WorkloadRecordStoreFactory workloadRecordStoreFactory;
         try {
-            workloadRecordStoreFactory = (WorkloadRecordStoreFactory) Class.forName(workloadRecordStoreFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid WorkloadRecordStoreFactory class: {} error: {}",
-                    workloadRecordStoreFactoryClass, e.getMessage());
+            workloadRecordStoreFactory = (WorkloadRecordStoreFactory) Class.forName(workloadRecordStoreFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid WorkloadRecordStoreFactory class: {}", workloadRecordStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid workload record store factory class");
         }
 
@@ -1233,10 +1229,10 @@ public class InstanceCertManager {
         return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    class ExpiredX509CertRecordCleaner implements Runnable {
+    static class ExpiredX509CertRecordCleaner implements Runnable {
         
-        private CertRecordStore store;
-        private int expiryTimeMins;
+        private final CertRecordStore store;
+        private final int expiryTimeMins;
         
         public ExpiredX509CertRecordCleaner(CertRecordStore store, int expiryTimeMins) {
             this.store = store;
@@ -1270,10 +1266,10 @@ public class InstanceCertManager {
         }
     }
 
-    class ExpiredSSHCertRecordCleaner implements Runnable {
+    static class ExpiredSSHCertRecordCleaner implements Runnable {
 
-        private SSHRecordStore store;
-        private int expiryTimeMins;
+        private final SSHRecordStore store;
+        private final int expiryTimeMins;
 
         public ExpiredSSHCertRecordCleaner(SSHRecordStore store, int expiryTimeMins) {
             this.store = store;

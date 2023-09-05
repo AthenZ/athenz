@@ -49,7 +49,7 @@ public class DynamoDBWorkloadRecordStoreFactoryTest {
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.doReturn(table).when(dynamoDB).getTable("Workloads-Table");
     }
 

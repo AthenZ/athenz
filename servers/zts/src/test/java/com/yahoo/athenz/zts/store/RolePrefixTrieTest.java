@@ -74,7 +74,7 @@ public class RolePrefixTrieTest {
         return rolePrefixTrie;
     }
 
-    private class insertJob implements Runnable {
+    private static class insertJob implements Runnable {
         private final String prefix;
         private final String role;
         private final RolePrefixTrie rolePrefixTrie;
@@ -90,7 +90,7 @@ public class RolePrefixTrieTest {
         }
     }
 
-    private class findAndAssertJob implements Runnable {
+    private static class findAndAssertJob implements Runnable {
         private final String principal;
         private final RolePrefixTrie rolePrefixTrie;
         private final String[] roles;
@@ -131,8 +131,7 @@ public class RolePrefixTrieTest {
         try {
             es.shutdown();
             es.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-
+        } catch (InterruptedException ignored) {
         }
         return rolePrefixTrie;
     }
@@ -197,8 +196,7 @@ public class RolePrefixTrieTest {
         try {
             es.shutdown();
             es.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-
+        } catch (InterruptedException ignored) {
         }
     }
 

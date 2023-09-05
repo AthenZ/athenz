@@ -52,7 +52,7 @@ public class DynamoDBWorkloadRecordStoreConnectionTest {
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.doReturn(table).when(dynamoDB).getTable(tableName);
         Mockito.doReturn(serviceIndex).when(table).getIndex(serviceIndexName);
         Mockito.doReturn(ipIndex).when(table).getIndex(ipIndexName);

@@ -76,6 +76,7 @@ import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.ServletContext;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.jetty.util.StringUtil;
@@ -231,6 +232,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     protected static Validator validator;
     protected NotificationManager notificationManager = null;
     protected StatusChecker statusChecker = null;
+
+    private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
+            RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
 
     enum AthenzObject {
         INSTANCE_REGISTER_INFO {
@@ -758,9 +762,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 ZTSConsts.ZTS_CHANGE_LOG_STORE_FACTORY_CLASS);
         ChangeLogStoreFactory clogFactory;
         try {
-            clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid ChangeLogStoreFactory class: {} error: {}", clogFactoryClass, e.getMessage());
+            clogFactory = (ChangeLogStoreFactory) Class.forName(clogFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid ChangeLogStoreFactory class: {}", clogFactoryClass, ex);
             return null;
         }
 
@@ -778,9 +782,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         MetricFactory metricFactory;
         try {
-            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
+            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid MetricFactory class: {}", metricFactoryClass, ex);
             throw new IllegalArgumentException("Invalid metric class");
         }
 
@@ -799,9 +803,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         HostnameResolverFactory resolverFactory;
         try {
-            resolverFactory = (HostnameResolverFactory) Class.forName(resolverFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid HostnameResolverFactory class: {} error: {}", resolverFactoryClass, e.getMessage());
+            resolverFactory = (HostnameResolverFactory) Class.forName(resolverFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid HostnameResolverFactory class: {}", resolverFactoryClass, ex);
             throw new IllegalArgumentException("Invalid HostnameResolverFactory class");
         }
 
@@ -816,9 +820,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                 ZTSConsts.ZTS_PKEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory;
         try {
-            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {}", pkeyFactoryClass, ex);
             throw new IllegalArgumentException("Invalid private key store");
         }
 
@@ -876,9 +880,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         AuditLoggerFactory auditLogFactory;
 
         try {
-            auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid AuditLoggerFactory class: {} error: {}", auditFactoryClass, e.getMessage());
+            auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid AuditLoggerFactory class: {}", auditFactoryClass, ex);
             throw new IllegalArgumentException("Invalid audit logger class");
         }
 
@@ -894,9 +898,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if (statusCheckerFactoryClass != null && !statusCheckerFactoryClass.isEmpty()) {
 
             try {
-                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOGGER.error("Invalid StatusCheckerFactory class: {} error: {}", statusCheckerFactoryClass, e.getMessage());
+                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                LOGGER.error("Invalid StatusCheckerFactory class: {}", statusCheckerFactoryClass, ex);
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
 
@@ -1321,7 +1325,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Timestamp modified = domainData.getModified();
         EntityTag eTag = new EntityTag(modified.toString());
-        final String tag = eTag.toString();
+        final String tag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
 
         // Set timestamp for domain rather than youngest policy.
         // Since a policy could have been deleted, and can only be detected
@@ -1461,7 +1465,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Timestamp modified = domainData.getModified();
         EntityTag eTag = new EntityTag(modified.toString());
-        String tag = eTag.toString();
+        final String tag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
 
         // Set timestamp for domain rather than youngest policy.
         // Since a policy could have been deleted, and can only be detected
@@ -5447,9 +5451,9 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         Authority authority;
         try {
-            authority = (Authority) Class.forName(className).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid Authority class: {} error: {}", className, e.getMessage());
+            authority = (Authority) Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid Authority class: {}", className, ex);
             return null;
         }
         return authority;

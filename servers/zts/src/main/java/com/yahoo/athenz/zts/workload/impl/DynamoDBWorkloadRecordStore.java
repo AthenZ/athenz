@@ -27,10 +27,10 @@ public class DynamoDBWorkloadRecordStore implements WorkloadRecordStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamoDBWorkloadRecordStore.class);
 
-    private String tableName;
-    private String serviceIndexName;
-    private String ipIndexName;
-    private DynamoDB dynamoDB;
+    private final String tableName;
+    private final String serviceIndexName;
+    private final String ipIndexName;
+    private final DynamoDB dynamoDB;
 
     public DynamoDBWorkloadRecordStore(AmazonDynamoDB client, String tableName, String serviceIndexName, String ipIndexName) {
         this.dynamoDB = new DynamoDB(client);
