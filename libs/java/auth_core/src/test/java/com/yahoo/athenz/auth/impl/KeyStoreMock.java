@@ -24,11 +24,11 @@ import com.yahoo.athenz.auth.KeyStore;
 
 public class KeyStoreMock implements KeyStore {
 
-    private String servicePublicKeyStringK0;
-    private String servicePublicKeyStringK1;
-    private String ztsPublicKeyStringK0;
-    private String ztsPublicKeyStringK1;
-    private String hostPublic;
+    private final String servicePublicKeyStringK0;
+    private final String servicePublicKeyStringK1;
+    private final String ztsPublicKeyStringK0;
+    private final String ztsPublicKeyStringK1;
+    private final String hostPublic;
 
     public KeyStoreMock() throws IOException {
         Path path = Paths.get("./src/test/resources/fantasy_public_k0.key");

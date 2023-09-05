@@ -76,7 +76,7 @@ public class SimplePrincipal implements Principal {
      * @return a Principal for the given set of roles in a domain
      */
     public static Principal create(String domain, String creds, List<String> roles, String rolePrincipalName, Authority authority) {
-        if (roles == null || roles.size() == 0) {
+        if (roles == null || roles.isEmpty()) {
             LOG.error("createRolePrincipal: zero roles");
             return null;
         }

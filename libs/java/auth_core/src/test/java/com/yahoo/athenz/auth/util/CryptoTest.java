@@ -1334,9 +1334,7 @@ public class CryptoTest {
 
         // now null out the p1363 signature
 
-        for (int i = 0; i < p1363Signature.length; i++) {
-            p1363Signature[i] = 0;
-        }
+        Arrays.fill(p1363Signature, (byte) 0);
         testDerSignature = Crypto.convertSignatureFromP1363ToDERFormat(p1363Signature, Crypto.SHA256);
         assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPublic(),
                 testDerSignature, Crypto.SHA256));

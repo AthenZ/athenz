@@ -24,9 +24,9 @@ public class ServerPrivateKey {
     public static final String RSA   = "RSA";
     public static final String ECDSA = "ECDSA";
 
-    private String id;
-    private PrivateKey key;
-    private SignatureAlgorithm algorithm;
+    private final String id;
+    private final PrivateKey key;
+    private final SignatureAlgorithm algorithm;
 
     public ServerPrivateKey(final PrivateKey key, final String id) {
 

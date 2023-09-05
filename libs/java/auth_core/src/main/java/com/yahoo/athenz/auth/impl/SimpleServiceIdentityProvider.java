@@ -34,11 +34,11 @@ public class SimpleServiceIdentityProvider implements ServiceIdentityProvider {
 
     private static final Authority PRINCIPAL_AUTHORITY = new PrincipalAuthority();
 
-    private String domain;
-    private String service;
-    private PrivateKey key;
+    private final String domain;
+    private final String service;
+    private final PrivateKey key;
     private long tokenTimeout;
-    private String keyId;
+    private final String keyId;
     private String host = null;
     private Authority authority;
     

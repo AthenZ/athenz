@@ -26,8 +26,8 @@ public class Validate {
     private static final String PRINCIPAL_REGEX = "((([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*):)?(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)";
     private static final String DOMAIN_REGEX = "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*";
     
-    private static Pattern principalPattern = Pattern.compile(PRINCIPAL_REGEX);
-    private static Pattern domainPattern = Pattern.compile(DOMAIN_REGEX);
+    private static final Pattern PRINCIPAL_PATTERN = Pattern.compile(PRINCIPAL_REGEX);
+    private static final Pattern DOMAIN_PATTERN = Pattern.compile(DOMAIN_REGEX);
 
     /**
      * @param name a principal name to validate
@@ -37,7 +37,7 @@ public class Validate {
         if (name == null || name.isEmpty()) {
             return false;
         }
-        Matcher matcher = principalPattern.matcher(name);
+        Matcher matcher = PRINCIPAL_PATTERN.matcher(name);
         return matcher.matches();
     }
 
@@ -49,7 +49,7 @@ public class Validate {
         if (name == null || name.isEmpty()) {
             return false;
         }
-        Matcher matcher = domainPattern.matcher(name);
+        Matcher matcher = DOMAIN_PATTERN.matcher(name);
         return matcher.matches();
     }
 }

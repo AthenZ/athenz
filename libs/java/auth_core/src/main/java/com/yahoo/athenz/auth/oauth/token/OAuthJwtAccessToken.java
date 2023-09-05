@@ -28,53 +28,53 @@ import java.util.List;
 public interface OAuthJwtAccessToken {
 
     // claims
-    public static final String CLAIM_CONFIRM = "cnf";
-    public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
-    public static final String CLAIM_SCOPE = "scope";
-    public static final String CLAIM_CLIENT_ID = "client_id";
+    String CLAIM_CONFIRM = "cnf";
+    String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
+    String CLAIM_SCOPE = "scope";
+    String CLAIM_CLIENT_ID = "client_id";
 
     // delimiters
-    public static final String SCOPE_DELIMITER = " ";
+    String SCOPE_DELIMITER = " ";
 
     /**
      * @return JWT subject (sub)
      */
-    public String getSubject();
+    String getSubject();
 
     /**
      * @return JWT issuer (iss)
      */
-    public String getIssuer();
+    String getIssuer();
 
     /**
      * @return JWT audience (aud)
      */
-    public String getAudience();
+    String getAudience();
 
     /**
      * @return JWT audiences (aud) as list
      */
-    public List<String> getAudiences();
+    List<String> getAudiences();
 
     /**
      * @return JWT client ID (client_id)
      */
-    public String getClientId();
+    String getClientId();
 
     /**
      * @return JWT certificate thumbprint (cnf['x5t#S256'])
      */
-    public String getCertificateThumbprint();
+    String getCertificateThumbprint();
 
     /**
      * @return JWT scope (scope)
      */
-    public String getScope();
+    String getScope();
 
     /**
      * @return JWT scopes (scope) as List
      */
-    public default List<String> getScopes() {
+    default List<String> getScopes() {
         if (this.getScope() == null) {
             return null;
         }
@@ -84,21 +84,21 @@ public interface OAuthJwtAccessToken {
     /**
      * @return JWT issued at (iat)
      */
-    public long getIssuedAt();
+    long getIssuedAt();
 
     /**
      * @return JWT expiration time (exp)
      */
-    public long getExpiration();
+    long getExpiration();
 
     /**
      * @return JWT getSignature
      */
-    public String getSignature();
+    String getSignature();
 
     /**
      * @return JWT as string in JAVA format
      */
-    public String toString();
+    String toString();
 
 }

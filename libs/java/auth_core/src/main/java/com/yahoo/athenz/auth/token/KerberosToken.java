@@ -39,7 +39,7 @@ public class KerberosToken extends Token {
     private static final String ATHENZ_PROP_KRB_USER_DOMAIN = "athenz.auth.kerberos.krb_user_domain";
     private static final String ATHENZ_PROP_KRB_USER_REALM = "athenz.auth.kerberos.krb_user_realm";
 
-    private String krbPrivActionClass = System.getProperty(KRB_PROP_TOKEN_PRIV_ACTION);
+    private final String krbPrivActionClass = System.getProperty(KRB_PROP_TOKEN_PRIV_ACTION);
     private String userName = null;
     
     public static final String USER_DOMAIN = System.getProperty(ATHENZ_PROP_USER_DOMAIN, "user");

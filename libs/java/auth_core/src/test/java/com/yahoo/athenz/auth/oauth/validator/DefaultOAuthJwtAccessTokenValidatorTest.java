@@ -96,27 +96,13 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
             }
             fail("assertThrowable: does not throw");
         };
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator(null, this.requiredAudiences, this.requiredScopes, this.authorizedClientIds);
-        }, "trusted issuers must be configured");
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator("", this.requiredAudiences, this.requiredScopes, this.authorizedClientIds);
-        }, "trusted issuers must be configured");
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, null, this.requiredScopes, this.authorizedClientIds);
-        }, "required audiences must be configured");
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, new HashSet<>(), this.requiredScopes, this.authorizedClientIds);
-        }, "required audiences must be configured");
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, this.requiredAudiences, null, this.authorizedClientIds);
-        }, "required scopes must be configured");
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, this.requiredAudiences, new HashSet<>(), this.authorizedClientIds);
-        }, "required scopes must be configured");
-        assertThrowable.accept(() -> {
-            return new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, this.requiredAudiences, this.requiredScopes, null);
-        }, "client ID mapping must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator(null, this.requiredAudiences, this.requiredScopes, this.authorizedClientIds), "trusted issuers must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator("", this.requiredAudiences, this.requiredScopes, this.authorizedClientIds), "trusted issuers must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, null, this.requiredScopes, this.authorizedClientIds), "required audiences must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, new HashSet<>(), this.requiredScopes, this.authorizedClientIds), "required audiences must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, this.requiredAudiences, null, this.authorizedClientIds), "required scopes must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, this.requiredAudiences, new HashSet<>(), this.authorizedClientIds), "required scopes must be configured");
+        assertThrowable.accept(() -> new DefaultOAuthJwtAccessTokenValidator(this.trustedIssuer, this.requiredAudiences, this.requiredScopes, null), "client ID mapping must be configured");
 
         // actual value
         BiFunction<Field, DefaultOAuthJwtAccessTokenValidator, Object> getFieldValue = (f, object) -> {
@@ -157,35 +143,19 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
 
         // null JWT issuer
         Mockito.doReturn(null).when(mock).getIssuer();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "iss not trusted: got=null");
+        assertThrowable.accept(() -> validator.validate(mock), "iss not trusted: got=null");
 
         // empty
         Mockito.doReturn("").when(mock).getIssuer();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "iss not trusted: got=");
+        assertThrowable.accept(() -> validator.validate(mock), "iss not trusted: got=");
 
         // not match
         Mockito.doReturn("untrusty_issuer").when(mock).getIssuer();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "iss not trusted: got=untrusty_issuer");
+        assertThrowable.accept(() -> validator.validate(mock), "iss not trusted: got=untrusty_issuer");
 
         // match
         Mockito.doReturn("trustedIssuer").when(mock).getIssuer();
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validate(mock));
     }
 
     @Test
@@ -198,35 +168,19 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
 
         // null JWT issuer
         Mockito.doReturn(null).when(mock).getAudiences();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "required aud not found: got=null");
+        assertThrowable.accept(() -> validator.validate(mock), "required aud not found: got=null");
 
         // empty
         Mockito.doReturn(new ArrayList<>()).when(mock).getAudiences();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "required aud not found: got=");
+        assertThrowable.accept(() -> validator.validate(mock), "required aud not found: got=");
 
         // not match
         Mockito.doReturn(Arrays.asList("aud_1", "unknown_aud")).when(mock).getAudiences();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "required aud not found: got=aud_1, unknown_aud");
+        assertThrowable.accept(() -> validator.validate(mock), "required aud not found: got=aud_1, unknown_aud");
 
         // match
         Mockito.doReturn(Arrays.asList("aud_3", "aud_2", "aud_1")).when(mock).getAudiences();
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validate(mock));
     }
 
     @Test
@@ -239,35 +193,19 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
 
         // null JWT issuer
         Mockito.doReturn(null).when(mock).getScope();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "required scope not found: got=null");
+        assertThrowable.accept(() -> validator.validate(mock), "required scope not found: got=null");
 
         // empty
         Mockito.doReturn("").when(mock).getScope();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "required scope not found: got=");
+        assertThrowable.accept(() -> validator.validate(mock), "required scope not found: got=");
 
         // not match
         Mockito.doReturn("scope_1 unknown_scope").when(mock).getScope();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "required scope not found: got=scope_1 unknown_scope");
+        assertThrowable.accept(() -> validator.validate(mock), "required scope not found: got=scope_1 unknown_scope");
 
         // match
         Mockito.doReturn("scope_3 scope_2 scope_1").when(mock).getScope();
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validate(mock));
     }
 
     @Test
@@ -280,27 +218,15 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
 
         // zero exp
         Mockito.doReturn(0L).when(mock).getExpiration();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "exp is empty");
+        assertThrowable.accept(() -> validator.validate(mock), "exp is empty");
 
         // -ve exp
         Mockito.doReturn(-1L).when(mock).getExpiration();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        }, "exp is empty");
+        assertThrowable.accept(() -> validator.validate(mock), "exp is empty");
 
         // +ve exp
         Mockito.doReturn(1L).when(mock).getExpiration();
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validate(mock);
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validate(mock));
     }
 
     @Test
@@ -310,90 +236,42 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
         Mockito.doReturn(null).when(mock).getClientId();
 
         // null JWT client ID, null CN, invalid
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, null);
-            }
-        }, "NO mapping of authorized client IDs for certificate principal (null)");
+        assertThrowable.accept(() -> validator.validateClientId(mock, null), "NO mapping of authorized client IDs for certificate principal (null)");
         // null JWT client ID ONLY, no mapping
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "no_mapping_1");
-            }
-        }, "NO mapping of authorized client IDs for certificate principal (no_mapping_1)");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "no_mapping_1"), "NO mapping of authorized client IDs for certificate principal (no_mapping_1)");
         // null JWT client ID ONLY, mapped
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "client_cert_common_name");
-            }
-        }, "client_id is not authorized for certificate principal (client_cert_common_name): got=null");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "client_cert_common_name"), "client_id is not authorized for certificate principal (client_cert_common_name): got=null");
 
         Mockito.doReturn("jwt_client_id").when(mock).getClientId();
 
         // null expected client ID ONLY, no mapping
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, null);
-            }
-        }, "NO mapping of authorized client IDs for certificate principal (null)");
+        assertThrowable.accept(() -> validator.validateClientId(mock, null), "NO mapping of authorized client IDs for certificate principal (null)");
         // null expected client ID ONLY, mapped
         authorizedClientIds.put(null, new HashSet<>(Arrays.asList("null_1, null_2")));
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, null);
-            }
-        }, "client_id is not authorized for certificate principal (null): got=jwt_client_id");
+        assertThrowable.accept(() -> validator.validateClientId(mock, null), "client_id is not authorized for certificate principal (null): got=jwt_client_id");
         authorizedClientIds.remove(null);
 
         // not match, no mapping
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "no_mapping_2");
-            }
-        }, "NO mapping of authorized client IDs for certificate principal (no_mapping_2)");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "no_mapping_2"), "NO mapping of authorized client IDs for certificate principal (no_mapping_2)");
         // not match, mapped
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "client_cert_common_name");
-            }
-        }, "client_id is not authorized for certificate principal (client_cert_common_name): got=jwt_client_id");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "client_cert_common_name"), "client_id is not authorized for certificate principal (client_cert_common_name): got=jwt_client_id");
 
         // match, no mapping
         Mockito.doReturn("match.principal.1").when(mock).getClientId();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "match.principal.1");
-            }
-        }, "NO mapping of authorized client IDs for certificate principal (match.principal.1)");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "match.principal.1"), "NO mapping of authorized client IDs for certificate principal (match.principal.1)");
         // match, mapped
         Mockito.doReturn("client_id_1").when(mock).getClientId();
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "client_cert_common_name");
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validateClientId(mock, "client_cert_common_name"));
 
         // no mapping, case-insensitive, match, invalid
         Mockito.doReturn("match.principal.PPP").when(mock).getClientId();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "match.principal.ppp");
-            }
-        }, "NO mapping of authorized client IDs for certificate principal (match.principal.ppp)");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "match.principal.ppp"), "NO mapping of authorized client IDs for certificate principal (match.principal.ppp)");
         // mapped, case-sensitive, match
         Mockito.doReturn("CLIENT_ID_2").when(mock).getClientId();
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "client_cert_common_name");
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validateClientId(mock, "client_cert_common_name"));
         // mapped, case-sensitive, not match
         Mockito.doReturn("client_id_2").when(mock).getClientId();
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateClientId(mock, "client_cert_common_name");
-            }
-        }, "client_id is not authorized for certificate principal (client_cert_common_name): got=client_id_2");
+        assertThrowable.accept(() -> validator.validateClientId(mock, "client_cert_common_name"), "client_id is not authorized for certificate principal (client_cert_common_name): got=client_id_2");
     }
 
     @Test
@@ -403,40 +281,22 @@ public class DefaultOAuthJwtAccessTokenValidatorTest {
         Mockito.doReturn(null).when(mock).getCertificateThumbprint();
 
         // null JWT thumbprint, null expected certificate thumbprint
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateCertificateBinding(mock, (String) null);
-            }
-        });
+        assertDoesNotThrow.accept(() -> validator.validateCertificateBinding(mock, (String) null));
 
         // null JWT thumbprint ONLY
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateCertificateBinding(mock, "certificate_thumbprint");
-            }
-        }, "client certificate thumbprint (certificate_thumbprint) not match: got=null");
+        assertThrowable.accept(() -> validator.validateCertificateBinding(mock, "certificate_thumbprint"), "client certificate thumbprint (certificate_thumbprint) not match: got=null");
 
         Mockito.doReturn("certificate_thumbprint").when(mock).getCertificateThumbprint();
 
         // null expected certificate thumbprint ONLY
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateCertificateBinding(mock, (String) null);
-            }
-        }, "client certificate thumbprint (null) not match: got=certificate_thumbprint");
+        assertThrowable.accept(() -> validator.validateCertificateBinding(mock, (String) null), "client certificate thumbprint (null) not match: got=certificate_thumbprint");
 
         // not match
-        assertThrowable.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateCertificateBinding(mock, "not_match");
-            }
-        }, "client certificate thumbprint (not_match) not match: got=certificate_thumbprint");
+        assertThrowable.accept(() -> validator.validateCertificateBinding(mock, "not_match"), "client certificate thumbprint (not_match) not match: got=certificate_thumbprint");
 
         // match
-        assertDoesNotThrow.accept(new ThrowingRunnable() {
-            public void run() throws Throwable {
-                validator.validateCertificateBinding(mock, new String("certificate_thumbprint")); // for coverage
-            }
+        assertDoesNotThrow.accept(() -> {
+            validator.validateCertificateBinding(mock, "certificate_thumbprint"); // for coverage
         });
     }
 

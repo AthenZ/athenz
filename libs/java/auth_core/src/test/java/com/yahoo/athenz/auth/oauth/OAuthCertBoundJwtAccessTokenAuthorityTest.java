@@ -24,12 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import com.yahoo.athenz.auth.Authority.CredSource;
@@ -88,13 +84,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
     }
 
     @Test
-    public void testGetCredSource() throws Exception {
+    public void testGetCredSource() {
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
         assertEquals(authority.getCredSource(), CredSource.REQUEST);
     }
 
     @Test
-    public void testGetAuthenticateChallenge() throws Exception {
+    public void testGetAuthenticateChallenge() {
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
         assertEquals(authority.getAuthenticateChallenge(), "Bearer realm=\"athenz.io\"");
     }
@@ -102,19 +98,19 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
     @Test
     public void testGetDomain() throws Exception {
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
-        assertEquals(authority.getDomain(), null);
+        assertNull(authority.getDomain());
     }
 
     @Test
-    public void testGetHeader() throws Exception {
+    public void testGetHeader() {
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
         assertEquals(authority.getHeader(), "Authorization");
     }
 
     @Test
-    public void testAuthenticateWithHeader() throws Exception {
+    public void testAuthenticateWithHeader() {
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
-        assertEquals(authority.authenticate(null, null, null, null), null);
+        assertNull(authority.authenticate(null, null, null, null));
     }
 
     @Test
@@ -126,8 +122,6 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         Map<String, String> authorizedServices = new HashMap<>();
 
         // empty args
-        authorizedClientIds.clear();
-        authorizedServices.clear();
         processAuthorizedClientIds.invoke(authority, null, authorizedClientIds, authorizedServices);
         assertEquals(authorizedClientIds.size(), 0);
         assertEquals(authorizedServices.size(), 0);
@@ -157,13 +151,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         authorizedServices.clear();
         Map<String, Set<String>> expectedAuthorizedClientIds = new HashMap<>();
         Map<String, String> expectedAuthorizedServices = new HashMap<>();
-        expectedAuthorizedClientIds.put("ui_principal_11", new HashSet<>(Arrays.asList(new String[]{"client_id_11","client_id_12"})));
+        expectedAuthorizedClientIds.put("ui_principal_11", new HashSet<>(Arrays.asList("client_id_11","client_id_12")));
         expectedAuthorizedServices.put("ui_principal_11", "authorized_service_11");
-        expectedAuthorizedClientIds.put("ui_principal_21", new HashSet<>(Arrays.asList(new String[]{"client_id_21"})));
+        expectedAuthorizedClientIds.put("ui_principal_21", new HashSet<>(List.of("client_id_21")));
         expectedAuthorizedServices.put("ui_principal_21", "authorized_service_21");
-        expectedAuthorizedClientIds.put("ui_principal_31", new HashSet<>(Arrays.asList(new String[]{"client_id_31"})));
+        expectedAuthorizedClientIds.put("ui_principal_31", new HashSet<>(Arrays.asList("client_id_31")));
         expectedAuthorizedServices.put("ui_principal_31", "authorized_service_31");
-        expectedAuthorizedClientIds.put("ui_principal_41", new HashSet<>(Arrays.asList(new String[]{"client_id_41","trailing_comma"})));
+        expectedAuthorizedClientIds.put("ui_principal_41", new HashSet<>(Arrays.asList("client_id_41","trailing_comma")));
         expectedAuthorizedServices.put("ui_principal_41", "authorized_service_41");
         processAuthorizedClientIds.invoke(authority, this.classLoader.getResource("authorized_client_ids.txt").getPath(), authorizedClientIds, authorizedServices);
         assertEquals(authorizedClientIds, expectedAuthorizedClientIds);
@@ -172,7 +166,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
 
     static final class OAuthCertBoundJwtAccessTokenAuthorityTestParser implements OAuthJwtAccessTokenParser {
         @Override
-        public OAuthJwtAccessToken parse(String jwtString) throws OAuthJwtAccessTokenException {
+        public OAuthJwtAccessToken parse(String jwtString) {
             return null;
         }
     }
@@ -200,8 +194,6 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(authenticateChallengeField.get(authority), "Bearer realm=\"https://athenz.io\"");
 
         // certificateIdentityParser
-        CertificateIdentityParser certParser = null;
-        Field excludeRoleCertificatesField = null, excludedPrincipalsField = null;
         Field certificateIdentityParserField = authority.getClass().getDeclaredField("certificateIdentityParser");
         certificateIdentityParserField.setAccessible(true);
 
@@ -210,13 +202,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         authority.initialize();
         System.clearProperty("athenz.auth.oauth.jwt.cert.exclude_role_certificates");
         System.clearProperty("athenz.auth.oauth.jwt.cert.excluded_principals");
-        certParser = (CertificateIdentityParser) certificateIdentityParserField.get(authority);
-        excludeRoleCertificatesField  = certParser.getClass().getDeclaredField("excludeRoleCertificates");
-        excludedPrincipalsField  = certParser.getClass().getDeclaredField("excludedPrincipalSet");
+        CertificateIdentityParser certParser = (CertificateIdentityParser) certificateIdentityParserField.get(authority);
+        Field excludeRoleCertificatesField  = certParser.getClass().getDeclaredField("excludeRoleCertificates");
+        Field excludedPrincipalsField  = certParser.getClass().getDeclaredField("excludedPrincipalSet");
         excludeRoleCertificatesField.setAccessible(true);
         excludedPrincipalsField.setAccessible(true);
         assertEquals(excludeRoleCertificatesField.get(certParser), true);
-        assertEquals(excludedPrincipalsField.get(certParser), new HashSet<>(Arrays.asList(new String[]{ "principals_1", "principals_2" })));
+        assertEquals(excludedPrincipalsField.get(certParser), new HashSet<>(Arrays.asList("principals_1", "principals_2")));
 
         System.clearProperty("athenz.auth.oauth.jwt.cert.exclude_role_certificates");
         System.clearProperty("athenz.auth.oauth.jwt.cert.excluded_principals");
@@ -227,14 +219,14 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         excludeRoleCertificatesField.setAccessible(true);
         excludedPrincipalsField.setAccessible(true);
         assertEquals(excludeRoleCertificatesField.get(certParser), false);
-        assertEquals(excludedPrincipalsField.get(certParser), (Set<String>) null);
+        assertNull(excludedPrincipalsField.get(certParser));
 
         // parser
         Field parserField = authority.getClass().getDeclaredField("parser");
         parserField.setAccessible(true);
 
         System.setProperty("athenz.auth.oauth.jwt.parser_factory_class", "invalid_class");
-        assertThrows(IllegalArgumentException.class, () -> authority.initialize());
+        assertThrows(IllegalArgumentException.class, authority::initialize);
         System.clearProperty("athenz.auth.oauth.jwt.parser_factory_class");
 
         System.setProperty("athenz.auth.oauth.jwt.parser_factory_class", OAuthCertBoundJwtAccessTokenAuthorityTestParserFactory.class.getName());
@@ -259,8 +251,6 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(shouldVerifyCertThumbprintField.get(authority), false);
 
         // authorizedServices & validator
-        DefaultOAuthJwtAccessTokenValidator validator = null;
-        Field trustedIssuerField = null, requiredAudiencesField = null, requiredScopesField = null, authorizedClientIdsField = null;
         Field authorizedServicesField = authority.getClass().getDeclaredField("authorizedServices");
         authorizedServicesField.setAccessible(true);
         Field validatorField = authority.getClass().getDeclaredField("validator");
@@ -270,7 +260,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "");
         System.setProperty("athenz.auth.oauth.jwt.claim.aud", "");
         System.setProperty("athenz.auth.oauth.jwt.claim.scope", "");
-        assertThrows(IllegalArgumentException.class, () -> authority.initialize());
+        assertThrows(IllegalArgumentException.class, authority::initialize);
         System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
         System.clearProperty("athenz.auth.oauth.jwt.claim.iss");
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
@@ -279,7 +269,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         Map<String, String> expectedAuthorizedServices = new HashMap<>();
         Map<String, Set<String>> expectedAuthorizedClientIds = new HashMap<>();
         expectedAuthorizedServices.put("ui.athenz.io", "sys.auth.ui");
-        expectedAuthorizedClientIds.put("ui.athenz.io", new HashSet<>(Arrays.asList(new String[]{"client_id_1","client_id_2","ui.athenz.io"})));
+        expectedAuthorizedClientIds.put("ui.athenz.io", new HashSet<>(Arrays.asList("client_id_1","client_id_2","ui.athenz.io")));
         System.setProperty("athenz.auth.oauth.jwt.authorized_client_ids_path", this.classLoader.getResource("authorized_client_ids.single.txt").getPath());
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "iss");
         System.setProperty("athenz.auth.oauth.jwt.claim.aud", "aud_1,aud_2");
@@ -290,18 +280,18 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         System.clearProperty("athenz.auth.oauth.jwt.claim.aud");
         System.clearProperty("athenz.auth.oauth.jwt.claim.scope");
         assertEquals(authorizedServicesField.get(authority), expectedAuthorizedServices);
-        validator = (DefaultOAuthJwtAccessTokenValidator) validatorField.get(authority);
-        trustedIssuerField = validator.getClass().getDeclaredField("trustedIssuer");
-        requiredAudiencesField = validator.getClass().getDeclaredField("requiredAudiences");
-        requiredScopesField = validator.getClass().getDeclaredField("requiredScopes");
-        authorizedClientIdsField = validator.getClass().getDeclaredField("authorizedClientIds");
+        DefaultOAuthJwtAccessTokenValidator validator = (DefaultOAuthJwtAccessTokenValidator) validatorField.get(authority);
+        Field trustedIssuerField = validator.getClass().getDeclaredField("trustedIssuer");
+        Field requiredAudiencesField = validator.getClass().getDeclaredField("requiredAudiences");
+        Field requiredScopesField = validator.getClass().getDeclaredField("requiredScopes");
+        Field authorizedClientIdsField = validator.getClass().getDeclaredField("authorizedClientIds");
         trustedIssuerField.setAccessible(true);
         requiredAudiencesField.setAccessible(true);
         requiredScopesField.setAccessible(true);
         authorizedClientIdsField.setAccessible(true);
         assertEquals(trustedIssuerField.get(validator), "iss");
-        assertEquals(requiredAudiencesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"aud_1", "aud_2"})));
-        assertEquals(requiredScopesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"scope_1", "scope_2"})));
+        assertEquals(requiredAudiencesField.get(validator), new HashSet<>(Arrays.asList("aud_1", "aud_2")));
+        assertEquals(requiredScopesField.get(validator), new HashSet<>(Arrays.asList("scope_1", "scope_2")));
         assertEquals(authorizedClientIdsField.get(validator), expectedAuthorizedClientIds);
 
         System.clearProperty("athenz.auth.oauth.jwt.authorized_client_ids_path");
@@ -320,8 +310,8 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         requiredScopesField.setAccessible(true);
         authorizedClientIdsField.setAccessible(true);
         assertEquals(trustedIssuerField.get(validator), "https://athenz.io");
-        assertEquals(requiredAudiencesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"https://zms.athenz.io"})));
-        assertEquals(requiredScopesField.get(validator), new HashSet<>(Arrays.asList(new String[]{"sys.auth:role.admin"})));
+        assertEquals(requiredAudiencesField.get(validator), new HashSet<>(Arrays.asList("https://zms.athenz.io")));
+        assertEquals(requiredScopesField.get(validator), new HashSet<>(Arrays.asList("sys.auth:role.admin")));
         assertEquals(authorizedClientIdsField.get(validator), new HashMap<String, String>());
     }
 
@@ -332,7 +322,6 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         String noCnfJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjo5OTkwMDA5OTk5fQ.uE-SsyDGb0a1QU1Clv0WmwZqIm1HXc0pJy_rGofpIeo5jOsz3wj1ZVjGslgLV56hW9zvnwOh5ur8ChgQrYfDN1meM6loiu4py9mAU9bfaiPkecqGA5zmWQjhl9206MbVKxFXbVlt5FrQJaM5corSkIH4MIpxS4vU2dZBC4Emtc8hZXRg5BOKr6xRA-vTLbWNa3FTh8dhehTXngQ_bnJfU5MxoTMlrBCrajKjnzSYzZ6vutJKDZKGdbmRrM982wjuDyEzhViKVDBsNqUa0LUblBoUtVx2FnPCUlBWnyqm4aaf6FtqV8z2KolcH1DA_3PaWv1R_txFD0B4pRm1GA77LGCgAdNzZ4KMBN300K0DzBhbYS4fmbr0faAIUtYWRTI3PwkSQGUwZTS4FZbK6RQ-kUkx68BhLP3R33E06EGsb7qvdcPELFjMh8HtbUPUZdJnq0z5Q6EJrWE4h3_7c6JDCm5IIJ9GDN8u20l0BFQe1SCmcYAVutuuGX_79B73r2sQdm8-6LVoOZXtDFLlbadcXUHybUgZYYSlehKD1Vdt4JQqeVStdUM0q7Otfe9dhfrDHwJrEN9iGNWVItxlP86K8SrTRzaa8b1Qs6E-qXx_6XFF3taFU9jWS3I571WrXo1qkJp6QQknqEFa1JJkh28UDjonkgRSzeProQxbF_7T5VE";
         String invalidSubjectJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyYWRtaW4iLCJpc3MiOiJzeXMuYXV0aC50ZXN0SWRQIiwiYXVkIjoiaHR0cHM6Ly96bXMuYXRoZW56LmlvIiwic2NvcGUiOiJzeXMuYXV0aDpyb2xlLmFkbWluIiwiY2xpZW50X2lkIjoidWkuYXRoZW56LmlvIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsieDV0I1MyNTYiOiJ6bGt4eW9YOTVsZS1OdjdPSTBCeGNqVE9vZ3Z5OVBHSC12X0NCcl9Ec0VrIn0sImV4cCI6OTk5MDAwOTk5OX0.HhCeOzNcDtR6GmPvlARwn5NSNPK3QhLw_LSsyg8LIq35vu8BoBsgX-Dw8GuFXc84e9gFdV5LTPOpOM78Ktc_L-eQ27j3u_UggCGwxkZHknRprLzBDx8A-bM3VyPyxTpokNFyrmrDbUn7pE8QwDRuPxOHjZUG1Wca2kY9YtgxnvYmh8w6TRH_uKdCPlbdo6FgQFbpSXZWbm0_UOQXpsSLH-q9vwz52D2wuDM_kGigLf1GKueshj-4Rzmrgh1nT-Zb6JQtBKdsnJRjQi9O9gQFwAdUcFFLVXd8IQKpgJc6ZvesGBwJmEOrE-THFHaGPdiRbqgMc8ha_0uknVeOwgiIflQfXi2Tid6aXBWBLDnABJuzlpSs7cXto3Fu-RAQLCQ16YJnFfeaCpmRkkjqTIupgRUy3_rqBNDUgg62kGjb6Sz_Q9lC1rdvx19i2lZqlvxgX1Q0_tbkqfCXm4mgU8b70OJ2oVGE6fq4hXDIKl-v7YAtDQdfqz3OmN6epRdOXCi3ZdgE5QzJS1TVbu-IgGrNgkfl8QzS02mSoIUpJAWZfE_21oYvLNjtYuOC2r9q3CSTwUHQJu45HupZnr0dLq7dIV-y_PAanHpz2IRJrhbZBicbR2P0sBsx-FxPUIGCK4II3Gsx5LehYNWYHSNnzdaGZC56x41VTzo2g7KNqLNYUBk";
         String customJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6WyJjdXN0b21fYXVkXzEiLCJjdXN0b21fYXVkXzIiXSwic2NvcGUiOiJjdXN0b21fc2NvcGVfMSBjdXN0b21fc2NvcGVfMiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiY25mIjp7Ing1dCNTMjU2IjoiemxreHlvWDk1bGUtTnY3T0kwQnhjalRPb2d2eTlQR0gtdl9DQnJfRHNFayJ9LCJleHAiOjk5OTAwMDk5OTl9.HCc0RCeV06gtgUKPoSDGhFySDxsCujmpzbge-oe1YQv43sRBTJfvJ4JIDnuPCosPugw8R9l9Bj3VM_sKSLHpJGhDRcQPamlawdes7bHSSL8VDoQIPLIzTdQUXc81OJqKSTMBjChdPzHSKF3VpwnrMpuFuBLvPs7PyN7xXxzDlEANPYx6-9pnd_z_eB4hABj0Q_fyX9pcm9wyXPyW3eEDo0m_R80fa6CUaEGt6FseVyZp7WimCXF-IongjXJLy3BLppVIUHg5U_rVmvoe81pE7-tJe7NiS5suUWLq-kMBNhmGBulGNLbH8VT4jOVDTpzS8a3jHL18xtHlij9Zbg4zpBbo4Z8O0Az37SS1vrGwTMPAW9uhjVRqAJB1MM5YZ5Rr8XRy6hduF-FbDmOP27jE_n0Hk2oQ2yfaB2oAY0wjpSLukV_CNzaDWrBBu_j25ld1OsvKeHXTBtf8EhjIcWrktu48SJvoDNQZZskeDXAt7gabFv7y2Gbe4JG4AF43-ewRuFzoMBJsLgzjvd7f1v71leTV519AD4ScjJNp17PakSc8BFu3E9--yr2jLFsJ1cC3VtezdOV2Jssh00WiklsB-mdcHi2WOXr3XONuix6ZvS2DehQCKEFtGEQcWe3oLjZmE5QDJNvuCbU1GbtAXiAbbEuqKaUKUf9HZW2KVfUSgqI";
-        HttpServletRequest requestMock = null;
         StringBuilder errMsg = new StringBuilder();
         OAuthCertBoundJwtAccessTokenAuthority authority = new OAuthCertBoundJwtAccessTokenAuthority();
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
@@ -341,39 +330,38 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         KeyStore jwtKeyStore = Mockito.spy(baseKeyStore);
         Mockito.when(jwtKeyStore.getPublicKey("sys.auth", "testidp", "keyId")).thenReturn(this.jwtPublicKey);
         authority.setKeyStore(jwtKeyStore);
-        Principal principal = null;
 
         // empty token, skip
-        requestMock = Mockito.mock(HttpServletRequestWrapper.class);
+        HttpServletRequest requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList()));
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertEquals(errMsg.length(), 0);
 
         // no certificate error
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer dummy_access_token")));
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid certificate: No certificate available in request");
 
         // null errMsg, no errors
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer dummy_access_token_1")));
-        assertEquals(authority.authenticate(requestMock, null), null);
+        assertNull(authority.authenticate(requestMock, null));
 
         // parse JWT error
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer invalid_access_token")));
         Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: io.jsonwebtoken.MalformedJwtException: JWT strings must contain exactly 2 period characters. Found: 0");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + expiredJwt)));
         Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertTrue(errMsg.toString().startsWith("OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: io.jsonwebtoken.ExpiredJwtException: JWT expired at 2018-01-18T01:30:22Z. Current time: "));
 
         // invalid JWT
@@ -381,13 +369,13 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noExpJwt)));
         Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: exp is empty");
         requestMock = Mockito.mock(HttpServletRequestWrapper.class);
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noCnfJwt)));
         Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: invalid JWT: NO mapping of authorized client IDs for certificate principal (ui.athenz.io)");
 
         // skip cert thumbprint verification
@@ -402,7 +390,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + noCnfJwt)));
         Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
-        principal = authority.authenticate(requestMock, errMsg);
+        Principal principal = authority.authenticate(requestMock, errMsg);
         assertNotNull(principal);
         assertEquals(errMsg.toString(), "");
         assertEquals(principal.getDomain(), "user");
@@ -410,7 +398,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(principal.getCredentials(), noCnfJwt);
         assertEquals(principal.getIssueTime(), 1516239022L);
         assertEquals(principal.getX509Certificate(), clientCertChain[0]);
-        assertEquals(principal.getRoles(), null);
+        assertNull(principal.getRoles());
         assertEquals(principal.getApplicationId(), "ui.athenz.io");
         assertEquals(principal.getAuthorizedService(), "sys.auth.ui");
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");
@@ -427,7 +415,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         Mockito.when(requestMock.getHeaders("Authorization")).thenReturn(Collections.enumeration(Arrays.asList("Bearer " + invalidSubjectJwt)));
         Mockito.when(requestMock.getAttribute(CertificateIdentityParser.JAVAX_CERT_ATTR)).thenReturn(clientCertChain);
         errMsg.setLength(0);
-        assertEquals(authority.authenticate(requestMock, errMsg), null);
+        assertNull(authority.authenticate(requestMock, errMsg));
         assertEquals(errMsg.toString(), "OAuthCertBoundJwtAccessTokenAuthority:authenticate: sub is not a valid service identity: got=useradmin");
 
         // verify non-default JWT
@@ -454,7 +442,7 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
         assertEquals(principal.getCredentials(), customJwt);
         assertEquals(principal.getIssueTime(), 1516239022L);
         assertEquals(principal.getX509Certificate(), clientCertChain[0]);
-        assertEquals(principal.getRoles(), null);
+        assertNull(principal.getRoles());
         assertEquals(principal.getApplicationId(), "ui.athenz.io");
         assertEquals(principal.getAuthorizedService(), "sys.auth.ui");
         System.setProperty("athenz.auth.oauth.jwt.claim.iss", "sys.auth.testIdP");

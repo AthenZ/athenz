@@ -29,7 +29,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 
@@ -39,7 +38,7 @@ public class DefaultOAuthJwtAccessTokenTest {
 
     @BeforeMethod
     public void initialize() throws Exception {
-        PublicKey pub = null;
+        PublicKey pub;
         try (PemReader reader = new PemReader(new FileReader(this.getClass().getClassLoader().getResource("jwt_public.key").getFile()))) {
             pub = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(reader.readPemObject().getContent()));
         }
@@ -54,7 +53,6 @@ public class DefaultOAuthJwtAccessTokenTest {
     @Test
     public void testDefaultOAuthJwtAccessToken() {
         BiFunction<Field, DefaultOAuthJwtAccessToken, Object> getFieldValue = (f, object) -> {
-            JwtBuilder b = Jwts.builder().setSubject("Bob");
             try {
                 f.setAccessible(true);
                 return f.get(object);
@@ -104,10 +102,10 @@ public class DefaultOAuthJwtAccessTokenTest {
         assertEquals(at.getIssuer(), "https://athenz.io");
         assertEquals(at.getAudience(), "[https://zms.athenz.io, https://zts.athenz.io]");
         assertEquals(at.getAudiences(), Arrays.asList("https://zms.athenz.io", "https://zts.athenz.io"));
-        assertEquals(at.getClientId(), null);
-        assertEquals(at.getCertificateThumbprint(), null);
-        assertEquals(at.getScope(), null);
-        assertEquals(at.getScopes(), null);
+        assertNull(at.getClientId());
+        assertNull(at.getCertificateThumbprint());
+        assertNull(at.getScope());
+        assertNull(at.getScopes());
         assertEquals(at.getIssuedAt(), 1470000000L);
         assertEquals(at.getExpiration(), 9990009999L);
 
@@ -119,14 +117,14 @@ public class DefaultOAuthJwtAccessTokenTest {
     @Test
     public void testGettersOnEmptyJwt() {
         DefaultOAuthJwtAccessToken at = new DefaultOAuthJwtAccessToken(this.parser.parseClaimsJws(emptyJwtString));
-        assertEquals(at.getSubject(), null);
-        assertEquals(at.getIssuer(), null);
-        assertEquals(at.getAudience(), null);
-        assertEquals(at.getAudiences(), null);
-        assertEquals(at.getClientId(), null);
-        assertEquals(at.getCertificateThumbprint(), null);
-        assertEquals(at.getScope(), null);
-        assertEquals(at.getScopes(), null);
+        assertNull(at.getSubject());
+        assertNull(at.getIssuer());
+        assertNull(at.getAudience());
+        assertNull(at.getAudiences());
+        assertNull(at.getClientId());
+        assertNull(at.getCertificateThumbprint());
+        assertNull(at.getScope());
+        assertNull(at.getScopes());
         assertEquals(at.getIssuedAt(), 0L);
         assertEquals(at.getExpiration(), 0L);
 

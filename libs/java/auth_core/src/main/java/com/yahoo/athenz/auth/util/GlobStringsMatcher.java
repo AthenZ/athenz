@@ -30,7 +30,7 @@ public class GlobStringsMatcher {
 
     public GlobStringsMatcher(String systemProperty) {
         List<String> globList = AthenzUtils.splitCommaSeparatedSystemProperty(systemProperty);
-        patterns = globList.stream().map(glob -> StringUtils.patternFromGlob(glob)).collect(Collectors.toList());
+        patterns = globList.stream().map(StringUtils::patternFromGlob).collect(Collectors.toList());
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(String.format("Property: %s, Regex List: %s", systemProperty, Arrays.toString(patterns.toArray())));
         }
@@ -38,11 +38,11 @@ public class GlobStringsMatcher {
 
     public boolean isEmptyPatternsList() {
         return (patterns == null ||
-                patterns.size() == 0 ||
+                patterns.isEmpty() ||
                 (patterns.size() == 1 && patterns.get(0).equals("^$")));
     }
 
     public boolean isMatch(String value) {
-        return patterns.stream().anyMatch(pattern -> value.matches(pattern));
+        return patterns.stream().anyMatch(value::matches);
     }
 }
