@@ -492,6 +492,12 @@ public class DBService implements RolesProvider {
                     if (!con.insertAssertion(domainName, policyName, policy.getVersion(), assertion)) {
                         return false;
                     }
+                    // insert the new assertion conditions if any
+                    if (assertion.getConditions() != null) {
+                        if (!con.insertAssertionConditions(assertion.getId(), assertion.getConditions())) {
+                            return false;
+                        }
+                    }
                 }
                 auditLogAssertions(auditDetails, "added-assertions", newAssertions);
             }
@@ -506,7 +512,15 @@ public class DBService implements RolesProvider {
             }
             List<Assertion> addAssertions = new ArrayList<>();
             List<Assertion> delAssertions = new ArrayList<>();
-            policyAssertionChanges(newAssertions, curAssertions, addAssertions, delAssertions);
+
+            // those lists are used to check for assertion condition changes for those assertions that are unchanged
+            List<Assertion> newMatchedAssertions = new ArrayList<>();
+            List<Assertion> oldMatchedAssertions = new ArrayList<>(curAssertions);
+
+            policyAssertionChanges(newAssertions, curAssertions, addAssertions, delAssertions, newMatchedAssertions);
+
+            // delAssertion are the ones that are in curr assertions but not in new assertions, means they are not matched
+            oldMatchedAssertions.removeAll(delAssertions);
 
             if (!ignoreDeletes) {
                 for (Assertion assertion : delAssertions) {
@@ -521,8 +535,32 @@ public class DBService implements RolesProvider {
                 if (!con.insertAssertion(domainName, policyName, policy.getVersion(), assertion)) {
                     return false;
                 }
+                if (assertion.getConditions() != null) {
+                    if (!con.insertAssertionConditions(assertion.getId(), assertion.getConditions())) {
+                        return false;
+                    }
+                }
             }
             auditLogAssertions(auditDetails, "added-assertions", addAssertions);
+
+            Map<Long, List<AssertionCondition>> addConditions = new HashMap<>();
+            Map<Long, List<AssertionCondition>> delConditions = new HashMap<>();
+            policyAssertionConditionsChanges(oldMatchedAssertions, newMatchedAssertions, addConditions, delConditions);
+
+            for (Map.Entry<Long, List<AssertionCondition>> entry : delConditions.entrySet()) {
+                Long assertionId = entry.getKey();
+                if (!con.deleteAssertionConditions(assertionId)) {
+                    return false;
+                }
+            }
+
+            for (Map.Entry<Long, List<AssertionCondition>> entry : addConditions.entrySet()) {
+                Long assertionId = entry.getKey();
+                List<AssertionCondition> conditionsList = entry.getValue();
+                if (!con.insertAssertionConditions(assertionId, new AssertionConditions().setConditionsList(conditionsList))) {
+                    return false;
+                }
+            }
         }
 
         if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
@@ -575,6 +613,9 @@ public class DBService implements RolesProvider {
                 continue;
             }
 
+            // we add the id to the assertion so that we can use it later to check for assertion conditions changes
+            assertion.setId(checkAssertion.getId());
+
             itr.remove();
             matchedAssertions.add(checkAssertion);
             return true;
@@ -583,8 +624,66 @@ public class DBService implements RolesProvider {
         return false;
     }
 
+    void mapAssertionsToConditions(List<Assertion> assertions, Map<Long, List<AssertionCondition>> assertionConditionsMap) {
+        if (assertions == null) {
+            return;
+        }
+        for (Assertion assertion : assertions) {
+            if (assertion.getConditions() != null) {
+                assertionConditionsMap.put(assertion.getId(), new ArrayList<>(assertion.getConditions().getConditionsList()));
+            }
+        }
+    }
+
+    boolean assertionConditionEqualsIgnoreConditionId(AssertionCondition c1, AssertionCondition c2) {
+            return Objects.equals(c1.conditionsMap, c2.conditionsMap);
+    }
+
+    boolean isAssertionConditionsHasChanged(List<AssertionCondition> list1, List<AssertionCondition> list2) {
+        if (list1 == null || list1.isEmpty()) {
+            return list2 != null && !list2.isEmpty();
+        }
+        if (list2 == null) {
+            return true;
+        }
+        if (list1.size() != list2.size()) {
+            return true;
+        }
+        for (AssertionCondition ac1: list1) {
+            if (list2.stream().noneMatch(ac2 -> assertionConditionEqualsIgnoreConditionId(ac1, ac2))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void policyAssertionConditionsChanges(List<Assertion> oldAssertions, List<Assertion> currentAssertions, Map<Long, List<AssertionCondition>> addConditions,
+                                          Map<Long, List<AssertionCondition>> delConditions) {
+
+        Set<Long> keysToRemove = new HashSet<>();
+
+        mapAssertionsToConditions(oldAssertions, delConditions);
+        mapAssertionsToConditions(currentAssertions, addConditions);
+
+        // Iterate over old assertion conditions and check if they are changed
+        for (Map.Entry<Long, List<AssertionCondition>> entry : delConditions.entrySet()) {
+            Long assertionId = entry.getKey();
+            List<AssertionCondition> delAcSet = entry.getValue();
+            // if new assertion conditions has the same conditions then we need remove it from the maps, since no action is needed
+            if (!isAssertionConditionsHasChanged(delAcSet, addConditions.getOrDefault(assertionId, new ArrayList<>()))) {
+                keysToRemove.add(assertionId);
+            }
+
+        }
+
+        for (Long assertionId : keysToRemove) {
+            delConditions.remove(assertionId);
+            addConditions.remove(assertionId);
+        }
+    }
+
     void policyAssertionChanges(List<Assertion> newAssertions, List<Assertion> curAssertions,
-            List<Assertion> addAssertions, List<Assertion> delAssertions) {
+            List<Assertion> addAssertions, List<Assertion> delAssertions, List<Assertion> newMatchedAssertions) {
 
         // let's iterate through the new list and the ones that are
         // not in the current list should be added to the add list
@@ -594,6 +693,8 @@ public class DBService implements RolesProvider {
             for (Assertion assertion : newAssertions) {
                 if (!removeMatchedAssertion(assertion, curAssertions, matchedAssertions)) {
                     addAssertions.add(assertion);
+                } else {
+                    newMatchedAssertions.add(assertion);
                 }
             }
         }

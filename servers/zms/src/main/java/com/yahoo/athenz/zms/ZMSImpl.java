@@ -5405,6 +5405,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validatePolicyAssertionConditions(List<Assertion> assertions, String caller) {
+        if (assertions == null) {
+            return;
+        }
+        for (Assertion a : assertions) {
+            if (a.getConditions() != null) {
+                validateAssertionConditions(a.getConditions(), caller);
+            }
+        }
+    }
+
     void validatePolicyAssertion(Assertion assertion, final String roleDomainName, Set<String> roleNamesSet, final String caller) {
 
         // extract the domain name from the resource
@@ -5536,6 +5547,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // also that all the roles that associates does exists
 
         validatePolicyAssertions(policy.getAssertions(), domainName, caller);
+
+        validatePolicyAssertionConditions(policy.getAssertions(), caller);
 
         Policy dbPolicy = dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller, returnObj);
 
