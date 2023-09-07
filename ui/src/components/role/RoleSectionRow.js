@@ -231,6 +231,42 @@ class RoleSectionRow extends React.Component {
             </Menu>
         );
 
+        let iconDescription = (
+            <Menu
+                placement='bottom-start'
+                trigger={
+                    <span data-testid="description-icon">
+                        <Icon
+                            icon={'information-circle'}
+                            color={colors.icons}
+                            size={'1.15em'}
+                            verticalAlign={'text-bottom'}
+                            enableTitle={false}
+                            onClick={() => {
+                                this.setState({
+                                    recentlyCopiedToClipboard: true,
+                                });
+                                setTimeout(
+                                    () =>
+                                        this.setState({
+                                            recentlyCopiedToClipboard: false,
+                                        }),
+                                    1000
+                                );
+                                navigator.clipboard.writeText(role.description);
+                            }}
+                        />
+                    </span>
+                }
+            >
+                <MenuDiv>
+                    {this.state.recentlyCopiedToClipboard
+                        ? 'Copied to clipboard'
+                        : role.description}
+                </MenuDiv>
+            </Menu>
+        );
+
         let auditEnabled = !!role.auditEnabled;
         let iconAudit = (
             <Menu
@@ -253,10 +289,13 @@ class RoleSectionRow extends React.Component {
         );
 
         let roleTypeIcon = role.trust ? iconDelegated : '';
+        let roleDescriptionIcon = role.description ? iconDescription : '';
         let roleAuditIcon = auditEnabled ? iconAudit : '';
 
         let roleNameSpan =
-            roleTypeIcon === '' && roleAuditIcon === '' ? (
+            roleTypeIcon === '' &&
+            roleAuditIcon === '' &&
+            roleDescriptionIcon === '' ? (
                 <LeftSpan>{' ' + this.state.name}</LeftSpan>
             ) : (
                 <span>{' ' + this.state.name}</span>
@@ -268,6 +307,7 @@ class RoleSectionRow extends React.Component {
                     <TDName color={color} align={left} category={category}>
                         {roleTypeIcon}
                         {roleAuditIcon}
+                        {roleDescriptionIcon}
                         {roleNameSpan}
                     </TDName>
                     <TDTime color={color} align={left} category={category}>
@@ -313,6 +353,7 @@ class RoleSectionRow extends React.Component {
                     <TDName color={color} align={left}>
                         {roleTypeIcon}
                         {roleAuditIcon}
+                        {roleDescriptionIcon}
                         {roleNameSpan}
                     </TDName>
                     <TDTime color={color} align={left}>
