@@ -46,7 +46,7 @@
 
   <properties>
     <ehcache.version>3.10.8</ehcache.version>
-    <code.coverage.min>0.7667</code.coverage.min>
+    <code.coverage.min>0.7691</code.coverage.min>
   </properties>
 
   <dependencies>

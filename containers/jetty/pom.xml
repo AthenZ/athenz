@@ -40,7 +40,7 @@
 
   <properties>
     <kinesis.logback.version>2.1.1</kinesis.logback.version>
-    <code.coverage.min>0.8726</code.coverage.min>
+    <code.coverage.min>0.8893</code.coverage.min>
   </properties>
 
   <dependencies>
