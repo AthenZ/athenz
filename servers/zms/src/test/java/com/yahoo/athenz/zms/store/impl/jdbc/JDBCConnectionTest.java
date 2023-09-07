@@ -10429,16 +10429,16 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testUdateRoleMemberExpirationNotificationTimestamp() throws Exception {
-        testUdateRoleMemberNotificationTimestamp(true);
+    public void testUpdateRoleMemberExpirationNotificationTimestamp() throws Exception {
+        testUpdateRoleMemberNotificationTimestamp(true);
     }
 
     @Test
-    public void testUdateRoleMemberReviewNotificationTimestamp() throws Exception {
-        testUdateRoleMemberNotificationTimestamp(false);
+    public void testUpdateRoleMemberReviewNotificationTimestamp() throws Exception {
+        testUpdateRoleMemberNotificationTimestamp(false);
     }
 
-    private void testUdateRoleMemberNotificationTimestamp(boolean isRoleExpire) throws Exception {
+    private void testUpdateRoleMemberNotificationTimestamp(boolean isRoleExpire) throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenReturn(3); // 3 members updated
@@ -10454,16 +10454,16 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testUdateRoleMemberExpirationNotificationTimestampError() throws Exception {
-        testUdateRoleMemberNotificationTimestampError(true);
+    public void testUpdateRoleMemberExpirationNotificationTimestampError() throws Exception {
+        testUpdateRoleMemberNotificationTimestampError(true);
     }
 
     @Test
-    public void testUdateRoleMemberReviewNotificationTimestampError() throws Exception {
-        testUdateRoleMemberNotificationTimestampError(false);
+    public void testUpdateRoleMemberReviewNotificationTimestampError() throws Exception {
+        testUpdateRoleMemberNotificationTimestampError(false);
     }
 
-    private void testUdateRoleMemberNotificationTimestampError(boolean isRoleExpire) throws Exception {
+    private void testUpdateRoleMemberNotificationTimestampError(boolean isRoleExpire) throws Exception {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeUpdate())
                 .thenThrow(new SQLException("sql error"));
@@ -15218,6 +15218,100 @@ public class JDBCConnectionTest {
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testIsLastNotifyTimeWithinSpecifiedDays() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+
+        // timestamp return values: > 1 day, < 1 day, exception
+        Mockito.when(mockResultSet.getTimestamp(1))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() - 24 * 60 * 60 * 1000 - 10000))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() - 24 * 60 * 60 * 1000 + 10000))
+                .thenThrow(new SQLException("sql error"));
+
+        assertFalse(jdbcConn.isLastNotifyTimeWithinSpecifiedDays("test-sql-cmd", 1));
+        assertTrue(jdbcConn.isLastNotifyTimeWithinSpecifiedDays("test-sql-cmd", 1));
+        assertFalse(jdbcConn.isLastNotifyTimeWithinSpecifiedDays("test-sql-cmd", 1));
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberExpirationNotificationTimestampLastDay() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+
+        // timestamp return value < 1 day
+        Mockito.when(mockResultSet.getTimestamp(1))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() - 24 * 60 * 60 * 1000 + 10000));
+
+        assertFalse(jdbcConn.updateRoleMemberExpirationNotificationTimestamp("server", 0, 1, false));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateRoleMemberReviewNotificationTimestampLastDay() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+
+        // timestamp return value < 1 day
+        Mockito.when(mockResultSet.getTimestamp(1))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() - 24 * 60 * 60 * 1000 + 10000));
+
+        assertFalse(jdbcConn.updateRoleMemberReviewNotificationTimestamp("server", 0, 1));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateGroupMemberExpirationNotificationTimestampLastDay() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+
+        // timestamp return value < 1 day
+        Mockito.when(mockResultSet.getTimestamp(1))
+                .thenReturn(new java.sql.Timestamp(System.currentTimeMillis() - 24 * 60 * 60 * 1000 + 10000));
+
+        assertFalse(jdbcConn.updateGroupMemberExpirationNotificationTimestamp("server", 0, 1));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDependencyExceptions() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("sql1 error"));
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql2 error"));
+        try {
+            jdbcConn.deleteDomainDependency("domain", "service");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql1 error"));
+        }
+        try {
+            jdbcConn.insertDomainDependency("domain", "service");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql1 error"));
+        }
+        try {
+            jdbcConn.listDomainDependencies("service");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql2 error"));
+        }
+        try {
+            jdbcConn.listServiceDependencies("domain");
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("sql2 error"));
         }
         jdbcConn.close();
     }

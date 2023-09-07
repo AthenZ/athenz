@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
@@ -655,6 +656,12 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT p.name, pt.key, pt.value, p.version FROM policy_tags pt "
             + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
             + "WHERE domain.name=?";
+    private static final String SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM ROLE_MEMBER"
+            + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
+    private static final String SQL_ROLE_REVIEW_LAST_NOTIFIED_TIME = "SELECT review_last_notified_time FROM ROLE_MEMBER"
+            + " WHERE review_last_notified_time IS NOT NULL ORDER BY review_last_notified_time DESC LIMIT 1;";
+    private static final String SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM PRINCIPAL_GROUP_MEMBER"
+            + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -5655,6 +5662,20 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays, boolean metricsOnly) {
+
+        // first verify that we haven't had any updates in the last configured
+        // number of delayed days. We don't want multiple instances running
+        // and generating multiple emails depending on the time. We want to
+        // make sure, for example, to generate only a single email per day
+
+        if (!metricsOnly) {
+            if (isLastNotifyTimeWithinSpecifiedDays(SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME, delayDays)) {
+                return false;
+            }
+        }
+
+        // process our request
+
         return updateMemberNotificationTimestamp(server, timestamp, delayDays,
                 metricsOnly ? SQL_UPDATE_ROLE_MEMBERS_EXPIRY_METRIC_NOTIFICATION_TIMESTAMP : SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP,
                 "updateRoleMemberExpirationNotificationTimestamp");
@@ -5704,6 +5725,16 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateGroupMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays) {
+
+        // first verify that we haven't had any updates in the last configured
+        // number of delayed days. We don't want multiple instances running
+        // and generating multiple emails depending on the time. We want to
+        // make sure, for example, to generate only a single email per day
+
+        if (isLastNotifyTimeWithinSpecifiedDays(SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME, delayDays)) {
+            return false;
+        }
+
         return updateMemberNotificationTimestamp(server, timestamp, delayDays,
                 SQL_UPDATE_GROUP_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP, "updateGroupMemberExpirationNotificationTimestamp");
     }
@@ -5715,6 +5746,16 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp, int delayDays) {
+
+        // first verify that we haven't had any updates in the last configured
+        // number of delayed days. We don't want multiple instances running
+        // and generating multiple emails depending on the time. We want to
+        // make sure, for example, to generate only a single email per day
+
+        if (isLastNotifyTimeWithinSpecifiedDays(SQL_ROLE_REVIEW_LAST_NOTIFIED_TIME, delayDays)) {
+            return false;
+        }
+
         return updateMemberNotificationTimestamp(server, timestamp, delayDays,
                 SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP, "updateRoleMemberReviewNotificationTimestamp");
     }
@@ -7531,5 +7572,23 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                 .setActive(rs.getBoolean(ZMSConsts.DB_COLUMN_ACTIVE))
                 .setVersion(rs.getString(ZMSConsts.DB_COLUMN_VERSION));
+    }
+
+    boolean isLastNotifyTimeWithinSpecifiedDays(final String sqlCmd, int delayDays) {
+
+        final String caller = "isLastNotifyTimeWithinSpecifiedDays";
+
+        long lastRunTime = 0;
+        try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    lastRunTime = rs.getTimestamp(1).getTime();
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.error("unable to retrieve last notification run time: {}", ex.getMessage());
+            return false;
+        }
+        return System.currentTimeMillis() - lastRunTime < TimeUnit.DAYS.toMillis(delayDays);
     }
 }
