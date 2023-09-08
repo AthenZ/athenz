@@ -46,6 +46,9 @@ public class StaticWorkloadTypeTest {
         swt2 = StaticWorkloadType.CLOUD_MANAGED;
         assertNotSame(swt1, swt2);
 
+        swt2 = StaticWorkloadType.SERVICE_SUBNET;
+        assertNotSame(swt1, swt2);
+
         swt2 = StaticWorkloadType.VIP;
         assertEquals(swt1, swt2);
 
@@ -57,6 +60,7 @@ public class StaticWorkloadTypeTest {
         assertEquals(StaticWorkloadType.fromString("EXTERNAL_APPLIANCE"), StaticWorkloadType.EXTERNAL_APPLIANCE);
         assertEquals(StaticWorkloadType.fromString("VIP_LB"), StaticWorkloadType.VIP_LB);
         assertEquals(StaticWorkloadType.fromString("CLOUD_MANAGED"), StaticWorkloadType.CLOUD_MANAGED);
+        assertEquals(StaticWorkloadType.fromString("SERVICE_SUBNET"), StaticWorkloadType.SERVICE_SUBNET);
 
         try {
             StaticWorkloadType.fromString("XYZ");
