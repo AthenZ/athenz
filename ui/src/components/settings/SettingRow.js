@@ -63,6 +63,7 @@ export default class SettingRow extends React.Component {
     constructor(props) {
         super(props);
         this.onTimeChange = this.onTimeChange.bind(this);
+        this.onTextInputChange = this.onTextInputChange.bind(this);
         this.onDropDownChange = this.onDropDownChange.bind(this);
         this.toggleSwitchButton = this.toggleSwitchButton.bind(this);
         this.onRadioChange = this.onRadioChange.bind(this);
@@ -73,6 +74,10 @@ export default class SettingRow extends React.Component {
     }
 
     onTimeChange(evt) {
+        this.props.onValueChange(this.props.name, evt.target.value);
+    }
+
+    onTextInputChange(evt) {
         this.props.onValueChange(this.props.name, evt.target.value);
     }
 
@@ -116,6 +121,18 @@ export default class SettingRow extends React.Component {
                             id={'setting-' + this.props.name}
                             onChange={this.onTimeChange}
                             onKeyPress={this.numRestricted}
+                            value={this.props.value}
+                        />
+                    </StyledDiv>
+                );
+            case 'text':
+                return (
+                    <StyledDiv>
+                        <SettingInput
+                            placeholder={this.props.unit}
+                            fluid
+                            id={'setting-' + this.props.name}
+                            onChange={this.onTextInputChange}
                             value={this.props.value}
                         />
                     </StyledDiv>

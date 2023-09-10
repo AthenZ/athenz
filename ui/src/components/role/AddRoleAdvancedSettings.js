@@ -33,6 +33,7 @@ import {
     ADD_ROLE_AUDIT_DESC,
     ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
     ADD_ROLE_DELETE_PROTECTION_DESC,
+    ADD_ROLE_DESCRIPTION,
 } from '../constants/constants';
 import SettingRow from '../settings/SettingRow';
 
@@ -238,6 +239,16 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 options={this.state.dateUserAuthorityAttributes}
                 placeholder={ADD_ROLE_AUTHORITY_EXPIRY_PLACEHOLDER}
                 desc={ADD_ROLE_AUTHORITY_EXPIRY_DESC}
+                onValueChange={this.advancedSettingsChanged}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
+            />,
+            <SettingRow
+                key={'setting-row-description'}
+                name='description'
+                label='Description'
+                type='text'
+                desc={ADD_ROLE_DESCRIPTION}
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}

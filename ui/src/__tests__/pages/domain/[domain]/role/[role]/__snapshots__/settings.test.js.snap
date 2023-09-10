@@ -1025,7 +1025,7 @@ exports[`SettingPage should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-220 {
+.emotion-233 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1044,7 +1044,7 @@ exports[`SettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-222 {
+.emotion-235 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1070,25 +1070,25 @@ exports[`SettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-222:first-of-type {
+.emotion-235:first-of-type {
   margin-left: 0;
 }
 
-.emotion-222:disabled {
+.emotion-235:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-222:disabled {
+.emotion-235:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-222:hover:not(:disabled) {
+.emotion-235:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-224 {
+.emotion-237 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1114,13 +1114,13 @@ exports[`SettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-226 {
+.emotion-239 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-227 {
+.emotion-240 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1135,7 +1135,7 @@ exports[`SettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-229 {
+.emotion-242 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1154,28 +1154,28 @@ exports[`SettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-231 {
+.emotion-244 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-233 {
+.emotion-246 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-235 {
+.emotion-248 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-239 {
+.emotion-252 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-241 {
+.emotion-254 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1183,12 +1183,12 @@ exports[`SettingPage should render 1`] = `
   display: flex;
 }
 
-.emotion-243 {
+.emotion-256 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-245 {
+.emotion-258 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -2035,20 +2035,61 @@ exports[`SettingPage should render 1`] = `
                     expiration enforced by a user authority configured attribute
                   </td>
                 </tr>
+                <tr
+                  class="emotion-59 emotion-60"
+                  data-testid="setting-row"
+                >
+                  <td
+                    class="emotion-61 emotion-62"
+                    width="auto"
+                  >
+                    Role Description
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                    width="auto"
+                  >
+                    <div
+                      class="emotion-92 emotion-93"
+                    >
+                      <div
+                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        data-testid="input-wrapper"
+                      >
+                        <input
+                          autocomplete="off"
+                          data-testid="input-node"
+                          id="setting-description"
+                          value=""
+                        />
+                        <div
+                          class="message"
+                          data-testid="message"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-61 emotion-62"
+                    width="auto"
+                  >
+                    Role Description (Optional)
+                  </td>
+                </tr>
               </tbody>
             </table>
             <div
-              class="emotion-220 emotion-221"
+              class="emotion-233 emotion-234"
             >
               <div>
                 <button
-                  class="emotion-222 denali-button"
+                  class="emotion-235 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-222 denali-button"
+                  class="emotion-235 denali-button"
                 >
                   Reset
                 </button>
@@ -2061,11 +2102,11 @@ exports[`SettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-224 emotion-225"
+          class="emotion-237 emotion-238"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-226"
+            class="emotion-239"
             data-testid="icon"
             height="1em"
             id=""
@@ -2081,45 +2122,45 @@ exports[`SettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-227 emotion-228"
+          class="emotion-240 emotion-241"
         >
           <div
-            class="emotion-229 emotion-230"
+            class="emotion-242 emotion-243"
           >
             <div
-              class="emotion-231 emotion-232"
+              class="emotion-244 emotion-245"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-233 emotion-234"
+                class="emotion-246 emotion-247"
               >
                 Create
               </a>
               <span
-                class="emotion-235 emotion-236"
+                class="emotion-248 emotion-249"
               >
                  | 
               </span>
               <a
-                class="emotion-233 emotion-234"
+                class="emotion-246 emotion-247"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-239 emotion-240"
+            class="emotion-252 emotion-253"
           >
             <div
-              class="emotion-241 emotion-242"
+              class="emotion-254 emotion-255"
             >
               <div
-                class="emotion-243 emotion-244"
+                class="emotion-256 emotion-257"
               >
                 <svg
-                  class="emotion-245"
+                  class="emotion-258"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -2141,19 +2182,19 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-233 emotion-234"
+                class="emotion-246 emotion-247"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-241 emotion-242"
+              class="emotion-254 emotion-255"
             >
               <div
-                class="emotion-243 emotion-244"
+                class="emotion-256 emotion-257"
               >
                 <svg
-                  class="emotion-245"
+                  class="emotion-258"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -2175,7 +2216,7 @@ exports[`SettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-233 emotion-234"
+                class="emotion-246 emotion-247"
               >
                 athens.ci
               </a>

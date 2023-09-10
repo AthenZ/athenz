@@ -235,7 +235,7 @@ class RoleSectionRow extends React.Component {
             <Menu
                 placement='bottom-start'
                 trigger={
-                    <span data-testid="description-icon">
+                    <span data-testid='description-icon'>
                         <Icon
                             icon={'information-circle'}
                             color={colors.icons}
@@ -293,9 +293,7 @@ class RoleSectionRow extends React.Component {
         let roleAuditIcon = auditEnabled ? iconAudit : '';
 
         let roleNameSpan =
-            roleTypeIcon === '' &&
-            roleAuditIcon === '' &&
-            roleDescriptionIcon === '' ? (
+            roleTypeIcon === '' && roleAuditIcon === '' ? (
                 <LeftSpan>{' ' + this.state.name}</LeftSpan>
             ) : (
                 <span>{' ' + this.state.name}</span>
@@ -307,8 +305,7 @@ class RoleSectionRow extends React.Component {
                     <TDName color={color} align={left} category={category}>
                         {roleTypeIcon}
                         {roleAuditIcon}
-                        {roleDescriptionIcon}
-                        {roleNameSpan}
+                        {roleNameSpan} {roleDescriptionIcon}
                     </TDName>
                     <TDTime color={color} align={left} category={category}>
                         {role.expiration
@@ -353,8 +350,7 @@ class RoleSectionRow extends React.Component {
                     <TDName color={color} align={left}>
                         {roleTypeIcon}
                         {roleAuditIcon}
-                        {roleDescriptionIcon}
-                        {roleNameSpan}
+                        {roleNameSpan} {roleDescriptionIcon}
                     </TDName>
                     <TDTime color={color} align={left}>
                         {this.localDate.getLocalDate(

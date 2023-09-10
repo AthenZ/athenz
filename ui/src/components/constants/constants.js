@@ -166,6 +166,7 @@ export const ADD_ROLE_AUTHORITY_ROLE_NAME_PLACEHOLDER = 'Enter New Role Name';
 export const ADD_ROLE_MEMBER_PLACEHOLDER = `${USER_DOMAIN}.<userid> or <domain>.<service> or <domain>:group.<group>`;
 export const ADD_ROLE_EXPIRATION_PLACEHOLDER = 'Expiration (Optional)';
 export const ADD_ROLE_REMINDER_PLACEHOLDER = 'Reminder (Optional)';
+export const ADD_ROLE_DESCRIPTION = 'Description (Optional)';
 export const ADD_ROLE_DELEGATED_DOMAIN_PLACEHOLDER =
     'Enter Domain for Delegate Role';
 export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =

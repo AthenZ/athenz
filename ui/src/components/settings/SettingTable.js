@@ -121,6 +121,7 @@ class SettingTable extends React.Component {
 
     setCollectionDetails(collection) {
         let collectionDetails = {
+            description: collection.description,
             reviewEnabled: !!collection.reviewEnabled,
             auditEnabled: !!collection.auditEnabled,
             hasRoleMembers:
@@ -610,7 +611,6 @@ class SettingTable extends React.Component {
                     value={this.state.copyCollectionDetails.userAuthorityFilter}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    // userProfileLink={this.props.userProfileLink}
                 />
             );
 
@@ -630,7 +630,22 @@ class SettingTable extends React.Component {
                     }
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
-                    // userProfileLink={this.props.userProfileLink}
+                />
+            );
+
+        this.props.category === 'role' &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-description'}
+                    domain={this.props.domain}
+                    name='description'
+                    label='Role Description'
+                    type='text'
+                    placeholder='Role Description'
+                    desc='Role Description (Optional)'
+                    value={this.state.copyCollectionDetails.description}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
                 />
             );
 

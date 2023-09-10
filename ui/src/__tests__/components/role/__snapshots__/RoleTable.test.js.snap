@@ -157,6 +157,7 @@ exports[`RoleTable should render 1`] = `
       >
          a
       </span>
+       
     </div>
     <div
       class="emotion-30 emotion-31"
@@ -352,6 +353,7 @@ exports[`RoleTable should render 1`] = `
       >
          b
       </span>
+       
     </div>
     <div
       class="emotion-30 emotion-31"
