@@ -1461,35 +1461,66 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'meta',
     create(req, resource, params, body, config, callback) {
-        if (params.category === 'group') {
-            req.clients.zms.putGroupMeta(
-                {
-                    domainName: params.domainName,
-                    groupName: params.collectionName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putGroupMeta', callback, req })
-            );
-        } else if (params.category === 'role') {
-            req.clients.zms.putRoleMeta(
-                {
-                    domainName: params.domainName,
-                    roleName: params.collectionName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putRoleMeta', callback, req })
-            );
-        } else if (params.category === 'domain') {
-            req.clients.zms.putDomainMeta(
-                {
-                    name: params.domainName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putDomainMeta', callback, req })
-            );
+        switch (params.category) {
+            case 'group': {
+                req.clients.zms.putGroupMeta(
+                    {
+                        domainName: params.domainName,
+                        groupName: params.collectionName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putGroupMeta',
+                        callback,
+                        req,
+                    })
+                );
+                break;
+            }
+            case 'role': {
+                req.clients.zms.putRoleMeta(
+                    {
+                        domainName: params.domainName,
+                        roleName: params.collectionName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putRoleMeta',
+                        callback,
+                        req,
+                    })
+                );
+                break;
+            }
+            case 'domain': {
+                req.clients.zms.putDomainMeta(
+                    {
+                        name: params.domainName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putDomainMeta',
+                        callback,
+                        req,
+                    })
+                );
+                break;
+            }
+            case 'policy': {
+                req.clients.zms.putPolicyVersion(
+                    {
+                        domainName: params.domainName,
+                        policyName: params.collectionName,
+                        policy: params.detail,
+                        auditRef: params.auditRef,
+                    },
+                    responseHandler.bind({ caller: 'putPolicy', callback, req })
+                );
+                break;
+            }
         }
     },
     read(req, resource, params, config, callback) {

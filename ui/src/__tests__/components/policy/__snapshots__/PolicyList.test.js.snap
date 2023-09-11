@@ -151,6 +151,11 @@ exports[`PolicyList should render 1`] = `
         <th
           class="emotion-7 emotion-8"
         >
+          Tags
+        </th>
+        <th
+          class="emotion-7 emotion-8"
+        >
           Duplicate
         </th>
         <th

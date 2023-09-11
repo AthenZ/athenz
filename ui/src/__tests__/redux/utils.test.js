@@ -80,6 +80,14 @@ describe('test redux utils', () => {
             {
                 name: 'dom:policy.acl.ows.outbound',
                 modified: modified,
+                tags: {
+                    tag: {
+                        list: ['tag1'],
+                    },
+                    tag2: {
+                        list: ['tag3'],
+                    },
+                },
                 assertions: {
                     76543: {
                         role: 'dom:role.acl.ows.outbound-test2',
@@ -111,6 +119,14 @@ describe('test redux utils', () => {
             {
                 name: 'dom:policy.policy1',
                 modified: modified,
+                tags: {
+                    tag: {
+                        list: ['tag1', 'tag2'],
+                    },
+                    tag2: {
+                        list: ['tag3'],
+                    },
+                },
                 assertions: {
                     17379: {
                         role: 'dom:role.role2',
@@ -146,14 +162,10 @@ describe('test redux utils', () => {
                 active: false,
             },
         ];
-        expect(
-            _.isEqual(mapToList(configStorePolicies), expected)
-        ).toBeTruthy();
+        expect(mapToList(configStorePolicies)).toEqual(expected);
     });
     it('test policyListToMap', () => {
-        expect(
-            _.isEqual(policyListToMap(apiPolicies), configStorePolicies)
-        ).toBeTruthy();
+        expect(policyListToMap(apiPolicies)).toEqual(configStorePolicies);
     });
     it('test buildPolicyMapKey', () => {
         let policyName = 'dom:policy.policy1';

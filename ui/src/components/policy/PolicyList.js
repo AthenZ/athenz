@@ -403,6 +403,9 @@ export class PolicyList extends React.Component {
                                 Rules
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
+                                Tags
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
                                 Duplicate
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>

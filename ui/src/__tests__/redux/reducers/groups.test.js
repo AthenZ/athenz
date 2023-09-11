@@ -155,16 +155,19 @@ describe('Groups Reducer', () => {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
                 collectionName: 'dom:group.expiration',
-                collectionTags: { tag: { list: ['tag3', 'tag2'] } },
+                collectionWithTags: {
+                    ...configStoreGroups['dom:group.expiration'],
+                    tags: { key1: ['tag3', 'tag2'] },
+                },
                 category: 'group',
             },
         };
         const expectedState = AppUtils.deepClone(initialState);
         expectedState.groups['dom:group.expiration'].tags = {
-            tag: { list: ['tag3', 'tag2'] },
+            key1: ['tag3', 'tag2'],
         };
         const newState = groups(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(newState).toEqual(expectedState);
     });
     it('should add tags to group1 to the store', () => {
         const initialState = {
@@ -176,16 +179,19 @@ describe('Groups Reducer', () => {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
                 collectionName: 'dom:group.group1',
-                collectionTags: { tag: { list: ['tag1', 'tag2'] } },
+                collectionWithTags: {
+                    ...configStoreGroups['dom:group.group1'],
+                    tags: { key1: ['tag1', 'tag2'] },
+                },
                 category: 'group',
             },
         };
         const expectedState = AppUtils.deepClone(initialState);
         expectedState.groups['dom:group.group1'].tags = {
-            tag: { list: ['tag1', 'tag2'] },
+            key1: ['tag1', 'tag2'],
         };
         const newState = groups(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(newState).toEqual(expectedState);
     });
     it('should insert to the store a member to group1', () => {
         const initialState = {

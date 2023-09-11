@@ -79,6 +79,14 @@ export const apiPolicies = [
     {
         name: 'dom:policy.acl.ows.outbound',
         modified: modified,
+        tags: {
+            tag: {
+                list: ['tag1'],
+            },
+            tag2: {
+                list: ['tag3'],
+            },
+        },
         assertions: [
             {
                 role: 'dom:role.acl.ows.outbound-test2',
@@ -110,6 +118,7 @@ export const apiPolicies = [
     {
         name: 'dom:policy.policy1',
         modified: modified,
+        tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
         assertions: [
             {
                 role: 'dom:role.role2',
@@ -187,6 +196,7 @@ export const configStorePolicies = {
     },
     'dom:policy.acl.ows.outbound:0': {
         name: 'dom:policy.acl.ows.outbound',
+        tags: { tag: { list: ['tag1'] }, tag2: { list: ['tag3'] } },
         modified: modified,
         assertions: {
             76543: {
@@ -219,6 +229,7 @@ export const configStorePolicies = {
     'dom:policy.policy1:2': {
         name: 'dom:policy.policy1',
         modified: modified,
+        tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
         assertions: {
             17379: {
                 role: 'dom:role.role2',
