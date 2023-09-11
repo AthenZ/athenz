@@ -4,15 +4,15 @@ The Host Document is expected to contain the following JSON
 
 ```
 {
-    "provider": "value"
+        "provider": "value"
 	"uuid": “long hex value",
 	"account": "value",
 	"domain": "value",
 	"service": "comma separated value",
 	"profile": "value”,
 	"zone": "openstack cluster",
-    "ip": ["value"],
-    "start_time": "RFC 3339",
+        "ip": ["value"],
+        "start_time": "RFC 3339",
 }
 ```
 
