@@ -12,12 +12,6 @@ apt-get install -y libaio1 libnuma-dev build-essential libncurses5 aptitude
 echo "-----------------Install maven: -----------------"
 apt-get install -y maven
 
-echo "-----------------Install nodejs: -----------------"
-curl -sL https://deb.nodesource.com/setup_14.x | bash -
-apt-get install -y nodejs
-aptitude install -y npm
-npm install -g npm@latest
-
 echo "-----------------Install gcc: -----------------"
 apt-get install -y software-properties-common
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -34,9 +28,5 @@ echo "-----------------Java Version: -----------------"
 java -version
 echo "-----------------Maven Version: -----------------"
 mvn -version
-echo "-----------------Nodejs Version: -----------------"
-node -v
-echo "-----------------NPM Version: -----------------"
-npm -v
 echo "-----------------Golang Version: -----------------"
 go version
