@@ -3623,4 +3623,87 @@ public class ZTSClientTest {
 
         client.close();
     }
+
+    @Test
+    public void testConstructorWithValidProxyUrl() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        ZTSClient client = new ZTSClient("http://localhost:4080/",
+                "http://localhost:8080", "iaas.athenz", "ci", siaProvider);
+        client.close();
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testConstructorWithProxyUrlNullDomainNameException() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        ZTSClient client = null;
+
+        try {
+            client = new ZTSClient("http://localhost:4080/",
+                    "http://localhost:8080/", null, "ci", siaProvider);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testConstructorWithProxyUrlNullServiceNameException() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        ZTSClient client = null;
+
+        try {
+            client = new ZTSClient("http://localhost:4080/",
+                    "http://localhost:8080/", "iaas.athenz", null, siaProvider);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testConstructorWithProxyUrlNullSiaProviderException() {
+        ZTSClient client = null;
+
+        try {
+            client = new ZTSClient("http://localhost:4080/",
+                    "http://localhost:8080/", "iaas.athenz", "ci", null);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testConstructorWithProxyUrlEmptyDomainNameException() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        ZTSClient client = null;
+
+        try {
+            client = new ZTSClient("http://localhost:4080/",
+                    "http://localhost:8080/", "", "ci", siaProvider);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testConstructorWithProxyUrlEmptyServiceNameException() {
+        ServiceIdentityProvider siaProvider = Mockito.mock(ServiceIdentityProvider.class);
+        ZTSClient client = null;
+
+        try {
+            client = new ZTSClient("http://localhost:4080/",
+                    "http://localhost:8080/", "iaas.athenz", "", siaProvider);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+    }
+
 }

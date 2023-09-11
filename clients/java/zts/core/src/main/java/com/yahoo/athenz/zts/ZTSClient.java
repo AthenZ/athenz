@@ -506,7 +506,37 @@ public class ZTSClient implements Closeable {
         }
         initClient(ztsUrl, null, domainName, serviceName, siaProvider);
     }
-    
+
+    /**
+     * Constructs a new ZTSClient object with the given service details
+     * identity provider (which will provide the ntoken for the service)
+     * and ZTS Server Url. If the specified zts url is null, then it is
+     * automatically retrieved from athenz.conf configuration file
+     * (ztsUrl field). Default read and connect timeout values are
+     * 30000ms (30sec). The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param ztsUrl ZTS Server's URL (optional)
+     * @param proxyUrl Proxy Server's URL
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param siaProvider service identity provider for the client to request principals
+     */
+    public ZTSClient(String ztsUrl, String proxyUrl, String domainName, String serviceName,
+                     ServiceIdentityProvider siaProvider) {
+        if (isEmpty(domainName)) {
+            throw new IllegalArgumentException("Domain name must be specified");
+        }
+        if (isEmpty(serviceName)) {
+            throw new IllegalArgumentException("Service name must be specified");
+        }
+        if (siaProvider == null) {
+            throw new IllegalArgumentException("Service Identity Provider must be specified");
+        }
+        this.proxyUrl = proxyUrl;
+        initClient(ztsUrl, null, domainName, serviceName, siaProvider);
+    }
+
     /**
      * Close the ZTSClient object and release any allocated resources.
      */
@@ -1585,7 +1615,7 @@ public class ZTSClient implements Closeable {
             if (item.sslContext != null) {
                 client = new ZTSClient(item.providedZTSUrl, item.proxyUrl, item.sslContext);
             } else {
-                client = new ZTSClient(item.providedZTSUrl, item.identityDomain,
+                client = new ZTSClient(item.providedZTSUrl, item.proxyUrl, item.identityDomain,
                         item.identityName, item.siaProvider);
             }
             return client;
