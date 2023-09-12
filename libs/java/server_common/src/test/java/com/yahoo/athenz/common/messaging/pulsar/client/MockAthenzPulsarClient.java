@@ -42,7 +42,7 @@ import static org.testng.Assert.fail;
 
 public class MockAthenzPulsarClient extends AthenzPulsarClient {
 
-    protected PulsarClientImpl getPulsarClient(String serviceUrl, ClientConfigurationData config) throws PulsarClientException {
+    protected PulsarClientImpl getPulsarClient(String serviceUrl, ClientConfigurationData config) {
         try {
             CompletableFuture asyncProducerResult = null;
             if (serviceUrl == null || serviceUrl.isEmpty()) {

@@ -49,7 +49,7 @@ public class HealthCheckFilterTest {
             .thenReturn("/tmp/var/athenz_test");
     }
     
-    private class HealthcheckFilterChain implements FilterChain {
+    private static class HealthcheckFilterChain implements FilterChain {
 
         @Override
         public void doFilter(ServletRequest arg0, ServletResponse arg1) {

@@ -25,12 +25,15 @@ import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
 
@@ -611,6 +614,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "FROM assertion_condition JOIN assertion ON assertion_condition.assertion_id=assertion.assertion_id "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
+
+    private static final String SQL_GET_POLICY_ASSERTIONS_CONDITIONS = "SELECT assertion.assertion_id, "
+            + "assertion_condition.condition_id, assertion_condition.key, assertion_condition.operator, assertion_condition.value "
+            + "FROM assertion_condition JOIN assertion ON assertion_condition.assertion_id=assertion.assertion_id "
+            + "JOIN policy ON policy.policy_id=assertion.policy_id "
+            + "WHERE policy.policy_id=? ORDER BY assertion.assertion_id, assertion_condition.condition_id;";
+
     private static final String SQL_GET_OBJECT_SYSTEM_COUNT = "SELECT COUNT(*) FROM ";
     private static final String SQL_GET_OBJECT_DOMAIN_COUNT = "SELECT COUNT(*) FROM ";
     private static final String SQL_GET_OBJECT_DOMAIN_COUNT_QUERY = " WHERE domain_id=?";
@@ -646,6 +656,12 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT p.name, pt.key, pt.value, p.version FROM policy_tags pt "
             + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
             + "WHERE domain.name=?";
+    private static final String SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM ROLE_MEMBER"
+            + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
+    private static final String SQL_ROLE_REVIEW_LAST_NOTIFIED_TIME = "SELECT review_last_notified_time FROM ROLE_MEMBER"
+            + " WHERE review_last_notified_time IS NOT NULL ORDER BY review_last_notified_time DESC LIMIT 1;";
+    private static final String SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM PRINCIPAL_GROUP_MEMBER"
+            + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -1096,7 +1112,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throws SQLException {
 
         PreparedStatement ps;
-        if (prefix != null && prefix.length() > 0) {
+        if (!StringUtil.isEmpty(prefix)) {
             int len = prefix.length();
             char c = (char) (prefix.charAt(len - 1) + 1);
             String stop = prefix.substring(0, len - 1) + c;
@@ -1863,7 +1879,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throws SQLException {
 
         PreparedStatement ps;
-        if (domainName != null && domainName.length() > 0) {
+        if (!StringUtils.isEmpty(domainName)) {
             final String principalPattern = domainName + ".%";
             ps = con.prepareStatement(SQL_LIST_PRINCIPAL_DOMAIN);
             ps.setString(1, principalPattern);
@@ -3183,6 +3199,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (policyId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_POLICY, ResourceUtils.policyResourceName(domainName, policyName));
         }
+
+        // assertion fetch
         List<Assertion> assertions = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_LIST_ASSERTION)) {
             ps.setInt(1, policyId);
@@ -3200,6 +3218,48 @@ public class JDBCConnection implements ObjectStoreConnection {
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
+
+        // assertion conditions fetch
+        Map<Long, Assertion> assertionsMap = assertions.stream().collect(Collectors.toMap(Assertion::getId, assertion -> assertion));
+        Map<String, AssertionCondition> assertionConditionMap = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_ASSERTIONS_CONDITIONS)) {
+            ps.setInt(1, policyId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    long assertionId = rs.getLong(ZMSConsts.DB_COLUMN_ASSERT_ID);
+                    Assertion assertion = assertionsMap.get(assertionId);
+                    if (assertion == null) {
+                        continue;
+                    }
+                    AssertionConditions assertionConditions = assertion.getConditions();
+                    if (assertionConditions == null) {
+                        assertionConditions = new AssertionConditions();
+                        List<AssertionCondition> assertionConditionList = new ArrayList<>();
+                        assertionConditions.setConditionsList(assertionConditionList);
+                        assertion.setConditions(assertionConditions);
+                    }
+                    int conditionId = rs.getInt(ZMSConsts.DB_COLUMN_CONDITION_ID);
+                    AssertionCondition assertionCondition = assertionConditionMap.get(assertionId + ":" + conditionId);
+                    if (assertionCondition == null) {
+                        assertionCondition = new AssertionCondition();
+                        Map<String, AssertionConditionData> assertionConditionDataMap = new HashMap<>();
+                        assertionCondition.setConditionsMap(assertionConditionDataMap);
+                        assertionCondition.setId(conditionId);
+                        assertionConditionMap.put(assertionId + ":" + conditionId, assertionCondition);
+                        assertionConditions.getConditionsList().add(assertionCondition);
+                    }
+                    AssertionConditionData assertionConditionData = new AssertionConditionData();
+                    if (rs.getString(ZMSConsts.DB_COLUMN_OPERATOR) != null) {
+                        assertionConditionData.setOperator(AssertionConditionOperator.fromString(rs.getString(ZMSConsts.DB_COLUMN_OPERATOR)));
+                    }
+                    assertionConditionData.setValue(rs.getString(ZMSConsts.DB_COLUMN_VALUE));
+                    assertionCondition.getConditionsMap().put(rs.getString(ZMSConsts.DB_COLUMN_KEY), assertionConditionData);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
         return assertions;
     }
 
@@ -4352,7 +4412,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             throws SQLException {
 
         PreparedStatement ps;
-        if (action != null && action.length() > 0) {
+        if (!StringUtils.isEmpty(action)) {
             ps = con.prepareStatement(SQL_LIST_ROLE_ASSERTIONS + SQL_LIST_ROLE_ASSERTION_QUERY_ACTION);
             ps.setString(1, action);
         } else {
@@ -5602,6 +5662,20 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays, boolean metricsOnly) {
+
+        // first verify that we haven't had any updates in the last configured
+        // number of delayed days. We don't want multiple instances running
+        // and generating multiple emails depending on the time. We want to
+        // make sure, for example, to generate only a single email per day
+
+        if (!metricsOnly) {
+            if (isLastNotifyTimeWithinSpecifiedDays(SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME, delayDays)) {
+                return false;
+            }
+        }
+
+        // process our request
+
         return updateMemberNotificationTimestamp(server, timestamp, delayDays,
                 metricsOnly ? SQL_UPDATE_ROLE_MEMBERS_EXPIRY_METRIC_NOTIFICATION_TIMESTAMP : SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP,
                 "updateRoleMemberExpirationNotificationTimestamp");
@@ -5651,6 +5725,16 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateGroupMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays) {
+
+        // first verify that we haven't had any updates in the last configured
+        // number of delayed days. We don't want multiple instances running
+        // and generating multiple emails depending on the time. We want to
+        // make sure, for example, to generate only a single email per day
+
+        if (isLastNotifyTimeWithinSpecifiedDays(SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME, delayDays)) {
+            return false;
+        }
+
         return updateMemberNotificationTimestamp(server, timestamp, delayDays,
                 SQL_UPDATE_GROUP_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP, "updateGroupMemberExpirationNotificationTimestamp");
     }
@@ -5662,6 +5746,16 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp, int delayDays) {
+
+        // first verify that we haven't had any updates in the last configured
+        // number of delayed days. We don't want multiple instances running
+        // and generating multiple emails depending on the time. We want to
+        // make sure, for example, to generate only a single email per day
+
+        if (isLastNotifyTimeWithinSpecifiedDays(SQL_ROLE_REVIEW_LAST_NOTIFIED_TIME, delayDays)) {
+            return false;
+        }
+
         return updateMemberNotificationTimestamp(server, timestamp, delayDays,
                 SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP, "updateRoleMemberReviewNotificationTimestamp");
     }
@@ -7478,5 +7572,23 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setModified(Timestamp.fromMillis(rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime()))
                 .setActive(rs.getBoolean(ZMSConsts.DB_COLUMN_ACTIVE))
                 .setVersion(rs.getString(ZMSConsts.DB_COLUMN_VERSION));
+    }
+
+    boolean isLastNotifyTimeWithinSpecifiedDays(final String sqlCmd, int delayDays) {
+
+        final String caller = "isLastNotifyTimeWithinSpecifiedDays";
+
+        long lastRunTime = 0;
+        try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    lastRunTime = rs.getTimestamp(1).getTime();
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.error("unable to retrieve last notification run time: {}", ex.getMessage());
+            return false;
+        }
+        return System.currentTimeMillis() - lastRunTime < TimeUnit.DAYS.toMillis(delayDays);
     }
 }

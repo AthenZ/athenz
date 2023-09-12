@@ -37,13 +37,14 @@ public class LDAPAuthority implements Authority {
     static final String ATHENZ_PROP_LDAP_PORT = "athenz.auth.ldap.port";
     static final String ATHENZ_AUTH_CHALLENGE = "LDAPAuthentication realm=\"athenz\"";
     static final String ATHENZ_PROP_HOSTNAME = "athenz.auth.ldap.hostname";
-    private String baseDN, portNumber, hostName, providerURL;
+    private String baseDN;
+    private String providerURL;
 
     @Override
     public void initialize() {
         baseDN = System.getProperty(ATHENZ_PROP_LDAP_BASE_DN, "o=Athenz");
-        portNumber = System.getProperty(ATHENZ_PROP_LDAP_PORT, "389");
-        hostName = System.getProperty(ATHENZ_PROP_HOSTNAME, "localhost");
+        final String portNumber = System.getProperty(ATHENZ_PROP_LDAP_PORT, "389");
+        final String hostName = System.getProperty(ATHENZ_PROP_HOSTNAME, "localhost");
         providerURL = "ldap://" + hostName + ":" + portNumber;
     }
 
@@ -131,7 +132,7 @@ public class LDAPAuthority implements Authority {
     }
 
     DirContext getDirContext(String finalDN, String password) throws NamingException {
-        Hashtable env = new Hashtable();
+        Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         env.put(Context.PROVIDER_URL, providerURL);
         env.put(Context.SECURITY_AUTHENTICATION, "simple");
@@ -141,8 +142,7 @@ public class LDAPAuthority implements Authority {
     }
 
     SimplePrincipal getSimplePrincipal(String creds, String username) {
-        SimplePrincipal simplePrincipal = (SimplePrincipal) SimplePrincipal.create(getDomain(),
+        return (SimplePrincipal) SimplePrincipal.create(getDomain(),
                 username.toLowerCase(), creds, this);
-        return simplePrincipal;
     }
 }

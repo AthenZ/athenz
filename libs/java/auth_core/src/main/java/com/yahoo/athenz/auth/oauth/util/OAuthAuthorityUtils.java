@@ -33,7 +33,7 @@ public class OAuthAuthorityUtils {
      * @param  def default value
      * @return     system property value set
      */
-    public static final String getProperty(String key, String def) {
+    public static String getProperty(String key, String def) {
         return System.getProperty(OAuthAuthorityConsts.SYSTEM_PROP_PREFIX + key, def);
     }
 
@@ -43,11 +43,11 @@ public class OAuthAuthorityUtils {
      * @param  delimiter CSV delimiter
      * @return           corresponding Set object of the CSV string, or null if CSV is null or empty
      */
-    public static final Set<String> csvToSet(String csv, String delimiter) {
+    public static Set<String> csvToSet(String csv, String delimiter) {
         if (csv == null || csv.isEmpty()) {
             return null;
         }
-        Set<String> set = new HashSet<String>();
+        Set<String> set = new HashSet<>();
         if (delimiter == null || delimiter.isEmpty()) {
             set.add(csv);
         } else {
@@ -62,7 +62,7 @@ public class OAuthAuthorityUtils {
      * @param request the request
      * @return        the token, or null if no OAuth authorization header was supplied
      */
-    public static final String extractHeaderToken(HttpServletRequest request) {
+    public static String extractHeaderToken(HttpServletRequest request) {
         Enumeration<String> headers = request.getHeaders(OAuthAuthorityConsts.AUTH_HEADER);
         while (headers.hasMoreElements()) {
             // typically there is only one (most servers enforce that)

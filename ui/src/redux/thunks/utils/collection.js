@@ -15,7 +15,7 @@
  */
 
 import { getFullName } from '../../utils';
-import { groupDelimiter, roleDelimiter, serviceDelimiter } from '../../config';
+import { groupDelimiter, policyDelimiter, roleDelimiter, serviceDelimiter } from '../../config';
 
 export const getFullCollectionName = (domainName, collectionName, category) => {
     if (category === 'group') {
@@ -24,6 +24,8 @@ export const getFullCollectionName = (domainName, collectionName, category) => {
         return getFullName(domainName, roleDelimiter, collectionName);
     } else if (category === 'service') {
         return getFullName(domainName, serviceDelimiter, collectionName);
+    } else if (category === 'policy') {
+        return getFullName(domainName, policyDelimiter, collectionName);
     }
     return collectionName;
 };

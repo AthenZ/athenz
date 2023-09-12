@@ -146,10 +146,11 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 		if len(role.RoleMembers) > 0 {
 			roleMembers := make([]*zms.RoleMember, 0)
 			var err error
+			var adminRole *zms.Role
 			if rn == "admin" && validatedAdmins != nil {
 				// need to retrieve the current admin role
 				// and make sure to remove any existing admin
-				adminRole, err := cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
+				adminRole, err = cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
 				if err != nil {
 					return err
 				}
@@ -213,10 +214,11 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 			mem := val.([]interface{})
 			roleMembers := make([]*zms.RoleMember, 0)
 			var err error
+			var role *zms.Role
 			if rn == "admin" && validatedAdmins != nil {
 				// need to retrieve the current admin role
 				// and make sure to remove any existing admin
-				role, err := cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
+				role, err = cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
 				if err != nil {
 					return err
 				}

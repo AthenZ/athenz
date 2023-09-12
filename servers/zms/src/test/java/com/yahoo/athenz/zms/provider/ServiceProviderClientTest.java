@@ -91,7 +91,7 @@ public class ServiceProviderClientTest {
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));
-        assertEquals(text, "" +
+        assertEquals(text,
                 "{" +
                 "\"operation\":\"delete\"," +
                 "\"domainName\":\"test.domain\"," +
@@ -190,8 +190,7 @@ public class ServiceProviderClientTest {
         System.clearProperty(ZMS_PROP_PROVIDER_TRUST_STORE);
         System.clearProperty(ZMS_PROP_PROVIDER_TRUST_STORE_PASSWORD);
         PrivateKeyStore privateKeyStore = Mockito.mock(PrivateKeyStore.class);
-        ServiceProviderManager serviceProviderManager = Mockito.mock(ServiceProviderManager.class);
-        ServiceProviderClient serviceProviderClient = new ServiceProviderClient(privateKeyStore, serviceProviderManager, "home.");
+        ServiceProviderClient serviceProviderClient = new ServiceProviderClient(privateKeyStore, "home.");
         String provider = "provider-test";
         String providerEndpoint = "https://provider-endpoint:12345";
         ServiceProviderManager.DomainDependencyProvider domainDependencyProvider = new ServiceProviderManager.DomainDependencyProvider(provider, providerEndpoint, false);

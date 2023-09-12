@@ -39,7 +39,7 @@ public class ZMSNotificationManagerTest {
 
     @BeforeClass
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @BeforeMethod
@@ -286,5 +286,11 @@ public class ZMSNotificationManagerTest {
         // going to get null notification
 
         assertNull(notificationCommon.createNotification("athenz.service", details, converter, metricConverter));
+    }
+
+    @Test
+    public void testNotificationUtils() {
+        NotificationUtils utils = new NotificationUtils();
+        assertNotNull(utils);
     }
 }

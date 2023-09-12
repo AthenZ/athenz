@@ -20,9 +20,9 @@ import java.util.Objects;
 import java.util.Set;
 
 public class NotificationEmail {
-    private String subject;
-    private String body;
-    private Set<String> fullyQualifiedRecipientsEmail;
+    private final String subject;
+    private final String body;
+    private final Set<String> fullyQualifiedRecipientsEmail;
 
     public NotificationEmail(String subject, String body, Set<String> fullyQualifiedRecipientsEmail) {
         this.subject = subject;

@@ -75,7 +75,7 @@ public class ConfigManagerTest {
         assertEquals("mock://aAb2d4", mockSource2.sourceDescription);
 
         assertEquals(2, changesCount);
-        assertConfigManagerState(configManager, "" +
+        assertConfigManagerState(configManager,
                 "config-test-a -> value-1\n" +
                 "config-test-b -> value-2\n" +
                 "config-test-c -> value-3\n" +
@@ -87,7 +87,7 @@ public class ConfigManagerTest {
         assertFalse(configManager.removeConfigSource("mock://a1b2c3"));
 
         assertEquals(3, changesCount);
-        assertConfigManagerState(configManager, "" +
+        assertConfigManagerState(configManager,
                 "config-test-a -> value-A\n" +
                 "config-test-b -> value-2\n" +
                 "config-test-d -> value-4");
@@ -97,7 +97,7 @@ public class ConfigManagerTest {
         mockSource1 = (MockConfigProvider.MockConfigSource) configManager.getConfigSources()[1];
 
         assertEquals(4, changesCount);
-        assertConfigManagerState(configManager, "" +
+        assertConfigManagerState(configManager,
                 "config-test-a -> value-A\n" +
                 "config-test-b -> value-2\n" +
                 "config-test-c -> value-3\n" +
@@ -110,7 +110,7 @@ public class ConfigManagerTest {
         mockSource1.keysAndValues = "a1c3eE".toCharArray();
         configManager.reloadAllConfigs();
         assertEquals(5, changesCount);
-        assertConfigManagerState(configManager, "" +
+        assertConfigManagerState(configManager,
                 "config-test-a -> value-1\n" +
                 "config-test-c -> value-3\n" +
                 "config-test-d -> value-4\n" +
@@ -125,7 +125,7 @@ public class ConfigManagerTest {
         mockSource2.shouldThrow = true;
         configManager.reloadAllConfigs();
         assertEquals(5, changesCount);
-        assertConfigManagerState(configManager, "" +
+        assertConfigManagerState(configManager,
                 "config-test-a -> value-1\n" +
                 "config-test-c -> value-3\n" +
                 "config-test-d -> value-4\n" +

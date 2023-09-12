@@ -15,7 +15,8 @@ public enum StaticWorkloadType {
     CLOUD_NAT,
     EXTERNAL_APPLIANCE,
     VIP_LB,
-    CLOUD_MANAGED;
+    CLOUD_MANAGED,
+    SERVICE_SUBNET;
 
     public static StaticWorkloadType fromString(String v) {
         for (StaticWorkloadType e : values()) {

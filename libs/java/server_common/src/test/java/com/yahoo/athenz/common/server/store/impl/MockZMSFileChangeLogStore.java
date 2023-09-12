@@ -25,8 +25,6 @@ import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mockito.Mockito;
-
 import com.yahoo.athenz.zms.DomainList;
 import com.yahoo.athenz.zms.SignedDomains;
 import com.yahoo.athenz.zms.ZMSClient;

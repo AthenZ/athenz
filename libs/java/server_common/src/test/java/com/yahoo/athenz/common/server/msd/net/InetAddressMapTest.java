@@ -17,14 +17,12 @@
 package com.yahoo.athenz.common.server.msd.net;
 
 import com.yahoo.athenz.msd.DynamicWorkload;
-import com.yahoo.athenz.msd.StaticWorkload;
 import org.testng.annotations.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import static org.testng.Assert.*;

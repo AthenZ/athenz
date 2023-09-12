@@ -21,14 +21,19 @@ package com.yahoo.athenz.db.dynamodb;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 
 public class DynamoDBClientSettings {
-    private String certPath;
-    private String domainName;
-    private String roleName;
-    private String trustStore;
-    private String trustStorePassword;
-    private String ztsURL;
-    private String region;
-    private String keyPath;
+    private final String certPath;
+    private final String domainName;
+    private final String roleName;
+    private final String trustStore;
+    private final String trustStorePassword;
+    private final String ztsURL;
+    private final String region;
+    private final String keyPath;
+    private final String appName;
+    private final PrivateKeyStore keyStore;
+    private final String externalId;
+    private final Integer minExpiryTime;
+    private final Integer maxExpiryTime;
 
     public DynamoDBClientSettings(String certPath,
                                   String domainName,
@@ -57,12 +62,6 @@ public class DynamoDBClientSettings {
         this.minExpiryTime = minExpiryTime;
         this.maxExpiryTime = maxExpiryTime;
     }
-
-    private String appName;
-    private PrivateKeyStore keyStore;
-    private String externalId;
-    private Integer minExpiryTime;
-    private Integer maxExpiryTime;
 
     public boolean areCredentialsProvided() {
         return (keyPath != null && !keyPath.isEmpty() &&

@@ -28,10 +28,12 @@ import {
     selectPoliciesThunk,
     selectPolicy,
     selectPolicyAssertions,
+    selectPolicyTags,
     selectPolicyThunk,
     selectPolicyVersion,
     selectPolicyVersionThunk,
 } from '../../../redux/selectors/policies';
+import { selectRoleTags } from '../../../redux/selectors/roles';
 
 const stateWithPolicies = {
     policies: {
@@ -86,6 +88,7 @@ const policyList = [
     {
         name: 'dom:policy.acl.ows.outbound',
         modified: modified,
+        tags: { tag: { list: ['tag1'] }, tag2: { list: ['tag3'] } },
         assertions: {
             76543: {
                 role: 'dom:role.acl.ows.outbound-test2',
@@ -117,6 +120,7 @@ const policyList = [
     {
         name: 'dom:policy.policy1',
         modified: modified,
+        tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
         assertions: {
             17379: {
                 role: 'dom:role.role2',
@@ -195,6 +199,7 @@ const activePoliciesOnly = [
     {
         name: 'dom:policy.acl.ows.outbound',
         modified: modified,
+        tags: { tag: { list: ['tag1'] }, tag2: { list: ['tag3'] } },
         assertions: {
             76543: {
                 role: 'dom:role.acl.ows.outbound-test2',
@@ -230,13 +235,13 @@ describe('test selectPoliciesThunk', () => {
         expect(
             _.isEqual(
                 selectPoliciesThunk(stateWithPolicies),
-                configStorePolicies,
-            ),
+                configStorePolicies
+            )
         ).toBeTruthy();
     });
     it('should return empty object', () => {
         expect(
-            _.isEqual(selectPoliciesThunk(stateWithoutPolicies), {}),
+            _.isEqual(selectPoliciesThunk(stateWithoutPolicies), {})
         ).toBeTruthy();
     });
 });
@@ -253,7 +258,7 @@ describe('test selectPolicies', () => {
 describe('test selectOnlyActivePolicies', () => {
     it('should select active policies only', () => {
         expect(selectActivePoliciesOnly(stateWithPolicies)).toEqual(
-            activePoliciesOnly,
+            activePoliciesOnly
         );
     });
 });
@@ -278,16 +283,16 @@ describe('test selectPolicy', () => {
         expect(
             _.isEqual(
                 selectPolicy(stateWithPolicies, domainName, 'policy1'),
-                policy,
-            ),
+                policy
+            )
         ).toBeTruthy();
     });
     it('should return null', () => {
         expect(
             _.isEqual(
                 selectPolicy(stateWithPolicies, domainName, 'not_exists'),
-                null,
-            ),
+                null
+            )
         ).toBeTruthy();
     });
 });
@@ -312,16 +317,16 @@ describe('test selectPolicyThunk', () => {
         expect(
             _.isEqual(
                 selectPolicyThunk(stateWithPolicies, domainName, 'policy1'),
-                policy,
-            ),
+                policy
+            )
         ).toBeTruthy();
     });
     it('should return null', () => {
         expect(
             _.isEqual(
                 selectPolicyThunk(stateWithPolicies, domainName, 'not_exists'),
-                null,
-            ),
+                null
+            )
         ).toBeTruthy();
     });
 });
@@ -330,6 +335,7 @@ describe('test selectPolicyVersion', () => {
     it('should return policy', () => {
         const policy = {
             name: 'dom:policy.policy1',
+            tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
             modified: modified,
             assertions: [
                 {
@@ -344,7 +350,7 @@ describe('test selectPolicyVersion', () => {
             active: false,
         };
         expect(
-            selectPolicyVersion(stateWithPolicies, domainName, 'policy1', '2'),
+            selectPolicyVersion(stateWithPolicies, domainName, 'policy1', '2')
         ).toEqual(policy);
     });
     it('should return null', () => {
@@ -354,10 +360,10 @@ describe('test selectPolicyVersion', () => {
                     stateWithPolicies,
                     domainName,
                     'policy1',
-                    'not_exists',
+                    'not_exists'
                 ),
-                null,
-            ),
+                null
+            )
         ).toBeTruthy();
     });
 });
@@ -367,6 +373,7 @@ describe('test selectPolicyVersionThunk', () => {
         const policy = {
             name: 'dom:policy.policy1',
             modified: modified,
+            tags: { tag: { list: ['tag1', 'tag2'] }, tag2: { list: ['tag3'] } },
             assertions: {
                 17379: {
                     role: 'dom:role.role2',
@@ -384,8 +391,8 @@ describe('test selectPolicyVersionThunk', () => {
                 stateWithPolicies,
                 domainName,
                 'policy1',
-                '2',
-            ),
+                '2'
+            )
         ).toEqual(policy);
     });
     it('should return null', () => {
@@ -395,10 +402,10 @@ describe('test selectPolicyVersionThunk', () => {
                     stateWithPolicies,
                     domainName,
                     'policy1',
-                    'not_exists',
+                    'not_exists'
                 ),
-                null,
-            ),
+                null
+            )
         ).toBeTruthy();
     });
 });
@@ -417,13 +424,38 @@ describe('test selectPolicyAssertions', () => {
         expect(
             _.isEqual(
                 selectPolicyAssertions(stateWithPolicies, domainName, 'admin'),
-                assertions,
-            ),
+                assertions
+            )
         ).toBeTruthy();
     });
     it('should return empty list', () => {
         expect(
-            selectPolicyAssertions(stateWithoutPolicies, domainName, 'admin'),
+            selectPolicyAssertions(stateWithoutPolicies, domainName, 'admin')
+        ).toEqual([]);
+    });
+});
+describe('test selectPolicyTags selector', () => {
+    it('should return policy with version tags', () => {
+        const expectedRoleTags = {
+            tag: { list: ['tag1', 'tag2'] },
+            tag2: { list: ['tag3'] },
+        };
+        expect(
+            selectPolicyTags(stateWithPolicies, domainName, 'policy1', '2')
+        ).toEqual(expectedRoleTags);
+    });
+    it('should return without version tags', () => {
+        const expectedRoleTags = {
+            tag: { list: ['tag1'] },
+            tag2: { list: ['tag3'] },
+        };
+        expect(
+            selectPolicyTags(stateWithPolicies, domainName, 'acl.ows.outbound')
+        ).toEqual(expectedRoleTags);
+    });
+    it('should return empty object', () => {
+        expect(
+            selectPolicyTags(stateWithPolicies, domainName, 'admin')
         ).toEqual([]);
     });
 });

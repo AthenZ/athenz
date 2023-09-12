@@ -163,13 +163,13 @@ exports[`PolicyRow should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-22 {
+.emotion-25 {
   fill: #d5d5d5;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-23 {
+.emotion-26 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -261,7 +261,30 @@ exports[`PolicyRow should render 1`] = `
     width="10%"
   >
     <svg
-      class="emotion-22"
+      class="emotion-19"
+      data-testid="icon"
+      height="1.25em"
+      id=""
+      viewBox="0 0 1024 1024"
+      width="1.25em"
+    >
+      <title>
+        tag
+      </title>
+      <path
+        d="M492.8 145.067l360.533 360.533v347.733h-347.733l-360.533-360.533 347.733-347.733zM492.8 42.667c-11.712 0.172-22.255 5.037-29.86 12.793l-0.007 0.007-407.467 407.467c-8.083 7.434-13.13 18.061-13.13 29.867s5.047 22.432 13.101 29.84l0.029 0.026 416 416h424.533c23.564 0 42.667-19.103 42.667-42.667v0-424.533l-416-416c-7.612-7.763-18.155-12.628-29.835-12.8l-0.032-0z"
+      />
+      <path
+        d="M746.667 661.333c0 47.128-38.205 85.333-85.333 85.333s-85.333-38.205-85.333-85.333c0-47.128 38.205-85.333 85.333-85.333s85.333 38.205 85.333 85.333z"
+      />
+    </svg>
+  </td>
+  <td
+    class="emotion-2 emotion-3"
+    width="10%"
+  >
+    <svg
+      class="emotion-25"
       data-testid="icon"
       height="1.25em"
       id=""
@@ -277,11 +300,11 @@ exports[`PolicyRow should render 1`] = `
     </svg>
   </td>
   <td
-    class="emotion-23 emotion-3"
+    class="emotion-26 emotion-3"
     width="15%"
   >
     <svg
-      class="emotion-22"
+      class="emotion-25"
       data-testid="icon"
       height="1.25em"
       id=""

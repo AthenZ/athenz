@@ -26,7 +26,7 @@ public class SSLUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(SSLUtils.class);
 
     public static class ClientSSLContextBuilder {
-        private String sslProtocol;
+        private final String sslProtocol;
         private PrivateKeyStore privateKeyStore;
         private char[] keyStorePassword;
         private char[] keyManagerPassword;
@@ -257,10 +257,10 @@ public class SSLUtils {
     public static PrivateKeyStore loadServicePrivateKey(String pkeyFactoryClass) {
         PrivateKeyStoreFactory pkeyFactory;
         try {
-            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOGGER.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
-            throw new IllegalArgumentException("Invalid private key store");
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid PrivateKeyStoreFactory class: {}", pkeyFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid private key store", ex);
         }
         return pkeyFactory.create();
     }

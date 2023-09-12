@@ -290,12 +290,11 @@ class TagList extends React.Component {
         const center = 'center';
         let rows = '';
         const clonedTags = AppUtils.deepClone(this.props.tags || {});
-        var categoryObject = this.props.domain;
-        if (this.state.category === 'role') {
-            categoryObject = this.props.collectionName;
-        } else if (this.state.category === 'group') {
-            categoryObject = this.props.collectionName;
-        }
+        let categoryObject =
+            this.state.category !== 'domain'
+                ? this.props.collectionName
+                : this.props.domain;
+
         rows = Object.entries(clonedTags).map((item, i) => {
             const tagKey = item[0];
             const tagValues = item[1];

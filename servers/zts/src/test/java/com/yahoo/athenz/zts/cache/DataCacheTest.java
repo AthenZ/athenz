@@ -20,7 +20,6 @@ import static org.testng.Assert.*;
 import java.util.*;
 
 import com.yahoo.athenz.zts.ZTSTestUtils;
-import org.hamcrest.MatcherAssert;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.zms.Assertion;

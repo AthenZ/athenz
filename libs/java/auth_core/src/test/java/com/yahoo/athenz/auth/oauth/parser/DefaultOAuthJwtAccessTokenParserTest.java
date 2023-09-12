@@ -33,12 +33,7 @@ import io.jsonwebtoken.JwtParser;
 public class DefaultOAuthJwtAccessTokenParserTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
-    private final KeyStore baseKeyStore = new KeyStore() {
-        @Override
-        public String getPublicKey(String domain, String service, String keyId) {
-            return null;
-        }
-    };
+    private final KeyStore baseKeyStore = (domain, service, keyId) -> null;
 
     @Test
     public void testDefaultOAuthJwtAccessTokenParser() {
@@ -50,13 +45,12 @@ public class DefaultOAuthJwtAccessTokenParserTest {
                 throw new RuntimeException(e);
             }
         };
-        DefaultOAuthJwtAccessTokenParser parser = null;
 
         // new error
         assertThrows(IllegalArgumentException.class, () -> new DefaultOAuthJwtAccessTokenParser(null, null));
 
         // new with null/empty URL
-        parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, null);
+        DefaultOAuthJwtAccessTokenParser parser = new DefaultOAuthJwtAccessTokenParser(baseKeyStore, null);
         assertNotNull(parser);
         for (Field f : parser.getClass().getDeclaredFields()) {
             switch (f.getName()) {
@@ -114,9 +108,14 @@ public class DefaultOAuthJwtAccessTokenParserTest {
 
         // parse success
         String jwtString = "dummy-jwt-string";
-        Jws<Claims> jws = new Jws<Claims>() {
-            public JwsHeader getHeader() { return null; }
-            public Claims getBody() { return null; }
+        Jws<Claims> jws = new Jws<>() {
+            public JwsHeader getHeader() {
+                return null;
+            }
+
+            public Claims getBody() {
+                return null;
+            }
 
             @Override
             public String getSignature() {

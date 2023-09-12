@@ -23,8 +23,6 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.zms.*;
-import com.yahoo.athenz.zms.notification.MockNotificationService;
-import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,8 +110,8 @@ public class ServiceProviderManagerTest {
         }
         List<Future<Boolean>> futures = executor.invokeAll(assertServiceProviderTasks);
         executor.shutdown();
-        for (int i = 0; i < futures.size(); ++i) {
-            if (!futures.get(i).get()) {
+        for (Future<Boolean> future : futures) {
+            if (!future.get()) {
                 fail();
             }
         }
@@ -137,7 +135,7 @@ public class ServiceProviderManagerTest {
         return testRole;
     }
 
-    public class AssertServiceProviderTask implements Callable<Boolean> {
+    public static class AssertServiceProviderTask implements Callable<Boolean> {
         final int threadNumber;
         final ServiceProviderManager serviceProviderManager;
         final long fetchFrequency;

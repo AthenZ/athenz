@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>body {
+        font-family: "Helvetica", Helvetica, Arial, serif;
+    }
+    .athenz-wrapper {
+        width: 100%;
+        min-width: 500px;
+        min-height: 502px;
+        overflow: hidden;
+        margin: 0;
+        font-family: "Helvetica", Helvetica, Arial, serif;
+        -webkit-font-smoothing: antialiased;
+        background-color: rgba(231, 232, 231, 1.0);
+    }
+    .athenz-wrapper .mbrapproval.unrefreshedcerts {
+        width: 900px;
+        height: auto;
+        min-height: 402px;
+    }
+    .athenz-wrapper .mbrapproval {
+        width: 500px;
+        height: 402px;
+        margin: auto;
+        background-color:white;
+        border-radius: 5px;
+    }
+    .mbrapproval .logo {
+        background-color: rgb(1,36,57);
+        height: 45px;
+        width: 100%;
+        border-radius: 5px;
+    }
+    .mbrapproval .athenzlogowhite {
+        background-color: rgba(255,255,255,0.0);
+        height: 26px;
+        width: 110px;
+        padding: 10px;
+    }
+    .mbrapproval .hdr {
+        background-color: rgba(255, 255, 255, 0.0);
+        height: auto;
+        width: 440px;
+        margin: 20px;
+        font-family: "Helvetica-Bold", Helvetica, Arial, serif;
+        font-size: 18px;
+        color: rgba(48, 48, 48, 1.0);
+        text-align: left;
+        line-height: 24px;
+    }
+    .mbrapproval .bt.unrefreshedcerts {
+        width: 640px;
+    }
+    .mbrapproval .bt {
+        background-color: rgba(255, 255, 255, 0.0);
+        height: auto;
+        width: 440px;
+        margin: 20px;
+        font-size: 14px;
+        color: rgba(47, 48, 47, 1.0);
+        text-align: left;
+        line-height: 18px;
+    }
+    .mbrapproval table {
+        width: 97%;
+        margin-left: 20px;
+    }
+    .mbrapproval td {
+        padding: 5px;
+        text-align: left;
+    }
+    .mbrapproval th {
+        padding: 5px;
+        text-align: left;
+        font-weight: bold;
+    }
+    .mbrapproval div {
+        -webkit-text-size-adjust: none;
+    }
+    .mbrapproval a {
+        text-decoration: none;
+        color: rgba(54, 151, 242, 1.0);
+    }
+    .mbrapproval .cv, table#t01 td:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.0);
+        height: auto;
+        width: 300px;
+        margin: 0;
+        font-size: 14px;
+        color: rgba(48, 48, 48, 1.0);
+        text-align: left;
+        line-height: 17px;
+    }
+    .mbrapproval .ch, table#t01 td:nth-child(odd) {
+        background-color: rgba(255, 255, 255, 0.0);
+        height: auto;
+        width: 120px;
+        margin: 0;
+        opacity: 0.48;
+        font-size: 12px;
+        color: rgba(47, 48, 47, 1.0);
+        text-align: left;
+        line-height: 14px;
+    }
+    .footer-container .footer {
+        background-color: rgba(255, 255, 255, 0.0);
+        height: auto;
+        width: 440px;
+        margin: 15px 0 0 20px;
+        font-size: 12px;
+        color: rgba(48, 48, 48, 1.0);
+        text-align: left;
+        line-height: 14px;
+        display: inline-block;
+    }
+    .mbrapproval hr {
+        margin: 20px;
+        width: 92%;
+    }
+    .athenz-wrapper .footer-container {
+        text-align: center;
+    }
+    .divScroll {
+        height: 200px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+    @media only screen and (max-width: 600px) {
+        .footer-container .footer {
+            font-size: 8px;
+        }
+        .athenz-wrapper {
+            min-height: 480px;
+        }
+    }
+    </style>
+</head>
+<body style="margin: 0; background: rgba(231, 232, 231, 1.0);">
+<div class="athenz-wrapper">
+    <div class="mbrapproval">
+        <div class="logo">
+            <img src="cid:logo" class="athenzlogowhite" alt="Athenz logo"/>
+        </div>
+        <div class="hdr">Principal Expiry Details</div>
+        <div class="bt">Access for the principals you manage in the following roles will expire soon:</div>
+        <hr>
+        <div class="divScroll">
+            <table id="t03">
+                <thead>
+                <tr>
+                    <th class="ch">DOMAIN</th>
+                    <th class="ch">ROLE</th>
+                    <th class="ch">MEMBER</th>
+                    <th class="ch">EXPIRATION</th>
+                </tr>
+                </thead>
+                <tbody><tr><td class="cv"><a href="https://athenz.io/domain/athenz/role">athenz</a></td><td class="cv"><a href="https://athenz.io/domain/athenz/role/admin/members">admin</a></td><td class="cv">user.joe</td><td class="cv">2023-01-01T000000Z</td></tr>
+                <tr><td class="cv"><a href="https://athenz.io/domain/athenz/role">athenz</a></td><td class="cv"><a href="https://athenz.io/domain/athenz/role/readers/members">readers</a></td><td class="cv">user.jane</td><td class="cv">2023-01-01T000000Z</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <hr>
+        <div class="bt"><br>Please review this list and, if necessary, follow up with their respective domain administrators to extend those expiration dates.</div>
+    </div>
+    <div class="footer-container">
+        <div class="footer">This is a generated email from <a href="https://athenz.io">Athenz</a>. Please do not respond.</div>
+    </div>
+</div>
+</body>
+</html>

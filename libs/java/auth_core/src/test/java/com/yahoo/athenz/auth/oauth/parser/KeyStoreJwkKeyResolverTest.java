@@ -18,7 +18,6 @@ package com.yahoo.athenz.auth.oauth.parser;
 import static org.testng.Assert.*;
 import java.io.FileReader;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -55,8 +54,8 @@ public class KeyStoreJwkKeyResolverTest {
     };
 
     @Test
-    public void testKeyStoreJwkKeyResolver() throws MalformedURLException {
-        KeyStoreJwkKeyResolver resolver = null; BiFunction<Field, KeyStoreJwkKeyResolver, Object> getFieldValue = (f, object) -> {
+    public void testKeyStoreJwkKeyResolver() {
+        BiFunction<Field, KeyStoreJwkKeyResolver, Object> getFieldValue = (f, object) -> {
             try {
                 f.setAccessible(true);
                 return f.get(object);
@@ -65,7 +64,7 @@ public class KeyStoreJwkKeyResolverTest {
             }
         };
 
-        resolver = new KeyStoreJwkKeyResolver(null, null, null);
+        KeyStoreJwkKeyResolver resolver = new KeyStoreJwkKeyResolver(null, null, null);
         assertNotNull(resolver);
         for (Field f : resolver.getClass().getDeclaredFields()) {
             switch (f.getName()) {
@@ -157,7 +156,7 @@ public class KeyStoreJwkKeyResolverTest {
         assertSame(resolver.resolveSigningKey(jwsHeader, claims), pk24);
 
         // 3. found in key store, skip JWKS
-        PublicKey pk31 = null;
+        PublicKey pk31;
 
         try (PemReader reader = new PemReader(new FileReader(this.classLoader.getResource("jwt_public.key").getFile()))) {
             pk31 = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(reader.readPemObject().getContent()));
@@ -205,7 +204,7 @@ public class KeyStoreJwkKeyResolverTest {
     }
 
     @Test
-    public void testResolveSigningKeyForJwe() throws MalformedURLException {
+    public void testResolveSigningKeyForJwe() {
         KeyStoreJwkKeyResolver resolver = new KeyStoreJwkKeyResolver(null, "file:///", null);
         assertNull(resolver.resolveSigningKey(null, (String) null));
         assertNull(resolver.resolveSigningKey(null, ""));

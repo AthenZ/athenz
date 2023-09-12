@@ -59,15 +59,15 @@ public class NotificationMetric {
 
     @Override
     public int hashCode() {
-        if (attributes == null || attributes.size() == 0) {
+        if (attributes == null || attributes.isEmpty()) {
             return Objects.hash(attributes);
         }
 
         final int prime = 31;
         int result = 1;
 
-        for (int i = 0; i < attributes.size(); ++i) {
-            result = prime * result + Arrays.hashCode(attributes.get(i));
+        for (String[] attribute : attributes) {
+            result = prime * result + Arrays.hashCode(attribute);
         }
 
         return result;
@@ -76,12 +76,9 @@ public class NotificationMetric {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < attributes.size(); ++i) {
-            stringBuilder.append(String.join(",", attributes.get(i))).append(";");
+        for (String[] attribute : attributes) {
+            stringBuilder.append(String.join(",", attribute)).append(";");
         }
-
-        return "NotificationMetric{" +
-                "attributes=" + stringBuilder.toString() +
-                '}';
+        return "NotificationMetric{attributes=" + stringBuilder + "}";
     }
 }

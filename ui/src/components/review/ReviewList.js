@@ -86,6 +86,7 @@ class ReviewList extends React.Component {
                     <GroupReviewTable
                         domain={domain}
                         groupName={collection}
+                        timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
                     />

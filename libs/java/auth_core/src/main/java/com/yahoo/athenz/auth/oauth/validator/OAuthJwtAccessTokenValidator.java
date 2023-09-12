@@ -33,7 +33,7 @@ public interface OAuthJwtAccessTokenValidator {
      * @param  jwt                          jwt object
      * @throws OAuthJwtAccessTokenException throws when the JWT is invalid
      */
-    public void validate(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException;
+    void validate(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException;
 
     /**
      * validate client ID claim
@@ -41,7 +41,7 @@ public interface OAuthJwtAccessTokenValidator {
      * @param  clientId                     expected client ID
      * @throws OAuthJwtAccessTokenException throws when the client ID in the JWT is invalid
      */
-    public void validateClientId(OAuthJwtAccessToken jwt, String clientId) throws OAuthJwtAccessTokenException;
+    void validateClientId(OAuthJwtAccessToken jwt, String clientId) throws OAuthJwtAccessTokenException;
 
     /**
      * validate certificate binding of the JWT
@@ -49,7 +49,7 @@ public interface OAuthJwtAccessTokenValidator {
      * @param  certificateThumbprint        expected certificate thumbprint
      * @throws OAuthJwtAccessTokenException throws when the certificate thumbprint in the JWT is invalid
      */
-    public void validateCertificateBinding(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException;
+    void validateCertificateBinding(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException;
 
     /**
      * validate certificate binding of the JWT
@@ -57,7 +57,7 @@ public interface OAuthJwtAccessTokenValidator {
      * @param  x509Certificate              the bound certificate
      * @throws OAuthJwtAccessTokenException throws when the certificate thumbprint in the JWT is invalid
      */
-    default public void validateCertificateBinding(OAuthJwtAccessToken jwt, X509Certificate x509Certificate) throws OAuthJwtAccessTokenException {
+    default void validateCertificateBinding(OAuthJwtAccessToken jwt, X509Certificate x509Certificate) throws OAuthJwtAccessTokenException {
         String certificateThumbprint;
         try {
             certificateThumbprint = this.getX509CertificateThumbprint(x509Certificate);
@@ -73,7 +73,7 @@ public interface OAuthJwtAccessTokenValidator {
      * @return X.509 certificate common name
      * @throws NullPointerException on null
      */
-    default public String getX509CertificateCommonName(X509Certificate x509Certificate) {
+    default String getX509CertificateCommonName(X509Certificate x509Certificate) {
         return Crypto.extractX509CertCommonName(x509Certificate);
     }
 
@@ -86,7 +86,7 @@ public interface OAuthJwtAccessTokenValidator {
      * @throws NullPointerException         on null
      * @see <a href="https://tools.ietf.org/html/draft-ietf-oauth-mtls-17#section-3.1" target="_top">draft-ietf-oauth-mtls-17</a>
      */
-    default public String getX509CertificateThumbprint(X509Certificate x509Certificate) throws CertificateEncodingException, CryptoException {
+    default String getX509CertificateThumbprint(X509Certificate x509Certificate) throws CertificateEncodingException, CryptoException {
         byte[] encodedCert = Crypto.sha256(x509Certificate.getEncoded());
         return Base64.getUrlEncoder().withoutPadding().encodeToString(encodedCert);
     }

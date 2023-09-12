@@ -35,7 +35,6 @@ public class MockDomainChangePublisher implements ChangePublisher<DomainChangeMe
 
     @Override
     public void close() {
-        
     }
 
     public static class Recorder {

@@ -19,9 +19,6 @@ import static org.testng.Assert.*;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.zms.ResourceException;
-
-
 public class ResourceExceptionTest {
 
     @Test

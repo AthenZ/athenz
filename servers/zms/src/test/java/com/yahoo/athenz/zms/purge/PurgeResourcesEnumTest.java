@@ -1,6 +1,5 @@
 package com.yahoo.athenz.zms.purge;
 
-import com.yahoo.athenz.zms.notification.DisableNotificationEnum;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;

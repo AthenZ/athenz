@@ -12,7 +12,8 @@ type StaticWorkloadType Enum {
     CLOUD_NAT, // represents a public cloud NAT gateway ( for egress from public cloud )
     EXTERNAL_APPLIANCE, // Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases
     VIP_LB, // represents a virtual ip backed by a load balancer
-    CLOUD_MANAGED // represents a cloud managed service or endpoint
+    CLOUD_MANAGED, // represents a cloud managed service or endpoint
+    SERVICE_SUBNET // represents subnet for a given service, would be almost always a RFC1918 cidr
 }
 
 

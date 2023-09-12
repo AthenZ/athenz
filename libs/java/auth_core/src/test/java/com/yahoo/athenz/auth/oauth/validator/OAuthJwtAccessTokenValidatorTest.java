@@ -33,7 +33,7 @@ public class OAuthJwtAccessTokenValidatorTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
     private OAuthJwtAccessTokenValidator baseValidator = null;
-    private final X509Certificate readCert(String resourceName) throws Exception {
+    private X509Certificate readCert(String resourceName) throws Exception {
         try (FileInputStream certIs = new FileInputStream(this.classLoader.getResource(resourceName).getFile())) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return (X509Certificate) cf.generateCertificate(certIs);
@@ -43,9 +43,9 @@ public class OAuthJwtAccessTokenValidatorTest {
     @BeforeMethod
     public void initialize() throws Exception {
         this.baseValidator = new OAuthJwtAccessTokenValidator() {
-            public void validate(OAuthJwtAccessToken jwt) throws OAuthJwtAccessTokenException {}
-            public void validateClientId(OAuthJwtAccessToken jwt, String clientId) throws OAuthJwtAccessTokenException {}
-            public void validateCertificateBinding(OAuthJwtAccessToken jwt, String certificateThumbprint) throws OAuthJwtAccessTokenException {}
+            public void validate(OAuthJwtAccessToken jwt) {}
+            public void validateClientId(OAuthJwtAccessToken jwt, String clientId) {}
+            public void validateCertificateBinding(OAuthJwtAccessToken jwt, String certificateThumbprint) {}
         };
     }
 

@@ -29,9 +29,9 @@ public class RolePrefixTrie implements PrefixTrie<String> {
 
     private final TrieNode root = new TrieNode();
 
-    private class TrieNode {
-        private HashMap<String, TrieNode> children = new HashMap<>();
-        private Set<String> roles = new HashSet<>();
+    private static class TrieNode {
+        private final HashMap<String, TrieNode> children = new HashMap<>();
+        private final Set<String> roles = new HashSet<>();
     }
 
     @Override

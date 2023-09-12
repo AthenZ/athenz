@@ -31,7 +31,7 @@ public class DynamoDBWorkloadRecordStoreTest {
 
     @BeforeMethod
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test

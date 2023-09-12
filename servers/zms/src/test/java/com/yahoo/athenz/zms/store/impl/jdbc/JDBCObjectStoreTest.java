@@ -22,7 +22,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
-import com.yahoo.athenz.zms.store.impl.jdbc.JDBCObjectStore;
 
 import static org.testng.Assert.*;
 

@@ -35,9 +35,9 @@ public class RoleToken extends Token {
     public static class Builder {
 
         // required attributes
-        private String domain;
-        private List<String> roles;
-        private String version;
+        private final String domain;
+        private final List<String> roles;
+        private final String version;
         private String principal = null;
         private String proxyUser = null;
         private boolean domainCompleteRoleSet = false;

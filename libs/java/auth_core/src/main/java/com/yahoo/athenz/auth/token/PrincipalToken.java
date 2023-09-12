@@ -41,9 +41,9 @@ public class PrincipalToken extends Token {
     public static class Builder {
 
         // required attributes
-        private String domain;
-        private String name;
-        private String version;
+        private final String domain;
+        private final String name;
+        private final String version;
         
         // optional attributes with default values
         private String salt = Crypto.randomSalt();

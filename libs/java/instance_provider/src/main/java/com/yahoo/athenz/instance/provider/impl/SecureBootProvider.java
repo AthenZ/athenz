@@ -182,8 +182,8 @@ public class SecureBootProvider implements InstanceProvider {
     /**
      * validateIssuer ensures that IssuerDN is passed in.
      * If issuerDNs is configured, it validates the IssuerDN against the configured values
-     * @param attributes
-     * @return
+     * @param attributes map of attributes passed by ZTS
+     * @return true if the issuer dn is in our configured list
      */
     boolean validateIssuer(final Map<String, String> attributes) {
         final String dn = InstanceUtils.getInstanceProperty(attributes,
@@ -232,9 +232,9 @@ public class SecureBootProvider implements InstanceProvider {
     /**
      * validateCertHostname matches the instance hostname against the value passed in
      * by ZTS in cert hostname, which ZTS extracts it from SAN URI
-     * @param hostname
-     * @param attributes
-     * @return
+     * @param hostname value to be checked for
+     * @param attributes map of attributes passed by ZTS
+     * @return true if the passed hostname matches the value from the attributes
      */
     static boolean validateCertHostname(final String hostname, final Map<String, String> attributes) {
         final String certHostname = InstanceUtils.getInstanceProperty(attributes,
@@ -270,7 +270,7 @@ public class SecureBootProvider implements InstanceProvider {
 
         // Let's get an uncompressed list of IP strings for the hostname to compare
         Set<String> hostIps = hostnameResolver.getAllByName(hostname).stream()
-                .map(ip -> flattenIp(ip))
+                .map(SecureBootProvider::flattenIp)
                 .filter(ip -> !StringUtil.isEmpty(ip))
                 .collect(Collectors.toSet());
 

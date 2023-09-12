@@ -71,6 +71,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.RuntimeDelegate;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,6 +107,8 @@ import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_DOMAIN_CHANGE_TOPIC_NAMES;
 public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
+    private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
+            RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
 
     private static String ROOT_DIR;
 
@@ -746,7 +749,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private void initializeServiceProviderManager() {
         try {
             serviceProviderManager = ServiceProviderManager.getInstance(dbService, this);
-            serviceProviderClient = new ServiceProviderClient(keyStore, serviceProviderManager, homeDomainPrefix);
+            serviceProviderClient = new ServiceProviderClient(keyStore, homeDomainPrefix);
         } catch (KeyRefresherException | IOException | InterruptedException e) {
             throw new RuntimeException("Failed to initialize service provider manager: " + e.getMessage());
         }
@@ -973,9 +976,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ZMSConsts.ZMS_OBJECT_STORE_FACTORY_CLASS);
         ObjectStoreFactory objFactory;
         try {
-            objFactory = (ObjectStoreFactory) Class.forName(objFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid ObjectStoreFactory class: {} error: {}", objFactoryClass, e.getMessage());
+            objFactory = (ObjectStoreFactory) Class.forName(objFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid ObjectStoreFactory class: {}", objFactoryClass, ex);
             throw new IllegalArgumentException("Invalid object store");
         }
 
@@ -1005,9 +1008,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         AuthHistoryStoreFactory authHistoryStoreFactory;
         try {
-            authHistoryStoreFactory = (AuthHistoryStoreFactory) Class.forName(authHistoryFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid AuthHistoryStoreFactory class: {}", authHistoryFactoryClass, e);
+            authHistoryStoreFactory = (AuthHistoryStoreFactory) Class.forName(authHistoryFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid AuthHistoryStoreFactory class: {}", authHistoryFactoryClass, ex);
             throw new IllegalArgumentException("Invalid auth history store");
         }
 
@@ -1020,9 +1023,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 METRIC_DEFAULT_FACTORY_CLASS);
         MetricFactory metricFactory;
         try {
-            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
+            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid MetricFactory class: {}", metricFactoryClass, ex);
             throw new IllegalArgumentException("Invalid metric class");
         }
 
@@ -1038,9 +1041,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ZMSConsts.ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS);
         PrivateKeyStoreFactory pkeyFactory;
         try {
-            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid PrivateKeyStoreFactory class: {} error: {}", pkeyFactoryClass, e.getMessage());
+            pkeyFactory = (PrivateKeyStoreFactory) Class.forName(pkeyFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid PrivateKeyStoreFactory class: {}", pkeyFactoryClass, ex);
             throw new IllegalArgumentException("Invalid private key store");
         }
 
@@ -1063,10 +1066,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             StringBuilder privKeyId = new StringBuilder(256);
             PrivateKey pkey = keyStore.getPrivateKey(ZMSConsts.ZMS_SERVICE, serverHostName, privKeyId);
             privateKey = new ServerPrivateKey(pkey, privKeyId.toString());
-        } else if (privateECKey != null) {
-            privateKey = privateECKey;
         } else {
-            privateKey = privateRSAKey;
+            privateKey = Objects.requireNonNullElseGet(privateECKey, () -> privateRSAKey);
         }
     }
 
@@ -1076,9 +1077,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 ZMSConsts.ZMS_DOMAIN_META_STORE_FACTORY_CLASS);
         DomainMetaStoreFactory metaStoreFactory;
         try {
-            metaStoreFactory = (DomainMetaStoreFactory) Class.forName(metaStoreFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid DomainMetaStoreFactory class: {} error: {}", metaStoreFactoryClass, e.getMessage());
+            metaStoreFactory = (DomainMetaStoreFactory) Class.forName(metaStoreFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid DomainMetaStoreFactory class: {}", metaStoreFactoryClass, ex);
             throw new IllegalArgumentException("Invalid metastore factory");
         }
 
@@ -1122,9 +1123,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         AuditLoggerFactory auditLogFactory;
 
         try {
-            auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid AuditLoggerFactory class: {} error: {}", auditFactoryClass, e.getMessage());
+            auditLogFactory = (AuditLoggerFactory) Class.forName(auditFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid AuditLoggerFactory class: {}", auditFactoryClass, ex);
             throw new IllegalArgumentException("Invalid audit logger class");
         }
 
@@ -1140,9 +1141,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!StringUtil.isEmpty(auditRefValidatorClass)) {
 
             try {
-                auditReferenceValidatorFactory = (AuditReferenceValidatorFactory) Class.forName(auditRefValidatorClass).newInstance();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOG.error("Invalid AuditReferenceValidatorFactory class: {} error: {}", auditRefValidatorClass, e.getMessage());
+                auditReferenceValidatorFactory = (AuditReferenceValidatorFactory) Class.forName(auditRefValidatorClass).getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                LOG.error("Invalid AuditReferenceValidatorFactory class: {}", auditRefValidatorClass, ex);
                 throw new IllegalArgumentException("Invalid audit reference factory class");
             }
 
@@ -1255,9 +1256,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!StringUtil.isEmpty(statusCheckerFactoryClass)) {
 
             try {
-                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).newInstance();
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                LOG.error("Invalid StatusCheckerFactory class: {} error: {}", statusCheckerFactoryClass, e.getMessage());
+                statusCheckerFactory = (StatusCheckerFactory) Class.forName(statusCheckerFactoryClass).getDeclaredConstructor().newInstance();
+            } catch (Exception ex) {
+                LOG.error("Invalid StatusCheckerFactory class: {}", statusCheckerFactoryClass, ex);
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
 
@@ -1272,7 +1273,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         final String caller = "initstore";
 
         List<String> domains = dbService.listDomains(null, 0, true);
-        if (domains.size() > 0 && domains.contains(SYS_AUTH)) {
+        if (!domains.isEmpty() && domains.contains(SYS_AUTH)) {
             return;
         }
 
@@ -1628,7 +1629,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         DomainList subDomainList = listDomains(null, null, domainName + ".", null, 0, true);
-        if (subDomainList.getNames().size() > 0) {
+        if (!subDomainList.getNames().isEmpty()) {
             throw ZMSUtils.requestError(caller + ": Cannot delete domain " +
                     domainName + ": " + subDomainList.getNames().size() + " subdomains of it exist", caller);
         }
@@ -1673,9 +1674,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProvidersWithEndpoints = serviceProviderManager.getServiceProvidersWithEndpoints();
         List<String> serviceDependenciesDenied = serviceProvidersWithEndpoints.values()
                 .parallelStream()
-                .map(domainDependencyProvider -> {
-                    return getErrorOnServiceProviderDeny(domainName, principal, domainDependencyProvider);
-                })
+                .map(domainDependencyProvider -> getErrorOnServiceProviderDeny(domainName, principal, domainDependencyProvider))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
@@ -2636,7 +2635,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that all template names are valid
 
         List<String> templateNames = domainTemplate.getTemplateNames();
-        if (templateNames == null || templateNames.size() == 0) {
+        if (ZMSUtils.isCollectionEmpty(templateNames)) {
             throw ZMSUtils.requestError("putDomainTemplate: No templates specified", caller);
         }
         validateSolutionTemplates(templateNames, caller);
@@ -2681,7 +2680,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that all template names are valid
 
         List<String> templateNames = domainTemplate.getTemplateNames();
-        if (templateNames == null || templateNames.size() == 0) {
+        if (ZMSUtils.isCollectionEmpty(templateNames)) {
             throw ZMSUtils.requestError("putDomainTemplateExt: No templates specified", caller);
         }
 
@@ -3564,7 +3563,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // filter roles by their tags
         if (tagKey != null) {
             roles = roles.stream()
-                    .filter(role -> filterByTag(tagKey, tagValue, role, collection -> collection.getTags()))
+                    .filter(role -> filterByTag(tagKey, tagValue, role, Role::getTags))
                     .collect(Collectors.toList());
         }
 
@@ -3968,7 +3967,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateRoleStructure(final Role role, final String domainName, final String caller) {
 
-        if (!ZMSUtils.isListEmpty(role.getMembers()) && !ZMSUtils.isListEmpty(role.getRoleMembers())) {
+        if (!ZMSUtils.isCollectionEmpty(role.getMembers()) && !ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
             throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and roleMembers set", caller);
         }
 
@@ -3983,11 +3982,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
             }
 
-            if (!ZMSUtils.isListEmpty(role.getRoleMembers())) {
+            if (!ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
             }
 
-            if (!ZMSUtils.isListEmpty(role.getMembers())) {
+            if (!ZMSUtils.isCollectionEmpty(role.getMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both members and delegated domain set", caller);
             }
 
@@ -4336,18 +4335,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         updateMemberDueDate(
                 memberExpiryDueDays,
                 roleMembers,
-                roleMember -> roleMember.getExpiration(),
-                (roleMember, expiration) -> roleMember.setExpiration(expiration),
-                roleMember -> roleMember.getPrincipalType());
+                RoleMember::getExpiration,
+                RoleMember::setExpiration,
+                RoleMember::getPrincipalType);
     }
 
     void updateRoleMemberReviewReminder(MemberDueDays memberReminderDueDays, List<RoleMember> roleMembers) {
         updateMemberDueDate(
                 memberReminderDueDays,
                 roleMembers,
-                roleMember -> roleMember.getReviewReminder(),
-                (roleMember, reviewReminder) -> roleMember.setReviewReminder(reviewReminder),
-                roleMember -> roleMember.getPrincipalType());
+                RoleMember::getReviewReminder,
+                RoleMember::setReviewReminder,
+                RoleMember::getPrincipalType);
     }
 
     private <T> void updateMemberDueDate(MemberDueDays memberDueDays,
@@ -5406,6 +5405,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validatePolicyAssertionConditions(List<Assertion> assertions, String caller) {
+        if (assertions == null) {
+            return;
+        }
+        for (Assertion a : assertions) {
+            if (a.getConditions() != null) {
+                validateAssertionConditions(a.getConditions(), caller);
+            }
+        }
+    }
+
     void validatePolicyAssertion(Assertion assertion, final String roleDomainName, Set<String> roleNamesSet, final String caller) {
 
         // extract the domain name from the resource
@@ -5537,6 +5547,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // also that all the roles that associates does exists
 
         validatePolicyAssertions(policy.getAssertions(), domainName, caller);
+
+        validatePolicyAssertionConditions(policy.getAssertions(), caller);
 
         Policy dbPolicy = dbService.executePutPolicy(ctx, domainName, policyName, policy, auditRef, caller, returnObj);
 
@@ -5827,7 +5839,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // It's okay to not specify any public keys
 
         List<PublicKeyEntry> publicKeyList = service.getPublicKeys();
-        if (publicKeyList == null || publicKeyList.size() == 0) {
+        if (ZMSUtils.isCollectionEmpty(publicKeyList)) {
             return true;
         }
 
@@ -6545,7 +6557,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 if (timestamp != 0 && youngestDomMod <= timestamp) {
                     EntityTag eTag = new EntityTag(domain.getModified().toString());
                     return Response.status(ResourceException.NOT_MODIFIED)
-                            .header("ETag", eTag.toString()).build();
+                            .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag)).build();
                 }
 
                 // generate our signed domain object
@@ -6577,7 +6589,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             if (matchingTag == null) {
                 EntityTag eTag = new EntityTag(Timestamp.fromMillis(0).toString());
-                matchingTag = eTag.toString();
+                matchingTag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
             }
 
             // fetching the list of modified domains must always be carried out
@@ -6587,7 +6599,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             DomainMetaList dmlist = dbService.listModifiedDomains(timestamp, !readOnlyMode.get());
             List<Domain> modlist = dmlist.getDomains();
-            if (modlist == null || modlist.size() == 0) {
+            if (ZMSUtils.isCollectionEmpty(modlist)) {
                 return Response.status(ResourceException.NOT_MODIFIED)
                         .header("ETag", matchingTag).build();
             }
@@ -6628,7 +6640,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         EntityTag eTag = new EntityTag(youngest.toString());
 
         return Response.status(ResourceException.OK).entity(sdoms)
-                .header("ETag", eTag.toString()).build();
+                .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag)).build();
     }
 
     @Override
@@ -6660,7 +6672,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (timestamp != 0 && domainModTime <= timestamp) {
             return Response
                     .status(ResourceException.NOT_MODIFIED)
-                    .header("ETag", eTag.toString())
+                    .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag))
                     .build();
         }
 
@@ -6669,7 +6681,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return Response
                 .status(ResourceException.OK)
                 .entity(generateJWSDomain(athenzDomain, signatureP1363Format))
-                .header("ETag", eTag.toString())
+                .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag))
                 .build();
     }
 
@@ -7358,8 +7370,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // we must have at least one role in the object
 
-        List<TenantRoleAction> list = roles.getRoles();
-        return (list != null && list.size() > 0);
+        return (!ZMSUtils.isCollectionEmpty(roles.getRoles()));
     }
 
     boolean validateProviderResourceGroupRolesObject(ProviderResourceGroupRoles roles, final String providerDomain,
@@ -7380,8 +7391,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // we must have at least one role in the object
 
-        List<TenantRoleAction> list = roles.getRoles();
-        return (list != null && list.size() > 0);
+        return (!ZMSUtils.isCollectionEmpty(roles.getRoles()));
     }
 
     // put the trust roles into provider domain
@@ -7781,7 +7791,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<String> dependentResourceGroups = getDependentServiceResourceGroupList(tenantDomain).getServiceAndResourceGroups().stream()
                 .filter(dependency -> dependency.getDomain().equals(tenantDomain) && dependency.getService().equals(provider))
                 .findAny()
-                .map(dependency -> dependency.getResourceGroups())
+                .map(DependentServiceResourceGroup::getResourceGroups)
                 .orElse(new ArrayList<>());
 
         return !dependentResourceGroups.isEmpty();
@@ -8174,7 +8184,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String caller = "validatedadminusers";
 
-        if (lst == null || lst.size() == 0) {
+        if (ZMSUtils.isCollectionEmpty(lst)) {
             throw ZMSUtils.requestError("validatedAdminUsers: Missing adminUsers", caller);
         }
         Set<String> users = new HashSet<>();
@@ -8972,9 +8982,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Authority authority;
         try {
-            authority = (Authority) Class.forName(className).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid Authority class: {} error: {}", className, e.getMessage());
+            authority = (Authority) Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid Authority class: {}", className, ex);
             return null;
         }
         return authority;
@@ -9641,7 +9651,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // filter groups by their tags
         if (tagKey != null) {
             groups = groups.stream()
-                    .filter(group -> filterByTag(tagKey, tagValue, group, collection -> collection.getTags()))
+                    .filter(group -> filterByTag(tagKey, tagValue, group, Group::getTags))
                     .collect(Collectors.toList());
         }
 
@@ -9912,8 +9922,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         updateGroupMemberDueDate(
                 memberExpiryDueDays,
                 groupMembers,
-                groupMember -> groupMember.getExpiration(),
-                (groupMember, expiration) -> groupMember.setExpiration(expiration));
+                GroupMember::getExpiration,
+                GroupMember::setExpiration);
     }
 
     private void updateGroupMemberDueDate(MemberDueDays memberExpiryDueDays,
@@ -9926,7 +9936,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 groupMembers,
                 dueDateGetter,
                 dueDateSetter,
-                groupMember -> groupMember.getPrincipalType());
+                GroupMember::getPrincipalType);
     }
 
     @Override
@@ -11058,7 +11068,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
     
-    static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
+    public static class ZMSGroupMembersFetcher implements AuthzHelper.GroupMembersFetcher {
 
         DBService dbService;
         ZMSGroupMembersFetcher(DBService dbService) {

@@ -154,13 +154,13 @@ public class AuditLogMsgBuilderTest {
     @Test
     public void testSetReplaceMethods() {
         AuditLogMsgBuilder msgBldr = starter("testBuild");
-        Assert.assertTrue(msgBldr.whatDetails("testWhatDetails") instanceof AuditLogMsgBuilder);
+        Assert.assertNotNull(msgBldr.whatDetails("testWhatDetails"));
         Assert.assertEquals(msgBldr.whatDetails(), "testWhatDetails");
 
-        Assert.assertTrue(msgBldr.uuId("testUUID") instanceof AuditLogMsgBuilder);
+        Assert.assertNotNull(msgBldr.uuId("testUUID"));
         Assert.assertEquals(msgBldr.uuId(), "testUUID");
 
-        Assert.assertTrue(msgBldr.whoFullName("testWhoFullName") instanceof AuditLogMsgBuilder);
+        Assert.assertNotNull(msgBldr.whoFullName("testWhoFullName"));
         Assert.assertEquals(msgBldr.whoFullName(), "testWhoFullName");
     }
 

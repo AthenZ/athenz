@@ -31,19 +31,19 @@ try {
 } catch (err) {
     if (err.code !== 'ENOENT') {
         debug(
-            '[Startup] extended api domain-history does not exist. Moving on.. ',
+            '[Startup] extended api domain-history does not exist. Moving on.. '
         );
     }
 }
 
-const responseHandler = function(err, data) {
+const responseHandler = function (err, data) {
     if (err) {
         debug(
             `principal: ${this.req.session.shortId} rid: ${
                 this.req.headers.rid
             } Error from ZMS while calling ${this.caller} API: ${JSON.stringify(
-                err,
-            )}`,
+                err
+            )}`
         );
         return this.callback(errorHandler.fetcherError(err));
     } else {
@@ -57,7 +57,7 @@ const deleteInstanceZts = (
     service,
     instanceId,
     auditRef,
-    req,
+    req
 ) => {
     return new Promise((resolve, reject) => {
         req.clients.zts.deleteInstanceIdentity(
@@ -78,7 +78,7 @@ const deleteInstanceZts = (
                 } else {
                     resolve();
                 }
-            },
+            }
         );
     });
 };
@@ -102,7 +102,7 @@ const deleteInstanceUms = (domainName, service, instanceId, auditRef, req) => {
                 } else {
                     resolve();
                 }
-            },
+            }
         );
     });
 };
@@ -112,7 +112,7 @@ const deleteDynamicInstanceMsd = (
     service,
     instanceId,
     auditRef,
-    req,
+    req
 ) => {
     return new Promise((resolve, reject) => {
         req.clients.msd.deleteDynamicWorkload(
@@ -132,7 +132,7 @@ const deleteDynamicInstanceMsd = (
                 } else {
                     resolve();
                 }
-            },
+            }
         );
     });
 };
@@ -142,7 +142,7 @@ const deleteStaticInstanceMsd = (
     service,
     instanceId,
     auditRef,
-    req,
+    req
 ) => {
     return new Promise((resolve, reject) => {
         req.clients.msd.deleteStaticWorkload(
@@ -162,7 +162,7 @@ const deleteStaticInstanceMsd = (
                 } else {
                     resolve();
                 }
-            },
+            }
         );
     });
 };
@@ -172,7 +172,7 @@ const deleteAssertion = (
     policyName,
     assertionId,
     auditRef,
-    req,
+    req
 ) => {
     return new Promise((resolve, reject) => {
         req.clients.zms.deleteAssertion(
@@ -192,7 +192,7 @@ const deleteAssertion = (
                 } else {
                     resolve();
                 }
-            },
+            }
         );
     });
 };
@@ -215,7 +215,7 @@ const deleteRole = (domainName, roleName, auditRef, req) => {
                 } else {
                     resolve();
                 }
-            },
+            }
         );
     });
 };
@@ -225,13 +225,13 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putAssertion(
             params,
-            responseHandler.bind({ caller: 'putAssertion', callback, req }),
+            responseHandler.bind({ caller: 'putAssertion', callback, req })
         );
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteAssertion(
             params,
-            responseHandler.bind({ caller: 'deleteAssertion', callback, req }),
+            responseHandler.bind({ caller: 'deleteAssertion', callback, req })
         );
     },
 });
@@ -245,7 +245,7 @@ Fetchr.registerService({
                 caller: 'putAssertionPolicyVersion',
                 callback,
                 req,
-            }),
+            })
         );
     },
     delete(req, resource, params, config, callback) {
@@ -255,7 +255,7 @@ Fetchr.registerService({
                 caller: 'deleteAssertionPolicyVersion',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -278,7 +278,7 @@ Fetchr.registerService({
             };
             Object.keys(params.assertionConditions[i]).forEach((key) => {
                 let copyAssertionConditionData = JSON.parse(
-                    JSON.stringify(assertionConditionData),
+                    JSON.stringify(assertionConditionData)
                 );
                 copyAssertionConditionData['value'] =
                     params.assertionConditions[i][key];
@@ -301,7 +301,7 @@ Fetchr.registerService({
                 caller: 'putAssertionConditions',
                 callback,
                 req,
-            }),
+            })
         );
     },
     delete(req, resource, params, config, callback) {
@@ -311,7 +311,7 @@ Fetchr.registerService({
                 caller: 'deleteAssertionConditions',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -326,7 +326,7 @@ Fetchr.registerService({
                 caller: 'deleteAssertionCondition',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -336,7 +336,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getDomain(
             params,
-            responseHandler.bind({ caller: 'getDomain', callback, req }),
+            responseHandler.bind({ caller: 'getDomain', callback, req })
         );
     },
     // we will be reusing this api for creating sub domains as well as user domains
@@ -345,7 +345,7 @@ Fetchr.registerService({
         if (params.parent) {
             req.clients.zms.postSubDomain(
                 params,
-                responseHandler.bind({ caller: 'postSubDomain', callback, req }),
+                responseHandler.bind({ caller: 'postSubDomain', callback, req })
             );
         } else {
             params.detail.templates.templateNames = appConfig.templates;
@@ -355,14 +355,14 @@ Fetchr.registerService({
                     caller: 'postUserDomain',
                     callback,
                     req,
-                }),
+                })
             );
         }
     },
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteSubDomain(
             params,
-            responseHandler.bind({ caller: 'deleteSubDomain', callback, req }),
+            responseHandler.bind({ caller: 'deleteSubDomain', callback, req })
         );
     },
 });
@@ -376,7 +376,7 @@ Fetchr.registerService({
                 caller: 'getDomainTemplates',
                 callback,
                 req,
-            }),
+            })
         );
     },
     create(req, resource, params, body, config, callback) {
@@ -419,7 +419,7 @@ Fetchr.registerService({
                             return reject(err);
                         }
                         return resolve(json);
-                    },
+                    }
                 );
             }),
         ])
@@ -431,8 +431,8 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putDomainTemplate API for applying AWS templates : ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 return callback(errorHandler.fetcherError(err));
             });
@@ -446,7 +446,7 @@ Fetchr.registerService({
             if (params) {
                 req.clients.zms.getDomainTemplateDetailsList(
                     params,
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -454,12 +454,12 @@ Fetchr.registerService({
                             return resolve(json.metaData);
                         }
                         return resolve([]);
-                    },
+                    }
                 );
             } else {
-                req.clients.zms.getServerTemplateDetailsList(function(
+                req.clients.zms.getServerTemplateDetailsList(function (
                     err,
-                    json,
+                    json
                 ) {
                     if (err) {
                         return reject(err);
@@ -480,8 +480,8 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS getDomainTemplateDetailsList API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -504,7 +504,7 @@ Fetchr.registerService({
             new Promise((resolve, reject) => {
                 req.clients.zms.getDomainList(
                     adminReqParams,
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -512,18 +512,18 @@ Fetchr.registerService({
                             return resolve(json.names);
                         }
                         return resolve([]);
-                    },
+                    }
                 );
             }),
             new Promise((resolve, reject) => {
                 req.clients.zms.getSignedDomains(
                     { metaOnly: 'true', metaAttr: 'all' },
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
                         return resolve(json);
-                    },
+                    }
                 );
             }),
         ])
@@ -544,8 +544,8 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getSignedDomains API for managedDomains : ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 return callback(errorHandler.fetcherError(err));
             });
@@ -567,7 +567,7 @@ Fetchr.registerService({
             new Promise((resolve, reject) => {
                 req.clients.zms.getDomainList(
                     userReqParams,
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -575,9 +575,9 @@ Fetchr.registerService({
                             return resolve(json.names);
                         }
                         return resolve([]);
-                    },
+                    }
                 );
-            }),
+            })
         );
 
         const adminReqParams = { ...userReqParams };
@@ -587,7 +587,7 @@ Fetchr.registerService({
             new Promise((resolve, reject) => {
                 req.clients.zms.getDomainList(
                     adminReqParams,
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -595,9 +595,9 @@ Fetchr.registerService({
                             return resolve(json.names);
                         }
                         return resolve([]);
-                    },
+                    }
                 );
-            }),
+            })
         );
 
         let memberDomains = [];
@@ -634,8 +634,8 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainList API for UserDomainList: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             });
@@ -646,14 +646,14 @@ Fetchr.registerService({
     name: 'all-domain-list',
     read(req, resource, params, config, callback) {
         let domains = [];
-        req.clients.zms.getDomainList(function(err, json) {
+        req.clients.zms.getDomainList(function (err, json) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainList API for AllDomainList: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 return callback(errorHandler.fetcherError(err));
             } else if (Array.isArray(json.names)) {
@@ -681,7 +681,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getServiceIdentity(
             params,
-            responseHandler.bind({ caller: 'get-service-host', callback, req }),
+            responseHandler.bind({ caller: 'get-service-host', callback, req })
         );
     },
 });
@@ -700,16 +700,16 @@ Fetchr.registerService({
                     category: params.category,
                     returnObj: params.returnObj,
                 },
-                function(err, data) {
+                function (err, data) {
                     if (err) {
                         callback(errorHandler.fetcherError(err));
                     } else {
                         data.memberFullName = userService.getUserFullName(
-                            data.memberName,
+                            data.memberName
                         );
                         callback(null, data);
                     }
-                },
+                }
             );
         } else if (params.category === 'role') {
             req.clients.zms.putMembership(
@@ -721,7 +721,7 @@ Fetchr.registerService({
                     membership: params.membership,
                     returnObj: params.returnObj,
                 },
-                function(err, data) {
+                function (err, data) {
                     if (err) {
                         callback(errorHandler.fetcherError(err));
                     } else {
@@ -730,7 +730,7 @@ Fetchr.registerService({
                             : null;
                         callback(null, data);
                     }
-                },
+                }
             );
         }
     },
@@ -748,7 +748,7 @@ Fetchr.registerService({
                         caller: 'deletePendingGroupMembership',
                         callback,
                         req,
-                    }),
+                    })
                 );
             } else {
                 req.clients.zms.deleteGroupMembership(
@@ -762,7 +762,7 @@ Fetchr.registerService({
                         caller: 'deleteGroupMembership',
                         callback,
                         req,
-                    }),
+                    })
                 );
             }
         } else if (params.category === 'role') {
@@ -778,7 +778,7 @@ Fetchr.registerService({
                         caller: 'deleteMembership',
                         callback,
                         req,
-                    }),
+                    })
                 );
             } else {
                 req.clients.zms.deleteMembership(
@@ -792,7 +792,7 @@ Fetchr.registerService({
                         caller: 'deleteMembership',
                         callback,
                         req,
-                    }),
+                    })
                 );
             }
         }
@@ -808,7 +808,7 @@ Fetchr.registerService({
                 caller: 'deletePendingMembership',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -830,14 +830,14 @@ Fetchr.registerService({
                 new Promise((resolve, reject) => {
                     req.clients.zms.putMembership(
                         reqParams,
-                        function(err, json) {
+                        function (err, json) {
                             if (err) {
                                 return reject(err);
                             }
                             return resolve(json);
-                        },
+                        }
                     );
-                }),
+                })
             );
         });
 
@@ -850,8 +850,8 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putMembership API for multiple roles: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 return callback(errorHandler.fetcherError(err));
             });
@@ -861,14 +861,14 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'role-members',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getDomainRoleMembers(params, function(err, data) {
+        req.clients.zms.getDomainRoleMembers(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainRoleMembers API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             }
@@ -876,7 +876,7 @@ Fetchr.registerService({
             if (data && data.members) {
                 data.members.forEach((member) => {
                     member.memberFullName = userService.getUserFullName(
-                        member.memberName,
+                        member.memberName
                     );
                 });
             }
@@ -890,7 +890,7 @@ Fetchr.registerService({
                 caller: 'deleteDomainRoleMember',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -898,21 +898,21 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'policies',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getPolicies(params, function(err, data) {
+        req.clients.zms.getPolicies(params, function (err, data) {
             if (!err && Array.isArray(data.list)) {
                 return callback(
                     null,
                     data.list.sort((a, b) => {
                         return a.name > b.name ? 1 : -1;
-                    }),
+                    })
                 );
             }
             debug(
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getPolicies API: ${JSON.stringify(
-                    err,
-                )}`,
+                    err
+                )}`
             );
             return callback(errorHandler.fetcherError(err));
         });
@@ -922,21 +922,21 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'policies-versions',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getPolicyVersionList(params, function(err, data) {
+        req.clients.zms.getPolicyVersionList(params, function (err, data) {
             if (!err && Array.isArray(data.list)) {
                 return callback(
                     null,
                     data.list.sort((a, b) => {
                         return a.name > b.name ? 1 : -1;
-                    }),
+                    })
                 );
             }
             debug(
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getPolicyVersionList API: ${JSON.stringify(
-                    err,
-                )}`,
+                    err
+                )}`
             );
             return callback(errorHandler.fetcherError(err));
         });
@@ -948,7 +948,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getPolicy(
             params,
-            responseHandler.bind({ caller: 'getPolicy', callback, req }),
+            responseHandler.bind({ caller: 'getPolicy', callback, req })
         );
     },
 
@@ -962,7 +962,7 @@ Fetchr.registerService({
                             caller: 'putPolicy',
                             callback,
                             req,
-                        }),
+                        })
                     );
                 } else {
                     return callback(errorHandler.fetcherError(err));
@@ -978,14 +978,14 @@ Fetchr.registerService({
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getPolicy API: ${JSON.stringify(
-                    customError,
-                )}`,
+                    customError
+                )}`
             );
             return callback(errorHandler.fetcherError(customError));
         });
     },
     delete(req, resource, params, config, callback) {
-        req.clients.zms.deletePolicy(params, function(err, data) {
+        req.clients.zms.deletePolicy(params, function (err, data) {
             if (err) {
                 return callback(errorHandler.fetcherError(err));
             } else {
@@ -1000,13 +1000,13 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putPolicyVersion(
             params,
-            responseHandler.bind({ caller: 'putPolicyVersion', callback, req }),
+            responseHandler.bind({ caller: 'putPolicyVersion', callback, req })
         );
     },
     read(req, resource, params, config, callback) {
         req.clients.zms.getPolicyVersion(
             params,
-            responseHandler.bind({ caller: 'getPolicyVersion', callback, req }),
+            responseHandler.bind({ caller: 'getPolicyVersion', callback, req })
         );
     },
     update(req, resource, params, body, config, callback) {
@@ -1016,11 +1016,11 @@ Fetchr.registerService({
                 caller: 'setActivePolicyVersion',
                 callback,
                 req,
-            }),
+            })
         );
     },
     delete(req, resource, params, config, callback) {
-        req.clients.zms.deletePolicyVersion(params, function(err, data) {
+        req.clients.zms.deletePolicyVersion(params, function (err, data) {
             if (err) {
                 return callback(errorHandler.fetcherError(err));
             } else {
@@ -1046,7 +1046,7 @@ Fetchr.registerService({
                     caller: 'putGroupMembershipDecision',
                     callback,
                     req,
-                }),
+                })
             );
         } else if (params.category === 'role') {
             req.clients.zms.putMembershipDecision(
@@ -1061,7 +1061,7 @@ Fetchr.registerService({
                     caller: 'putMembershipDecision',
                     callback,
                     req,
-                }),
+                })
             );
         }
     },
@@ -1098,14 +1098,14 @@ Fetchr.registerService({
                                     a.resource &&
                                     a.resource === service &&
                                     a.action &&
-                                    a.action === 'launch',
+                                    a.action === 'launch'
                             )
                         ) {
                             res.provider[provider.id] = 'allow';
                         }
                         resolve();
                     });
-                }),
+                })
             );
         });
         Promise.all(promises)
@@ -1117,8 +1117,8 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getPolicy API for providers: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             });
@@ -1126,7 +1126,7 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putDomainTemplate(
             params,
-            responseHandler.bind({ caller: 'putDomainTemplate', callback, req }),
+            responseHandler.bind({ caller: 'putDomainTemplate', callback, req })
         );
     },
 });
@@ -1177,24 +1177,24 @@ Fetchr.registerService({
                             roleMember.groupMembers.forEach((member) => {
                                 member.memberFullName =
                                     userService.getUserFullName(
-                                        member.memberName,
+                                        member.memberName
                                     );
                             });
                         }
                         resolve();
-                    },
+                    }
                 );
             });
         };
 
-        req.clients.zms.getRole(params, function(err, data) {
+        req.clients.zms.getRole(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getRole API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             }
@@ -1207,14 +1207,14 @@ Fetchr.registerService({
                         expand: true,
                         pending: false,
                     },
-                    function(err, data) {
+                    function (err, data) {
                         if (err) {
                             debug(
                                 `principal: ${req.session.shortId} rid: ${
                                     req.headers.rid
                                 } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                    err,
-                                )}`,
+                                    err
+                                )}`
                             );
                             callback(errorHandler.fetcherError(err));
                         }
@@ -1232,7 +1232,7 @@ Fetchr.registerService({
                                 roleMembers.forEach((member) => {
                                     member.memberFullName =
                                         userService.getUserFullName(
-                                            member.memberName,
+                                            member.memberName
                                         );
                                 });
 
@@ -1241,13 +1241,13 @@ Fetchr.registerService({
                                         promises.push(
                                             getGroupMembers(
                                                 member.memberName.split(
-                                                    ':group.',
+                                                    ':group.'
                                                 )[0],
                                                 member.memberName.split(
-                                                    ':group.',
+                                                    ':group.'
                                                 )[1],
-                                                member,
-                                            ),
+                                                member
+                                            )
                                         );
                                     }
                                 });
@@ -1257,20 +1257,20 @@ Fetchr.registerService({
                                     })
                                     .catch((err) => {
                                         callback(
-                                            errorHandler.fetcherError(err),
+                                            errorHandler.fetcherError(err)
                                         );
                                     });
                             } else {
                                 callback(null, data);
                             }
                         }
-                    },
+                    }
                 );
             } else if (data) {
                 if (data.auditLog) {
                     data.auditLog.forEach((m) => {
                         m.memberFullName = userService.getUserFullName(
-                            m.member,
+                            m.member
                         );
                         m.adminFullName = userService.getUserFullName(m.admin);
                     });
@@ -1279,7 +1279,7 @@ Fetchr.registerService({
                     let roleMembers = data.roleMembers;
                     roleMembers.forEach((member) => {
                         member.memberFullName = userService.getUserFullName(
-                            member.memberName,
+                            member.memberName
                         );
                     });
                     roleMembers.forEach((member) => {
@@ -1288,8 +1288,8 @@ Fetchr.registerService({
                                 getGroupMembers(
                                     member.memberName.split(':group.')[0],
                                     member.memberName.split(':group.')[1],
-                                    member,
-                                ),
+                                    member
+                                )
                             );
                         }
                     });
@@ -1322,31 +1322,31 @@ Fetchr.registerService({
                             roleMember.groupMembers.forEach((member) => {
                                 member.memberFullName =
                                     userService.getUserFullName(
-                                        member.memberName,
+                                        member.memberName
                                     );
                             });
                         }
                         resolve();
-                    },
+                    }
                 );
             });
         };
 
-        req.clients.zms.putRole(params, function(err, data) {
+        req.clients.zms.putRole(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putRole API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             } else if (data) {
                 if (data.auditLog) {
                     data.auditLog.forEach((m) => {
                         m.memberFullName = userService.getUserFullName(
-                            m.member,
+                            m.member
                         );
                         m.adminFullName = userService.getUserFullName(m.admin);
                     });
@@ -1355,7 +1355,7 @@ Fetchr.registerService({
                     let roleMembers = data.roleMembers;
                     roleMembers.forEach((member) => {
                         member.memberFullName = userService.getUserFullName(
-                            member.memberName,
+                            member.memberName
                         );
                     });
                     roleMembers.forEach((member) => {
@@ -1364,8 +1364,8 @@ Fetchr.registerService({
                                 getGroupMembers(
                                     member.memberName.split(':group.')[0],
                                     member.memberName.split(':group.')[1],
-                                    member,
-                                ),
+                                    member
+                                )
                             );
                         }
                     });
@@ -1385,7 +1385,7 @@ Fetchr.registerService({
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteRole(
             params,
-            responseHandler.bind({ caller: 'deleteRole', callback, req }),
+            responseHandler.bind({ caller: 'deleteRole', callback, req })
         );
     },
     update(req, resource, params, body, config, callback) {
@@ -1404,24 +1404,24 @@ Fetchr.registerService({
                             roleMember.groupMembers.forEach((member) => {
                                 member.memberFullName =
                                     userService.getUserFullName(
-                                        member.memberName,
+                                        member.memberName
                                     );
                             });
                         }
                         resolve();
-                    },
+                    }
                 );
             });
         };
 
-        req.clients.zms.putRoleReview(params, function(err, data) {
+        req.clients.zms.putRoleReview(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putRoleReview API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             } else if (data) {
@@ -1429,7 +1429,7 @@ Fetchr.registerService({
                     let roleMembers = data.roleMembers;
                     roleMembers.forEach((member) => {
                         member.memberFullName = userService.getUserFullName(
-                            member.memberName,
+                            member.memberName
                         );
                     });
                     roleMembers.forEach((member) => {
@@ -1438,8 +1438,8 @@ Fetchr.registerService({
                                 getGroupMembers(
                                     member.memberName.split(':group.')[0],
                                     member.memberName.split(':group.')[1],
-                                    member,
-                                ),
+                                    member
+                                )
                             );
                         }
                     });
@@ -1461,46 +1461,81 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'meta',
     create(req, resource, params, body, config, callback) {
-        if (params.category === 'group') {
-            req.clients.zms.putGroupMeta(
-                {
-                    domainName: params.domainName,
-                    groupName: params.collectionName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putGroupMeta', callback, req }),
-            );
-        } else if (params.category === 'role') {
-            req.clients.zms.putRoleMeta(
-                {
-                    domainName: params.domainName,
-                    roleName: params.collectionName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putRoleMeta', callback, req }),
-            );
-        } else if (params.category === 'domain') {
-            req.clients.zms.putDomainMeta(
-                {
-                    name: params.domainName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putDomainMeta', callback, req }),
-            );
-
-        } else if (params.category === 'service') {
-            req.clients.zms.putServiceIdentity(
-                {
-                    domain: params.domainName,
-                    service: params.collectionName,
-                    auditRef: params.auditRef,
-                    detail: params.detail,
-                },
-                responseHandler.bind({ caller: 'putServiceIdentity', callback, req }),
-            );
+        switch (params.category) {
+            case 'group': {
+                req.clients.zms.putGroupMeta(
+                    {
+                        domainName: params.domainName,
+                        groupName: params.collectionName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putGroupMeta',
+                        callback,
+                        req,
+                    })
+                );
+                break;
+            }
+            case 'role': {
+                req.clients.zms.putRoleMeta(
+                    {
+                        domainName: params.domainName,
+                        roleName: params.collectionName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putRoleMeta',
+                        callback,
+                        req,
+                    })
+                );
+                break;
+            }
+            case 'domain': {
+                req.clients.zms.putDomainMeta(
+                    {
+                        name: params.domainName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putDomainMeta',
+                        callback,
+                        req,
+                    })
+                );
+                break;
+            }
+            case 'policy': {
+                req.clients.zms.putPolicyVersion(
+                    {
+                        domainName: params.domainName,
+                        policyName: params.collectionName,
+                        policy: params.detail,
+                        auditRef: params.auditRef,
+                    },
+                    responseHandler.bind({ caller: 'putPolicy', callback, req })
+                );
+                break;
+            }
+            case 'service': {
+                req.clients.zms.putServiceIdentity(
+                    {
+                        domain: params.domainName,
+                        service: params.collectionName,
+                        auditRef: params.auditRef,
+                        detail: params.detail,
+                    },
+                    responseHandler.bind({
+                        caller: 'putServiceIdentity',
+                        callback,
+                        req,
+                    })
+                );
+            }
         }
     },
     read(req, resource, params, config, callback) {
@@ -1511,7 +1546,7 @@ Fetchr.registerService({
                     caller: 'getDomainMetaStoreValidValuesList',
                     callback,
                     req,
-                }),
+                })
             );
         }
     },
@@ -1522,7 +1557,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getRoles(
             params,
-            responseHandler.bind({ caller: 'getRoles', callback, req }),
+            responseHandler.bind({ caller: 'getRoles', callback, req })
         );
     },
 });
@@ -1530,14 +1565,14 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'groups',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getGroups(params, function(err, data) {
+        req.clients.zms.getGroups(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getGroups API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             }
@@ -1562,7 +1597,7 @@ Fetchr.registerService({
                                     caller: 'getGroups',
                                     callback,
                                     req,
-                                }),
+                                })
                             );
                         }, 500);
                     }
@@ -1579,7 +1614,7 @@ Fetchr.registerService({
     read(req, resource, params, config, callback) {
         req.clients.zms.getRoleList(
             params,
-            responseHandler.bind({ caller: 'getRoleList', callback, req }),
+            responseHandler.bind({ caller: 'getRoleList', callback, req })
         );
     },
 });
@@ -1593,7 +1628,7 @@ Fetchr.registerService({
                 caller: 'getServiceDependencies',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -1607,7 +1642,7 @@ Fetchr.registerService({
                 caller: 'getAuthHistory',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -1615,14 +1650,14 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'groups-list',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getGroups(params, function(err, data) {
+        req.clients.zms.getGroups(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getGroups API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             }
@@ -1642,7 +1677,7 @@ Fetchr.registerService({
     update(req, resource, params, body, config, callback) {
         req.clients.msd.putStaticWorkload(
             params,
-            responseHandler.bind({ caller: 'add-service-host', callback, req }),
+            responseHandler.bind({ caller: 'add-service-host', callback, req })
         );
     },
 });
@@ -1669,8 +1704,8 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getPendingDomainMembersList API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -1700,8 +1735,8 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getPendingDomainMembersListByDomain API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -1733,8 +1768,8 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getPendingDomainMembersCountByDomain API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -1748,21 +1783,21 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'services',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getServiceIdentities(params, function(err, data) {
+        req.clients.zms.getServiceIdentities(params, function (err, data) {
             if (!err && Array.isArray(data.list)) {
                 return callback(
                     null,
                     data.list.sort((a, b) => {
                         return a.name > b.name ? 1 : -1;
-                    }),
+                    })
                 );
             }
             debug(
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getServiceIdentities API: ${JSON.stringify(
-                    err,
-                )}`,
+                    err
+                )}`
             );
             return callback(errorHandler.fetcherError(err));
         });
@@ -1783,7 +1818,7 @@ Fetchr.registerService({
         }
         Promise.all([
             new Promise((resolve, reject) => {
-                req.clients.zms.getDomainList({}, function(err, json) {
+                req.clients.zms.getDomainList({}, function (err, json) {
                     if (err) {
                         return reject(err);
                     }
@@ -1798,7 +1833,7 @@ Fetchr.registerService({
                     {
                         roleMember: username,
                     },
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -1806,7 +1841,7 @@ Fetchr.registerService({
                             return resolve(json.names);
                         }
                         return resolve([]);
-                    },
+                    }
                 );
             }),
             new Promise((resolve, reject) => {
@@ -1815,7 +1850,7 @@ Fetchr.registerService({
                         roleName: 'admin',
                         roleMember: username,
                     },
-                    function(err, json) {
+                    function (err, json) {
                         if (err) {
                             return reject(err);
                         }
@@ -1823,22 +1858,22 @@ Fetchr.registerService({
                             return resolve(json.names);
                         }
                         return resolve([]);
-                    },
+                    }
                 );
             }),
         ])
-            .then(function(values) {
+            .then(function (values) {
                 allDomains = values[0];
                 memberDomains = values[1];
                 adminDomains = values[2];
-                allDomains.forEach(function(domainName) {
+                allDomains.forEach(function (domainName) {
                     if (domainName.includes(params.domainName)) {
                         let searchData = { name: domainName };
                         let userDomain = memberDomains.find(
-                            (domain) => domain === domainName,
+                            (domain) => domain === domainName
                         );
                         let adminDomain = adminDomains.find(
-                            (domain) => domain === domainName,
+                            (domain) => domain === domainName
                         );
                         if (userDomain) {
                             searchData.userDomain = true;
@@ -1856,8 +1891,8 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainList API for search: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             });
@@ -1873,7 +1908,7 @@ Fetchr.registerService({
                 caller: 'getServiceIdentity',
                 callback,
                 req,
-            }),
+            })
         );
     },
     create(req, resource, params, body, config, callback) {
@@ -1883,7 +1918,7 @@ Fetchr.registerService({
                 caller: 'putServiceIdentity',
                 callback,
                 req,
-            }),
+            })
         );
     },
     delete(req, resource, params, config, callback) {
@@ -1893,7 +1928,7 @@ Fetchr.registerService({
                 caller: 'deleteServiceIdentity',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -1903,7 +1938,7 @@ Fetchr.registerService({
     create(req, resource, params, body, config, callback) {
         req.clients.zms.putPublicKeyEntry(
             params,
-            responseHandler.bind({ caller: 'putPublicKeyEntry', callback, req }),
+            responseHandler.bind({ caller: 'putPublicKeyEntry', callback, req })
         );
     },
     delete(req, resource, params, config, callback) {
@@ -1913,7 +1948,7 @@ Fetchr.registerService({
                 caller: 'deletePublicKeyEntry',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -1945,7 +1980,7 @@ Fetchr.registerService({
                 config,
                 callback,
                 userService,
-                errorHandler,
+                errorHandler
             );
         } else {
             debug('domain-history API is not defined. ');
@@ -1957,15 +1992,15 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'group',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getGroup(params, function(err, data) {
+        req.clients.zms.getGroup(params, function (err, data) {
             if (err) {
                 if (err.status !== 404) {
                     debug(
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getGroup API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -1975,7 +2010,7 @@ Fetchr.registerService({
             if (data && data.groupMembers) {
                 data.groupMembers.forEach((member) => {
                     member.memberFullName = userService.getUserFullName(
-                        member.memberName,
+                        member.memberName
                     );
                 });
             }
@@ -1990,21 +2025,21 @@ Fetchr.registerService({
     },
 
     create(req, resource, params, body, config, callback) {
-        req.clients.zms.putGroup(params, function(err, data) {
+        req.clients.zms.putGroup(params, function (err, data) {
             if (err) {
                 debug(
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putGroup API: ${JSON.stringify(
-                        err,
-                    )}`,
+                        err
+                    )}`
                 );
                 callback(errorHandler.fetcherError(err));
             }
             if (data && data.groupMembers) {
                 data.groupMembers.forEach((member) => {
                     member.memberFullName = userService.getUserFullName(
-                        member.memberName,
+                        member.memberName
                     );
                 });
             }
@@ -2021,20 +2056,20 @@ Fetchr.registerService({
     delete(req, resource, params, config, callback) {
         req.clients.zms.deleteGroup(
             params,
-            responseHandler.bind({ caller: 'deleteGroup', callback, req }),
+            responseHandler.bind({ caller: 'deleteGroup', callback, req })
         );
     },
 
     update(req, resource, params, body, config, callback) {
-        req.clients.zms.putGroupReview(params, function(err, data) {
+        req.clients.zms.putGroupReview(params, function (err, data) {
             if (err) {
                 if (err.status !== 404) {
                     debug(
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling putGroup API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -2044,7 +2079,7 @@ Fetchr.registerService({
             if (data && data.groupMembers) {
                 data.groupMembers.forEach((member) => {
                     member.memberFullName = userService.getUserFullName(
-                        member.memberName,
+                        member.memberName
                     );
                 });
             }
@@ -2070,14 +2105,14 @@ Fetchr.registerService({
                     auditLog: false,
                     pending: true,
                 },
-                function(err, data) {
+                function (err, data) {
                     if (err) {
                         debug(
                             `principal: ${req.session.shortId} rid: ${
                                 req.headers.rid
                             } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                err,
-                            )}`,
+                                err
+                            )}`
                         );
                         callback(errorHandler.fetcherError(err));
                     }
@@ -2087,13 +2122,13 @@ Fetchr.registerService({
                             groupMembers.forEach((member) => {
                                 member.memberFullName =
                                     userService.getUserFullName(
-                                        member.memberName,
+                                        member.memberName
                                     );
                             });
                         }
                     }
                     callback(null, data.groupMembers);
-                },
+                }
             );
         } else if (params.category === 'role') {
             if (params.trust) {
@@ -2113,13 +2148,13 @@ Fetchr.registerService({
                                         (member) => {
                                             member.memberFullName =
                                                 userService.getUserFullName(
-                                                    member.memberName,
+                                                    member.memberName
                                                 );
-                                        },
+                                        }
                                     );
                                 }
                                 resolve();
-                            },
+                            }
                         );
                     });
                 };
@@ -2132,14 +2167,14 @@ Fetchr.registerService({
                         pending: true,
                         expand: true,
                     },
-                    function(err, data) {
+                    function (err, data) {
                         if (err) {
                             debug(
                                 `principal: ${req.session.shortId} rid: ${
                                     req.headers.rid
                                 } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                    err,
-                                )}`,
+                                    err
+                                )}`
                             );
                             callback(errorHandler.fetcherError(err));
                         }
@@ -2157,7 +2192,7 @@ Fetchr.registerService({
                                 roleMembers.forEach((member) => {
                                     member.memberFullName =
                                         userService.getUserFullName(
-                                            member.memberName,
+                                            member.memberName
                                         );
                                 });
 
@@ -2166,13 +2201,13 @@ Fetchr.registerService({
                                         promises.push(
                                             getGroupMembers(
                                                 member.memberName.split(
-                                                    ':group.',
+                                                    ':group.'
                                                 )[0],
                                                 member.memberName.split(
-                                                    ':group.',
+                                                    ':group.'
                                                 )[1],
-                                                member,
-                                            ),
+                                                member
+                                            )
                                         );
                                     }
                                 });
@@ -2182,14 +2217,14 @@ Fetchr.registerService({
                                     })
                                     .catch((err) => {
                                         callback(
-                                            errorHandler.fetcherError(err),
+                                            errorHandler.fetcherError(err)
                                         );
                                     });
                             } else {
                                 callback(null, []);
                             }
                         }
-                    },
+                    }
                 );
             } else {
                 let promises = [];
@@ -2208,13 +2243,13 @@ Fetchr.registerService({
                                         (member) => {
                                             member.memberFullName =
                                                 userService.getUserFullName(
-                                                    member.memberName,
+                                                    member.memberName
                                                 );
-                                        },
+                                        }
                                     );
                                 }
                                 resolve();
-                            },
+                            }
                         );
                     });
                 };
@@ -2227,14 +2262,14 @@ Fetchr.registerService({
                         pending: true,
                         expand: false,
                     },
-                    function(err, data) {
+                    function (err, data) {
                         if (err) {
                             debug(
                                 `principal: ${req.session.shortId} rid: ${
                                     req.headers.rid
                                 } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                    err,
-                                )}`,
+                                    err
+                                )}`
                             );
                             callback(errorHandler.fetcherError(err));
                         }
@@ -2252,7 +2287,7 @@ Fetchr.registerService({
                                 roleMembers.forEach((member) => {
                                     member.memberFullName =
                                         userService.getUserFullName(
-                                            member.memberName,
+                                            member.memberName
                                         );
                                 });
 
@@ -2261,13 +2296,13 @@ Fetchr.registerService({
                                         promises.push(
                                             getGroupMembers(
                                                 member.memberName.split(
-                                                    ':group.',
+                                                    ':group.'
                                                 )[0],
                                                 member.memberName.split(
-                                                    ':group.',
+                                                    ':group.'
                                                 )[1],
-                                                member,
-                                            ),
+                                                member
+                                            )
                                         );
                                     }
                                 });
@@ -2277,14 +2312,14 @@ Fetchr.registerService({
                                     })
                                     .catch((err) => {
                                         callback(
-                                            errorHandler.fetcherError(err),
+                                            errorHandler.fetcherError(err)
                                         );
                                     });
                             } else {
                                 callback(null, []);
                             }
                         }
-                    },
+                    }
                 );
             }
         }
@@ -2294,13 +2329,13 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'domain-role-member',
     read(req, resource, params, config, callback) {
-        req.clients.zms.getPrincipalRoles(params, function(err, data) {
+        req.clients.zms.getPrincipalRoles(params, function (err, data) {
             debug(
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getDomainRoleMember API: ${JSON.stringify(
-                    err,
-                )}`,
+                    err
+                )}`
             );
 
             if (data) {
@@ -2352,6 +2387,13 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'time-zone',
+    read(req, resource, params, config, callback) {
+        callback(null, appConfig.timeZone);
+    },
+});
+
+Fetchr.registerService({
     name: 'feature-flag',
     read(req, resource, params, config, callback) {
         callback(null, appConfig.featureFlag);
@@ -2383,7 +2425,7 @@ Fetchr.registerService({
                     data.list.forEach((item, index) => {
                         if (
                             item.name.startsWith(
-                                params.domainName + ':policy.' + 'acl.',
+                                params.domainName + ':policy.' + 'acl.'
                             )
                         ) {
                             let temp = item.name.split('.');
@@ -2392,102 +2434,102 @@ Fetchr.registerService({
                             let category = '';
 
                             item.assertions &&
-                            item.assertions.forEach(
-                                (assertionItem, assertionIdx) => {
-                                    if (
-                                        !apiUtils
-                                            .getMicrosegmentationActionRegex()
-                                            .test(assertionItem.action)
-                                    ) {
-                                        return;
-                                    }
-                                    let tempData = {};
-                                    let tempProtocol =
-                                        assertionItem.action.split('-');
-                                    tempData['layer'] =
-                                        apiUtils.omitUndefined(
-                                            tempProtocol[0],
-                                        );
-                                    let tempPort =
-                                        assertionItem.action.split(':');
-                                    tempData['source_port'] =
-                                        apiUtils.omitUndefined(tempPort[1]);
-                                    tempData['destination_port'] =
-                                        apiUtils.omitUndefined(tempPort[2]);
-                                    if (assertionItem.conditions) {
-                                        tempData['conditionsList'] = [];
-
-                                        assertionItem.conditions[
-                                            'conditionsList'
-                                            ].forEach((condition) => {
-                                            let tempCondition = {};
-                                            Object.keys(
-                                                condition['conditionsMap'],
-                                            ).forEach((key) => {
-                                                tempCondition[key] =
-                                                    condition[
-                                                        'conditionsMap'
-                                                        ][key]['value'];
-                                            });
-                                            tempCondition['id'] =
-                                                condition['id'];
-                                            tempCondition['assertionId'] =
-                                                assertionItem['id'];
-                                            tempCondition['policyName'] =
-                                                item.name;
-                                            tempData['conditionsList'].push(
-                                                tempCondition,
+                                item.assertions.forEach(
+                                    (assertionItem, assertionIdx) => {
+                                        if (
+                                            !apiUtils
+                                                .getMicrosegmentationActionRegex()
+                                                .test(assertionItem.action)
+                                        ) {
+                                            return;
+                                        }
+                                        let tempData = {};
+                                        let tempProtocol =
+                                            assertionItem.action.split('-');
+                                        tempData['layer'] =
+                                            apiUtils.omitUndefined(
+                                                tempProtocol[0]
                                             );
-                                        });
-                                    }
-                                    let index = 0;
-                                    if (item.name.includes('inbound')) {
-                                        category = 'inbound';
-                                        tempData['destination_service'] =
-                                            serviceName;
-                                        tempData['source_services'] = [];
-                                        tempData['assertionIdx'] =
-                                            assertionItem.id;
-                                        jsonData['inbound'].push(tempData);
-                                        index = jsonData['inbound'].length;
-                                    } else if (
-                                        item.name.includes('outbound')
-                                    ) {
-                                        category = 'outbound';
-                                        tempData['source_service'] =
-                                            serviceName;
-                                        tempData['destination_services'] =
-                                            [];
-                                        tempData['assertionIdx'] =
-                                            assertionItem.id;
-                                        jsonData['outbound'].push(tempData);
-                                        index = jsonData['outbound'].length;
-                                    }
-                                    //assertion convention for microsegmentation:
-                                    //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
-                                    // role name will be of the form : <domain>:role.<roleName>
-                                    let roleName =
-                                        assertionItem.role.substring(
-                                            params.domainName.length + 6,
-                                        );
-                                    promises.push(
-                                        getRole(
-                                            roleName,
-                                            params.domainName,
-                                            category,
-                                            index,
-                                        ),
-                                    );
+                                        let tempPort =
+                                            assertionItem.action.split(':');
+                                        tempData['source_port'] =
+                                            apiUtils.omitUndefined(tempPort[1]);
+                                        tempData['destination_port'] =
+                                            apiUtils.omitUndefined(tempPort[2]);
+                                        if (assertionItem.conditions) {
+                                            tempData['conditionsList'] = [];
 
-                                    promises.push(
-                                        getIdentifier(
-                                            roleName,
-                                            category,
-                                            index,
-                                        ),
-                                    );
-                                },
-                            );
+                                            assertionItem.conditions[
+                                                'conditionsList'
+                                            ].forEach((condition) => {
+                                                let tempCondition = {};
+                                                Object.keys(
+                                                    condition['conditionsMap']
+                                                ).forEach((key) => {
+                                                    tempCondition[key] =
+                                                        condition[
+                                                            'conditionsMap'
+                                                        ][key]['value'];
+                                                });
+                                                tempCondition['id'] =
+                                                    condition['id'];
+                                                tempCondition['assertionId'] =
+                                                    assertionItem['id'];
+                                                tempCondition['policyName'] =
+                                                    item.name;
+                                                tempData['conditionsList'].push(
+                                                    tempCondition
+                                                );
+                                            });
+                                        }
+                                        let index = 0;
+                                        if (item.name.includes('inbound')) {
+                                            category = 'inbound';
+                                            tempData['destination_service'] =
+                                                serviceName;
+                                            tempData['source_services'] = [];
+                                            tempData['assertionIdx'] =
+                                                assertionItem.id;
+                                            jsonData['inbound'].push(tempData);
+                                            index = jsonData['inbound'].length;
+                                        } else if (
+                                            item.name.includes('outbound')
+                                        ) {
+                                            category = 'outbound';
+                                            tempData['source_service'] =
+                                                serviceName;
+                                            tempData['destination_services'] =
+                                                [];
+                                            tempData['assertionIdx'] =
+                                                assertionItem.id;
+                                            jsonData['outbound'].push(tempData);
+                                            index = jsonData['outbound'].length;
+                                        }
+                                        //assertion convention for microsegmentation:
+                                        //GRANT [Action: <transport layer>-IN / <transport layer>-OUT]:[Source Port]:[Destination Port] [Resource:<service-name>] ON <role-name>
+                                        // role name will be of the form : <domain>:role.<roleName>
+                                        let roleName =
+                                            assertionItem.role.substring(
+                                                params.domainName.length + 6
+                                            );
+                                        promises.push(
+                                            getRole(
+                                                roleName,
+                                                params.domainName,
+                                                category,
+                                                index
+                                            )
+                                        );
+
+                                        promises.push(
+                                            getIdentifier(
+                                                roleName,
+                                                category,
+                                                index
+                                            )
+                                        );
+                                    }
+                                );
                         }
                     });
                 } else if (err) {
@@ -2500,14 +2542,14 @@ Fetchr.registerService({
                     .catch((err) => {
                         return callback(errorHandler.fetcherError(err));
                     });
-            },
+            }
         );
 
         function getIdentifier(roleName, category, jsonIndex) {
             return new Promise((resolve, reject) => {
                 let substringPrefix = '.' + category + '-';
                 let identifier = roleName.substring(
-                    roleName.indexOf(substringPrefix) + substringPrefix.length,
+                    roleName.indexOf(substringPrefix) + substringPrefix.length
                 );
                 jsonData[category][jsonIndex - 1]['identifier'] = identifier;
                 resolve();
@@ -2531,11 +2573,11 @@ Fetchr.registerService({
                                     if (category === 'inbound') {
                                         jsonData[category][jsonIndex - 1][
                                             'source_services'
-                                            ].push(roleMember.memberName);
+                                        ].push(roleMember.memberName);
                                     } else if (category === 'outbound') {
                                         jsonData[category][jsonIndex - 1][
                                             'destination_services'
-                                            ].push(roleMember.memberName);
+                                        ].push(roleMember.memberName);
                                     }
                                 });
                                 resolve();
@@ -2545,7 +2587,7 @@ Fetchr.registerService({
                         } else if (err) {
                             reject(err);
                         }
-                    },
+                    }
                 );
             });
         }
@@ -2619,7 +2661,7 @@ Fetchr.registerService({
                         key === 'scopeall'
                     ) {
                         let copyAssertionConditionData = JSON.parse(
-                            JSON.stringify(assertionConditionData),
+                            JSON.stringify(assertionConditionData)
                         );
                         copyAssertionConditionData['value'] =
                             params.data['conditionsList'][i][key];
@@ -2658,9 +2700,9 @@ Fetchr.registerService({
                             } else {
                                 return resolve();
                             }
-                        },
+                        }
                     );
-                }),
+                })
             );
         }
 
@@ -2704,7 +2746,7 @@ Fetchr.registerService({
                                 }
                                 return resolve(data);
                             }
-                        },
+                        }
                     );
                 })
                     .then((data) => {
@@ -2721,7 +2763,7 @@ Fetchr.registerService({
                                     } else {
                                         return resolve(data);
                                     }
-                                },
+                                }
                             );
                         });
                     })
@@ -2740,7 +2782,7 @@ Fetchr.registerService({
                                     } else {
                                         resolve(data);
                                     }
-                                },
+                                }
                             );
                         });
                     })
@@ -2758,10 +2800,10 @@ Fetchr.registerService({
                                     } else {
                                         resolve(data);
                                     }
-                                },
+                                }
                             );
                         });
-                    }),
+                    })
             );
         } else if (params.assertionConditionChanged) {
             promises.push(
@@ -2781,7 +2823,7 @@ Fetchr.registerService({
                             } else {
                                 return resolve(data);
                             }
-                        },
+                        }
                     );
                 }).then(() => {
                     return new Promise((resolve, reject) => {
@@ -2798,10 +2840,10 @@ Fetchr.registerService({
                                 } else {
                                     resolve(data);
                                 }
-                            },
+                            }
                         );
                     });
-                }),
+                })
             );
         }
 
@@ -2861,12 +2903,12 @@ Fetchr.registerService({
 
         entitySelectorService = this.getEntitySelectorService(
             params.domainName,
-            entitySelectorServiceName,
+            entitySelectorServiceName
         );
         let entitySelectorPortList = allEntitySelectorPort.split(',');
         entitySelectorPorts = this.getPorts(
             entitySelectorPortList,
-            params.protocol,
+            params.protocol
         );
         let peerPortList = allPeerPort.split(',');
         peerPorts = this.getPorts(peerPortList, params.protocol);
@@ -2909,7 +2951,7 @@ Fetchr.registerService({
                 } else {
                     return callback(null, data);
                 }
-            },
+            }
         );
     },
 });
@@ -2939,12 +2981,12 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from MSD while calling getInstances API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     return callback(errorHandler.fetcherError(err));
                 }
-            },
+            }
         );
     },
     delete(req, resource, params, config, callback) {
@@ -2960,7 +3002,7 @@ Fetchr.registerService({
                 service,
                 instanceId,
                 auditRef,
-                req,
+                req
             )
                 .then(() => {
                     callback(null, []);
@@ -2975,7 +3017,7 @@ Fetchr.registerService({
                 service,
                 instanceId,
                 auditRef,
-                req,
+                req
             )
                 .then(() => {
                     deleteInstanceUms(
@@ -2983,7 +3025,7 @@ Fetchr.registerService({
                         service,
                         instanceId,
                         auditRef,
-                        req,
+                        req
                     )
                         .then(() => {
                             deleteDynamicInstanceMsd(
@@ -2991,7 +3033,7 @@ Fetchr.registerService({
                                 service,
                                 instanceId,
                                 auditRef,
-                                req,
+                                req
                             )
                                 .then(() => {
                                     callback(null, []);
@@ -3050,7 +3092,7 @@ Fetchr.registerService({
                 caller: 'getUserAuthorityAttributeMap',
                 callback,
                 req,
-            }),
+            })
         );
     },
 });
@@ -3063,14 +3105,14 @@ Fetchr.registerService({
             params.policyName,
             params.assertionId,
             params.auditRef,
-            req,
+            req
         )
             .then(() => {
                 deleteRole(
                     params.domainName,
                     params.roleName,
                     params.auditRef,
-                    req,
+                    req
                 )
                     .then(() => {
                         callback(null, []);
@@ -3099,8 +3141,8 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
-                            err,
-                        )}`,
+                            err
+                        )}`
                     );
                     callback(errorHandler.fetcherError(err));
                 } else {
@@ -3110,12 +3152,12 @@ Fetchr.registerService({
                         callback(null, list);
                     }
                 }
-            },
+            }
         );
     },
 });
 
-module.exports.load = function(config, secrets) {
+module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,
         athenzDomainService: config.athenzDomainService,
@@ -3128,6 +3170,7 @@ module.exports.load = function(config, secrets) {
         productMasterLink: config.productMasterLink,
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
+        timeZone: config.timeZone,
         featureFlag: config.featureFlag,
         pageFeatureFlag: config.pageFeatureFlag,
         serviceHeaderLinks: config.serviceHeaderLinks,
@@ -3137,7 +3180,7 @@ module.exports.load = function(config, secrets) {
     return CLIENTS.load(config, secrets);
 };
 
-module.exports.route = function(expressApp) {
+module.exports.route = function (expressApp) {
     // TODO fetchr statsCollector
     expressApp.use(CLIENTS.middleware());
     expressApp.use('/api/v1', Fetchr.middleware());

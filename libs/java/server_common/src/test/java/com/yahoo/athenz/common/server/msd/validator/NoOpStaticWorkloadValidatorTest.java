@@ -31,7 +31,7 @@ public class NoOpStaticWorkloadValidatorTest {
     @Test
     public void testNoOpValidator() {
 
-        StaticWorkloadDataRepository<String> repository = new StaticWorkloadDataRepository<String>() {
+        StaticWorkloadDataRepository<String> repository = new StaticWorkloadDataRepository<>() {
             @Override
             public void initialize(PrivateKeyStore privateKeyStore, HostnameResolver hostnameResolver, MsdStore msdStore) {
 

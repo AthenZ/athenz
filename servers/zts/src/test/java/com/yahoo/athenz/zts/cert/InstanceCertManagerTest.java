@@ -1359,10 +1359,8 @@ public class InstanceCertManagerTest {
         CertRecordStore store = Mockito.mock(CertRecordStore.class);
         when(store.getConnection()).thenThrow(new RuntimeException("invalid connection"));
 
-        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, true, null);
-
         InstanceCertManager.ExpiredX509CertRecordCleaner cleaner =
-                instanceManager.new ExpiredX509CertRecordCleaner(store, 100);
+                new InstanceCertManager.ExpiredX509CertRecordCleaner(store, 100);
 
         // make sure no exceptions are thrown
 
@@ -1372,14 +1370,12 @@ public class InstanceCertManagerTest {
     @Test
     public void testExpiredSSHCertRecordCleaner() {
 
-        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, true, null);
-
         FileSSHRecordStoreFactory factory = new FileSSHRecordStoreFactory();
         SSHRecordStore store = factory.create(null);
         assertNotNull(store);
 
         InstanceCertManager.ExpiredSSHCertRecordCleaner cleaner =
-                instanceManager.new ExpiredSSHCertRecordCleaner(store, 100);
+                new InstanceCertManager.ExpiredSSHCertRecordCleaner(store, 100);
 
         // make sure no exceptions are thrown
 
@@ -1392,10 +1388,8 @@ public class InstanceCertManagerTest {
         SSHRecordStore store = Mockito.mock(SSHRecordStore.class);
         when(store.getConnection()).thenThrow(new RuntimeException("invalid connection"));
 
-        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, true, null);
-
         InstanceCertManager.ExpiredSSHCertRecordCleaner cleaner =
-                instanceManager.new ExpiredSSHCertRecordCleaner(store, 100);
+                new InstanceCertManager.ExpiredSSHCertRecordCleaner(store, 100);
 
         // make sure no exceptions are thrown
 

@@ -157,7 +157,6 @@ public class YBase64Test {
 
     @Test
     public void testRandom() {
-        YBase64 temp = new YBase64();
-
+        new YBase64();
     }
 }

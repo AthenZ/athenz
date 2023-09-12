@@ -22,20 +22,20 @@ public interface MsdStore {
      * of failure, a ResourceException is thrown.
      * @return MsdConnection object
      */
-    default public MsdStoreConnection getConnection() {
+    default MsdStoreConnection getConnection() {
         return null;
-    };
+    }
 
     /**
      * Set the operation timeout in seconds
      * @param opTimeout timeout in seconds
      */
-    default public void setOperationTimeout(int opTimeout) {
-    };
+    default void setOperationTimeout(int opTimeout) {
+    }
 
     /**
      * Clear all connections to the msd store
      */
-    default public void clearConnections() {
+    default void clearConnections() {
     }
 }

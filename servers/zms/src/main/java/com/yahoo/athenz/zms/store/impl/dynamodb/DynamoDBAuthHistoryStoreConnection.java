@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
@@ -85,7 +86,7 @@ public class DynamoDBAuthHistoryStoreConnection implements AuthHistoryStoreConne
 
         return domainIndex.query(r -> r.queryConditional(queryConditional))
                 .stream()
-                .map(record -> record.items())
+                .map(Page::items)
                 .flatMap(List::stream)
                 .map(record -> {
                     AuthHistory authHistory = new AuthHistory();
@@ -105,8 +106,7 @@ public class DynamoDBAuthHistoryStoreConnection implements AuthHistoryStoreConne
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss", Locale.ENGLISH);
             formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = formatter.parse(authHistoryDynamoDBRecord.getTimestamp());
-            Timestamp timestamp = Timestamp.fromDate(date);
-            return timestamp;
+            return Timestamp.fromDate(date);
         } catch (ParseException e) {
             LOGGER.error("Error parsing timestamp for authHistoryDynamoDBRecord, timestamp will be empty: {}", authHistoryDynamoDBRecord);
             return null;

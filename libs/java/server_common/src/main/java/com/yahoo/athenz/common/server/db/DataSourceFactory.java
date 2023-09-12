@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.common.server.db;
 
+import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -70,10 +71,29 @@ public class DataSourceFactory {
                 url + ") with driver(" + driver + ")", exc);
         }
     }
-    
-    static long retrieveConfigSetting(String propName, long defaultValue) {
 
-        String propValue = System.getProperty(propName);
+    static Duration retrieveConfigSetting(final String propName, Duration defaultValue) {
+        final String propValue = System.getProperty(propName);
+        if (propValue == null) {
+            return defaultValue;
+        }
+
+        Duration value = defaultValue;
+        try {
+            value = Duration.ofMillis(Long.parseLong(propValue));
+        } catch (NumberFormatException ex) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("Ignoring Invalid number({}) set in system property({}). Using default ({})",
+                        propValue, propName, defaultValue);
+            }
+        }
+
+        return value;
+    }
+
+    static long retrieveConfigSetting(final String propName, long defaultValue) {
+
+        final String propValue = System.getProperty(propName);
         if (propValue == null) {
             return defaultValue;
         }
@@ -91,9 +111,9 @@ public class DataSourceFactory {
         return value;
     }
     
-    static int retrieveConfigSetting(String propName, int defaultValue) {
+    static int retrieveConfigSetting(final String propName, int defaultValue) {
 
-        String propValue = System.getProperty(propName);
+        final String propValue = System.getProperty(propName);
         if (propValue == null) {
             return defaultValue;
         }
@@ -142,28 +162,28 @@ public class DataSourceFactory {
         // The maximum number of milliseconds that the pool will wait (when
         // there are no available connections) for a connection to be returned
         // before throwing an exception, or -1 to wait indefinitely. Default -1
-        config.setMaxWaitMillis(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_MAX_WAIT,
-                BaseObjectPoolConfig.DEFAULT_MAX_WAIT_MILLIS));
+        config.setMaxWait(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_MAX_WAIT,
+                BaseObjectPoolConfig.DEFAULT_MAX_WAIT));
         
         // setup the configuration to cleanup idle connections
         //
         // Minimum time an object can be idle in the pool before being eligible
         // for eviction by the idle object evictor.
         // The default value is 30 minutes (1000 * 60 * 30).
-        config.setMinEvictableIdleTimeMillis(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT,
-                BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS));
+        config.setMinEvictableIdleTime(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_EVICT_IDLE_TIMEOUT,
+                BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_DURATION));
         
         // Number of milliseconds to sleep between runs of idle object evictor thread.
         // Not using DEFAULT_TIME_BETWEEN_EVICTION_RUNS_MILLIS since it is -1
         // meaning it will not run the evictor thread and instead we're using
         // the default min value for evictable idle connections (Default 30 minutes)
-        config.setTimeBetweenEvictionRunsMillis(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL,
-                BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_TIME_MILLIS));
+        config.setTimeBetweenEvictionRuns(retrieveConfigSetting(ATHENZ_PROP_DBPOOL_EVICT_IDLE_INTERVAL,
+                BaseObjectPoolConfig.DEFAULT_MIN_EVICTABLE_IDLE_DURATION));
         
         if (LOG.isDebugEnabled()) {
             LOG.debug("Config settings for idle object eviction: time interval between eviction thread runs ({} millis), " +
                     "minimum timeout for idle objects ({} millis)",
-                    config.getTimeBetweenEvictionRunsMillis(), config.getMinEvictableIdleTimeMillis());
+                    config.getDurationBetweenEvictionRuns(), config.getMinEvictableIdleDuration());
         }
         
         // Validate objects by the idle object evictor. If invalid, gets dropped

@@ -213,6 +213,7 @@ func init() {
 	tStaticWorkloadType.Element("EXTERNAL_APPLIANCE", "Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases")
 	tStaticWorkloadType.Element("VIP_LB", "represents a virtual ip backed by a load balancer")
 	tStaticWorkloadType.Element("CLOUD_MANAGED", "represents a cloud managed service or endpoint")
+	tStaticWorkloadType.Element("SERVICE_SUBNET", "represents subnet for a given service, would be almost always a RFC1918 cidr")
 	sb.AddType(tStaticWorkloadType.Build())
 
 	tDynamicWorkload := rdl.NewStructTypeBuilder("Struct", "DynamicWorkload")

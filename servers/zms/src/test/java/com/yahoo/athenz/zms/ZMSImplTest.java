@@ -5035,6 +5035,74 @@ public class ZMSImplTest {
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyGetDom1", auditRef);
     }
+    @Test
+    public void testGetPolicyWithAssertionConditions() {
+
+        TestAuditLogger alogger = new TestAuditLogger();
+        List<String> aLogMsgs = alogger.getLogMsgList();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("PolicyGetDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putpolicy");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject("PolicyGetDom1", "Policy1");
+        zmsImpl.putPolicy(ctx, "PolicyGetDom1", "Policy1", auditRef, false, policy1);
+
+        Policy policy = zmsImpl.getPolicy(ctx, "PolicyGetDom1", "Policy1");
+        assertNotNull(policy);
+        assertEquals(policy.getName(), "PolicyGetDom1:policy.Policy1".toLowerCase());
+
+        List<Assertion> assertList = policy.getAssertions();
+        assertNotNull(assertList);
+        assertEquals(assertList.size(), 1);
+        Assertion obj = assertList.get(0);
+        assertEquals(obj.getAction(), "*");
+        assertEquals(obj.getEffect(), AssertionEffect.ALLOW);
+        assertEquals(obj.getResource(), "policygetdom1:*");
+        assertEquals(obj.getRole(), "PolicyGetDom1:role.Admin".toLowerCase());
+        // Put assertion conditions for the new assertion
+        AssertionConditionData assertionConditionData = new AssertionConditionData();
+        assertionConditionData.setOperator(AssertionConditionOperator.EQUALS);
+        assertionConditionData.setValue("testVal1");
+
+        Map<String, AssertionConditionData> conditionsMap1 = new HashMap<>();
+        conditionsMap1.put("cond1", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval1"));
+        conditionsMap1.put("cond2", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval2"));
+        AssertionCondition assertionCondition1 = new AssertionCondition();
+        assertionCondition1.setConditionsMap(conditionsMap1);
+        Map<String, AssertionConditionData> conditionsMap2 = new HashMap<>();
+        conditionsMap2.put("cond3", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval3"));
+        conditionsMap2.put("cond4", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("testval4"));
+        AssertionCondition assertionCondition2 = new AssertionCondition();
+        assertionCondition2.setConditionsMap(conditionsMap2);
+        List<AssertionCondition> conditionsList = new ArrayList<>();
+        conditionsList.add(assertionCondition1);
+        conditionsList.add(assertionCondition2);
+        AssertionConditions assertionConditions = new AssertionConditions();
+        assertionConditions.setConditionsList(conditionsList);
+        zmsImpl.putAssertionConditions(ctx, "PolicyGetDom1", "Policy1", obj.getId(), auditRef, assertionConditions);
+
+        policy = zmsImpl.getPolicy(ctx, "PolicyGetDom1", "Policy1");
+        assertNotNull(policy);
+        assertEquals(policy.getName(), "PolicyGetDom1:policy.Policy1".toLowerCase());
+
+        assertList = policy.getAssertions();
+        assertNotNull(assertList);
+        assertEquals(assertList.size(), 1);
+
+        List<AssertionCondition> conditionsListReturned = assertList.get(0).getConditions().getConditionsList();
+        assertEquals(conditionsListReturned.size(), 2);
+        assertEquals(conditionsListReturned.get(0).getConditionsMap().get("cond1").getValue(), "testval1");
+        assertEquals(conditionsListReturned.get(0).getConditionsMap().get("cond2").getValue(), "testval2");
+        assertEquals(conditionsListReturned.get(1).getConditionsMap().get("cond3").getValue(), "testval3");
+        assertEquals(conditionsListReturned.get(1).getConditionsMap().get("cond4").getValue(), "testval4");
+
+        zmsImpl.deleteTopLevelDomain(ctx, "PolicyGetDom1", auditRef);
+    }
 
     @Test
     public void testPolicyVersions() {
@@ -6008,6 +6076,150 @@ public class ZMSImplTest {
 
         // check assertions are the same - should be 2
         assertEquals(newAssertions.size(), resAssertsB.size());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef);
+    }
+
+
+    private boolean assertionConditionListEqual(List<AssertionCondition> list1, List<AssertionCondition> list2) {
+        if (list1.size() != list2.size()) {
+            return false;
+        }
+        for (AssertionCondition ac: list1) {
+            if (list2.stream().noneMatch(ac::equals)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    @Test
+    public void testPutPolicyAssertionConditionsChanges() {
+        String domain     = "PutPolicyAssertionConditionsChanges";
+        String policyName = "Jobs";
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(
+                domain, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        String aclAction = "TCP-IN:84443:4443";
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domain, policyName, "admin", aclAction, domain + ":test", AssertionEffect.ALLOW);
+        Assertion aclAssertion = policy1.getAssertions().get(0);
+        aclAssertion.setCaseSensitive(true);
+        aclAssertion.setConditions(new AssertionConditions().setConditionsList(new ArrayList<>()));
+        AssertionCondition condition1 = createAssertionConditionObject(1, "test", "test1");
+        AssertionCondition condition2 = createAssertionConditionObject(2, "test", "test2");
+        aclAssertion.getConditions().getConditionsList().add(condition1);
+        aclAssertion.getConditions().getConditionsList().add(condition2);
+
+        // add the admin policy
+        policy1.getAssertions().add(new Assertion()
+                        .setRole(domain + ":role.admin")
+                        .setAction("*")
+                        .setResource(domain + ":*")
+                        .setEffect(AssertionEffect.ALLOW));
+
+        String userId = "hank";
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=" + userId;
+        Principal principal = SimplePrincipal.create("user", userId, unsignedCreds + ";s=signature",
+                0, principalAuthority);
+        assertNotNull(principal);
+        ((SimplePrincipal) principal).setUnsignedCreds(unsignedCreds);
+
+        ResourceContext rsrcCtx1 = zmsTestInitializer.createResourceContext(principal);
+        zmsImpl.putPolicy(rsrcCtx1, domain, policyName, auditRef, false, policy1);
+
+        Policy policyRes1 = zmsImpl.getPolicy(ctx, domain, policyName);
+        List<Assertion> resAsserts1 = policyRes1.getAssertions();
+
+        assertEquals(resAsserts1.size(), 2);
+
+        Assertion aclAssertRes1 = null;
+        for (Assertion a: resAsserts1) {
+            if (a.getAction().equals(aclAction)) {
+                aclAssertRes1 = a;
+                break;
+            }
+        }
+        assertNotNull(aclAssertRes1);
+        assertTrue(assertionConditionListEqual(aclAssertRes1.getConditions().getConditionsList(), aclAssertion.getConditions().getConditionsList()));
+
+        // change the assertion itself
+        aclAction = "TCP-IN:3333:2222";
+        aclAssertRes1.setAction(aclAction).setCaseSensitive(true);
+
+        zmsImpl.putPolicy(rsrcCtx1, domain, policyName, auditRef, false, policyRes1);
+        Policy policyRes2 = zmsImpl.getPolicy(ctx, domain, policyName);
+        List<Assertion> resAsserts2 = policyRes2.getAssertions();
+        Assertion aclAssertRes2 = null;
+        for (Assertion a: resAsserts2) {
+            if (a.getAction().equals(aclAction)) {
+                aclAssertRes2 = a;
+                break;
+            }
+        }
+        assertNotNull(aclAssertRes2);
+        assertTrue(assertionConditionListEqual(aclAssertRes2.getConditions().getConditionsList(), aclAssertRes1.getConditions().getConditionsList()));
+
+        // change the first assertion condition
+
+        AssertionCondition condition3 = createAssertionConditionObject(condition1.getId(), "test", "test3");
+        aclAssertRes2.getConditions().getConditionsList().remove(condition1);
+        aclAssertRes2.getConditions().getConditionsList().add(condition3);
+        aclAssertRes2.setCaseSensitive(true);
+        zmsImpl.putPolicy(rsrcCtx1, domain, policyName, auditRef, false, policyRes2);
+
+        Policy policyRes3 = zmsImpl.getPolicy(ctx, domain, policyName);
+        List<Assertion> resAsserts3 = policyRes3.getAssertions();
+        Assertion aclAssertRes3 = null;
+        for (Assertion a: resAsserts3) {
+            if (a.getAction().equals(aclAction)) {
+                aclAssertRes3 = a;
+                break;
+            }
+        }
+        assertNotNull(aclAssertRes3);
+        assertTrue(assertionConditionListEqual(aclAssertRes3.getConditions().getConditionsList(), aclAssertRes2.getConditions().getConditionsList()));
+
+
+        // add condition
+        AssertionCondition condition4 = createAssertionConditionObject(4, "test", "test4");
+        aclAssertRes3.getConditions().getConditionsList().add(condition4);
+        aclAssertRes3.setCaseSensitive(true);
+        zmsImpl.putPolicy(rsrcCtx1, domain, policyName, auditRef, false, policyRes3);
+
+        Policy policyRes4 = zmsImpl.getPolicy(ctx, domain, policyName);
+        List<Assertion> resAsserts4 = policyRes4.getAssertions();
+        Assertion aclAssertRes4 = null;
+        for (Assertion a: resAsserts4) {
+            if (a.getAction().equals(aclAction)) {
+                aclAssertRes4 = a;
+                break;
+            }
+        }
+        assertNotNull(aclAssertRes4);
+        assertTrue(assertionConditionListEqual(aclAssertRes4.getConditions().getConditionsList(), aclAssertRes3.getConditions().getConditionsList()));
+
+        // nothing change
+        aclAssertRes4.setCaseSensitive(true);
+        zmsImpl.putPolicy(rsrcCtx1, domain, policyName, auditRef, false, policyRes4);
+
+        Policy policyRes5 = zmsImpl.getPolicy(ctx, domain, policyName);
+        List<Assertion> resAsserts5 = policyRes5.getAssertions();
+        Assertion aclAssertRes5 = null;
+        for (Assertion a: resAsserts5) {
+            if (a.getAction().equals(aclAction)) {
+                aclAssertRes5 = a;
+                break;
+            }
+        }
+        assertNotNull(aclAssertRes5);
+        assertTrue(assertionConditionListEqual(aclAssertRes5.getConditions().getConditionsList(), aclAssertRes4.getConditions().getConditionsList()));
 
         zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef);
     }
@@ -8623,6 +8835,11 @@ public class ZMSImplTest {
         }
         zmsImpl.deleteTopLevelDomain(ctx, "SignedDom1", auditRef);
         zmsImpl.deleteTopLevelDomain(ctx, "SignedDom2", auditRef);
+    }
+
+    private void addEntryToConditionMap(Map<String, AssertionConditionData> map, String key, String value) {
+        AssertionConditionData cd = new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue(value);
+        map.put(key, cd);
     }
 
     private AssertionCondition createAssertionConditionObject(int conditionId, String key, String value) {
@@ -18273,6 +18490,25 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testValidatePolicyAssertionConditionsValid() {
+        // TODO this is only a skeleton, we need to add more tests once the validateAssertionConditions func implemented
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        zmsImpl.validatePolicyAssertionConditions(null, "unittest");
+        Assertion a = new Assertion();
+        AssertionCondition ac = createAssertionConditionObject(1, "enforcementstate", "report");
+        addEntryToConditionMap(ac.getConditionsMap(), "instances", "*");
+        addEntryToConditionMap(ac.getConditionsMap(), "scopeaws", "true");
+        addEntryToConditionMap(ac.getConditionsMap(), "scopeonprem", "false");
+        addEntryToConditionMap(ac.getConditionsMap(), "scopeall", "false");
+        zmsImpl.validatePolicyAssertionConditions(List.of(a), "unittest");
+    }
+
+    @Test
+    public void testValidatePolicyAssertionConditionsInvalid() {
+        // TODO this is only a skeleton, we need to add tests once the validateAssertionConditions func implemented
+    }
+
     public void testSetupRoleListWithMembers() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

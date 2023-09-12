@@ -43,7 +43,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.fail;
 
 public class HttpDriverTest {
-    private ClassLoader classLoader = this.getClass().getClassLoader();
+    private final ClassLoader classLoader = this.getClass().getClassLoader();
 
     @Test
     public void testDriverThrowsException() throws IllegalArgumentException {
@@ -136,7 +136,6 @@ public class HttpDriverTest {
     @Test
     public void testDoGetException() throws IOException {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
-        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
 
         Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenThrow(new IOException("Unknown error"));
 

@@ -44,7 +44,6 @@ public class TokenTest {
     private String servicePrivateKeyStringK0 = null;
     private String servicePrivateKeyStringK1 = null;
     private String servicePublicKeyStringK0 = null;
-    private String servicePublicKeyStringK1 = null;
 
     @BeforeTest
     private void loadKeys() throws IOException {
@@ -57,11 +56,7 @@ public class TokenTest {
         
         path = Paths.get("./src/test/resources/unit_test_fantasy_private_k1.key");
         servicePrivateKeyStringK1 = new String(Files.readAllBytes(path));
-
-        path = Paths.get("./src/test/resources/fantasy_public_k1.key");
-        servicePublicKeyStringK1 = new String(Files.readAllBytes(path));
     }
-
     
     @Test
     public void testTokenValidateNullSignature() throws CryptoException {
@@ -73,7 +68,7 @@ public class TokenTest {
 
         StringBuilder errMsg = new StringBuilder();
         assertFalse(token.validate(servicePublicKeyStringK0, 3600, false, errMsg));
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
     }
     
     @Test

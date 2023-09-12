@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.11.41-SNAPSHOT</version>
+    <version>1.11.42-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -29,7 +29,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <code.coverage.min>0.995</code.coverage.min>
+    <code.coverage.min>0.9953</code.coverage.min>
   </properties>
 
   <dependencyManagement>

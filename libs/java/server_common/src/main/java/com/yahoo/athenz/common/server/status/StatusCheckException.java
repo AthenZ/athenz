@@ -20,8 +20,8 @@ import static com.yahoo.athenz.common.server.rest.ResourceException.INTERNAL_SER
 import static com.yahoo.athenz.common.server.rest.ResourceException.symbolForCode;
 
 public class StatusCheckException extends Exception {
-    private int httpCode;
-    private String msg;
+    private final int httpCode;
+    private final String msg;
 
     public StatusCheckException() {
         this.httpCode = INTERNAL_SERVER_ERROR;

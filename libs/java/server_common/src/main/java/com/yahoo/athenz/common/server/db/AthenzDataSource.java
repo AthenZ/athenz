@@ -34,8 +34,8 @@ public class AthenzDataSource extends PoolingDataSource<PoolableConnection> impl
     public static final String ATHENZ_PROP_DATASTORE_NETWORK_TIMEOUT = "athenz.datastore.network_timeout";
     public static final String ATHENZ_PROP_DATASTORE_TIMEOUT_THREADS = "athenz.datastore.timeout_threads";
 
-    private ScheduledExecutorService timeoutThreadPool;
-    private int networkTimeout;
+    private final ScheduledExecutorService timeoutThreadPool;
+    private final int networkTimeout;
 
     public AthenzDataSource(ObjectPool<PoolableConnection> pool) {
 

@@ -21,8 +21,6 @@ import org.apache.commons.daemon.DaemonContext;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import com.yahoo.athenz.container.AthenzDaemon;
-
 public class AthenzDaemonTest {
 
     @Test

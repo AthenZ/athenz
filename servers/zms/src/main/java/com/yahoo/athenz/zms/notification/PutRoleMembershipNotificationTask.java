@@ -35,8 +35,8 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
     final String domain;
     final String org;
     final Role role;
-    private Map<String, String> details;
-    private NotificationCommon notificationCommon;
+    private final Map<String, String> details;
+    private final NotificationCommon notificationCommon;
     private final static String DESCRIPTION = "Membership Approval Notification";
     private final PutMembershipNotificationToEmailConverter putMembershipNotificationToEmailConverter;
     private final PutMembershipNotificationToMetricConverter putMembershipNotificationToMetricConverter;
@@ -112,7 +112,7 @@ public class PutRoleMembershipNotificationTask implements NotificationTask {
         private static final String MEMBERSHIP_APPROVAL_SUBJECT = "athenz.notification.email.membership.approval.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailMembershipApprovalBody;
+        private final String emailMembershipApprovalBody;
 
         public PutMembershipNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;

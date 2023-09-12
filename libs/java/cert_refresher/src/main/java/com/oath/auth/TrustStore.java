@@ -26,7 +26,7 @@ import javax.net.ssl.TrustManagerFactory;
 /**
  * A trust store built from a jks file by default. Or from the keystore provided by the
  */
-class TrustStore {
+public class TrustStore {
 
     private final String filePath;
     private final KeyStoreProvider keyStoreProvider;

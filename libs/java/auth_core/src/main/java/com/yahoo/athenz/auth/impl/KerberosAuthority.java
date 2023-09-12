@@ -61,8 +61,8 @@ public class KerberosAuthority implements Authority {
     private String  servicePrincipal; // ex: HTTP/localhost@LOCALHOST
     private String  keyTabConfFile;
     private String  jaasConfigSection;
-    private String  loginCallbackHandler;
-    private AtomicReference<Subject> serviceSubject = new AtomicReference<>();
+    private final String  loginCallbackHandler;
+    private final AtomicReference<Subject> serviceSubject = new AtomicReference<>();
     private Exception initState = null;
 
     private long lastLogin   = 0; // last time logged in in millisecs
@@ -77,11 +77,7 @@ public class KerberosAuthority implements Authority {
         if (keyTabConfFile != null && !keyTabConfFile.isEmpty()) {
             this.keyTabConfFile = keyTabConfFile;
         }
-        if (jaasConfigSection == null) {
-            this.jaasConfigSection = "";
-        } else {
-            this.jaasConfigSection = jaasConfigSection;
-        }
+        this.jaasConfigSection = Objects.requireNonNullElse(jaasConfigSection, "");
     }
 
     public KerberosAuthority() {
@@ -268,7 +264,7 @@ public class KerberosAuthority implements Authority {
             errMsg.append("KerberosAuthority:authenticate: Invalid token: exc=").
                    append(ex.getMessage()).append(" : credential=").
                    append(creds);
-            LOG.error("KerberosAuthority:authenticate: {}", errMsg.toString());
+            LOG.error("KerberosAuthority:authenticate: {}", errMsg);
             return null;
         }
 
@@ -293,9 +289,9 @@ public class KerberosAuthority implements Authority {
     }
 
     static class LoginConfig extends Configuration {
-        private String keyTabConfFile;
-        private String servicePrincipalName;
-        private boolean debugKrbEnabled;
+        private final String keyTabConfFile;
+        private final String servicePrincipalName;
+        private final boolean debugKrbEnabled;
 
         public LoginConfig(String keyTabConfFile, String servicePrincipalName) {
             this.keyTabConfFile       = keyTabConfFile;

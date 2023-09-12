@@ -36,7 +36,7 @@ public class JsonConnectionLogWriterTest {
                 .withPeerPort(1234)
                 .build();
         String expectedJson = "{" +
-                "\"id\":\""+id.toString()+"\"," +
+                "\"id\":\""+ id +"\"," +
                 "\"timestamp\":\"2021-01-13T12:12:12Z\"," +
                 "\"peerPort\":1234" +
                 "}";
@@ -58,7 +58,7 @@ public class JsonConnectionLogWriterTest {
                 .withDuration(5)
                 .build();
         String expectedJson = "{" +
-                "\"id\":\""+id.toString()+"\"," +
+                "\"id\":\""+ id +"\"," +
                 "\"timestamp\":\"2021-01-13T12:12:12Z\"," +
                 "\"duration\":5.000," +
                 "\"peerPort\":1234," +

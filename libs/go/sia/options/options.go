@@ -496,6 +496,14 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 	config.Threshold = util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
 	config.SshThreshold = util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
 
+	acEnv := os.Getenv("ATHENZ_SIA_ACCESS_TOKENS")
+	if acEnv != "" {
+		err := json.Unmarshal([]byte(acEnv), &config.AccessTokens)
+		if err != nil {
+			return config, nil, fmt.Errorf("unable to parse athenz access tokens '%s': %v", acEnv, err)
+		}
+	}
+
 	if isAWSEnvironment(provider) {
 		roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 		if roleArn == "" {

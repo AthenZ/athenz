@@ -36,6 +36,9 @@ import {
 } from '../../../redux/actions/policies';
 import { policies } from '../../../redux/reducers/policies';
 import AppUtils from '../../../components/utils/AppUtils';
+import { configStoreRoles } from '../config/role.test';
+import { UPDATE_TAGS_TO_STORE } from '../../../redux/actions/collections';
+import { roles } from '../../../redux/reducers/roles';
 
 const utils = require('../../../redux/utils');
 
@@ -305,5 +308,82 @@ describe('Polices Reducer', () => {
         const expectedState = AppUtils.deepClone(initialState);
         const newState = policies(initialState, action);
         expect(_.isEqual(newState, expectedState)).toBeTruthy();
+    });
+    it('should add policy tag the store', () => {
+        const initialState = {
+            policies: AppUtils.deepClone(configStorePolicies),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: UPDATE_TAGS_TO_STORE,
+            payload: {
+                collectionName: 'dom:policy.policy1:1',
+                collectionWithTags: {
+                    ...configStorePolicies['dom:policy.policy1:1'],
+                    tags: { tag: { list: ['tag1', 'tag2'] } },
+                },
+                category: 'policy',
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        expectedState.policies['dom:policy.policy1:1'].tags = {
+            tag: { list: ['tag1', 'tag2'] },
+        };
+        const newState = policies(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
+    it('should edit tags from policy', () => {
+        const initialState = {
+            policies: AppUtils.deepClone(configStorePolicies),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: UPDATE_TAGS_TO_STORE,
+            payload: {
+                collectionName: 'dom:policy.policy1:2',
+                collectionWithTags: {
+                    ...configStorePolicies['dom:policy.policy1:2'],
+                    tags: {
+                        tag: { list: ['tag1', 'tag3'] },
+                        tag2: { list: ['tag3', 'tag4'] },
+                    },
+                },
+                category: 'policy',
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        expectedState.policies['dom:policy.policy1:2'].tags = {
+            tag: { list: ['tag1', 'tag3'] },
+            tag2: { list: ['tag3', 'tag4'] },
+        };
+        const newState = policies(initialState, action);
+        expect(newState).toEqual(expectedState);
+    });
+
+    it('should delete tag from store', () => {
+        const initialState = {
+            policies: AppUtils.deepClone(configStorePolicies),
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: UPDATE_TAGS_TO_STORE,
+            payload: {
+                collectionName: 'dom:policy.policy1:2',
+                collectionWithTags: {
+                    ...configStorePolicies['dom:policy.policy1:2'],
+                    tags: { tag: { list: ['tag1'] } },
+                },
+                category: 'policy',
+            },
+        };
+        let expectedState = AppUtils.deepClone(initialState);
+        expectedState.policies['dom:policy.policy1:2'].tags = {
+            tag: { list: ['tag1'] },
+        };
+        const newState = policies(initialState, action);
+        expect(newState).toEqual(expectedState);
     });
 });

@@ -709,8 +709,8 @@ public class CertFailedRefreshNotificationTaskTest {
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
         details.put(NOTIFICATION_DETAILS_UNREFRESHED_CERTS,
-                        "service0;provider0;instanceID0;" + fiveDaysAgo.toString() + ";" + twentyFiveDaysFromNow + ";hostName1|" +
-                        "service1;provider1;instanceID1;" + fiveDaysAgo.toString() + ";" + twentyFiveDaysFromNow + ";hostName2");
+                        "service0;provider0;instanceID0;" + fiveDaysAgo + ";" + twentyFiveDaysFromNow + ";hostName1|" +
+                        "service1;provider1;instanceID1;" + fiveDaysAgo + ";" + twentyFiveDaysFromNow + ";hostName2");
 
         Notification notification = new Notification();
         notification.setDetails(details);

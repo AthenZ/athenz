@@ -98,7 +98,7 @@ public class PrincipalAuthorityTest {
 
         return "v=" + version + ";d=" + domain
                 + ";n=" + name + ";h=" + host + ";a=" + salt + ";t="
-                + Long.toString(timestamp) + ";e=" + Long.toString(expiryTime)
+                + timestamp + ";e=" + expiryTime
                 + ";s=" + signature;
     }
 
@@ -175,7 +175,7 @@ public class PrincipalAuthorityTest {
 
         // Service Authority should return null when authenticate() fails
         assertNull(principal);
-        assertTrue(!errMsg.toString().isEmpty());
+        assertFalse(errMsg.toString().isEmpty());
         assertTrue(errMsg.toString().contains("authenticate"));
 
         principal = serviceAuthority.authenticate(

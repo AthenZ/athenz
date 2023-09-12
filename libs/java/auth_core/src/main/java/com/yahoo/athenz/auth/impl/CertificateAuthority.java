@@ -40,7 +40,7 @@ public class CertificateAuthority implements Authority {
     private static final String ATHENZ_AUTH_CHALLENGE = "AthenzX509Certificate realm=\"athenz\"";
 
     private CertificateIdentityParser certificateIdentityParser = null;
-    private GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
+    private final GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
     @Override
     public void initialize() {

@@ -54,16 +54,14 @@ public class JettyConnectionLogger extends AbstractLifeCycle implements SslHands
     //
     @Override
     protected void doStop() {
-        handleListenerInvocation("AbstractLifeCycle", "doStop", "", Collections.emptyList(), () -> {
-            LOGGER.info("Jetty connection logger is stopped");
-        });
+        handleListenerInvocation("AbstractLifeCycle", "doStop", "", Collections.emptyList(),
+                () -> LOGGER.info("Jetty connection logger is stopped"));
     }
 
     @Override
     protected void doStart() {
-        handleListenerInvocation("AbstractLifeCycle", "doStart", "", Collections.emptyList(), () -> {
-            LOGGER.info("Jetty connection logger is started");
-        });
+        handleListenerInvocation("AbstractLifeCycle", "doStart", "", Collections.emptyList(),
+                () -> LOGGER.info("Jetty connection logger is started"));
     }
     //
     // AbstractLifeCycle methods stop

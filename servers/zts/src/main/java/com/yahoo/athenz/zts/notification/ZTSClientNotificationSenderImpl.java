@@ -44,10 +44,10 @@ public class ZTSClientNotificationSenderImpl implements ZTSClientNotificationSen
         this.notificationManager = notificationManager;
         this.rolesProvider = rolesProvider;
         this.serverName = serverName;
-        if (notificationManager != null) {
+        if (this.notificationManager != null) {
             this.notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(notificationManager.getNotificationUserAuthority());
         }
-        if (this.notificationManager != null && this.rolesProvider != null && !StringUtil.isEmpty(this.serverName) && this.notificationToEmailConverterCommon != null) {
+        if (this.notificationManager != null && this.rolesProvider != null && !StringUtil.isEmpty(this.serverName)) {
             this.isInit = true;
         } else {
             LOGGER.warn("ZTSClientNotificationSenderImpl must be initiated with all arguments before it can be used");

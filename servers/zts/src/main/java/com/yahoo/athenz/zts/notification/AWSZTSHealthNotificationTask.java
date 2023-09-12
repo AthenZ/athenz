@@ -96,7 +96,7 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
         private static final String AWS_ZTS_HEALTH_SUBJECT = "athenz.notification.email.aws.zts.health.subject";
 
         private final NotificationToEmailConverterCommon notificationToEmailConverterCommon;
-        private String emailAwsZtsHealthBody;
+        private final String emailAwsZtsHealthBody;
 
         public AWSZTSHealthNotificationToEmailConverter(NotificationToEmailConverterCommon notificationToEmailConverterCommon) {
             this.notificationToEmailConverterCommon = notificationToEmailConverterCommon;
@@ -113,7 +113,7 @@ public class AWSZTSHealthNotificationTask implements NotificationTask {
                     emailAwsZtsHealthBody,
                     NOTIFICATION_DETAILS_AFFECTED_ZTS,
                     NOTIFICATION_DETAILS_AWS_ZTS_HEALTH,
-                    5);
+                    5, null);
         }
 
         @Override

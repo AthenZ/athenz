@@ -43,10 +43,10 @@ public class JettyConnectionLoggerFactory {
 
         MetricFactory metricFactory;
         try {
-            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid MetricFactory class: {} error: {}", metricFactoryClass, e.getMessage());
-            throw new IllegalArgumentException("Invalid metric class");
+            metricFactory = (MetricFactory) Class.forName(metricFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid MetricFactory class: {}", metricFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid metric class", ex);
         }
 
         return metricFactory.create();
@@ -57,10 +57,11 @@ public class JettyConnectionLoggerFactory {
         final String sslConnectionLogFactoryClass = System.getProperty(ATHENZ_PROP_SSL_LOGGER_FACTORY_CLASS,
                 ATHENZ_SSL_LOGGER_FACTORY_CLASS);
         try {
-            sslConnectionLogFactory = (SSLConnectionLogFactory) Class.forName(sslConnectionLogFactoryClass).newInstance();
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            LOG.error("Invalid SSLConnectionLogFactory class: {} error: {}", sslConnectionLogFactoryClass, e.getMessage());
-            throw new IllegalArgumentException("Invalid SSLConnectionLogFactory");
+            sslConnectionLogFactory = (SSLConnectionLogFactory) Class.forName(
+                    sslConnectionLogFactoryClass).getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOG.error("Invalid SSLConnectionLogFactory class: {}", sslConnectionLogFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid SSLConnectionLogFactory", ex);
         }
         return sslConnectionLogFactory.create();
     }

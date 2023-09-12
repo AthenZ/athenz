@@ -17,11 +17,8 @@
 package com.yahoo.athenz.common.server.msd.net;
 
 import com.yahoo.athenz.msd.DynamicWorkload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import java.lang.invoke.MethodHandles;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -29,7 +26,6 @@ import java.util.*;
 import static org.testng.Assert.*;
 
 public class InetComparatorTest {
-    private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Test
     public void testCompare() throws UnknownHostException {

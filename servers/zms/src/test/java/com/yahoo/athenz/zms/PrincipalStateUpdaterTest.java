@@ -73,7 +73,7 @@ public class PrincipalStateUpdaterTest {
         Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED))).thenReturn(newSuspended);
 
         try {
-            PrincipalStateUpdater principalStateUpdater = new PrincipalStateUpdater(dbsvc, authority);
+            new PrincipalStateUpdater(dbsvc, authority);
         }catch (ResourceException rex){
             fail();
         }
@@ -98,7 +98,7 @@ public class PrincipalStateUpdaterTest {
         Mockito.when(authority.getPrincipals(EnumSet.of(Principal.State.AUTHORITY_SYSTEM_SUSPENDED))).thenReturn(Collections.emptyList());
         System.setProperty(ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
         try {
-            PrincipalStateUpdater principalStateUpdater = new PrincipalStateUpdater(dbsvc, authority);
+            new PrincipalStateUpdater(dbsvc, authority);
         }catch (ResourceException rex){
             fail();
         }
