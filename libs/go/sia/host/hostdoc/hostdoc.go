@@ -52,7 +52,7 @@ type Doc struct {
 	Ip                map[string]bool
 	Zone              string
 	Bytes             []byte
-	LaunchTime        *time.Time
+	LaunchTime        time.Time
 }
 
 // NewPlainDoc returns Doc, the provider string from the host_document, and an error
