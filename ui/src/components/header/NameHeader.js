@@ -127,6 +127,12 @@ class NameHeader extends React.Component {
                     <StyledAnchor>{domain}</StyledAnchor>
                 </Link>
             );
+        } else if (this.props.category === 'service') {
+            link = (
+                <Link href={PageUtils.servicePage(domain)}>
+                    <StyledAnchor>{domain}</StyledAnchor>
+                </Link>
+            );
         }
 
         return (

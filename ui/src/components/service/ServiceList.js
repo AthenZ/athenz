@@ -241,6 +241,9 @@ class ServiceList extends React.Component {
                                 Public Keys
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
+                                Tags
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
                                 Providers
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>

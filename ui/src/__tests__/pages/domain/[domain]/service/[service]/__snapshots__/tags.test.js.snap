@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DynamicInstancePage should render 1`] = `
+exports[`Service Tag Page should render 1`] = `
 .emotion-0 {
   height: 60px;
   position: relative;
@@ -517,21 +517,10 @@ exports[`DynamicInstancePage should render 1`] = `
 }
 
 .emotion-32 {
-  margin: 3px;
-  vertical-align: 3px;
-}
-
-.emotion-34 {
-  fill: #0072df;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-35 {
   margin: 20px 0;
 }
 
-.emotion-37 {
+.emotion-34 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -542,28 +531,21 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-39 {
+.emotion-36 {
   padding-right: 50px;
 }
 
-.emotion-41 {
+.emotion-38 {
   font-weight: 600;
 }
 
-.emotion-43 {
+.emotion-40 {
   color: #9a9a9a;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  font-size: 14px;
-  cursor: pointer;
+  font-size: 12px;
+  text-transform: uppercase;
 }
 
-.emotion-45 {
-  margin: 3px;
-  vertical-align: 2px;
-}
-
-.emotion-57 {
+.emotion-42 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -578,7 +560,7 @@ exports[`DynamicInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-57.vertical {
+.emotion-42.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -594,7 +576,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-58 {
+.emotion-43 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -618,11 +600,11 @@ exports[`DynamicInstancePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-58:hover {
+.emotion-43:hover {
   color: #3570f4;
 }
 
-.emotion-58.active {
+.emotion-43.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -630,11 +612,11 @@ exports[`DynamicInstancePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-58.active:hover {
+.emotion-43.active:hover {
   color: #303030;
 }
 
-.emotion-58.vertical {
+.emotion-43.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -646,21 +628,21 @@ exports[`DynamicInstancePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-58.vertical.active {
+.emotion-43.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-58.vertical.active:hover {
+.emotion-43.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-61 {
+.emotion-46 {
   margin: 20px;
 }
 
-.emotion-63 {
+.emotion-48 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -677,222 +659,54 @@ exports[`DynamicInstancePage should render 1`] = `
   -webkit-flex-flow: row nowrap;
   -ms-flex-flow: row nowrap;
   flex-flow: row nowrap;
+  float: right;
 }
 
-.emotion-65 {
-  width: 50%;
-}
-
-.emotion-67 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  width: 100%;
-}
-
-.emotion-69 {
-  background: #ffffff;
-  width: 35%;
-}
-
-.emotion-71 {
-  position: relative;
-  width: 100%;
-}
-
-.emotion-71 input {
-  cursor: pointer;
-}
-
-.emotion-72 {
-  box-sizing: border-box;
-  display: -webkit-inline-box;
-  display: -webkit-inline-flex;
-  display: -ms-inline-flexbox;
-  display: inline-flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  position: relative;
-  width: 100%;
-}
-
-.emotion-72 input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  background: rgba(53,112,244,0.05);
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: transparent;
-  border-left: transparent;
+.emotion-50 {
+  border: none;
   border-radius: 2px;
-  box-shadow: none;
+  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
   box-sizing: border-box;
-  color: #303030;
-  -webkit-flex: 1 0 auto;
-  -ms-flex: 1 0 auto;
-  flex: 1 0 auto;
-  font: inherit;
-  height: 36px;
-  margin: 0;
-  outline: none;
-  padding: 0 1rem;
-  text-align: left;
-  width: 100%;
-}
-
-.emotion-72.animated input {
-  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
-}
-
-.emotion-72 input::-webkit-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-72 input::-moz-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-72 input:-ms-input-placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-72 input::placeholder {
-  color: rgba(48,48,48,0.6);
-}
-
-.emotion-72 input.focused,
-.emotion-72 input:active,
-.emotion-72 input:focus {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #3570f4;
-  color: #303030;
-}
-
-.emotion-72 input:invalid {
-  background: rgba(53,112,244,0.05);
-  border-bottom: 2px solid #d01111;
-  color: #303030;
-}
-
-.emotion-72 .message {
-  font-size: 12px;
-  left: 0;
-  line-height: 1.8;
-  position: absolute;
-  top: 2.571rem;
-}
-
-.emotion-72.error input,
-.emotion-72.error input.focused,
-.emotion-72.error input:active,
-.emotion-72.error input:focus {
-  border-bottom: 2px solid #d01111;
-}
-
-.emotion-72.error .message {
-  color: #d01111;
-}
-
-.emotion-72 input {
-  padding-right: 36px;
-}
-
-.emotion-72 .input-icon {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  height: 36px;
-  position: absolute;
-  right: 6px;
-}
-
-.emotion-73 {
-  fill: #d5d5d5;
   cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-.emotion-74 {
-  background: #ffffff;
-  width: 65%;
-  margin-left: 5px;
-}
-
-.emotion-78 {
-  width: 100%;
-  border-spacing: 0 15px;
-  display: table;
-  border-collapse: separate;
-  border-color: grey;
-}
-
-.emotion-80 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 25px;
-}
-
-.emotion-94 {
-  box-sizing: border-box;
-  margin-top: 10px;
-  box-shadow: 0 1px 4px #d9d9d9;
-  border: 1px solid #fff;
-  -webkit-border-image: none;
-  border-image: none;
-  -webkit-border-image: initial;
-  border-image: initial;
-  padding: 5px 0 5px 15px;
-}
-
-.emotion-96 {
-  text-align: left;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
-}
-
-.emotion-98 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  padding-bottom: 10px;
-}
-
-.emotion-110 {
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
   text-align: center;
-  padding: 5px 0 5px 15px;
-  vertical-align: middle;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  color: #3697f2;
 }
 
-.emotion-112 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
+.emotion-50:first-of-type {
+  margin-left: 0;
 }
 
-.emotion-113 {
+.emotion-50:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-50:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-50:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-51 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -918,13 +732,13 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-115 {
+.emotion-53 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-116 {
+.emotion-54 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -939,7 +753,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-118 {
+.emotion-56 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -958,28 +772,28 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-120 {
+.emotion-58 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-122 {
+.emotion-60 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-124 {
+.emotion-62 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-128 {
+.emotion-66 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-130 {
+.emotion-68 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -987,19 +801,19 @@ exports[`DynamicInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-132 {
+.emotion-70 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-134 {
+.emotion-72 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
 }
 
 <div
-  data-testid="dynamic-instance"
+  data-testid="service-tags"
 >
   <div
     class="emotion-0 emotion-1"
@@ -1135,390 +949,81 @@ exports[`DynamicInstancePage should render 1`] = `
           >
             <div
               class="emotion-28 emotion-29"
-              data-testid="service-name-header"
+              data-testid="collection-name-header"
             >
               <a
                 class="emotion-30 emotion-31"
               >
                 dom
               </a>
-              :service.
-              serv
-              <span
-                class="emotion-32 emotion-33"
-              >
-                <svg
-                  class="emotion-34"
-                  data-testid="icon"
-                  height="15px"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="15px"
-                >
-                  <path
-                    d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-                  />
-                  <path
-                    d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-                  />
-                  <path
-                    d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
-                  />
-                </svg>
-              </span>
+              :
+              service
+              .
+              service1
             </div>
             <div
-              class="emotion-35 emotion-36"
+              class="emotion-32 emotion-33"
+              data-testid="collection-details"
             >
               <div
-                class="emotion-37 emotion-38"
+                class="emotion-34 emotion-35"
               >
-                <span>
+                <div
+                  class="emotion-36 emotion-37"
+                >
                   <div
-                    class="emotion-39 emotion-40"
+                    class="emotion-38 emotion-39"
                   >
-                    <div
-                      class="emotion-41 emotion-42"
-                    >
-                      10
-                    </div>
-                    <div
-                      class="emotion-43 emotion-44"
-                    >
-                      Total Dynamic Instances
-                      <span
-                        class="emotion-45 emotion-46"
-                      >
-                        <svg
-                          class="emotion-34"
-                          data-testid="icon"
-                          height="15px"
-                          id=""
-                          viewBox="0 0 1024 1024"
-                          width="15px"
-                        >
-                          <path
-                            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-                          />
-                          <path
-                            d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-                          />
-                          <path
-                            d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
-                          />
-                        </svg>
-                      </span>
-                    </div>
+                    2022-10-02 14:37 UTC
                   </div>
-                </span>
-                <span>
                   <div
-                    class="emotion-39 emotion-40"
+                    class="emotion-40 emotion-41"
                   >
-                    <div
-                      class="emotion-41 emotion-42"
-                    >
-                      8
-                    </div>
-                    <div
-                      class="emotion-43 emotion-44"
-                    >
-                      Total Healthy Dynamic Instances
-                      <span
-                        class="emotion-45 emotion-46"
-                      >
-                        <svg
-                          class="emotion-34"
-                          data-testid="icon"
-                          height="15px"
-                          id=""
-                          viewBox="0 0 1024 1024"
-                          width="15px"
-                        >
-                          <path
-                            d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-                          />
-                          <path
-                            d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-                          />
-                          <path
-                            d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
-                          />
-                        </svg>
-                      </span>
-                    </div>
+                    MODIFIED DATE
                   </div>
-                </span>
+                </div>
               </div>
             </div>
             <div
-              class="emotion-57 denali-tab-group"
+              class="emotion-42 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-58 denali-tab"
+                class="emotion-43 denali-tab"
                 data-active="false"
               >
                 Static Instances
               </div>
               <div
-                class="emotion-58 denali-tab active"
-                data-active="true"
+                class="emotion-43 denali-tab"
+                data-active="false"
               >
                 Dynamic Instances
               </div>
               <div
-                class="emotion-58 denali-tab"
-                data-active="false"
+                class="emotion-43 denali-tab active"
+                data-active="true"
               >
                 Tags
               </div>
             </div>
           </div>
           <div
-            class="emotion-61 emotion-62"
-            data-testid="instancelist"
+            class="emotion-46 emotion-47"
+            data-testid="tag-list"
           >
             <div
-              class="emotion-63 emotion-64"
+              class="emotion-48 emotion-49"
             >
-              <div
-                class="emotion-65 emotion-66"
-              >
-                <div
-                  class="emotion-67 emotion-68"
+              <div>
+                <button
+                  class="emotion-50 denali-button"
                 >
-                  <div
-                    class="emotion-69 emotion-70"
-                  >
-                    <div
-                      aria-expanded="false"
-                      aria-haspopup="listbox"
-                      aria-labelledby="downshift-0-label"
-                      class="emotion-71 denali-input-dropdown"
-                      data-testid="input-dropdown"
-                      role="combobox"
-                    >
-                      <div
-                        class="emotion-72 denali-input animated"
-                        data-testid="input-wrapper"
-                      >
-                        <input
-                          aria-autocomplete="list"
-                          aria-labelledby="downshift-0-label"
-                          autocomplete="off"
-                          autocorrect="off"
-                          data-testid="input-node"
-                          id="downshift-0-input"
-                          name="search-type"
-                          placeholder="Select an option"
-                          readonly=""
-                          spellcheck="false"
-                          value="Instance"
-                        />
-                        <div
-                          class="input-icon"
-                        >
-                          <svg
-                            class="emotion-73"
-                            data-testid="icon"
-                            height="24px"
-                            id=""
-                            viewBox="0 0 1024 1024"
-                            width="24px"
-                          >
-                            <title>
-                              arrowhead-down
-                            </title>
-                            <path
-                              d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
-                            />
-                          </svg>
-                        </div>
-                        <div
-                          class="message"
-                          data-testid="message"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    class="emotion-74 emotion-75"
-                  >
-                    <div
-                      class="emotion-72 denali-input animated"
-                      data-testid="input-wrapper"
-                    >
-                      <input
-                        autocomplete="off"
-                        data-testid="input-node"
-                        name="search"
-                        placeholder="Search"
-                        value=""
-                      />
-                      <div
-                        class="input-icon"
-                      >
-                        <svg
-                          class="emotion-10"
-                          data-testid="icon"
-                          height="24px"
-                          id=""
-                          viewBox="0 0 1024 1024"
-                          width="24px"
-                        >
-                          <title>
-                            search
-                          </title>
-                          <path
-                            d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
-                          />
-                        </svg>
-                      </div>
-                      <div
-                        class="message"
-                        data-testid="message"
-                      />
-                    </div>
-                  </div>
-                </div>
+                  Add Tag
+                </button>
               </div>
             </div>
-            <table
-              class="emotion-78 emotion-79"
-              data-testid="instancetable"
-            >
-              <colgroup>
-                <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 20%;"
-                />
-                <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 20%;"
-                />
-                <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 14%;"
-                />
-                <col
-                  style="width: 4%;"
-                />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    Instance
-                  </th>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    Hostname
-                  </th>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    Provider
-                  </th>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    ID
-                  </th>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    Expires On
-                  </th>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    Last Certificate Refresh
-                  </th>
-                  <th
-                    class="emotion-80 emotion-81"
-                  >
-                    Delete
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  class="emotion-94 emotion-95"
-                  data-testid="instance-row"
-                >
-                  <td
-                    class="emotion-96 emotion-97"
-                    color=""
-                  >
-                    <div
-                      class="emotion-98 emotion-99"
-                    />
-                  </td>
-                  <td
-                    class="emotion-96 emotion-97"
-                    color=""
-                  />
-                  <td
-                    class="emotion-96 emotion-97"
-                    color=""
-                  >
-                    Static
-                  </td>
-                  <td
-                    class="emotion-96 emotion-97"
-                    color=""
-                  >
-                    10.1.1.1
-                  </td>
-                  <td
-                    class="emotion-96 emotion-97"
-                    color=""
-                  >
-                    Invalid date
-                  </td>
-                  <td
-                    class="emotion-96 emotion-97"
-                    color=""
-                  >
-                    2021-05-15 01:17 UTC
-                  </td>
-                  <td
-                    class="emotion-110 emotion-97"
-                    color=""
-                  >
-                    <span>
-                      <svg
-                        class="emotion-112"
-                        data-testid="icon"
-                        height="1.25em"
-                        id=""
-                        viewBox="0 0 1024 1024"
-                        width="1.25em"
-                      >
-                        <title>
-                          trash
-                        </title>
-                        <path
-                          d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
-                        />
-                        <path
-                          d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
-                        />
-                      </svg>
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            Click on Add Tag to create a new tag
           </div>
         </div>
       </div>
@@ -1526,11 +1031,11 @@ exports[`DynamicInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-113 emotion-114"
+          class="emotion-51 emotion-52"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-115"
+            class="emotion-53"
             data-testid="icon"
             height="1em"
             id=""
@@ -1546,45 +1051,45 @@ exports[`DynamicInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-116 emotion-117"
+          class="emotion-54 emotion-55"
         >
           <div
-            class="emotion-118 emotion-119"
+            class="emotion-56 emotion-57"
           >
             <div
-              class="emotion-120 emotion-121"
+              class="emotion-58 emotion-59"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-122 emotion-123"
+                class="emotion-60 emotion-61"
               >
                 Create
               </a>
               <span
-                class="emotion-124 emotion-125"
+                class="emotion-62 emotion-63"
               >
                  | 
               </span>
               <a
-                class="emotion-122 emotion-123"
+                class="emotion-60 emotion-61"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-128 emotion-129"
+            class="emotion-66 emotion-67"
           >
             <div
-              class="emotion-130 emotion-131"
+              class="emotion-68 emotion-69"
             >
               <div
-                class="emotion-132 emotion-133"
+                class="emotion-70 emotion-71"
               >
                 <svg
-                  class="emotion-134"
+                  class="emotion-72"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1606,19 +1111,19 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-122 emotion-123"
+                class="emotion-60 emotion-61"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-130 emotion-131"
+              class="emotion-68 emotion-69"
             >
               <div
-                class="emotion-132 emotion-133"
+                class="emotion-70 emotion-71"
               >
                 <svg
-                  class="emotion-134"
+                  class="emotion-72"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1640,7 +1145,7 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-122 emotion-123"
+                class="emotion-60 emotion-61"
               >
                 athens.ci
               </a>

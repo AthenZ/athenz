@@ -57,6 +57,7 @@ class ServiceRow extends React.Component {
         this.togglePublicKeys = this.togglePublicKeys.bind(this);
         this.toggleProviders = this.toggleProviders.bind(this);
         this.toggleInstances = this.toggleInstances.bind(this);
+        this.clickTag = this.clickTag.bind(this);
         this.state = {
             provider: null,
             publicKeys: false,
@@ -71,6 +72,13 @@ class ServiceRow extends React.Component {
         this.props.router.push(
             `/domain/${domain}/service/${service}/instance/dynamic`,
             `/domain/${domain}/service/${service}/instance/dynamic`
+        );
+    }
+
+    clickTag() {
+        this.props.router.push(
+            `/domain/${this.props.domainName}/service/${this.props.serviceName}/tags`,
+            `/domain/${this.props.domainName}/service/${this.props.serviceName}/tags`
         );
     }
 
@@ -129,6 +137,16 @@ class ServiceRow extends React.Component {
                     <Icon
                         icon={'key'}
                         onClick={this.togglePublicKeys}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                </TdStyled>
+                <TdStyled color={color} align={center}>
+                    <Icon
+                        icon={'tag'}
+                        onClick={this.clickTag}
                         color={colors.icons}
                         isLink
                         size={'1.25em'}

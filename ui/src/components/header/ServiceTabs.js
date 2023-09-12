@@ -16,16 +16,24 @@
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
-import { SERVICE_TABS } from '../constants/constants';
+import {
+    SERVICE_TABS,
+    SERVICE_TYPE_DYNAMIC,
+    SERVICE_TYPE_STATIC,
+} from '../constants/constants';
 
 class ServiceTabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
+        this.state = {
+            currTab: '',
+        };
     }
 
     tabClicked(tab) {
         const { domain, service } = this.props;
+        this.setState({ currTab: tab.name });
         switch (tab.name) {
             case 'static':
                 this.props.router.push(
@@ -39,13 +47,27 @@ class ServiceTabs extends React.Component {
                     `/domain/${domain}/service/${service}/instance/dynamic`
                 );
                 break;
+            case 'tags':
+                this.props.router.push(
+                    `/domain/${domain}/service/${service}/tags`,
+                    `/domain/${domain}/service/${service}/tags`
+                );
+                break;
         }
     }
 
     render() {
         return (
             <TabGroup
-                tabs={SERVICE_TABS}
+                tabs={
+                    this.props.featureFlag
+                        ? SERVICE_TABS.filter(
+                              (tab) =>
+                                  tab.name !== SERVICE_TYPE_STATIC &&
+                                  tab.name !== SERVICE_TYPE_DYNAMIC
+                          )
+                        : SERVICE_TABS
+                }
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim

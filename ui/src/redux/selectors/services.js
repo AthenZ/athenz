@@ -18,6 +18,14 @@ import { mapToList } from '../utils';
 import { getFullName } from '../utils';
 import { serviceDelimiter } from '../config';
 
+export const getSafe = (fn, defaultValue) => {
+    try {
+        return fn();
+    } catch (err) {
+        return defaultValue;
+    }
+};
+
 export const thunkSelectServices = (state) => {
     return state.services.services ? state.services.services : [];
 };
@@ -31,58 +39,55 @@ export const selectServices = (state) => {
 };
 
 export const selectService = (state, domainName, serviceName) => {
-    return state.services.services &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ]
-        ? state.services.services[
-              getFullName(domainName, serviceDelimiter, serviceName)
-          ]
-        : {};
+    return getSafe(
+        () =>
+            state.services.services[
+                getFullName(domainName, serviceDelimiter, serviceName)
+            ],
+        {}
+    );
+};
+
+export const selectServiceTags = (state, domainName, serviceName) => {
+    return getSafe(
+        () =>
+            state.services.services[
+                getFullName(domainName, serviceDelimiter, serviceName)
+            ].tags,
+        {}
+    );
 };
 
 export const selectServicePublicKeys = (state, domainName, serviceName) => {
-    return state.services.services &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ] &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ].publicKeys
-        ? mapToList(
-              state.services.services[
-                  getFullName(domainName, serviceDelimiter, serviceName)
-              ].publicKeys
-          )
-        : [];
+    return mapToList(
+        getSafe(
+            () =>
+                state.services.services[
+                    getFullName(domainName, serviceDelimiter, serviceName)
+                ].publicKeys,
+            {}
+        )
+    );
 };
 
 export const selectServiceDescription = (state, domainName, serviceName) => {
-    return state.services.services &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ] &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ].description
-        ? state.services.services[
-              getFullName(domainName, serviceDelimiter, serviceName)
-          ].description
-        : null;
+    return getSafe(
+        () =>
+            state.services.services[
+                getFullName(domainName, serviceDelimiter, serviceName)
+            ].description,
+        null
+    );
 };
 
 export const selectProvider = (state, domainName, serviceName) => {
-    return state.services.services &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ] &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ].provider
-        ? state.services.services[
-              getFullName(domainName, serviceDelimiter, serviceName)
-          ].provider
-        : {};
+    return getSafe(
+        () =>
+            state.services.services[
+                getFullName(domainName, serviceDelimiter, serviceName)
+            ].provider,
+        {}
+    );
 };
 export const selectAllProviders = (state) => {
     return state.services && state.services.allProviders
@@ -95,17 +100,13 @@ export const selectDynamicServiceHeaderDetails = (
     domainName,
     serviceName
 ) => {
-    return state.services.services &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ] &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ].serviceHeaderDetails
-        ? state.services.services[
-              getFullName(domainName, serviceDelimiter, serviceName)
-          ].serviceHeaderDetails.dynamic
-        : {};
+    return getSafe(
+        () =>
+            state.services.services[
+                getFullName(domainName, serviceDelimiter, serviceName)
+            ].serviceHeaderDetails.dynamic,
+        {}
+    );
 };
 
 export const selectStaticServiceHeaderDetails = (
@@ -113,17 +114,13 @@ export const selectStaticServiceHeaderDetails = (
     domainName,
     serviceName
 ) => {
-    return state.services.services &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ] &&
-        state.services.services[
-            getFullName(domainName, serviceDelimiter, serviceName)
-        ].serviceHeaderDetails
-        ? state.services.services[
-              getFullName(domainName, serviceDelimiter, serviceName)
-          ].serviceHeaderDetails.static
-        : {};
+    return getSafe(
+        () =>
+            state.services.services[
+                getFullName(domainName, serviceDelimiter, serviceName)
+            ].serviceHeaderDetails.static,
+        {}
+    );
 };
 
 export const selectInstancesWorkLoadMeta = (

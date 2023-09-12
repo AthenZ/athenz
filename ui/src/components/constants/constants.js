@@ -28,8 +28,8 @@ export const DISPLAY_SPACE = '\u23b5';
 
 export const SERVICE_TYPE_DYNAMIC = 'dynamic';
 export const SERVICE_TYPE_STATIC = 'static';
-export const SERVICE_TYPE_DYNAMIC_LABEL = 'Dynamic';
-export const SERVICE_TYPE_STATIC_LABEL = 'Static';
+export const SERVICE_TYPE_DYNAMIC_LABEL = 'Dynamic Instances';
+export const SERVICE_TYPE_STATIC_LABEL = 'Static Instances';
 export const SEGMENTATION_TYPE_OUTBOUND = 'outbound';
 export const SEGMENTATION_TYPE_INBOUND = 'inbound';
 export const SEGMENTATION_TYPE_OUTBOUND_LABEL = 'Outbound';
@@ -62,6 +62,10 @@ export const SERVICE_TABS = [
     {
         label: SERVICE_TYPE_DYNAMIC_LABEL,
         name: SERVICE_TYPE_DYNAMIC,
+    },
+    {
+        label: 'Tags',
+        name: 'tags',
     },
 ];
 
