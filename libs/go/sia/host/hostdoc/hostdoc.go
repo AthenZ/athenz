@@ -19,11 +19,12 @@ package hostdoc
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
 	"net"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/AthenZ/athenz/libs/go/sia/host/hostdoc/raw"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
 )
 
@@ -45,10 +46,13 @@ type Doc struct {
 	Profile           string
 	ProfileRestrictTo string
 	Services          []string
+	AccountId         string
+	ProjectNumber     string
 	Uuid              string
 	Ip                map[string]bool
 	Zone              string
 	Bytes             []byte
+	LaunchTime        time.Time
 }
 
 // NewPlainDoc returns Doc, the provider string from the host_document, and an error
@@ -92,10 +96,13 @@ func NewPlainDoc(bytes []byte) (*Doc, string, error) {
 		Services:          strings.Split(svcs, ","),
 		Profile:           d.Profile,
 		ProfileRestrictTo: d.ProfileRestrictTo,
+		AccountId:         d.AccountId,
+		ProjectNumber:     d.ProjectNumber,
 		Uuid:              uuid,
 		Zone:              d.Zone,
 		Ip:                ip,
 		Bytes:             bytes,
+		LaunchTime:        d.LaunchTime,
 	}, d.Provider, nil
 }
 
