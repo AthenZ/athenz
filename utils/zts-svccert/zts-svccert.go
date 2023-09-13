@@ -230,10 +230,11 @@ func main() {
 	// data contains the authentication details
 
 	var client *zts.ZTSClient
+	var ntoken string
 	if provider != "" {
 		client, err = certClient(ztsURL, nil, "", caCertFile)
 	} else if serviceCert == "" {
-		ntoken, err := getNToken(domain, service, keyID, keyBytes)
+		ntoken, err = getNToken(domain, service, keyID, keyBytes)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -348,11 +349,12 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 
 	var client *zts.ZTSClient
 	var err error
+	var ntokenBytes []byte
 	if svcKeyFile != "" {
 		client, err = athenzutils.ZtsClient(ztsURL, svcKeyFile, svcCertFile, caCertFile, true)
 	} else {
 		// we need to load our ntoken from the given file
-		ntokenBytes, err := os.ReadFile(ntokenFile)
+		ntokenBytes, err = os.ReadFile(ntokenFile)
 		if err != nil {
 			return "", err
 		}
