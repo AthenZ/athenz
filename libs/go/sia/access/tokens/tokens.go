@@ -162,6 +162,8 @@ func Fetch(opts *config.TokenOptions) ([]string, []error) {
 		tokenBytesToStore := func(res *zts.AccessTokenResponse, opts *config.TokenOptions) ([]byte, error) {
 			if opts.StoreOptions == config.ZtsResponse {
 				return json.Marshal(res)
+			} else if opts.StoreOptions == config.AccessTokenWithoutQuotesProp {
+				return []byte(res.Access_token), nil
 			} else {
 				return json.Marshal(res.Access_token)
 			}

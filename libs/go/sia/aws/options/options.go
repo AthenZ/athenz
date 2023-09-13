@@ -111,6 +111,7 @@ type Config struct {
 	RunAfter          string                   `json:"run_after,omitempty"`           //execute the command mentioned after certs are created
 	RunAfterTokens    string                   `json:"run_after_tokens,omitempty"`    //execute the command mentioned after tokens are created
 	SpiffeTrustDomain string                   `json:"spiffe_trust_domain,omitempty"` //spiffe trust domain - if configured used full spiffe uri with namespace
+	StoreTokenOption  *int                     `json:"store_token_option,omitempty"`  //store access token option
 }
 
 type AccessProfileConfig struct {
@@ -213,6 +214,7 @@ type Options struct {
 	SpiffeTrustDomain   string            //spiffe uri trust domain
 	SpiffeNamespace     string            //spiffe uri namespace
 	OmitDomain          bool              //attestation role only includes service name
+	StoreTokenOption    *int              //store access token option
 }
 
 const (
@@ -473,6 +475,12 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 			return config, nil, fmt.Errorf("unable to parse athenz access tokens '%s': %v", acEnv, err)
 		}
 	}
+	if config.StoreTokenOption == nil {
+		tokenOption := util.ParseEnvIntFlag("ATHENZ_SIA_STORE_TOKEN_OPTION", -1)
+		if tokenOption >= 0 {
+			config.StoreTokenOption = &tokenOption
+		}
+	}
 
 	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
 	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
@@ -533,6 +541,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	runAfterTokens := ""
 	spiffeTrustDomain := ""
 
+	var storeTokenOption *int
 	if config != nil {
 		useRegionalSTS = config.UseRegionalSTS
 		sanDnsWildcard = config.SanDnsWildcard
@@ -545,6 +554,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		dropPrivileges = config.DropPrivileges
 		fileDirectUpdate = config.FileDirectUpdate
 		accessManagement = config.AccessManagement
+		storeTokenOption = config.StoreTokenOption
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}
@@ -754,6 +764,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		RunAfterTokensParts: util.ParseScriptArguments(runAfterTokens),
 		SpiffeTrustDomain:   spiffeTrustDomain,
 		OmitDomain:          account.OmitDomain,
+		StoreTokenOption:    storeTokenOption,
 	}, nil
 }
 

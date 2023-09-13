@@ -40,8 +40,9 @@ type AccessToken struct {
 type StoreTokenOptions int
 
 const (
-	ZtsResponse     StoreTokenOptions = iota // Default - store the entire AccessTokenResponse from ZTS
-	AccessTokenProp                          // Store only the access_token property
+	ZtsResponse                  StoreTokenOptions = iota // Default - store the entire AccessTokenResponse from ZTS
+	AccessTokenProp                                       // Store only the access_token property
+	AccessTokenWithoutQuotesProp                          // Store only the access_token without enclosing in quotes
 )
 
 // TokenService service definition with key/cert filenames

@@ -25,5 +25,6 @@
             }
         }
     ],
-    "fail_count_for_exit": 5
+    "fail_count_for_exit": 5,
+    "store_token_option": 2
 }

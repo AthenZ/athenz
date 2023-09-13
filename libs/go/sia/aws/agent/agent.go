@@ -848,7 +848,11 @@ func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, e
 	if err != nil {
 		return nil, fmt.Errorf("unable to create token options: %s", err.Error())
 	}
-	tokenOpts.StoreOptions = config.AccessTokenProp
+	if opts.StoreTokenOption != nil {
+		tokenOpts.StoreOptions = config.StoreTokenOptions(*opts.StoreTokenOption)
+	} else {
+		tokenOpts.StoreOptions = config.AccessTokenProp
+	}
 
 	log.Printf("token options created successfully")
 	return tokenOpts, nil
