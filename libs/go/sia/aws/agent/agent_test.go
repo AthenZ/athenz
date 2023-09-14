@@ -30,6 +30,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/agent/devel/ztsmock"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
 	"github.com/AthenZ/athenz/libs/go/sia/aws/options"
@@ -491,6 +492,34 @@ func TestNilTokenOptions(test *testing.T) {
 	token, err := tokenOptions(opts, "")
 	assert.Nil(test, token, "should not create token")
 	assert.NotNil(test, err, "token is not presented")
+}
+
+func TestTokenStoreOptions(test *testing.T) {
+	opts := &options.Options{
+		Domain: "athenz",
+		AccessTokens: []config.AccessToken{
+			{
+				FileName: "reader",
+				Domain:   "athenz",
+				Service:  "api",
+			},
+		},
+		TokenDir:  "/tmp",
+		CertDir:   "/tmp",
+		KeyDir:    "/tmp",
+		BackupDir: "/tmp",
+	}
+	token, err := tokenOptions(opts, "")
+	assert.Nil(test, err)
+	assert.Equal(test, token.StoreOptions, config.AccessTokenProp)
+
+	// set the token option value
+	tokenOption := 2
+	opts.StoreTokenOption = &tokenOption
+
+	token, err = tokenOptions(opts, "")
+	assert.Nil(test, err)
+	assert.Equal(test, token.StoreOptions, config.AccessTokenWithoutQuotesProp)
 }
 
 func TestGetServiceHostname(test *testing.T) {

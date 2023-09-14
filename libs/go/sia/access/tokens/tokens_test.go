@@ -340,12 +340,27 @@ func TestAccessTokensSuccess(t *testing.T) {
 	makeIdentity(t, opts)
 
 	// 1) Normal Fetch Tokens
+	opts.StoreOptions = config.ZtsResponse
 	refreshed, errs := Fetch(opts)
 	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
 	assert.Lenf(t, refreshed, 5, "expected 5 refreshed access tokens but the number was %v: %v", len(refreshed), refreshed)
 	assertAccessTokens(t, opts, true)
 
-	// 2) Write token errors
+	// 2) Save tokens with quotes
+	opts.StoreOptions = config.AccessTokenProp
+	refreshed, errs = Fetch(opts)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
+	assert.Lenf(t, refreshed, 5, "expected 5 refreshed access tokens but the number was %v: %v", len(refreshed), refreshed)
+	assertAccessTokens(t, opts, true)
+
+	// 3) Save tokens without quotes
+	opts.StoreOptions = config.AccessTokenWithoutQuotesProp
+	refreshed, errs = Fetch(opts)
+	assert.Lenf(t, errs, 0, "should be able to create access tokens, errs: %v", errs)
+	assert.Lenf(t, refreshed, 5, "expected 5 refreshed access tokens but the number was %v: %v", len(refreshed), refreshed)
+	assertAccessTokens(t, opts, true)
+
+	// 4) Write token errors
 	// Set old time stamp on a token
 	tpath := filepath.Join(opts.TokenDir, "athenz.demo", "token1")
 	err := os.Chtimes(tpath, time.Now(), time.Now().Add(-90*time.Minute))
@@ -948,8 +963,8 @@ func assertAccessTokenPropOnly(t *testing.T, opts *config.TokenOptions, assertGi
 }
 
 // assertAccessTokens verifies the token files as per the information in options.AccessTokens
-func assertAccessTokens(t *testing.T, opts *config.TokenOptions, assertGidUid bool) {
-	a := assert.New(t)
+func assertAccessTokens(test *testing.T, opts *config.TokenOptions, assertGidUid bool) {
+	a := assert.New(test)
 
 	for _, t := range opts.Tokens {
 		fname := filepath.Join(opts.TokenDir, t.Domain, t.FileName)
@@ -965,16 +980,33 @@ func assertAccessTokens(t *testing.T, opts *config.TokenOptions, assertGidUid bo
 			}
 		}
 
-		// Todo: parse the token and verify the scopes and expiry
 		bytes, err := os.ReadFile(fname)
 		a.Nilf(err, "should be able to read the file, %q", fname)
 
-		token := zts.AccessTokenResponse{}
-		err = json.Unmarshal(bytes, &token)
-		a.Nilf(err, "should be able to parse the token bytes into AccessTokenResponse type, bytes: %q", string(bytes))
+		if opts.StoreOptions == config.ZtsResponse {
+			token := zts.AccessTokenResponse{}
+			err = json.Unmarshal(bytes, &token)
+			a.Nilf(err, "should be able to parse the token bytes into AccessTokenResponse type, bytes: %q", string(bytes))
 
-		a.Equal(int32(t.Expiry), *token.Expires_in)
+			a.Equal(int32(t.Expiry), *token.Expires_in)
+		} else {
+			// default behavior is access token in quotes
+			if opts.StoreOptions == config.AccessTokenProp {
+				a.Equal(bytes[0], byte('"'))
+				a.Equal(bytes[len(bytes)-1], byte('"'))
+				assertParseJwt(a, bytes[1:len(bytes)-1])
+			} else {
+				assertParseJwt(a, bytes)
+			}
+		}
 	}
+}
+
+func assertParseJwt(a *assert.Assertions, token []byte) {
+	parser := new(jwt.Parser)
+	t, _, err := parser.ParseUnverified(string(token), jwt.MapClaims{})
+	a.Nil(err)
+	a.NotNil(t)
 }
 
 // uid returns current user's uid

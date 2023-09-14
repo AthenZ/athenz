@@ -305,6 +305,7 @@ func TestOptionsWithRoleThreshold(t *testing.T) {
 	assert.Equal(t, 1440, opts.RefreshInterval)
 	assert.Empty(t, opts.ZTSRegion)
 	assert.Equal(t, 5, opts.FailCountForExit)
+	assert.Equal(t, 2, *opts.StoreTokenOption)
 
 	// Make sure profile is correct
 	assert.Equal(t, "zts-profile", opts.Profile)
@@ -675,6 +676,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SSH_PRINCIPALS", "host1.athenz.io")
 	os.Setenv("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", "10")
 	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
+	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -711,6 +713,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, 2, len(cfgAccount.Roles))
 	assert.Equal(t, "host1.athenz.io", cfg.SshPrincipals)
 	assert.Equal(t, 10, cfg.FailCountForExit)
+	assert.Equal(t, 2, *cfg.StoreTokenOption)
 
 	os.Clearenv()
 }
