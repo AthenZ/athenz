@@ -149,7 +149,7 @@ const deleteStaticInstanceMsd = (
             {
                 domainName: domainName,
                 serviceName: service,
-                instanceId: instanceId,
+                name: instanceId,
                 auditRef: auditRef,
             },
             (err, json) => {

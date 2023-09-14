@@ -180,6 +180,27 @@
             }
         },
         {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "TransportPolicyScope",
+                "comment": "Scope of transport policy",
+                "elements": [
+                    {
+                        "symbol": "ALL"
+                    },
+                    {
+                        "symbol": "ONPREM"
+                    },
+                    {
+                        "symbol": "AWS"
+                    },
+                    {
+                        "symbol": "GCP"
+                    }
+                ]
+            }
+        },
+        {
             "StructTypeDef": {
                 "type": "Struct",
                 "name": "TransportPolicySubject",
@@ -219,6 +240,13 @@
                         "optional": true,
                         "comment": "Acts as restrictions. If present, this transport policy should be restricted to only mentioned instances.",
                         "items": "String"
+                    },
+                    {
+                        "name": "scope",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Scope of transport policy",
+                        "items": "TransportPolicyScope"
                     }
                 ],
                 "closed": false
@@ -354,7 +382,7 @@
                         "name": "entitySelector",
                         "type": "TransportPolicyEntitySelector",
                         "optional": false,
-                        "comment": "Describes the entity to which this transport policy applies"
+                        "comment": "Entity to which this transport policy applies"
                     },
                     {
                         "name": "from",
@@ -702,6 +730,50 @@
             }
         },
         {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "StaticWorkloadService",
+                "comment": "static workload service",
+                "fields": [
+                    {
+                        "name": "type",
+                        "type": "StaticWorkloadType",
+                        "optional": false,
+                        "comment": "value representing one of the StaticWorkloadType enum"
+                    },
+                    {
+                        "name": "serviceName",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the service"
+                    },
+                    {
+                        "name": "instance",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "service instance"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "StaticWorkloadServices",
+                "comment": "list of services",
+                "fields": [
+                    {
+                        "name": "staticWorkloadServices",
+                        "type": "Array",
+                        "optional": false,
+                        "items": "StaticWorkloadService"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
             "EnumTypeDef": {
                 "type": "Enum",
                 "name": "NetworkPolicyChangeEffect",
@@ -848,6 +920,844 @@
                         "optional": true,
                         "comment": "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies",
                         "items": "NetworkPolicyChangeImpactDetail"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "rdl.Identifier",
+                "comment": "All names need to be of this restricted string type",
+                "pattern": "[a-zA-Z_]+[a-zA-Z_0-9]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "rdl.NamespacedIdentifier",
+                "comment": "A Namespace is a dotted compound name, using reverse domain name order (i.e. \"com.yahoo.auth\")",
+                "pattern": "([a-zA-Z_]+[a-zA-Z_0-9]*)(\\.[a-zA-Z_]+[a-zA-Z_0-9])*"
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "rdl.BaseType",
+                "elements": [
+                    {
+                        "symbol": "Bool"
+                    },
+                    {
+                        "symbol": "Int8"
+                    },
+                    {
+                        "symbol": "Int16"
+                    },
+                    {
+                        "symbol": "Int32"
+                    },
+                    {
+                        "symbol": "Int64"
+                    },
+                    {
+                        "symbol": "Float32"
+                    },
+                    {
+                        "symbol": "Float64"
+                    },
+                    {
+                        "symbol": "Bytes"
+                    },
+                    {
+                        "symbol": "String"
+                    },
+                    {
+                        "symbol": "Timestamp"
+                    },
+                    {
+                        "symbol": "Symbol"
+                    },
+                    {
+                        "symbol": "UUID"
+                    },
+                    {
+                        "symbol": "Array"
+                    },
+                    {
+                        "symbol": "Map"
+                    },
+                    {
+                        "symbol": "Struct"
+                    },
+                    {
+                        "symbol": "Enum"
+                    },
+                    {
+                        "symbol": "Union"
+                    },
+                    {
+                        "symbol": "Any"
+                    }
+                ]
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "rdl.ExtendedAnnotation",
+                "comment": "ExtendedAnnotation - parsed and preserved, but has no defined meaning in RDL. Such annotations must begin with \"x_\", and may have an associated string literal value (the value will be \"\" if the annotation is just a flag).",
+                "pattern": "x_[a-zA-Z_0-9]*"
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.TypeDef",
+                "comment": "TypeDef is the basic type definition.",
+                "fields": [
+                    {
+                        "name": "type",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type this type is derived from. For base types, it is the same as the name"
+                    },
+                    {
+                        "name": "name",
+                        "type": "rdl.TypeName",
+                        "optional": false,
+                        "comment": "The name of the type"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "The comment for the type"
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.AliasTypeDef",
+                "comment": "AliasTypeDef is used for type definitions that add no additional attributes, and thus just create an alias",
+                "fields": [],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.BytesTypeDef",
+                "comment": "Bytes allow the restriction by fixed size, or min/max size.",
+                "fields": [
+                    {
+                        "name": "size",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Fixed size"
+                    },
+                    {
+                        "name": "minSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Min size"
+                    },
+                    {
+                        "name": "maxSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Max size"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.StringTypeDef",
+                "comment": "Strings allow the restriction by regular expression pattern or by an explicit set of values. An optional maximum size may be asserted",
+                "fields": [
+                    {
+                        "name": "pattern",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "A regular expression that must be matched. Mutually exclusive with values"
+                    },
+                    {
+                        "name": "values",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "A set of allowable values",
+                        "items": "String"
+                    },
+                    {
+                        "name": "minSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Min size"
+                    },
+                    {
+                        "name": "maxSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Max size"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "UnionTypeDef": {
+                "type": "Union",
+                "name": "rdl.Number",
+                "comment": "A numeric is any of the primitive numeric types",
+                "variants": [
+                    "Int8",
+                    "Int16",
+                    "Int32",
+                    "Int64",
+                    "Float32",
+                    "Float64"
+                ]
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.NumberTypeDef",
+                "comment": "A number type definition allows the restriction of numeric values.",
+                "fields": [
+                    {
+                        "name": "min",
+                        "type": "rdl.Number",
+                        "optional": true,
+                        "comment": "Min value"
+                    },
+                    {
+                        "name": "max",
+                        "type": "rdl.Number",
+                        "optional": true,
+                        "comment": "Max value"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.ArrayTypeDef",
+                "comment": "Array types can be restricted by item type and size",
+                "fields": [
+                    {
+                        "name": "items",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the items, default to any type"
+                    },
+                    {
+                        "name": "size",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "If present, indicate the fixed size."
+                    },
+                    {
+                        "name": "minSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "If present, indicate the min size"
+                    },
+                    {
+                        "name": "maxSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "If present, indicate the max size"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.MapTypeDef",
+                "comment": "Map types can be restricted by key type, item type and size",
+                "fields": [
+                    {
+                        "name": "keys",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the keys, default to String."
+                    },
+                    {
+                        "name": "items",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the items, default to Any type"
+                    },
+                    {
+                        "name": "size",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "If present, indicates the fixed size."
+                    },
+                    {
+                        "name": "minSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "If present, indicate the min size"
+                    },
+                    {
+                        "name": "maxSize",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "If present, indicate the max size"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.StructFieldDef",
+                "comment": "Each field in a struct_field_spec is defined by this type",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "rdl.Identifier",
+                        "optional": false,
+                        "comment": "The name of the field"
+                    },
+                    {
+                        "name": "type",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the field"
+                    },
+                    {
+                        "name": "optional",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "The field may be omitted even if specified",
+                        "default": false
+                    },
+                    {
+                        "name": "default",
+                        "type": "Any",
+                        "optional": true,
+                        "comment": "If field is absent, what default value should be assumed."
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "The comment for the field"
+                    },
+                    {
+                        "name": "items",
+                        "type": "rdl.TypeRef",
+                        "optional": true,
+                        "comment": "For map or array fields, the type of the items"
+                    },
+                    {
+                        "name": "keys",
+                        "type": "rdl.TypeRef",
+                        "optional": true,
+                        "comment": "For map type fields, the type of the keys"
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.StructTypeDef",
+                "comment": "A struct can restrict specific named fields to specific types. By default, any field not specified is allowed, and can be of any type. Specifying closed means only those fields explicitly",
+                "fields": [
+                    {
+                        "name": "fields",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "The fields in this struct. By default, open Structs can have any fields in addition to these",
+                        "items": "rdl.StructFieldDef"
+                    },
+                    {
+                        "name": "closed",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "indicates that only the specified fields are acceptable. Default is open (any fields)",
+                        "default": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.EnumElementDef",
+                "comment": "EnumElementDef defines one of the elements of an Enum",
+                "fields": [
+                    {
+                        "name": "symbol",
+                        "type": "rdl.Identifier",
+                        "optional": false,
+                        "comment": "The identifier representing the value"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "the comment for the element"
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.EnumTypeDef",
+                "comment": "Define an enumerated type. Each value of the type is represented by a symbolic identifier.",
+                "fields": [
+                    {
+                        "name": "elements",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "The enumeration of the possible elements",
+                        "items": "rdl.EnumElementDef"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "rdl.TypeDef",
+                "name": "rdl.UnionTypeDef",
+                "comment": "Define a type as one of any other specified type.",
+                "fields": [
+                    {
+                        "name": "variants",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "The type names of constituent types. Union types get expanded, this is a flat list",
+                        "items": "rdl.TypeRef"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "UnionTypeDef": {
+                "type": "Union",
+                "name": "rdl.Type",
+                "comment": "A Type can be specified by any of the above specialized Types, determined by the value of the the 'type' field",
+                "variants": [
+                    "rdl.BaseType",
+                    "rdl.StructTypeDef",
+                    "rdl.MapTypeDef",
+                    "rdl.ArrayTypeDef",
+                    "rdl.EnumTypeDef",
+                    "rdl.UnionTypeDef",
+                    "rdl.StringTypeDef",
+                    "rdl.BytesTypeDef",
+                    "rdl.NumberTypeDef",
+                    "rdl.AliasTypeDef"
+                ]
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.ResourceInput",
+                "comment": "ResourceOutput defines input characteristics of a Resource",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "rdl.Identifier",
+                        "optional": false,
+                        "comment": "the formal name of the input"
+                    },
+                    {
+                        "name": "type",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the input"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "The optional comment"
+                    },
+                    {
+                        "name": "pathParam",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "true of this input is a path parameter",
+                        "default": false
+                    },
+                    {
+                        "name": "queryParam",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "if present, the name of the query param name"
+                    },
+                    {
+                        "name": "header",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "If present, the name of the header the input is associated with"
+                    },
+                    {
+                        "name": "pattern",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "If present, the pattern associated with the pathParam (i.e. wildcard path matches)"
+                    },
+                    {
+                        "name": "default",
+                        "type": "Any",
+                        "optional": true,
+                        "comment": "If present, the default value for optional params"
+                    },
+                    {
+                        "name": "optional",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "If present, indicates that the input is optional",
+                        "default": false
+                    },
+                    {
+                        "name": "flag",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "If present, indicates the queryparam is of flag style (no value)",
+                        "default": false
+                    },
+                    {
+                        "name": "context",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "If present, indicates the parameter comes form the implementation context"
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.ResourceOutput",
+                "comment": "ResourceOutput defines output characteristics of a Resource",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "rdl.Identifier",
+                        "optional": false,
+                        "comment": "the formal name of the output"
+                    },
+                    {
+                        "name": "type",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the output"
+                    },
+                    {
+                        "name": "header",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "the name of the header associated with this output"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "The optional comment for the output"
+                    },
+                    {
+                        "name": "optional",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "If present, indicates that the output is optional (the server decides)",
+                        "default": false
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.ResourceAuth",
+                "comment": "ResourceAuth defines authentication and authorization attributes of a resource. Presence of action, resource, or domain implies authentication; the authentication flag alone is required only when no authorization is done.",
+                "fields": [
+                    {
+                        "name": "authenticate",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "if present and true, then the requester must be authenticated",
+                        "default": false
+                    },
+                    {
+                        "name": "action",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "the action to authorize access to. This forces authentication"
+                    },
+                    {
+                        "name": "resource",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "the resource identity to authorize access to"
+                    },
+                    {
+                        "name": "domain",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "if present, the alternate domain to check access to. This is rare."
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.ExceptionDef",
+                "comment": "ExceptionDef describes the exception a symbolic response code maps to.",
+                "fields": [
+                    {
+                        "name": "type",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "The type of the exception"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "the optional comment for the exception"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.Resource",
+                "comment": "A Resource of a REST service",
+                "fields": [
+                    {
+                        "name": "type",
+                        "type": "rdl.TypeRef",
+                        "optional": false,
+                        "comment": "The type of the resource"
+                    },
+                    {
+                        "name": "method",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "The method for the action (typically GET, POST, etc for HTTP access)"
+                    },
+                    {
+                        "name": "path",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "The resource path template"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "The optional comment"
+                    },
+                    {
+                        "name": "inputs",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "An Array named inputs",
+                        "items": "rdl.ResourceInput"
+                    },
+                    {
+                        "name": "outputs",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "An Array of named outputs",
+                        "items": "rdl.ResourceOutput"
+                    },
+                    {
+                        "name": "auth",
+                        "type": "rdl.ResourceAuth",
+                        "optional": true,
+                        "comment": "The optional authentication or authorization directive"
+                    },
+                    {
+                        "name": "expected",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "The expected symbolic response code",
+                        "default": "OK"
+                    },
+                    {
+                        "name": "alternatives",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "The set of alternative but non-error response codes",
+                        "items": "String"
+                    },
+                    {
+                        "name": "exceptions",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "A map of symbolic response code to Exception definitions",
+                        "items": "rdl.ExceptionDef",
+                        "keys": "String"
+                    },
+                    {
+                        "name": "async",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "A hint to server implementations that this resource would be better implemented with async I/O"
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
+                    },
+                    {
+                        "name": "consumes",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Optional hint for resource acceptable input types",
+                        "items": "String"
+                    },
+                    {
+                        "name": "produces",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Optional hint for resource output content types",
+                        "items": "String"
+                    },
+                    {
+                        "name": "name",
+                        "type": "rdl.Identifier",
+                        "optional": true,
+                        "comment": "The optional name of the resource"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "rdl.Schema",
+                "comment": "A Schema is a container for types and resources. It is self-contained (no external references). and is the output of the RDL parser.",
+                "fields": [
+                    {
+                        "name": "namespace",
+                        "type": "rdl.NamespacedIdentifier",
+                        "optional": true,
+                        "comment": "The namespace for the schema"
+                    },
+                    {
+                        "name": "name",
+                        "type": "rdl.Identifier",
+                        "optional": true,
+                        "comment": "The name of the schema"
+                    },
+                    {
+                        "name": "version",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "The version of the schema"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "The comment for the entire schema"
+                    },
+                    {
+                        "name": "types",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "The types this schema defines.",
+                        "items": "rdl.Type"
+                    },
+                    {
+                        "name": "resources",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "The resources for a service this schema defines",
+                        "items": "rdl.Resource"
+                    },
+                    {
+                        "name": "base",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "the base path for resources in the schema."
+                    },
+                    {
+                        "name": "annotations",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "additional annotations starting with \"x_\"",
+                        "items": "String",
+                        "keys": "rdl.ExtendedAnnotation"
                     }
                 ],
                 "closed": false
@@ -1265,7 +2175,7 @@
         {
             "type": "StaticWorkload",
             "method": "DELETE",
-            "path": "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}/workload/static",
+            "path": "/domain/{domainName}/service/{serviceName}/name/{name}/workload/static",
             "comment": "Api to perform a static workload DELETE operation for a domain, service, and instance",
             "inputs": [
                 {
@@ -1285,9 +2195,9 @@
                     "flag": false
                 },
                 {
-                    "name": "instanceId",
-                    "type": "PathElement",
-                    "comment": "unique instance id within provider's namespace",
+                    "name": "name",
+                    "type": "String",
+                    "comment": "name associated with the workload. In most cases will be a FQDN",
                     "pathParam": true,
                     "optional": false,
                     "flag": false
@@ -1317,6 +2227,53 @@
                 }
             },
             "name": "deleteStaticWorkload"
+        },
+        {
+            "type": "StaticWorkloadServices",
+            "method": "GET",
+            "path": "/services/{serviceType}",
+            "comment": "Api to retrieve static workload services by its type. type=StaticWorkloadType in String representation",
+            "inputs": [
+                {
+                    "name": "serviceType",
+                    "type": "EntityName",
+                    "comment": "type of the service",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceValue",
+                    "type": "EntityName",
+                    "comment": "specific service value",
+                    "pathParam": false,
+                    "queryParam": "value",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "getStaticWorkloadServicesByType"
         },
         {
             "type": "NetworkPolicyChangeImpactRequest",
@@ -1355,6 +2312,16 @@
                 }
             },
             "name": "evaluateNetworkPolicyChange"
+        },
+        {
+            "type": "rdl.Schema",
+            "method": "GET",
+            "path": "/schema",
+            "comment": "Get RDL Schema",
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK"
         }
     ]
 }
