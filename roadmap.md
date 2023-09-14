@@ -3,6 +3,14 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q4 2023
+
+- Integration with Cert-Manager (cont. from Q3)
+- K8S operator for Athenz to manage Athenz resources using CRDs (cont. from Q3)
+- Introduce slack notification support for member expiry notifications in addition to emails currently supported. (cont. from Q3)
+- Consolidation of role member expiry and review reminder email notifications per user instead of per domain
+- Simplify/Improve role review process
+
 # Q3 2023
 
 - Integration with Cert-Manager (cont. from Q2)
