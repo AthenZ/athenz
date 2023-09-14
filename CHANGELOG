@@ -1,3 +1,24 @@
+Athenz v1.11.42 Release / Sep 13, 2023
+--------------------------------------
+
+#2210 UI: add support for policy tags
+#2237 UI: add support for service tag
+#2294 zts server code cleanup - replace deprecated calls, etc
+#2295 zms server code cleanup - replace deprecated calls, etc
+#2296 container library code cleanup - replace deprecated calls, etc
+#2297 auth-core library code cleanup - replace deprecated calls, etc
+#2298 common libraries code cleanup - replace deprecated calls, etc
+#2299 server common library code cleanup - replace deprecated calls, etc
+#2300 handle assertion conditions in putPolicy api
+#2301 libs/go/zmscli: fix dropped errors
+#2303 update jacoco code coverage percentages
+#2305 make sure only one notification run per-day
+#2307 new static instance type - service_subnet
+#2309 Add accountId, projectNumber, launchTime in raw.Doc
+#2311 Add new fields to hostdoc.Doc
+#2312 utils/zts-svccert: fix dropped errors
+#2313 new store-token-option to store access token without quotes
+
 Athenz v1.11.41 Release / Sep 01, 2023
 --------------------------------------
 
