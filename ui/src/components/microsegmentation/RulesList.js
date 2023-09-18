@@ -177,9 +177,7 @@ class RulesList extends React.Component {
             this.props.data.outbound?.length > 0 &&
             this.state.tabularView;
 
-        return this.props.isLoading.length !== 0 ? (
-            <ReduxPageLoader message={'Loading microsegmentation data'} />
-        ) : (
+        return (
             <MembersSectionDiv data-testid='segmentation-data-list'>
                 {addSegmentationButton}
 
