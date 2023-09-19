@@ -656,11 +656,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_POLICY_TAGS = "SELECT p.name, pt.key, pt.value, p.version FROM policy_tags pt "
             + "JOIN policy p ON pt.policy_id = p.policy_id JOIN domain ON domain.domain_id=p.domain_id "
             + "WHERE domain.name=?";
-    private static final String SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM ROLE_MEMBER"
+    private static final String SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM role_member"
             + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
-    private static final String SQL_ROLE_REVIEW_LAST_NOTIFIED_TIME = "SELECT review_last_notified_time FROM ROLE_MEMBER"
+    private static final String SQL_ROLE_REVIEW_LAST_NOTIFIED_TIME = "SELECT review_last_notified_time FROM role_member"
             + " WHERE review_last_notified_time IS NOT NULL ORDER BY review_last_notified_time DESC LIMIT 1;";
-    private static final String SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM PRINCIPAL_GROUP_MEMBER"
+    private static final String SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM principal_group_member"
             + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
 
     private static final String CACHE_DOMAIN    = "d:";
