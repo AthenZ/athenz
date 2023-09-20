@@ -269,20 +269,20 @@ class GCPLoginPage extends React.Component {
             this.state.projectRoleMap[pName].forEach((projectObject, index) => {
                 projectRoleNames.push(
                     <div key={index}>
-                        <RadioButton
-                            type={'radio'}
-                            key={'button-' + projectObject.roleName}
-                            value={projectObject.roleName}
-                            name={'project'}
-                            checked={
-                                this.state.roleName === projectObject.roleName
-                            }
-                            onChange={() =>
-                                this.handleRadioButton(projectObject)
-                            }
-                            required={true}
-                        />
                         <ProjectLabel key={'label-' + projectObject.roleName}>
+                            <RadioButton
+                                type={'radio'}
+                                key={'button-' + projectObject.roleName}
+                                value={projectObject.roleName}
+                                name={'project'}
+                                checked={
+                                    this.state.roleName === projectObject.roleName
+                                }
+                                onChange={() =>
+                                    this.handleRadioButton(projectObject)
+                                }
+                                required={true}
+                            />
                             {projectObject.projectRoleName}
                         </ProjectLabel>
                     </div>
