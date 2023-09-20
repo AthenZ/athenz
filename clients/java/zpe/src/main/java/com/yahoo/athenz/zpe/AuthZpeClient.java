@@ -72,8 +72,6 @@ public class AuthZpeClient {
     private static final Set<String> X509_ISSUERS_NAMES = new HashSet<>();
     private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
 
-    private static long lastZtsJwkFetchTime;
-    private static long millisBetweenZtsCalls;
     private static int maxTokenCacheSize = 10240;
 
     public enum AccessCheckStatus {
@@ -181,8 +179,6 @@ public class AuthZpeClient {
         setAccessTokenSignKeyResolver(null, null);
         
         // save the last zts api call time, and the allowed interval between api calls
-
-        lastZtsJwkFetchTime = System.currentTimeMillis();
         setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
     }
 
@@ -316,23 +312,15 @@ public class AuthZpeClient {
     
     public static PublicKey getZtsPublicKey(String keyId) {
         PublicKey publicKey = publicKeyStore.getZtsKey(keyId);
-        if (publicKey == null && canFetchLatestJwksFromZts()) {
+        if (publicKey == null) {
             //  fetch all zts jwk keys and update config and try again
-            accessSignKeyResolver.loadPublicKeysFromServer();
-            lastZtsJwkFetchTime = System.currentTimeMillis();
             publicKey = accessSignKeyResolver.getPublicKey(keyId); 
         }
         return publicKey;
     }
 
     protected static void setMillisBetweenZtsCalls(long millis) {
-        millisBetweenZtsCalls = millis;
-    }
-    
-    protected static boolean canFetchLatestJwksFromZts() {
-        long now = System.currentTimeMillis();
-        long millisDiff = now - lastZtsJwkFetchTime;
-        return millisDiff > millisBetweenZtsCalls;
+        accessSignKeyResolver.setMillisBetweenZtsCalls(millis);
     }
     
     public static PublicKey getZmsPublicKey(String keyId) {

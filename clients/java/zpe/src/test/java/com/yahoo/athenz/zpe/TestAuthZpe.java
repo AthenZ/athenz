@@ -1461,13 +1461,6 @@ public class TestAuthZpe {
     }
 
     @Test
-    public void testCanFetch() {
-        assertFalse(AuthZpeClient.canFetchLatestJwksFromZts());
-        AuthZpeClient.setMillisBetweenZtsCalls(0);
-        assertTrue(AuthZpeClient.canFetchLatestJwksFromZts());
-    }
-
-    @Test
     public void testMaxCacheTokenSize() throws IOException {
 
         // perform allowed access check

@@ -45,6 +45,9 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
     private final SSLContext sslContext;
     private final String jwksUri;
+    private final boolean skipConfig;
+    private static long lastZtsJwkFetchTime;
+    private static long millisBetweenZtsCalls;
 
     ConcurrentHashMap<String, PublicKey> publicKeys;
 
@@ -61,11 +64,13 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
         this.jwksUri = jwksUri;
         this.sslContext = sslContext;
+        this.skipConfig = skipConfig;
         this.publicKeys = new ConcurrentHashMap<>();
         if (!skipConfig) {
             loadPublicKeysFromConfig();
             loadJwksFromConfig();
         }
+        lastZtsJwkFetchTime = System.currentTimeMillis();
         loadPublicKeysFromServer();
     }
     
@@ -80,11 +85,29 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
 
     private Key resolveSigningKey(JwsHeader jwsHeader) {
-        return publicKeys.get(jwsHeader.getKeyId());
+        return getPublicKey(jwsHeader.getKeyId());
     }
-    
+
+    public static void setMillisBetweenZtsCalls(long millis) {
+        millisBetweenZtsCalls = millis;
+    }
+
+    public static boolean canFetchLatestJwksFromZts() {
+        long now = System.currentTimeMillis();
+        long millisDiff = now - lastZtsJwkFetchTime;
+        return millisDiff > millisBetweenZtsCalls;
+    }
+
     public PublicKey getPublicKey(String keyId) {
-        return publicKeys.get(keyId);
+        PublicKey key = publicKeys.get(keyId);
+
+        if (key == null && canFetchLatestJwksFromZts()) {
+            lastZtsJwkFetchTime = System.currentTimeMillis();
+            loadPublicKeysFromServer();
+            key = publicKeys.get(keyId);
+        }
+
+        return key;
     }
 
     public void addPublicKey(final String keyId, final PublicKey publicKey) {
