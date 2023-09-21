@@ -4,8 +4,6 @@
 package athenzutils
 
 import (
-	"crypto/tls"
-	"crypto/x509"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 // ZtsClient creates and returns a ZTS client instance.
@@ -32,7 +31,7 @@ func ZtsClient(ztsURL, keyFile, certFile, caCertFile string, proxy bool) (*zts.Z
 			return nil, err
 		}
 	}
-	config, err := tlsConfiguration(keypem, certpem, cacertpem)
+	config, err := config.ClientTLSConfigFromPEM(keypem, certpem, cacertpem)
 	if err != nil {
 		return nil, err
 	}
@@ -44,24 +43,6 @@ func ZtsClient(ztsURL, keyFile, certFile, caCertFile string, proxy bool) (*zts.Z
 	}
 	client := zts.NewClient(ztsURL, tr)
 	return &client, nil
-}
-
-func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
-	if certpem != nil && keypem != nil {
-		mycert, err := tls.X509KeyPair(certpem, keypem)
-		if err != nil {
-			return nil, err
-		}
-		config.Certificates = make([]tls.Certificate, 1)
-		config.Certificates[0] = mycert
-	}
-	if cacertpem != nil {
-		certPool := x509.NewCertPool()
-		certPool.AppendCertsFromPEM(cacertpem)
-		config.RootCAs = certPool
-	}
-	return config, nil
 }
 
 // GenerateAccessTokenRequestString generates and urlencodes an access token string.

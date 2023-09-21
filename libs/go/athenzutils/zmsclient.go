@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 // ZmsClient creates and returns a ZMS client instance.
@@ -27,7 +28,7 @@ func ZmsClient(zmsURL, keyFile, certFile, caCertFile string, proxy bool) (*zms.Z
 			return nil, err
 		}
 	}
-	config, err := tlsConfiguration(keypem, certpem, cacertpem)
+	config, err := config.ClientTLSConfigFromPEM(keypem, certpem, cacertpem)
 	if err != nil {
 		return nil, err
 	}

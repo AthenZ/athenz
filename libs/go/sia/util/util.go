@@ -43,6 +43,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 // CertReqDetails - struct with details to generate a certificate CSR
@@ -186,29 +187,7 @@ func tlsConfiguration(keyfile, certfile, cafile string) (*tls.Config, error) {
 			return nil, err
 		}
 	}
-	return tlsConfigurationFromPEM(keypem, certpem, capem)
-}
-
-func tlsConfigurationFromPEM(keypem, certpem, capem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
-
-	if capem != nil {
-		certPool := x509.NewCertPool()
-		if !certPool.AppendCertsFromPEM(capem) {
-			return nil, fmt.Errorf("failed to append certs to pool")
-		}
-		config.RootCAs = certPool
-	}
-
-	if certpem != nil && keypem != nil {
-		mycert, err := tls.X509KeyPair(certpem, keypem)
-		if err != nil {
-			return nil, err
-		}
-		config.Certificates = make([]tls.Certificate, 1)
-		config.Certificates[0] = mycert
-	}
-	return config, nil
+	return config.ClientTLSConfigFromPEM(keypem, certpem, capem)
 }
 
 func GenerateX509CSR(key *rsa.PrivateKey, csrDetails CertReqDetails) (string, error) {

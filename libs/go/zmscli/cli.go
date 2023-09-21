@@ -5,8 +5,6 @@ package zmscli
 
 import (
 	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
@@ -17,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/ardielle/ardielle-go/rdl"
 	"golang.org/x/net/proxy"
 )
@@ -3395,7 +3394,7 @@ func SetX509CertClient(cli *Zms, keyFile, certFile, caCertFile, socksProxy strin
 			return err
 		}
 	}
-	config, err := tlsConfiguration(keypem, certpem, cacertpem)
+	config, err := config.ClientTLSConfigFromPEM(keypem, certpem, cacertpem)
 	if err != nil {
 		return err
 	}
@@ -3422,22 +3421,4 @@ func SetX509CertClient(cli *Zms, keyFile, certFile, caCertFile, socksProxy strin
 func SetClient(cli *Zms, tr *http.Transport, authHeader, ntoken *string) {
 	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
 	cli.Zms.AddCredentials(*authHeader, *ntoken)
-}
-
-func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
-	if certpem != nil && keypem != nil {
-		mycert, err := tls.X509KeyPair(certpem, keypem)
-		if err != nil {
-			return nil, err
-		}
-		config.Certificates = make([]tls.Certificate, 1)
-		config.Certificates[0] = mycert
-	}
-	if cacertpem != nil {
-		certPool := x509.NewCertPool()
-		certPool.AppendCertsFromPEM(cacertpem)
-		config.RootCAs = certPool
-	}
-	return config, nil
 }
