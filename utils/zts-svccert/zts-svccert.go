@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
@@ -515,7 +516,7 @@ func certClient(ztsURL string, keyBytes []byte, certfile, caCertFile string) (*z
 			return nil, err
 		}
 	}
-	config, err := tlsConfiguration(keyBytes, certpem, cacertpem)
+	config, err := config.ClientTLSConfigFromPEM(keyBytes, certpem, cacertpem)
 	if err != nil {
 		return nil, err
 	}
@@ -525,22 +526,4 @@ func certClient(ztsURL string, keyBytes []byte, certfile, caCertFile string) (*z
 	}
 	client := zts.NewClient(ztsURL, transport)
 	return &client, nil
-}
-
-func tlsConfiguration(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
-	if certpem != nil && keypem != nil {
-		mycert, err := tls.X509KeyPair(certpem, keypem)
-		if err != nil {
-			return nil, err
-		}
-		config.Certificates = make([]tls.Certificate, 1)
-		config.Certificates[0] = mycert
-	}
-	if cacertpem != nil {
-		certPool := x509.NewCertPool()
-		certPool.AppendCertsFromPEM(cacertpem)
-		config.RootCAs = certPool
-	}
-	return config, nil
 }
