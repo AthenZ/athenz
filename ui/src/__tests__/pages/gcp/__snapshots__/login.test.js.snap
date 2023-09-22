@@ -108,18 +108,18 @@ exports[`GCP Login Page should render projects api returns results 1`] = `
 }
 
 .emotion-10 {
-  vertical-align: middle;
-  width: 18px;
-  height: 18px;
-  margin: 10px;
-}
-
-.emotion-12 {
   margin: 0;
   font-weight: bold;
   font-size: 16px;
   color: #000;
   vertical-align: middle;
+}
+
+.emotion-12 {
+  vertical-align: middle;
+  width: 18px;
+  height: 18px;
+  margin: 10px;
 }
 
 .emotion-14 {
@@ -223,10 +223,10 @@ exports[`GCP Login Page should render projects api returns results 1`] = `
         >
           <div>
             <label
-              class="emotion-12 emotion-13"
+              class="emotion-10 emotion-11"
             >
               <input
-                class="emotion-10 emotion-11"
+                class="emotion-12 emotion-13"
                 name="project"
                 required=""
                 type="radio"
