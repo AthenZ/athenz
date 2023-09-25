@@ -64,11 +64,12 @@ export const editMicrosegmentation =
         assertionChanged,
         assertionConditionChanged,
         data,
-        _csrf
+        _csrf,
+        showLoader = true
     ) =>
     async (dispatch, getState) => {
         try {
-            dispatch(loadingInProcess('editMicrosegmentation'));
+            showLoader && dispatch(loadingInProcess('editMicrosegmentation'));
             await editMicrosegmentationHandler(
                 domainName,
                 roleChanged,
@@ -79,7 +80,7 @@ export const editMicrosegmentation =
                 dispatch,
                 getState()
             );
-            dispatch(loadingSuccess('editMicrosegmentation'));
+            showLoader && dispatch(loadingSuccess('editMicrosegmentation'));
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);
