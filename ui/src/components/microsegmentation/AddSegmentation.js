@@ -1664,7 +1664,8 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => ({
     addRole: (roleName, role, auditRef, _csrf) =>
         dispatch(addRole(roleName, auditRef, role, _csrf)),
-    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName, false)),
+    getRole: (domainName, roleName) =>
+        dispatch(getRole(domainName, roleName, false)),
     deleteRole: (roleName, auditRef, _csrf) =>
         dispatch(deleteRole(roleName, auditRef, _csrf)),
     getPolicy: (domainName, policyName) =>
@@ -1746,7 +1747,8 @@ const mapDispatchToProps = (dispatch) => ({
                 assertionChanged,
                 assertionConditionChanged,
                 updatedData,
-                _csrf
+                _csrf,
+                false
             )
         ),
     getAssertionId: (domain, policyName, roleName, resource, action, effect) =>
