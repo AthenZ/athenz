@@ -108,7 +108,7 @@ export const marksRoleAsNeedRefresh =
         dispatch(marksRoleInStoreAsNeedRefresh(domainName, roleName));
     };
 
-export const getRole = (domainName, roleName) => async (dispatch, getState) => {
+export const getRole = (domainName, roleName, showLoader = true) => async (dispatch, getState) => {
     roleName = roleName.toLowerCase();
     await dispatch(getRoles(domainName));
     let role = thunkSelectRole(getState(), domainName, roleName);
@@ -117,7 +117,7 @@ export const getRole = (domainName, roleName) => async (dispatch, getState) => {
         dispatch(returnRoles());
     } else {
         try {
-            await getRoleApiCall(domainName, roleName, dispatch);
+            await getRoleApiCall(domainName, roleName, dispatch, showLoader);
             return Promise.resolve();
         } catch (e) {
             return Promise.reject(e);

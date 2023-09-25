@@ -88,8 +88,11 @@ export const getRolesApiCall = async (domainName, dispatch) => {
     }
 };
 
-export const getRoleApiCall = async (domainName, roleName, dispatch) => {
-    dispatch(loadingInProcess('getRole'));
+// note: if showLoader is true it will show the loader page while the api call is in progress
+export const getRoleApiCall = async (domainName, roleName, dispatch, showLoader = true) => {
+    if (showLoader) {
+        dispatch(loadingInProcess('getRole'));
+    }
     try {
         roleName = roleName.toLowerCase();
         let role = await API().getRole(domainName, roleName, true, false, true);
@@ -106,7 +109,9 @@ export const getRoleApiCall = async (domainName, roleName, dispatch) => {
     } catch (e) {
         throw e;
     } finally {
-        dispatch(loadingSuccess('getRole'));
+        if (showLoader) {
+            dispatch(loadingSuccess('getRole'));
+        }
     }
 };
 

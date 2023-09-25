@@ -1664,7 +1664,7 @@ const mapStateToProps = (state, props) => {
 const mapDispatchToProps = (dispatch) => ({
     addRole: (roleName, role, auditRef, _csrf) =>
         dispatch(addRole(roleName, auditRef, role, _csrf)),
-    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName)),
+    getRole: (domainName, roleName) => dispatch(getRole(domainName, roleName, false)),
     deleteRole: (roleName, auditRef, _csrf) =>
         dispatch(deleteRole(roleName, auditRef, _csrf)),
     getPolicy: (domainName, policyName) =>
