@@ -16,6 +16,7 @@
 'use strict';
 
 let usersArray = [];
+let usersSet = new Set();
 let prevContentLength = 0;
 let userServiceImpl = require('./userServiceImpl');
 const fs = require('fs');
@@ -48,7 +49,10 @@ function prepareUserData(userData, userDomains) {
                     login: user.login,
                     name: user.gecos,
                 };
-                usersArray.push(userNameObj);
+                if (!usersSet.has(userNameObj.login)) {
+                    usersArray.push(userNameObj);
+                    usersSet.add(userNameObj.login);
+                }
             }
         });
         debug('updateUserData - Active users count: %o', usersArray.length);
