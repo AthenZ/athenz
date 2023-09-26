@@ -201,7 +201,7 @@ func TestTokenPubValidateNegative(t *testing.T) {
 func TestBadSigner(t *testing.T) {
 	_, err := NewTokenBuilder("domain", "service", []byte{1, 2, 3, 4}, "v1")
 	require.NotNil(t, err)
-	require.Equal(t, "Unable to create signer: Unable to load private key", err.Error())
+	require.Equal(t, "Unable to create signer: unable to load private key", err.Error())
 }
 
 func TestBadVerifier(t *testing.T) {
