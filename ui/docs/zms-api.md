@@ -1,4 +1,4 @@
-# Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZMS) Classes
+# Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The Authorization Management Service (ZMS) Classes
 
 ## API Methods
 
@@ -17,7 +17,7 @@ obj = {
 ### getDomainList(*obj, function(err, json, response) { });
 
 `GET /domain`
-Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.
+Enumerate domains. Can be filtered by prefix and depth, and paginated. Most of the query options that are looking for specific domain attributes (e.g. aws account, azure subscriptions, gcp project, business service, tags, etc) are mutually exclusive. The server will only process the first query argument and ignore the others.
 
 ```
 obj = {
@@ -26,13 +26,15 @@ obj = {
 	"prefix": "<String>", // (optional) restrict to names that start with the prefix
 	"depth": "<Int32>", // (optional) restrict the depth of the name, specifying the number of '.' characters that can appear
 	"account": "<String>", // (optional) restrict to domain names that have specified account name
-	"productId": "<Int32>", // (optional) restrict the domain names that have specified product id
+	"productNumber": "<Int32>", // (optional) restrict the domain names that have specified product number
 	"roleMember": "<ResourceName>", // (optional) restrict the domain names where the specified user is in a role - see roleName
 	"roleName": "<ResourceName>", // (optional) restrict the domain names where the specified user is in this role - see roleMember
 	"subscription": "<String>", // (optional) restrict to domain names that have specified azure subscription name
+	"project": "<String>", // (optional) restrict to domain names that have specified gcp project name
 	"tagKey": "<CompoundName>", // (optional) flag to query all domains that have a given tagName
 	"tagValue": "<CompoundName>", // (optional) flag to query all domains that have a given tag name and value
 	"businessService": "<String>", // (optional) restrict to domain names that have specified business service name
+	"productId": "<String>", // (optional) restrict the domain names that have specified product id
 	"modifiedSince": "<String>" // (optional) This header specifies to the server to return any domains modified since this HTTP date
 };
 ```
@@ -215,6 +217,31 @@ obj = {
 };
 ```
 
+### getAuthHistoryDependencies(*obj, function(err, json, response) { });
+
+`GET /domain/{domainName}/history/auth`
+Get the authorization and token requests history for the domain
+
+```
+obj = {
+	"domainName": "<DomainName>" // name of the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
+### deleteExpiredMembers(*obj, function(err, json, response) { });
+
+`DELETE /expired-members`
+Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged
+
+```
+obj = {
+	"purgeResources": "<Int32>", // (optional) defining which resources will be purged. by default all resources will be purged
+	"auditRef": "<String>", // (optional) Audit reference
+	"returnObj": "<Bool>" // (optional) Return object param updated object back.
+};
+```
+
 ### getDomainDataCheck(*obj, function(err, json, response) { });
 
 `GET /domain/{domainName}/check`
@@ -336,6 +363,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"roleName": "<EntityName>", // name of the role to be added/updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"role": "<Role>" // Role object to be added/updated in the domain
 };
 ```
@@ -397,12 +425,13 @@ obj = {
 ### getDomainRoleMember(*obj, function(err, json, response) { });
 
 `GET /role`
-Fetch all the roles across domains by either calling or specified principal
+Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized ("access", "sys.auth:meta.role.lookup") 3. service admin ("update", "{principal}")
 
 ```
 obj = {
 	"principal": "<ResourceName>", // (optional) If not present, will return roles for the user making the call
-	"domainName": "<DomainName>" // (optional) If not present, will return roles from all domains
+	"domainName": "<DomainName>", // (optional) If not present, will return roles from all domains
+	"expand": "<Bool>" // expand to include group and delegated trust role membership
 };
 ```
 *Types:* [`ResourceName <String>`](#resourcename-string), [`DomainName <String>`](#domainname-string)
@@ -418,6 +447,7 @@ obj = {
 	"roleName": "<EntityName>", // name of the role
 	"memberName": "<MemberName>", // name of the user to be added as a member
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"membership": "<Membership>" // Membership object (must contain role/member names as specified in the URI)
 };
 ```
@@ -426,7 +456,7 @@ obj = {
 ### deleteMembership(*obj, function(err, json, response) { });
 
 `DELETE /domain/{domainName}/role/{roleName}/member/{memberName}`
-Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes two options: ("update", "{domainName}:role.{roleName}") or ("update_members", "{domainName}:role.{roleName}")
+Delete the specified role membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. ("update", "{domainName}:role.{roleName}") 2. ("update_members", "{domainName}:role.{roleName}") 3. principal matches memberName
 
 ```
 obj = {
@@ -524,6 +554,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"roleName": "<EntityName>", // name of the role
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"role": "<Role>" // Role object with updated and/or deleted members
 };
 ```
@@ -537,10 +568,12 @@ Get the list of all groups in a domain with optional flag whether or not include
 ```
 obj = {
 	"domainName": "<DomainName>", // name of the domain
-	"members": "<Bool>" // return list of members in the group
+	"members": "<Bool>", // return list of members in the group
+	"tagKey": "<CompoundName>", // (optional) flag to query all groups that have a given tagName
+	"tagValue": "<CompoundName>" // (optional) flag to query all groups that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
 
 ### getGroup(*obj, function(err, json, response) { });
 
@@ -567,6 +600,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"groupName": "<EntityName>", // name of the group to be added/updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"group": "<Group>" // Group object to be added/updated in the domain
 };
 ```
@@ -625,6 +659,7 @@ obj = {
 	"groupName": "<EntityName>", // name of the group
 	"memberName": "<GroupMemberName>", // name of the user to be added as a member
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"membership": "<GroupMembership>" // Membership object (must contain group/member names as specified in the URI)
 };
 ```
@@ -633,7 +668,7 @@ obj = {
 ### deleteGroupMembership(*obj, function(err, json, response) { });
 
 `DELETE /domain/{domainName}/group/{groupName}/member/{memberName}`
-Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).
+Delete the specified group membership. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned). The required authorization includes three options: 1. ("update", "{domainName}:group.{groupName}") 2. ("update_members", "{domainName}:group.{groupName}") 3. principal matches memberName
 
 ```
 obj = {
@@ -717,6 +752,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"groupName": "<EntityName>", // name of the group
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"group": "<Group>" // Group object with updated and/or deleted members
 };
 ```
@@ -729,7 +765,8 @@ List of domains containing groups and corresponding members to be approved by ei
 
 ```
 obj = {
-	"principal": "<EntityName>" // (optional) If present, return pending list for this principal
+	"principal": "<EntityName>", // (optional) If present, return pending list for this principal
+	"domainName": "<String>" // (optional) If present, return pending list for this domain
 };
 ```
 *Types:* [`EntityName <String>`](#entityname-string)
@@ -757,10 +794,12 @@ List policies provisioned in this namespace.
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"assertions": "<Bool>", // return list of assertions in the policy
-	"includeNonActive": "<Bool>" // include non-active policy versions
+	"includeNonActive": "<Bool>", // include non-active policy versions
+	"tagKey": "<CompoundName>", // (optional) flag to query all policies that have a given tagName
+	"tagValue": "<CompoundName>" // (optional) flag to query all policies that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
 
 ### getPolicy(*obj, function(err, json, response) { });
 
@@ -785,6 +824,7 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy to be added/updated
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"policy": "<Policy>" // Policy object to be added or updated in the domain
 };
 ```
@@ -980,7 +1020,8 @@ obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"policyName": "<EntityName>", // name of the policy to be added/updated
 	"policyOptions": "<PolicyOptions>", // name of the source version to copy from and name of new version
-	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>" // (optional) Return object param updated object back.
 };
 ```
 *Types:* [`DomainName <String>`](#domainname-string), [`EntityName <String>`](#entityname-string), [`PolicyOptions <Struct>`](#policyoptions-struct)
@@ -1025,6 +1066,7 @@ obj = {
 	"domain": "<DomainName>", // name of the domain
 	"service": "<SimpleName>", // name of the service
 	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"returnObj": "<Bool>", // (optional) Return object param updated object back.
 	"detail": "<ServiceIdentity>" // ServiceIdentity object to be added/updated in the domain
 };
 ```
@@ -1066,10 +1108,12 @@ Retrieve list of service identities
 obj = {
 	"domainName": "<DomainName>", // name of the domain
 	"publickeys": "<Bool>", // return list of public keys in the service
-	"hosts": "<Bool>" // return list of hosts in the service
+	"hosts": "<Bool>", // return list of hosts in the service
+	"tagKey": "<CompoundName>", // (optional) flag to query all services that have a given tagName
+	"tagValue": "<CompoundName>" // (optional) flag to query all services that have a given tag name and value
 };
 ```
-*Types:* [`DomainName <String>`](#domainname-string)
+*Types:* [`DomainName <String>`](#domainname-string), [`CompoundName <String>`](#compoundname-string)
 
 ### getServiceIdentityList(*obj, function(err, json, response) { });
 
@@ -1536,7 +1580,8 @@ List of domains containing roles and corresponding members to be approved by eit
 
 ```
 obj = {
-	"principal": "<EntityName>" // (optional) If present, return pending list for this principal
+	"principal": "<EntityName>", // (optional) If present, return pending list for this principal
+	"domainName": "<String>" // (optional) If present, return pending list for this domain
 };
 ```
 *Types:* [`EntityName <String>`](#entityname-string)
@@ -1547,19 +1592,113 @@ obj = {
 Map of type to attribute values for the user authority
 
 
+### getStats(*obj, function(err, json, response) { });
+
+`GET /domain/{name}/stats`
+Retrieve the stats object defined for the domain
+
+```
+obj = {
+	"name": "<DomainName>" // name of the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
+### getStats(*obj, function(err, json, response) { });
+
+`GET /sys/stats`
+Retrieve the stats object defined for the system
+
+
+### putDependentService(*obj, function(err, json, response) { });
+
+`PUT /dependency/domain/{domainName}`
+Register domain as a dependency to service There are two possible authorization checks for this endpoint: 1) System Administrator 2) Authorized Service Provider
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"auditRef": "<String>", // (optional) Audit param required(not empty) if domain auditEnabled is true.
+	"service": "<DependentService>" // Dependent service provider details
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`DependentService <Struct>`](#dependentservice-struct)
+
+### deleteServiceName(*obj, function(err, json, response) { });
+
+`DELETE /dependency/domain/{domainName}/service/{service}`
+De-register domain as a dependency to service There are two possible authorization checks for this endpoint: 1) System Administrator 2) Authorized Service Provider
+
+```
+obj = {
+	"domainName": "<DomainName>", // name of the domain
+	"service": "<ServiceName>", // name of the service
+	"auditRef": "<String>" // (optional) Audit param required(not empty) if domain auditEnabled is true.
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string), [`ServiceName <String>`](#servicename-string)
+
+### getServiceIdentityList(*obj, function(err, json, response) { });
+
+`GET /dependency/domain/{domainName}`
+List registered services for domain
+
+```
+obj = {
+	"domainName": "<DomainName>" // name of the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
+### getDependentServiceResourceGroupList(*obj, function(err, json, response) { });
+
+`GET /dependency/domain/{domainName}/resourceGroup`
+List registered services and resource groups for domain
+
+```
+obj = {
+	"domainName": "<DomainName>" // name of the domain
+};
+```
+*Types:* [`DomainName <String>`](#domainname-string)
+
+### getDomainList(*obj, function(err, json, response) { });
+
+`GET /dependency/service/{service}`
+List dependent domains for service
+
+```
+obj = {
+	"service": "<ServiceName>" // name of the service
+};
+```
+*Types:* [`ServiceName <String>`](#servicename-string)
+
+### getInfo(*obj, function(err, json, response) { });
+
+`GET /sys/info`
+Retrieve the server info. Since we're exposing server version details, the request will require authorization
+
+
+### getRdl.Schema(*obj, function(err, json, response) { });
+
+`GET /schema`
+Get RDL Schema
+
+
 
 ## API Types
 
 ### SimpleName `<String>`
 
-Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.
+Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.
 
 
 ```
 {
     "type": "String",
     "name": "SimpleName",
-    "comment": "Copyright The Athenz Authors. Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
+    "comment": "Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.",
     "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
 }
 ```
@@ -1926,13 +2065,13 @@ Set of metadata attributes that all domains may have and can be changed.
             "name": "account",
             "type": "String",
             "optional": true,
-            "comment": "associated aws account id (system attribute - uniqueness check)"
+            "comment": "associated aws account id (system attribute - uniqueness check - if enabled)"
         },
         {
             "name": "ypmId",
             "type": "Int32",
             "optional": true,
-            "comment": "associated product id (system attribute - uniqueness check)"
+            "comment": "associated product id (system attribute - uniqueness check - if enabled)"
         },
         {
             "name": "applicationId",
@@ -1998,7 +2137,19 @@ Set of metadata attributes that all domains may have and can be changed.
             "name": "azureSubscription",
             "type": "String",
             "optional": true,
-            "comment": "associated azure subscription id (system attribute - uniqueness check)"
+            "comment": "associated azure subscription id (system attribute - uniqueness check - if enabled)"
+        },
+        {
+            "name": "gcpProject",
+            "type": "String",
+            "optional": true,
+            "comment": "associated gcp project id (system attribute - uniqueness check - if enabled)"
+        },
+        {
+            "name": "gcpProjectNumber",
+            "type": "String",
+            "optional": true,
+            "comment": "associated gcp project number (system attribute)"
         },
         {
             "name": "tags",
@@ -2013,6 +2164,24 @@ Set of metadata attributes that all domains may have and can be changed.
             "type": "String",
             "optional": true,
             "comment": "associated business service with domain"
+        },
+        {
+            "name": "memberPurgeExpiryDays",
+            "type": "Int32",
+            "optional": true,
+            "comment": "purge role/group members with expiry date configured days in the past"
+        },
+        {
+            "name": "productId",
+            "type": "String",
+            "optional": true,
+            "comment": "associated product id (system attribute - uniqueness check - if enabled)"
+        },
+        {
+            "name": "featureFlags",
+            "type": "Int32",
+            "optional": true,
+            "comment": "features enabled per domain (system attribute)"
         }
     ],
     "closed": false
@@ -2070,6 +2239,97 @@ A list of domain objects with their meta attributes.
             "optional": false,
             "comment": "list of domain objects",
             "items": "Domain"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DomainList `<Struct>`
+
+A paginated list of domains.
+
+
+```
+{
+    "type": "Struct",
+    "name": "DomainList",
+    "comment": "A paginated list of domains.",
+    "fields": [
+        {
+            "name": "names",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of domain names",
+            "items": "DomainName"
+        },
+        {
+            "name": "next",
+            "type": "String",
+            "optional": true,
+            "comment": "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter."
+        }
+    ],
+    "closed": false
+}
+```
+
+### DomainAttributes `<Struct>`
+
+A domain attributes for the changelog support
+
+
+```
+{
+    "type": "Struct",
+    "name": "DomainAttributes",
+    "comment": "A domain attributes for the changelog support",
+    "fields": [
+        {
+            "name": "fetchTime",
+            "type": "Int64",
+            "optional": false,
+            "comment": "timestamp when the domain object was fetched from ZMS"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DomainOptions `<Struct>`
+
+A domain options for enforcing uniqueness checks
+
+
+```
+{
+    "type": "Struct",
+    "name": "DomainOptions",
+    "comment": "A domain options for enforcing uniqueness checks",
+    "fields": [
+        {
+            "name": "enforceUniqueProductIds",
+            "type": "Bool",
+            "optional": false,
+            "comment": "enforce domains are associated with unique product ids"
+        },
+        {
+            "name": "enforceUniqueAWSAccounts",
+            "type": "Bool",
+            "optional": false,
+            "comment": "enforce domains are associated with unique aws accounts"
+        },
+        {
+            "name": "enforceUniqueAzureSubscriptions",
+            "type": "Bool",
+            "optional": false,
+            "comment": "enforce domains are associated with unique azure subscriptions"
+        },
+        {
+            "name": "enforceUniqueGCPProjects",
+            "type": "Bool",
+            "optional": false,
+            "comment": "enforce domains are associated with unique gcp projects"
         }
     ],
     "closed": false
@@ -2231,6 +2491,12 @@ An audit log entry for role membership change.
             "type": "Int32",
             "optional": true,
             "comment": "server use only - principal type: unknown(0), user(1), service(2), or group(3)"
+        },
+        {
+            "name": "pendingState",
+            "type": "String",
+            "optional": true,
+            "comment": "for pending membership requests, the request state - e.g. add, delete"
         }
     ],
     "closed": false
@@ -2341,6 +2607,26 @@ Set of metadata attributes that all roles may have and can be changed by domain 
             "comment": "key-value pair tags, tag might contain multiple values",
             "items": "TagValueList",
             "keys": "CompoundName"
+        },
+        {
+            "name": "description",
+            "type": "String",
+            "optional": true,
+            "comment": "a description of the role"
+        },
+        {
+            "name": "auditEnabled",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.",
+            "default": false
+        },
+        {
+            "name": "deleteProtection",
+            "type": "Bool",
+            "optional": true,
+            "comment": "If true, ask for delete confirmation in audit and review enabled roles.",
+            "default": false
         }
     ],
     "closed": false
@@ -2349,14 +2635,14 @@ Set of metadata attributes that all roles may have and can be changed by domain 
 
 ### Role `<RoleMeta>`
 
-The representation for a Role with set of members.
+The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.
 
 
 ```
 {
     "type": "RoleMeta",
     "name": "Role",
-    "comment": "The representation for a Role with set of members.",
+    "comment": "The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.",
     "fields": [
         {
             "name": "name",
@@ -2374,14 +2660,14 @@ The representation for a Role with set of members.
             "name": "members",
             "type": "Array",
             "optional": true,
-            "comment": "an explicit list of members. Might be empty or null, if trust is set",
+            "comment": "deprecated and not used",
             "items": "MemberName"
         },
         {
             "name": "roleMembers",
             "type": "Array",
             "optional": true,
-            "comment": "members with expiration",
+            "comment": "members with expiration and other member attributes. might be empty or null, if trust is set",
             "items": "RoleMember"
         },
         {
@@ -2396,13 +2682,6 @@ The representation for a Role with set of members.
             "optional": true,
             "comment": "an audit log for role membership changes",
             "items": "RoleAuditLog"
-        },
-        {
-            "name": "auditEnabled",
-            "type": "Bool",
-            "optional": true,
-            "comment": "Flag indicates whether or not role updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it",
-            "default": false
         },
         {
             "name": "lastReviewedDate",
@@ -2511,6 +2790,12 @@ The representation for a role membership.
             "type": "Int32",
             "optional": true,
             "comment": "user disabled by system based on configured role setting"
+        },
+        {
+            "name": "pendingState",
+            "type": "String",
+            "optional": true,
+            "comment": "for pending membership requests, the request state - e.g. add, delete"
         }
     ],
     "closed": false
@@ -2607,6 +2892,18 @@ The list of domain administrators.
             "type": "Int32",
             "optional": true,
             "comment": "user disabled by system based on configured role setting"
+        },
+        {
+            "name": "pendingState",
+            "type": "String",
+            "optional": true,
+            "comment": "for pending membership requests, the request state - e.g. add, delete"
+        },
+        {
+            "name": "trustRoleName",
+            "type": "ResourceName",
+            "optional": true,
+            "comment": "name of the role that handles the membership delegation for the role specified in roleName"
         }
     ],
     "closed": false
@@ -2912,6 +3209,20 @@ The representation for a Policy with set of assertions.
             "type": "Bool",
             "optional": true,
             "comment": "if multi-version policy then indicates active version"
+        },
+        {
+            "name": "description",
+            "type": "String",
+            "optional": true,
+            "comment": "a description of the policy"
+        },
+        {
+            "name": "tags",
+            "type": "Map",
+            "optional": true,
+            "comment": "key-value pair tags, tag might contain multiple values",
+            "items": "TagValueList",
+            "keys": "CompoundName"
         }
     ],
     "closed": false
@@ -3063,6 +3374,14 @@ The representation of the service identity object.
             "type": "String",
             "optional": true,
             "comment": "local (unix) group name this service can run as"
+        },
+        {
+            "name": "tags",
+            "type": "Map",
+            "optional": true,
+            "comment": "key-value pair tags, tag might contain multiple values",
+            "items": "TagValueList",
+            "keys": "CompoundName"
         }
     ],
     "closed": false
@@ -3367,35 +3686,6 @@ List of templates with metadata details given a domain
 }
 ```
 
-### DomainList `<Struct>`
-
-A paginated list of domains.
-
-
-```
-{
-    "type": "Struct",
-    "name": "DomainList",
-    "comment": "A paginated list of domains.",
-    "fields": [
-        {
-            "name": "names",
-            "type": "Array",
-            "optional": false,
-            "comment": "list of domain names",
-            "items": "DomainName"
-        },
-        {
-            "name": "next",
-            "type": "String",
-            "optional": true,
-            "comment": "if the response is a paginated list, this attribute specifies the value to be used in the next domain list request as the value for the skip query parameter."
-        }
-    ],
-    "closed": false
-}
-```
-
 ### TopLevelDomain `<DomainMeta>`
 
 Top Level Domain object. The required attributes include the name of the domain and list of domain administrators.
@@ -3498,6 +3788,142 @@ List of valid domain meta attribute values
             "optional": false,
             "comment": "list of valid values for attribute",
             "items": "String"
+        }
+    ],
+    "closed": false
+}
+```
+
+### AuthHistory `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "AuthHistory",
+    "fields": [
+        {
+            "name": "uriDomain",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "Name of the domain from URI"
+        },
+        {
+            "name": "principalDomain",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "Principal domain"
+        },
+        {
+            "name": "principalName",
+            "type": "SimpleName",
+            "optional": false,
+            "comment": "Principal name"
+        },
+        {
+            "name": "timestamp",
+            "type": "Timestamp",
+            "optional": false,
+            "comment": "Last authorization event timestamp"
+        },
+        {
+            "name": "endpoint",
+            "type": "String",
+            "optional": false,
+            "comment": "Last authorization endpoint used"
+        },
+        {
+            "name": "ttl",
+            "type": "Int64",
+            "optional": false,
+            "comment": "Time until the record will expire"
+        }
+    ],
+    "closed": false
+}
+```
+
+### AuthHistoryDependencies `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "AuthHistoryDependencies",
+    "fields": [
+        {
+            "name": "incomingDependencies",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of incoming auth dependencies for domain",
+            "items": "AuthHistory"
+        },
+        {
+            "name": "outgoingDependencies",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of incoming auth dependencies for domain",
+            "items": "AuthHistory"
+        }
+    ],
+    "closed": false
+}
+```
+
+### ExpiryMember `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "ExpiryMember",
+    "fields": [
+        {
+            "name": "domainName",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "name of the domain"
+        },
+        {
+            "name": "collectionName",
+            "type": "EntityName",
+            "optional": false,
+            "comment": "name of the collection"
+        },
+        {
+            "name": "principalName",
+            "type": "ResourceName",
+            "optional": false,
+            "comment": "name of the principal"
+        },
+        {
+            "name": "expiration",
+            "type": "Timestamp",
+            "optional": false,
+            "comment": "the expiration timestamp"
+        }
+    ],
+    "closed": false
+}
+```
+
+### ExpiredMembers `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "ExpiredMembers",
+    "fields": [
+        {
+            "name": "expiredRoleMembers",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of deleted expired role members",
+            "items": "ExpiryMember"
+        },
+        {
+            "name": "expiredGroupMembers",
+            "type": "Array",
+            "optional": false,
+            "comment": "list of deleted expired groups members",
+            "items": "ExpiryMember"
         }
     ],
     "closed": false
@@ -3775,6 +4201,12 @@ An audit log entry for group membership change.
             "type": "Int32",
             "optional": true,
             "comment": "server use only - principal type: unknown(0), user(1) or service(2)"
+        },
+        {
+            "name": "pendingState",
+            "type": "String",
+            "optional": true,
+            "comment": "for pending membership requests, the request state - e.g. add, delete"
         }
     ],
     "closed": false
@@ -3848,6 +4280,12 @@ The representation for a group membership.
             "type": "Int32",
             "optional": true,
             "comment": "user disabled by system based on configured group setting"
+        },
+        {
+            "name": "pendingState",
+            "type": "String",
+            "optional": true,
+            "comment": "for pending membership requests, the request state - e.g. add, delete"
         }
     ],
     "closed": false
@@ -3908,6 +4346,28 @@ Set of metadata attributes that all groups may have and can be changed by domain
             "type": "Int32",
             "optional": true,
             "comment": "all services in the group will have specified max expiry days"
+        },
+        {
+            "name": "tags",
+            "type": "Map",
+            "optional": true,
+            "comment": "key-value pair tags, tag might contain multiple values",
+            "items": "TagValueList",
+            "keys": "CompoundName"
+        },
+        {
+            "name": "auditEnabled",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it",
+            "default": false
+        },
+        {
+            "name": "deleteProtection",
+            "type": "Bool",
+            "optional": true,
+            "comment": "If true, ask for delete confirmation in audit and review enabled groups.",
+            "default": false
         }
     ],
     "closed": false
@@ -3950,13 +4410,6 @@ The representation for a Group with set of members.
             "optional": true,
             "comment": "an audit log for group membership changes",
             "items": "GroupAuditLog"
-        },
-        {
-            "name": "auditEnabled",
-            "type": "Bool",
-            "optional": true,
-            "comment": "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it",
-            "default": false
         },
         {
             "name": "lastReviewedDate",
@@ -4277,6 +4730,13 @@ A representation of provider roles to be provisioned.
             "optional": true,
             "comment": "optional flag indicating whether to create a default tenancy admin role",
             "default": true
+        },
+        {
+            "name": "skipPrincipalMember",
+            "type": "Bool",
+            "optional": true,
+            "comment": "optional flag indicating to skip adding the caller principal into the resource role",
+            "default": false
         }
     ],
     "closed": false
@@ -4854,5 +5314,1184 @@ Map of user authority attributes
 }
 ```
 
+### Stats `<Struct>`
 
-*generated on Mon Oct 04 2021 21:08:19 GMT-0700 (Pacific Daylight Time)*
+The representation for a stats object
+
+
+```
+{
+    "type": "Struct",
+    "name": "Stats",
+    "comment": "The representation for a stats object",
+    "fields": [
+        {
+            "name": "name",
+            "type": "DomainName",
+            "optional": true,
+            "comment": "name of the domain object, null for system stats"
+        },
+        {
+            "name": "subdomain",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of subdomains in this domain (all levels)"
+        },
+        {
+            "name": "role",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of roles"
+        },
+        {
+            "name": "roleMember",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of members in all the roles"
+        },
+        {
+            "name": "policy",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of policies"
+        },
+        {
+            "name": "assertion",
+            "type": "Int32",
+            "optional": false,
+            "comment": "total number of assertions in all policies"
+        },
+        {
+            "name": "entity",
+            "type": "Int32",
+            "optional": false,
+            "comment": "total number of entity objects"
+        },
+        {
+            "name": "service",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of services"
+        },
+        {
+            "name": "serviceHost",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of hosts defined in all services"
+        },
+        {
+            "name": "publicKey",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of public keys in all services"
+        },
+        {
+            "name": "group",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of groups"
+        },
+        {
+            "name": "groupMember",
+            "type": "Int32",
+            "optional": false,
+            "comment": "number of members in all the groups"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DependentService `<Struct>`
+
+Dependent service provider details
+
+
+```
+{
+    "type": "Struct",
+    "name": "DependentService",
+    "comment": "Dependent service provider details",
+    "fields": [
+        {
+            "name": "service",
+            "type": "ServiceName",
+            "optional": false,
+            "comment": "name of the service"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DependentServiceResourceGroup `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "DependentServiceResourceGroup",
+    "fields": [
+        {
+            "name": "service",
+            "type": "ServiceName",
+            "optional": false,
+            "comment": "name of the service"
+        },
+        {
+            "name": "domain",
+            "type": "DomainName",
+            "optional": false,
+            "comment": "name of the dependent domain"
+        },
+        {
+            "name": "resourceGroups",
+            "type": "Array",
+            "optional": true,
+            "comment": "registered resource groups for this service and domain",
+            "items": "EntityName"
+        }
+    ],
+    "closed": false
+}
+```
+
+### DependentServiceResourceGroupList `<Struct>`
+
+```
+{
+    "type": "Struct",
+    "name": "DependentServiceResourceGroupList",
+    "fields": [
+        {
+            "name": "serviceAndResourceGroups",
+            "type": "Array",
+            "optional": false,
+            "comment": "collection of dependent services and resource groups for tenant domain",
+            "items": "DependentServiceResourceGroup"
+        }
+    ],
+    "closed": false
+}
+```
+
+### Info `<Struct>`
+
+Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object
+
+
+```
+{
+    "type": "Struct",
+    "name": "Info",
+    "comment": "Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object",
+    "fields": [
+        {
+            "name": "buildJdkSpec",
+            "type": "String",
+            "optional": true,
+            "comment": "jdk build version"
+        },
+        {
+            "name": "implementationTitle",
+            "type": "String",
+            "optional": true,
+            "comment": "implementation title - e.g. athenz-zms-server"
+        },
+        {
+            "name": "implementationVersion",
+            "type": "String",
+            "optional": true,
+            "comment": "implementation version - e.g. 1.11.1"
+        },
+        {
+            "name": "implementationVendor",
+            "type": "String",
+            "optional": true,
+            "comment": "implementation vendor - Athenz"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.Identifier `<String>`
+
+All names need to be of this restricted string type
+
+
+```
+{
+    "type": "String",
+    "name": "rdl.Identifier",
+    "comment": "All names need to be of this restricted string type",
+    "pattern": "[a-zA-Z_]+[a-zA-Z_0-9]*"
+}
+```
+
+### rdl.NamespacedIdentifier `<String>`
+
+A Namespace is a dotted compound name, using reverse domain name order (i.e. "com.yahoo.auth")
+
+
+```
+{
+    "type": "String",
+    "name": "rdl.NamespacedIdentifier",
+    "comment": "A Namespace is a dotted compound name, using reverse domain name order (i.e. \"com.yahoo.auth\")",
+    "pattern": "([a-zA-Z_]+[a-zA-Z_0-9]*)(\\.[a-zA-Z_]+[a-zA-Z_0-9])*"
+}
+```
+
+### rdl.BaseType `<Enum>`
+
+```
+{
+    "type": "Enum",
+    "name": "rdl.BaseType",
+    "elements": [
+        {
+            "symbol": "Bool"
+        },
+        {
+            "symbol": "Int8"
+        },
+        {
+            "symbol": "Int16"
+        },
+        {
+            "symbol": "Int32"
+        },
+        {
+            "symbol": "Int64"
+        },
+        {
+            "symbol": "Float32"
+        },
+        {
+            "symbol": "Float64"
+        },
+        {
+            "symbol": "Bytes"
+        },
+        {
+            "symbol": "String"
+        },
+        {
+            "symbol": "Timestamp"
+        },
+        {
+            "symbol": "Symbol"
+        },
+        {
+            "symbol": "UUID"
+        },
+        {
+            "symbol": "Array"
+        },
+        {
+            "symbol": "Map"
+        },
+        {
+            "symbol": "Struct"
+        },
+        {
+            "symbol": "Enum"
+        },
+        {
+            "symbol": "Union"
+        },
+        {
+            "symbol": "Any"
+        }
+    ]
+}
+```
+
+### rdl.ExtendedAnnotation `<String>`
+
+ExtendedAnnotation - parsed and preserved, but has no defined meaning in RDL. Such annotations must begin with "x_", and may have an associated string literal value (the value will be "" if the annotation is just a flag).
+
+
+```
+{
+    "type": "String",
+    "name": "rdl.ExtendedAnnotation",
+    "comment": "ExtendedAnnotation - parsed and preserved, but has no defined meaning in RDL. Such annotations must begin with \"x_\", and may have an associated string literal value (the value will be \"\" if the annotation is just a flag).",
+    "pattern": "x_[a-zA-Z_0-9]*"
+}
+```
+
+### rdl.TypeDef `<Struct>`
+
+TypeDef is the basic type definition.
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.TypeDef",
+    "comment": "TypeDef is the basic type definition.",
+    "fields": [
+        {
+            "name": "type",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type this type is derived from. For base types, it is the same as the name"
+        },
+        {
+            "name": "name",
+            "type": "rdl.TypeName",
+            "optional": false,
+            "comment": "The name of the type"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "The comment for the type"
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.AliasTypeDef `<rdl.TypeDef>`
+
+AliasTypeDef is used for type definitions that add no additional attributes, and thus just create an alias
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.AliasTypeDef",
+    "comment": "AliasTypeDef is used for type definitions that add no additional attributes, and thus just create an alias",
+    "fields": [],
+    "closed": false
+}
+```
+
+### rdl.BytesTypeDef `<rdl.TypeDef>`
+
+Bytes allow the restriction by fixed size, or min/max size.
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.BytesTypeDef",
+    "comment": "Bytes allow the restriction by fixed size, or min/max size.",
+    "fields": [
+        {
+            "name": "size",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Fixed size"
+        },
+        {
+            "name": "minSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Min size"
+        },
+        {
+            "name": "maxSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Max size"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.StringTypeDef `<rdl.TypeDef>`
+
+Strings allow the restriction by regular expression pattern or by an explicit set of values. An optional maximum size may be asserted
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.StringTypeDef",
+    "comment": "Strings allow the restriction by regular expression pattern or by an explicit set of values. An optional maximum size may be asserted",
+    "fields": [
+        {
+            "name": "pattern",
+            "type": "String",
+            "optional": true,
+            "comment": "A regular expression that must be matched. Mutually exclusive with values"
+        },
+        {
+            "name": "values",
+            "type": "Array",
+            "optional": true,
+            "comment": "A set of allowable values",
+            "items": "String"
+        },
+        {
+            "name": "minSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Min size"
+        },
+        {
+            "name": "maxSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "Max size"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.Number `<Union>`
+
+A numeric is any of the primitive numeric types
+
+
+```
+{
+    "type": "Union",
+    "name": "rdl.Number",
+    "comment": "A numeric is any of the primitive numeric types",
+    "variants": [
+        "Int8",
+        "Int16",
+        "Int32",
+        "Int64",
+        "Float32",
+        "Float64"
+    ]
+}
+```
+
+### rdl.NumberTypeDef `<rdl.TypeDef>`
+
+A number type definition allows the restriction of numeric values.
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.NumberTypeDef",
+    "comment": "A number type definition allows the restriction of numeric values.",
+    "fields": [
+        {
+            "name": "min",
+            "type": "rdl.Number",
+            "optional": true,
+            "comment": "Min value"
+        },
+        {
+            "name": "max",
+            "type": "rdl.Number",
+            "optional": true,
+            "comment": "Max value"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.ArrayTypeDef `<rdl.TypeDef>`
+
+Array types can be restricted by item type and size
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.ArrayTypeDef",
+    "comment": "Array types can be restricted by item type and size",
+    "fields": [
+        {
+            "name": "items",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the items, default to any type"
+        },
+        {
+            "name": "size",
+            "type": "Int32",
+            "optional": true,
+            "comment": "If present, indicate the fixed size."
+        },
+        {
+            "name": "minSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "If present, indicate the min size"
+        },
+        {
+            "name": "maxSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "If present, indicate the max size"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.MapTypeDef `<rdl.TypeDef>`
+
+Map types can be restricted by key type, item type and size
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.MapTypeDef",
+    "comment": "Map types can be restricted by key type, item type and size",
+    "fields": [
+        {
+            "name": "keys",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the keys, default to String."
+        },
+        {
+            "name": "items",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the items, default to Any type"
+        },
+        {
+            "name": "size",
+            "type": "Int32",
+            "optional": true,
+            "comment": "If present, indicates the fixed size."
+        },
+        {
+            "name": "minSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "If present, indicate the min size"
+        },
+        {
+            "name": "maxSize",
+            "type": "Int32",
+            "optional": true,
+            "comment": "If present, indicate the max size"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.StructFieldDef `<Struct>`
+
+Each field in a struct_field_spec is defined by this type
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.StructFieldDef",
+    "comment": "Each field in a struct_field_spec is defined by this type",
+    "fields": [
+        {
+            "name": "name",
+            "type": "rdl.Identifier",
+            "optional": false,
+            "comment": "The name of the field"
+        },
+        {
+            "name": "type",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the field"
+        },
+        {
+            "name": "optional",
+            "type": "Bool",
+            "optional": false,
+            "comment": "The field may be omitted even if specified",
+            "default": false
+        },
+        {
+            "name": "default",
+            "type": "Any",
+            "optional": true,
+            "comment": "If field is absent, what default value should be assumed."
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "The comment for the field"
+        },
+        {
+            "name": "items",
+            "type": "rdl.TypeRef",
+            "optional": true,
+            "comment": "For map or array fields, the type of the items"
+        },
+        {
+            "name": "keys",
+            "type": "rdl.TypeRef",
+            "optional": true,
+            "comment": "For map type fields, the type of the keys"
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.StructTypeDef `<rdl.TypeDef>`
+
+A struct can restrict specific named fields to specific types. By default, any field not specified is allowed, and can be of any type. Specifying closed means only those fields explicitly
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.StructTypeDef",
+    "comment": "A struct can restrict specific named fields to specific types. By default, any field not specified is allowed, and can be of any type. Specifying closed means only those fields explicitly",
+    "fields": [
+        {
+            "name": "fields",
+            "type": "Array",
+            "optional": false,
+            "comment": "The fields in this struct. By default, open Structs can have any fields in addition to these",
+            "items": "rdl.StructFieldDef"
+        },
+        {
+            "name": "closed",
+            "type": "Bool",
+            "optional": false,
+            "comment": "indicates that only the specified fields are acceptable. Default is open (any fields)",
+            "default": false
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.EnumElementDef `<Struct>`
+
+EnumElementDef defines one of the elements of an Enum
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.EnumElementDef",
+    "comment": "EnumElementDef defines one of the elements of an Enum",
+    "fields": [
+        {
+            "name": "symbol",
+            "type": "rdl.Identifier",
+            "optional": false,
+            "comment": "The identifier representing the value"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "the comment for the element"
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.EnumTypeDef `<rdl.TypeDef>`
+
+Define an enumerated type. Each value of the type is represented by a symbolic identifier.
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.EnumTypeDef",
+    "comment": "Define an enumerated type. Each value of the type is represented by a symbolic identifier.",
+    "fields": [
+        {
+            "name": "elements",
+            "type": "Array",
+            "optional": false,
+            "comment": "The enumeration of the possible elements",
+            "items": "rdl.EnumElementDef"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.UnionTypeDef `<rdl.TypeDef>`
+
+Define a type as one of any other specified type.
+
+
+```
+{
+    "type": "rdl.TypeDef",
+    "name": "rdl.UnionTypeDef",
+    "comment": "Define a type as one of any other specified type.",
+    "fields": [
+        {
+            "name": "variants",
+            "type": "Array",
+            "optional": false,
+            "comment": "The type names of constituent types. Union types get expanded, this is a flat list",
+            "items": "rdl.TypeRef"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.Type `<Union>`
+
+A Type can be specified by any of the above specialized Types, determined by the value of the the 'type' field
+
+
+```
+{
+    "type": "Union",
+    "name": "rdl.Type",
+    "comment": "A Type can be specified by any of the above specialized Types, determined by the value of the the 'type' field",
+    "variants": [
+        "rdl.BaseType",
+        "rdl.StructTypeDef",
+        "rdl.MapTypeDef",
+        "rdl.ArrayTypeDef",
+        "rdl.EnumTypeDef",
+        "rdl.UnionTypeDef",
+        "rdl.StringTypeDef",
+        "rdl.BytesTypeDef",
+        "rdl.NumberTypeDef",
+        "rdl.AliasTypeDef"
+    ]
+}
+```
+
+### rdl.ResourceInput `<Struct>`
+
+ResourceOutput defines input characteristics of a Resource
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.ResourceInput",
+    "comment": "ResourceOutput defines input characteristics of a Resource",
+    "fields": [
+        {
+            "name": "name",
+            "type": "rdl.Identifier",
+            "optional": false,
+            "comment": "the formal name of the input"
+        },
+        {
+            "name": "type",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the input"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "The optional comment"
+        },
+        {
+            "name": "pathParam",
+            "type": "Bool",
+            "optional": false,
+            "comment": "true of this input is a path parameter",
+            "default": false
+        },
+        {
+            "name": "queryParam",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, the name of the query param name"
+        },
+        {
+            "name": "header",
+            "type": "String",
+            "optional": true,
+            "comment": "If present, the name of the header the input is associated with"
+        },
+        {
+            "name": "pattern",
+            "type": "String",
+            "optional": true,
+            "comment": "If present, the pattern associated with the pathParam (i.e. wildcard path matches)"
+        },
+        {
+            "name": "default",
+            "type": "Any",
+            "optional": true,
+            "comment": "If present, the default value for optional params"
+        },
+        {
+            "name": "optional",
+            "type": "Bool",
+            "optional": false,
+            "comment": "If present, indicates that the input is optional",
+            "default": false
+        },
+        {
+            "name": "flag",
+            "type": "Bool",
+            "optional": false,
+            "comment": "If present, indicates the queryparam is of flag style (no value)",
+            "default": false
+        },
+        {
+            "name": "context",
+            "type": "String",
+            "optional": true,
+            "comment": "If present, indicates the parameter comes form the implementation context"
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.ResourceOutput `<Struct>`
+
+ResourceOutput defines output characteristics of a Resource
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.ResourceOutput",
+    "comment": "ResourceOutput defines output characteristics of a Resource",
+    "fields": [
+        {
+            "name": "name",
+            "type": "rdl.Identifier",
+            "optional": false,
+            "comment": "the formal name of the output"
+        },
+        {
+            "name": "type",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the output"
+        },
+        {
+            "name": "header",
+            "type": "String",
+            "optional": false,
+            "comment": "the name of the header associated with this output"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "The optional comment for the output"
+        },
+        {
+            "name": "optional",
+            "type": "Bool",
+            "optional": false,
+            "comment": "If present, indicates that the output is optional (the server decides)",
+            "default": false
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.ResourceAuth `<Struct>`
+
+ResourceAuth defines authentication and authorization attributes of a resource. Presence of action, resource, or domain implies authentication; the authentication flag alone is required only when no authorization is done.
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.ResourceAuth",
+    "comment": "ResourceAuth defines authentication and authorization attributes of a resource. Presence of action, resource, or domain implies authentication; the authentication flag alone is required only when no authorization is done.",
+    "fields": [
+        {
+            "name": "authenticate",
+            "type": "Bool",
+            "optional": false,
+            "comment": "if present and true, then the requester must be authenticated",
+            "default": false
+        },
+        {
+            "name": "action",
+            "type": "String",
+            "optional": true,
+            "comment": "the action to authorize access to. This forces authentication"
+        },
+        {
+            "name": "resource",
+            "type": "String",
+            "optional": true,
+            "comment": "the resource identity to authorize access to"
+        },
+        {
+            "name": "domain",
+            "type": "String",
+            "optional": true,
+            "comment": "if present, the alternate domain to check access to. This is rare."
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.ExceptionDef `<Struct>`
+
+ExceptionDef describes the exception a symbolic response code maps to.
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.ExceptionDef",
+    "comment": "ExceptionDef describes the exception a symbolic response code maps to.",
+    "fields": [
+        {
+            "name": "type",
+            "type": "String",
+            "optional": false,
+            "comment": "The type of the exception"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "the optional comment for the exception"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.Resource `<Struct>`
+
+A Resource of a REST service
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.Resource",
+    "comment": "A Resource of a REST service",
+    "fields": [
+        {
+            "name": "type",
+            "type": "rdl.TypeRef",
+            "optional": false,
+            "comment": "The type of the resource"
+        },
+        {
+            "name": "method",
+            "type": "String",
+            "optional": false,
+            "comment": "The method for the action (typically GET, POST, etc for HTTP access)"
+        },
+        {
+            "name": "path",
+            "type": "String",
+            "optional": false,
+            "comment": "The resource path template"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "The optional comment"
+        },
+        {
+            "name": "inputs",
+            "type": "Array",
+            "optional": true,
+            "comment": "An Array named inputs",
+            "items": "rdl.ResourceInput"
+        },
+        {
+            "name": "outputs",
+            "type": "Array",
+            "optional": true,
+            "comment": "An Array of named outputs",
+            "items": "rdl.ResourceOutput"
+        },
+        {
+            "name": "auth",
+            "type": "rdl.ResourceAuth",
+            "optional": true,
+            "comment": "The optional authentication or authorization directive"
+        },
+        {
+            "name": "expected",
+            "type": "String",
+            "optional": false,
+            "comment": "The expected symbolic response code",
+            "default": "OK"
+        },
+        {
+            "name": "alternatives",
+            "type": "Array",
+            "optional": true,
+            "comment": "The set of alternative but non-error response codes",
+            "items": "String"
+        },
+        {
+            "name": "exceptions",
+            "type": "Map",
+            "optional": true,
+            "comment": "A map of symbolic response code to Exception definitions",
+            "items": "rdl.ExceptionDef",
+            "keys": "String"
+        },
+        {
+            "name": "async",
+            "type": "Bool",
+            "optional": true,
+            "comment": "A hint to server implementations that this resource would be better implemented with async I/O"
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        },
+        {
+            "name": "consumes",
+            "type": "Array",
+            "optional": true,
+            "comment": "Optional hint for resource acceptable input types",
+            "items": "String"
+        },
+        {
+            "name": "produces",
+            "type": "Array",
+            "optional": true,
+            "comment": "Optional hint for resource output content types",
+            "items": "String"
+        },
+        {
+            "name": "name",
+            "type": "rdl.Identifier",
+            "optional": true,
+            "comment": "The optional name of the resource"
+        }
+    ],
+    "closed": false
+}
+```
+
+### rdl.Schema `<Struct>`
+
+A Schema is a container for types and resources. It is self-contained (no external references). and is the output of the RDL parser.
+
+
+```
+{
+    "type": "Struct",
+    "name": "rdl.Schema",
+    "comment": "A Schema is a container for types and resources. It is self-contained (no external references). and is the output of the RDL parser.",
+    "fields": [
+        {
+            "name": "namespace",
+            "type": "rdl.NamespacedIdentifier",
+            "optional": true,
+            "comment": "The namespace for the schema"
+        },
+        {
+            "name": "name",
+            "type": "rdl.Identifier",
+            "optional": true,
+            "comment": "The name of the schema"
+        },
+        {
+            "name": "version",
+            "type": "Int32",
+            "optional": true,
+            "comment": "The version of the schema"
+        },
+        {
+            "name": "comment",
+            "type": "String",
+            "optional": true,
+            "comment": "The comment for the entire schema"
+        },
+        {
+            "name": "types",
+            "type": "Array",
+            "optional": true,
+            "comment": "The types this schema defines.",
+            "items": "rdl.Type"
+        },
+        {
+            "name": "resources",
+            "type": "Array",
+            "optional": true,
+            "comment": "The resources for a service this schema defines",
+            "items": "rdl.Resource"
+        },
+        {
+            "name": "base",
+            "type": "String",
+            "optional": true,
+            "comment": "the base path for resources in the schema."
+        },
+        {
+            "name": "annotations",
+            "type": "Map",
+            "optional": true,
+            "comment": "additional annotations starting with \"x_\"",
+            "items": "String",
+            "keys": "rdl.ExtendedAnnotation"
+        }
+    ],
+    "closed": false
+}
+```
+
+
+*generated on Wed Sep 27 2023 11:23:58 GMT-0700 (Pacific Daylight Time)*
