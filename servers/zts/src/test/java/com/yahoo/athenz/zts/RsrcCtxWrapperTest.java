@@ -35,6 +35,9 @@ import com.yahoo.athenz.common.metrics.Metric;
 
 import com.yahoo.athenz.common.server.rest.Http.AuthorityList;
 
+import java.math.BigInteger;
+import java.security.cert.X509Certificate;
+
 public class RsrcCtxWrapperTest {
 
     @Test
@@ -292,6 +295,10 @@ public class RsrcCtxWrapperTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
+        X509Certificate x509Certificate = Mockito.mock(X509Certificate.class);
+        Mockito.when(x509Certificate.getSerialNumber()).thenReturn(BigInteger.TEN);
+        principal.setX509Certificate(x509Certificate);
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
         Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
@@ -310,6 +317,7 @@ public class RsrcCtxWrapperTest {
 
         Mockito.verify(reqMock, times(1)).setAttribute("com.yahoo.athenz.auth.principal", "hockey.kings");
         Mockito.verify(reqMock, times(1)).setAttribute("com.yahoo.athenz.auth.authority_id", "Auth-NTOKEN");
+        Mockito.verify(reqMock, times(1)).setAttribute("com.yahoo.athenz.auth.principal_x509_serial", "10");
     }
 
     @Test
@@ -326,6 +334,7 @@ public class RsrcCtxWrapperTest {
 
         SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("hockey", "kings",
                 "v=S1,d=hockey;n=kings;s=sig", 0, new PrincipalAuthority());
+        assertNotNull(principal);
         principal.setRolePrincipalName("athenz.role");
 
         Mockito.when(authMock.getHeader()).thenReturn("testheader");
