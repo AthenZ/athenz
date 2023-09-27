@@ -102,6 +102,14 @@ export const SEGMENTATION_PROTOCOL = [
 
 export const DELETE_AUDIT_REFERENCE = 'deleted using Athenz UI';
 
+// VIP -> VIP name -> FQDN (represents a virtual ip construct)
+// ENTERPRISE_APPLIANCE -> pes short id -> random string only contains characters, numbers, _ and : (represents generic network devices which can not be bootstrapped with an identity due to limitations)
+// CLOUD_LB -> FQDN (represents a public cloud load balancer)
+// CLOUD_NAT -> IP or CIDR (represents a public cloud NAT gateway)
+// EXTERNAL_APPLIANCE -> IP or CIDR (Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases)
+// CLOUD_MANAGED -> FQDN (represents a cloud managed service or endpoint)
+// SERVICE_SUBNET -> IPV4 RFC1918 CIDR (represents subnet for a given service, would be almost always a RFC1918 CIDR)
+// NOTE: all IP/CIDR values are for IPv4 only currently since adding IPv6 support would require a much longer regex, which is bad for maintainability
 export const StaticWorkloadType = [
     {
         name: 'VIP',
@@ -121,12 +129,22 @@ export const StaticWorkloadType = [
     {
         name: 'Cloud NAT Gateway',
         value: 'CLOUD_NAT',
-        pattern: '([a-zA-Z0-9][a-zA-Z0-9-]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-]*',
+        pattern: '^(?=.*[^.]$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).?){4}(\\/([0-9]|[12][0-9]|3[012]))?$',
     },
     {
         name: 'External Appliance',
         value: 'EXTERNAL_APPLIANCE',
-        pattern: '^(?=.*[^.]$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).?){4}$',
+        pattern: '^(?=.*[^.]$)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?).?){4}(\\/([0-9]|[12][0-9]|3[012]))?$',
+    },
+    {
+        name: 'Cloud Managed',
+        value: 'CLOUD_MANAGED',
+        pattern: '([a-zA-Z0-9][a-zA-Z0-9-]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-]*',
+    },
+    {
+        name: 'Service Subnet',
+        value: 'SERVICE_SUBNET',
+        pattern: '^(10(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){3}/([8-9]|(1[0-9])|(2[0-9])|(3[0-1])))|(172\\.((1[6-9])|(2[0-9])|(3[0-1]))(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){2}/((1[2-9])|(2[0-9])|(3[0-1])))|(192\\.168(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){2}/((1[6-9])|(2[0-9])|(3[0-1])))|(127(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){3}/([8-9]|(1[0-9])|(2[0-9])|(3[0-1])))$',
     },
 ];
 
