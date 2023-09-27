@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 public class RsrcCtxWrapper implements ResourceContext {
@@ -143,9 +145,17 @@ public class RsrcCtxWrapper implements ResourceContext {
         }
         logPrincipal(principalName);
         logAuthorityId(principal.getAuthority());
+        logCertificateSerialNumber(principal.getX509Certificate());
         return principalName;
     }
-    
+
+    public void logCertificateSerialNumber(X509Certificate x509Cert) {
+        if (x509Cert == null) {
+            return;
+        }
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_X509_SERIAL, x509Cert.getSerialNumber().toString());
+    }
+
     public void logPrincipal(final String principal) {
         if (principal == null) {
             return;

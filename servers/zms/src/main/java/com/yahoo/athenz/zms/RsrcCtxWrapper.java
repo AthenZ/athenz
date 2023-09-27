@@ -26,6 +26,7 @@ import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,7 +127,15 @@ public class RsrcCtxWrapper implements ResourceContext {
         }
         ctx.request().setAttribute(ServerCommonConsts.REQUEST_PRINCIPAL, principalName);
         logAuthorityId(principal.getAuthority());
+        logCertificateSerialNumber(principal.getX509Certificate());
         return principalName;
+    }
+
+    public void logCertificateSerialNumber(X509Certificate x509Cert) {
+        if (x509Cert == null) {
+            return;
+        }
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_X509_SERIAL, x509Cert.getSerialNumber().toString());
     }
 
     public void logAuthorityId(Authority authority) {

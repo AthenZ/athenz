@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.server.log.jetty;
 import java.io.IOException;
 import java.util.Locale;
 
+import com.yahoo.athenz.common.ServerCommonConsts;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Request;
@@ -31,11 +32,6 @@ import javax.net.ssl.SSLSession;
 
 public class AthenzRequestLog extends CustomRequestLog {
 
-    private static final String REQUEST_PRINCIPAL      = "com.yahoo.athenz.auth.principal";
-    private static final String REQUEST_AUTHORITY_ID   = "com.yahoo.athenz.auth.authority_id";
-    private static final String REQUEST_URI_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
-    private static final String REQUEST_URI_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
-    private static final String REQUEST_SSL_SESSION    = "org.eclipse.jetty.servlet.request.ssl_session";
     private static final String LOOPBACK_ADDRESS       = "127.0.0.1";
 
     private static final ThreadLocal<StringBuilder> TLS_BUILDER = ThreadLocal.withInitial(() -> new StringBuilder(256));
@@ -68,9 +64,9 @@ public class AthenzRequestLog extends CustomRequestLog {
     }
 
     private void logRequestUri(StringBuilder buf, Request request) {
-        final Object skipQuery = request.getAttribute(REQUEST_URI_SKIP_QUERY);
+        final Object skipQuery = request.getAttribute(ServerCommonConsts.REQUEST_URI_SKIP_QUERY);
         append(buf, (skipQuery == Boolean.TRUE) ? request.getRequestURI() : request.getOriginalURI());
-        final Object addlQuery = request.getAttribute(REQUEST_URI_ADDL_QUERY);
+        final Object addlQuery = request.getAttribute(ServerCommonConsts.REQUEST_URI_ADDL_QUERY);
         if (addlQuery != null) {
             buf.append('?');
             buf.append(addlQuery);
@@ -78,17 +74,22 @@ public class AthenzRequestLog extends CustomRequestLog {
     }
 
     private void logPrincipal(StringBuilder buf, Request request) {
-        final Object principal = request.getAttribute(REQUEST_PRINCIPAL);
+        final Object principal = request.getAttribute(ServerCommonConsts.REQUEST_PRINCIPAL);
         append(buf, (principal == null) ? null : principal.toString());
     }
 
     private void logAuthorityId(StringBuilder buf, Request request) {
-        final Object authId = request.getAttribute(REQUEST_AUTHORITY_ID);
+        final Object authId = request.getAttribute(ServerCommonConsts.REQUEST_AUTHORITY_ID);
         append(buf, (authId == null) ? "Auth-None" : authId.toString());
     }
 
+    private void logX509Serial(StringBuilder buf, Request request) {
+        final Object serialNumber = request.getAttribute(ServerCommonConsts.REQUEST_X509_SERIAL);
+        append(buf, (serialNumber == null) ? "-" : serialNumber.toString());
+    }
+
     private void logTLSProtocol(StringBuilder buf, Request request) {
-        SSLSession sslSession = (SSLSession) request.getAttribute(REQUEST_SSL_SESSION);
+        SSLSession sslSession = (SSLSession) request.getAttribute(ServerCommonConsts.REQUEST_SSL_SESSION);
         append(buf, (sslSession == null) ? null : sslSession.getProtocol());
         buf.append(' ');
         append(buf, (sslSession == null) ? null : sslSession.getCipherSuite());
@@ -186,6 +187,9 @@ public class AthenzRequestLog extends CustomRequestLog {
 
             buf.append(' ');
             logTLSProtocol(buf, request);
+
+            buf.append(' ');
+            logX509Serial(buf, request);
 
             getWriter().write(buf.toString());
 

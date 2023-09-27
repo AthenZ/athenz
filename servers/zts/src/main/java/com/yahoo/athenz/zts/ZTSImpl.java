@@ -27,6 +27,7 @@ import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsEntityList;
 import com.yahoo.athenz.common.metrics.Metric;
@@ -104,7 +105,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.fasterxml.jackson.core.StreamReadConstraints;
 
-import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 /**
@@ -200,7 +200,6 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private static final String TYPE_EXTERNAL_CREDENTIALS_REQUEST = "ExternalCredentialsRequest";
 
     private static final String ZTS_ROLE_TOKEN_VERSION = "Z1";
-    private static final String ZTS_REQUEST_LOG_SKIP_QUERY = "com.yahoo.athenz.uri.skip_query";
 
     private static final long ZTS_NTOKEN_DEFAULT_EXPIRY = TimeUnit.SECONDS.convert(2, TimeUnit.HOURS);
     private static final long ZTS_NTOKEN_MAX_EXPIRY = TimeUnit.SECONDS.convert(7, TimeUnit.DAYS);
@@ -428,8 +427,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         jwkConfig = new AthenzJWKConfig();
 
-        ServiceIdentity ztsService = sysAuthService(ZTS_SERVICE);
-        ServiceIdentity zmsService = sysAuthService(ZMS_SERVICE);
+        ServiceIdentity ztsService = sysAuthService(ServerCommonConsts.ZTS_SERVICE);
+        ServiceIdentity zmsService = sysAuthService(ServerCommonConsts.ZMS_SERVICE);
 
         if (ztsService != null && zmsService != null) {
             updateAthenzJWK(ztsService, zmsService);
@@ -521,7 +520,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     void loadSystemProperties() {
-        String propFile = System.getProperty(ZTS_PROP_FILE_NAME,
+        String propFile = System.getProperty(ServerCommonConsts.ZTS_PROP_FILE_NAME,
                 getRootDir() + "/conf/zts_server/zts.properties");
         CONFIG_MANAGER.addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
     }
@@ -628,7 +627,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
         }
 
-        userDomain = System.getProperty(PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
+        userDomain = System.getProperty(ServerCommonConsts.PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
         userDomainPrefix = userDomain + ".";
 
         userDomainAlias = System.getProperty(ZTSConsts.ZTS_PROP_USER_DOMAIN_ALIAS);
@@ -778,7 +777,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     void loadMetricObject() {
 
         final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
-                METRIC_DEFAULT_FACTORY_CLASS);
+                ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS);
 
         MetricFactory metricFactory;
         try {
@@ -999,8 +998,10 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         if ((lastAthenzJWKUpdateTime == 0) || (lastAthenzJWKUpdateTime + millisBetweenAthenzJWKUpdates < System.currentTimeMillis())) {
             synchronized (updateJWKMutex) {
                 if (lastAthenzJWKUpdateTime == 0 || (lastAthenzJWKUpdateTime + millisBetweenAthenzJWKUpdates < System.currentTimeMillis())) {
-                    final ServiceIdentity ztsService = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZTS_SERVICE);
-                    final ServiceIdentity zmsService = getServiceIdentity(ctx, ATHENZ_SYS_DOMAIN, ZMS_SERVICE);
+                    final ServiceIdentity ztsService = getServiceIdentity(ctx, ServerCommonConsts.ATHENZ_SYS_DOMAIN,
+                            ServerCommonConsts.ZTS_SERVICE);
+                    final ServiceIdentity zmsService = getServiceIdentity(ctx, ServerCommonConsts.ATHENZ_SYS_DOMAIN,
+                            ServerCommonConsts.ZMS_SERVICE);
 
                     if (hasNewJWKConfig(zmsService.getModified(), ztsService.getModified())) {
                         updateAthenzJWK(ztsService, zmsService);
@@ -3391,7 +3392,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         // our access log files so we're going to set the attribute
         // to skip the query parameters
 
-        ctx.request().setAttribute(ZTS_REQUEST_LOG_SKIP_QUERY, Boolean.TRUE);
+        ctx.request().setAttribute(ServerCommonConsts.REQUEST_URI_SKIP_QUERY, Boolean.TRUE);
 
         final String principalDomain = logPrincipalAndGetDomain(ctx);
         validateRequest(ctx.request(), principalDomain, caller);
@@ -3733,7 +3734,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String serviceDnsSuffix = domainData.getCertDnsDomain();
-        final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ServerCommonConsts.ATHENZ_SYS_DOMAIN);
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver,
@@ -4236,7 +4237,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         }
 
         final String serviceDnsSuffix = domainData.getCertDnsDomain();
-        final DataCache athenzSysDomainCache = dataStore.getDataCache(ATHENZ_SYS_DOMAIN);
+        final DataCache athenzSysDomainCache = dataStore.getDataCache(ServerCommonConsts.ATHENZ_SYS_DOMAIN);
 
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
