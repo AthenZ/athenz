@@ -14,8 +14,12 @@
  *  limitations under the License.
  */
 
-import {getExpiryTime, isExpired} from '../utils';
-import {selectAllUsers, selectUserPendingMembers, selectUserResourceAccessList,} from '../selectors/user';
+import { getExpiryTime, isExpired } from '../utils';
+import {
+    selectAllUsers,
+    selectUserPendingMembers,
+    selectUserResourceAccessList,
+} from '../selectors/user';
 import API from '../../api';
 import {
     addUsersToStore,
@@ -23,6 +27,12 @@ import {
     loadUserResourceAccessList,
     returnUserResourceAccessList,
 } from '../actions/user';
+
+import {
+    loadingFailed,
+    loadingInProcess,
+    loadingSuccess,
+} from '../actions/loading';
 
 export const getUserPendingMembers = () => async (dispatch, getState) => {
     let userPendingMembers = selectUserPendingMembers(getState());
@@ -41,6 +51,7 @@ export const getUserResourceAccessList =
         let isUserResourceAccessListEmpty =
             Array.isArray(userResourceAccessList) &&
             userResourceAccessList.length < 1;
+        dispatch(loadingInProcess('getUserResourceAccessList'));
         if (isExpired(getState().user.expiry)) {
             try {
                 userResourceAccessList = await API().getResourceAccessList(
@@ -50,8 +61,10 @@ export const getUserResourceAccessList =
                 dispatch(
                     loadUserResourceAccessList(userResourceAccessList, expiry)
                 );
+                dispatch(loadingSuccess('getUserResourceAccessList'));
                 return Promise.resolve();
             } catch (e) {
+                dispatch(loadingFailed('getUserResourceAccessList'));
                 return Promise.reject(e);
             }
         } else if (!isUserResourceAccessListEmpty) {

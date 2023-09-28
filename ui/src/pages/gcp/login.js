@@ -166,7 +166,6 @@ class GCPLoginPage extends React.Component {
             errorMessage: '',
             projectRoleMap: {},
             roleName: '',
-            isFetching: true,
         };
         this.getAssertionList = this.getAssertionList.bind(this);
         this.populateProjectRoleMap = this.populateProjectRoleMap.bind(this);
@@ -196,7 +195,6 @@ class GCPLoginPage extends React.Component {
         this.setState((prevState) => ({
             ...prevState,
             errorMessage: errorMessage,
-            isFetching: false,
         }));
     }
 
@@ -239,7 +237,6 @@ class GCPLoginPage extends React.Component {
         this.setState((prevState) => ({
             ...prevState,
             projectRoleMap,
-            isFetching: false,
         }));
     }
 
@@ -259,9 +256,6 @@ class GCPLoginPage extends React.Component {
         if (errorMessage) {
             return <Error err={errorMessage} />;
         }
-        if (this.state.isFetching) {
-            return <ReduxPageLoader message={'Loading GCP Projects'} />;
-        }
         let displayProjects = [];
         for (let pName in this.state.projectRoleMap) {
             let projectRoleNames = [];
@@ -276,7 +270,8 @@ class GCPLoginPage extends React.Component {
                                 value={projectObject.roleName}
                                 name={'project'}
                                 checked={
-                                    this.state.roleName === projectObject.roleName
+                                    this.state.roleName ===
+                                    projectObject.roleName
                                 }
                                 onChange={() =>
                                     this.handleRadioButton(projectObject)
@@ -303,62 +298,61 @@ class GCPLoginPage extends React.Component {
             );
         }
 
-        if (!displayProjects.length) {
-            return (
-                <CacheProvider value={this.cache}>
-                    <div data-testid='gcp-login-error'>
-                        <GcpHeader>
-                            <img src='/static/google-cloud.svg'></img>
-                        </GcpHeader>
-                        <ParentWrapperDiv>
-                            <h3>
-                                Error: There are no GCP project roles associated
-                                with your account.
-                            </h3>
-                            <p>
-                                Check to make sure that your <tt>gcp.*</tt>{' '}
-                                roles contain your user.
-                                <br />
-                                E.g., if your account is 'jdoe', then{' '}
-                                <tt>gcp.fed.admin.user</tt> should have{' '}
-                                <tt>{USER_DOMAIN}.jdoe</tt> as a member.
-                            </p>
-                            <p>
-                                If that does not work, please ask your Athenz
-                                domain admin for assistance.
-                            </p>
-                        </ParentWrapperDiv>
-                    </div>
-                </CacheProvider>
-            );
-        }
-
-        return (
+        let gcpLoginContainer = displayProjects.length ? (
+            <div data-testid='gcp-login'>
+                <GcpHeader>
+                    <img src='/static/google-cloud.svg'></img>
+                </GcpHeader>
+                <ParentWrapperDiv>
+                    <form action='/gcp/login/post' method='post'>
+                        <input
+                            type='hidden'
+                            name='_csrf'
+                            value={this.props._csrf}
+                        ></input>
+                        <input
+                            type='hidden'
+                            name='isAdmin'
+                            value={this.props.isAdmin}
+                        ></input>
+                        <StyledP>Select a role:</StyledP>
+                        {displayProjects}
+                        <SubmitContainer>
+                            <Button type={'submit'}>Submit</Button>
+                        </SubmitContainer>
+                    </form>
+                </ParentWrapperDiv>
+            </div>
+        ) : (
+            <div data-testid='gcp-login-error'>
+                <GcpHeader>
+                    <img src='/static/google-cloud.svg'></img>
+                </GcpHeader>
+                <ParentWrapperDiv>
+                    <h3>
+                        Error: There are no GCP project roles associated with
+                        your account.
+                    </h3>
+                    <p>
+                        Check to make sure that your <tt>gcp.*</tt> roles
+                        contain your user.
+                        <br />
+                        E.g., if your account is 'jdoe', then{' '}
+                        <tt>gcp.fed.admin.user</tt> should have{' '}
+                        <tt>{USER_DOMAIN}.jdoe</tt> as a member.
+                    </p>
+                    <p>
+                        If that does not work, please ask your Athenz domain
+                        admin for assistance.
+                    </p>
+                </ParentWrapperDiv>
+            </div>
+        );
+        return this.props.isLoading.length !== 0 ? (
+            <ReduxPageLoader message={'Loading microsegmentation data'} />
+        ) : (
             <CacheProvider value={this.cache}>
-                <div data-testid='gcp-login'>
-                    <GcpHeader>
-                        <img src='/static/google-cloud.svg'></img>
-                    </GcpHeader>
-                    <ParentWrapperDiv>
-                        <form action='/gcp/login/post' method='post'>
-                            <input
-                                type='hidden'
-                                name='_csrf'
-                                value={this.props._csrf}
-                            ></input>
-                            <input
-                                type='hidden'
-                                name='isAdmin'
-                                value={this.props.isAdmin}
-                            ></input>
-                            <StyledP>Select a role:</StyledP>
-                            {displayProjects}
-                            <SubmitContainer>
-                                <Button type={'submit'}>Submit</Button>
-                            </SubmitContainer>
-                        </form>
-                    </ParentWrapperDiv>
-                </div>
+                {gcpLoginContainer}
             </CacheProvider>
         );
     }
