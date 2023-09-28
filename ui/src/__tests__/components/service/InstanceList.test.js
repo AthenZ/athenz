@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import InstanceList from '../../../components/service/InstanceList';
-import API from '../../../api';
 import {
     buildServicesForState,
     getStateWithServices,
@@ -28,9 +27,59 @@ describe('InstanceList', () => {
     it('should render for static', () => {
         let domain = 'athenz';
         let _csrf = '_csrfToken';
-        let instanceDetails = [];
+        let instanceDetails = [
+            {
+                domainName: "test",
+                serviceName: "testService",
+                type: "SERVICE_SUBNET",
+                name: "10.0.0.0/8",
+                updateTime: "2023-09-27T22:16:55.326Z"
+            },
+            {
+                domainName: "test",
+                serviceName: "testService",
+                type: "SERVICE_SUBNET",
+                name: "10.255.255.0/31",
+                updateTime: "2023-09-27T23:29:59.326Z"
+            },
+            {
+                domainName: "test",
+                serviceName: "testService",
+                type: "SERVICE_SUBNET",
+                name: "10.255.255.0/8",
+                updateTime: "2023-09-27T23:29:42.864Z"
+            },
+            {
+                domainName: "test",
+                serviceName: "testService",
+                type: "EXTERNAL_APPLIANCE",
+                name: "12.12.12.12/12",
+                updateTime: "2023-09-27T22:18:23.458Z"
+            },
+            {
+                domainName: "test",
+                serviceName: "testService",
+                type: "EXTERNAL_APPLIANCE",
+                name: "255.255.0.0",
+                updateTime: "2023-09-27T22:18:02.661Z"
+            },
+            {
+                domainName: "test",
+                serviceName: "testService",
+                type: "ENTERPRISE_APPLIANCE",
+                name: "pesmacro::randomstringbulabula1010",
+                updateTime: "2023-09-27T22:19:00.714Z"
+            },
+        ];
         let service = 'testService';
 
+        let serviceFullName = `${domain}${serviceDelimiter}${service.toLowerCase()}`;
+        const servicesForState = buildServicesForState({
+            [serviceFullName]: {
+                name: serviceFullName,
+                staticInstances: { workLoadData: instanceDetails },
+            },
+        });
         const { getByTestId } = renderWithRedux(
             <InstanceList
                 category={'static'}
@@ -38,9 +87,15 @@ describe('InstanceList', () => {
                 _csrf={_csrf}
                 instances={instanceDetails}
                 service={service}
-            />
+            />,
+            getStateWithServices(servicesForState)
         );
         const instanceList = getByTestId('instancelist');
+
+        expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
+        fireEvent.change(screen.getByPlaceholderText('Search'), {
+            target: { value: '10' },
+        });
 
         expect(instanceList).toMatchSnapshot();
     });

@@ -523,6 +523,141 @@ exports[`InstanceList should render for static 1`] = `
 }
 
 .emotion-6 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  width: 100%;
+}
+
+.emotion-8 {
+  background: #ffffff;
+  width: 65%;
+  margin-left: 5px;
+}
+
+.emotion-10 {
+  box-sizing: border-box;
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-10 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-10.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-10 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-10 input.focused,
+.emotion-10 input:active,
+.emotion-10 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-10 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-10 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-10.error input,
+.emotion-10.error input.focused,
+.emotion-10.error input:active,
+.emotion-10.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-10.error .message {
+  color: #d01111;
+}
+
+.emotion-10 input {
+  padding-right: 36px;
+}
+
+.emotion-10 .input-icon {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  height: 36px;
+  position: absolute;
+  right: 6px;
+}
+
+.emotion-11 {
+  fill: #3570f4;
+  cursor: inherit;
+  vertical-align: text-bottom;
+}
+
+.emotion-12 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -548,22 +683,71 @@ exports[`InstanceList should render for static 1`] = `
   color: #3697f2;
 }
 
-.emotion-6:first-of-type {
+.emotion-12:first-of-type {
   margin-left: 0;
 }
 
-.emotion-6:disabled {
+.emotion-12:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-6:disabled {
+.emotion-12:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-6:hover:not(:disabled) {
+.emotion-12:hover:not(:disabled) {
   background: #d7e2fd;
+}
+
+.emotion-13 {
+  width: 100%;
+  border-spacing: 0 15px;
+  display: table;
+  border-collapse: separate;
+  border-color: grey;
+}
+
+.emotion-15 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  padding-bottom: 5px;
+  vertical-align: top;
+  text-transform: uppercase;
+  padding: 5px 0 5px 25px;
+}
+
+.emotion-23 {
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 1px 4px #d9d9d9;
+  border: 1px solid #fff;
+  -webkit-border-image: none;
+  border-image: none;
+  -webkit-border-image: initial;
+  border-image: initial;
+  padding: 5px 0 5px 15px;
+}
+
+.emotion-25 {
+  text-align: left;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+}
+
+.emotion-31 {
+  text-align: center;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+}
+
+.emotion-33 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
 }
 
 <div
@@ -576,15 +760,294 @@ exports[`InstanceList should render for static 1`] = `
     <div
       class="emotion-4 emotion-5"
     >
-      No instances found
+      <div
+        class="emotion-6 emotion-7"
+      >
+        <div
+          class="emotion-8 emotion-9"
+        >
+          <div
+            class="emotion-10 denali-input animated"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              name="search"
+              placeholder="Search"
+              value="10"
+            />
+            <div
+              class="input-icon"
+            >
+              <svg
+                class="emotion-11"
+                data-testid="icon"
+                height="24px"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="24px"
+              >
+                <title>
+                  search
+                </title>
+                <path
+                  d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+                />
+              </svg>
+            </div>
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </div>
     </div>
     <div>
       <button
-        class="emotion-6 denali-button"
+        class="emotion-12 denali-button"
       >
         Add Static Instance
       </button>
     </div>
   </div>
+  <table
+    class="emotion-13 emotion-14"
+    data-testid="instancetable"
+  >
+    <colgroup>
+      <col
+        style="width: 32%;"
+      />
+      <col
+        style="width: 31%;"
+      />
+      <col
+        style="width: 31%;"
+      />
+      <col
+        style="width: 6%;"
+      />
+    </colgroup>
+    <thead>
+      <tr>
+        <th
+          class="emotion-15 emotion-16"
+        >
+          Instance
+        </th>
+        <th
+          class="emotion-15 emotion-16"
+        >
+          Type
+        </th>
+        <th
+          class="emotion-15 emotion-16"
+        >
+          Date Added
+        </th>
+        <th
+          class="emotion-15 emotion-16"
+        >
+          Delete
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="emotion-23 emotion-24"
+        data-testid="instance-row"
+      >
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          10.0.0.0/8
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          SERVICE_SUBNET
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          2023-09-27 22:16 UTC
+        </td>
+        <td
+          class="emotion-31 emotion-26"
+          color=""
+        >
+          <span>
+            <svg
+              class="emotion-33"
+              data-testid="icon"
+              height="1.25em"
+              id=""
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                trash
+              </title>
+              <path
+                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+              />
+              <path
+                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+              />
+            </svg>
+          </span>
+        </td>
+      </tr>
+      <tr
+        class="emotion-23 emotion-24"
+        data-testid="instance-row"
+      >
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          10.255.255.0/31
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          SERVICE_SUBNET
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          2023-09-27 23:29 UTC
+        </td>
+        <td
+          class="emotion-31 emotion-26"
+          color=""
+        >
+          <span>
+            <svg
+              class="emotion-33"
+              data-testid="icon"
+              height="1.25em"
+              id=""
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                trash
+              </title>
+              <path
+                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+              />
+              <path
+                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+              />
+            </svg>
+          </span>
+        </td>
+      </tr>
+      <tr
+        class="emotion-23 emotion-24"
+        data-testid="instance-row"
+      >
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          10.255.255.0/8
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          SERVICE_SUBNET
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          2023-09-27 23:29 UTC
+        </td>
+        <td
+          class="emotion-31 emotion-26"
+          color=""
+        >
+          <span>
+            <svg
+              class="emotion-33"
+              data-testid="icon"
+              height="1.25em"
+              id=""
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                trash
+              </title>
+              <path
+                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+              />
+              <path
+                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+              />
+            </svg>
+          </span>
+        </td>
+      </tr>
+      <tr
+        class="emotion-23 emotion-24"
+        data-testid="instance-row"
+      >
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          PESMACRO::RANDOMSTRINGBULABULA1010
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          ENTERPRISE_APPLIANCE
+        </td>
+        <td
+          class="emotion-25 emotion-26"
+          color=""
+        >
+          2023-09-27 22:19 UTC
+        </td>
+        <td
+          class="emotion-31 emotion-26"
+          color=""
+        >
+          <span>
+            <svg
+              class="emotion-33"
+              data-testid="icon"
+              height="1.25em"
+              id=""
+              viewBox="0 0 1024 1024"
+              width="1.25em"
+            >
+              <title>
+                trash
+              </title>
+              <path
+                d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+              />
+              <path
+                d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+              />
+            </svg>
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 `;

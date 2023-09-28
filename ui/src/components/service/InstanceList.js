@@ -106,6 +106,11 @@ class InstanceList extends React.Component {
             switch (this.state.selected) {
                 case 'Instance':
                     instances = this.props.instances.filter((instance) => {
+                        if (!instance.ipAddresses) {
+                            return instance.name.includes(
+                                this.state.searchText.trim()
+                            );
+                        }
                         let temp = instance.ipAddresses.filter((ipAddress) => {
                             return ipAddress.includes(
                                 this.state.searchText.trim()
