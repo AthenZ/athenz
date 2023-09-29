@@ -335,21 +335,16 @@ class GCPLoginPage extends React.Component {
                     </h3>
                     <p>
                         Check to make sure that your <tt>gcp.*</tt> roles
-                        contain your user.
-                        <br />
-                        E.g., if your account is 'jdoe', then{' '}
-                        <tt>gcp.fed.admin.user</tt> should have{' '}
-                        <tt>{USER_DOMAIN}.jdoe</tt> as a member.
-                    </p>
-                    <p>
-                        If that does not work, please ask your Athenz domain
-                        admin for assistance.
+                        contain your user. Your account should be in the
+                        configured federated roles that have access to the
+                        project. If that does not work, please ask your Athenz
+                        domain admin for assistance.
                     </p>
                 </ParentWrapperDiv>
             </div>
         );
         return this.props.isLoading.length !== 0 ? (
-            <ReduxPageLoader message={'Loading microsegmentation data'} />
+            <ReduxPageLoader message={'Loading GCP Projects'} />
         ) : (
             <CacheProvider value={this.cache}>
                 {gcpLoginContainer}

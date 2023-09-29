@@ -33,24 +33,7 @@ exports[`GCP Login Page should render error no gcp project when api returns no r
       <tt>
         gcp.*
       </tt>
-       
-      roles contain your user.
-      <br />
-      E.g., if your account is 'jdoe', then
-       
-      <tt>
-        gcp.fed.admin.user
-      </tt>
-       should have
-       
-      <tt>
-        user
-        .jdoe
-      </tt>
-       as a member.
-    </p>
-    <p>
-      If that does not work, please ask your Athenz domain admin for assistance.
+       roles contain your user. Your account should be in the configured federated roles that have access to the project. If that does not work, please ask your Athenz domain admin for assistance.
     </p>
   </div>
 </div>
