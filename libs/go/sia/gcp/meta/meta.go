@@ -100,6 +100,14 @@ func GetProject(metaEndpoint string) (string, error) {
 	return string(projectBytes), nil
 }
 
+func GetProjectNumber(metaEndpoint string) (string, error) {
+	projectBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/project/numeric-project-id")
+	if err != nil {
+		return "", err
+	}
+	return string(projectBytes), nil
+}
+
 func GetService(metaEndpoint string) (string, error) {
 	serviceBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/instance/service-accounts/default/email")
 	if err != nil {

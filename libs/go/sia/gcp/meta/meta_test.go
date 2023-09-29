@@ -126,6 +126,24 @@ func TestGetProject(test *testing.T) {
 	}
 }
 
+func TestGetProjectNumber(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/computeMetadata/v1/project/numeric-project-id", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/project/numeric-project-id")
+		io.WriteString(w, "123456789")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	projectNumber, _ := GetProjectNumber(metaServer.httpUrl())
+	if projectNumber != "123456789" {
+		test.Errorf("want projectNumber=123456789 got projectNumber=%s", projectNumber)
+	}
+}
+
 func TestGetService(test *testing.T) {
 	// Mock the metadata endpoints
 	router := httptreemux.New()

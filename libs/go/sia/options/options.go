@@ -167,6 +167,7 @@ type Options struct {
 	Group               string            //the group name to chown the cert/key dirs to. If absent, then athenz
 	Domain              string            //name of the domain for the identity
 	Account             string            //name of the account
+	ProjectNumber       string            //project number of the gcp project
 	Service             string            //name of the service for the identity
 	Zts                 string            //the ZTS to contact
 	InstanceId          string            //instance id if ec2/vm, task id if running within eks/ecs/gke
