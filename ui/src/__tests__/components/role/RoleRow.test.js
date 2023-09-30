@@ -15,8 +15,12 @@
  */
 import React from 'react';
 import RoleRow from '../../../components/role/RoleRow';
-import { colors } from '../../../components/denali/styles';
-import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import {colors} from '../../../components/denali/styles';
+import {renderWithRedux} from '../../../tests_utils/ComponentsTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { configure } from '@testing-library/dom'
+import {act} from "react-dom/test-utils";
+import {USER_DOMAIN} from "../../../components/constants/constants";
 
 describe('RoleRow', () => {
     it('should render', () => {
@@ -31,18 +35,50 @@ describe('RoleRow', () => {
         const { getByTestId } = renderWithRedux(
             <table>
                 <tbody>
-                    <RoleRow
-                        details={details}
-                        domain={domain}
-                        color={color}
-                        idx={idx}
-                        timeZone={timeZone}
-                    />
+                <RoleRow
+                    details={details}
+                    domain={domain}
+                    color={color}
+                    idx={idx}
+                    timeZone={timeZone}
+                />
                 </tbody>
             </table>
         );
         const roleRow = getByTestId('role-row');
 
         expect(roleRow).toMatchSnapshot();
+    });
+
+
+    it('should display description', async() => {
+        const details = {
+            name: 'athens:role.zts_sia_cert_rotate',
+            description: 'test description',
+            modified: '2017-08-03T18:44:41.867Z',
+        };
+        const domain = 'domain';
+        const color = colors.row;
+        const idx = '50';
+        const timeZone = 'UTC';
+        renderWithRedux(
+            <table>
+                <tbody>
+                <RoleRow
+                    details={details}
+                    domain={domain}
+                    color={color}
+                    idx={idx}
+                    timeZone={timeZone}
+                />
+                </tbody>
+            </table>
+        );
+        
+        let descriptionIcon = screen.queryByTestId("description-icon");
+        expect(descriptionIcon).toBeInTheDocument();
+        fireEvent.mouseEnter(descriptionIcon);
+        await screen.findByText('test description');
+
     });
 });

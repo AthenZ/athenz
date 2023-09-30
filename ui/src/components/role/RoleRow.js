@@ -74,12 +74,12 @@ const TrStyled = styled.div`
 `;
 
 const colorTransition = keyframes`
-        0% {
-            background-color: rgba(21, 192, 70, 0.20);
-        }
-        100% {
-            background-color: transparent;
-        }
+    0% {
+        background-color: rgba(21, 192, 70, 0.20);
+    }
+    100% {
+        background-color: transparent;
+    }
 `;
 
 const MenuDiv = styled.div`
@@ -220,6 +220,42 @@ class RoleRow extends React.Component {
             </Menu>
         );
 
+        let iconDescription = (
+            <Menu
+                placement='bottom-start'
+                trigger={
+                    <span data-testid='description-icon'>
+                        <Icon
+                            icon={'information-circle'}
+                            color={colors.icons}
+                            size={'1.15em'}
+                            verticalAlign={'text-bottom'}
+                            enableTitle={false}
+                            onClick={() => {
+                                this.setState({
+                                    recentlyCopiedToClipboard: true,
+                                });
+                                setTimeout(
+                                    () =>
+                                        this.setState({
+                                            recentlyCopiedToClipboard: false,
+                                        }),
+                                    1000
+                                );
+                                navigator.clipboard.writeText(role.description);
+                            }}
+                        />
+                    </span>
+                }
+            >
+                <MenuDiv>
+                    {this.state.recentlyCopiedToClipboard
+                        ? 'Copied to clipboard'
+                        : role.description}
+                </MenuDiv>
+            </Menu>
+        );
+
         let auditEnabled = !!role.auditEnabled;
         let iconAudit = (
             <Menu
@@ -245,6 +281,7 @@ class RoleRow extends React.Component {
             role.reviewEnabled && (role.memberExpiryDays || role.serviceExpiry);
 
         let roleTypeIcon = role.trust ? iconDelegated : '';
+        let roleDescriptionIcon = role.description ? iconDescription : '';
         let roleAuditIcon = auditEnabled ? iconAudit : '';
 
         let roleNameSpan =
@@ -264,7 +301,7 @@ class RoleRow extends React.Component {
                 <TDStyledName color={color} align={left}>
                     {roleTypeIcon}
                     {roleAuditIcon}
-                    {roleNameSpan}
+                    {roleNameSpan} {roleDescriptionIcon}
                 </TDStyledName>
                 <TDStyledTime color={color} align={left}>
                     {this.localDate.getLocalDate(

@@ -17,6 +17,8 @@ import React from 'react';
 import RoleSectionRow from '../../../components/role/RoleSectionRow';
 import { colors } from '../../../components/denali/styles';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import RoleRow from "../../../components/role/RoleRow";
+import {fireEvent, screen} from "@testing-library/react";
 
 describe('RoleRow', () => {
     it('should render', () => {
@@ -42,5 +44,35 @@ describe('RoleRow', () => {
         const roleSectionRow = getByTestId('role-section-row');
 
         expect(roleSectionRow).toMatchSnapshot();
+    });
+
+    it('should display description', async() => {
+        const details = {
+            name: 'athens:role.zts_sia_cert_rotate',
+            description: 'test description',
+            modified: '2017-08-03T18:44:41.867Z',
+        };
+        const domain = 'domain';
+        const color = colors.row;
+        const idx = '50';
+        const timeZone = 'UTC';
+        renderWithRedux(
+            <table>
+                <tbody>
+                <RoleSectionRow
+                    details={details}
+                    domain={domain}
+                    color={color}
+                    timeZone={timeZone}
+                />
+                </tbody>
+            </table>
+        );
+
+        let descriptionIcon = screen.queryByTestId("description-icon");
+        expect(descriptionIcon).toBeInTheDocument();
+        fireEvent.mouseEnter(descriptionIcon);
+        await screen.findByText('test description');
+
     });
 });

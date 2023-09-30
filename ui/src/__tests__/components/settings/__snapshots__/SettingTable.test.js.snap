@@ -995,6 +995,47 @@ exports[`SettingTable should render setting table 1`] = `
         expiration enforced by a user authority configured attribute
       </td>
     </tr>
+    <tr
+      class="emotion-2 emotion-3"
+      data-testid="setting-row"
+    >
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        Role Description
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        <div
+          class="emotion-35 emotion-36"
+        >
+          <div
+            class="emotion-37 denali-input animated emotion-38 emotion-39"
+            data-testid="input-wrapper"
+          >
+            <input
+              autocomplete="off"
+              data-testid="input-node"
+              id="setting-description"
+              value=""
+            />
+            <div
+              class="message"
+              data-testid="message"
+            />
+          </div>
+        </div>
+      </td>
+      <td
+        class="emotion-4 emotion-5"
+        width="auto"
+      >
+        Role Description (Optional)
+      </td>
+    </tr>
   </tbody>
 </table>
 `;
