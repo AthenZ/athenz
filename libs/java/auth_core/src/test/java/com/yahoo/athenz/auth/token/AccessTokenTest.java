@@ -34,6 +34,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.*;
 
 import static org.testng.Assert.*;
@@ -328,6 +329,41 @@ public class AccessTokenTest {
 
         try {
             new AccessToken(unsignedJws, resolver);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof UnsupportedJwtException);
+        }
+    }
+
+    @Test
+    public void testAccessTokenWithNoneAlgorithm() {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the unsigned token with none algorithm
+
+        final String accessJws = Jwts.builder().setSubject(accessToken.subject)
+                .setId(accessToken.jwtId)
+                .setIssuedAt(Date.from(Instant.ofEpochSecond(accessToken.issueTime)))
+                .setExpiration(Date.from(Instant.ofEpochSecond(accessToken.expiryTime)))
+                .setIssuer(accessToken.issuer)
+                .setAudience(accessToken.audience)
+                .claim(AccessToken.CLAIM_AUTH_TIME, accessToken.authTime)
+                .claim(AccessToken.CLAIM_VERSION, accessToken.version)
+                .claim(AccessToken.CLAIM_SCOPE, accessToken.getScope())
+                .claim(AccessToken.CLAIM_SCOPE_STD, accessToken.getScopeStd())
+                .claim(AccessToken.CLAIM_UID, accessToken.getUserId())
+                .claim(AccessToken.CLAIM_CLIENT_ID, accessToken.getClientId())
+                .claim(AccessToken.CLAIM_CONFIRM, accessToken.getConfirm())
+                .claim(AccessToken.CLAIM_PROXY, accessToken.getProxyPrincipal())
+                .claim(AccessToken.CLAIM_AUTHZ_DETAILS, accessToken.getAuthorizationDetails())
+                .setHeaderParam(AccessToken.HDR_TOKEN_TYPE, AccessToken.HDR_TOKEN_JWT)
+                .compact();
+        assertNotNull(accessJws);
+
+        try {
+            new AccessToken(accessJws, new JwtsSigningKeyResolver(null, null));
             fail();
         } catch (Exception ex) {
             assertTrue(ex instanceof UnsupportedJwtException);
