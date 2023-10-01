@@ -21,3 +21,19 @@ export const selectInboundOutboundList = (state) => {
         ? AppUtils.deepClone(state.microsegmentation.inboundOutboundList)
         : [];
 };
+
+export const selectInboundOutboundListWithFilter = (state, serviceName) => {
+    let inboundOutboundList = selectInboundOutboundList(state);
+    debugger;
+    if (inboundOutboundList === []) {
+        return inboundOutboundList;
+    }
+    debugger;
+    let inbound = inboundOutboundList.inbound?.filter(
+        (inbound) => inbound.destination_service === serviceName
+    );
+    let outbound = inboundOutboundList.outbound?.filter(
+        (outbound) => outbound.source_service === serviceName
+    );
+    return { inbound, outbound };
+}

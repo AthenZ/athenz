@@ -53,6 +53,12 @@ class ServiceTabs extends React.Component {
                     `/domain/${domain}/service/${service}/tags`
                 );
                 break;
+            case 'microsegmentations':
+                this.props.router.push(
+                    `/domain/${domain}/service/${service}/microsegmentations`,
+                    `/domain/${domain}/service/${service}/microsegmentations`
+                );
+                break;
         }
     }
 

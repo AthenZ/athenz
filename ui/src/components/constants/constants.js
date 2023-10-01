@@ -67,6 +67,10 @@ export const SERVICE_TABS = [
         label: 'Tags',
         name: 'tags',
     },
+    {
+        label: 'Microsegmentation',
+        name: 'microsegmentations',
+    },
 ];
 
 export const SEGMENTATION_CATEGORIES = [
