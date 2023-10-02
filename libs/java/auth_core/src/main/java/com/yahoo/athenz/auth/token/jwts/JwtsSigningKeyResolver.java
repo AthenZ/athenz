@@ -45,7 +45,6 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
     private final SSLContext sslContext;
     private final String jwksUri;
-    private final boolean skipConfig;
     private static long lastZtsJwkFetchTime;
     private static long millisBetweenZtsCalls;
 
@@ -64,7 +63,6 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
         this.jwksUri = jwksUri;
         this.sslContext = sslContext;
-        this.skipConfig = skipConfig;
         this.publicKeys = new ConcurrentHashMap<>();
         if (!skipConfig) {
             loadPublicKeysFromConfig();
