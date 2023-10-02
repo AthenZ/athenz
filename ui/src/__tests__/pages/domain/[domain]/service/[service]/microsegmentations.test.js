@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import MockApi from '../../../../../../mock/MockApi';
 import {
     mockAllDomainDataApiCalls,
     mockRolesApiCalls,
     renderWithRedux,
 } from '../../../../../../tests_utils/ComponentsTestUtils';
-import {
-    apiServices,
-    singleStoreService,
-} from '../../../../../redux/config/service.test';
 import ServiceMicrosegmentationsPage from '../../../../../../pages/domain/[domain]/service/[service]/microsegmentations';
-import { storeInboundOutboundList } from '../../../../../config/config.test';
+import {apiAssertionConditions, modified} from '../../../../../config/config.test';
 
 describe('Service Microsegmentations Page', () => {
     afterEach(() => {
@@ -58,6 +54,107 @@ describe('Service Microsegmentations Page', () => {
             ],
         };
 
+        let apiServices = [
+            {
+                name: 'dom.openhouse',
+                modified: modified,
+            },
+            {
+                name: 'dom.service2',
+                modified: modified,
+            },
+        ];
+
+        let policies = [
+            {
+                name: 'dom:policy.acl.openhouse.inbound',
+                modified: modified,
+                assertions: [
+                    {
+                        role: 'dom:role.acl.openhouse.inbound-test1',
+                        resource: 'dom:openhouse',
+                        action: 'TCP-IN:1024-65535:4443-4443',
+                        effect: 'ALLOW',
+                        id: 34567,
+                        conditions: apiAssertionConditions,
+                    },
+                    {
+                        role: 'dom:role.acl.openhouse.inbound-test2',
+                        resource: 'dom:openhouse',
+                        action: 'TCP-IN:1024-65535:8443-8444',
+                        effect: 'ALLOW',
+                        id: 34890,
+                        conditions: apiAssertionConditions,
+                    },
+                ],
+                version: '0',
+                active: true,
+            },
+            {
+                name: 'dom:policy.acl.openhouse.outbound',
+                modified: modified,
+                assertions: [
+                    {
+                        role: 'dom:role.acl.openhouse.outbound-test2',
+                        resource: 'dom:openhouse',
+                        action: 'TCP-OUT:1024-65535:4443-4443',
+                        effect: 'ALLOW',
+                        id: 76543,
+                        conditions: apiAssertionConditions,
+                    },
+                ],
+                version: '0',
+                active: true,
+            },
+            {
+                name: 'dom:policy.acl.service2.inbound',
+                modified: modified,
+                assertions: [
+                    {
+                        role: 'dom:role.acl.service2.inbound-test4',
+                        resource: 'dom:service2',
+                        action: 'TCP-IN:1024-65535:4443-4443',
+                        effect: 'ALLOW',
+                        id: 39890,
+                        conditions: apiAssertionConditions,
+                    },
+                ],
+                version: '0',
+                active: true,
+            },
+        ]
+
+        let roles = [
+            {
+                name: 'dom:role.acl.openhouse.inbound-test1',
+                roleMembers: [
+                    { memberName: 'user.test1' },
+                    { memberName: 'user.test2' },
+                ],
+            },
+            {
+                name: 'dom:role.acl.openhouse.inbound-test2',
+                roleMembers: [
+                    { memberName: 'user.test3' },
+                    { memberName: 'user.test4' },
+                ],
+            },
+            {
+                name: 'dom:role.acl.openhouse.outbound-test3',
+                roleMembers: [
+                    { memberName: 'user.test1' },
+                    { memberName: 'user.test2' },
+                ],
+            },
+            {
+                name: 'dom:role.acl.service2.inbound-test4',
+                roleMembers: [
+                    { memberName: 'user.test1' },
+                    { memberName: 'user.test2' },
+                ],
+            }
+        ];
+
         const mockApi = {
             ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
             ...mockRolesApiCalls(),
@@ -66,25 +163,22 @@ describe('Service Microsegmentations Page', () => {
                     resolve([]);
                 })
             ),
-            listUserDomains: jest.fn().mockReturnValue(
-                new Promise((resolve, reject) => {
-                    resolve(domains);
-                })
-            ),
-            getPolicies: jest.fn().mockReturnValue(
-                new Promise((resolve, reject) => {
-                    resolve([]);
-                })
-            ),
-            getServices: jest.fn().mockReturnValue(
-                new Promise((resolve, reject) => {
-                    resolve([]);
-                })
-            ),
+            listUserDomains: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(domains)),
+            getPolicies: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(policies)),
+            getServices: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(apiServices)),
+            getRoles: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(roles))
         };
         MockApi.setMockApi(mockApi);
 
-        const { getByTestId } = renderWithRedux(
+        const { getByTestId } = await renderWithRedux(
             <ServiceMicrosegmentationsPage
                 req='req'
                 userId={userId}
@@ -97,7 +191,15 @@ describe('Service Microsegmentations Page', () => {
             expect(getByTestId('segmentation-data-list')).toBeInTheDocument()
         );
 
-        const serviceTagsPage = getByTestId('service-microsegmentation');
-        expect(serviceTagsPage).toMatchSnapshot();
+        await waitFor(() =>
+            expect(screen.getByText('Inbound (2)')).toBeInTheDocument()
+        );
+
+        await waitFor(() =>
+            expect(screen.getByText('Outbound (1)')).toBeInTheDocument()
+        );
+
+        const serviceMicrosegmentationPage = getByTestId('service-microsegmentation');
+        expect(serviceMicrosegmentationPage).toMatchSnapshot();
     });
 });
