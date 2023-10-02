@@ -42,7 +42,7 @@ const responseHandler = function (err, data) {
             `principal: ${this.req.session.shortId} rid: ${
                 this.req.headers.rid
             } Error from ZMS while calling ${this.caller} API: ${JSON.stringify(
-                err
+                errorHandler.fetcherError(err)
             )}`
         );
         return this.callback(errorHandler.fetcherError(err));
@@ -431,7 +431,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putDomainTemplate API for applying AWS templates : ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 return callback(errorHandler.fetcherError(err));
@@ -480,7 +480,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS getDomainTemplateDetailsList API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
@@ -544,7 +544,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getSignedDomains API for managedDomains : ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 return callback(errorHandler.fetcherError(err));
@@ -634,7 +634,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainList API for UserDomainList: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -652,7 +652,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainList API for AllDomainList: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 return callback(errorHandler.fetcherError(err));
@@ -850,7 +850,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putMembership API for multiple roles: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 return callback(errorHandler.fetcherError(err));
@@ -867,7 +867,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainRoleMembers API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -911,7 +911,7 @@ Fetchr.registerService({
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getPolicies API: ${JSON.stringify(
-                    err
+                    errorHandler.fetcherError(err)
                 )}`
             );
             return callback(errorHandler.fetcherError(err));
@@ -935,7 +935,7 @@ Fetchr.registerService({
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getPolicyVersionList API: ${JSON.stringify(
-                    err
+                    errorHandler.fetcherError(err)
                 )}`
             );
             return callback(errorHandler.fetcherError(err));
@@ -978,7 +978,7 @@ Fetchr.registerService({
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getPolicy API: ${JSON.stringify(
-                    customError
+                    errorHandler.fetcherError(customError)
                 )}`
             );
             return callback(errorHandler.fetcherError(customError));
@@ -1117,7 +1117,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getPolicy API for providers: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1193,7 +1193,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getRole API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1213,7 +1213,7 @@ Fetchr.registerService({
                                 `principal: ${req.session.shortId} rid: ${
                                     req.headers.rid
                                 } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                    err
+                                    errorHandler.fetcherError(err)
                                 )}`
                             );
                             callback(errorHandler.fetcherError(err));
@@ -1338,7 +1338,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putRole API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1420,7 +1420,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putRoleReview API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1571,7 +1571,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getGroups API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1656,7 +1656,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getGroups API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1704,7 +1704,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getPendingDomainMembersList API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
@@ -1735,7 +1735,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getPendingDomainMembersListByDomain API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
@@ -1768,7 +1768,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getPendingDomainMembersCountByDomain API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
@@ -1796,7 +1796,7 @@ Fetchr.registerService({
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getServiceIdentities API: ${JSON.stringify(
-                    err
+                    errorHandler.fetcherError(err)
                 )}`
             );
             return callback(errorHandler.fetcherError(err));
@@ -1891,7 +1891,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling getDomainList API for search: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -1999,7 +1999,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getGroup API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
@@ -2031,7 +2031,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error from ZMS while calling putGroup API: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -2068,7 +2068,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling putGroup API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
@@ -2111,7 +2111,7 @@ Fetchr.registerService({
                             `principal: ${req.session.shortId} rid: ${
                                 req.headers.rid
                             } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                err
+                                errorHandler.fetcherError(err)
                             )}`
                         );
                         callback(errorHandler.fetcherError(err));
@@ -2173,7 +2173,7 @@ Fetchr.registerService({
                                 `principal: ${req.session.shortId} rid: ${
                                     req.headers.rid
                                 } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                    err
+                                    errorHandler.fetcherError(err)
                                 )}`
                             );
                             callback(errorHandler.fetcherError(err));
@@ -2268,7 +2268,7 @@ Fetchr.registerService({
                                 `principal: ${req.session.shortId} rid: ${
                                     req.headers.rid
                                 } Error from ZMS while calling getRole API: ${JSON.stringify(
-                                    err
+                                    errorHandler.fetcherError(err)
                                 )}`
                             );
                             callback(errorHandler.fetcherError(err));
@@ -2334,7 +2334,7 @@ Fetchr.registerService({
                 `principal: ${req.session.shortId} rid: ${
                     req.headers.rid
                 } Error from ZMS while calling getDomainRoleMember API: ${JSON.stringify(
-                    err
+                    errorHandler.fetcherError(err)
                 )}`
             );
 
@@ -2981,7 +2981,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from MSD while calling getInstances API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     return callback(errorHandler.fetcherError(err));
@@ -3141,7 +3141,7 @@ Fetchr.registerService({
                         `principal: ${req.session.shortId} rid: ${
                             req.headers.rid
                         } Error from ZMS while calling getResourceAccessList API: ${JSON.stringify(
-                            err
+                            errorHandler.fetcherError(err)
                         )}`
                     );
                     callback(errorHandler.fetcherError(err));
