@@ -24,11 +24,11 @@ export const selectInboundOutboundList = (state) => {
 
 export const selectInboundOutboundListWithFilter = (state, serviceName) => {
     let inboundOutboundList = selectInboundOutboundList(state);
-    debugger;
+
     if (inboundOutboundList === []) {
         return inboundOutboundList;
     }
-    debugger;
+
     let inbound = inboundOutboundList.inbound?.filter(
         (inbound) => inbound.destination_service === serviceName
     );
@@ -36,4 +36,4 @@ export const selectInboundOutboundListWithFilter = (state, serviceName) => {
         (outbound) => outbound.source_service === serviceName
     );
     return { inbound, outbound };
-}
+};
