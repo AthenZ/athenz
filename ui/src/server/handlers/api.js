@@ -1510,15 +1510,16 @@ Fetchr.registerService({
                 break;
             }
             case 'policy': {
-                req.clients.zms.putPolicyVersion(
-                    {
-                        domainName: params.domainName,
-                        policyName: params.collectionName,
-                        policy: params.detail,
-                        auditRef: params.auditRef,
-                    },
-                    responseHandler.bind({ caller: 'putPolicy', callback, req })
-                );
+                    req.clients.zms.putPolicy(
+                        {
+                            domainName: params.domainName,
+                            policyName: params.collectionName,
+                            policy: params.detail,
+                            auditRef: params.auditRef,
+                            returnObj: true,
+                        },
+                        responseHandler.bind({ caller: 'putPolicy', callback, req })
+                    );
                 break;
             }
             case 'service': {

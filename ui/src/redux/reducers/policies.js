@@ -162,10 +162,15 @@ export const policies = (state = {}, action) => {
             let newState = state;
             if (category === 'policy') {
                 newState = produce(state, (draft) => {
-                    draft.policies[collectionName]
-                        ? (draft.policies[collectionName].tags =
-                              collectionWithTags.tags)
-                        : (draft.policies[collectionName] = collectionWithTags);
+                    draft.policies[
+                        collectionName + ':' + collectionWithTags.version
+                    ]
+                        ? (draft.policies[
+                              collectionName + ':' + collectionWithTags.version
+                          ].tags = collectionWithTags.tags)
+                        : (draft.policies[
+                              collectionName + ':' + collectionWithTags.version
+                          ] = collectionWithTags);
                 });
             }
             return newState;
