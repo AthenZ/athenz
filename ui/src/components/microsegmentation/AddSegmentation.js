@@ -258,6 +258,18 @@ class AddSegmentation extends React.Component {
             saving: 'todo',
             validationError: 'none',
             validationStatus: 'valid',
+            radioButtonInputs: [
+                {
+                    label: 'Report (on prem only)',
+                    value: 'report',
+                    disabled: false,
+                },
+                {
+                    label: 'Enforce',
+                    value: 'enforce',
+                    disabled: false,
+                },
+            ],
         };
     }
 
@@ -1191,10 +1203,20 @@ class AddSegmentation extends React.Component {
         }
     }
 
+    toggleDisableRadioButton(checked, list, index, inputs) {
+        if (checked) {
+            list[index]['enforcementstate'] = 'enforce';
+            inputs[0].disabled = true; // disable report mode when scope aws
+        } else {
+            inputs[0].disabled = false;
+        }
+    }
+
     handleInputChange(e, index) {
         const { name, value, checked } = e.target;
         const list = [...this.state.PESList];
         const checkedStr = checked ? 'true' : 'false';
+        let inputs = [...this.state.radioButtonInputs];
         if (name.includes('enforcementStateRadioButton')) {
             list[index]['enforcementstate'] = value;
             if (list.length == 2) {
@@ -1210,13 +1232,16 @@ class AddSegmentation extends React.Component {
             list[index]['scopeall'] = checkedStr;
             list[index]['scopeaws'] = 'false';
             list[index]['scopeonprem'] = 'false';
+            this.toggleDisableRadioButton(checked, list, index, inputs);
         } else if (name.includes('scopeonprem')) {
             list[index]['scopeonprem'] = checkedStr;
         } else if (name.includes('scopeaws')) {
             list[index]['scopeaws'] = checkedStr;
+            this.toggleDisableRadioButton(checked, list, index, inputs);
         }
         this.setState({
             PESList: list,
+            radioButtonInputs: inputs,
         });
     }
 
@@ -1250,17 +1275,6 @@ class AddSegmentation extends React.Component {
     }
 
     render() {
-        const inputs = [
-            {
-                label: 'Report',
-                value: 'report',
-            },
-            {
-                label: 'Enforce',
-                value: 'enforce',
-            },
-        ];
-
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
                   // dummy place holder so that it can be be used in the form
@@ -1344,17 +1358,54 @@ class AddSegmentation extends React.Component {
                     return (
                         <div>
                             <SectionDiv>
+                                <StyledInputLabel>Scope</StyledInputLabel>
+                                <CheckBoxSectionDiv>
+                                    <StyledCheckBox
+                                        checked={x.scopeall === 'true'}
+                                        name={'scopeallCheckBox' + i}
+                                        id={'scopeallCheckBox' + i}
+                                        key={'scopeallCheckBox' + i}
+                                        label='All'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                    />
+                                    <StyledCheckBox
+                                        checked={x.scopeonprem === 'true'}
+                                        disabled={x.scopeall === 'true'}
+                                        name={'scopeonpremCheckBox' + i}
+                                        id={'scopeonpremCheckBox' + i}
+                                        key={'scopeonpremCheckBox' + i}
+                                        label='On-Prem'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                    />
+                                    <StyledCheckBox
+                                        checked={x.scopeaws === 'true'}
+                                        disabled={x.scopeall === 'true'}
+                                        name={'scopeawsCheckBox' + i}
+                                        id={'scopeawsCheckBox' + i}
+                                        key={'scopeawsCheckBox' + i}
+                                        label='AWS'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                    />
+                                </CheckBoxSectionDiv>
+                            </SectionDiv>
+                            <SectionDiv>
                                 <StyledInputLabel>
                                     Policy Enforcement State
                                 </StyledInputLabel>
                                 <StyledRadioButtonGroup
                                     name={'enforcementStateRadioButton' + i}
-                                    inputs={inputs}
+                                    inputs={this.state.radioButtonInputs}
                                     selectedValue={x.enforcementstate}
                                     onChange={(e) =>
                                         this.handleInputChange(e, i)
                                     }
-                                    disabled={i == 1}
+                                    disabled={i == 1 ? true : undefined}
                                 />
                                 <StyledInputLabelHost>
                                     Hosts
@@ -1398,43 +1449,6 @@ class AddSegmentation extends React.Component {
                                         />
                                     </RemoveCircleDiv>
                                 )}
-                            </SectionDiv>
-                            <SectionDiv>
-                                <StyledInputLabel>Scope</StyledInputLabel>
-                                <CheckBoxSectionDiv>
-                                    <StyledCheckBox
-                                        checked={x.scopeall === 'true'}
-                                        name={'scopeallCheckBox' + i}
-                                        id={'scopeallCheckBox' + i}
-                                        key={'scopeallCheckBox' + i}
-                                        label='All'
-                                        onChange={(e) =>
-                                            this.handleInputChange(e, i)
-                                        }
-                                    />
-                                    <StyledCheckBox
-                                        checked={x.scopeonprem === 'true'}
-                                        disabled={x.scopeall === 'true'}
-                                        name={'scopeonpremCheckBox' + i}
-                                        id={'scopeonpremCheckBox' + i}
-                                        key={'scopeonpremCheckBox' + i}
-                                        label='On-Prem'
-                                        onChange={(e) =>
-                                            this.handleInputChange(e, i)
-                                        }
-                                    />
-                                    <StyledCheckBox
-                                        checked={x.scopeaws === 'true'}
-                                        disabled={x.scopeall === 'true'}
-                                        name={'scopeawsCheckBox' + i}
-                                        id={'scopeawsCheckBox' + i}
-                                        key={'scopeawsCheckBox' + i}
-                                        label='AWS'
-                                        onChange={(e) =>
-                                            this.handleInputChange(e, i)
-                                        }
-                                    />
-                                </CheckBoxSectionDiv>
                             </SectionDiv>
                         </div>
                     );
