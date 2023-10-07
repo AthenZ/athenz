@@ -497,6 +497,7 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 
 	config.Threshold = util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
 	config.SshThreshold = util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
+	omitDomain := util.ParseEnvBooleanFlag("ATHENZ_SIA_OMIT_DOMAIN")
 
 	acEnv := os.Getenv("ATHENZ_SIA_ACCESS_TOKENS")
 	if acEnv != "" {
@@ -546,6 +547,7 @@ func InitEnvConfig(config *Config, provider provider.Provider) (*Config, *Config
 			Name:         fmt.Sprintf("%s.%s", domain, service),
 			Threshold:    config.Threshold,
 			SshThreshold: config.SshThreshold,
+			OmitDomain:   omitDomain,
 		}, nil
 	} else {
 		// TODO add gcp specific new env var names
