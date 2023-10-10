@@ -28,14 +28,14 @@
 
   <properties>
     <code.coverage.min>0.9476</code.coverage.min>
-    <commons.dbcp2.version>2.9.0</commons.dbcp2.version>
-    <commons.pool2.version>2.11.1</commons.pool2.version>
+    <commons.dbcp2.version>2.10.0</commons.dbcp2.version>
+    <commons.pool2.version>2.12.0</commons.pool2.version>
     <jakarta.mail.version>2.1.2</jakarta.mail.version>
     <angus.mail.version>2.0.2</angus.mail.version>
-    <protobuf.java.version>3.24.2</protobuf.java.version>
+    <protobuf.java.version>3.24.4</protobuf.java.version>
     <pulsar.client.version>3.1.0</pulsar.client.version>
     <aws.secretmanager.version>2.0.0</aws.secretmanager.version>
-    <uuid.version>4.2.0</uuid.version>
+    <uuid.version>4.3.0</uuid.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
   </properties>
 
