@@ -16,7 +16,10 @@
 
 package com.yahoo.athenz.msd;
 
+import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.Validator;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.util.Collections;
@@ -99,4 +102,41 @@ public class StaticWorkloadTest {
         assertEquals(wl1, wl1);
 
     }
+
+    @Test (dataProvider = "staticWorkloadNameProvider")
+    public void testStaticWorkloadName(String name, boolean expected) {
+
+        Schema schema = MSDSchema.instance();
+        Validator validator = new Validator(schema);
+
+        StaticWorkload wl1 = new StaticWorkload();
+        wl1.setDomainName("athenz")
+                .setServiceName("api")
+                .setName(name)
+                .setType(StaticWorkloadType.CLOUD_LB);
+
+        Validator.Result result = validator.validate(wl1, "StaticWorkload");
+        assertEquals(result.valid, expected);
+    }
+
+    @DataProvider
+    private Object[][] staticWorkloadNameProvider() {
+        return new Object[][] {
+                {"10.10.20.30", true},
+                {"10.10.20.30/24", true},
+                {"172.30.255.255", true},
+                {"2001:db8:abcd:12::ffff", true},
+                {"2001:db8:abcd:12::ffff/24", true},
+                {"2001:db8:abcd:12::ffff/128", true},
+                {"myhostname", true},
+                {"ABC::AA012_113_3332_11344", true},
+                {"myhostname.subdomain.domain.com", true},
+                {"avc/dd", false},
+                {"avc/12/11", false},
+                {"*ddw$%#", false},
+                {"/", false},
+                {"/etc/passwd", false},
+        };
+    }
+
 }

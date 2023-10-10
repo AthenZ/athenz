@@ -89,7 +89,7 @@ resource StaticWorkload PUT "/domain/{domainName}/service/{serviceName}/workload
 resource StaticWorkload DELETE "/domain/{domainName}/service/{serviceName}/name/{name}/workload/static" (name=deleteStaticWorkload) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
-    String name; // name associated with the workload. In most cases will be a FQDN
+    StaticWorkloadName name; // name associated with the workload. In most cases will be a FQDN
     authorize ("update", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;
     exceptions {
