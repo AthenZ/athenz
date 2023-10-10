@@ -68,6 +68,7 @@ func getIpsFromIfConfig(t *testing.T) ([]string, error) {
 				ip := strings.TrimSpace(strings.TrimPrefix(parts[1], "addr:"))
 				if ip != "" && ip != "127.0.0.1" && ip != "::1" &&
 					!strings.HasPrefix(ip, "fe80::") &&
+					!strings.HasPrefix(ip, "169.254.") &&
 					!strings.HasPrefix(ip, "192.168.") && !isClassBPrivate(ip) {
 					ips = append(ips, ip)
 				}

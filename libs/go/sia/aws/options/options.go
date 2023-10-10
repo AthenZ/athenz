@@ -484,6 +484,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 
 	threshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_THRESHOLD", DefaultThreshold)
 	sshThreshold := util.ParseEnvFloatFlag("ATHENZ_SIA_ACCOUNT_SSH_THRESHOLD", DefaultThreshold)
+	omitDomain := util.ParseEnvBooleanFlag("ATHENZ_SIA_OMIT_DOMAIN")
 
 	return config, &ConfigAccount{
 		Account:      account,
@@ -493,6 +494,7 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 		Name:         fmt.Sprintf("%s.%s", domain, service),
 		Threshold:    threshold,
 		SshThreshold: sshThreshold,
+		OmitDomain:   omitDomain,
 	}, nil
 }
 
@@ -555,6 +557,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		fileDirectUpdate = config.FileDirectUpdate
 		accessManagement = config.AccessManagement
 		storeTokenOption = config.StoreTokenOption
+
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
 		}

@@ -677,6 +677,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", "10")
 	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
+	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -714,6 +715,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "host1.athenz.io", cfg.SshPrincipals)
 	assert.Equal(t, 10, cfg.FailCountForExit)
 	assert.Equal(t, 2, *cfg.StoreTokenOption)
+	assert.True(t, cfgAccount.OmitDomain)
 
 	os.Clearenv()
 }
