@@ -64,6 +64,15 @@ type TransportPolicySubjectDomainName string
 // should allow * to indicate ANY
 type TransportPolicySubjectServiceName string
 
+// StaticWorkloadComponent -
+type StaticWorkloadComponent string
+
+// StaticWorkloadFQDN -
+type StaticWorkloadFQDN string
+
+// StaticWorkloadName -
+type StaticWorkloadName string
+
 // TransportPolicyEnforcementState - Types of transport policy enforcement
 // states
 type TransportPolicyEnforcementState int
@@ -1566,7 +1575,7 @@ type StaticWorkload struct {
 	//
 	// name associated with the workload. In most cases will be a FQDN
 	//
-	Name string `json:"name" rdl:"optional" yaml:",omitempty"`
+	Name StaticWorkloadName `json:"name,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// most recent update timestamp in the backend
@@ -1618,9 +1627,9 @@ func (self *StaticWorkload) Validate() error {
 		}
 	}
 	if self.Name != "" {
-		val := rdl.Validate(MSDSchema(), "String", self.Name)
+		val := rdl.Validate(MSDSchema(), "StaticWorkloadName", self.Name)
 		if !val.Valid {
-			return fmt.Errorf("StaticWorkload.name does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("StaticWorkload.name does not contain a valid StaticWorkloadName (%v)", val.Error)
 		}
 	}
 	return nil

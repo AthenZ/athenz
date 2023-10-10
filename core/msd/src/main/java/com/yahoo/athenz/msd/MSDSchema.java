@@ -74,6 +74,15 @@ public class MSDSchema {
             .comment("ServiceName in TransportPolicySubject should allow * to indicate ANY")
             .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("StaticWorkloadComponent")
+            .pattern("[a-zA-Z0-9][a-zA-Z0-9-:._]*");
+
+        sb.stringType("StaticWorkloadFQDN")
+            .pattern("([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*");
+
+        sb.stringType("StaticWorkloadName")
+            .pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
+
         sb.enumType("TransportPolicyEnforcementState")
             .comment("Types of transport policy enforcement states")
             .element("ENFORCE")
@@ -206,7 +215,7 @@ public class MSDSchema {
             .field("serviceName", "EntityName", false, "name of the service")
             .field("type", "StaticWorkloadType", false, "value representing one of the StaticWorkloadType enum")
             .arrayField("ipAddresses", "String", true, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
-            .field("name", "String", true, "name associated with the workload. In most cases will be a FQDN")
+            .field("name", "StaticWorkloadName", true, "name associated with the workload. In most cases will be a FQDN")
             .field("updateTime", "Timestamp", true, "most recent update timestamp in the backend");
 
         sb.structType("WorkloadOptions")
@@ -628,7 +637,7 @@ public class MSDSchema {
             .name("deleteStaticWorkload")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
-            .pathParam("name", "String", "name associated with the workload. In most cases will be a FQDN")
+            .pathParam("name", "StaticWorkloadName", "name associated with the workload. In most cases will be a FQDN")
             .auth("update", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")

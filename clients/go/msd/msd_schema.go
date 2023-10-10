@@ -86,6 +86,18 @@ func init() {
 	tTransportPolicySubjectServiceName.Pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
 	sb.AddType(tTransportPolicySubjectServiceName.Build())
 
+	tStaticWorkloadComponent := rdl.NewStringTypeBuilder("StaticWorkloadComponent")
+	tStaticWorkloadComponent.Pattern("[a-zA-Z0-9][a-zA-Z0-9-:._]*")
+	sb.AddType(tStaticWorkloadComponent.Build())
+
+	tStaticWorkloadFQDN := rdl.NewStringTypeBuilder("StaticWorkloadFQDN")
+	tStaticWorkloadFQDN.Pattern("([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*")
+	sb.AddType(tStaticWorkloadFQDN.Build())
+
+	tStaticWorkloadName := rdl.NewStringTypeBuilder("StaticWorkloadName")
+	tStaticWorkloadName.Pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?")
+	sb.AddType(tStaticWorkloadName.Build())
+
 	tTransportPolicyEnforcementState := rdl.NewEnumTypeBuilder("Enum", "TransportPolicyEnforcementState")
 	tTransportPolicyEnforcementState.Comment("Types of transport policy enforcement states")
 	tTransportPolicyEnforcementState.Element("ENFORCE", "")
@@ -239,7 +251,7 @@ func init() {
 	tStaticWorkload.Field("serviceName", "EntityName", false, nil, "name of the service")
 	tStaticWorkload.Field("type", "StaticWorkloadType", false, nil, "value representing one of the StaticWorkloadType enum")
 	tStaticWorkload.ArrayField("ipAddresses", "String", true, "list of IP addresses associated with the workload, optional for getWorkloadsByIP API call")
-	tStaticWorkload.Field("name", "String", true, nil, "name associated with the workload. In most cases will be a FQDN")
+	tStaticWorkload.Field("name", "StaticWorkloadName", true, nil, "name associated with the workload. In most cases will be a FQDN")
 	tStaticWorkload.Field("updateTime", "Timestamp", true, nil, "most recent update timestamp in the backend")
 	sb.AddType(tStaticWorkload.Build())
 
@@ -658,7 +670,7 @@ func init() {
 	mDeleteStaticWorkload.Name("deleteStaticWorkload")
 	mDeleteStaticWorkload.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mDeleteStaticWorkload.Input("serviceName", "EntityName", true, "", "", false, nil, "name of the service")
-	mDeleteStaticWorkload.Input("name", "String", true, "", "", false, nil, "name associated with the workload. In most cases will be a FQDN")
+	mDeleteStaticWorkload.Input("name", "StaticWorkloadName", true, "", "", false, nil, "name associated with the workload. In most cases will be a FQDN")
 	mDeleteStaticWorkload.Auth("update", "{domainName}:service.{serviceName}", false, "")
 	mDeleteStaticWorkload.Expected("NO_CONTENT")
 	mDeleteStaticWorkload.Exception("BAD_REQUEST", "ResourceError", "")
