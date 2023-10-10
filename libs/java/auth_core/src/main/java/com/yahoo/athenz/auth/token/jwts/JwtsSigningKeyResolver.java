@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.yahoo.athenz.auth.AuthorityConsts.AUTH_PROP_MILLIS_BETWEEN_ZTS_CALLS;
+
 public class JwtsSigningKeyResolver implements SigningKeyResolver {
 
     public static final String ZTS_PROP_ATHENZ_CONF           = "athenz.athenz_conf";
@@ -49,6 +51,10 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     private static long millisBetweenZtsCalls;
 
     ConcurrentHashMap<String, PublicKey> publicKeys;
+
+    static {
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(AUTH_PROP_MILLIS_BETWEEN_ZTS_CALLS, "86400000")));
+    }
 
     static ObjectMapper initJsonMapper() {
         ObjectMapper mapper = new ObjectMapper();
