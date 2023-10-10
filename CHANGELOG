@@ -1,3 +1,27 @@
+Athenz v1.11.43 Release / Oct 10, 2023
+--------------------------------------
+
+#2304 UI: add role description tooltip
+#2315 UI: Fix delete static workload
+#2317 UI: Show msd error
+#2318 DB names are lower case for last notification time check
+#2319 UI: fix user service users map
+#2320 UI: Make project labels selectable on GCP login page
+#2321 Extract and export ClientTLSConfigFromPEM
+#2322 UI: skip loading on parent component for msd edit
+#2325 log x509 cert serial number in the access log files
+#2326 UI: updated rdl schemas
+#2327 UI: Add support for CIDR blocks and fix search for static instances
+#2328 UI: When user selects scope aws, disable report mode
+#2329 unit test for jwt with none algorithm by @havetisyan in #2329
+#2330 UI: Fix gcp login initially loading error no roles incorrectly
+#2333 UI: sanitize error logs
+#2336 support omit-domain flag in sia through ATHENZ_SIA_OMIT_DOMAIN env variable
+#2337 add logic to skip packages during publish
+#2338 using a dedicated regex for msd static workload name validation
+#2339 fix test access token signing key to 2048bit+ for valid testing
+#2341 update java/go dependencies to their latest releases
+
 Athenz v1.11.42 Release / Sep 13, 2023
 --------------------------------------
 
