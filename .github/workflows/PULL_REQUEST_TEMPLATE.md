@@ -7,5 +7,4 @@
 - [ ] **Create an issue and link to the pull request.**
 
 ## Attach Screenshots (Optional) 
-- [ ] Title of the pull request is clear and informative.
 
