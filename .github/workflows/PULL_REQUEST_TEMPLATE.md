@@ -6,5 +6,6 @@
 - [ ] **I have read the [contribution guidelines](../CONTRIBUTING.md).**
 - [ ] **Create an issue and link to the pull request.**
 
-## General Guidelines
+## Attach Screenshots (Optional) 
 - [ ] Title of the pull request is clear and informative.
+
