@@ -34,20 +34,20 @@ BASE_DIR="$(git rev-parse --show-toplevel)"
 . "${DOCKER_DIR}/sample/env.dev.sh"
 
 echo '2. create the self-signed CAs' | colored_cat g
-sh "${DEV_CA_DIR}/create-self-signed-ca.sh"
+bash "${DEV_CA_DIR}/create-self-signed-ca.sh"
 
 echo '3. create self-signed Athenz domain admin user certificate' | colored_cat g
 echo "your setting: DEV_DOMAIN_ADMIN=${DEV_DOMAIN_ADMIN}" | colored_cat y
-sh "${DEV_DOMAIN_ADMIN_DIR}/create-self-signed-user-cert.sh"
+bash "${DEV_DOMAIN_ADMIN_DIR}/create-self-signed-user-cert.sh"
 
 echo '4. create ZMS server certificate' | colored_cat g
-sh "${DEV_ZMS_DIR}/create-self-signed-certs.sh"
+bash "${DEV_ZMS_DIR}/create-self-signed-certs.sh"
 
 echo '5. create ZTS server certificates' | colored_cat g
-sh "${DEV_ZTS_DIR}/create-self-signed-certs.sh"
+bash "${DEV_ZTS_DIR}/create-self-signed-certs.sh"
 
 echo '6. create UI server certificates' | colored_cat g
-sh "${DEV_UI_DIR}/create-self-signed-certs.sh"
+bash "${DEV_UI_DIR}/create-self-signed-certs.sh"
 
 
 ### ----------------------------------------------------------------
