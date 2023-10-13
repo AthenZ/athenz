@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -216,11 +215,11 @@ public class KeyRefresher {
             return false;
         }
 
-        try (InputStream is = Files.newInputStream(path);
-             DigestInputStream digestInputStream = new DigestInputStream(is, md)) {
-            //noinspection StatementWithEmptyBody
-            while (digestInputStream.read() != -1) {
-                // do nothing, just read until the EoF
+        try (InputStream is = Files.newInputStream(path)) {
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = is.read(buffer)) > 0) {
+                md.update(buffer, 0, read);
             }
         } catch (IOException ex) {
             //this is best effort, if we couldn't read the file, assume it's the same
