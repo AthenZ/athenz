@@ -907,13 +907,15 @@ Fetchr.registerService({
                     })
                 );
             }
-            debug(
-                `principal: ${req.session.shortId} rid: ${
-                    req.headers.rid
-                } Error from ZMS while calling getPolicies API: ${JSON.stringify(
-                    errorHandler.fetcherError(err)
-                )}`
-            );
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getPolicies API: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+            }
             return callback(errorHandler.fetcherError(err));
         });
     },
@@ -931,13 +933,15 @@ Fetchr.registerService({
                     })
                 );
             }
-            debug(
-                `principal: ${req.session.shortId} rid: ${
-                    req.headers.rid
-                } Error from ZMS while calling getPolicyVersionList API: ${JSON.stringify(
-                    errorHandler.fetcherError(err)
-                )}`
-            );
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getPolicyVersionList API: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+            }
             return callback(errorHandler.fetcherError(err));
         });
     },
@@ -1792,13 +1796,15 @@ Fetchr.registerService({
                     })
                 );
             }
-            debug(
-                `principal: ${req.session.shortId} rid: ${
-                    req.headers.rid
-                } Error from ZMS while calling getServiceIdentities API: ${JSON.stringify(
-                    errorHandler.fetcherError(err)
-                )}`
-            );
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getServiceIdentities API: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+            }
             return callback(errorHandler.fetcherError(err));
         });
     },
@@ -2330,13 +2336,15 @@ Fetchr.registerService({
     name: 'domain-role-member',
     read(req, resource, params, config, callback) {
         req.clients.zms.getPrincipalRoles(params, function (err, data) {
-            debug(
-                `principal: ${req.session.shortId} rid: ${
-                    req.headers.rid
-                } Error from ZMS while calling getDomainRoleMember API: ${JSON.stringify(
-                    errorHandler.fetcherError(err)
-                )}`
-            );
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from ZMS while calling getDomainRoleMember API: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+            }
 
             if (data) {
                 let prefix = new Set();
@@ -2977,13 +2985,15 @@ Fetchr.registerService({
                         return callback(null, []);
                     }
                 } else {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from MSD while calling getInstances API: ${JSON.stringify(
-                            errorHandler.fetcherError(err)
-                        )}`
-                    );
+                    if (err) {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from MSD while calling getInstances API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                    }
                     return callback(errorHandler.fetcherError(err));
                 }
             }

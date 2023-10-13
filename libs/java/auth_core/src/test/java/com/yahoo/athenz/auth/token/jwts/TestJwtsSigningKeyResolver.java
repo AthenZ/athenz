@@ -65,6 +65,15 @@ public class TestJwtsSigningKeyResolver {
     }
 
     @Test
+    public void testCanFetch() {
+        JwtsSigningKeyResolver.setMillisBetweenZtsCalls(1000);
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        assertFalse(JwtsSigningKeyResolver.canFetchLatestJwksFromZts());
+        JwtsSigningKeyResolver.setMillisBetweenZtsCalls(-1);
+        assertTrue(JwtsSigningKeyResolver.canFetchLatestJwksFromZts());
+    }
+
+    @Test
     public void testLoadPublicKeysFromServerInvalidUri() {
 
         final String oldConf = System.setProperty(JwtsSigningKeyResolver.ZTS_PROP_ATHENZ_CONF,
