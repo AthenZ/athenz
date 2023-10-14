@@ -437,21 +437,21 @@ public class ZMSPrincipalRolesTest {
         // without any setup, the principal will only work if the checkPrincipal
         // matches the principal
 
-        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, "user.john"));
-        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "user.jane"));
+        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, "user.john", null));
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "user.jane", ""));
 
         // invalid principals should return failure
 
-        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "unknown-domain"));
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "unknown-domain", null));
 
         // asking for a domain that doesn't exist, must return failure
 
-        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "unknown-domain.service"));
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "unknown-domain.service", ""));
 
         // let's create the domain and without proper access, it still returns failure
 
-        createDomain("domain1");
-        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api"));
+        createDomain(domainName);
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", null));
 
         // now let's grant user.john update access over the service
 
@@ -467,12 +467,12 @@ public class ZMSPrincipalRolesTest {
 
         // now our access check should work
 
-        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api"));
+        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", ""));
 
         // delete the policy and verify that it fails again
 
         zmsImpl.deletePolicy(ctx, domainName, "service-policy", auditRef);
-        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api"));
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", null));
 
         // now let's set up the user as system role lookup user
 
@@ -485,9 +485,63 @@ public class ZMSPrincipalRolesTest {
 
         // now our access check should work
 
-        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api"));
+        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", null));
 
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
+        // clean up our system domain
+
+        zmsImpl.deletePolicy(ctx, "sys.auth", "service-policy", auditRef);
+        zmsImpl.deleteRole(ctx, "sys.auth", "service-role", auditRef);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testIsAllowedExpandedRoleLookupForDomainAdmins() {
+
+        final String domainName = "domain1";
+
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        String unsignedCreds = "v=U1;d=user;n=john";
+        Principal principal = SimplePrincipal.create("user", "john", unsignedCreds + ";s=signature",
+                0, principalAuthority);
+        assertNotNull(principal);
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // without the domain being present, we should get failure since the
+        // principal does not match our check principal name
+
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, "user.jane", domainName));
+
+        // let's create the domain and without proper access, it still returns failure
+
+        createDomain(domainName);
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", domainName));
+
+        // now let's grant user.john update access over the domain
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.john"));
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "domain-role", null, roleMembers);
+        zmsImpl.putRole(ctx, domainName, "domain-role", auditRef, false, role);
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, "domain-policy", "domain-role",
+                "access", domainName + ":meta.role.lookup", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName, "domain-policy", auditRef, false, policy);
+
+        // now our access check should work
+
+        assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", domainName));
+
+        // delete the policy and verify that it fails again
+
+        zmsImpl.deletePolicy(ctx, domainName, "domain-policy", auditRef);
+        assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", domainName));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
