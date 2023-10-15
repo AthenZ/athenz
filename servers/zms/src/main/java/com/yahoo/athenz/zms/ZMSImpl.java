@@ -3661,22 +3661,37 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if we're asked to expand all groups and delegated roles then
         // we're going to carry out an authorization check
 
-        if (expand == Boolean.TRUE && !isAllowedExpandedRoleLookup(((RsrcCtxWrapper) context).principal(), principal)) {
+        if (expand == Boolean.TRUE && !isAllowedExpandedRoleLookup(((RsrcCtxWrapper) context).principal(), principal, domainName)) {
             throw ZMSUtils.forbiddenError("principal is not authorized to request expanded role lookup", caller);
         }
 
         return dbService.getPrincipalRoles(principal, domainName, expand);
     }
 
-    boolean isAllowedExpandedRoleLookup(Principal principal, final String checkPrincipal) {
+    boolean isAllowedExpandedRoleLookup(Principal principal, final String checkPrincipal, final String domainName) {
 
         // Expanded role lookup requires one of these authorization checks
         // 1. authenticated principal is the same as the check principal
         // 2. system authorized ("access", "sys.auth:meta.role.lookup")
         // 3. service admin ("update", "{principal}")
+        // 4. domain authorized ("access", "{domain}:meta.role.lookup") if domain is provided
 
         if (checkPrincipal.equals(principal.getFullName())) {
             return true;
+        }
+
+        // if the domain is provided then we're going to check to see if the principal
+        // is authorized for role lookup access within the domain
+
+        if (!StringUtil.isEmpty(domainName)) {
+            AthenzDomain requestDomain = getAthenzDomain(domainName, true);
+            if (requestDomain != null) {
+                AccessStatus accessStatus = evaluateAccess(requestDomain, principal.getFullName(), "access",
+                        domainName + ":meta.role.lookup", null, null, principal);
+                if (accessStatus == AccessStatus.ALLOWED) {
+                    return true;
+                }
+            }
         }
 
         // if the check principal is another user, then this is not allowed
