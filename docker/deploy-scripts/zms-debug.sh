@@ -2,6 +2,7 @@
 
 set -eu
 set -o pipefail
+shopt -s expand_aliases
 
 # to script directory
 cd "$(dirname "$0")"

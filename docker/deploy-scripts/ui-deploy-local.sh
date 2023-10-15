@@ -46,6 +46,7 @@ docker run -d -h "${UI_HOST}" \
     --dns="${DOCKER_DNS}" \
     --network="${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
+    -v "/tmp/:/.npm/" \
     -v "${DOCKER_DIR}/ui/var/keys:/opt/athenz/ui/keys" \
     -v "${DOCKER_DIR}/ui/conf:/opt/athenz/ui/conf/ui_server" \
     -v "${DOCKER_DIR}/logs/ui:/opt/athenz/ui/logs/ui_server" \
