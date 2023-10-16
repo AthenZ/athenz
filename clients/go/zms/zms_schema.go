@@ -1448,7 +1448,7 @@ func init() {
 	sb.AddResource(mGetDomainRoleMembers.Build())
 
 	mGetPrincipalRoles := rdl.NewResourceBuilder("DomainRoleMember", "GET", "/role")
-	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
+	mGetPrincipalRoles.Comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\") 4. domain authorized (\"access\", \"{domainName}:meta.role.lookup\") if domainName is provided")
 	mGetPrincipalRoles.Name("getPrincipalRoles")
 	mGetPrincipalRoles.Input("principal", "ResourceName", false, "principal", "", true, nil, "If not present, will return roles for the user making the call")
 	mGetPrincipalRoles.Input("domainName", "DomainName", false, "domain", "", true, nil, "If not present, will return roles from all domains")

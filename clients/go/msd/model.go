@@ -1845,6 +1845,154 @@ func (self *StaticWorkloadServices) Validate() error {
 	return nil
 }
 
+// WorkloadRequest - request type to search all workloads for a domain and
+// selected list of its services
+type WorkloadRequest struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// list of service names
+	//
+	ServiceNames []EntityName `json:"serviceNames"`
+}
+
+// NewWorkloadRequest - creates an initialized WorkloadRequest instance, returns a pointer to it
+func NewWorkloadRequest(init ...*WorkloadRequest) *WorkloadRequest {
+	var o *WorkloadRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(WorkloadRequest)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *WorkloadRequest) Init() *WorkloadRequest {
+	if self.ServiceNames == nil {
+		self.ServiceNames = make([]EntityName, 0)
+	}
+	return self
+}
+
+type rawWorkloadRequest WorkloadRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a WorkloadRequest
+func (self *WorkloadRequest) UnmarshalJSON(b []byte) error {
+	var m rawWorkloadRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := WorkloadRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *WorkloadRequest) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("WorkloadRequest.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("WorkloadRequest.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceNames == nil {
+		return fmt.Errorf("WorkloadRequest: Missing required field: serviceNames")
+	}
+	return nil
+}
+
+// WorkloadRequests - request type to search all workloads for a list of
+// services grouped by domains
+type WorkloadRequests struct {
+
+	//
+	// list of workload requests by services, grouped by domain
+	//
+	WorkloadRequest []*WorkloadRequest `json:"workloadRequest"`
+
+	//
+	// whether to fetch static type workloads
+	//
+	FetchStaticTypeWorkloads *bool `json:"fetchStaticTypeWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// whether to fetch dynamic type workloads
+	//
+	FetchDynamicTypeWorkloads *bool `json:"fetchDynamicTypeWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of applicable static workload types, if not set then that means all.
+	// Applicable only if fetchStaticTypeWorkloads is enabled
+	//
+	ApplicableStaticTypes []StaticWorkloadType `json:"applicableStaticTypes,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// resolve static workloads to IPs, if applicable
+	//
+	ResolveStaticWorkloads *bool `json:"resolveStaticWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewWorkloadRequests - creates an initialized WorkloadRequests instance, returns a pointer to it
+func NewWorkloadRequests(init ...*WorkloadRequests) *WorkloadRequests {
+	var o *WorkloadRequests
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(WorkloadRequests)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *WorkloadRequests) Init() *WorkloadRequests {
+	if self.WorkloadRequest == nil {
+		self.WorkloadRequest = make([]*WorkloadRequest, 0)
+	}
+	if self.FetchStaticTypeWorkloads == nil {
+		d := true
+		self.FetchStaticTypeWorkloads = &d
+	}
+	if self.FetchDynamicTypeWorkloads == nil {
+		d := true
+		self.FetchDynamicTypeWorkloads = &d
+	}
+	if self.ResolveStaticWorkloads == nil {
+		d := false
+		self.ResolveStaticWorkloads = &d
+	}
+	return self
+}
+
+type rawWorkloadRequests WorkloadRequests
+
+// UnmarshalJSON is defined for proper JSON decoding of a WorkloadRequests
+func (self *WorkloadRequests) UnmarshalJSON(b []byte) error {
+	var m rawWorkloadRequests
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := WorkloadRequests(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *WorkloadRequests) Validate() error {
+	if self.WorkloadRequest == nil {
+		return fmt.Errorf("WorkloadRequests: Missing required field: workloadRequest")
+	}
+	return nil
+}
+
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
 // will interfere with workings of one or more transport policies NO_IMAPCT
 // indicates that a change in network policy will not interfere with workings of
