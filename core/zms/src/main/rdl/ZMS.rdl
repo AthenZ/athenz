@@ -28,5 +28,6 @@ include "DomainRoleMembership.rdli";
 include "Authority.rdli";
 include "Stats.rdli";
 include "Dependency.rdli";
+include "Review.rdli";
 include "Info.rdli";
 include "Schema.rdli";

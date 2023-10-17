@@ -15315,4 +15315,144 @@ public class JDBCConnectionTest {
         }
         jdbcConn.close();
     }
+
+    @Test
+    public void testGetRolesForReview() throws SQLException {
+
+        // first result set is for principal id lookup
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(10); // for principal id
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("domain1").thenReturn("domain2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_ROLE_NAME)).thenReturn("role1").thenReturn("role2");
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS)).thenReturn(11).thenReturn(12);
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS)).thenReturn(21).thenReturn(22);
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_GROUP_EXPIRY_DAYS)).thenReturn(31).thenReturn(32);
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_MEMBER_REVIEW_DAYS)).thenReturn(41).thenReturn(42);
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_SERVICE_REVIEW_DAYS)).thenReturn(51).thenReturn(52);
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_GROUP_REVIEW_DAYS)).thenReturn(61).thenReturn(62);
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME))
+                .thenReturn(new java.sql.Timestamp(101)).thenReturn(null);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        ReviewObjects reviewObjects = jdbcConn.getRolesForReview("user.joe");
+        assertNotNull(reviewObjects);
+        List<ReviewObject> objects = reviewObjects.getList();
+        assertNotNull(objects);
+        assertEquals(objects.size(), 2);
+
+        ReviewObject object1 = new ReviewObject().setDomainName("domain1").setName("role1").setMemberExpiryDays(11)
+                .setServiceExpiryDays(21).setGroupExpiryDays(31).setMemberReviewDays(41).setServiceReviewDays(51)
+                .setGroupReviewDays(61).setLastReviewedDate(Timestamp.fromMillis(101));
+        assertEquals(objects.get(0), object1);
+
+        ReviewObject object2 = new ReviewObject().setDomainName("domain2").setName("role2").setMemberExpiryDays(12)
+                .setServiceExpiryDays(22).setGroupExpiryDays(32).setMemberReviewDays(42).setServiceReviewDays(52)
+                .setGroupReviewDays(62);
+        assertEquals(objects.get(1), object2);
+    }
+
+    @Test
+    public void testGetRolesForReviewInvalidPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // first query is for the principal id
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getRolesForReview("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetRolesForReviewFailure() throws Exception {
+
+        // first result set is for principal id lookup
+        Mockito.when(mockResultSet.next()).thenReturn(true)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(10); // for principal id
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        try {
+            jdbcConn.getRolesForReview("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupsForReview() throws SQLException {
+
+        // first result set is for principal id lookup
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(10); // for principal id
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("domain1").thenReturn("domain2");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_AS_GROUP_NAME)).thenReturn("group1").thenReturn("group2");
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS)).thenReturn(11).thenReturn(12);
+        Mockito.when(mockResultSet.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS)).thenReturn(21).thenReturn(22);
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME))
+                .thenReturn(new java.sql.Timestamp(101)).thenReturn(null);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        ReviewObjects reviewObjects = jdbcConn.getGroupsForReview("user.joe");
+        assertNotNull(reviewObjects);
+        List<ReviewObject> objects = reviewObjects.getList();
+        assertNotNull(objects);
+        assertEquals(objects.size(), 2);
+
+        ReviewObject object1 = new ReviewObject().setDomainName("domain1").setName("group1").setMemberExpiryDays(11)
+                .setServiceExpiryDays(21).setLastReviewedDate(Timestamp.fromMillis(101));
+        assertEquals(objects.get(0), object1);
+
+        ReviewObject object2 = new ReviewObject().setDomainName("domain2").setName("group2").setMemberExpiryDays(12)
+                .setServiceExpiryDays(22);
+        assertEquals(objects.get(1), object2);
+    }
+
+    @Test
+    public void testGetGroupsForReviewInvalidPrincipal() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // first query is for the principal id
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getGroupsForReview("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetGroupsForReviewFailure() throws Exception {
+
+        // first result set is for principal id lookup
+        Mockito.when(mockResultSet.next()).thenReturn(true)
+                .thenThrow(new SQLException("failed operation", "state", 1001));
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(10); // for principal id
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        try {
+            jdbcConn.getGroupsForReview("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        jdbcConn.close();
+    }
 }

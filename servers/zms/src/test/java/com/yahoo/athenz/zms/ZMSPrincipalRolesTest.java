@@ -488,7 +488,6 @@ public class ZMSPrincipalRolesTest {
         assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", null));
 
         // clean up our system domain
-
         zmsImpl.deletePolicy(ctx, "sys.auth", "service-policy", auditRef);
         zmsImpl.deleteRole(ctx, "sys.auth", "service-role", auditRef);
 

@@ -7867,6 +7867,151 @@ func (self *DependentServiceResourceGroupList) Validate() error {
 	return nil
 }
 
+// ReviewObject - Details for the roles and/or groups that need to be reviewed
+type ReviewObject struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the role and/or group
+	//
+	Name EntityName `json:"name"`
+
+	//
+	// all user members in the object have specified max expiry days
+	//
+	MemberExpiryDays int32 `json:"memberExpiryDays"`
+
+	//
+	// all user members in the object have specified max review days
+	//
+	MemberReviewDays int32 `json:"memberReviewDays"`
+
+	//
+	// all services in the object have specified max expiry days
+	//
+	ServiceExpiryDays int32 `json:"serviceExpiryDays"`
+
+	//
+	// all services in the object have specified max review days
+	//
+	ServiceReviewDays int32 `json:"serviceReviewDays"`
+
+	//
+	// all groups in the object have specified max expiry days
+	//
+	GroupExpiryDays int32 `json:"groupExpiryDays"`
+
+	//
+	// all groups in the object have specified max review days
+	//
+	GroupReviewDays int32 `json:"groupReviewDays"`
+
+	//
+	// last review timestamp of the object
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewReviewObject - creates an initialized ReviewObject instance, returns a pointer to it
+func NewReviewObject(init ...*ReviewObject) *ReviewObject {
+	var o *ReviewObject
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ReviewObject)
+	}
+	return o
+}
+
+type rawReviewObject ReviewObject
+
+// UnmarshalJSON is defined for proper JSON decoding of a ReviewObject
+func (self *ReviewObject) UnmarshalJSON(b []byte) error {
+	var m rawReviewObject
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ReviewObject(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ReviewObject) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("ReviewObject.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("ReviewObject.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("ReviewObject.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "EntityName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("ReviewObject.name does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// ReviewObjects - The representation for a list of objects with full details
+type ReviewObjects struct {
+
+	//
+	// list of review objects
+	//
+	List []*ReviewObject `json:"list"`
+}
+
+// NewReviewObjects - creates an initialized ReviewObjects instance, returns a pointer to it
+func NewReviewObjects(init ...*ReviewObjects) *ReviewObjects {
+	var o *ReviewObjects
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ReviewObjects)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *ReviewObjects) Init() *ReviewObjects {
+	if self.List == nil {
+		self.List = make([]*ReviewObject, 0)
+	}
+	return self
+}
+
+type rawReviewObjects ReviewObjects
+
+// UnmarshalJSON is defined for proper JSON decoding of a ReviewObjects
+func (self *ReviewObjects) UnmarshalJSON(b []byte) error {
+	var m rawReviewObjects
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ReviewObjects(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ReviewObjects) Validate() error {
+	if self.List == nil {
+		return fmt.Errorf("ReviewObjects: Missing required field: list")
+	}
+	return nil
+}
+
 // Info - Copyright The Athenz Authors Licensed under the terms of the Apache
 // version 2.0 license. See LICENSE file for terms. The representation for an
 // info object

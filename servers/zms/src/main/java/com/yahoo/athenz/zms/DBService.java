@@ -3389,6 +3389,68 @@ public class DBService implements RolesProvider {
         return principalRoles;
     }
 
+    ReviewObjects getRolesForReview(final String principal) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return filterObjectsForReview(con.getRolesForReview(principal));
+        }
+    }
+
+    ReviewObjects getGroupsForReview(final String principal) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return filterObjectsForReview(con.getGroupsForReview(principal));
+        }
+    }
+
+    ReviewObjects filterObjectsForReview(ReviewObjects reviewObjects) {
+
+        List<ReviewObject> roles = reviewObjects.getList();
+        if (roles == null || roles.isEmpty()) {
+            return reviewObjects;
+        }
+        List<ReviewObject> filteredRoles = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        for (ReviewObject role : roles) {
+
+            // if the role hasn't been reviewed before then we're going to add it to our list always
+
+            if (role.getLastReviewedDate() == null) {
+                filteredRoles.add(role);
+                continue;
+            }
+
+            // determine the lowest number of days that is configured for any of the objects in our list
+
+            int minDays = minReviewDays(role);
+
+            // we want to review before 1/3 period is left since the last review date. For example,
+            // if the min review period is 30 days then we want to review before 10 days. If the review
+            // period is 90 days, then we want to review before 30 days. We should never get a review
+            // period of 0 days since the connection store must return only objects where one of the
+            // expiry/review dates is not 0.
+
+            if (now - role.getLastReviewedDate().millis() > ((long) minDays * 24 * 60 * 60 * 1000 / 3)) {
+                filteredRoles.add(role);
+            }
+        }
+
+        reviewObjects.setList(filteredRoles);
+        return reviewObjects;
+    }
+
+    int minReviewDay(int minDays, int checkDays) {
+        return (checkDays != 0 && checkDays < minDays) ? checkDays : minDays;
+    }
+
+    int minReviewDays(ReviewObject object) {
+        int minDays = Integer.MAX_VALUE;
+        minDays = minReviewDay(minDays, object.getMemberExpiryDays());
+        minDays = minReviewDay(minDays, object.getServiceExpiryDays());
+        minDays = minReviewDay(minDays, object.getGroupExpiryDays());
+        minDays = minReviewDay(minDays, object.getMemberReviewDays());
+        minDays = minReviewDay(minDays, object.getServiceReviewDays());
+        return minReviewDay(minDays, object.getGroupReviewDays());
+    }
+
     AthenzDomain getAthenzDomainFromLocalCache(Map<String, AthenzDomain> domainCache, final String domainName) {
 
         // first we're going to check our local cache and if we find
