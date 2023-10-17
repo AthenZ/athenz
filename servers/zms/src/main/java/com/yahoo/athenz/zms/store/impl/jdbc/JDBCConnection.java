@@ -662,6 +662,23 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " WHERE review_last_notified_time IS NOT NULL ORDER BY review_last_notified_time DESC LIMIT 1;";
     private static final String SQL_GROUP_EXPIRY_LAST_NOTIFIED_TIME = "SELECT last_notified_time FROM principal_group_member"
             + " WHERE last_notified_time IS NOT NULL ORDER BY last_notified_time DESC LIMIT 1;";
+    private static final String SQL_GET_ROLE_REVIEW_LIST  = "SELECT domain.name AS domain_name, role.name AS role_name,"
+            + " role.member_expiry_days, role.service_expiry_days, role.group_expiry_days, role.member_review_days,"
+            + " role.service_review_days, role.group_review_days, role.last_reviewed_time FROM role"
+            + " JOIN domain ON role.domain_id=domain.domain_id WHERE role.trust='' AND"
+            + " (role.member_expiry_days!=0 OR role.service_expiry_days!=0 OR role.group_expiry_days!=0 OR"
+            + " role.member_review_days!=0 OR role.service_review_days!=0 OR role.group_review_days!=0) AND"
+            + " role.domain_id IN (SELECT domain.domain_id FROM domain JOIN role ON role.domain_id=domain.domain_id"
+            + " JOIN role_member ON role.role_id=role_member.role_id WHERE role_member.principal_id=? AND"
+            + " role_member.active=true AND role.name='admin') ORDER BY domain.name, role.name;";
+    private static final String SQL_GET_GROUP_REVIEW_LIST = "SELECT domain.name AS domain_name, principal_group.name AS group_name,"
+            + " principal_group.member_expiry_days, principal_group.service_expiry_days, principal_group.last_reviewed_time"
+            + " FROM principal_group JOIN domain ON principal_group.domain_id=domain.domain_id WHERE"
+            + " (principal_group.member_expiry_days!=0 OR principal_group.service_expiry_days!=0) AND"
+            + " principal_group.domain_id IN (SELECT domain.domain_id FROM domain JOIN role ON"
+            + " role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id"
+            + " WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin')"
+            + " ORDER BY domain.name, principal_group.name;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -7590,5 +7607,75 @@ public class JDBCConnection implements ObjectStoreConnection {
             return false;
         }
         return System.currentTimeMillis() - lastRunTime < TimeUnit.DAYS.toMillis(delayDays);
+    }
+
+    @Override
+    public ReviewObjects getRolesForReview(String principal) {
+
+        final String caller = "getRolesForReview";
+
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
+        List<ReviewObject> reviewRoles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_ROLE_REVIEW_LIST)) {
+            ps.setInt(1, principalId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    ReviewObject reviewObject = new ReviewObject()
+                            .setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME))
+                            .setName(rs.getString(DB_COLUMN_AS_ROLE_NAME))
+                            .setMemberExpiryDays(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS))
+                            .setServiceExpiryDays(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS))
+                            .setGroupExpiryDays(rs.getInt(ZMSConsts.DB_COLUMN_GROUP_EXPIRY_DAYS))
+                            .setMemberReviewDays(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_REVIEW_DAYS))
+                            .setServiceReviewDays(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_REVIEW_DAYS))
+                            .setGroupReviewDays(rs.getInt(ZMSConsts.DB_COLUMN_GROUP_REVIEW_DAYS));
+                    java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
+                    if (lastReviewedTime != null) {
+                        reviewObject.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
+                    }
+                    reviewRoles.add(reviewObject);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return new ReviewObjects().setList(reviewRoles);
+    }
+
+    @Override
+    public ReviewObjects getGroupsForReview(String principal) {
+
+        final String caller = "getGroupsForReview";
+
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_PRINCIPAL, principal);
+        }
+
+        List<ReviewObject> reviewRoles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_GROUP_REVIEW_LIST)) {
+            ps.setInt(1, principalId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    ReviewObject reviewObject = new ReviewObject()
+                            .setDomainName(rs.getString(ZMSConsts.DB_COLUMN_DOMAIN_NAME))
+                            .setName(rs.getString(DB_COLUMN_AS_GROUP_NAME))
+                            .setMemberExpiryDays(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS))
+                            .setServiceExpiryDays(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS));
+                    java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
+                    if (lastReviewedTime != null) {
+                        reviewObject.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
+                    }
+                    reviewRoles.add(reviewObject);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return new ReviewObjects().setList(reviewRoles);
     }
 }

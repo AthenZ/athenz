@@ -11087,4 +11087,80 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return group.getGroupMembers();
         }
     }
+
+    @Override
+    public ReviewObjects getRolesForReview(ResourceContext ctx, String principal) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        // If principal not specified, get roles for current user
+
+        if (StringUtil.isEmpty(principal)) {
+            principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        }
+        validateRequest(ctx.request(), caller);
+        validate(principal, TYPE_RESOURCE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        principal = principal.toLowerCase();
+
+        if (!isAllowedObjectReviewLookup(((RsrcCtxWrapper) ctx).principal(), principal)) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to request role review list", caller);
+        }
+
+        return dbService.getRolesForReview(principal);
+    }
+
+    @Override
+    public ReviewObjects getGroupsForReview(ResourceContext ctx, String principal) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        // If principal not specified, get groups for current user
+
+        if (StringUtil.isEmpty(principal)) {
+            principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        }
+        validateRequest(ctx.request(), caller);
+        validate(principal, TYPE_RESOURCE_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case
+
+        principal = principal.toLowerCase();
+
+        if (!isAllowedObjectReviewLookup(((RsrcCtxWrapper) ctx).principal(), principal)) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to request group review list", caller);
+        }
+
+        return dbService.getGroupsForReview(principal);
+    }
+
+    boolean isAllowedObjectReviewLookup(Principal principal, final String checkPrincipal) {
+
+        // Role/Group Review list lookup requires one of these authorization checks
+        // 1. authenticated principal is the same as the check principal
+        // 2. system authorized ("access", "sys.auth:meta.review.lookup")
+
+        if (checkPrincipal.equals(principal.getFullName())) {
+            return true;
+        }
+
+        // if the check principal is another user, then this is not allowed
+        // unless the principal is authorized at system level
+
+        AthenzDomain domain = getAthenzDomain(SYS_AUTH, true);
+
+        // evaluate our domain's roles and policies to see if access
+        // is allowed or not for the given operation and resource
+        // our action are always converted to lowercase
+
+        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
+                "sys.auth:meta.review.lookup", null, null, principal);
+        return accessStatus == AccessStatus.ALLOWED;
+    }
 }

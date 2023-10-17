@@ -386,6 +386,18 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			} else if argc == 1 {
 				return cli.ShowGroupsPrincipal(args[0], dn)
 			}
+		case "list-roles-for-review":
+			if argc == 0 {
+				return cli.GetRolesForReview("")
+			} else if argc == 1 {
+				return cli.GetRolesForReview(args[0])
+			}
+		case "list-groups-for-review":
+			if argc == 0 {
+				return cli.GetGroupsForReview("")
+			} else if argc == 1 {
+				return cli.GetGroupsForReview(args[0])
+			}
 		case "stats", "get-stats":
 			if argc == 1 {
 				//override the default domain
@@ -3152,6 +3164,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   tag_value       : optional, query all services with given tag key and value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " show-services readers readers-tag-key reader-tag-value\n")
+	case "list-roles-for-review":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   list-roles-for-review [principal]\n")
+		if !interactive {
+			buf.WriteString(" parameters:\n")
+			buf.WriteString("   principal : optional name of the principal to retrieve the list of roles for review\n")
+			buf.WriteString("             : if not specified will retrieve roles for current principal\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   list-roles-for-review\n")
+		buf.WriteString("   list-roles-for-review user.johndoe\n")
+	case "list-groups-for-review":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   list-groups-for-review [principal]\n")
+		if !interactive {
+			buf.WriteString(" parameters:\n")
+			buf.WriteString("   principal : optional name of the principal to retrieve the list of groups for review\n")
+			buf.WriteString("             : if not specified will retrieve groups for current principal\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   list-groups-for-review\n")
+		buf.WriteString("   list-groups-for-review user.johndoe\n")
 	default:
 		if interactive {
 			buf.WriteString("Unknown command. Type 'help' to see available commands")
@@ -3244,6 +3278,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-role role [log | expand | pending]\n")
 	buf.WriteString("   show-roles [tag_key] [tag_value]\n")
 	buf.WriteString("   show-roles-principal [principal] [expand]\n")
+	buf.WriteString("   list-roles-for-review [principal]\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
 	buf.WriteString("   add-regular-role role member [member ... ]\n")
 	buf.WriteString("   add-member regular_role user_or_service [user_or_service ...]\n")
@@ -3283,7 +3318,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-group\n")
 	buf.WriteString("   show-group group [log | pending]\n")
 	buf.WriteString("   show-groups [tag_key] [tag_value]\n")
-	buf.WriteString("   show-groups-principal\n")
+	buf.WriteString("   show-groups-principal [principal]\n")
+	buf.WriteString("   list-groups-for-review [principal]\n")
 	buf.WriteString("   add-group group member [member ... ]\n")
 	buf.WriteString("   add-group-member group user_or_service [user_or_service ...]\n")
 	buf.WriteString("   check-group-member group user_or_service [user_or_service ...]\n")

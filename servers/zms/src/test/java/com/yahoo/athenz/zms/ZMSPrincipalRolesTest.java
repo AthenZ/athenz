@@ -450,7 +450,7 @@ public class ZMSPrincipalRolesTest {
 
         // let's create the domain and without proper access, it still returns failure
 
-        createDomain("domain1");
+        createDomain(domainName);
         assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api"));
 
         // now let's grant user.john update access over the service
@@ -487,7 +487,10 @@ public class ZMSPrincipalRolesTest {
 
         assertTrue(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api"));
 
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
+        zmsImpl.deletePolicy(ctx, "sys.auth", "service-policy", auditRef);
+        zmsImpl.deleteRole(ctx, "sys.auth", "service-role", auditRef);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }
 
     @Test
