@@ -1,6 +1,6 @@
 # ZPE Go library
 
-Yahoo! Japan wrote an authorization library called [AthenZ/athenz-authorizer](https://github.com/AthenZ/athenz-authorizer);
+[LY Corporation](https://www.lycorp.co.jp/en/) wrote an authorization library called [AthenZ/athenz-authorizer](https://github.com/AthenZ/athenz-authorizer);
 therefore, no competing implementation has been written in this repo.
 
 Please see its documentation and examples for more detailed information and in general you'll need to:
