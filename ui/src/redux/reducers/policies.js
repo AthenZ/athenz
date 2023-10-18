@@ -161,11 +161,14 @@ export const policies = (state = {}, action) => {
             const { collectionName, collectionWithTags, category } = payload;
             let newState = state;
             if (category === 'policy') {
+                let collectionNameWithVersion =
+                    collectionName + ':' + collectionWithTags.version;
                 newState = produce(state, (draft) => {
-                    draft.policies[collectionName]
-                        ? (draft.policies[collectionName].tags =
+                    draft.policies[collectionNameWithVersion]
+                        ? (draft.policies[collectionNameWithVersion].tags =
                               collectionWithTags.tags)
-                        : (draft.policies[collectionName] = collectionWithTags);
+                        : (draft.policies[collectionNameWithVersion] =
+                              collectionWithTags);
                 });
             }
             return newState;

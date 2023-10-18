@@ -186,13 +186,7 @@ class PolicyTagsPage extends React.Component {
                                     <TagList
                                         collectionDetails={policyDetails}
                                         domain={domainName}
-                                        collectionName={
-                                            policyDetails
-                                                ? policyName +
-                                                  ':' +
-                                                  policyDetails.version
-                                                : policyName
-                                        }
+                                        collectionName={policyName || ''}
                                         tags={policyTags}
                                         category={'policy'}
                                         _csrf={this.props._csrf}
