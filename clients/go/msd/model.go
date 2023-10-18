@@ -1845,9 +1845,9 @@ func (self *StaticWorkloadServices) Validate() error {
 	return nil
 }
 
-// WorkloadRequest - request type to search all workloads for a domain and
+// DomainServices - request type to search all workloads for a domain and
 // selected list of its services
-type WorkloadRequest struct {
+type DomainServices struct {
 
 	//
 	// name of the domain
@@ -1860,33 +1860,33 @@ type WorkloadRequest struct {
 	ServiceNames []EntityName `json:"serviceNames"`
 }
 
-// NewWorkloadRequest - creates an initialized WorkloadRequest instance, returns a pointer to it
-func NewWorkloadRequest(init ...*WorkloadRequest) *WorkloadRequest {
-	var o *WorkloadRequest
+// NewDomainServices - creates an initialized DomainServices instance, returns a pointer to it
+func NewDomainServices(init ...*DomainServices) *DomainServices {
+	var o *DomainServices
 	if len(init) == 1 {
 		o = init[0]
 	} else {
-		o = new(WorkloadRequest)
+		o = new(DomainServices)
 	}
 	return o.Init()
 }
 
 // Init - sets up the instance according to its default field values, if any
-func (self *WorkloadRequest) Init() *WorkloadRequest {
+func (self *DomainServices) Init() *DomainServices {
 	if self.ServiceNames == nil {
 		self.ServiceNames = make([]EntityName, 0)
 	}
 	return self
 }
 
-type rawWorkloadRequest WorkloadRequest
+type rawDomainServices DomainServices
 
-// UnmarshalJSON is defined for proper JSON decoding of a WorkloadRequest
-func (self *WorkloadRequest) UnmarshalJSON(b []byte) error {
-	var m rawWorkloadRequest
+// UnmarshalJSON is defined for proper JSON decoding of a DomainServices
+func (self *DomainServices) UnmarshalJSON(b []byte) error {
+	var m rawDomainServices
 	err := json.Unmarshal(b, &m)
 	if err == nil {
-		o := WorkloadRequest(m)
+		o := DomainServices(m)
 		*self = *((&o).Init())
 		err = self.Validate()
 	}
@@ -1894,29 +1894,29 @@ func (self *WorkloadRequest) UnmarshalJSON(b []byte) error {
 }
 
 // Validate - checks for missing required fields, etc
-func (self *WorkloadRequest) Validate() error {
+func (self *DomainServices) Validate() error {
 	if self.DomainName == "" {
-		return fmt.Errorf("WorkloadRequest.domainName is missing but is a required field")
+		return fmt.Errorf("DomainServices.domainName is missing but is a required field")
 	} else {
 		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
 		if !val.Valid {
-			return fmt.Errorf("WorkloadRequest.domainName does not contain a valid DomainName (%v)", val.Error)
+			return fmt.Errorf("DomainServices.domainName does not contain a valid DomainName (%v)", val.Error)
 		}
 	}
 	if self.ServiceNames == nil {
-		return fmt.Errorf("WorkloadRequest: Missing required field: serviceNames")
+		return fmt.Errorf("DomainServices: Missing required field: serviceNames")
 	}
 	return nil
 }
 
-// WorkloadRequests - request type to search all workloads for a list of
+// BulkWorkloadRequest - request type to search all workloads for a list of
 // services grouped by domains
-type WorkloadRequests struct {
+type BulkWorkloadRequest struct {
 
 	//
 	// list of workload requests by services, grouped by domain
 	//
-	WorkloadRequest []*WorkloadRequest `json:"workloadRequest"`
+	WorkloadRequest []*DomainServices `json:"workloadRequest"`
 
 	//
 	// whether to fetch static type workloads
@@ -1940,21 +1940,21 @@ type WorkloadRequests struct {
 	ResolveStaticWorkloads *bool `json:"resolveStaticWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
-// NewWorkloadRequests - creates an initialized WorkloadRequests instance, returns a pointer to it
-func NewWorkloadRequests(init ...*WorkloadRequests) *WorkloadRequests {
-	var o *WorkloadRequests
+// NewBulkWorkloadRequest - creates an initialized BulkWorkloadRequest instance, returns a pointer to it
+func NewBulkWorkloadRequest(init ...*BulkWorkloadRequest) *BulkWorkloadRequest {
+	var o *BulkWorkloadRequest
 	if len(init) == 1 {
 		o = init[0]
 	} else {
-		o = new(WorkloadRequests)
+		o = new(BulkWorkloadRequest)
 	}
 	return o.Init()
 }
 
 // Init - sets up the instance according to its default field values, if any
-func (self *WorkloadRequests) Init() *WorkloadRequests {
+func (self *BulkWorkloadRequest) Init() *BulkWorkloadRequest {
 	if self.WorkloadRequest == nil {
-		self.WorkloadRequest = make([]*WorkloadRequest, 0)
+		self.WorkloadRequest = make([]*DomainServices, 0)
 	}
 	if self.FetchStaticTypeWorkloads == nil {
 		d := true
@@ -1971,14 +1971,14 @@ func (self *WorkloadRequests) Init() *WorkloadRequests {
 	return self
 }
 
-type rawWorkloadRequests WorkloadRequests
+type rawBulkWorkloadRequest BulkWorkloadRequest
 
-// UnmarshalJSON is defined for proper JSON decoding of a WorkloadRequests
-func (self *WorkloadRequests) UnmarshalJSON(b []byte) error {
-	var m rawWorkloadRequests
+// UnmarshalJSON is defined for proper JSON decoding of a BulkWorkloadRequest
+func (self *BulkWorkloadRequest) UnmarshalJSON(b []byte) error {
+	var m rawBulkWorkloadRequest
 	err := json.Unmarshal(b, &m)
 	if err == nil {
-		o := WorkloadRequests(m)
+		o := BulkWorkloadRequest(m)
 		*self = *((&o).Init())
 		err = self.Validate()
 	}
@@ -1986,9 +1986,71 @@ func (self *WorkloadRequests) UnmarshalJSON(b []byte) error {
 }
 
 // Validate - checks for missing required fields, etc
-func (self *WorkloadRequests) Validate() error {
+func (self *BulkWorkloadRequest) Validate() error {
 	if self.WorkloadRequest == nil {
-		return fmt.Errorf("WorkloadRequests: Missing required field: workloadRequest")
+		return fmt.Errorf("BulkWorkloadRequest: Missing required field: workloadRequest")
+	}
+	return nil
+}
+
+// BulkWorkloadResponse - response of a bulk workload search request
+type BulkWorkloadResponse struct {
+
+	//
+	// list of services grouped by domain, those are not changed since time stamp
+	// in matchingTag
+	//
+	UnmodifiedServices []*DomainServices `json:"unmodifiedServices"`
+
+	//
+	// matching workloads
+	//
+	Workloads *Workloads `json:"workloads"`
+}
+
+// NewBulkWorkloadResponse - creates an initialized BulkWorkloadResponse instance, returns a pointer to it
+func NewBulkWorkloadResponse(init ...*BulkWorkloadResponse) *BulkWorkloadResponse {
+	var o *BulkWorkloadResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(BulkWorkloadResponse)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *BulkWorkloadResponse) Init() *BulkWorkloadResponse {
+	if self.UnmodifiedServices == nil {
+		self.UnmodifiedServices = make([]*DomainServices, 0)
+	}
+	if self.Workloads == nil {
+		self.Workloads = NewWorkloads()
+	}
+	return self
+}
+
+type rawBulkWorkloadResponse BulkWorkloadResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a BulkWorkloadResponse
+func (self *BulkWorkloadResponse) UnmarshalJSON(b []byte) error {
+	var m rawBulkWorkloadResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := BulkWorkloadResponse(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *BulkWorkloadResponse) Validate() error {
+	if self.UnmodifiedServices == nil {
+		return fmt.Errorf("BulkWorkloadResponse: Missing required field: unmodifiedServices")
+	}
+	if self.Workloads == nil {
+		return fmt.Errorf("BulkWorkloadResponse: Missing required field: workloads")
 	}
 	return nil
 }

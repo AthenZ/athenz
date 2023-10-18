@@ -523,7 +523,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public Workloads getWorkloadsByDomainAndService(WorkloadRequests request, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public BulkWorkloadResponse getWorkloadsByDomainAndService(BulkWorkloadRequest request, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/workloads");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(request), ContentType.APPLICATION_JSON);
@@ -550,7 +550,7 @@ public class MSDRDLGeneratedClient {
                 if (code == 304) {
                     return null;
                 }
-                return jsonMapper.readValue(httpResponseEntity.getContent(), Workloads.class);
+                return jsonMapper.readValue(httpResponseEntity.getContent(), BulkWorkloadResponse.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

@@ -8,22 +8,22 @@ import java.util.List;
 import com.yahoo.rdl.*;
 
 //
-// WorkloadRequest - request type to search all workloads for a domain and
+// DomainServices - request type to search all workloads for a domain and
 // selected list of its services
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WorkloadRequest {
+public class DomainServices {
     public String domainName;
     public List<String> serviceNames;
 
-    public WorkloadRequest setDomainName(String domainName) {
+    public DomainServices setDomainName(String domainName) {
         this.domainName = domainName;
         return this;
     }
     public String getDomainName() {
         return domainName;
     }
-    public WorkloadRequest setServiceNames(List<String> serviceNames) {
+    public DomainServices setServiceNames(List<String> serviceNames) {
         this.serviceNames = serviceNames;
         return this;
     }
@@ -34,10 +34,10 @@ public class WorkloadRequest {
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != WorkloadRequest.class) {
+            if (another == null || another.getClass() != DomainServices.class) {
                 return false;
             }
-            WorkloadRequest a = (WorkloadRequest) another;
+            DomainServices a = (DomainServices) another;
             if (domainName == null ? a.domainName != null : !domainName.equals(a.domainName)) {
                 return false;
             }

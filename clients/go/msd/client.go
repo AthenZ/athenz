@@ -699,8 +699,8 @@ func (client MSDClient) GetWorkloadsByDomain(domainName DomainName, matchingTag 
 	}
 }
 
-func (client MSDClient) GetWorkloadsByDomainAndService(request *WorkloadRequests, matchingTag string) (*Workloads, string, error) {
-	var data *Workloads
+func (client MSDClient) GetWorkloadsByDomainAndService(request *BulkWorkloadRequest, matchingTag string) (*BulkWorkloadResponse, string, error) {
+	var data *BulkWorkloadResponse
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}

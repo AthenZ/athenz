@@ -132,8 +132,8 @@ resource Workloads GET "/domain/{domainName}/workloads" (name=getWorkloadsByDoma
 }
 
 // Read only endpoint to fetch workloads for a list of services grouped by domains
-resource Workloads POST "/workloads" (name=getWorkloadsByDomainAndService) {
-    WorkloadRequests request;                    // workload search request
+resource BulkWorkloadResponse POST "/workloads" (name=getWorkloadsByDomainAndService) {
+    BulkWorkloadRequest request;                 // workload search request
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time
     String tag (header="ETag", out);             //The current latest modification timestamp is returned in this header
     expected OK, NOT_MODIFIED;

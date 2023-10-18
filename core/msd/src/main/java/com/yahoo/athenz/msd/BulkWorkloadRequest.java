@@ -9,12 +9,12 @@ import java.util.List;
 import com.yahoo.rdl.*;
 
 //
-// WorkloadRequests - request type to search all workloads for a list of
+// BulkWorkloadRequest - request type to search all workloads for a list of
 // services grouped by domains
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WorkloadRequests {
-    public List<WorkloadRequest> workloadRequest;
+public class BulkWorkloadRequest {
+    public List<DomainServices> domainServices;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean fetchStaticTypeWorkloads;
@@ -28,35 +28,35 @@ public class WorkloadRequests {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean resolveStaticWorkloads;
 
-    public WorkloadRequests setWorkloadRequest(List<WorkloadRequest> workloadRequest) {
-        this.workloadRequest = workloadRequest;
+    public BulkWorkloadRequest setDomainServices(List<DomainServices> domainServices) {
+        this.domainServices = domainServices;
         return this;
     }
-    public List<WorkloadRequest> getWorkloadRequest() {
-        return workloadRequest;
+    public List<DomainServices> getDomainServices() {
+        return domainServices;
     }
-    public WorkloadRequests setFetchStaticTypeWorkloads(Boolean fetchStaticTypeWorkloads) {
+    public BulkWorkloadRequest setFetchStaticTypeWorkloads(Boolean fetchStaticTypeWorkloads) {
         this.fetchStaticTypeWorkloads = fetchStaticTypeWorkloads;
         return this;
     }
     public Boolean getFetchStaticTypeWorkloads() {
         return fetchStaticTypeWorkloads;
     }
-    public WorkloadRequests setFetchDynamicTypeWorkloads(Boolean fetchDynamicTypeWorkloads) {
+    public BulkWorkloadRequest setFetchDynamicTypeWorkloads(Boolean fetchDynamicTypeWorkloads) {
         this.fetchDynamicTypeWorkloads = fetchDynamicTypeWorkloads;
         return this;
     }
     public Boolean getFetchDynamicTypeWorkloads() {
         return fetchDynamicTypeWorkloads;
     }
-    public WorkloadRequests setApplicableStaticTypes(List<StaticWorkloadType> applicableStaticTypes) {
+    public BulkWorkloadRequest setApplicableStaticTypes(List<StaticWorkloadType> applicableStaticTypes) {
         this.applicableStaticTypes = applicableStaticTypes;
         return this;
     }
     public List<StaticWorkloadType> getApplicableStaticTypes() {
         return applicableStaticTypes;
     }
-    public WorkloadRequests setResolveStaticWorkloads(Boolean resolveStaticWorkloads) {
+    public BulkWorkloadRequest setResolveStaticWorkloads(Boolean resolveStaticWorkloads) {
         this.resolveStaticWorkloads = resolveStaticWorkloads;
         return this;
     }
@@ -67,11 +67,11 @@ public class WorkloadRequests {
     @Override
     public boolean equals(Object another) {
         if (this != another) {
-            if (another == null || another.getClass() != WorkloadRequests.class) {
+            if (another == null || another.getClass() != BulkWorkloadRequest.class) {
                 return false;
             }
-            WorkloadRequests a = (WorkloadRequests) another;
-            if (workloadRequest == null ? a.workloadRequest != null : !workloadRequest.equals(a.workloadRequest)) {
+            BulkWorkloadRequest a = (BulkWorkloadRequest) another;
+            if (domainServices == null ? a.domainServices != null : !domainServices.equals(a.domainServices)) {
                 return false;
             }
             if (fetchStaticTypeWorkloads == null ? a.fetchStaticTypeWorkloads != null : !fetchStaticTypeWorkloads.equals(a.fetchStaticTypeWorkloads)) {
@@ -93,7 +93,7 @@ public class WorkloadRequests {
     //
     // sets up the instance according to its default field values, if any
     //
-    public WorkloadRequests init() {
+    public BulkWorkloadRequest init() {
         if (fetchStaticTypeWorkloads == null) {
             fetchStaticTypeWorkloads = true;
         }
