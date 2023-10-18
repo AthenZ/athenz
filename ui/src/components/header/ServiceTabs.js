@@ -65,15 +65,7 @@ class ServiceTabs extends React.Component {
     render() {
         return (
             <TabGroup
-                tabs={
-                    this.props.featureFlag
-                        ? SERVICE_TABS.filter(
-                              (tab) =>
-                                  tab.name !== SERVICE_TYPE_STATIC &&
-                                  tab.name !== SERVICE_TYPE_DYNAMIC
-                          )
-                        : SERVICE_TABS
-                }
+                tabs={SERVICE_TABS}
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim

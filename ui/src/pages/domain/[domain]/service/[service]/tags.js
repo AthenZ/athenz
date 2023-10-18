@@ -170,7 +170,6 @@ class ServiceTagsPage extends React.Component {
                                             _csrf={_csrf}
                                         />
                                         <ServiceTabs
-                                            featureFlag={this.props.featureFlag}
                                             domain={domainName}
                                             service={serviceName}
                                             selectedName={'tags'}
