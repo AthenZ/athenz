@@ -21,7 +21,7 @@ import RequestUtils from '../utils/RequestUtils';
 import { DnToggle } from '@denali-design/react';
 // import 'denali-css/css/denali.css';
 import { connect } from 'react-redux';
-import { selectInboundOutboundList } from '../../redux/selectors/microsegmentation';
+import { selectInboundOutboundList, selectInboundOutboundListWithFilter } from '../../redux/selectors/microsegmentation';
 import AddSegmentation from './AddSegmentation';
 import RuleTable from './RuleTable';
 import { getInboundOutbound } from '../../redux/thunks/microsegmentation';
@@ -232,7 +232,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
-        data: selectInboundOutboundList(state),
+        data: props.filterByService ? selectInboundOutboundListWithFilter(state, props.filterByService) : selectInboundOutboundList(state),
         isDomainAuditEnabled: selectDomainAuditEnabled(state),
     };
 };

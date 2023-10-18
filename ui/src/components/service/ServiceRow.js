@@ -58,6 +58,7 @@ class ServiceRow extends React.Component {
         this.toggleProviders = this.toggleProviders.bind(this);
         this.toggleInstances = this.toggleInstances.bind(this);
         this.clickTag = this.clickTag.bind(this);
+        this.clickMicrosegmentation = this.clickMicrosegmentation.bind(this);
         this.state = {
             provider: null,
             publicKeys: false,
@@ -79,6 +80,13 @@ class ServiceRow extends React.Component {
         this.props.router.push(
             `/domain/${this.props.domainName}/service/${this.props.serviceName}/tags`,
             `/domain/${this.props.domainName}/service/${this.props.serviceName}/tags`
+        );
+    }
+
+    clickMicrosegmentation() {
+        this.props.router.push(
+            `/domain/${this.props.domainName}/service/${this.props.serviceName}/microsegmentation`,
+            `/domain/${this.props.domainName}/service/${this.props.serviceName}/microsegmentation`
         );
     }
 
@@ -147,6 +155,16 @@ class ServiceRow extends React.Component {
                     <Icon
                         icon={'tag'}
                         onClick={this.clickTag}
+                        color={colors.icons}
+                        isLink
+                        size={'1.25em'}
+                        verticalAlign={'text-bottom'}
+                    />
+                </TdStyled>
+                <TdStyled color={color} align={center}>
+                    <Icon
+                        icon={'list-check'}
+                        onClick={this.clickMicrosegmentation}
                         color={colors.icons}
                         isLink
                         size={'1.25em'}
