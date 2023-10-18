@@ -244,6 +244,9 @@ class ServiceList extends React.Component {
                                 Tags
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
+                                MSD Policies
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
                                 Providers
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
