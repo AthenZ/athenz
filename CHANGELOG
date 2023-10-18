@@ -911,7 +911,7 @@ Athenz v1.10.32 Release / Aug 25, 2021
 #1595 When role is deleted, remove from dynamic role cert cache
 #1596 fix digest algorithm value when validating jws domains
 #1597 handle any exceptions (we shouldn't get any) during process domain call
-#1598 Add a readme in the go client for zpe, which refers to Yahoo! Japan's athenz-authorizer.
+#1598 Add a readme in the go client for zpe, which refers to AthenZ/athenz-authorizer.
 #1599 update dependency packages to their latest releases
 #1601 define new jwspolicydata object and api endpoint
 #1602 jws validate document method in Crypto
