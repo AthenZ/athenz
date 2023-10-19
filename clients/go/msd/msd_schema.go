@@ -286,7 +286,7 @@ func init() {
 
 	tBulkWorkloadRequest := rdl.NewStructTypeBuilder("Struct", "BulkWorkloadRequest")
 	tBulkWorkloadRequest.Comment("request type to search all workloads for a list of services grouped by domains")
-	tBulkWorkloadRequest.ArrayField("workloadRequest", "DomainServices", false, "list of workload requests by services, grouped by domain")
+	tBulkWorkloadRequest.ArrayField("domainServices", "DomainServices", false, "list of services, grouped by domain")
 	tBulkWorkloadRequest.Field("fetchStaticTypeWorkloads", "Bool", true, true, "whether to fetch static type workloads")
 	tBulkWorkloadRequest.Field("fetchDynamicTypeWorkloads", "Bool", true, true, "whether to fetch dynamic type workloads")
 	tBulkWorkloadRequest.ArrayField("applicableStaticTypes", "StaticWorkloadType", true, "list of applicable static workload types, if not set then that means all. Applicable only if fetchStaticTypeWorkloads is enabled")

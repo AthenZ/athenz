@@ -1914,9 +1914,9 @@ func (self *DomainServices) Validate() error {
 type BulkWorkloadRequest struct {
 
 	//
-	// list of workload requests by services, grouped by domain
+	// list of services, grouped by domain
 	//
-	WorkloadRequest []*DomainServices `json:"workloadRequest"`
+	DomainServices []*DomainServices `json:"domainServices"`
 
 	//
 	// whether to fetch static type workloads
@@ -1953,8 +1953,8 @@ func NewBulkWorkloadRequest(init ...*BulkWorkloadRequest) *BulkWorkloadRequest {
 
 // Init - sets up the instance according to its default field values, if any
 func (self *BulkWorkloadRequest) Init() *BulkWorkloadRequest {
-	if self.WorkloadRequest == nil {
-		self.WorkloadRequest = make([]*DomainServices, 0)
+	if self.DomainServices == nil {
+		self.DomainServices = make([]*DomainServices, 0)
 	}
 	if self.FetchStaticTypeWorkloads == nil {
 		d := true
@@ -1987,8 +1987,8 @@ func (self *BulkWorkloadRequest) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *BulkWorkloadRequest) Validate() error {
-	if self.WorkloadRequest == nil {
-		return fmt.Errorf("BulkWorkloadRequest: Missing required field: workloadRequest")
+	if self.DomainServices == nil {
+		return fmt.Errorf("BulkWorkloadRequest: Missing required field: domainServices")
 	}
 	return nil
 }
