@@ -554,7 +554,7 @@ exports[`Service Tag Page should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -638,11 +638,11 @@ exports[`Service Tag Page should render 1`] = `
   color: #303030;
 }
 
-.emotion-47 {
+.emotion-44 {
   margin: 20px;
 }
 
-.emotion-49 {
+.emotion-46 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -662,7 +662,7 @@ exports[`Service Tag Page should render 1`] = `
   float: right;
 }
 
-.emotion-51 {
+.emotion-48 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -688,25 +688,25 @@ exports[`Service Tag Page should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-51:first-of-type {
+.emotion-48:first-of-type {
   margin-left: 0;
 }
 
-.emotion-51:disabled {
+.emotion-48:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-51:disabled {
+.emotion-48:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-51:hover:not(:disabled) {
+.emotion-48:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-52 {
+.emotion-49 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -732,13 +732,13 @@ exports[`Service Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-54 {
+.emotion-51 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-55 {
+.emotion-52 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -753,7 +753,7 @@ exports[`Service Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-57 {
+.emotion-54 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -772,28 +772,28 @@ exports[`Service Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-59 {
+.emotion-56 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-61 {
+.emotion-58 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-63 {
+.emotion-60 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-67 {
+.emotion-64 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-69 {
+.emotion-66 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -801,12 +801,12 @@ exports[`Service Tag Page should render 1`] = `
   display: flex;
 }
 
-.emotion-71 {
+.emotion-68 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-73 {
+.emotion-70 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -989,41 +989,23 @@ exports[`Service Tag Page should render 1`] = `
               data-testid="tabgroup"
             >
               <div
-                class="emotion-43 denali-tab"
-                data-active="false"
-              >
-                Static Instances
-              </div>
-              <div
-                class="emotion-43 denali-tab"
-                data-active="false"
-              >
-                Dynamic Instances
-              </div>
-              <div
                 class="emotion-43 denali-tab active"
                 data-active="true"
               >
                 Tags
               </div>
-              <div
-                class="emotion-43 denali-tab"
-                data-active="false"
-              >
-                Microsegmentation
-              </div>
             </div>
           </div>
           <div
-            class="emotion-47 emotion-48"
+            class="emotion-44 emotion-45"
             data-testid="tag-list"
           >
             <div
-              class="emotion-49 emotion-50"
+              class="emotion-46 emotion-47"
             >
               <div>
                 <button
-                  class="emotion-51 denali-button"
+                  class="emotion-48 denali-button"
                 >
                   Add Tag
                 </button>
@@ -1037,11 +1019,11 @@ exports[`Service Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-52 emotion-53"
+          class="emotion-49 emotion-50"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-54"
+            class="emotion-51"
             data-testid="icon"
             height="1em"
             id=""
@@ -1057,45 +1039,45 @@ exports[`Service Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-55 emotion-56"
+          class="emotion-52 emotion-53"
         >
           <div
-            class="emotion-57 emotion-58"
+            class="emotion-54 emotion-55"
           >
             <div
-              class="emotion-59 emotion-60"
+              class="emotion-56 emotion-57"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-61 emotion-62"
+                class="emotion-58 emotion-59"
               >
                 Create
               </a>
               <span
-                class="emotion-63 emotion-64"
+                class="emotion-60 emotion-61"
               >
                  | 
               </span>
               <a
-                class="emotion-61 emotion-62"
+                class="emotion-58 emotion-59"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-67 emotion-68"
+            class="emotion-64 emotion-65"
           >
             <div
-              class="emotion-69 emotion-70"
+              class="emotion-66 emotion-67"
             >
               <div
-                class="emotion-71 emotion-72"
+                class="emotion-68 emotion-69"
               >
                 <svg
-                  class="emotion-73"
+                  class="emotion-70"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1117,19 +1099,19 @@ exports[`Service Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-61 emotion-62"
+                class="emotion-58 emotion-59"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-69 emotion-70"
+              class="emotion-66 emotion-67"
             >
               <div
-                class="emotion-71 emotion-72"
+                class="emotion-68 emotion-69"
               >
                 <svg
-                  class="emotion-73"
+                  class="emotion-70"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1151,7 +1133,7 @@ exports[`Service Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-61 emotion-62"
+                class="emotion-58 emotion-59"
               >
                 athens.ci
               </a>

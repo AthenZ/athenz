@@ -19,6 +19,7 @@ import { withRouter } from 'next/router';
 import {
     SERVICE_TABS,
     SERVICE_TYPE_DYNAMIC,
+    SERVICE_TYPE_MICROSEGMENTATION,
     SERVICE_TYPE_STATIC,
 } from '../constants/constants';
 
@@ -63,9 +64,11 @@ class ServiceTabs extends React.Component {
     }
 
     render() {
+        let shouldShowAllServiceTabs = this.props.featureFlag;
+        let serviceTabs = shouldShowAllServiceTabs ?  SERVICE_TABS : SERVICE_TABS.filter((tab) => tab.name === 'tags');
         return (
             <TabGroup
-                tabs={SERVICE_TABS}
+                tabs={serviceTabs}
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim

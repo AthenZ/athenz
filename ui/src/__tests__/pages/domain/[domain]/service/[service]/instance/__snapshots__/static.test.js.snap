@@ -572,7 +572,7 @@ exports[`StaticInstancePage should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
@@ -656,11 +656,11 @@ exports[`StaticInstancePage should render 1`] = `
   color: #303030;
 }
 
-.emotion-53 {
+.emotion-50 {
   margin: 20px;
 }
 
-.emotion-55 {
+.emotion-52 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -679,11 +679,11 @@ exports[`StaticInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-57 {
+.emotion-54 {
   width: 50%;
 }
 
-.emotion-59 {
+.emotion-56 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -691,13 +691,13 @@ exports[`StaticInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-61 {
+.emotion-58 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-63 {
+.emotion-60 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -714,7 +714,7 @@ exports[`StaticInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-63 input {
+.emotion-60 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -740,42 +740,42 @@ exports[`StaticInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-63.animated input {
+.emotion-60.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-63 input::-webkit-input-placeholder {
+.emotion-60 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-63 input::-moz-placeholder {
+.emotion-60 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-63 input:-ms-input-placeholder {
+.emotion-60 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-63 input::placeholder {
+.emotion-60 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-63 input.focused,
-.emotion-63 input:active,
-.emotion-63 input:focus {
+.emotion-60 input.focused,
+.emotion-60 input:active,
+.emotion-60 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-63 input:invalid {
+.emotion-60 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-63 .message {
+.emotion-60 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -783,22 +783,22 @@ exports[`StaticInstancePage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-63.error input,
-.emotion-63.error input.focused,
-.emotion-63.error input:active,
-.emotion-63.error input:focus {
+.emotion-60.error input,
+.emotion-60.error input.focused,
+.emotion-60.error input:active,
+.emotion-60.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-63.error .message {
+.emotion-60.error .message {
   color: #d01111;
 }
 
-.emotion-63 input {
+.emotion-60 input {
   padding-right: 36px;
 }
 
-.emotion-63 .input-icon {
+.emotion-60 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -812,7 +812,7 @@ exports[`StaticInstancePage should render 1`] = `
   right: 6px;
 }
 
-.emotion-65 {
+.emotion-62 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -838,25 +838,25 @@ exports[`StaticInstancePage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-65:first-of-type {
+.emotion-62:first-of-type {
   margin-left: 0;
 }
 
-.emotion-65:disabled {
+.emotion-62:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-65:disabled {
+.emotion-62:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-65:hover:not(:disabled) {
+.emotion-62:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-66 {
+.emotion-63 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -864,7 +864,7 @@ exports[`StaticInstancePage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-68 {
+.emotion-65 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -875,7 +875,7 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 5px 0 5px 25px;
 }
 
-.emotion-76 {
+.emotion-73 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -887,13 +887,13 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-78 {
+.emotion-75 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
 }
 
-.emotion-80 {
+.emotion-77 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -904,19 +904,19 @@ exports[`StaticInstancePage should render 1`] = `
   padding-bottom: 10px;
 }
 
-.emotion-86 {
+.emotion-83 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
 }
 
-.emotion-88 {
+.emotion-85 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-89 {
+.emotion-86 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -942,13 +942,13 @@ exports[`StaticInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-91 {
+.emotion-88 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-92 {
+.emotion-89 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -963,7 +963,7 @@ exports[`StaticInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-94 {
+.emotion-91 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -982,28 +982,28 @@ exports[`StaticInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-96 {
+.emotion-93 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-98 {
+.emotion-95 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-100 {
+.emotion-97 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-104 {
+.emotion-101 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-106 {
+.emotion-103 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1011,12 +1011,12 @@ exports[`StaticInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-108 {
+.emotion-105 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-110 {
+.emotion-107 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1242,49 +1242,31 @@ exports[`StaticInstancePage should render 1`] = `
               data-testid="tabgroup"
             >
               <div
-                class="emotion-49 denali-tab active"
-                data-active="true"
-              >
-                Static Instances
-              </div>
-              <div
-                class="emotion-49 denali-tab"
-                data-active="false"
-              >
-                Dynamic Instances
-              </div>
-              <div
                 class="emotion-49 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
-              <div
-                class="emotion-49 denali-tab"
-                data-active="false"
-              >
-                Microsegmentation
-              </div>
             </div>
           </div>
           <div
-            class="emotion-53 emotion-54"
+            class="emotion-50 emotion-51"
             data-testid="instancelist"
           >
             <div
-              class="emotion-55 emotion-56"
+              class="emotion-52 emotion-53"
             >
               <div
-                class="emotion-57 emotion-58"
+                class="emotion-54 emotion-55"
               >
                 <div
-                  class="emotion-59 emotion-60"
+                  class="emotion-56 emotion-57"
                 >
                   <div
-                    class="emotion-61 emotion-62"
+                    class="emotion-58 emotion-59"
                   >
                     <div
-                      class="emotion-63 denali-input animated"
+                      class="emotion-60 denali-input animated"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1323,14 +1305,14 @@ exports[`StaticInstancePage should render 1`] = `
               </div>
               <div>
                 <button
-                  class="emotion-65 denali-button"
+                  class="emotion-62 denali-button"
                 >
                   Add Static Instance
                 </button>
               </div>
             </div>
             <table
-              class="emotion-66 emotion-67"
+              class="emotion-63 emotion-64"
               data-testid="instancetable"
             >
               <colgroup>
@@ -1350,22 +1332,22 @@ exports[`StaticInstancePage should render 1`] = `
               <thead>
                 <tr>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-65 emotion-66"
                   >
                     Instance
                   </th>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-65 emotion-66"
                   >
                     Type
                   </th>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-65 emotion-66"
                   >
                     Date Added
                   </th>
                   <th
-                    class="emotion-68 emotion-69"
+                    class="emotion-65 emotion-66"
                   >
                     Delete
                   </th>
@@ -1373,34 +1355,34 @@ exports[`StaticInstancePage should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-76 emotion-77"
+                  class="emotion-73 emotion-74"
                   data-testid="instance-row"
                 >
                   <td
-                    class="emotion-78 emotion-79"
+                    class="emotion-75 emotion-76"
                     color=""
                   >
                     <div
-                      class="emotion-80 emotion-81"
+                      class="emotion-77 emotion-78"
                     />
                   </td>
                   <td
-                    class="emotion-78 emotion-79"
+                    class="emotion-75 emotion-76"
                     color=""
                   />
                   <td
-                    class="emotion-78 emotion-79"
+                    class="emotion-75 emotion-76"
                     color=""
                   >
                     2021-05-15 01:17 UTC
                   </td>
                   <td
-                    class="emotion-86 emotion-79"
+                    class="emotion-83 emotion-76"
                     color=""
                   >
                     <span>
                       <svg
-                        class="emotion-88"
+                        class="emotion-85"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1429,11 +1411,11 @@ exports[`StaticInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-89 emotion-90"
+          class="emotion-86 emotion-87"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-91"
+            class="emotion-88"
             data-testid="icon"
             height="1em"
             id=""
@@ -1449,45 +1431,45 @@ exports[`StaticInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-92 emotion-93"
+          class="emotion-89 emotion-90"
         >
           <div
-            class="emotion-94 emotion-95"
+            class="emotion-91 emotion-92"
           >
             <div
-              class="emotion-96 emotion-97"
+              class="emotion-93 emotion-94"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-98 emotion-99"
+                class="emotion-95 emotion-96"
               >
                 Create
               </a>
               <span
-                class="emotion-100 emotion-101"
+                class="emotion-97 emotion-98"
               >
                  | 
               </span>
               <a
-                class="emotion-98 emotion-99"
+                class="emotion-95 emotion-96"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-104 emotion-105"
+            class="emotion-101 emotion-102"
           >
             <div
-              class="emotion-106 emotion-107"
+              class="emotion-103 emotion-104"
             >
               <div
-                class="emotion-108 emotion-109"
+                class="emotion-105 emotion-106"
               >
                 <svg
-                  class="emotion-110"
+                  class="emotion-107"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1509,19 +1491,19 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-98 emotion-99"
+                class="emotion-95 emotion-96"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-106 emotion-107"
+              class="emotion-103 emotion-104"
             >
               <div
-                class="emotion-108 emotion-109"
+                class="emotion-105 emotion-106"
               >
                 <svg
-                  class="emotion-110"
+                  class="emotion-107"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1543,7 +1525,7 @@ exports[`StaticInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-98 emotion-99"
+                class="emotion-95 emotion-96"
               >
                 athens.ci
               </a>

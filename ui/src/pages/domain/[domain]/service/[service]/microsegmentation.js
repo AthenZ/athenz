@@ -34,6 +34,7 @@ import ServiceTabs from '../../../../../components/header/ServiceTabs';
 import {getInboundOutbound} from "../../../../../redux/thunks/microsegmentation";
 import RulesList from "../../../../../components/microsegmentation/RulesList";
 import Alert from "../../../../../components/denali/Alert";
+import { selectFeatureFlag } from '../../../../../redux/selectors/domains';
 
 const AppContainerDiv = styled.div`
     align-items: stretch;
@@ -217,6 +218,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
+        featureFlag: selectFeatureFlag(state),
         serviceDetails: selectService(
             state,
             props.domainName,

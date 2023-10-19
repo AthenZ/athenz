@@ -34,6 +34,7 @@ import {
     selectInstancesWorkLoadMeta,
     selectStaticServiceHeaderDetails,
 } from '../../../../../../redux/selectors/services';
+import { selectFeatureFlag } from '../../../../../../redux/selectors/domains';
 import { getServiceHeaderAndInstances } from '../../../../../../redux/thunks/services';
 import InstanceList from '../../../../../../components/service/InstanceList';
 import { selectIsLoading } from '../../../../../../redux/selectors/loading';
@@ -197,6 +198,7 @@ class StaticInstancePage extends React.Component {
                                             categoryType={SERVICE_TYPE_STATIC}
                                         />
                                         <ServiceTabs
+                                            featureFlag={this.props.featureFlag}
                                             domain={domainName}
                                             service={serviceName}
                                             selectedName={SERVICE_TYPE_STATIC}
@@ -249,6 +251,7 @@ const mapStateToProps = (state, props) => {
             props.service
         ),
         isLoading: selectIsLoading(state),
+        featureFlag: selectFeatureFlag(state),
     };
 };
 
