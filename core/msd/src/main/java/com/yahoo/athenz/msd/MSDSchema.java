@@ -237,6 +237,24 @@ public class MSDSchema {
             .comment("list of services")
             .arrayField("staticWorkloadServices", "StaticWorkloadService", false, "");
 
+        sb.structType("DomainServices")
+            .comment("request type to search all workloads for a domain and selected list of its services")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .arrayField("serviceNames", "EntityName", false, "list of service names");
+
+        sb.structType("BulkWorkloadRequest")
+            .comment("request type to search all workloads for a list of services grouped by domains")
+            .arrayField("domainServices", "DomainServices", false, "list of services, grouped by domain")
+            .field("fetchStaticTypeWorkloads", "Bool", true, "whether to fetch static type workloads", true)
+            .field("fetchDynamicTypeWorkloads", "Bool", true, "whether to fetch dynamic type workloads", true)
+            .arrayField("applicableStaticTypes", "StaticWorkloadType", true, "list of applicable static workload types, if not set then that means all. Applicable only if fetchStaticTypeWorkloads is enabled")
+            .field("resolveStaticWorkloads", "Bool", true, "resolve static workloads to IPs, if applicable", false);
+
+        sb.structType("BulkWorkloadResponse")
+            .comment("response of a bulk workload search request")
+            .arrayField("unmodifiedServices", "DomainServices", false, "list of services grouped by domain, those are not changed since time stamp in matchingTag")
+            .field("workloads", "Workloads", false, "matching workloads");
+
         sb.enumType("NetworkPolicyChangeEffect")
             .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy")
             .element("IMPACT")
@@ -672,6 +690,25 @@ public class MSDSchema {
         sb.resource("Workloads", "GET", "/domain/{domainName}/workloads")
             .name("getWorkloadsByDomain")
             .pathParam("domainName", "DomainName", "name of the domain")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("BulkWorkloadRequest", "POST", "/workloads")
+            .comment("Read only endpoint to fetch workloads for a list of services grouped by domains")
+            .name("getWorkloadsByDomainAndService")
+            .input("request", "BulkWorkloadRequest", "workload search request")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any workloads modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)

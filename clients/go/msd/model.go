@@ -1845,6 +1845,216 @@ func (self *StaticWorkloadServices) Validate() error {
 	return nil
 }
 
+// DomainServices - request type to search all workloads for a domain and
+// selected list of its services
+type DomainServices struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// list of service names
+	//
+	ServiceNames []EntityName `json:"serviceNames"`
+}
+
+// NewDomainServices - creates an initialized DomainServices instance, returns a pointer to it
+func NewDomainServices(init ...*DomainServices) *DomainServices {
+	var o *DomainServices
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainServices)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *DomainServices) Init() *DomainServices {
+	if self.ServiceNames == nil {
+		self.ServiceNames = make([]EntityName, 0)
+	}
+	return self
+}
+
+type rawDomainServices DomainServices
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainServices
+func (self *DomainServices) UnmarshalJSON(b []byte) error {
+	var m rawDomainServices
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainServices(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainServices) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("DomainServices.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("DomainServices.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceNames == nil {
+		return fmt.Errorf("DomainServices: Missing required field: serviceNames")
+	}
+	return nil
+}
+
+// BulkWorkloadRequest - request type to search all workloads for a list of
+// services grouped by domains
+type BulkWorkloadRequest struct {
+
+	//
+	// list of workload requests by services, grouped by domain
+	//
+	WorkloadRequest []*DomainServices `json:"workloadRequest"`
+
+	//
+	// whether to fetch static type workloads
+	//
+	FetchStaticTypeWorkloads *bool `json:"fetchStaticTypeWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// whether to fetch dynamic type workloads
+	//
+	FetchDynamicTypeWorkloads *bool `json:"fetchDynamicTypeWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of applicable static workload types, if not set then that means all.
+	// Applicable only if fetchStaticTypeWorkloads is enabled
+	//
+	ApplicableStaticTypes []StaticWorkloadType `json:"applicableStaticTypes,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// resolve static workloads to IPs, if applicable
+	//
+	ResolveStaticWorkloads *bool `json:"resolveStaticWorkloads,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewBulkWorkloadRequest - creates an initialized BulkWorkloadRequest instance, returns a pointer to it
+func NewBulkWorkloadRequest(init ...*BulkWorkloadRequest) *BulkWorkloadRequest {
+	var o *BulkWorkloadRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(BulkWorkloadRequest)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *BulkWorkloadRequest) Init() *BulkWorkloadRequest {
+	if self.WorkloadRequest == nil {
+		self.WorkloadRequest = make([]*DomainServices, 0)
+	}
+	if self.FetchStaticTypeWorkloads == nil {
+		d := true
+		self.FetchStaticTypeWorkloads = &d
+	}
+	if self.FetchDynamicTypeWorkloads == nil {
+		d := true
+		self.FetchDynamicTypeWorkloads = &d
+	}
+	if self.ResolveStaticWorkloads == nil {
+		d := false
+		self.ResolveStaticWorkloads = &d
+	}
+	return self
+}
+
+type rawBulkWorkloadRequest BulkWorkloadRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a BulkWorkloadRequest
+func (self *BulkWorkloadRequest) UnmarshalJSON(b []byte) error {
+	var m rawBulkWorkloadRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := BulkWorkloadRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *BulkWorkloadRequest) Validate() error {
+	if self.WorkloadRequest == nil {
+		return fmt.Errorf("BulkWorkloadRequest: Missing required field: workloadRequest")
+	}
+	return nil
+}
+
+// BulkWorkloadResponse - response of a bulk workload search request
+type BulkWorkloadResponse struct {
+
+	//
+	// list of services grouped by domain, those are not changed since time stamp
+	// in matchingTag
+	//
+	UnmodifiedServices []*DomainServices `json:"unmodifiedServices"`
+
+	//
+	// matching workloads
+	//
+	Workloads *Workloads `json:"workloads"`
+}
+
+// NewBulkWorkloadResponse - creates an initialized BulkWorkloadResponse instance, returns a pointer to it
+func NewBulkWorkloadResponse(init ...*BulkWorkloadResponse) *BulkWorkloadResponse {
+	var o *BulkWorkloadResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(BulkWorkloadResponse)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *BulkWorkloadResponse) Init() *BulkWorkloadResponse {
+	if self.UnmodifiedServices == nil {
+		self.UnmodifiedServices = make([]*DomainServices, 0)
+	}
+	if self.Workloads == nil {
+		self.Workloads = NewWorkloads()
+	}
+	return self
+}
+
+type rawBulkWorkloadResponse BulkWorkloadResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a BulkWorkloadResponse
+func (self *BulkWorkloadResponse) UnmarshalJSON(b []byte) error {
+	var m rawBulkWorkloadResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := BulkWorkloadResponse(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *BulkWorkloadResponse) Validate() error {
+	if self.UnmodifiedServices == nil {
+		return fmt.Errorf("BulkWorkloadResponse: Missing required field: unmodifiedServices")
+	}
+	if self.Workloads == nil {
+		return fmt.Errorf("BulkWorkloadResponse: Missing required field: workloads")
+	}
+	return nil
+}
+
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
 // will interfere with workings of one or more transport policies NO_IMAPCT
 // indicates that a change in network policy will not interfere with workings of

@@ -66,4 +66,25 @@ type StaticWorkloadService Struct {
 // list of services
 type StaticWorkloadServices Struct {
     Array<StaticWorkloadService> staticWorkloadServices;
-} 
+}
+
+// request type to search all workloads for a domain and selected list of its services
+type DomainServices Struct {
+    DomainName domainName;          // name of the domain
+    Array<EntityName> serviceNames; // list of service names
+}
+
+// request type to search all workloads for a list of services grouped by domains
+type BulkWorkloadRequest Struct {
+    Array<DomainServices> domainServices;                       // list of services, grouped by domain
+    Bool fetchStaticTypeWorkloads (default = true, optional);   // whether to fetch static type workloads
+    Bool fetchDynamicTypeWorkloads (default = true, optional);  // whether to fetch dynamic type workloads
+    Array<StaticWorkloadType> applicableStaticTypes (optional); // list of applicable static workload types, if not set then that means all. Applicable only if fetchStaticTypeWorkloads is enabled
+    Bool resolveStaticWorkloads (default = false, optional);    // resolve static workloads to IPs, if applicable
+}
+
+// response of a bulk workload search request
+type BulkWorkloadResponse Struct {
+    Array<DomainServices> unmodifiedServices;   // list of services grouped by domain, those are not changed since time stamp in matchingTag
+    Workloads workloads;                        // matching workloads
+}

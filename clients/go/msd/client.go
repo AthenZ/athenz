@@ -699,6 +699,48 @@ func (client MSDClient) GetWorkloadsByDomain(domainName DomainName, matchingTag 
 	}
 }
 
+func (client MSDClient) GetWorkloadsByDomainAndService(request *BulkWorkloadRequest, matchingTag string) (*BulkWorkloadResponse, string, error) {
+	var data *BulkWorkloadResponse
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/workloads"
+	contentBytes, err := json.Marshal(request)
+	if err != nil {
+		return nil, "", err
+	}
+	resp, err := client.httpPost(url, headers, contentBytes)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
 func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeImpactRequest) (*NetworkPolicyChangeImpactResponse, error) {
 	var data *NetworkPolicyChangeImpactResponse
 	url := client.URL + "/transportpolicy/evaluatenetworkpolicychange"
