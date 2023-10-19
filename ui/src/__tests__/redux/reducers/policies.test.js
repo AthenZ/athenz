@@ -318,7 +318,7 @@ describe('Polices Reducer', () => {
         const action = {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
-                collectionName: 'dom:policy.policy1:1',
+                collectionName: 'dom:policy.policy1',
                 collectionWithTags: {
                     ...configStorePolicies['dom:policy.policy1:1'],
                     tags: { tag: { list: ['tag1', 'tag2'] } },
@@ -342,7 +342,7 @@ describe('Polices Reducer', () => {
         const action = {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
-                collectionName: 'dom:policy.policy1:2',
+                collectionName: 'dom:policy.policy1',
                 collectionWithTags: {
                     ...configStorePolicies['dom:policy.policy1:2'],
                     tags: {
@@ -371,7 +371,7 @@ describe('Polices Reducer', () => {
         const action = {
             type: UPDATE_TAGS_TO_STORE,
             payload: {
-                collectionName: 'dom:policy.policy1:2',
+                collectionName: 'dom:policy.policy1',
                 collectionWithTags: {
                     ...configStorePolicies['dom:policy.policy1:2'],
                     tags: { tag: { list: ['tag1'] } },

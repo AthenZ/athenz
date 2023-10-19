@@ -1514,24 +1514,36 @@ Fetchr.registerService({
                 break;
             }
             case 'policy': {
-                req.clients.zms.putPolicyVersion(
+                req.clients.zms.putPolicy(
                     {
                         domainName: params.domainName,
                         policyName: params.collectionName,
                         policy: params.detail,
                         auditRef: params.auditRef,
+                        returnObj: true,
                     },
                     responseHandler.bind({ caller: 'putPolicy', callback, req })
                 );
                 break;
             }
             case 'service': {
+                if (params.detail) {
+                    // Note: zms expects publicKeys to be an array but we store it as an object
+                    // Additionally, updating service tags should not modify existing public keys
+                    let publicKeysList = [];
+                    let publicKeysMap = params.detail.publicKeys || {};
+                    for (const [, value] of Object.entries(publicKeysMap)) {
+                        publicKeysList.push(value);
+                    }
+                    params.detail.publicKeys = publicKeysList;
+                }
                 req.clients.zms.putServiceIdentity(
                     {
                         domain: params.domainName,
                         service: params.collectionName,
                         auditRef: params.auditRef,
                         detail: params.detail,
+                        returnObj: true,
                     },
                     responseHandler.bind({
                         caller: 'putServiceIdentity',
