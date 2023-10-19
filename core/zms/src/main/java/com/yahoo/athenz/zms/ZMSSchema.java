@@ -698,6 +698,22 @@ public class ZMSSchema {
         sb.structType("DependentServiceResourceGroupList")
             .arrayField("serviceAndResourceGroups", "DependentServiceResourceGroup", false, "collection of dependent services and resource groups for tenant domain");
 
+        sb.structType("ReviewObject")
+            .comment("Details for the roles and/or groups that need to be reviewed")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("name", "EntityName", false, "name of the role and/or group")
+            .field("memberExpiryDays", "Int32", false, "all user members in the object have specified max expiry days")
+            .field("memberReviewDays", "Int32", false, "all user members in the object have specified max review days")
+            .field("serviceExpiryDays", "Int32", false, "all services in the object have specified max expiry days")
+            .field("serviceReviewDays", "Int32", false, "all services in the object have specified max review days")
+            .field("groupExpiryDays", "Int32", false, "all groups in the object have specified max expiry days")
+            .field("groupReviewDays", "Int32", false, "all groups in the object have specified max review days")
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the object");
+
+        sb.structType("ReviewObjects")
+            .comment("The representation for a list of objects with full details")
+            .arrayField("list", "ReviewObject", false, "list of review objects");
+
         sb.structType("Info")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
             .field("buildJdkSpec", "String", true, "jdk build version")
@@ -1442,7 +1458,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainRoleMember", "GET", "/role")
-            .comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")")
+            .comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\") 4. domain authorized (\"access\", \"{domainName}:meta.role.lookup\") if domainName is provided")
             .name("getPrincipalRoles")
             .queryParam("principal", "principal", "ResourceName", null, "If not present, will return roles for the user making the call")
             .queryParam("domain", "domainName", "DomainName", null, "If not present, will return roles from all domains")
@@ -3142,6 +3158,40 @@ public class ZMSSchema {
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ReviewObjects", "GET", "/review/role")
+            .comment("Fetch all the roles across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.review.lookup\")")
+            .name("GetRolesForReview")
+            .queryParam("principal", "principal", "ResourceName", null, "If not present, will return roles for the user making the call")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ReviewObjects", "GET", "/review/group")
+            .comment("Fetch all the groups across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.review.lookup\")")
+            .name("GetGroupsForReview")
+            .queryParam("principal", "principal", "ResourceName", null, "If not present, will return groups for the user making the call")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

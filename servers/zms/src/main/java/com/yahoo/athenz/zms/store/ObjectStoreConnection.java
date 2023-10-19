@@ -189,6 +189,11 @@ public interface ObjectStoreConnection extends Closeable {
 
     Stats getStats(String domainName);
 
+    // Review commands
+
+    ReviewObjects getRolesForReview(String principal);
+    ReviewObjects getGroupsForReview(String principal);
+
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByPrincipal(String principal);
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByDomain(String domainName);
     Map<String, List<DomainRoleMember>> getExpiredPendingDomainRoleMembers(int pendingRoleMemberLifespan);

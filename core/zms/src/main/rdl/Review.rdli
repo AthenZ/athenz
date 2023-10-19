@@ -1,0 +1,58 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//Details for the roles and/or groups that need to be reviewed
+type ReviewObject Struct {
+    DomainName domainName; //name of the domain
+    EntityName name; //name of the role and/or group
+    Int32 memberExpiryDays; //all user members in the object have specified max expiry days
+    Int32 memberReviewDays; //all user members in the object have specified max review days
+    Int32 serviceExpiryDays; //all services in the object have specified max expiry days
+    Int32 serviceReviewDays; //all services in the object have specified max review days
+    Int32 groupExpiryDays; //all groups in the object have specified max expiry days
+    Int32 groupReviewDays; //all groups in the object have specified max review days
+    Timestamp lastReviewedDate (optional); //last review timestamp of the object
+}
+
+//The representation for a list of objects with full details
+type ReviewObjects Struct {
+    Array<ReviewObject> list; // list of review objects
+}
+
+// Fetch all the roles across domains for either the caller or specified principal
+// that require a review based on the last reviewed date and configured attributes.
+// The method requires the caller to be either the principal or authorized in system
+// to carry out the operation for any principal (typically this would be system administrators)
+// 1. authenticated principal is the same as the check principal
+// 2. system authorized ("access", "sys.auth:meta.review.lookup")
+resource ReviewObjects GET "/review/role?principal={principal}" (name=GetRolesForReview) {
+    ResourceName principal (optional); //If not present, will return roles for the user making the call
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Fetch all the groups across domains for either the caller or specified principal
+// that require a review based on the last reviewed date and configured attributes.
+// The method requires the caller to be either the principal or authorized in system
+// to carry out the operation for any principal (typically this would be system administrators)
+// 1. authenticated principal is the same as the check principal
+// 2. system authorized ("access", "sys.auth:meta.review.lookup")
+resource ReviewObjects GET "/review/group?principal={principal}" (name=GetGroupsForReview) {
+    ResourceName principal (optional); //If not present, will return groups for the user making the call
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

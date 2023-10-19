@@ -12722,4 +12722,76 @@ public class DBServiceTest {
 
         assertNull(zms.dbService.getDelegatedRoleNames(cache, "unknown-domain:role.trust-role", "trust-domain"));
     }
+
+    @Test
+    public void testMinReviewDays() {
+        ReviewObject object = new ReviewObject().setServiceReviewDays(50);
+        assertEquals(zms.dbService.minReviewDays(object), 50);
+
+        object.setMemberReviewDays(60);
+        assertEquals(zms.dbService.minReviewDays(object), 50);
+        object.setMemberReviewDays(45);
+        assertEquals(zms.dbService.minReviewDays(object), 45);
+
+        object.setGroupReviewDays(46);
+        assertEquals(zms.dbService.minReviewDays(object), 45);
+        object.setGroupReviewDays(40);
+        assertEquals(zms.dbService.minReviewDays(object), 40);
+
+        object.setMemberExpiryDays(41);
+        assertEquals(zms.dbService.minReviewDays(object), 40);
+        object.setMemberExpiryDays(35);
+        assertEquals(zms.dbService.minReviewDays(object), 35);
+
+        object.setServiceExpiryDays(36);
+        assertEquals(zms.dbService.minReviewDays(object), 35);
+        object.setServiceExpiryDays(30);
+        assertEquals(zms.dbService.minReviewDays(object), 30);
+
+        object.setGroupExpiryDays(31);
+        assertEquals(zms.dbService.minReviewDays(object), 30);
+        object.setMemberReviewDays(25);
+        assertEquals(zms.dbService.minReviewDays(object), 25);
+    }
+
+    @Test
+    public void testFilterObjectsForReview() {
+
+        ReviewObjects reviewObjects = new ReviewObjects();
+        assertEquals(zms.dbService.filterObjectsForReview(reviewObjects), reviewObjects);
+
+        reviewObjects.setList(Collections.emptyList());
+        assertEquals(zms.dbService.filterObjectsForReview(reviewObjects), reviewObjects);
+
+        // we're going to create three objects in our list
+        // object1 - no last reviewed date, so it must be included
+        // object2 - longer than min review days, so it must be excluded
+        // object2 - shorter than min review days, so it must be included
+
+        List<ReviewObject> reviewObjectList = new ArrayList<>();
+        reviewObjects.setList(reviewObjectList);
+
+        ReviewObject object1 = new ReviewObject().setDomainName("domain1").setName("object1")
+                .setMemberExpiryDays(90);
+        reviewObjectList.add(object1);
+
+        ReviewObject object2 = new ReviewObject().setDomainName("domain2").setName("object2")
+                .setMemberExpiryDays(90).setMemberReviewDays(120)
+                .setServiceReviewDays(90).setGroupReviewDays(120)
+                .setGroupReviewDays(110).setGroupReviewDays(150)
+                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30 + 60 * 1000));
+        reviewObjectList.add(object2);
+
+        ReviewObject object3 = new ReviewObject().setDomainName("domain3").setName("object3")
+                .setMemberExpiryDays(90).setMemberReviewDays(120)
+                .setServiceReviewDays(90).setGroupReviewDays(120)
+                .setGroupReviewDays(110).setGroupReviewDays(150)
+                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30 - 60 * 1000));
+        reviewObjectList.add(object3);
+
+        ReviewObjects filterObjects = zms.dbService.filterObjectsForReview(reviewObjects);
+        assertEquals(filterObjects.getList().size(), 2);
+        assertEquals(filterObjects.getList().get(0), object1);
+        assertEquals(filterObjects.getList().get(1), object3);
+    }
 }
