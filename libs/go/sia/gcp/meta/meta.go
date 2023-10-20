@@ -84,6 +84,28 @@ func getRegionFromMeta(metaEndPoint string) string {
 	return region
 }
 
+func GetZone(metaEndPoint string) string {
+	var zone string
+	zone = getZoneFromMeta(metaEndPoint)
+	if zone == "" {
+		log.Println("No zone information available. Defaulting to us-west1")
+		zone = "us-west1"
+	}
+	return zone
+}
+
+func getZoneFromMeta(metaEndPoint string) string {
+	var zone string
+	log.Println("Trying to determine zone from metadata server ...")
+	fullOutput, err := GetData(metaEndPoint, "/computeMetadata/v1/instance/zone")
+	if err == nil {
+		if idx := strings.LastIndex(string(fullOutput), "/"); idx > 0 {
+			zone = string(fullOutput[idx+1:])
+		}
+	}
+	return zone
+}
+
 func GetDomain(metaEndpoint string) (string, error) {
 	domainBytes, err := GetData(metaEndpoint, "/computeMetadata/v1/project/attributes/athenz-domain")
 	if err != nil {
