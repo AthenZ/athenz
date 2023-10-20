@@ -2496,11 +2496,12 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
-        int principalId = 0;
-        if (affectedRows == 1) {
-            principalId = getLastInsertId();
-        }
-        return principalId;
+        // if we got an expected response of 1 row updated, then we'll
+        // pick up the last insert id. However, if we got back 0 rows
+        // updated without the duplicate entry exception, we'll assume
+        // that entry exists, and we'll try to fetch it one more time
+
+        return (affectedRows == 1) ? getLastInsertId() : getPrincipalId(principal);
     }
 
     int insertHost(String hostName) {
