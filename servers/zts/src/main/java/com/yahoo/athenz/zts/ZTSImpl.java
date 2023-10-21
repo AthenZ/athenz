@@ -2045,10 +2045,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
             throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        // validate redirect uri
+        // validate redirect uri. if we're asked for the json output then
+        // redirect uri is optional since we don't really need to rely on
+        // the Location header to get the id token
 
-        if (!validateOidcRedirectUri(data.getDomainData(), clientId, redirectUri)) {
-            throw requestError("invalid redirect uri", caller, principal.getDomain(), principalDomain);
+        if (!ZTSConsts.JSON.equalsIgnoreCase(output) || !StringUtil.isEmpty(redirectUri)) {
+            if (!validateOidcRedirectUri(data.getDomainData(), clientId, redirectUri)) {
+                throw requestError("invalid redirect uri", caller, principal.getDomain(), principalDomain);
+            }
         }
 
         // validate the request data. For now, we only support the implicit flow
@@ -2117,9 +2121,12 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(keyType);
         final String signedIdToken = idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(), signPrivateKey.getAlgorithm());
-        String location = redirectUri + "#id_token=" + signedIdToken;
-        if (!StringUtil.isEmpty(state)) {
-            location += "&state=" + state;
+        String location = null;
+        if (!StringUtil.isEmpty(redirectUri)) {
+            location = redirectUri + "#id_token=" + signedIdToken;
+            if (!StringUtil.isEmpty(state)) {
+                location += "&state=" + state;
+            }
         }
 
         // based on the output argument we'll just return 200 with response object
@@ -2132,7 +2139,11 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
                     .setVersion(1)
                     .setToken_type(ZTSConsts.ZTS_OPENID_RESPONSE_TOKEN_TYPE + responseType)
                     .setExpiration_time(expiryTime);
-            return Response.status(ResourceException.OK).entity(oidcResponse).header("Location", location).build();
+            Response.ResponseBuilder builder = Response.status(ResourceException.OK).entity(oidcResponse);
+            if (location != null) {
+                builder = builder.header("Location", location);
+            }
+            return builder.build();
         } else {
             return Response.status(ResourceException.FOUND).header("Location", location).build();
         }
