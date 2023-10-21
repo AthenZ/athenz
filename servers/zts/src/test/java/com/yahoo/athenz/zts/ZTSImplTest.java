@@ -13932,19 +13932,20 @@ public class ZTSImplTest {
 
     @Test
     public void testGetOIDCResponseRolesWithJson() {
-        testGetOIDCResponseRoles("json", null);
-        testGetOIDCResponseRoles("json", Boolean.FALSE);
-        testGetOIDCResponseRoles("json", Boolean.TRUE);
+        testGetOIDCResponseRoles("json", null, Boolean.TRUE);
+        testGetOIDCResponseRoles("json", Boolean.FALSE, Boolean.TRUE);
+        testGetOIDCResponseRoles("json", Boolean.TRUE, Boolean.TRUE);
+        testGetOIDCResponseRoles("json", Boolean.TRUE, Boolean.FALSE);
     }
 
     @Test
     public void testGetOIDCResponseRolesRFC() {
-        testGetOIDCResponseRoles(null, null);
-        testGetOIDCResponseRoles(null, Boolean.FALSE);
-        testGetOIDCResponseRoles(null, Boolean.TRUE);
+        testGetOIDCResponseRoles(null, null, Boolean.TRUE);
+        testGetOIDCResponseRoles(null, Boolean.FALSE, Boolean.TRUE);
+        testGetOIDCResponseRoles(null, Boolean.TRUE, Boolean.TRUE);
     }
 
-    private void testGetOIDCResponseRoles(final String output, Boolean roleInAudClaim) {
+    private void testGetOIDCResponseRoles(final String output, Boolean roleInAudClaim, Boolean includeRedirectUri) {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -13966,7 +13967,8 @@ public class ZTSImplTest {
 
         // get all the roles
 
-        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+        final String redirectUri = includeRedirectUri ? "https://localhost:4443/zts" : null;
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid roles", null, "nonce", "", null, null, output, roleInAudClaim);
         Jws<Claims> claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
@@ -13982,7 +13984,7 @@ public class ZTSImplTest {
         // get only one of the roles with a 30-min timeout
         // which should be honored
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 30 * 60, output, roleInAudClaim);
         claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
@@ -13998,7 +14000,7 @@ public class ZTSImplTest {
         // repeat the same request with 120 minutes and make sure the
         // expiry is still set to 1 hour
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60, output, roleInAudClaim);
         claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
@@ -14010,7 +14012,7 @@ public class ZTSImplTest {
 
         ztsImpl.userDomain = "user-other-domain";
 
-        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+        response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.writers", null, "nonce", "RSA", Boolean.FALSE, 120 * 60, output, roleInAudClaim);
         claims = getClaimsFromResponse(response, privateKey.getKey(), output);
         assertNotNull(claims);
@@ -14023,7 +14025,7 @@ public class ZTSImplTest {
         // requesting a role that the user is not part of
 
         try {
-            ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
+            ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", redirectUri,
                 "openid coretech:role.eng-team", null, "nonce", "EC", Boolean.FALSE, null, output, roleInAudClaim);
             fail();
         } catch (ResourceException ex) {
