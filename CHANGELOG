@@ -1,3 +1,23 @@
+Athenz v1.11.44 Release / Oct 20, 2023
+--------------------------------------
+
+#2323 fetch verification key from server during access token validation
+#2342 UI: Add microsegmentation to services table
+#2344 Creating a PR Template file
+#2345 Bump golang.org/x/net from 0.16.0 to 0.17.0
+#2346 Make KeyRefresher's background thread more efficient
+#2347 UI: add fetcherError null check, debug only if there is error
+#2348 fix 'make deploy-local'
+#2349 change the athenz-zpe-java-client jacoco coverage threshold from 0.8711 to 0.8702
+#2350 Fix pr template
+#2351 provide domain authz for expanded role lookup
+#2352 Introduce new endpoint to search workloads by domain and services
+#2355 provide zms endpoint to return list of roles and groups for review
+#2356 Update go zpe README.md
+#2357 updated go/grpc and java dependencies
+#2360 Update LY Corporation name (formerly known as Yahoo! Japan)
+#2362 msd go client sync up with rdl
+
 Athenz v1.11.43 Release / Oct 10, 2023
 --------------------------------------
 
