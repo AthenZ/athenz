@@ -88,8 +88,8 @@ func GetZone(metaEndPoint string) string {
 	var zone string
 	zone = getZoneFromMeta(metaEndPoint)
 	if zone == "" {
-		log.Println("No zone information available. Defaulting to us-west1")
-		zone = "us-west1"
+		log.Println("No zone information available. Defaulting to us-west1-a")
+		zone = "us-west1-a"
 	}
 	return zone
 }
