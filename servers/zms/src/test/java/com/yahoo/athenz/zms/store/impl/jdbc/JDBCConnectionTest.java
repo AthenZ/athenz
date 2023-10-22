@@ -2278,11 +2278,13 @@ public class JDBCConnectionTest {
             .thenReturn(true) // this one is for domain id
             .thenReturn(true) // this one is for role id
             .thenReturn(true) // this one is for valid principal domain
-            .thenReturn(false); // principal does not exist
+            .thenReturn(false) // principal does not exist
+            .thenReturn(false); // last id returns 0
 
-        // principal add returns 0
+        // principal add returns success but unable to
+        // fetch last id resulting principal id of 0
 
-        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         try {
             jdbcConn.insertRoleMember("my-domain", "role1",
@@ -2290,7 +2292,7 @@ public class JDBCConnectionTest {
                     "user.admin", "audit-ref");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 500);
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
 
         jdbcConn.close();
@@ -6286,6 +6288,25 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testInsertPrincipalAlreadyExistsWithDeadlock() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // first we're going to throw already exists exception
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("already exists", "state", 1062));
+        // when we look up th id againt we're going to return no response
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        try {
+            jdbcConn.insertPrincipal("domain.user1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
     public void testInsertPrincipalException() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -6304,10 +6325,29 @@ public class JDBCConnectionTest {
     public void testInsertPrincipalZeroAffected() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-
         Mockito.when(mockPrepStmt.executeUpdate()).thenReturn(0);
-        int value = jdbcConn.insertPrincipal("domain.user1");
-        assertEquals(0, value);
+
+        try {
+            jdbcConn.insertPrincipal("domain.user1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPrincipalZeroAffectedWithRetryOK() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenReturn(0);
+
+        // when we try to read the principal id again, it will return success
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(101).when(mockResultSet).getInt(1);
+
+        assertEquals(101, jdbcConn.insertPrincipal("domain.user1"));
         jdbcConn.close();
     }
 
@@ -11572,11 +11612,13 @@ public class JDBCConnectionTest {
                 .thenReturn(true) // this one is for domain id
                 .thenReturn(true) // this one is for group id
                 .thenReturn(true) // this one is for valid principal domain
-                .thenReturn(false); // principal does not exist
+                .thenReturn(false) // principal does not exist
+                .thenReturn(false); // last id returns 0
 
-        // principal add returns 0
+        // principal add returns success but unable to
+        // fetch last id resulting principal id of 0
 
-        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
 
         try {
             jdbcConn.insertGroupMember("my-domain", "group1",
@@ -11584,7 +11626,7 @@ public class JDBCConnectionTest {
                     "user.admin", "audit-ref");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 500);
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
 
         jdbcConn.close();
