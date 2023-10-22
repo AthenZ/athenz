@@ -44,6 +44,10 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final int MYSQL_ER_OPTION_PREVENTS_STATEMENT = 1290;
     private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
 
+    private static final String MYSQL_EXC_STATE_DEADLOCK   = "40001";
+    private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
+
+
     private static final String SQL_TABLE_DOMAIN = "domain";
     private static final String SQL_TABLE_ROLE = "role";
     private static final String SQL_TABLE_ROLE_MEMBER = "role_member";
@@ -2486,22 +2490,43 @@ public class JDBCConnection implements ObjectStoreConnection {
             // it's possible that 2 threads try to add the same principal
             // into different roles. so we're going to have a special
             // handling here - if we get back entry already exists exception
-            // we're just going to lookup the principal id and return
-            // that instead of returning an exception
+            // we're just going to look up the principal id and return
+            // that instead of returning an exception. However, if we still
+            // get no response for the principal id, then it indicates that
+            // the other thread hasn't completed its transaction yet, so
+            // we need to return a conflict exception so the server can
+            // retry its operation after a short while
 
             if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
-                return getPrincipalId(principal);
+                int principalId = getPrincipalId(principal);
+                if (principalId == 0) {
+                    throw sqlError(new SQLException("insert principal lock conflict", MYSQL_EXC_STATE_DEADLOCK), caller);
+                }
+                return principalId;
             }
 
             throw sqlError(ex, caller);
         }
 
         // if we got an expected response of 1 row updated, then we'll
-        // pick up the last insert id. However, if we got back 0 rows
-        // updated without the duplicate entry exception, we'll assume
-        // that entry exists, and we'll try to fetch it one more time
+        // pick up the last insert id.
 
-        return (affectedRows == 1) ? getLastInsertId() : getPrincipalId(principal);
+        if (affectedRows == 1) {
+            return getLastInsertId();
+        }
+
+        // However, if we got back 0 rows updated without the duplicate
+        // entry exception, we'll assume that entry exists, and we'll try
+        // to fetch it one more time. And if we still get no response,
+        // that indicates that the previous transaction hasn't completed
+        // yet, so we'll return a conflict exception so the server can
+        // retry the operation
+
+        int principalId = getPrincipalId(principal);
+        if (principalId == 0) {
+            throw sqlError(new SQLException("insert principal lock conflict", MYSQL_EXC_STATE_DEADLOCK), caller);
+        }
+        return principalId;
     }
 
     int insertHost(String hostName) {
@@ -6845,10 +6870,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         // in read-mode which could happen if we had a failover
         // and the connections are still going to the old master
 
-        String sqlState = ex.getSQLState();
+        final String sqlState = ex.getSQLState();
         int code = ResourceException.INTERNAL_SERVER_ERROR;
         String msg;
-        if ("08S01".equals(sqlState) || "40001".equals(sqlState)) {
+        if (MYSQL_EXC_STATE_COMM_ERROR.equals(sqlState) || MYSQL_EXC_STATE_DEADLOCK.equals(sqlState)) {
             code = ResourceException.CONFLICT;
             msg = "Concurrent update conflict, please retry your operation later.";
         } else if (ex.getErrorCode() == MYSQL_ER_OPTION_PREVENTS_STATEMENT) {
