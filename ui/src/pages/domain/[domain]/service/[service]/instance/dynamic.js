@@ -37,6 +37,7 @@ import {
 } from '../../../../../../redux/selectors/services';
 import InstanceList from '../../../../../../components/service/InstanceList';
 import { selectIsLoading } from '../../../../../../redux/selectors/loading';
+import { selectFeatureFlag } from '../../../../../../redux/selectors/domains';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../../components/denali/ReduxPageLoader';
@@ -197,6 +198,7 @@ class DynamicInstancePage extends React.Component {
                                             categoryType={SERVICE_TYPE_DYNAMIC}
                                         />
                                         <ServiceTabs
+                                            featureFlag={this.props.featureFlag}
                                             domain={domainName}
                                             service={serviceName}
                                             selectedName={SERVICE_TYPE_DYNAMIC}
@@ -249,6 +251,7 @@ const mapStateToProps = (state, props) => {
             props.service
         ),
         isLoading: selectIsLoading(state),
+        featureFlag: selectFeatureFlag(state),
     };
 };
 

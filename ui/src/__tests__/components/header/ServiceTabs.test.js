@@ -15,11 +15,10 @@
  */
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import RoleTabs from '../../../components/header/RoleTabs';
 import ServiceTabs from '../../../components/header/ServiceTabs';
 
 describe('Service Tabs', () => {
-    it('should render', () => {
+    it('should render with feature flag turned on', () => {
         const api = {
             getStatus() {
                 return new Promise((resolve, reject) => {
@@ -36,12 +35,39 @@ describe('Service Tabs', () => {
                 service={service}
                 selectedName='dynamic'
                 api={api}
+                featureFlag={true}
             />
         );
         const tabs = getByTestId('tabgroup');
         const tab = tabs.querySelectorAll('.denali-tab');
         fireEvent.click(tab[0]);
         fireEvent.click(tab[1]);
+        expect(tabs).toMatchSnapshot();
+    });
+
+    it('should render only one tab without feature flag', () => {
+        const api = {
+            getStatus() {
+                return new Promise((resolve, reject) => {
+                    resolve([]);
+                });
+            },
+        };
+
+        let domain = 'home.jtsang01';
+        let service = 'openstack';
+        const { getByTestId } = render(
+            <ServiceTabs
+                domain={domain}
+                service={service}
+                selectedName='dynamic'
+                api={api}
+                featureFlag={false}
+            />
+        );
+        const tabs = getByTestId('tabgroup');
+        const tab = tabs.querySelectorAll('.denali-tab');
+        fireEvent.click(tab[0]);
         expect(tabs).toMatchSnapshot();
     });
 });
