@@ -61,17 +61,7 @@ func processHttpRequest(base, path, method string, headers map[string]string) ([
 // GetRegion get current region from identity document
 func GetRegion(metaEndPoint string) string {
 	var region string
-	region = getRegionFromMeta(metaEndPoint)
-	if region == "" {
-		log.Println("No region information available. Defaulting to us-west1")
-		region = "us-west1"
-	}
-	return region
-}
-
-func getRegionFromMeta(metaEndPoint string) string {
-	var region string
-	zone := getZoneFromMeta(metaEndPoint)
+	zone := GetZone(metaEndPoint)
 	if idx := strings.LastIndex(zone, "-"); idx > 0 {
 		region = zone[:idx]
 	}
