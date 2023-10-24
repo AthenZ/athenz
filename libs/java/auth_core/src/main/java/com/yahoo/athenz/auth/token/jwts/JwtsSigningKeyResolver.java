@@ -30,6 +30,8 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.yahoo.athenz.auth.AuthorityConsts.AUTH_PROP_MILLIS_BETWEEN_ZTS_CALLS;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
@@ -45,7 +47,16 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtsSigningKeyResolver.class);
     private static final ObjectMapper JSON_MAPPER = initJsonMapper();
 
+    private final SSLContext sslContext;
+    private final String jwksUri;
+    private static long lastZtsJwkFetchTime;
+    private static long millisBetweenZtsCalls;
+
     ConcurrentHashMap<String, PublicKey> publicKeys;
+
+    static {
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(AUTH_PROP_MILLIS_BETWEEN_ZTS_CALLS, "86400000")));
+    }
 
     static ObjectMapper initJsonMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -58,11 +69,14 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
 
     public JwtsSigningKeyResolver(final String jwksUri, final SSLContext sslContext, boolean skipConfig) {
+        this.jwksUri = jwksUri;
+        this.sslContext = sslContext;
         publicKeys = new ConcurrentHashMap<>();
         if (!skipConfig) {
             loadPublicKeysFromConfig();
         }
-        loadPublicKeysFromServer(jwksUri, sslContext);
+        lastZtsJwkFetchTime = System.currentTimeMillis();
+        loadPublicKeysFromServer();
     }
 
     @Override
@@ -76,7 +90,29 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
     }
 
     private Key resolveSigningKey(JwsHeader jwsHeader) {
-        return publicKeys.get(jwsHeader.getKeyId());
+        return getPublicKey(jwsHeader.getKeyId());
+    }
+
+    public static void setMillisBetweenZtsCalls(long millis) {
+        millisBetweenZtsCalls = millis;
+    }
+
+    public static boolean canFetchLatestJwksFromZts() {
+        long now = System.currentTimeMillis();
+        long millisDiff = now - lastZtsJwkFetchTime;
+        return millisDiff > millisBetweenZtsCalls;
+    }
+
+    public PublicKey getPublicKey(String keyId) {
+        PublicKey key = publicKeys.get(keyId);
+
+        if (key == null && canFetchLatestJwksFromZts()) {
+            lastZtsJwkFetchTime = System.currentTimeMillis();
+            loadPublicKeysFromServer();
+            key = publicKeys.get(keyId);
+        }
+
+        return key;
     }
 
     public void addPublicKey(final String keyId, final PublicKey publicKey) {
@@ -87,7 +123,7 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         return publicKeys.size();
     }
 
-    void loadPublicKeysFromServer(final String jwksUri, final SSLContext sslContext) {
+    void loadPublicKeysFromServer() {
 
         final String jwksData = getHttpData(jwksUri, sslContext);
         if (jwksData == null) {
