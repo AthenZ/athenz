@@ -71,16 +71,11 @@ func GetRegion(metaEndPoint string) string {
 
 func getRegionFromMeta(metaEndPoint string) string {
 	var region string
-	log.Println("Trying to determine region from metadata server ...")
-	fullOutput, err := GetData(metaEndPoint, "/computeMetadata/v1/instance/zone")
-	if err == nil {
-		if idx := strings.LastIndex(string(fullOutput), "/"); idx > 0 {
-			zone := string(fullOutput[idx+1:])
-			if idx := strings.LastIndex(zone, "-"); idx > 0 {
-				region = zone[:idx]
-			}
-		}
+	zone := getZoneFromMeta(metaEndPoint)
+	if idx := strings.LastIndex(zone, "-"); idx > 0 {
+		region = zone[:idx]
 	}
+
 	return region
 }
 
