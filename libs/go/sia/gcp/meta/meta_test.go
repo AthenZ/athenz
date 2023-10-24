@@ -90,6 +90,24 @@ func TestGetRegion(test *testing.T) {
 	}
 }
 
+func TestGetZone(test *testing.T) {
+	// Mock the metadata endpoints
+	router := httptreemux.New()
+	router.GET("/computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		log.Println("Called /computeMetadata/v1/instance/zone")
+		io.WriteString(w, "projects/1001234567890/zones/us-west2-a")
+	})
+
+	metaServer := &testServer{}
+	metaServer.start(router)
+	defer metaServer.stop()
+
+	zone := GetZone(metaServer.httpUrl())
+	if zone != "us-west2-a" {
+		test.Errorf("Unable to match expected zone: %s", zone)
+	}
+}
+
 func TestGetDomain(test *testing.T) {
 	// Mock the metadata endpoints
 	router := httptreemux.New()

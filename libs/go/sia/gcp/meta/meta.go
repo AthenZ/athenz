@@ -61,27 +61,34 @@ func processHttpRequest(base, path, method string, headers map[string]string) ([
 // GetRegion get current region from identity document
 func GetRegion(metaEndPoint string) string {
 	var region string
-	region = getRegionFromMeta(metaEndPoint)
-	if region == "" {
-		log.Println("No region information available. Defaulting to us-west1")
-		region = "us-west1"
+	zone := GetZone(metaEndPoint)
+	if idx := strings.LastIndex(zone, "-"); idx > 0 {
+		region = zone[:idx]
 	}
+
 	return region
 }
 
-func getRegionFromMeta(metaEndPoint string) string {
-	var region string
-	log.Println("Trying to determine region from metadata server ...")
+func GetZone(metaEndPoint string) string {
+	var zone string
+	zone = getZoneFromMeta(metaEndPoint)
+	if zone == "" {
+		log.Println("No zone information available. Defaulting to us-west1-a")
+		zone = "us-west1-a"
+	}
+	return zone
+}
+
+func getZoneFromMeta(metaEndPoint string) string {
+	var zone string
+	log.Println("Trying to determine zone from metadata server ...")
 	fullOutput, err := GetData(metaEndPoint, "/computeMetadata/v1/instance/zone")
 	if err == nil {
 		if idx := strings.LastIndex(string(fullOutput), "/"); idx > 0 {
-			zone := string(fullOutput[idx+1:])
-			if idx := strings.LastIndex(zone, "-"); idx > 0 {
-				region = zone[:idx]
-			}
+			zone = string(fullOutput[idx+1:])
 		}
 	}
-	return region
+	return zone
 }
 
 func GetDomain(metaEndpoint string) (string, error) {
