@@ -145,11 +145,15 @@ const deleteStaticInstanceMsd = (
     req
 ) => {
     return new Promise((resolve, reject) => {
+        // Note: instanceId may contain url unsafe characters like '10..../20'
+        // the name parameter is then decoded twice (jetty default and msd deleteStaticWorkload logic)
+        // hence the double url encoding for instanceId
+        let instanceIdEncoded = encodeURIComponent(encodeURIComponent(instanceId));
         req.clients.msd.deleteStaticWorkload(
             {
                 domainName: domainName,
                 serviceName: service,
-                name: instanceId,
+                name: instanceIdEncoded,
                 auditRef: auditRef,
             },
             (err, json) => {

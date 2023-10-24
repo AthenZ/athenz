@@ -171,7 +171,44 @@ describe('Services Reducer', () => {
                     expectedState.services['dom.service2'].staticInstances
                         .workLoadData
                 ).length,
-                1
+                2
+            )
+        ).toBeTruthy();
+    });
+    it('should delete static instance should work even when instanceId includes a /', () => {
+        const initialState = {
+            services: configStoreServices,
+            domainName: domainName,
+            expiry: expiry,
+        };
+        const action = {
+            type: DELETE_SERVICE_INSTANCE_FROM_STORE,
+            payload: {
+                serviceFullName: 'dom.service2',
+                category: 'static',
+                instanceId: '101.101.101.2/20',
+            },
+        };
+        const expectedState = AppUtils.deepClone(initialState);
+        expectedState.services['dom.service2'].staticInstances.workLoadData =
+            expectedState.services[
+                'dom.service2'
+            ].staticInstances.workLoadData.filter((instance) => {
+                return instance.name !== '101.101.101.2/20';
+            });
+        expectedState.services['dom.service2'].staticInstances.workLoadMeta
+            .totalStatic--;
+        expectedState.services['dom.service2'].staticInstances.workLoadMeta
+            .totalRecords--;
+        const newState = services(initialState, action);
+        expect(newState).toEqual(expectedState);
+        expect(
+            _.isEqual(
+                Object.keys(
+                    expectedState.services['dom.service2'].staticInstances
+                        .workLoadData
+                ).length,
+                2
             )
         ).toBeTruthy();
     });
@@ -554,6 +591,14 @@ describe('Services Reducer', () => {
                 },
                 {
                     domainName: 'dom',
+                    serviceName: 'ows',
+                    type: 'SERVICE_SUBNET',
+                    ipAddresses: ['101.101.101.2/20'],
+                    name: '101.101.101.2/20',
+                    updateTime: '2022-08-03T11:07:02.417Z',
+                },
+                {
+                    domainName: 'dom',
                     ipAddresses: ['111.111.111.1'],
                     name: '111.111.111.1',
                     serviceName: 'ows',
@@ -563,12 +608,12 @@ describe('Services Reducer', () => {
             ],
             workLoadMeta: {
                 totalDynamic: 0,
-                totalStatic: 3,
-                totalRecords: 3,
+                totalStatic: 4,
+                totalRecords: 4,
                 totalHealthyDynamic: 0,
             },
         };
         const newState = services(initialState, action);
-        expect(_.isEqual(newState, expectedState)).toBeTruthy();
+        expect(newState).toEqual(expectedState);
     });
 });
