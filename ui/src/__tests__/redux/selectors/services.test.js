@@ -398,8 +398,8 @@ describe('test service selectors', () => {
         it('should return static work load meta', () => {
             let workLoadMeta = {
                 totalDynamic: 0,
-                totalStatic: 2,
-                totalRecords: 2,
+                totalStatic: 3,
+                totalRecords: 3,
                 totalHealthyDynamic: 0,
             };
             expect(
@@ -490,6 +490,14 @@ describe('test service selectors', () => {
                     ipAddresses: ['101.101.101.2'],
                     name: '101.101.101.2',
                     updateTime: '2022-08-03T11:07:02.416Z',
+                },
+                {
+                    domainName: 'dom',
+                    serviceName: 'ows',
+                    type: 'SERVICE_SUBNET',
+                    ipAddresses: ['101.101.101.2/20'],
+                    name: '101.101.101.2/20',
+                    updateTime: '2022-08-03T11:07:02.417Z',
                 },
             ];
             expect(
