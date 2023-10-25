@@ -73,7 +73,7 @@
   <properties>
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
     <aws.version>1.12.567</aws.version>
-    <aws2.version>2.20.162</aws2.version>
+    <aws2.version>2.21.6</aws2.version>
     <gcp.bom.version>26.25.0</gcp.bom.version>
     <gcp.api-client.version>2.2.0</gcp.api-client.version>
     <bouncycastle.version>1.76</bouncycastle.version>
