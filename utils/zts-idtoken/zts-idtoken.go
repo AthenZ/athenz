@@ -71,7 +71,7 @@ func main() {
 	if validate {
 		validateIdToken(idToken, conf, claims)
 	} else {
-		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format, &fullArn, proxy, expireTime, &roleInAudClaim)
+		fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, format, &fullArn, proxy, expireTime, &roleInAudClaim)
 	}
 }
 
@@ -116,7 +116,7 @@ func validateIdToken(idToken, conf string, showClaims bool) {
 	fmt.Println("Id Token successfully validated")
 }
 
-func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool, expireTime int, roleInAudClaim *bool) {
+func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, format string, fullArn *bool, proxy bool, expireTime int, roleInAudClaim *bool) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -130,7 +130,7 @@ func fetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redi
 	// need to convert minutes into seconds
 	expireTimeSecs := int32(expireTime) * 60
 
-	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, redirectUri, scope, nonce, state, keyType, fullArn, proxy, &expireTimeSecs, roleInAudClaim)
+	idToken, err := athenzutils.FetchIdToken(ztsURL, svcKeyFile, svcCertFile, svcCACertFile, clientId, scope, nonce, state, keyType, fullArn, proxy, &expireTimeSecs, roleInAudClaim)
 	if err != nil {
 		log.Fatalf("unable to fetch id token: %v\n", err)
 	}
