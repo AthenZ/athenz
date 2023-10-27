@@ -604,6 +604,22 @@ func (cli Zms) ShowDomain(dn string) (*string, error) {
 	return cli.dumpByFormat(domainData, oldYamlConverter)
 }
 
+func (cli Zms) ShowDomainAttrs(dn string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+
+	oldYamlConverter := func(res interface{}) (*string, error) {
+		var buf bytes.Buffer
+		cli.dumpDomain(&buf, domain)
+		s := buf.String()
+		return &s, nil
+	}
+
+	return cli.dumpByFormat(domain, oldYamlConverter)
+}
+
 func (cli Zms) CheckDomain(dn string) (*string, error) {
 	domainDataCheck, err := cli.Zms.GetDomainDataCheck(zms.DomainName(dn))
 	if err != nil {

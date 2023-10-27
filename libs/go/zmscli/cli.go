@@ -224,6 +224,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				return cli.ShowDomain(dn)
 			}
 			return nil, fmt.Errorf("no domain specified")
+		case "show-domain-attrs":
+			if argc == 1 {
+				//override the default domain, this command can show any of them
+				dn = args[0]
+			}
+			if dn != "" {
+				return cli.ShowDomainAttrs(dn)
+			}
+			return nil, fmt.Errorf("no domain specified")
 		case "disable-domain":
 			if argc == 1 {
 				//override the default domain, this command can show any of them
@@ -1272,6 +1281,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   show-domain coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " show-domain\n")
+	case "show-domain-attrs":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] show-domain-attrs domain\n")
+		buf.WriteString("   [-o json] " + domainParam + " show-domain-attrs\n")
+		buf.WriteString(" parameters:\n")
+		buf.WriteString("   domain : display attributes for the given domain\n")
+		buf.WriteString("          : this argument is required unless -d <domain> is specified\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   show-domain-attrs coretech.hosted\n")
+		buf.WriteString("   " + domainExample + " show-domain-attrs\n")
 	case "disable-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] disable-domain domain\n")
@@ -3203,6 +3222,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString(" Domain commands:\n")
 	buf.WriteString("   list-domain [prefix] | [limit skip prefix depth]\n")
 	buf.WriteString("   show-domain [domain]\n")
+	buf.WriteString("   show-domain-attrs [domain]\n")
 	buf.WriteString("   lookup-domain-by-aws-account account-id\n")
 	buf.WriteString("   lookup-domain-by-azure-subscription subscription-id\n")
 	buf.WriteString("   lookup-domain-by-gcp-project project-id\n")
