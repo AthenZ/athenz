@@ -419,6 +419,7 @@ public class PutGroupMembershipNotificationTaskTest {
         System.setProperty("athenz.notification_workflow_url", "https://athenz.example.com/workflow");
         System.setProperty("athenz.notification_support_text", "#Athenz slack channel");
         System.setProperty("athenz.notification_support_url", "https://link.to.athenz.channel.com");
+        System.setProperty("athenz.notification_athenz_ui_url", "https://athenz.example.com");
 
         Map<String, String> details = new HashMap<>();
         details.put("domain", "dom1");
@@ -440,7 +441,7 @@ public class PutGroupMembershipNotificationTaskTest {
         assertTrue(body.contains("user.member1"));
         assertTrue(body.contains("test reason"));
         assertTrue(body.contains("user.requester"));
-        assertTrue(body.contains("https://athenz.example.com/workflow"));
+        assertTrue(body.contains("https://athenz.example.com/workflow/domain?domain=dom1"));
 
         // Make sure support text and url do not appear
 
@@ -448,8 +449,9 @@ public class PutGroupMembershipNotificationTaskTest {
         assertFalse(body.contains("link.to.athenz.channel.com"));
 
         System.clearProperty("athenz.notification_workflow_url");
-        System.clearProperty("notification_support_text");
-        System.clearProperty("notification_support_url");
+        System.clearProperty("athenz.notification_support_text");
+        System.clearProperty("athenz.notification_support_url");
+        System.clearProperty("athenz.notification_athenz_ui_url");
     }
 
     @Test
