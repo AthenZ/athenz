@@ -95,6 +95,8 @@ func GetK8SHostnames(clusterZone string) (string, []string) {
 	}
 	if podService != "" {
 		k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.svc.%s", podService, podNamespace, clusterZone))
+		// K8S API server expects the san dns in this format if the certificate is to be used by a webhook
+		k8sDnsEntries = append(k8sDnsEntries, fmt.Sprintf("%s.%s.svc", podService, podNamespace))
 	}
 	return podNamespace, k8sDnsEntries
 }
