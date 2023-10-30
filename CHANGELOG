@@ -1,3 +1,24 @@
+Athenz v1.11.45 Release / Oct 30, 2023
+--------------------------------------
+
+#2358 UI: fix add/edit tags for policy and service
+#2361 Fix service tags tab hiding other tabs
+#2365 failure with insert principal where 2 roles are created simultaneously with the same new member
+#2366 Add GetZone from meta endpoint for gcp
+#2367 oidc response - make redirect uri optional if json output is requested
+#2368 failure with insert principal where 2 roles are created simultaneously with the same new member
+#2370 double encoding name parameter for deleteStaticWorkload
+#2372 bump awssdk from 2.20.162 to 2.21.6 for netty vuln
+#2375 remove redirect-uri from fetch id token call since it's optional for json output
+#2376 new zms-cli option show-domain-attrs to display domain attributes
+#2377 fix membership approval email view in gmail
+#2378 adding support for service_name.service_namespace.svc in K8S san dns
+#2379 Temporary network issue causes aws temp creds stop refreshing
+#2381 allow updating the last_reviewed_date for role/group through meta api
+#2382 clean-up hostname verifier support in zts java client
+#2384 replacing wix-embedded-mysql with testcontainers-java
+#2386 update jetty/java/go deps to their latest releases
+
 Athenz v1.11.44 Release / Oct 20, 2023
 --------------------------------------
 
