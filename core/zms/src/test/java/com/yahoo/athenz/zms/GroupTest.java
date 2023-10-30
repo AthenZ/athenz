@@ -483,7 +483,7 @@ public class GroupTest {
     @Test
     public void testGroupMetaMethod() {
 
-        GroupMeta rm = new GroupMeta()
+        GroupMeta gm1 = new GroupMeta()
                 .setSelfServe(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setReviewEnabled(false)
@@ -493,21 +493,22 @@ public class GroupTest {
                 .setMemberExpiryDays(10)
                 .setServiceExpiryDays(20)
                 .setDeleteProtection(false)
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));;
-        assertTrue(rm.equals(rm));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
+                .setLastReviewedDate(Timestamp.fromMillis(100));
 
-        assertFalse(rm.getSelfServe());
-        assertEquals(rm.getNotifyRoles(), "role1,domain:role.role2");
-        assertFalse(rm.getReviewEnabled());
-        assertFalse(rm.getAuditEnabled());
-        assertFalse(rm.getDeleteProtection());
-        assertEquals(rm.getUserAuthorityExpiration(), "attr1");
-        assertEquals(rm.getUserAuthorityFilter(), "attr2,attr3");
-        assertEquals(rm.getMemberExpiryDays().intValue(), 10);
-        assertEquals(rm.getServiceExpiryDays().intValue(), 20);
-        assertEquals(rm.getTags().get("tagKey").getList().get(0), "tagValue");
+        assertFalse(gm1.getSelfServe());
+        assertEquals(gm1.getNotifyRoles(), "role1,domain:role.role2");
+        assertFalse(gm1.getReviewEnabled());
+        assertFalse(gm1.getAuditEnabled());
+        assertFalse(gm1.getDeleteProtection());
+        assertEquals(gm1.getUserAuthorityExpiration(), "attr1");
+        assertEquals(gm1.getUserAuthorityFilter(), "attr2,attr3");
+        assertEquals(gm1.getMemberExpiryDays().intValue(), 10);
+        assertEquals(gm1.getServiceExpiryDays().intValue(), 20);
+        assertEquals(gm1.getTags().get("tagKey").getList().get(0), "tagValue");
+        assertEquals(gm1.getLastReviewedDate(), Timestamp.fromMillis(100));
 
-        GroupMeta rm2 = new GroupMeta()
+        GroupMeta gm2 = new GroupMeta()
                 .setSelfServe(false)
                 .setNotifyRoles("role1,domain:role.role2")
                 .setReviewEnabled(false)
@@ -517,88 +518,94 @@ public class GroupTest {
                 .setMemberExpiryDays(10)
                 .setServiceExpiryDays(20)
                 .setDeleteProtection(false)
-                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(rm2.equals(rm));
+                .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
+                .setLastReviewedDate(Timestamp.fromMillis(100));
 
-        rm2.setNotifyRoles("role1");
-        assertFalse(rm2.equals(rm));
-        rm2.setNotifyRoles(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setNotifyRoles("role1,domain:role.role2");
-        assertTrue(rm2.equals(rm));
+        assertEquals(gm1, gm2);
+        assertEquals(gm1, gm1);
+        assertNotEquals(null, gm1);
+        assertNotEquals("group-meta", gm1);
 
-        rm2.setReviewEnabled(true);
-        assertFalse(rm2.equals(rm));
-        rm2.setReviewEnabled(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setReviewEnabled(false);
-        assertTrue(rm2.equals(rm));
+        gm2.setNotifyRoles("role1");
+        assertNotEquals(gm2, gm1);
+        gm2.setNotifyRoles(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setNotifyRoles("role1,domain:role.role2");
+        assertEquals(gm2, gm1);
 
-        rm2.setAuditEnabled(true);
-        assertFalse(rm2.equals(rm));
-        rm2.setAuditEnabled(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setAuditEnabled(false);
-        assertTrue(rm2.equals(rm));
+        gm2.setReviewEnabled(true);
+        assertNotEquals(gm2, gm1);
+        gm2.setReviewEnabled(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setReviewEnabled(false);
+        assertEquals(gm2, gm1);
 
-        rm2.setSelfServe(true);
-        assertFalse(rm2.equals(rm));
-        rm2.setSelfServe(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setSelfServe(false);
-        assertTrue(rm2.equals(rm));
+        gm2.setAuditEnabled(true);
+        assertNotEquals(gm2, gm1);
+        gm2.setAuditEnabled(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setAuditEnabled(false);
+        assertEquals(gm2, gm1);
 
-        rm2.setDeleteProtection(true);
-        assertFalse(rm2.equals(rm));
-        rm2.setDeleteProtection(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setDeleteProtection(false);
-        assertTrue(rm2.equals(rm));
+        gm2.setSelfServe(true);
+        assertNotEquals(gm2, gm1);
+        gm2.setSelfServe(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setSelfServe(false);
+        assertEquals(gm2, gm1);
 
-        rm2.setUserAuthorityExpiration("attr11");
-        assertFalse(rm2.equals(rm));
-        rm2.setUserAuthorityExpiration(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setUserAuthorityExpiration("attr1");
-        assertTrue(rm2.equals(rm));
+        gm2.setDeleteProtection(true);
+        assertNotEquals(gm2, gm1);
+        gm2.setDeleteProtection(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setDeleteProtection(false);
+        assertEquals(gm2, gm1);
 
-        rm2.setUserAuthorityFilter("attr2");
-        assertFalse(rm2.equals(rm));
-        rm2.setUserAuthorityFilter(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setUserAuthorityFilter("attr2,attr3");
-        assertTrue(rm2.equals(rm));
+        gm2.setUserAuthorityExpiration("attr11");
+        assertNotEquals(gm2, gm1);
+        gm2.setUserAuthorityExpiration(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setUserAuthorityExpiration("attr1");
+        assertEquals(gm2, gm1);
 
-        rm2.setMemberExpiryDays(15);
-        assertFalse(rm2.equals(rm));
-        rm2.setMemberExpiryDays(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setMemberExpiryDays(10);
-        assertTrue(rm2.equals(rm));
+        gm2.setUserAuthorityFilter("attr2");
+        assertNotEquals(gm2, gm1);
+        gm2.setUserAuthorityFilter(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setUserAuthorityFilter("attr2,attr3");
+        assertEquals(gm2, gm1);
 
-        rm2.setServiceExpiryDays(15);
-        assertFalse(rm2.equals(rm));
-        rm2.setServiceExpiryDays(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setServiceExpiryDays(20);
-        assertTrue(rm2.equals(rm));
+        gm2.setMemberExpiryDays(15);
+        assertNotEquals(gm2, gm1);
+        gm2.setMemberExpiryDays(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setMemberExpiryDays(10);
+        assertEquals(gm2, gm1);
 
-        assertFalse(rm2.equals(null));
-        assertFalse(rm.equals(new String()));
+        gm2.setServiceExpiryDays(15);
+        assertNotEquals(gm2, gm1);
+        gm2.setServiceExpiryDays(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setServiceExpiryDays(20);
+        assertEquals(gm2, gm1);
 
-        rm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue1"))));
-        assertFalse(rm2.equals(rm));
-        rm2.setTags(null);
-        assertFalse(rm2.equals(rm));
-        rm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
-        assertTrue(rm2.equals(rm));
+        gm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue1"))));
+        assertNotEquals(gm2, gm1);
+        gm2.setTags(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))));
+        assertEquals(gm2, gm1);
 
-        assertFalse(rm2.equals(null));
-        assertFalse(rm.equals(new String()));
+        gm2.setLastReviewedDate(Timestamp.fromMillis(200));
+        assertNotEquals(gm2, gm1);
+        gm2.setLastReviewedDate(null);
+        assertNotEquals(gm2, gm1);
+        gm2.setLastReviewedDate(Timestamp.fromMillis(100));
+        assertEquals(gm2, gm1);
 
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);
-        Result result = validator.validate(rm, "GroupMeta");
+        Result result = validator.validate(gm1, "GroupMeta");
         assertTrue(result.valid);
     }
 

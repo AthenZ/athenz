@@ -44,6 +44,9 @@ public class GroupMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean deleteProtection;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp lastReviewedDate;
 
     public GroupMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -115,6 +118,13 @@ public class GroupMeta {
     public Boolean getDeleteProtection() {
         return deleteProtection;
     }
+    public GroupMeta setLastReviewedDate(Timestamp lastReviewedDate) {
+        this.lastReviewedDate = lastReviewedDate;
+        return this;
+    }
+    public Timestamp getLastReviewedDate() {
+        return lastReviewedDate;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -151,6 +161,9 @@ public class GroupMeta {
                 return false;
             }
             if (deleteProtection == null ? a.deleteProtection != null : !deleteProtection.equals(a.deleteProtection)) {
+                return false;
+            }
+            if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
                 return false;
             }
         }

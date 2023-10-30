@@ -1270,6 +1270,11 @@ type RoleMeta struct {
 	// If true, ask for delete confirmation in audit and review enabled roles.
 	//
 	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// last review timestamp of the role
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1437,6 +1442,11 @@ type Role struct {
 	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// last review timestamp of the role
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the role
 	//
 	Name ResourceName `json:"name"`
@@ -1466,11 +1476,6 @@ type Role struct {
 	// an audit log for role membership changes
 	//
 	AuditLog []*RoleAuditLog `json:"auditLog,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// last review timestamp of the role
-	//
-	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRole - creates an initialized Role instance, returns a pointer to it
@@ -5395,6 +5400,11 @@ type GroupMeta struct {
 	// If true, ask for delete confirmation in audit and review enabled groups.
 	//
 	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// last review timestamp of the group
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -5504,6 +5514,11 @@ type Group struct {
 	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// last review timestamp of the group
+	//
+	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the group
 	//
 	Name ResourceName `json:"name"`
@@ -5522,11 +5537,6 @@ type Group struct {
 	// an audit log for group membership changes
 	//
 	AuditLog []*GroupAuditLog `json:"auditLog,omitempty" rdl:"optional" yaml:",omitempty"`
-
-	//
-	// last review timestamp of the group
-	//
-	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroup - creates an initialized Group instance, returns a pointer to it

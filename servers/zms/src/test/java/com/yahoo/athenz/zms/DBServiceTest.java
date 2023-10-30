@@ -217,11 +217,6 @@ public class DBServiceTest {
                 domainName + ":*", AssertionEffect.ALLOW, null, true);
     }
 
-    private Policy createPolicyObject(String domainName, String policyName, String version, boolean active) {
-        return createPolicyObject(domainName, policyName, "admin", true, "*",
-                domainName + ":*", AssertionEffect.ALLOW, version, active);
-    }
-
     private Policy createPolicyObject(String domainName, String policyName,
             String roleName, boolean generateRoleName, String action,
             String resource, AssertionEffect effect, String version, boolean active) {
@@ -5723,35 +5718,36 @@ public class DBServiceTest {
 
     @Test
     public void testUpdateRoleMetaFields() {
+        final String caller = "testUpdateRoleMetaFields";
         Role role = new Role();
         RoleMeta meta = new RoleMeta().setSelfServe(true)
                 .setReviewEnabled(true).setNotifyRoles("role1");
-        zms.dbService.updateRoleMetaFields(role, meta);
+        zms.dbService.updateRoleMetaFields(role, meta, caller);
         assertTrue(role.getSelfServe());
         assertTrue(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role1");
 
         meta = new RoleMeta().setReviewEnabled(false);
-        zms.dbService.updateRoleMetaFields(role, meta);
+        zms.dbService.updateRoleMetaFields(role, meta, caller);
 
         assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role1");
 
         meta = new RoleMeta().setNotifyRoles("role2");
-        zms.dbService.updateRoleMetaFields(role, meta);
+        zms.dbService.updateRoleMetaFields(role, meta, caller);
 
         assertTrue(role.getSelfServe());
         assertFalse(role.getReviewEnabled());
         assertEquals(role.getNotifyRoles(), "role2");
 
         meta = new RoleMeta().setUserAuthorityExpiration("expiry");
-        zms.dbService.updateRoleMetaFields(role, meta);
+        zms.dbService.updateRoleMetaFields(role, meta, caller);
         assertEquals(role.getNotifyRoles(), "role2");
         assertEquals(role.getUserAuthorityExpiration(), "expiry");
 
         meta = new RoleMeta().setUserAuthorityFilter("attr1");
-        zms.dbService.updateRoleMetaFields(role, meta);
+        zms.dbService.updateRoleMetaFields(role, meta, caller);
         assertEquals(role.getNotifyRoles(), "role2");
         assertEquals(role.getUserAuthorityExpiration(), "expiry");
         assertEquals(role.getUserAuthorityFilter(), "attr1");
@@ -5768,7 +5764,8 @@ public class DBServiceTest {
                         + " \"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\","
                         + " \"groupReviewDays\": \"null\","
                         + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
-                        + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\"}");
+                        + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\","
+                        + " \"description\": \"null\", \"deleteProtection\": \"null\", \"lastReviewedDate\": \"null\"}");
     }
 
     @Test

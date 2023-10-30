@@ -113,12 +113,13 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve,"
             + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days,"
             + " member_review_days, service_review_days, group_review_days, review_enabled, notify_roles, user_authority_filter, "
-            + " user_authority_expiration, description, group_expiry_days, delete_protection) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " user_authority_expiration, description, group_expiry_days, delete_protection, last_reviewed_time) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?, audit_enabled=?, self_serve=?, "
             + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
             + "service_expiry_days=?, member_review_days=?, service_review_days=?, group_review_days=?, review_enabled=?, notify_roles=?, "
-            + "user_authority_filter=?, user_authority_expiration=?, description=?, group_expiry_days=?, delete_protection=? WHERE role_id=?;";
+            + "user_authority_filter=?, user_authority_expiration=?, description=?, group_expiry_days=?, "
+            + "delete_protection=?, last_reviewed_time=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -424,11 +425,12 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE domain.name=? AND principal_group.name=?;";
     private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve,"
-            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, service_expiry_days, delete_protection) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?);";
+            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days,"
+            + " service_expiry_days, delete_protection, last_reviewed_time) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_GROUP = "UPDATE principal_group SET audit_enabled=?, self_serve=?, "
             + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?,"
-            + "member_expiry_days=?, service_expiry_days=?, delete_protection=?  WHERE group_id=?;";
+            + "member_expiry_days=?, service_expiry_days=?, delete_protection=?, last_reviewed_time=? WHERE group_id=?;";
     private static final String SQL_GET_GROUP_ID = "SELECT group_id FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
@@ -1993,6 +1995,9 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
+        java.sql.Timestamp lastReviewedTime = role.getLastReviewedDate() == null ? null :
+                new java.sql.Timestamp(role.getLastReviewedDate().millis());
+
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_ROLE)) {
             ps.setString(1, roleName);
             ps.setInt(2, domainId);
@@ -2014,6 +2019,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(18, processInsertValue(role.getDescription()));
             ps.setInt(19, processInsertValue(role.getGroupExpiryDays()));
             ps.setBoolean(20, processInsertValue(role.getDeleteProtection(), false));
+            ps.setTimestamp(21, lastReviewedTime);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2042,6 +2048,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_ROLE, ResourceUtils.roleResourceName(domainName, roleName));
         }
 
+        java.sql.Timestamp lastReviewedTime = role.getLastReviewedDate() == null ? null :
+                new java.sql.Timestamp(role.getLastReviewedDate().millis());
+
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_ROLE)) {
             ps.setString(1, processInsertValue(role.getTrust()));
             ps.setBoolean(2, processInsertValue(role.getAuditEnabled(), false));
@@ -2061,7 +2070,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(16, processInsertValue(role.getDescription()));
             ps.setInt(17, processInsertValue(role.getGroupExpiryDays()));
             ps.setBoolean(18, processInsertValue(role.getDeleteProtection(), false));
-            ps.setInt(19, roleId);
+            ps.setTimestamp(19, lastReviewedTime);
+            ps.setInt(20, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2620,14 +2630,11 @@ public class JDBCConnection implements ObjectStoreConnection {
     boolean insertPendingRoleMember(int roleId, int principalId, RoleMember roleMember,
             final String admin, final String auditRef, boolean roleMemberExists, final String caller) {
 
-        java.sql.Timestamp expiration = null;
-        if (roleMember.getExpiration() != null) {
-            expiration = new java.sql.Timestamp(roleMember.getExpiration().toDate().getTime());
-        }
-        java.sql.Timestamp reviewReminder = null;
-        if (roleMember.getReviewReminder() != null) {
-            reviewReminder = new java.sql.Timestamp(roleMember.getReviewReminder().toDate().getTime());
-        }
+        java.sql.Timestamp expiration = roleMember.getExpiration() == null ? null :
+                new java.sql.Timestamp(roleMember.getExpiration().millis());
+
+        java.sql.Timestamp reviewReminder = roleMember.getReviewReminder() == null ? null :
+                new java.sql.Timestamp(roleMember.getReviewReminder().millis());
 
         int affectedRows;
         if (roleMemberExists) {
@@ -2666,14 +2673,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             final String admin, final String principal, final String auditRef,
             boolean roleMemberExists, boolean approveRequest, final String caller) {
 
-        java.sql.Timestamp expiration = null;
-        if (roleMember.getExpiration() != null) {
-            expiration = new java.sql.Timestamp(roleMember.getExpiration().toDate().getTime());
-        }
-        java.sql.Timestamp reviewReminder = null;
-        if (roleMember.getReviewReminder() != null) {
-            reviewReminder = new java.sql.Timestamp(roleMember.getReviewReminder().toDate().getTime());
-        }
+        java.sql.Timestamp expiration = roleMember.getExpiration() == null ? null :
+                new java.sql.Timestamp(roleMember.getExpiration().millis());
+
+        java.sql.Timestamp reviewReminder = roleMember.getReviewReminder() == null ? null :
+                new java.sql.Timestamp(roleMember.getReviewReminder().millis());
 
         boolean result;
         String auditOperation;
@@ -5965,6 +5969,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainId == 0) {
             throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
         }
+
+        java.sql.Timestamp lastReviewedTime = group.getLastReviewedDate() == null ? null :
+                new java.sql.Timestamp(group.getLastReviewedDate().millis());
+
         try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_GROUP)) {
             ps.setString(1, groupName);
             ps.setInt(2, domainId);
@@ -5977,6 +5985,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(9, processInsertValue(group.getMemberExpiryDays()));
             ps.setInt(10, processInsertValue(group.getServiceExpiryDays()));
             ps.setBoolean(11, processInsertValue(group.getDeleteProtection(), false));
+            ps.setTimestamp(12, lastReviewedTime);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -6004,6 +6013,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw notFoundError(caller, ZMSConsts.OBJECT_GROUP, ResourceUtils.groupResourceName(domainName, groupName));
         }
 
+        java.sql.Timestamp lastReviewedTime = group.getLastReviewedDate() == null ? null :
+                new java.sql.Timestamp(group.getLastReviewedDate().millis());
+
         try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_GROUP)) {
             ps.setBoolean(1, processInsertValue(group.getAuditEnabled(), false));
             ps.setBoolean(2, processInsertValue(group.getSelfServe(), false));
@@ -6014,7 +6026,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(7, processInsertValue(group.getMemberExpiryDays()));
             ps.setInt(8, processInsertValue(group.getServiceExpiryDays()));
             ps.setBoolean(9, processInsertValue(group.getDeleteProtection(), false));
-            ps.setInt(10, groupId);
+            ps.setTimestamp(10, lastReviewedTime);
+            ps.setInt(11, groupId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -6368,10 +6381,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     boolean insertPendingGroupMember(int groupId, int principalId, GroupMember groupMember,
                                     final String admin, final String auditRef, boolean groupMemberExists, final String caller) {
 
-        java.sql.Timestamp expiration = null;
-        if (groupMember.getExpiration() != null) {
-            expiration = new java.sql.Timestamp(groupMember.getExpiration().toDate().getTime());
-        }
+        java.sql.Timestamp expiration = groupMember.getExpiration() == null ? null
+                : new java.sql.Timestamp(groupMember.getExpiration().millis());
 
         int affectedRows;
         if (groupMemberExists) {
@@ -6409,10 +6420,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                                      final String admin, final String principal, final String auditRef,
                                      boolean groupMemberExists, boolean approveRequest, final String caller) {
 
-        java.sql.Timestamp expiration = null;
-        if (groupMember.getExpiration() != null) {
-            expiration = new java.sql.Timestamp(groupMember.getExpiration().toDate().getTime());
-        }
+        java.sql.Timestamp expiration = groupMember.getExpiration() == null ? null
+                : new java.sql.Timestamp(groupMember.getExpiration().millis());
 
         boolean result;
         String auditOperation;

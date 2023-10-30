@@ -414,6 +414,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_JSON_MAX_NUMBER_LENGTH = "athenz.zms.json_max_number_length";
     public static final String ZMS_PROP_JSON_MAX_STRING_LENGTH = "athenz.zms.json_max_string_length";
 
+    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS = "athenz.zms.review_date_offset_days";
+    public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_DEFAULT = "3";
+
     // ZMS feature flag bits
     public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;
 }
