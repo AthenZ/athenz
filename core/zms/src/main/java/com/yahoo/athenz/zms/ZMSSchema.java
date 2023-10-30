@@ -212,7 +212,8 @@ public class ZMSSchema {
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("description", "String", true, "a description of the role")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
-            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false);
+            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false)
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.")
@@ -221,8 +222,7 @@ public class ZMSSchema {
             .arrayField("members", "MemberName", true, "deprecated and not used")
             .arrayField("roleMembers", "RoleMember", true, "members with expiration and other member attributes. might be empty or null, if trust is set")
             .field("trust", "DomainName", true, "a trusted domain to delegate membership decisions to")
-            .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role");
+            .arrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes");
 
         sb.structType("Roles")
             .comment("The representation for a list of roles with full details")
@@ -508,15 +508,15 @@ public class ZMSSchema {
             .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days")
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
-            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled groups.", false);
+            .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled groups.", false)
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")
             .field("name", "ResourceName", false, "name of the group")
             .field("modified", "Timestamp", true, "last modification timestamp of the group")
             .arrayField("groupMembers", "GroupMember", true, "members with expiration")
-            .arrayField("auditLog", "GroupAuditLog", true, "an audit log for group membership changes")
-            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group");
+            .arrayField("auditLog", "GroupAuditLog", true, "an audit log for group membership changes");
 
         sb.structType("Groups")
             .comment("The representation for a list of groups with full details")

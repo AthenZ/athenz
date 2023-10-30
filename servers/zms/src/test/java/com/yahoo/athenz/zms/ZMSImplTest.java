@@ -28198,7 +28198,7 @@ public class ZMSImplTest {
                 .thenReturn("putserviceidentity").thenReturn("putserviceidentity").thenReturn("putserviceidentity")
                 .thenReturn("putserviceidentity").thenReturn("putserviceidentity")
                 .thenReturn("postsubdomain").thenReturn("postsubdomain") // called twice in domain api
-                .thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup") // called 4 times in group api
+                .thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup").thenReturn("putgroup") // called 5 times in group api
                 .thenReturn("putgroupmembership");
 
         TestAuditLogger alogger = new TestAuditLogger();

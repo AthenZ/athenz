@@ -55,6 +55,7 @@ type GroupMeta Struct {
     Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
     Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled groups.
+    Timestamp lastReviewedDate (optional); //last review timestamp of the group
 }
 
 //The representation for a Group with set of members.
@@ -63,7 +64,6 @@ type Group GroupMeta {
     Timestamp modified (optional); //last modification timestamp of the group
     Array<GroupMember> groupMembers (optional);  //members with expiration
     Array<GroupAuditLog> auditLog (optional); //an audit log for group membership changes
-    Timestamp lastReviewedDate (optional); //last review timestamp of the group
 }
 
 //The representation for a list of groups with full details
