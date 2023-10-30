@@ -19,7 +19,6 @@
 package com.yahoo.athenz.zms;
 
 import com.google.common.io.Resources;
-import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
@@ -37,6 +36,8 @@ import org.mockito.MockitoAnnotations;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.testcontainers.containers.MySQLContainer;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -91,7 +92,7 @@ public class ZMSTestInitializer {
     public static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
-    private EmbeddedMysql mysqld;
+    private MySQLContainer<?> mysqld;
 
     public void startMemoryMySQL() {
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
@@ -103,14 +104,18 @@ public class ZMSTestInitializer {
 
     public void setDatabaseReadOnlyMode(boolean readOnlyMode) {
         zms.dbService.defaultRetryCount = 3;
-        ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode);
+        try {
+            ZMSTestUtils.setDatabaseReadOnlyMode(mysqld, readOnlyMode, DB_USER, DB_PASS);
+        } catch (IOException | InterruptedException e) {
+            fail();
+        }
     }
 
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory");
-        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, mysqld.getJdbcUrl());
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
 

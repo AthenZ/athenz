@@ -15,48 +15,72 @@
  */
 package com.yahoo.athenz.zms;
 
-import com.wix.mysql.EmbeddedMysql;
-import com.wix.mysql.Sources;
-import com.wix.mysql.config.MysqldConfig;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
-import static com.wix.mysql.ScriptResolver.classPathScript;
-import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
-import static com.wix.mysql.distribution.Version.v5_7_latest;
-
 public class ZMSTestUtils {
 
-    public static EmbeddedMysql startMemoryMySQL(final String userName, final String password) {
+    private static final Logger LOG = LoggerFactory.getLogger(ZMSTestUtils.class);
 
-        System.out.println("Starting Embedded MySQL server...");
+    public static MySQLContainer startMemoryMySQL(final String userName, final String password) {
 
-        final MysqldConfig config = aMysqldConfig(v5_7_latest)
-                .withPort(3310)
-                .withUser(userName, password)
-                .build();
+        System.out.println("Starting MySQL server using testcontainers...");
+        MySQLContainer<?> mysql = null;
+        try {
 
-        File sqlSchemaFile = new File("schema/zms_server.sql");
-        return anEmbeddedMysql(config)
-                .addSchema("zms_server", Sources.fromFile(sqlSchemaFile))
-                .start();
+            String externalInitScriptPath = "schema/zms_server.sql";
+            File destinationInitScript = new File("src/test/resources/mysql/zms_server.sql");
+            FileUtils.copyFile(new File(externalInitScriptPath), destinationInitScript);
+            LOG.info("Copied {} to {}", externalInitScriptPath, destinationInitScript.getAbsolutePath());
+
+            mysql = new MySQLContainer<>(DockerImageName.parse("mysql/mysql-server:5.7").asCompatibleSubstituteFor("mysql"))
+                    .withDatabaseName("zms_server")
+                    .withUsername(userName)
+                    .withPassword(password)
+                    .withEnv("MYSQL_ROOT_PASSWORD", password)
+                    .withInitScript("mysql/zms_server.sql")
+                    .withStartupTimeout(Duration.ofMinutes(1))
+                    .withCopyFileToContainer(
+                            MountableFile.forClasspathResource("mysql/"),
+                            "/athenz-mysql-scripts/");
+            mysql.start();
+            mysql.followOutput(new Slf4jLogConsumer(LOG));
+        } catch (Throwable t) {
+            LOG.error("Unable to start MySQL server using testcontainers", t);
+        }
+
+        return mysql;
     }
 
-    public static void stopMemoryMySQL(EmbeddedMysql mysqld) {
-        System.out.println("Stopping Embedded MySQL server...");
+    public static void stopMemoryMySQL(MySQLContainer<?> mysqld) {
+        System.out.println("Stopping testcontainers MySQL server...");
         mysqld.stop();
     }
 
-    public static void setDatabaseReadOnlyMode(EmbeddedMysql mysqld, boolean readOnly) {
-        final String scriptName = readOnly ? "mysql/set-read-only.sql" : "mysql/unset-read-only.sql";
-        mysqld.executeScripts("zms_server", classPathScript(scriptName));
+    public static void setDatabaseReadOnlyMode(MySQLContainer<?> mysqld, boolean readOnly, final String username, final String password) throws IOException, InterruptedException {
+        final String scriptName = readOnly ? "set-read-only.sql" : "unset-read-only.sql";
+        try {
+            mysqld.execInContainer("mysql", "-u", "root", "-p"+password, "zms_server", "-e", "source /athenz-mysql-scripts/" + scriptName);
+        } catch (Throwable t) {
+            LOG.error("Unable to execute script in testcontainers mysql container: " + scriptName, t);
+        }
+
     }
 
     public static boolean verifyDomainRoleMember(DomainRoleMember domainRoleMember, MemberRole memberRole) {

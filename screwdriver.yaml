@@ -2,12 +2,15 @@
 ---
 
 shared:
-  image: openjdk:11
+  image: eclipse-temurin:11-jdk-focal
   annotations:
     screwdriver.cd/cpu: 8
     screwdriver.cd/ram: 16
     screwdriver.cd/disk: HIGH
     screwdriver.cd/timeout: 120
+    screwdriver.cd/dockerEnabled: true
+    screwdriver.cd/dockerCpu: TURBO
+    screwdriver.cd/dockerRam: HIGH
   environment:
     USER_SHELL_BIN: /bin/bash
   

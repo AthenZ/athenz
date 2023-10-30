@@ -19,7 +19,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import com.google.common.io.Resources;
-import com.wix.mysql.EmbeddedMysql;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
@@ -46,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.MySQLContainer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -76,7 +76,7 @@ public class DBServiceTest {
     private String pubKeyK1         = null;
     private String pubKeyK2         = null;
     private final String auditRef   = "audittest";
-    private EmbeddedMysql mysqld;
+    private MySQLContainer<?> mysqld;
 
     // typically used when creating and deleting domains with all the tests
     //
@@ -111,7 +111,7 @@ public class DBServiceTest {
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
 
         System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.zms.store.impl.JDBCObjectStoreFactory");
-        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, "jdbc:mysql://localhost:3310/zms_server");
+        System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, mysqld.getJdbcUrl());
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
 
