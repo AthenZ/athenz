@@ -27,8 +27,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <athenz.version>1.11.30</athenz.version>
-    <gcp.bom.version>26.13.0</gcp.bom.version>
+    <athenz.version>1.11.45</athenz.version>
+    <gcp.bom.version>26.26.0</gcp.bom.version>
   </properties>
 
   <dependencyManagement>

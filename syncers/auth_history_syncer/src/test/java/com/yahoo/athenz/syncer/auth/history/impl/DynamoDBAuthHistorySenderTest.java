@@ -75,6 +75,9 @@ public class DynamoDBAuthHistorySenderTest {
 
     @Test
     public void testDynamoDBAuthHistorySender() throws ExecutionException, InterruptedException {
+
+        System.setProperty("software.amazon.awssdk.http.service.impl",
+                "software.amazon.awssdk.http.urlconnection.UrlConnectionSdkHttpService");
         System.setProperty(PROP_CREATE_TABLE, "true");
         LocalDynamoDbAsyncClientFactory localDynamoDbAsyncClientFactory = new LocalDynamoDbAsyncClientFactory();
         localDynamoDbAsyncClientFactory.init();
@@ -107,6 +110,8 @@ public class DynamoDBAuthHistorySenderTest {
 
         assertEquals(0, records.size());
         localDynamoDbAsyncClientFactory.terminate();
+
+        System.clearProperty("software.amazon.awssdk.http.service.impl");
         System.clearProperty(PROP_CREATE_TABLE);
     }
 

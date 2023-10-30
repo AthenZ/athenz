@@ -33,7 +33,7 @@
 
     <properties>
         <code.coverage.min>0.7738</code.coverage.min>
-        <aws.dynamodb.local.version>2.0.0</aws.dynamodb.local.version>
+        <aws.dynamodb.local.version>2.1.0</aws.dynamodb.local.version>
         <sqlite4java.version>1.0.392</sqlite4java.version>
         <junit.version>4.13.2</junit.version>
     </properties>
@@ -96,6 +96,11 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb-enhanced</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -227,31 +232,4 @@
             </plugins>
         </pluginManagement>
     </build>
-    <profiles>
-        <profile>
-            <id>arm-os-build</id>
-            <activation>
-                <os>
-                    <arch>aarch64</arch>
-                </os>
-            </activation>
-            <properties>
-                <code.coverage.min>0.4971</code.coverage.min>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/DynamoDBAuthHistorySenderTest.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
