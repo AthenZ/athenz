@@ -3020,19 +3020,19 @@ public class ZTSClientTest {
             client.getAWSCredentialProvider("domain", "role");
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getCode(), 503);
         }
         try {
             client.getAWSCredentialProvider("domain", "role", "id", 100, 300);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getCode(), 503);
         }
         try {
             client.getAWSCredentialProvider("domain", "role", "id", null, null);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getCode(), 503);
         }
         client.close();
     }
@@ -4165,4 +4165,19 @@ public class ZTSClientTest {
         }
     }
 
+    @Test
+    public void testGetExceptionCode() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+
+        assertEquals(503, client.getExceptionCode(new java.net.UnknownHostException()));
+        assertEquals(503, client.getExceptionCode(new java.net.SocketException()));
+        assertEquals(503, client.getExceptionCode(new java.net.SocketTimeoutException()));
+        assertEquals(400, client.getExceptionCode(new ZTSClientException(403, "Forbidden")));
+
+        client.close();
+    }
 }

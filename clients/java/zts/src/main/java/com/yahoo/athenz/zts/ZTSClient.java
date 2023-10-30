@@ -2792,7 +2792,7 @@ public class ZTSClient implements Closeable {
             }
 
             LOG.error("Unable to get AWS Creds", ex);
-            throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
+            throw new ZTSClientException(getExceptionCode(ex), ex.getMessage());
         }
         
         // need to add the token to our cache. If our principal was
@@ -2807,6 +2807,17 @@ public class ZTSClient implements Closeable {
             }
         }
         return awsCred;
+    }
+
+    int getExceptionCode(Exception ex) {
+        // for any temporary with the network or dns, we'll return service
+        // unavailable error code so the background thread will continue
+        // to retry the request instead of dropping it as invalid
+        if (ex instanceof java.net.UnknownHostException || ex instanceof java.net.SocketException
+                || ex instanceof java.net.SocketTimeoutException) {
+            return ResourceException.SERVICE_UNAVAILABLE;
+        }
+        return ResourceException.BAD_REQUEST;
     }
 
     String encodeAWSRoleName(final String roleName) {
