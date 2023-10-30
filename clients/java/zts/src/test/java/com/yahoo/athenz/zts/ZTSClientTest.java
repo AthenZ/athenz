@@ -41,9 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
+import java.security.cert.*;
 import java.util.*;
 
 import javax.net.ssl.HostnameVerifier;
@@ -2221,27 +2219,32 @@ public class ZTSClientTest {
     }
 
     @Test
-    public void testHostnamVerifierDnsMatchStandard() {
+    public void testHostnamVerifierDnsMatchStandard() throws SSLPeerUnverifiedException, CertificateParsingException {
 
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("host1");
+        ZTSClient.AWSHostNameVerifier hostnameVerifier = new ZTSClient.AWSHostNameVerifier("host1");
 
-        ArrayList<List<?>> altNames = new ArrayList<>();
-        ArrayList<Object> rfcName = new ArrayList<>();
-        rfcName.add(1);
-        rfcName.add("rfcname");
-        altNames.add(rfcName);
+        SSLSession session = Mockito.mock(SSLSession.class);
 
-        ArrayList<Object> dnsName = new ArrayList<>();
-        dnsName.add(2);
-        dnsName.add("host1");
-        altNames.add(dnsName);
+        ArrayList<List<?>> altNames1 = new ArrayList<>();
+        ArrayList<Object> rfcName1 = new ArrayList<>();
+        rfcName1.add(1);
+        rfcName1.add("rfcname");
+        altNames1.add(rfcName1);
 
-        assertTrue(hostnameVerifier.matchDnsHostname(altNames));
+        ArrayList<Object> dnsName1 = new ArrayList<>();
+        dnsName1.add(2);
+        dnsName1.add("host1");
+        altNames1.add(dnsName1);
+
+        Certificate[] certs1 = new Certificate[1];
+        X509Certificate cert1 = Mockito.mock(X509Certificate.class);
+        Mockito.when(cert1.getSubjectAlternativeNames()).thenReturn(altNames1);
+        certs1[0] = cert1;
 
         ArrayList<List<?>> altNames2 = new ArrayList<>();
         ArrayList<Object> rfcName2 = new ArrayList<>();
@@ -2254,86 +2257,16 @@ public class ZTSClientTest {
         dnsName2.add("host11");
         altNames2.add(dnsName2);
 
-        assertFalse(hostnameVerifier.matchDnsHostname(altNames2));
+        Certificate[] certs2 = new Certificate[1];
+        X509Certificate cert2 = Mockito.mock(X509Certificate.class);
+        Mockito.when(cert2.getSubjectAlternativeNames()).thenReturn(altNames2);
+        certs2[0] = cert2;
 
-        client.close();
-    }
+        Mockito.when(session.getPeerCertificates()).thenReturn(certs1).thenReturn(certs2);
 
-    @Test
-    public void testHostnamVerifierDnsMatchWildcard() {
+        assertTrue(hostnameVerifier.verify("host1", session));
+        assertFalse(hostnameVerifier.verify("host1", session));
 
-        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
-        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("*.host1");
-
-        ArrayList<List<?>> altNames = new ArrayList<>();
-        ArrayList<Object> rfcName = new ArrayList<>();
-        rfcName.add(1);
-        rfcName.add("rfcname");
-        altNames.add(rfcName);
-
-        ArrayList<Object> dnsName = new ArrayList<>();
-        dnsName.add(2);
-        dnsName.add("*.host1");
-        altNames.add(dnsName);
-
-        assertTrue(hostnameVerifier.matchDnsHostname(altNames));
-
-        ArrayList<List<?>> altNames2 = new ArrayList<>();
-        ArrayList<Object> rfcName2 = new ArrayList<>();
-        rfcName2.add(1);
-        rfcName2.add("rfcname");
-        altNames2.add(rfcName2);
-
-        ArrayList<Object> dnsName2 = new ArrayList<>();
-        dnsName2.add(2);
-        dnsName2.add("*.host11");
-        altNames2.add(dnsName2);
-
-        assertFalse(hostnameVerifier.matchDnsHostname(altNames2));
-
-        client.close();
-    }
-
-    @Test
-    public void testHostnamVerifierDnsMatchNone() {
-
-        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
-        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("host1");
-
-        ArrayList<List<?>> altNames = new ArrayList<>();
-        ArrayList<Object> rfcName = new ArrayList<>();
-        rfcName.add(1);
-        rfcName.add("rfcname");
-        altNames.add(rfcName);
-
-        ArrayList<Object> dnsName = new ArrayList<>();
-        dnsName.add(3);
-        dnsName.add("host1");
-        altNames.add(dnsName);
-
-        assertFalse(hostnameVerifier.matchDnsHostname(altNames));
-        client.close();
-    }
-
-    @Test
-    public void testHostnamVerifierDnsNull() {
-
-        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
-        Principal principal = SimplePrincipal.create("user_domain", "user",
-                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
-        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
-        client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("host1");
-
-        assertFalse(hostnameVerifier.matchDnsHostname(null));
         client.close();
     }
 
@@ -2676,7 +2609,7 @@ public class ZTSClientTest {
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("host1");
+        ZTSClient.AWSHostNameVerifier hostnameVerifier = new ZTSClient.AWSHostNameVerifier("host1");
 
         SSLSession session = Mockito.mock(SSLSession.class);
         Mockito.when(session.getPeerCertificates()).thenReturn(null);
@@ -2719,7 +2652,7 @@ public class ZTSClientTest {
                 "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
         client.setZTSRDLGeneratedClient(ztsClientMock);
-        ZTSClient.AWSHostNameVerifier hostnameVerifier = client.new AWSHostNameVerifier("host1");
+        ZTSClient.AWSHostNameVerifier hostnameVerifier = new ZTSClient.AWSHostNameVerifier("host1");
 
         InputStream is = new ByteArrayInputStream(test_cert.getBytes(StandardCharsets.UTF_8));
 
@@ -2749,9 +2682,6 @@ public class ZTSClientTest {
         RoleToken roleToken = client.postRoleCertificateRequest("coretech", "role1", req);
         assertNotNull(roleToken);
 
-        RoleCertificate roleCertificate = client.postRoleCertificateRequest(req);
-        assertNotNull(roleCertificate);
-
         try {
             client.postRoleCertificateRequest("exc", "no-role", req);
             fail();
@@ -2761,6 +2691,36 @@ public class ZTSClientTest {
 
         try {
             client.postRoleCertificateRequest("good-domain", "no-role", req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        client.close();
+    }
+
+    @Test
+    public void testPostRoleCertificateRequestExt() {
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        RoleCertificateRequest req = new RoleCertificateRequest().setCsr("csr");
+        RoleCertificate roleCert = client.postRoleCertificateRequest(req);
+        assertNotNull(roleCert);
+
+        try {
+            req.setCsr("exc");
+            client.postRoleCertificateRequest(req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            req.setCsr("no-role");
+            client.postRoleCertificateRequest(req);
             fail();
         } catch (ZTSClientException ex) {
             assertEquals(ex.getCode(), 403);
@@ -2786,6 +2746,48 @@ public class ZTSClientTest {
         assertEquals(uris.size(), 2);
         assertEquals(uris.get(0), "spiffe://sports/ra/readers");
         assertEquals(uris.get(1), "athenz://principal/coretech.test");
+
+        // check failure cases
+
+        try {
+            ZTSClient.generateRoleCertificateRequest(null,
+                    "test", "sports", "readers", privateKey, "aws", 3600);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        try {
+            ZTSClient.generateRoleCertificateRequest("coretech",
+                    null, "sports", "readers", privateKey, "aws", 3600);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        try {
+            ZTSClient.generateRoleCertificateRequest("coretech",
+                    "api", null, "readers", privateKey, "aws", 3600);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        try {
+            ZTSClient.generateRoleCertificateRequest("coretech",
+                    "api", "sports", null, privateKey, "aws", 3600);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
+
+        try {
+            ZTSClient.generateRoleCertificateRequest("coretech",
+                    "api", "sports", "readers", privateKey, null, 3600);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof IllegalArgumentException);
+        }
     }
 
     @Test

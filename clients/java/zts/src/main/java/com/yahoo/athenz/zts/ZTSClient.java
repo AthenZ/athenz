@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1510,7 +1509,7 @@ public class ZTSClient implements Closeable {
     }
     
     /**
-     * Generate a Instance Refresh request that could be sent to ZTS to
+     * Generate an Instance Refresh request that could be sent to ZTS to
      * request a TLS certificate for a service.
      * @param principalDomain name of the principal's domain
      * @param principalService name of the principal's service
@@ -1565,7 +1564,7 @@ public class ZTSClient implements Closeable {
     }
     
     /**
-     * Generate a Instance Refresh request that could be sent to ZTS to
+     * Generate an Instance Refresh request that could be sent to ZTS to
      * request a TLS certificate for a service.
      * @param principalDomain name of the principal's domain
      * @param principalService name of the principal's service
@@ -2258,10 +2257,10 @@ public class ZTSClient implements Closeable {
             return null;
         }
 
-        // before returning our cache hit we need to make sure it
+        // before returning our cache hit we need to make sure
         // it was at least 1/4th time left before the token expires
         // if the expiryTime is -1 then we return the token as
-        // long as its not expired
+        // long as it's not expired
 
         if (accessTokenResponseCacheEntry.isExpired(expiryTime)) {
             if (accessTokenResponseCacheEntry.isExpired(-1)) {
@@ -2451,7 +2450,7 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * For AWS Lambda functions generate a new private key, request a
+     * For AWS Lambda functions generate a new private key, request an
      * x.509 certificate based on the requested CSR and return both to
      * the client in order to establish tls connections with other
      * Athenz enabled services.
@@ -2485,7 +2484,7 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
 
-        // we need to generate an csr with an instance register object
+        // we need to generate a csr with an instance register object
         
         InstanceRegisterInformation info = new InstanceRegisterInformation();
         info.setDomain(domainName.toLowerCase());
@@ -2913,7 +2912,7 @@ public class ZTSClient implements Closeable {
      * Requests the ZTS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
      * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource YRN. YRN is defined as {ServiceName})?:({LocationName})?:)?{ResourceName}"
+     * @param resource resource YRN. YRN is defined as ({ServiceName})?:({LocationName})?:)?{ResourceName}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
      *        check the specified trusted domain and ignore all others
      * @param principal (optional) carry out the access check for specified principal
@@ -2934,7 +2933,7 @@ public class ZTSClient implements Closeable {
      * Requests the ZTS to indicate whether or not the specific request for the
      * specified resource with authentication details will be granted or not.
      * @param action value of the action to be carried out (e.g. "UPDATE", "DELETE")
-     * @param resource resource YRN. YRN is defined as {ServiceName})?:({LocationName})?:)?{ResourceName}"
+     * @param resource resource YRN. YRN is defined as ({ServiceName})?:({LocationName})?:)?{ResourceName}"
      * @param trustDomain (optional) if the access checks involves cross domain check only
      *        check the specified trusted domain and ignore all others
      * @param principal (optional) carry out the access check for specified principal
@@ -3185,7 +3184,7 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, "missing required attribute(s)");
         }
 
-        OIDCResponse oidcResponse = null;
+        OIDCResponse oidcResponse;
 
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
@@ -3697,7 +3696,7 @@ public class ZTSClient implements Closeable {
         }
     }
     
-    public class AWSHostNameVerifier implements HostnameVerifier {
+    public static class AWSHostNameVerifier implements HostnameVerifier {
 
         String dnsHostname;
         
@@ -3713,49 +3712,16 @@ public class ZTSClient implements Closeable {
                 certs = session.getPeerCertificates();
             } catch (SSLPeerUnverifiedException ignored) {
             }
-            if (certs == null) {
+            if (certs == null || certs.length == 0) {
                 return false;
             }
-            
-            for (Certificate cert : certs) {
-                try {
-                    X509Certificate x509Cert = (X509Certificate) cert;
-                    if (matchDnsHostname(x509Cert.getSubjectAlternativeNames())) {
-                        return true;
-                    }
-                } catch (CertificateParsingException ignored) {
+
+            List<String> certDnsNames = Crypto.extractX509CertDnsNames((X509Certificate) certs[0]);
+            for (String dnsName : certDnsNames) {
+                if (dnsHostname.equalsIgnoreCase(dnsName)) {
+                    return true;
                 }
             }
-            return false;
-        }
-        
-        boolean matchDnsHostname(Collection<List<?>> altNames) {
-            
-            if (altNames == null) {
-                return false;
-            }
-            
-            // GeneralName ::= CHOICE {
-            //     otherName                       [0]     OtherName,
-            //     rfc822Name                      [1]     IA5String,
-            //     dNSName                         [2]     IA5String,
-            //     x400Address                     [3]     ORAddress,
-            //     directoryName                   [4]     Name,
-            //     ediPartyName                    [5]     EDIPartyName,
-            //     uniformResourceIdentifier       [6]     IA5String,
-            //     iPAddress                       [7]     OCTET STRING,
-            //     registeredID                    [8]     OBJECT IDENTIFIER}
-            
-            for (@SuppressWarnings("rawtypes") List item : altNames) {
-                Integer type = (Integer) item.get(0);
-                if (type == 2) {
-                    String dns = (String) item.get(1);
-                    if (dnsHostname.equalsIgnoreCase(dns)) {
-                        return true;
-                    }
-                }
-            }
-            
             return false;
         }
     }
@@ -3765,7 +3731,7 @@ public class ZTSClient implements Closeable {
         ztsTokenProviders = ServiceLoader.load(ZTSClientService.class);
         svcLoaderCacheKeys = new AtomicReference<>();
 
-        // if have service loader implementations, then stuff role tokens into cache
+        // if we have service loader implementations, then stuff role tokens into cache
         // and keep track of these tokens so that they will get refreshed from
         // service loader and not zts server
         
@@ -3920,7 +3886,7 @@ public class ZTSClient implements Closeable {
         // we need to make sure we don't have duplicates in
         // our prefetch list so since we got a brand new
         // token now we're going to remove any others we have
-        // in the list and add this one. Our items equals
+        // in the list and add this one. Our items equal
         // method defines what attributes we're looking for
         // when comparing two items
 
