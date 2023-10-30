@@ -245,6 +245,7 @@ func init() {
 	tRoleMeta.Field("description", "String", true, nil, "a description of the role")
 	tRoleMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	tRoleMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled roles.")
+	tRoleMeta.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the role")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -255,7 +256,6 @@ func init() {
 	tRole.ArrayField("roleMembers", "RoleMember", true, "members with expiration and other member attributes. might be empty or null, if trust is set")
 	tRole.Field("trust", "DomainName", true, nil, "a trusted domain to delegate membership decisions to")
 	tRole.ArrayField("auditLog", "RoleAuditLog", true, "an audit log for role membership changes")
-	tRole.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the role")
 	sb.AddType(tRole.Build())
 
 	tRoles := rdl.NewStructTypeBuilder("Struct", "Roles")
@@ -587,6 +587,7 @@ func init() {
 	tGroupMeta.MapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
 	tGroupMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
 	tGroupMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled groups.")
+	tGroupMeta.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the group")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")
@@ -595,7 +596,6 @@ func init() {
 	tGroup.Field("modified", "Timestamp", true, nil, "last modification timestamp of the group")
 	tGroup.ArrayField("groupMembers", "GroupMember", true, "members with expiration")
 	tGroup.ArrayField("auditLog", "GroupAuditLog", true, "an audit log for group membership changes")
-	tGroup.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the group")
 	sb.AddType(tGroup.Build())
 
 	tGroups := rdl.NewStructTypeBuilder("Struct", "Groups")

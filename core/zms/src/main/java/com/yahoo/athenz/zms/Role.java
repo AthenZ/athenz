@@ -74,6 +74,9 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean deleteProtection;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Timestamp lastReviewedDate;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -90,9 +93,6 @@ public class Role {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<RoleAuditLog> auditLog;
-    @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Timestamp lastReviewedDate;
 
     public Role setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -220,6 +220,13 @@ public class Role {
     public Boolean getDeleteProtection() {
         return deleteProtection;
     }
+    public Role setLastReviewedDate(Timestamp lastReviewedDate) {
+        this.lastReviewedDate = lastReviewedDate;
+        return this;
+    }
+    public Timestamp getLastReviewedDate() {
+        return lastReviewedDate;
+    }
     public Role setName(String name) {
         this.name = name;
         return this;
@@ -261,13 +268,6 @@ public class Role {
     }
     public List<RoleAuditLog> getAuditLog() {
         return auditLog;
-    }
-    public Role setLastReviewedDate(Timestamp lastReviewedDate) {
-        this.lastReviewedDate = lastReviewedDate;
-        return this;
-    }
-    public Timestamp getLastReviewedDate() {
-        return lastReviewedDate;
     }
 
     @Override
@@ -331,6 +331,9 @@ public class Role {
             if (deleteProtection == null ? a.deleteProtection != null : !deleteProtection.equals(a.deleteProtection)) {
                 return false;
             }
+            if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
+                return false;
+            }
             if (name == null ? a.name != null : !name.equals(a.name)) {
                 return false;
             }
@@ -347,9 +350,6 @@ public class Role {
                 return false;
             }
             if (auditLog == null ? a.auditLog != null : !auditLog.equals(a.auditLog)) {
-                return false;
-            }
-            if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
                 return false;
             }
         }

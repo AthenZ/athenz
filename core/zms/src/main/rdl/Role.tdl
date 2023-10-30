@@ -54,6 +54,7 @@ type RoleMeta Struct {
     String description (optional); //a description of the role
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
     Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled roles.
+    Timestamp lastReviewedDate (optional); //last review timestamp of the role
 }
 
 //The representation for a Role with set of members.
@@ -70,7 +71,6 @@ type Role RoleMeta {
     Array<RoleMember> roleMembers (optional);  //members with expiration and other member attributes. might be empty or null, if trust is set
     DomainName trust (optional); //a trusted domain to delegate membership decisions to
     Array<RoleAuditLog> auditLog (optional); //an audit log for role membership changes
-    Timestamp lastReviewedDate (optional); //last review timestamp of the role
 }
 
 //The representation for a list of roles with full details
