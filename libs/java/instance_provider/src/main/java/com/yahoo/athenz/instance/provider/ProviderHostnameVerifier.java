@@ -40,16 +40,10 @@ public class ProviderHostnameVerifier implements HostnameVerifier {
             certs = session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException ignored) {
         }
-        if (certs == null) {
+        if (certs == null || certs.length == 0) {
             return false;
         }
-        
-        for (Certificate cert : certs) {
-            final X509Certificate x509Cert = (X509Certificate) cert;
-            if (serviceName.equals(Crypto.extractX509CertCommonName(x509Cert))) {
-                return true;
-            }
-        }
-        return false;
+
+        return serviceName.equals(Crypto.extractX509CertCommonName((X509Certificate) certs[0]));
     }
 }

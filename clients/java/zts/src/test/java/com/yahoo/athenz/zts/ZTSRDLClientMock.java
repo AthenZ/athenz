@@ -503,7 +503,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     @Override
     public RoleToken postRoleCertificateRequest(String domainName, String roleName, RoleCertificateRequest req) {
         if (domainName.equals("exc")) {
-            throw new ResourceException(400, "Invalid request");
+            throw new IllegalArgumentException();
         } if (roleName.equals("no-role")) {
             throw new ResourceException(403, "Forbidden");
         }
@@ -512,6 +512,11 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     @Override
     public RoleCertificate postRoleCertificateRequestExt(RoleCertificateRequest req) {
+        if (req.getCsr().contains("exc")) {
+            throw new IllegalArgumentException();
+        } if (req.getCsr().contains("no-role")) {
+            throw new ResourceException(403, "Forbidden");
+        }
         return new RoleCertificate().setX509Certificate("x509cert");
     }
 
