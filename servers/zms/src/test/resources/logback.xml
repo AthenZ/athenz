@@ -49,7 +49,10 @@
   <logger name="AuditSoxLogger" level="INFO" additivity="false">
     <appender-ref ref="AUDIT" />
   </logger>
-
+  <logger name="org.testcontainers" level="INFO"/>
+  <logger name="tc" level="INFO"/>
+  <logger name="com.github.dockerjava" level="WARN"/>
+  <logger name="com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.wire" level="OFF"/>
   <root>
     <level value="DEBUG" />
     <appender-ref ref="STDOUT" />

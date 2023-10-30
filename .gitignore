@@ -14,6 +14,7 @@ servers/zms/zms_logs/
 servers/zms/zms_root/
 servers/zms/bin/
 servers/zms/schema/zms_server.mwb.bak
+servers/zms/src/test/resources/mysql/zms_server.sql
 servers/zts/zts_logs/
 servers/zts/zts_store/
 servers/zts/bin/
