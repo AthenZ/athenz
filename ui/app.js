@@ -68,6 +68,7 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
                     req.query
                 );
             });
+            
             expressApp.get('/', (req, res) => {
                 return nextApp.render(req, res, `/index`, req.query);
             });
