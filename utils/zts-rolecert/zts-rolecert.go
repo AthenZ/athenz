@@ -18,11 +18,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ardielle/ardielle-go/rdl"
-
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
-	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
+	"github.com/ardielle/ardielle-go/rdl"
 )
 
 type signer struct {
@@ -287,7 +285,7 @@ func getRoleCertificate(client *zts.ZTSClient, csr, roleDomain, roleName, roleCe
 }
 
 func newSigner(privateKeyPEM []byte) (*signer, error) {
-	key, algorithm, err := zmssvctoken.ExtractSignerInfo(privateKeyPEM)
+	key, algorithm, err := athenzutils.ExtractSignerInfo(privateKeyPEM)
 	if err != nil {
 		return nil, err
 	}

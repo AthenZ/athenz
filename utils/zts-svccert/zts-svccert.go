@@ -370,7 +370,7 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 }
 
 func newSigner(privateKeyPEM []byte) (*signer, error) {
-	key, algorithm, err := zmssvctoken.ExtractSignerInfo(privateKeyPEM)
+	key, algorithm, err := athenzutils.ExtractSignerInfo(privateKeyPEM)
 	if err != nil {
 		return nil, err
 	}
