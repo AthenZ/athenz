@@ -31,6 +31,7 @@ import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.*;
@@ -154,6 +155,12 @@ public class CertFailedRefreshNotificationTaskTest {
         dataStore = Mockito.mock(DataStore.class);
         hostnameResolver = Mockito.mock(HostnameResolver.class);
         notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
+    }
+
+    @BeforeMethod
+    public void resetDatastore() {
+        Mockito.reset(dataStore);
+        Mockito.reset(hostnameResolver);
     }
 
     @Test

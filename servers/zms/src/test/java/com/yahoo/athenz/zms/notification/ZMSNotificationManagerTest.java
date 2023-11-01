@@ -140,6 +140,8 @@ public class ZMSNotificationManagerTest {
         Mockito.when(mockAthenzDomain.getRoles()).thenReturn(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("testdom")).thenReturn(roles);
+        Mockito.when(dbsvc.getRole("testdom", "role1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(r);
 
         Set<String> recipients = new HashSet<>();
         recipients.add("testdom:role.role1");

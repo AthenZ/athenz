@@ -220,7 +220,7 @@ public class NotificationManagerTest {
         NotificationToEmailConverter converter = Mockito.mock(NotificationToEmailConverter.class);
         NotificationToMetricConverter metricConverter = Mockito.mock(NotificationToMetricConverter.class);
         Notification notification = notificationCommon.createNotification(recipient, details, converter, metricConverter);
-        Mockito.verify(rolesProvider, Mockito.times(1)).getRolesByDomain(Mockito.any());
+        Mockito.verify(rolesProvider, Mockito.times(1)).getRole("test.domain", "admin", false, true, false);
         assertNull(notification);
     }
 

@@ -46,6 +46,8 @@ public class RoleMemberNotificationCommonTest {
         admin.setName("groupdomain1:role.admin");
         adminMembers.add(admin);
         Mockito.when(dbsvc.getRolesByDomain(eq("groupdomain1"))).thenReturn(adminMembers);
+        Mockito.when(dbsvc.getRole("groupdomain1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(admin);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
                 USER_DOMAIN_PREFIX, false);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -149,6 +151,8 @@ public class RoleMemberNotificationCommonTest {
         Role adminRole = new Role().setName("athenz1:role.admin").setRoleMembers(Arrays.asList(
                 new RoleMember().setMemberName("user.testadmin")));
         Mockito.when(dbsvc.getRolesByDomain(eq("athenz1"))).thenReturn(Arrays.asList(adminRole));
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(
                 dbsvc, USER_DOMAIN_PREFIX, false);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -248,6 +252,8 @@ public class RoleMemberNotificationCommonTest {
         Role adminRole = new Role().setName("athenz1:role.admin").setRoleMembers(Arrays.asList(
                 new RoleMember().setMemberName("user.testadmin")));
         Mockito.when(dbsvc.getRolesByDomain(eq("athenz1"))).thenReturn(Arrays.asList(adminRole));
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(
                 dbsvc, USER_DOMAIN_PREFIX, false);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -325,7 +331,8 @@ public class RoleMemberNotificationCommonTest {
         admin.setName("groupdomain1:role.admin");
         adminMembers.add(admin);
         Mockito.when(dbsvc.getRolesByDomain(eq("groupdomain1"))).thenReturn(adminMembers);
-
+        Mockito.when(dbsvc.getRole("groupdomain1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(admin);
         RoleMemberNotificationCommon roleMemberNotificationCommon = new RoleMemberNotificationCommon(dbsvc,
                 USER_DOMAIN_PREFIX, true);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -435,6 +442,8 @@ public class RoleMemberNotificationCommonTest {
         Role role = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers);
         athenzRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> sportsRoles = new ArrayList<>();
         roleMembers = new ArrayList<>();
@@ -443,11 +452,15 @@ public class RoleMemberNotificationCommonTest {
         role = new Role().setName("sports:role.admin").setRoleMembers(roleMembers);
         sportsRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("sports")).thenReturn(sportsRoles);
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> weatherRoles = new ArrayList<>();
         role = new Role().setName("weather:role.admin").setRoleMembers(new ArrayList<>());
         weatherRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("weather")).thenReturn(weatherRoles);
+        Mockito.when(dbsvc.getRole("weather", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(
                 dbsvc, USER_DOMAIN_PREFIX, true);
@@ -496,6 +509,8 @@ public class RoleMemberNotificationCommonTest {
         Role role = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers);
         athenzRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> sportsRoles = new ArrayList<>();
         roleMembers = new ArrayList<>();
@@ -504,11 +519,15 @@ public class RoleMemberNotificationCommonTest {
         role = new Role().setName("sports:role.admin").setRoleMembers(roleMembers);
         sportsRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("sports")).thenReturn(sportsRoles);
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> weatherRoles = new ArrayList<>();
-        role = new Role().setName("sports:role.admin").setRoleMembers(new ArrayList<>());
+        role = new Role().setName("weather:role.admin").setRoleMembers(new ArrayList<>());
         weatherRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("weather")).thenReturn(weatherRoles);
+        Mockito.when(dbsvc.getRole("weather", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(
                 dbsvc, USER_DOMAIN_PREFIX, true);

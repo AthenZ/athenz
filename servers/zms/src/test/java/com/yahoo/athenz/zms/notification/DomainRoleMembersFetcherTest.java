@@ -50,6 +50,8 @@ public class DomainRoleMembersFetcherTest {
         adminRole.setRoleMembers(Arrays.asList(roleMember1, roleMember2));
         domainData.setRoles(Collections.singletonList(adminRole));
         Mockito.when(dbsvc.getRolesByDomain(eq("domain1"))).thenReturn(domainData.getRoles());
+        Mockito.when(dbsvc.getRole("domain1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
 
         DomainRoleMembersFetcher domainRoleMembersFetcher = new DomainRoleMembersFetcher(
                 dbsvc,
