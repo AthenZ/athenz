@@ -122,6 +122,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         domain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 notificationToEmailConverterCommon, false).getNotifications();
@@ -421,6 +423,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         domain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
 
         List<Notification> notifications = new GroupMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 notificationToEmailConverterCommon, true).getNotifications();
@@ -467,6 +471,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         Role role = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers);
         athenzRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> sportsRoles = new ArrayList<>();
         roleMembers = new ArrayList<>();
@@ -475,11 +481,15 @@ public class GroupMemberExpiryNotificationTaskTest {
         role = new Role().setName("sports:role.admin").setRoleMembers(roleMembers);
         sportsRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("sports")).thenReturn(sportsRoles);
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> weatherRoles = new ArrayList<>();
         role = new Role().setName("weather:role.admin").setRoleMembers(new ArrayList<>());
         weatherRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("weather")).thenReturn(weatherRoles);
+        Mockito.when(dbsvc.getRole("weather", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
                 dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);
@@ -528,6 +538,8 @@ public class GroupMemberExpiryNotificationTaskTest {
         Role role = new Role().setName("athenz:role.admin").setRoleMembers(roleMembers);
         athenzRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzRoles);
+        Mockito.when(dbsvc.getRole("athenz", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> sportsRoles = new ArrayList<>();
         roleMembers = new ArrayList<>();
@@ -536,11 +548,15 @@ public class GroupMemberExpiryNotificationTaskTest {
         role = new Role().setName("sports:role.admin").setRoleMembers(roleMembers);
         sportsRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("sports")).thenReturn(sportsRoles);
+        Mockito.when(dbsvc.getRole("sports", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         List<Role> weatherRoles = new ArrayList<>();
-        role = new Role().setName("sports:role.admin").setRoleMembers(new ArrayList<>());
+        role = new Role().setName("weather:role.admin").setRoleMembers(new ArrayList<>());
         weatherRoles.add(role);
         Mockito.when(dbsvc.getRolesByDomain("weather")).thenReturn(weatherRoles);
+        Mockito.when(dbsvc.getRole("weather", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(role);
 
         GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
                 dbsvc, USER_DOMAIN_PREFIX, new NotificationToEmailConverterCommon(null), true);

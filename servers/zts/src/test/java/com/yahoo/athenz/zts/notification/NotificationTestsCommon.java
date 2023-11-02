@@ -37,5 +37,7 @@ public class NotificationTestsCommon {
         roleMember2.setMemberName("user.domain" + i + "rolemember2");
         adminRole.setRoleMembers(Arrays.asList(roleMember1, roleMember2));
         Mockito.when(dataStore.getRolesByDomain(eq(domainName))).thenReturn(Collections.singletonList(adminRole));
+        Mockito.when(dataStore.getRole(domainName, "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenThrow(new UnsupportedOperationException());
     }
 }

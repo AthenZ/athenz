@@ -36,7 +36,6 @@ import java.util.*;
 
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertTrue;
@@ -96,7 +95,9 @@ public class AWSZTSHealthNotificationTaskTest {
         List<Role> roles = new ArrayList<>();
         roles.add(adminRole);
 
-        when(dataStore.getRolesByDomain(eq("testDomain"))).thenReturn(roles);
+        when(dataStore.getRolesByDomain("testDomain")).thenReturn(roles);
+        when(dataStore.getRole("testDomain", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenThrow(new UnsupportedOperationException());
         AWSZTSHealthNotificationTask awsztsHealthNotificationTask = new AWSZTSHealthNotificationTask(
                 clientNotification,
                 dataStore,
