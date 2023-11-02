@@ -378,7 +378,13 @@ class ManageDomains extends React.Component {
                           </TDStyled>
                           <TDStyled color={color} align={center}>
                               {item.domain.account ? item.domain.account : ''}
-                          </TDStyled>
+                          </TDStyled>   
+                          
+                          <TDStyled color={color} align={center}>
+                            {item.domain.gcpProject}
+                    
+                          </TDStyled>  
+
                           <TDStyledBusinessService
                               color={color}
                               align={left}
@@ -475,6 +481,9 @@ class ManageDomains extends React.Component {
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
                                 AWS Account #
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                GCP Project ID
                             </TableHeadStyled>
                             <TableHeadStyled align={left}>
                                 Business Service
