@@ -56,6 +56,7 @@ public final class ZpeConsts {
     public static final String ZPE_PROP_METRIC_CLASS               = "athenz.zpe.metric_factory_class";
     public static final String ZPE_PROP_PUBLIC_KEY_CLASS           = "athenz.zpe.public_key_class";
     public static final String ZPE_PROP_CLIENT_IMPL                = "athenz.zpe.updater_class";
+    public static final String ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS   = "athenz.zpe.millis_between_zts_calls";
     public static final String ZPE_PROP_TOKEN_OFFSET               = "athenz.zpe.token_allowed_offset";
     public static final String ZPE_PROP_METRIC_WRITE_INTERVAL      = "athenz.zpe.metric_write_interval";
     public static final String ZPE_PROP_METRIC_FILE_PATH           = "athenz.zpe.metric_file_path";

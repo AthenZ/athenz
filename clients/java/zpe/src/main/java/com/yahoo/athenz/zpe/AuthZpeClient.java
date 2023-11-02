@@ -39,6 +39,8 @@ import com.yahoo.athenz.zpe.pkey.PublicKeyStore;
 import com.yahoo.athenz.zpe.pkey.PublicKeyStoreFactory;
 import com.yahoo.rdl.Struct;
 
+import static com.yahoo.athenz.zpe.ZpeConsts.ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS;
+
 public class AuthZpeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthZpeClient.class);
@@ -170,6 +172,9 @@ public class AuthZpeClient {
         // initialize the access token signing key resolver
 
         setAccessTokenSignKeyResolver(null, null);
+
+        // save the allowed interval between api calls
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
     }
     
     public static void init() {
@@ -280,11 +285,20 @@ public class AuthZpeClient {
         }
         zpeClt.init(null);
     }
-    
+
     public static PublicKey getZtsPublicKey(String keyId) {
-        return publicKeyStore.getZtsKey(keyId);
+        PublicKey publicKey = publicKeyStore.getZtsKey(keyId);
+        if (publicKey == null) {
+            //  fetch all zts jwk keys and update config and try again
+            publicKey = accessSignKeyResolver.getPublicKey(keyId); 
+        }
+        return publicKey;
     }
-    
+
+    protected static void setMillisBetweenZtsCalls(long millis) {
+        accessSignKeyResolver.setMillisBetweenZtsCalls(millis);
+    }
+
     public static PublicKey getZmsPublicKey(String keyId) {
         return publicKeyStore.getZmsKey(keyId);
     }
