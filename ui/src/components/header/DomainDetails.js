@@ -332,6 +332,8 @@ class DomainDetails extends React.Component {
             );
         }
 
+      
+
         return (
             <DomainSectionDiv data-testid='domain-details'>
                 <DetailsDiv>
@@ -456,6 +458,9 @@ class DomainDetails extends React.Component {
         );
     }
 }
+
+
+
 
 const mapStateToProps = (state, props) => {
     return {

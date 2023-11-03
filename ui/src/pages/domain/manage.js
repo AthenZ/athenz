@@ -57,6 +57,7 @@ const RolesContainerDiv = styled.div`
 
 const RolesContentDiv = styled.div``;
 
+
 const PageHeaderDiv = styled.div`
     padding: 20px 30px 0;
 `;
@@ -82,12 +83,21 @@ export async function getServerSideProps(context) {
         api.getPendingDomainMembersList(),
         api.getForm(),
         api.getMeta(bServicesParams),
+      
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
         return [{}, {}, {}, {}, {}];
     });
+
+    console.log("gcp id checking....",domains[0]);
+    console.log("gcp id checking....",domains[1]);
+    console.log("gcp id checking....",domains[2]);
+    console.log("gcp id checking....",domains[3]);
+    console.log("gcp id checking....",domains[4]);
+
+  
 
     let businessServiceOptions = [];
     if (domains[4] && domains[4].validValues) {
@@ -115,6 +125,7 @@ export async function getServerSideProps(context) {
             manageDomains: domains[1],
             pending: domains[2],
             _csrf: domains[3],
+            testfive:domains[4],
             nonce: context.req.headers.rid,
             validBusinessServices: businessServiceOptions,
         },
@@ -202,6 +213,16 @@ class ManageDomainsPage extends React.Component {
                 />
             );
         }
+        console.log(this.props.headerDetails);
+         console.log(this.props.manageDomains);
+         console.log(this.props.pending);
+       //  console.log(this.props.pending);
+         console.log(this.props.testfive);
+        console.log(this.props._csrf);
+      //   console.log(this.props.manageDomains);
+         
+        // console.log(this.props.manageDomains.domain.gcpProjectNumber);
+
 
         return isLoading.length !== 0 ? (
             <ReduxPageLoader message={'Loading domain data'} />

@@ -53,7 +53,7 @@ describe('PageManageDomains', () => {
                     modified: '2018-02-15T00:48:43.397Z',
                     id: '5fe71bb0-7642-11e7-8b74-f1fb574cabde',
                 },
-            },
+            }, 
             {
                 domain: {
                     enabled: true,
