@@ -193,7 +193,7 @@ func (cli Zms) ImportDomainOld(dn string, filename string, admins []string) (*st
 	if err != nil {
 		return nil, err
 	}
-	dnSpec := spec["domain"].(map[interface{}]interface{})
+	dnSpec := spec["domain"].(map[string]interface{})
 	dn2 := dnSpec["name"].(string)
 	if dn2 != dn {
 		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + dn2)
@@ -288,7 +288,7 @@ func (cli Zms) UpdateDomainOld(dn string, filename string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	dnSpec := spec["domain"].(map[interface{}]interface{})
+	dnSpec := spec["domain"].(map[string]interface{})
 	dn2 := dnSpec["name"].(string)
 	if dn2 != dn {
 		return nil, fmt.Errorf("Domain name mismatch. Expected " + dn + ", encountered " + dn2)
