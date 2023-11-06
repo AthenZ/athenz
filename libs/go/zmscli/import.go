@@ -12,7 +12,7 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zms"
 )
 
-func parseRoleMember(memberStruct map[interface{}]interface{}) *zms.RoleMember {
+func parseRoleMember(memberStruct map[string]interface{}) *zms.RoleMember {
 	roleMember := zms.NewRoleMember()
 	roleMember.MemberName = zms.MemberName(memberStruct["name"].(string))
 
@@ -37,7 +37,7 @@ func parseRoleMember(memberStruct map[interface{}]interface{}) *zms.RoleMember {
 	return roleMember
 }
 
-func parseGroupMember(memberStruct map[interface{}]interface{}) *zms.GroupMember {
+func parseGroupMember(memberStruct map[string]interface{}) *zms.GroupMember {
 	groupMember := zms.NewGroupMember()
 	groupMember.MemberName = zms.GroupMemberName(memberStruct["name"].(string))
 	return groupMember
@@ -105,14 +105,14 @@ func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *z
 
 func (cli Zms) importGroupsOld(dn string, lstGroups []interface{}, skipErrors bool) error {
 	for _, group := range lstGroups {
-		groupMap := group.(map[interface{}]interface{})
+		groupMap := group.(map[string]interface{})
 		gn := groupMap["name"].(string)
 		_, _ = fmt.Fprintf(os.Stdout, "Processing group "+gn+"...\n")
 		groupMembers := make([]*zms.GroupMember, 0)
 		if val, ok := groupMap["members"]; ok {
 			mem := val.([]interface{})
 			for _, m := range mem {
-				groupMember := parseGroupMember(m.(map[interface{}]interface{}))
+				groupMember := parseGroupMember(m.(map[string]interface{}))
 				groupMembers = append(groupMembers, groupMember)
 			}
 		}
@@ -207,7 +207,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 
 func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins []string, skipErrors bool) error {
 	for _, role := range lstRoles {
-		roleMap := role.(map[interface{}]interface{})
+		roleMap := role.(map[string]interface{})
 		rn := roleMap["name"].(string)
 		_, _ = fmt.Fprintf(os.Stdout, "Processing role "+rn+"...\n")
 		if val, ok := roleMap["members"]; ok {
@@ -223,7 +223,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 					return err
 				}
 				for _, mbr := range mem {
-					roleMember := parseRoleMember(mbr.(map[interface{}]interface{}))
+					roleMember := parseRoleMember(mbr.(map[string]interface{}))
 					if !cli.containsMember(role.RoleMembers, string(roleMember.MemberName)) {
 						roleMembers = append(roleMembers, roleMember)
 					}
@@ -238,7 +238,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 				_, err = cli.AddRoleMembers(dn, rn, roleMembers)
 			} else {
 				for _, m := range mem {
-					roleMember := parseRoleMember(m.(map[interface{}]interface{}))
+					roleMember := parseRoleMember(m.(map[string]interface{}))
 					roleMembers = append(roleMembers, roleMember)
 				}
 				b := cli.Verbose
@@ -298,7 +298,7 @@ func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, skipErrors b
 
 func (cli Zms) importPoliciesOld(dn string, lstPolicies []interface{}, skipErrors bool) error {
 	for _, policy := range lstPolicies {
-		policyMap := policy.(map[interface{}]interface{})
+		policyMap := policy.(map[string]interface{})
 		name := policyMap["name"].(string)
 		_, _ = fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
 		assertions := make([]*zms.Assertion, 0)
@@ -335,7 +335,7 @@ func (cli Zms) importPoliciesOld(dn string, lstPolicies []interface{}, skipError
 func (cli Zms) generatePublicKeys(lstPublicKeys []interface{}) []*zms.PublicKeyEntry {
 	publicKeys := make([]*zms.PublicKeyEntry, 0)
 	for _, pubKey := range lstPublicKeys {
-		publicKeyMap := pubKey.(map[interface{}]interface{})
+		publicKeyMap := pubKey.(map[string]interface{})
 		// if we're using just version numbers then yaml
 		// will interpret the key id as integer
 		var keyID string
@@ -390,7 +390,7 @@ func (cli Zms) importServices(dn string, lstServices []*zms.ServiceIdentity, ski
 
 func (cli Zms) importServicesOld(dn string, lstServices []interface{}, skipErrors bool) error {
 	for _, service := range lstServices {
-		serviceMap := service.(map[interface{}]interface{})
+		serviceMap := service.(map[string]interface{})
 		name := serviceMap["name"].(string)
 		_, _ = fmt.Fprintf(os.Stdout, "Processing service "+name+"...\n")
 		var lstPublicKeys []interface{}
