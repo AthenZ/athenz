@@ -31,7 +31,19 @@ public class DomainRoleMembersFetcherCommon {
         this.userDomainPrefix = userDomainPrefix;
     }
 
+    public Set<String> getDomainRoleMembers(Role role) {
+
+        if (role.getRoleMembers() == null) {
+            return new HashSet<>();
+        }
+
+        return role.getRoleMembers().stream()
+                .filter(this::isUnexpiredUser)
+                .map(RoleMember::getMemberName).collect(Collectors.toSet());
+    }
+
     public Set<String> getDomainRoleMembers(String roleName, List<Role> roles) {
+
         if (roles == null) {
             return new HashSet<>();
         }
@@ -42,13 +54,7 @@ public class DomainRoleMembersFetcherCommon {
             }
 
             if (role.getName().equals(roleName)) {
-                if (role.getRoleMembers() == null) {
-                    return new HashSet<>();
-                }
-
-                return role.getRoleMembers().stream()
-                        .filter(this::isUnexpiredUser)
-                        .map(RoleMember::getMemberName).collect(Collectors.toSet());
+                return getDomainRoleMembers(role);
             }
         }
 

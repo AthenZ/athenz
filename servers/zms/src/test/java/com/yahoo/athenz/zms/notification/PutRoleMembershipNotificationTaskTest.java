@@ -89,7 +89,12 @@ public class PutRoleMembershipNotificationTaskTest {
         athenzDomain2.setRoles(roles2);
 
         Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.org")).thenReturn(athenzDomain1.getRoles());
+        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(orgRole);
+
         Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.domain")).thenReturn(athenzDomain2.getRoles());
+        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(domainRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -146,6 +151,8 @@ public class PutRoleMembershipNotificationTaskTest {
         athenzDomain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.org")).thenReturn(athenzDomain.getRoles());
+        Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(orgRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -201,6 +208,8 @@ public class PutRoleMembershipNotificationTaskTest {
         athenzDomain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.domain")).thenReturn(athenzDomain.getRoles());
+        Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(domainRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -256,6 +265,8 @@ public class PutRoleMembershipNotificationTaskTest {
         athenzDomain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("testdomain1")).thenReturn(athenzDomain.getRoles());
+        Mockito.when(dbsvc.getRole("testdomain1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -329,7 +340,12 @@ public class PutRoleMembershipNotificationTaskTest {
         athenzDomain2.setRoles(roles2);
 
         Mockito.when(dbsvc.getRolesByDomain("testdomain1")).thenReturn(athenzDomain1.getRoles());
+        Mockito.when(dbsvc.getRole("testdomain1", "notify", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(localRole);
+
         Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzDomain2.getRoles());
+        Mockito.when(dbsvc.getRole("athenz", "approvers", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(domainRole);
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 

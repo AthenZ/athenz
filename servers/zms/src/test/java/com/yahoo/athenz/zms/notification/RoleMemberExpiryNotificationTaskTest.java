@@ -125,6 +125,8 @@ public class RoleMemberExpiryNotificationTaskTest {
         domain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenThrow(new UnsupportedOperationException());
 
         List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
                 new NotificationToEmailConverterCommon(null), false).getNotifications();

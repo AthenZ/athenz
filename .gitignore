@@ -132,6 +132,7 @@ libs/nodejs/auth_core/package-lock.json
 .envrc
 .clover/
 athenz-docker-build.log
+syncers/auth_history_syncer/dynamodb-local-metadata.json
 
 # Logs
 logs

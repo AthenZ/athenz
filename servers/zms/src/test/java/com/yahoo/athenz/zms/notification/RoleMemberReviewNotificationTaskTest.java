@@ -126,6 +126,8 @@ public class RoleMemberReviewNotificationTaskTest {
         domain.setRoles(roles);
 
         Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(adminRole);
 
         List<Notification> notifications = new RoleMemberReviewNotificationTask(dbsvc,
                 USER_DOMAIN_PREFIX, notificationToEmailConverterCommon, false).getNotifications();
