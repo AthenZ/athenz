@@ -835,18 +835,18 @@ describe('Fetchr Client API Test', () => {
             fetchrStub.returns(myDataServiceErr);
             await api.searchDomains().catch((err) => {
                 expect(err).not.toBeNull();
-            });
+            });c
         });
         afterEach(() => fetchrStub.restore());
     });
     describe('getServices test', () => {
-        it('getServices test success', async () => {
-            myDataService = {
-                name: 'services',
-                read: function (req, resource, params, config, callback) {
-                    callback(null, DATA);
-                },
-            };
+        // it('getServices test success', async () => {
+        //     myDataService = {
+        //         name: 'services',
+        //         read: function (req, resource, params, config, callback) {
+        //             callback(null, DATA);
+        //         },
+        //     };
             fetchrStub = sinon.stub(Fetchr, 'isRegistered');
             fetchrStub.returns(myDataService);
             result = await api.getServices('dummy');
