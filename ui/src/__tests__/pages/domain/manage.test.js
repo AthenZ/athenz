@@ -18,11 +18,9 @@ import ManageDomainsPage from '../../../pages/domain/manage';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
 import { getByText, waitFor } from '@testing-library/react';
-
 afterEach(() => {
     MockApi.cleanMockApi();
 });
-
 describe('PageManageDomains', () => {
     it('should render', async () => {
         let domains = [];
@@ -66,7 +64,6 @@ describe('PageManageDomains', () => {
                     modified: "2023-10-26T16:05:31.507Z"
                 },
             },
-
              {
                 domain: {
                         enabled: true,
@@ -89,7 +86,6 @@ describe('PageManageDomains', () => {
                 }
             },
         ];
-
         let headerDetails = {
             headerLinks: [
                 {
@@ -99,7 +95,6 @@ describe('PageManageDomains', () => {
                 },
             ],
         };
-
         const mockApi = {
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
