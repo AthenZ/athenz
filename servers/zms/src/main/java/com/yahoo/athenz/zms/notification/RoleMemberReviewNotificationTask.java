@@ -85,6 +85,11 @@ public class RoleMemberReviewNotificationTask implements NotificationTask {
             detailsRow.append(memberRole.getReviewReminder());
             return detailsRow;
         }
+
+        @Override
+        public Timestamp getNotificationTimestamp(MemberRole memberRole) {
+            return memberRole.getReviewReminder();
+        }
     }
 
     class ReviewDisableRoleMemberNotificationFilter implements RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter {

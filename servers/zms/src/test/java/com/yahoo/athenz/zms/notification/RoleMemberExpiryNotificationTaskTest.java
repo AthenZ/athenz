@@ -24,6 +24,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.USER_DOMAIN_PREFIX;
 import static com.yahoo.athenz.common.server.notification.NotificationServiceConstants.*;
@@ -84,6 +85,7 @@ public class RoleMemberExpiryNotificationTaskTest {
 
         notificationManager.shutdown();
     }
+
     @Test
     public void testSendRoleMemberExpiryReminders() {
 
@@ -149,6 +151,99 @@ public class RoleMemberExpiryNotificationTaskTest {
         Notification expectedSecondNotification = new Notification();
         expectedSecondNotification.addRecipient("user.jane");
         expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role1;user.joe;1970-01-01T00:00:00.100Z");
+        expectedSecondNotification.addDetails("domain", "athenz1");
+        expectedSecondNotification.setNotificationToEmailConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null)));
+        expectedSecondNotification.setNotificationToMetricConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToMetricConverter());
+
+        assertEquals(notifications.get(0), expectedFirstNotification);
+        assertEquals(notifications.get(1), expectedSecondNotification);
+
+        notificationManager.shutdown();
+    }
+
+    @Test
+    public void testSendRoleMemberExpiryRemindersDisabledOverOneWeek() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
+        NotificationServiceFactory testfact = () -> mockNotificationService;
+
+        Timestamp twoWeekExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(14, TimeUnit.DAYS));
+        Timestamp oneDayExpiry = Timestamp.fromMillis(System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setRoleName("role1")
+                .setDomainName("athenz1")
+                .setMemberName("user.joe")
+                .setExpiration(twoWeekExpiry));
+        memberRoles.add(new MemberRole().setRoleName("role2")
+                .setDomainName("athenz1")
+                .setMemberName("user.joe")
+                .setExpiration(oneDayExpiry));
+        DomainRoleMember domainRoleMember = new DomainRoleMember()
+                .setMemberName("user.joe")
+                .setMemberRoles(memberRoles);
+        Map<String, DomainRoleMember> expiryMembers = new HashMap<>();
+        expiryMembers.put("user.joe", domainRoleMember);
+
+        // we're going to return null for our first thread which will
+        // run during init call and then the real data for the second
+        // call
+
+        Mockito.when(dbsvc.getRoleExpiryMembers(1, false))
+                .thenReturn(null)
+                .thenReturn(expiryMembers);
+
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+
+        ZMSTestUtils.sleep(1000);
+
+        AthenzDomain domain = new AthenzDomain("athenz1");
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.jane"));
+        Role adminRole = new Role()
+                .setName("athenz1:role.admin")
+                .setRoleMembers(roleMembers);
+        List<Role> roles = new ArrayList<>();
+        roles.add(adminRole);
+        domain.setRoles(roles);
+
+        Mockito.when(dbsvc.getRolesByDomain("athenz1")).thenReturn(domain.getRoles());
+        Mockito.when(dbsvc.getRole("athenz1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenThrow(new UnsupportedOperationException());
+
+        Map<String, TagValueList> tags = new HashMap<>();
+        TagValueList tagValueList = new TagValueList().setList(Collections.singletonList("4"));
+        tags.put(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, tagValueList);
+        Role role = new Role().setTags(tags);
+        Mockito.when(dbsvc.getRole("athenz1", "role1", false, false, false)).thenReturn(role);
+        Mockito.when(dbsvc.getRole("athenz1", "role2", false, false, false)).thenReturn(role);
+
+        List<Notification> notifications = new RoleMemberExpiryNotificationTask(dbsvc, USER_DOMAIN_PREFIX,
+                new NotificationToEmailConverterCommon(null), false).getNotifications();
+
+        // we should get 2 notifications - one for user and one for domain
+        // role1 should be excluded and role2 should be included
+
+        assertEquals(notifications.size(), 2);
+
+        // Verify contents of notifications is as expected
+        Notification expectedFirstNotification = new Notification();
+        expectedFirstNotification.addRecipient("user.joe");
+        expectedFirstNotification.addDetails(NOTIFICATION_DETAILS_ROLES_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
+        expectedFirstNotification.addDetails("member", "user.joe");
+        expectedFirstNotification.setNotificationToEmailConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToEmailConverter(
+                        new NotificationToEmailConverterCommon(null)));
+        expectedFirstNotification.setNotificationToMetricConverter(
+                new RoleMemberExpiryNotificationTask.RoleExpiryPrincipalNotificationToMetricConverter());
+
+        Notification expectedSecondNotification = new Notification();
+        expectedSecondNotification.addRecipient("user.jane");
+        expectedSecondNotification.addDetails(NOTIFICATION_DETAILS_MEMBERS_LIST, "athenz1;role2;user.joe;" + oneDayExpiry);
         expectedSecondNotification.addDetails("domain", "athenz1");
         expectedSecondNotification.setNotificationToEmailConverter(
                 new RoleMemberExpiryNotificationTask.RoleExpiryDomainNotificationToEmailConverter(
