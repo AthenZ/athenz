@@ -106,6 +106,8 @@ const colorTransition = keyframes`
         }
 `;
 
+
+
 class ManageDomains extends React.Component {
     constructor(props) {
         super(props);
@@ -379,15 +381,20 @@ class ManageDomains extends React.Component {
                           <TDStyled color={color} align={center}>
                               {item.domain.account ? item.domain.account : ''}
                           </TDStyled>
+                          <TDStyled color={color} align={center}>
+                            {item.domain.gcpProject}
+                    
+                          </TDStyled>   
                           <TDStyledBusinessService
                               color={color}
-                              align={left}
+                              align={center}
                               title={title}
                           >
                               <StyledAnchor onClick={businessServiceItem}>
                                   {title}
                               </StyledAnchor>
                           </TDStyledBusinessService>
+
                           <TDStyled color={color} align={center}>
                               {deletable ? (
                                   <Icon
@@ -401,6 +408,15 @@ class ManageDomains extends React.Component {
                                   />
                               ) : null}
                           </TDStyled>
+
+                          <TDStyled color={color} align={center}>
+                              {item.domain.account ? item.domain.account : ''}
+                          </TDStyled>
+                           
+                    
+
+                        
+                         
                       </TrStyled>
                   );
               })
@@ -475,6 +491,9 @@ class ManageDomains extends React.Component {
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
                                 AWS Account #
+                            </TableHeadStyled>
+                            <TableHeadStyled align={center}>
+                                GCP Project ID
                             </TableHeadStyled>
                             <TableHeadStyled align={left}>
                                 Business Service
