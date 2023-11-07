@@ -256,7 +256,7 @@ public class MSDSchema {
             .field("workloads", "Workloads", false, "matching workloads");
 
         sb.enumType("NetworkPolicyChangeEffect")
-            .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy")
+            .comment("IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy")
             .element("IMPACT")
             .element("NO_IMPACT");
 
@@ -288,6 +288,66 @@ public class MSDSchema {
             .comment("struct representing response of evaluating network policies change impact on transport policies")
             .field("effect", "NetworkPolicyChangeEffect", false, "enum indicating effect of network policy change on one or more transport policies")
             .arrayField("details", "NetworkPolicyChangeImpactDetail", true, "if the above enum value is IMPACT then this optional object contains more details about the impacted transport policies");
+
+        sb.structType("KubernetesLabelSelectorRequirement")
+            .comment("A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.")
+            .field("key", "String", false, "Label key that the selector applies to")
+            .field("operator", "String", false, "Operator that is applied to the key. Valid operators are In, NotIn, Exists and DoesNotExist.")
+            .arrayField("values", "String", true, "Array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.");
+
+        sb.structType("KubernetesLabelSelector")
+            .comment("A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.")
+            .arrayField("matchExpressions", "KubernetesLabelSelectorRequirement", false, "Array of label selector requirements. The requirements are ANDed.")
+            .mapField("matchLabels", "String", "String", false, "Map of label key/value pairs");
+
+        sb.structType("KubernetesNetworkPolicyPort", "PolicyPort")
+            .comment("Kubernetes network policy port range")
+            .field("protocol", "TransportPolicyProtocol", false, "Network policy protocol. Allowed values: TCP, UDP.");
+
+        sb.structType("KubernetesIPBlock")
+            .comment("Kubernetes network policy IP block source/target")
+            .field("cidr", "String", false, "CIDR block representing IP range for source/target")
+            .arrayField("except", "String", true, "Exception for CIDR blocks, if needed");
+
+        sb.structType("KubernetesNetworkPolicyPeer")
+            .comment("Kubernetes network policy peer (source/target)")
+            .field("podSelector", "KubernetesLabelSelector", true, "Kubernetes pod selector for the network policy source/target")
+            .field("namespaceSelector", "KubernetesLabelSelector", true, "Kubernetes namespace selector for the network policy source/target")
+            .field("ipBlock", "KubernetesIPBlock", true, "IP block for the network policy source/target");
+
+        sb.structType("KubernetesNetworkPolicyIngressRule")
+            .comment("Kubernetes network policy ingress rule")
+            .arrayField("from", "KubernetesNetworkPolicyPeer", true, "Network policy source, when empty all sources are allowed")
+            .arrayField("ports", "KubernetesNetworkPolicyPort", true, "Ingress port(s), when empty all ports are allowed");
+
+        sb.structType("KubernetesNetworkPolicyEgressRule")
+            .comment("Kubernetes network policy egress rule")
+            .arrayField("to", "KubernetesNetworkPolicyPeer", true, "Network policy target, when empty all sources are allowed")
+            .arrayField("ports", "KubernetesNetworkPolicyPort", true, "Egress port(s), when empty all ports are allowed");
+
+        sb.structType("KubernetesNetworkPolicySpec")
+            .comment("Kubernetes network policy spec")
+            .field("podSelector", "KubernetesLabelSelector", false, "Kubernetes pod selector for the network policy target")
+            .arrayField("policyTypes", "String", false, "Network policy types - Ingress, Egress")
+            .arrayField("ingress", "KubernetesNetworkPolicyIngressRule", true, "Ingress network policy rules, if empty then all ingress traffic is blocked")
+            .arrayField("egress", "KubernetesNetworkPolicyEgressRule", true, "Egress network policy rules, if empty then all egress traffic is blocked");
+
+        sb.structType("KubernetesNetworkPolicyRequest")
+            .comment("Request object containing Kubernetes network policy inputs")
+            .field("athenzDomainLabel", "String", true, "Label key name used on pods to identify Athenz domain")
+            .field("athenzServiceLabel", "String", false, "Label key name used on pods to identify Athenz service")
+            .field("networkPolicyType", "String", true, "Network policy type, default is vanilla Kubernetes")
+            .field("requestedApiVersion", "String", true, "Requested network policy apiVersion")
+            .field("networkPolicyNamespace", "String", true, "Kubernetes namespace for the network policy object")
+            .field("domainLabelAsNamespaceSelector", "Bool", true, "Use athenzDomainLabel as namespace selector", false)
+            .field("domainInServiceLabel", "Bool", true, "Use Athenz domain name in service label", false);
+
+        sb.structType("KubernetesNetworkPolicyResponse")
+            .comment("Response object containing Kubernetes network policy")
+            .field("apiVersion", "String", false, "Kubernetes network policy apiVersion")
+            .field("kind", "String", false, "Kubernetes network policy kind")
+            .mapField("metadata", "String", "String", false, "Kubernetes network policy metadata")
+            .field("spec", "KubernetesNetworkPolicySpec", false, "Kubernetes network policy spec");
 
         sb.stringType("rdl.Identifier")
             .comment("All names need to be of this restricted string type")
@@ -729,6 +789,26 @@ public class MSDSchema {
             .name("evaluateNetworkPolicyChange")
             .input("detail", "NetworkPolicyChangeImpactRequest", "Struct representing a network policy present in the system")
             .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("KubernetesNetworkPolicyRequest", "POST", "/domain/{domainName}/service/{serviceName}/kubernetesnetworkpolicy")
+            .comment("API endpoint to get the Kubernetes network policy converted from the corresponding MSD policy")
+            .pathParam("domainName", "DomainName", "Name of the domain")
+            .pathParam("serviceName", "EntityName", "Name of the service")
+            .input("request", "KubernetesNetworkPolicyRequest", "Struct representing input options based on the cluster context")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("read", "{domain}:service.{service}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

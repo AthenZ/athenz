@@ -2056,7 +2056,7 @@ func (self *BulkWorkloadResponse) Validate() error {
 }
 
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
-// will interfere with workings of one or more transport policies NO_IMAPCT
+// will interfere with workings of one or more transport policies NO_IMPACT
 // indicates that a change in network policy will not interfere with workings of
 // any transport policy
 type NetworkPolicyChangeEffect int
@@ -2472,5 +2472,639 @@ func (self *NetworkPolicyChangeImpactResponse) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *NetworkPolicyChangeImpactResponse) Validate() error {
+	return nil
+}
+
+// KubernetesLabelSelectorRequirement - A label selector requirement is a
+// selector that contains values, a key, and an operator that relates the key
+// and values.
+type KubernetesLabelSelectorRequirement struct {
+
+	//
+	// Label key that the selector applies to
+	//
+	Key string `json:"key"`
+
+	//
+	// Operator that is applied to the key. Valid operators are In, NotIn, Exists
+	// and DoesNotExist.
+	//
+	Operator string `json:"operator"`
+
+	//
+	// Array of string values. If the operator is In or NotIn, the values array
+	// must be non-empty. If the operator is Exists or DoesNotExist, the values
+	// array must be empty.
+	//
+	Values []string `json:"values,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesLabelSelectorRequirement - creates an initialized KubernetesLabelSelectorRequirement instance, returns a pointer to it
+func NewKubernetesLabelSelectorRequirement(init ...*KubernetesLabelSelectorRequirement) *KubernetesLabelSelectorRequirement {
+	var o *KubernetesLabelSelectorRequirement
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesLabelSelectorRequirement)
+	}
+	return o
+}
+
+type rawKubernetesLabelSelectorRequirement KubernetesLabelSelectorRequirement
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesLabelSelectorRequirement
+func (self *KubernetesLabelSelectorRequirement) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesLabelSelectorRequirement
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesLabelSelectorRequirement(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesLabelSelectorRequirement) Validate() error {
+	if self.Key == "" {
+		return fmt.Errorf("KubernetesLabelSelectorRequirement.key is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Key)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesLabelSelectorRequirement.key does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Operator == "" {
+		return fmt.Errorf("KubernetesLabelSelectorRequirement.operator is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Operator)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesLabelSelectorRequirement.operator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// KubernetesLabelSelector - A label selector is a label query over a set of
+// resources. The result of matchLabels and matchExpressions are ANDed. An empty
+// label selector matches all objects. A null label selector matches no objects.
+type KubernetesLabelSelector struct {
+
+	//
+	// Array of label selector requirements. The requirements are ANDed.
+	//
+	MatchExpressions []*KubernetesLabelSelectorRequirement `json:"matchExpressions"`
+
+	//
+	// Map of label key/value pairs
+	//
+	MatchLabels map[string]string `json:"matchLabels"`
+}
+
+// NewKubernetesLabelSelector - creates an initialized KubernetesLabelSelector instance, returns a pointer to it
+func NewKubernetesLabelSelector(init ...*KubernetesLabelSelector) *KubernetesLabelSelector {
+	var o *KubernetesLabelSelector
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesLabelSelector)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *KubernetesLabelSelector) Init() *KubernetesLabelSelector {
+	if self.MatchExpressions == nil {
+		self.MatchExpressions = make([]*KubernetesLabelSelectorRequirement, 0)
+	}
+	if self.MatchLabels == nil {
+		self.MatchLabels = make(map[string]string)
+	}
+	return self
+}
+
+type rawKubernetesLabelSelector KubernetesLabelSelector
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesLabelSelector
+func (self *KubernetesLabelSelector) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesLabelSelector
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesLabelSelector(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesLabelSelector) Validate() error {
+	if self.MatchExpressions == nil {
+		return fmt.Errorf("KubernetesLabelSelector: Missing required field: matchExpressions")
+	}
+	if self.MatchLabels == nil {
+		return fmt.Errorf("KubernetesLabelSelector: Missing required field: matchLabels")
+	}
+	return nil
+}
+
+// KubernetesNetworkPolicyPort - Kubernetes network policy port range
+type KubernetesNetworkPolicyPort struct {
+
+	//
+	// Start port of the port range. port and endPort will have same values for a
+	// single port definition.
+	//
+	Port int32 `json:"port"`
+
+	//
+	// End port of the port range. port and endPort will have same values for a
+	// single port definition.
+	//
+	EndPort int32 `json:"endPort"`
+
+	//
+	// Network policy protocol. Allowed values: TCP, UDP.
+	//
+	Protocol TransportPolicyProtocol `json:"protocol"`
+}
+
+// NewKubernetesNetworkPolicyPort - creates an initialized KubernetesNetworkPolicyPort instance, returns a pointer to it
+func NewKubernetesNetworkPolicyPort(init ...*KubernetesNetworkPolicyPort) *KubernetesNetworkPolicyPort {
+	var o *KubernetesNetworkPolicyPort
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicyPort)
+	}
+	return o
+}
+
+type rawKubernetesNetworkPolicyPort KubernetesNetworkPolicyPort
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicyPort
+func (self *KubernetesNetworkPolicyPort) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicyPort
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicyPort(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicyPort) Validate() error {
+	return nil
+}
+
+// KubernetesIPBlock - Kubernetes network policy IP block source/target
+type KubernetesIPBlock struct {
+
+	//
+	// CIDR block representing IP range for source/target
+	//
+	Cidr string `json:"cidr"`
+
+	//
+	// Exception for CIDR blocks, if needed
+	//
+	Except []string `json:"except,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesIPBlock - creates an initialized KubernetesIPBlock instance, returns a pointer to it
+func NewKubernetesIPBlock(init ...*KubernetesIPBlock) *KubernetesIPBlock {
+	var o *KubernetesIPBlock
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesIPBlock)
+	}
+	return o
+}
+
+type rawKubernetesIPBlock KubernetesIPBlock
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesIPBlock
+func (self *KubernetesIPBlock) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesIPBlock
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesIPBlock(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesIPBlock) Validate() error {
+	if self.Cidr == "" {
+		return fmt.Errorf("KubernetesIPBlock.cidr is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Cidr)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesIPBlock.cidr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// KubernetesNetworkPolicyPeer - Kubernetes network policy peer (source/target)
+type KubernetesNetworkPolicyPeer struct {
+
+	//
+	// Kubernetes pod selector for the network policy source/target
+	//
+	PodSelector *KubernetesLabelSelector `json:"podSelector,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Kubernetes namespace selector for the network policy source/target
+	//
+	NamespaceSelector *KubernetesLabelSelector `json:"namespaceSelector,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// IP block for the network policy source/target
+	//
+	IpBlock *KubernetesIPBlock `json:"ipBlock,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesNetworkPolicyPeer - creates an initialized KubernetesNetworkPolicyPeer instance, returns a pointer to it
+func NewKubernetesNetworkPolicyPeer(init ...*KubernetesNetworkPolicyPeer) *KubernetesNetworkPolicyPeer {
+	var o *KubernetesNetworkPolicyPeer
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicyPeer)
+	}
+	return o
+}
+
+type rawKubernetesNetworkPolicyPeer KubernetesNetworkPolicyPeer
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicyPeer
+func (self *KubernetesNetworkPolicyPeer) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicyPeer
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicyPeer(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicyPeer) Validate() error {
+	return nil
+}
+
+// KubernetesNetworkPolicyIngressRule - Kubernetes network policy ingress rule
+type KubernetesNetworkPolicyIngressRule struct {
+
+	//
+	// Network policy source, when empty all sources are allowed
+	//
+	From []*KubernetesNetworkPolicyPeer `json:"from,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Ingress port(s), when empty all ports are allowed
+	//
+	Ports []*KubernetesNetworkPolicyPort `json:"ports,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesNetworkPolicyIngressRule - creates an initialized KubernetesNetworkPolicyIngressRule instance, returns a pointer to it
+func NewKubernetesNetworkPolicyIngressRule(init ...*KubernetesNetworkPolicyIngressRule) *KubernetesNetworkPolicyIngressRule {
+	var o *KubernetesNetworkPolicyIngressRule
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicyIngressRule)
+	}
+	return o
+}
+
+type rawKubernetesNetworkPolicyIngressRule KubernetesNetworkPolicyIngressRule
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicyIngressRule
+func (self *KubernetesNetworkPolicyIngressRule) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicyIngressRule
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicyIngressRule(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicyIngressRule) Validate() error {
+	return nil
+}
+
+// KubernetesNetworkPolicyEgressRule - Kubernetes network policy egress rule
+type KubernetesNetworkPolicyEgressRule struct {
+
+	//
+	// Network policy target, when empty all sources are allowed
+	//
+	To []*KubernetesNetworkPolicyPeer `json:"to,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Egress port(s), when empty all ports are allowed
+	//
+	Ports []*KubernetesNetworkPolicyPort `json:"ports,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesNetworkPolicyEgressRule - creates an initialized KubernetesNetworkPolicyEgressRule instance, returns a pointer to it
+func NewKubernetesNetworkPolicyEgressRule(init ...*KubernetesNetworkPolicyEgressRule) *KubernetesNetworkPolicyEgressRule {
+	var o *KubernetesNetworkPolicyEgressRule
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicyEgressRule)
+	}
+	return o
+}
+
+type rawKubernetesNetworkPolicyEgressRule KubernetesNetworkPolicyEgressRule
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicyEgressRule
+func (self *KubernetesNetworkPolicyEgressRule) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicyEgressRule
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicyEgressRule(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicyEgressRule) Validate() error {
+	return nil
+}
+
+// KubernetesNetworkPolicySpec - Kubernetes network policy spec
+type KubernetesNetworkPolicySpec struct {
+
+	//
+	// Kubernetes pod selector for the network policy target
+	//
+	PodSelector *KubernetesLabelSelector `json:"podSelector"`
+
+	//
+	// Network policy types - Ingress, Egress
+	//
+	PolicyTypes []string `json:"policyTypes"`
+
+	//
+	// Ingress network policy rules, if empty then all ingress traffic is blocked
+	//
+	Ingress []*KubernetesNetworkPolicyIngressRule `json:"ingress,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Egress network policy rules, if empty then all egress traffic is blocked
+	//
+	Egress []*KubernetesNetworkPolicyEgressRule `json:"egress,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesNetworkPolicySpec - creates an initialized KubernetesNetworkPolicySpec instance, returns a pointer to it
+func NewKubernetesNetworkPolicySpec(init ...*KubernetesNetworkPolicySpec) *KubernetesNetworkPolicySpec {
+	var o *KubernetesNetworkPolicySpec
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicySpec)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *KubernetesNetworkPolicySpec) Init() *KubernetesNetworkPolicySpec {
+	if self.PodSelector == nil {
+		self.PodSelector = NewKubernetesLabelSelector()
+	}
+	if self.PolicyTypes == nil {
+		self.PolicyTypes = make([]string, 0)
+	}
+	return self
+}
+
+type rawKubernetesNetworkPolicySpec KubernetesNetworkPolicySpec
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicySpec
+func (self *KubernetesNetworkPolicySpec) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicySpec
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicySpec(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicySpec) Validate() error {
+	if self.PodSelector == nil {
+		return fmt.Errorf("KubernetesNetworkPolicySpec: Missing required field: podSelector")
+	}
+	if self.PolicyTypes == nil {
+		return fmt.Errorf("KubernetesNetworkPolicySpec: Missing required field: policyTypes")
+	}
+	return nil
+}
+
+// KubernetesNetworkPolicyRequest - Request object containing Kubernetes
+// network policy inputs
+type KubernetesNetworkPolicyRequest struct {
+
+	//
+	// Label key name used on pods to identify Athenz domain
+	//
+	AthenzDomainLabel string `json:"athenzDomainLabel" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Label key name used on pods to identify Athenz service
+	//
+	AthenzServiceLabel string `json:"athenzServiceLabel"`
+
+	//
+	// Network policy type, default is vanilla Kubernetes
+	//
+	NetworkPolicyType string `json:"networkPolicyType" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Requested network policy apiVersion
+	//
+	RequestedApiVersion string `json:"requestedApiVersion" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Kubernetes namespace for the network policy object
+	//
+	NetworkPolicyNamespace string `json:"networkPolicyNamespace" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Use athenzDomainLabel as namespace selector
+	//
+	DomainLabelAsNamespaceSelector *bool `json:"domainLabelAsNamespaceSelector,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Use Athenz domain name in service label
+	//
+	DomainInServiceLabel *bool `json:"domainInServiceLabel,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewKubernetesNetworkPolicyRequest - creates an initialized KubernetesNetworkPolicyRequest instance, returns a pointer to it
+func NewKubernetesNetworkPolicyRequest(init ...*KubernetesNetworkPolicyRequest) *KubernetesNetworkPolicyRequest {
+	var o *KubernetesNetworkPolicyRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicyRequest)
+	}
+	return o
+}
+
+type rawKubernetesNetworkPolicyRequest KubernetesNetworkPolicyRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicyRequest
+func (self *KubernetesNetworkPolicyRequest) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicyRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicyRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicyRequest) Validate() error {
+	if self.AthenzDomainLabel != "" {
+		val := rdl.Validate(MSDSchema(), "String", self.AthenzDomainLabel)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyRequest.athenzDomainLabel does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AthenzServiceLabel == "" {
+		return fmt.Errorf("KubernetesNetworkPolicyRequest.athenzServiceLabel is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.AthenzServiceLabel)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyRequest.athenzServiceLabel does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NetworkPolicyType != "" {
+		val := rdl.Validate(MSDSchema(), "String", self.NetworkPolicyType)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyRequest.networkPolicyType does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.RequestedApiVersion != "" {
+		val := rdl.Validate(MSDSchema(), "String", self.RequestedApiVersion)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyRequest.requestedApiVersion does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.NetworkPolicyNamespace != "" {
+		val := rdl.Validate(MSDSchema(), "String", self.NetworkPolicyNamespace)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyRequest.networkPolicyNamespace does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// KubernetesNetworkPolicyResponse - Response object containing Kubernetes
+// network policy
+type KubernetesNetworkPolicyResponse struct {
+
+	//
+	// Kubernetes network policy apiVersion
+	//
+	ApiVersion string `json:"apiVersion"`
+
+	//
+	// Kubernetes network policy kind
+	//
+	Kind string `json:"kind"`
+
+	//
+	// Kubernetes network policy metadata
+	//
+	Metadata map[string]string `json:"metadata"`
+
+	//
+	// Kubernetes network policy spec
+	//
+	Spec *KubernetesNetworkPolicySpec `json:"spec"`
+}
+
+// NewKubernetesNetworkPolicyResponse - creates an initialized KubernetesNetworkPolicyResponse instance, returns a pointer to it
+func NewKubernetesNetworkPolicyResponse(init ...*KubernetesNetworkPolicyResponse) *KubernetesNetworkPolicyResponse {
+	var o *KubernetesNetworkPolicyResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(KubernetesNetworkPolicyResponse)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *KubernetesNetworkPolicyResponse) Init() *KubernetesNetworkPolicyResponse {
+	if self.Metadata == nil {
+		self.Metadata = make(map[string]string)
+	}
+	if self.Spec == nil {
+		self.Spec = NewKubernetesNetworkPolicySpec()
+	}
+	return self
+}
+
+type rawKubernetesNetworkPolicyResponse KubernetesNetworkPolicyResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a KubernetesNetworkPolicyResponse
+func (self *KubernetesNetworkPolicyResponse) UnmarshalJSON(b []byte) error {
+	var m rawKubernetesNetworkPolicyResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := KubernetesNetworkPolicyResponse(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *KubernetesNetworkPolicyResponse) Validate() error {
+	if self.ApiVersion == "" {
+		return fmt.Errorf("KubernetesNetworkPolicyResponse.apiVersion is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.ApiVersion)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyResponse.apiVersion does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Kind == "" {
+		return fmt.Errorf("KubernetesNetworkPolicyResponse.kind is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Kind)
+		if !val.Valid {
+			return fmt.Errorf("KubernetesNetworkPolicyResponse.kind does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Metadata == nil {
+		return fmt.Errorf("KubernetesNetworkPolicyResponse: Missing required field: metadata")
+	}
+	if self.Spec == nil {
+		return fmt.Errorf("KubernetesNetworkPolicyResponse: Missing required field: spec")
+	}
 	return nil
 }

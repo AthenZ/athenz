@@ -5,7 +5,7 @@ include "Names.tdl";
 include "TransportPolicyRule.tdl";
 
 // IMPACT indicates that a change in network policy will interfere with workings of one or more transport policies
-// NO_IMAPCT indicates that a change in network policy will not interfere with workings of any transport policy
+// NO_IMPACT indicates that a change in network policy will not interfere with workings of any transport policy
 
 type NetworkPolicyChangeEffect Enum {
     IMPACT,
