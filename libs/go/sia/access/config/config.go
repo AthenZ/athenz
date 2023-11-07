@@ -20,21 +20,23 @@ import "time"
 
 // Role models the configuration to be specified in sia_config
 type Role struct {
-	Service string   `json:"service,omitempty"`    // principal service with role access
-	Roles   []string `json:"roles,omitempty"`      // the roles in the domain in which principal is a member
-	Expiry  int      `json:"expires_in,omitempty"` // requested expiry time for access token in seconds
+	Service                  string   `json:"service,omitempty"`                     // principal service with role access
+	Roles                    []string `json:"roles,omitempty"`                       // the roles in the domain in which principal is a member
+	Expiry                   int      `json:"expires_in,omitempty"`                  // requested expiry time for access token in seconds
+	ProxyPrincipalSpiffeUris string   `json:"proxy_principal_spiffe_uris,omitempty"` // Proxy Principal Spiffe URIs to be included in the token
 }
 
 // AccessToken is the type that holds information AFTER processing the configuration
 type AccessToken struct {
-	FileName string   // FileName under /var/lib/sia/tokens
-	Service  string   // Principal service that is a member of the roles
-	Domain   string   // Domain in which principal is a member of
-	Roles    []string // Roles under the Domain for which access tokens are being requested
-	User     string   // Owner of the access token file on disc
-	Uid      int      // Uid of the Owner of file on disc
-	Gid      int      // Gid of the file on disc
-	Expiry   int      // Expiry of the access token
+	FileName                 string   // FileName under /var/lib/sia/tokens
+	Service                  string   // Principal service that is a member of the roles
+	Domain                   string   // Domain in which principal is a member of
+	Roles                    []string // Roles under the Domain for which access tokens are being requested
+	User                     string   // Owner of the access token file on disc
+	Uid                      int      // Uid of the Owner of file on disc
+	Gid                      int      // Gid of the file on disc
+	Expiry                   int      // Expiry of the access token
+	ProxyPrincipalSpiffeUris string   // Proxy Principal Spiffe URIs to be included in the token
 }
 
 type StoreTokenOptions int

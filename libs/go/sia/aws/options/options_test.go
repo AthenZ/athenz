@@ -529,58 +529,75 @@ func TestOptionsWithAccessToken(t *testing.T) {
 	a.Contains(serviceNames, "logger")
 
 	a.True(assertToken(opts.AccessTokens, config.AccessToken{
-		FileName: "reader",
-		Service:  "api",
-		Domain:   "athenz.demo",
-		Roles:    []string{"reader"},
-		Expiry:   DefaultTokenExpiry,
-		User:     "nobody",
+		FileName:                 "reader",
+		Service:                  "api",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"reader"},
+		Expiry:                   DefaultTokenExpiry,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "",
 	}))
 
 	a.True(assertToken(opts.AccessTokens, config.AccessToken{
-		FileName: "poweruser",
-		Service:  "api",
-		Domain:   "athenz.demo",
-		Roles:    []string{"reader-admin"},
-		Expiry:   10800,
-		User:     "nobody",
+		FileName:                 "poweruser",
+		Service:                  "api",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"reader-admin"},
+		Expiry:                   10800,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "",
 	}))
 
 	a.True(assertToken(opts.AccessTokens, config.AccessToken{
-		FileName: "consumer",
-		Service:  "api",
-		Domain:   "athenz.demo",
-		Roles:    []string{"reader", "reader-admin"},
-		Expiry:   DefaultTokenExpiry,
-		User:     "nobody",
+		FileName:                 "consumer",
+		Service:                  "api",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"reader", "reader-admin"},
+		Expiry:                   DefaultTokenExpiry,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "",
 	}))
 
 	a.True(assertToken(opts.AccessTokens, config.AccessToken{
-		FileName: "writer",
-		Service:  "api",
-		Domain:   "athenz.demo",
-		Roles:    []string{"writer", "writer-admin"},
-		Expiry:   10800,
-		User:     "nobody",
+		FileName:                 "writer",
+		Service:                  "api",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"writer", "writer-admin"},
+		Expiry:                   10800,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "",
 	}))
 
 	a.True(assertToken(opts.AccessTokens, config.AccessToken{
-		FileName: "splunk",
-		Service:  "logger",
-		Domain:   "athenz.demo",
-		Roles:    []string{"splunk"},
-		Expiry:   DefaultTokenExpiry,
-		User:     "nobody",
+		FileName:                 "splunk",
+		Service:                  "logger",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"splunk"},
+		Expiry:                   DefaultTokenExpiry,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "",
 	}))
 
 	a.True(assertToken(opts.AccessTokens, config.AccessToken{
-		FileName: "all",
-		Service:  "api",
-		Domain:   "athenz.demo",
-		Roles:    []string{"*"},
-		Expiry:   DefaultTokenExpiry,
-		User:     "nobody",
+		FileName:                 "all",
+		Service:                  "api",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"*"},
+		Expiry:                   DefaultTokenExpiry,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "",
 	}))
+
+	a.True(assertToken(opts.AccessTokens, config.AccessToken{
+		FileName:                 "spiffe",
+		Service:                  "api",
+		Domain:                   "athenz.demo",
+		Roles:                    []string{"writer", "writer-admin"},
+		Expiry:                   10800,
+		User:                     "nobody",
+		ProxyPrincipalSpiffeUris: "spiffe://athenz/sa/api,spiffe://athenz/sa/logger",
+	}))
+
 	log.Print(opts)
 }
 
@@ -631,7 +648,8 @@ func assertToken(tokens []config.AccessToken, token config.AccessToken) bool {
 			t.Domain == token.Domain &&
 			reflect.DeepEqual(t.Roles, token.Roles) &&
 			t.Expiry == token.Expiry &&
-			t.User == token.User {
+			t.User == token.User &&
+			t.ProxyPrincipalSpiffeUris == token.ProxyPrincipalSpiffeUris {
 			return true
 		}
 	}

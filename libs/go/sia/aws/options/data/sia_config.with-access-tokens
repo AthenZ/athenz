@@ -34,7 +34,13 @@
 
     "athenz.demo/all": {
       "roles": ["*"]
-    }
+    },
+
+    "athenz.demo/spiffe": {
+       "roles": ["writer", "writer-admin"],
+       "expires_in": 10800,
+       "proxy_principal_spiffe_uris": "spiffe://athenz/sa/api,spiffe://athenz/sa/logger"
+     }
   },
   "accounts": [
        {
