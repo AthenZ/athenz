@@ -1,3 +1,14 @@
+Athenz v1.11.46 Release / Nov 07, 2023
+--------------------------------------
+
+#2324 Extract and reuse duplicate helper function ExtractSignerInfo
+#2388 for notification emails expand groups and delegated role membership
+#2391 replace interface{} with string for zms-cli import operations
+#2392 support proxy principal spiffe uri in access token requests
+#2393 new bit to disable notifications over a week away
+#2396 msd api to return kubernetes network policy object
+#2397 for groups to disable expiry notfs look for both expiration/reminder tags
+
 Athenz v1.11.45 Release / Oct 30, 2023
 --------------------------------------
 
