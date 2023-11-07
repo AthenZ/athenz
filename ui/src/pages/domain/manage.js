@@ -117,7 +117,7 @@ export async function getServerSideProps(context) {
             manageDomains: domains[1],
             pending: domains[2],
             _csrf: domains[3],
-            testfive:domains[4],
+            test:domains[4],
             nonce: context.req.headers.rid,
             validBusinessServices: businessServiceOptions,
         },
