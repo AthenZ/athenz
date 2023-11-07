@@ -24,10 +24,14 @@ import com.yahoo.rdl.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.common.server.notification.impl.MetricNotificationService.*;
 
 public class NotificationUtils {
+
+    // we're going to use 8 days max for our week expiry disable check
+    public static final long WEEK_EXPIRY_CHECK = TimeUnit.MILLISECONDS.convert(8, TimeUnit.DAYS);
 
     public static NotificationMetric getNotificationAsMetrics(Notification notification, Timestamp currentTime,
             final String notificationType, final String keyName, final String objectType, final String timeType,

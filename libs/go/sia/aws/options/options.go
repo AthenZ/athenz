@@ -819,14 +819,15 @@ func processAccessTokens(config *Config, processedSvcs []Service) ([]ac.AccessTo
 		}
 
 		accessTokens = append(accessTokens, ac.AccessToken{
-			FileName: fileName,
-			Service:  service,
-			Domain:   domain,
-			Roles:    roles,
-			Expiry:   expiry,
-			User:     processedSvc.User,
-			Uid:      processedSvc.Uid,
-			Gid:      processedSvc.Gid,
+			FileName:                 fileName,
+			Service:                  service,
+			Domain:                   domain,
+			Roles:                    roles,
+			Expiry:                   expiry,
+			User:                     processedSvc.User,
+			Uid:                      processedSvc.Uid,
+			Gid:                      processedSvc.Gid,
+			ProxyPrincipalSpiffeUris: t.ProxyPrincipalSpiffeUris,
 		})
 	}
 	return accessTokens, nil

@@ -107,6 +107,11 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
             detailsRow.append(memberRole.getExpiration());
             return detailsRow;
         }
+
+        @Override
+        public Timestamp getNotificationTimestamp(MemberRole memberRole) {
+            return memberRole.getExpiration();
+        }
     }
 
     class ReviewDisableRoleMemberNotificationFilter implements RoleMemberNotificationCommon.DisableRoleMemberNotificationFilter {

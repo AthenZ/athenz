@@ -54,9 +54,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type ConfirmClaim struct {
+	SpiffeUris string `json:"proxy-principals#spiffe"`
+}
+
 type AccessTokenClaims struct {
-	Audience string   `json:"aud"`
-	Scopes   []string `json:"scp"`
+	Audience string       `json:"aud"`
+	Scopes   []string     `json:"scp"`
+	Confirm  ConfirmClaim `json:"cnf"`
 	jwt.StandardClaims
 }
 
@@ -329,7 +334,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 			{FileName: "token2", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1", "role2"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 			{FileName: "token3", Service: "httpd", Domain: "athenz.demo", Roles: []string{"*"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 			{FileName: "token4", Service: "httpd", Domain: "athenz.demo", Roles: []string{"token4"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
-			{FileName: "token1", Service: "httpd", Domain: "athenz.examples", Roles: []string{"token1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
+			{FileName: "token1", Service: "httpd", Domain: "athenz.examples", Roles: []string{"token1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200, ProxyPrincipalSpiffeUris: "spiffe://athenz/sa/proxy"},
 		},
 		ZtsUrl: ztsServer.baseUrl("zts/v1"),
 	}
@@ -448,7 +453,7 @@ func TestAccessTokensRerun(t *testing.T) {
 
 	// Sequence 3: Force an older time stamp, and then attempt a rerun, and the token should be refreshed
 	hourAgo := time.Now().Add(-65 * time.Minute).Unix()
-	accessTokenShorterValidity := makeAccessTokenImpl(3600, hourAgo, "athenz.demo", []string{"role1"}, eckey)
+	accessTokenShorterValidity := makeAccessTokenImpl(3600, hourAgo, "athenz.demo", []string{"role1"}, "", eckey)
 	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 
 	before, err = os.Stat(tpath)
@@ -564,7 +569,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 
 	// Force an older time stamp on token1
 	tpath := filepath.Join(opts.TokenDir, opts.Tokens[0].Domain, opts.Tokens[0].FileName)
-	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, eckey)
+	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, "", eckey)
 	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 
 	_, errs = Fetch(opts)
@@ -637,7 +642,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 
 	// Handling ZTS 500s
 	tpath := filepath.Join(opts.TokenDir, opts.Tokens[0].Domain, opts.Tokens[0].FileName)
-	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, eckey)
+	accessTokenShorterValidity := makeAccessTokenImpl(0, currentUnixTime, "athenz.demo", []string{"role1"}, "", eckey)
 	siafile.Update(tpath, []byte(accessTokenShorterValidity), uid(t), gid(t), 0440, nil)
 	before, err := os.Stat(tpath)
 	assert.NoErrorf(t, err, "should be able to stat file: %s, err: %v", tpath, err)
@@ -767,7 +772,7 @@ func fixGidUid(tokens []config.AccessToken) {
 
 func token(expiry int, issuedAt int64) []byte {
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	accessToken := makeAccessTokenImpl(expiry, issuedAt, "athenz.demo", []string{"role1"}, eckey)
+	accessToken := makeAccessTokenImpl(expiry, issuedAt, "athenz.demo", []string{"role1"}, "", eckey)
 	return []byte(accessToken)
 }
 
@@ -796,7 +801,7 @@ func makeAccessToken(r *http.Request, key crypto.PrivateKey) string {
 		}
 
 		domain := parts[0]
-		roles := []string{}
+		roles := make([]string, 0)
 
 		if len(parts) == 1 {
 			// only domain specified, mint some roles
@@ -836,11 +841,12 @@ func makeAccessToken(r *http.Request, key crypto.PrivateKey) string {
 		panic(err)
 	}
 
+	spiffeUris := values.Get("proxy_principal_spiffe_uris")
 	currentUnixTime := time.Now().Unix()
-	return makeAccessTokenImpl(expiry, currentUnixTime, audience, roles, key)
+	return makeAccessTokenImpl(expiry, currentUnixTime, audience, roles, spiffeUris, key)
 }
 
-func makeAccessTokenImpl(expiry int, issuedAt int64, audience string, roles []string, key crypto.PrivateKey) string {
+func makeAccessTokenImpl(expiry int, issuedAt int64, audience string, roles []string, spiffeUris string, key crypto.PrivateKey) string {
 
 	claims := &AccessTokenClaims{
 		Audience: audience,
@@ -851,6 +857,12 @@ func makeAccessTokenImpl(expiry int, issuedAt int64, audience string, roles []st
 			Subject:   "principal.test",
 			IssuedAt:  issuedAt,
 		},
+	}
+
+	if spiffeUris != "" {
+		claims.Confirm = ConfirmClaim{
+			SpiffeUris: spiffeUris,
+		}
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
@@ -990,23 +1002,31 @@ func assertAccessTokens(test *testing.T, opts *config.TokenOptions, assertGidUid
 
 			a.Equal(int32(t.Expiry), *token.Expires_in)
 		} else {
+			var claims jwt.MapClaims
 			// default behavior is access token in quotes
 			if opts.StoreOptions == config.AccessTokenProp {
 				a.Equal(bytes[0], byte('"'))
 				a.Equal(bytes[len(bytes)-1], byte('"'))
-				assertParseJwt(a, bytes[1:len(bytes)-1])
+				claims = assertParseJwt(a, bytes[1:len(bytes)-1])
 			} else {
-				assertParseJwt(a, bytes)
+				claims = assertParseJwt(a, bytes)
+			}
+			if t.ProxyPrincipalSpiffeUris != "" {
+				a.NotNil(claims["cnf"])
+				cnf := claims["cnf"].(map[string]interface{})
+				a.Equal(cnf["proxy-principals#spiffe"], t.ProxyPrincipalSpiffeUris)
 			}
 		}
 	}
 }
 
-func assertParseJwt(a *assert.Assertions, token []byte) {
+func assertParseJwt(a *assert.Assertions, token []byte) jwt.MapClaims {
 	parser := new(jwt.Parser)
-	t, _, err := parser.ParseUnverified(string(token), jwt.MapClaims{})
+	claims := jwt.MapClaims{}
+	t, _, err := parser.ParseUnverified(string(token), claims)
 	a.Nil(err)
 	a.NotNil(t)
+	return claims
 }
 
 // uid returns current user's uid
