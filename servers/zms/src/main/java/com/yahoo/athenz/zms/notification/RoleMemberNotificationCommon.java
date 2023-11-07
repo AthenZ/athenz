@@ -24,6 +24,7 @@ import com.yahoo.athenz.zms.DBService;
 import com.yahoo.athenz.zms.DomainRoleMember;
 import com.yahoo.athenz.zms.MemberRole;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,12 @@ import static com.yahoo.athenz.common.server.notification.NotificationServiceCon
 
 public class RoleMemberNotificationCommon {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberNotificationCommon.class);
+
     private final String userDomainPrefix;
     private final boolean consolidatedNotifications;
     private final NotificationCommon notificationCommon;
     private final DomainRoleMembersFetcher domainRoleMembersFetcher;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RoleMemberNotificationCommon.class);
 
     public RoleMemberNotificationCommon(DBService dbService, String userDomainPrefix, boolean consolidatedNotifications) {
         this.userDomainPrefix = userDomainPrefix;
@@ -291,6 +293,19 @@ public class RoleMemberNotificationCommon {
                 LOGGER.info("Notification disabled for role {}, domain {}", memberRole.getRoleName(), memberRole.getDomainName());
                 continue;
             }
+
+            // check to see if the administrator has configured to generate notifications
+            // only for members that are expiring in less than a week
+
+            if (disabledNotificationState.contains(DisableNotificationEnum.OVER_ONE_WEEK)) {
+                Timestamp notificationTimestamp = roleMemberDetailStringer.getNotificationTimestamp(memberRole);
+                if (notificationTimestamp == null || notificationTimestamp.millis() - System.currentTimeMillis() > NotificationUtils.WEEK_EXPIRY_CHECK) {
+                    LOGGER.info("Notification skipped for role {}, domain {}, notification date is more than a week way",
+                            memberRole.getRoleName(), memberRole.getDomainName());
+                    continue;
+                }
+            }
+
             final String domainName = memberRole.getDomainName();
 
             // first we're going to update our expiry details string
@@ -361,12 +376,19 @@ public class RoleMemberNotificationCommon {
      */
     public interface RoleMemberDetailStringer {
         /**
-         *
-         * @param memberRole member role
-         * @return Details extracted from the memberRole with a semicolon (;) between them
+         * Get the details extracted from the memberRole with a semicolon (;) between them
          * These details should fit in the notification template (for example, the html of an email body)
+         * @param memberRole member role
+         * @return StringBuilder object that contains details
          */
         StringBuilder getDetailString(MemberRole memberRole);
+
+        /**
+         * Returns the notification date (expiry or review date) for a given role
+         * @param memberRole member role
+         * @return notification date
+         */
+        Timestamp getNotificationTimestamp(MemberRole memberRole);
     }
 
     /**

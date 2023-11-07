@@ -26,7 +26,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 public enum DisableNotificationEnum {
-    USER, ADMIN;
+    USER,          // disable notifications to the users
+    ADMIN,         // disable notifications to the admins
+    OVER_ONE_WEEK; // disable notifications to the users/admins if the expiry is more than a week out
 
     public static EnumSet<DisableNotificationEnum> getEnumSet(long mask) {
         return EnumUtils.processBitVector(DisableNotificationEnum.class, mask);

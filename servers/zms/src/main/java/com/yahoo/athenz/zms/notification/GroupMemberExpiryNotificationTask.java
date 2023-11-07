@@ -122,6 +122,18 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
                 continue;
             }
 
+            // check to see if the administrator has configured to generate notifications
+            // only for members that are expiring in less than a week
+
+            if (disabledNotificationState.contains(DisableNotificationEnum.OVER_ONE_WEEK)) {
+                Timestamp notificationTimestamp = memberGroup.getExpiration();
+                if (notificationTimestamp == null || notificationTimestamp.millis() - System.currentTimeMillis() > NotificationUtils.WEEK_EXPIRY_CHECK) {
+                    LOGGER.info("Notification skipped for group {}, domain {}, notification date is more than a week way",
+                            memberGroup.getGroupName(), memberGroup.getDomainName());
+                    continue;
+                }
+            }
+
             final String domainName = memberGroup.getDomainName();
 
             // first we're going to update our expiry details string
