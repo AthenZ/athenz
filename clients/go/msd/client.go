@@ -777,6 +777,48 @@ func (client MSDClient) EvaluateNetworkPolicyChange(detail *NetworkPolicyChangeI
 	}
 }
 
+func (client MSDClient) PostKubernetesNetworkPolicyRequest(domainName DomainName, serviceName EntityName, request *KubernetesNetworkPolicyRequest, matchingTag string) (*KubernetesNetworkPolicyResponse, string, error) {
+	var data *KubernetesNetworkPolicyResponse
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/kubernetesnetworkpolicy"
+	contentBytes, err := json.Marshal(request)
+	if err != nil {
+		return nil, "", err
+	}
+	resp, err := client.httpPost(url, headers, contentBytes)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
 func (client MSDClient) GetRdlSchema() (*rdl.Schema, error) {
 	var data *rdl.Schema
 	url := client.URL + "/schema"

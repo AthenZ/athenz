@@ -7,7 +7,7 @@ import com.yahoo.rdl.*;
 
 //
 // NetworkPolicyChangeEffect - IMPACT indicates that a change in network policy
-// will interfere with workings of one or more transport policies NO_IMAPCT
+// will interfere with workings of one or more transport policies NO_IMPACT
 // indicates that a change in network policy will not interfere with workings of
 // any transport policy
 //

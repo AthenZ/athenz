@@ -1,0 +1,75 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+include "TransportPolicyRule.tdl";
+
+// A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+type KubernetesLabelSelectorRequirement Struct {
+    String key; //Label key that the selector applies to
+    String operator; //Operator that is applied to the key. Valid operators are In, NotIn, Exists and DoesNotExist.
+    Array<String> values (optional); //Array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.
+}
+
+// A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+type KubernetesLabelSelector Struct {
+    Array<KubernetesLabelSelectorRequirement> matchExpressions; //Array of label selector requirements. The requirements are ANDed.
+    Map<String, String> matchLabels; //Map of label key/value pairs
+}
+
+// Kubernetes network policy port range
+type KubernetesNetworkPolicyPort PolicyPort {
+    TransportPolicyProtocol protocol; //Network policy protocol. Allowed values: TCP, UDP.
+}
+
+// Kubernetes network policy IP block source/target
+type KubernetesIPBlock Struct {
+    String cidr; //CIDR block representing IP range for source/target
+    Array<String> except (optional); //Exception for CIDR blocks, if needed
+}
+
+// Kubernetes network policy peer (source/target)
+type KubernetesNetworkPolicyPeer Struct {
+    KubernetesLabelSelector podSelector (optional); //Kubernetes pod selector for the network policy source/target
+    KubernetesLabelSelector namespaceSelector (optional); //Kubernetes namespace selector for the network policy source/target
+    KubernetesIPBlock ipBlock (optional); //IP block for the network policy source/target
+}
+
+// Kubernetes network policy ingress rule
+type KubernetesNetworkPolicyIngressRule Struct {
+    Array<KubernetesNetworkPolicyPeer> from (optional); //Network policy source, when empty all sources are allowed
+    Array<KubernetesNetworkPolicyPort> ports (optional); //Ingress port(s), when empty all ports are allowed
+}
+
+// Kubernetes network policy egress rule
+type KubernetesNetworkPolicyEgressRule Struct {
+    Array<KubernetesNetworkPolicyPeer> to (optional); //Network policy target, when empty all sources are allowed
+    Array<KubernetesNetworkPolicyPort> ports (optional); //Egress port(s), when empty all ports are allowed
+}
+
+// Kubernetes network policy spec
+type KubernetesNetworkPolicySpec Struct {
+    KubernetesLabelSelector podSelector; //Kubernetes pod selector for the network policy target
+    Array<String> policyTypes; //Network policy types - Ingress, Egress
+    Array<KubernetesNetworkPolicyIngressRule> ingress (optional); //Ingress network policy rules, if empty then all ingress traffic is blocked
+    Array<KubernetesNetworkPolicyEgressRule> egress (optional); //Egress network policy rules, if empty then all egress traffic is blocked
+}
+
+// Request object containing Kubernetes network policy inputs
+type KubernetesNetworkPolicyRequest Struct {
+    String athenzDomainLabel (optional); //Label key name used on pods to identify Athenz domain
+    String athenzServiceLabel; //Label key name used on pods to identify Athenz service
+    String networkPolicyType (optional); //Network policy type, default is vanilla Kubernetes
+    String requestedApiVersion (optional); //Requested network policy apiVersion
+    String networkPolicyNamespace (optional); //Kubernetes namespace for the network policy object
+    Bool domainLabelAsNamespaceSelector (optional, default=false); //Use athenzDomainLabel as namespace selector
+    Bool domainInServiceLabel (optional, default=false); //Use Athenz domain name in service label
+}
+
+// Response object containing Kubernetes network policy
+type KubernetesNetworkPolicyResponse Struct {
+    String apiVersion; //Kubernetes network policy apiVersion
+    String kind; //Kubernetes network policy kind
+    Map<String, String> metadata; //Kubernetes network policy metadata
+    KubernetesNetworkPolicySpec spec; //Kubernetes network policy spec
+}
