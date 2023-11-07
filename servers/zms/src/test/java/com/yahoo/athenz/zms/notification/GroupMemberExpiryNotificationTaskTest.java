@@ -161,6 +161,11 @@ public class GroupMemberExpiryNotificationTaskTest {
 
     @Test
     public void testSendGroupMemberExpiryRemindersDisabledOverOneWeek() {
+        testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG);
+        testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG);
+    }
+
+    void testSendGroupMemberExpiryRemindersDisabledOverOneWeekWithTag(final String tag) {
 
         DBService dbsvc = Mockito.mock(DBService.class);
         NotificationToEmailConverterCommon notificationToEmailConverterCommon = new NotificationToEmailConverterCommon(null);
@@ -211,7 +216,7 @@ public class GroupMemberExpiryNotificationTaskTest {
 
         Map<String, TagValueList> tags = new HashMap<>();
         TagValueList tagValueList = new TagValueList().setList(Collections.singletonList("4"));
-        tags.put(ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG, tagValueList);
+        tags.put(tag, tagValueList);
         Group group = new Group().setTags(tags);
         Mockito.when(dbsvc.getGroup("athenz1", "group1", false, false)).thenReturn(group);
         Mockito.when(dbsvc.getGroup("athenz1", "group2", false, false)).thenReturn(group);
@@ -676,15 +681,19 @@ public class GroupMemberExpiryNotificationTaskTest {
 
     @Test
     public void testGetDisabledNotificationState() {
+        testGetDisabledNotificationStateWithTag(ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG);
+        testGetDisabledNotificationStateWithTag(ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG);
+    }
 
+    void testGetDisabledNotificationStateWithTag(final String tag) {
         DBService dbsvc = Mockito.mock(DBService.class);
 
         Map<String, TagValueList> tags1 = new HashMap<>();
-        tags1.put(ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG, new TagValueList().setList(Collections.singletonList("2")));
+        tags1.put(tag, new TagValueList().setList(Collections.singletonList("2")));
         Group group1 = new Group().setName("athenz:group.dev-team").setTags(tags1);
 
         Map<String, TagValueList> tags2 = new HashMap<>();
-        tags2.put(ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG, new TagValueList().setList(Collections.singletonList("abc")));
+        tags2.put(tag, new TagValueList().setList(Collections.singletonList("abc")));
         Group group2 = new Group().setName("athenz:group.qa-team").setTags(tags2);
 
         Mockito.when(dbsvc.getGroup("athenz", "dev-team", false, false)).thenReturn(group1);

@@ -164,12 +164,20 @@ public class GroupMemberExpiryNotificationTask implements NotificationTask {
 
         Group group = dbService.getGroup(memberGroup.getDomainName(), memberGroup.getGroupName(), false, false);
         try {
-            return DisableNotificationEnum.getDisabledNotificationState(group, Group::getTags,
-                    ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG);
+            // for groups, we're going to check the disabled expiration notification tag, and
+            // if it's not set, we're going to honor the disabled reminder notification tag
+
+            EnumSet<DisableNotificationEnum> enumSet = DisableNotificationEnum.getDisabledNotificationState(
+                    group, Group::getTags, ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG);
+            if (enumSet.isEmpty()) {
+                enumSet = DisableNotificationEnum.getDisabledNotificationState(group, Group::getTags,
+                        ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG);
+            }
+            return enumSet;
         } catch (NumberFormatException ex) {
-            LOGGER.warn("Invalid mask value for zms.DisableReminderNotifications in domain {}, group {}",
-                    memberGroup.getDomainName(),
-                    memberGroup.getGroupName());
+            LOGGER.error("Invalid mask value for {}/{} tags in domain {}, group {}",
+                    ZMSConsts.DISABLE_EXPIRATION_NOTIFICATIONS_TAG, ZMSConsts.DISABLE_REMINDER_NOTIFICATIONS_TAG,
+                    memberGroup.getDomainName(), memberGroup.getGroupName());
         }
 
         return DisableNotificationEnum.getEnumSet(0);
