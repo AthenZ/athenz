@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"crypto"
-	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -18,14 +17,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"reflect"
 	"strings"
 	"time"
 
+	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
-
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 )
 
@@ -373,41 +370,11 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 }
 
 func newSigner(privateKeyPEM []byte) (*signer, error) {
-	block, _ := pem.Decode(privateKeyPEM)
-	if block == nil {
-		return nil, fmt.Errorf("unable to load private key")
+	key, algorithm, err := athenzutils.ExtractSignerInfo(privateKeyPEM)
+	if err != nil {
+		return nil, err
 	}
-
-	switch block.Type {
-	case "EC PRIVATE KEY":
-		key, err := x509.ParseECPrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		return &signer{key: key, algorithm: x509.ECDSAWithSHA256}, nil
-	case "RSA PRIVATE KEY":
-		key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		return &signer{key: key, algorithm: x509.SHA256WithRSA}, nil
-	case "PRIVATE KEY":
-		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		switch k := key.(type) {
-		case *ecdsa.PrivateKey:
-			return &signer{key: k, algorithm: x509.ECDSAWithSHA256}, nil
-		case *rsa.PrivateKey:
-			return &signer{key: k, algorithm: x509.SHA256WithRSA}, nil
-		default:
-			// PKCS#8 format may contain multiple key types other than RSA / EC, but current ZMS / ZTS server implementation only supports RSA / EC private keys
-			return nil, fmt.Errorf("unsupported private key type: %s", reflect.TypeOf(k).Name())
-		}
-	default:
-		return nil, fmt.Errorf("unsupported private key type: %s", block.Type)
-	}
+	return &signer{key: key, algorithm: algorithm}, nil
 }
 
 func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, ip, uri string) (string, error) {

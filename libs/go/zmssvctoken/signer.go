@@ -13,7 +13,8 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
-	"reflect"
+
+	"github.com/AthenZ/athenz/libs/go/athenzutils"
 )
 
 var hash = crypto.SHA256
@@ -42,41 +43,11 @@ func hashString(input string) ([]byte, error) {
 
 // NewSigner creates an instance of Signer using the given private key (ECDSA or RSA).
 func NewSigner(privateKeyPEM []byte) (Signer, error) {
-	block, _ := pem.Decode(privateKeyPEM)
-	if block == nil {
-		return nil, fmt.Errorf("Unable to load private key")
+	key, _, err := athenzutils.ExtractSignerInfo(privateKeyPEM)
+	if err != nil {
+		return nil, err
 	}
-
-	switch block.Type {
-	case "EC PRIVATE KEY":
-		key, err := x509.ParseECPrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		return &sign{key: key}, nil
-	case "RSA PRIVATE KEY":
-		key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		return &sign{key: key}, nil
-	case "PRIVATE KEY":
-		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		switch k := key.(type) {
-		case *ecdsa.PrivateKey:
-			return &sign{key: k}, nil
-		case *rsa.PrivateKey:
-			return &sign{key: k}, nil
-		default:
-			// PKCS#8 format may contain multiple key types other than RSA / EC, but current ZMS / ZTS server implementation only supports RSA / EC private keys
-			return nil, fmt.Errorf("Unsupported private key type: %s", reflect.TypeOf(k).Name())
-		}
-	default:
-		return nil, fmt.Errorf("Unsupported private key type: %s", block.Type)
-	}
+	return &sign{key: key}, nil
 }
 
 type sign struct {
