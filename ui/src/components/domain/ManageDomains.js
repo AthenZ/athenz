@@ -381,9 +381,6 @@ class ManageDomains extends React.Component {
                                   />
                               ) : null}
                           </TDStyled>
-                          <TDStyled color={color} align={center}>
-                              {item.domain.account ? item.domain.account : ''}
-                          </TDStyled>
                       </TrStyled>
                   );
               })
