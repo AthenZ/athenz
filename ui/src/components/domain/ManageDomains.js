@@ -32,12 +32,15 @@ import {
     selectBusinessServicesAll,
     selectTimeZone,
 } from '../../redux/selectors/domains';
+
 const ManageDomainSectionDiv = styled.div`
     margin: 20px;
 `;
+
 const AddContainerDiv = styled.div`
     padding-bottom: 20px;
 `;
+
 const RoleTable = styled.table`
     width: 100%;
     border-spacing: 0;
@@ -45,6 +48,7 @@ const RoleTable = styled.table`
     border-collapse: separate;
     border-color: grey;
 `;
+
 const TableHeadStyled = styled.th`
     text-align: ${(props) => props.align};
     border-bottom: 2px solid #d5d5d5;
@@ -56,6 +60,7 @@ const TableHeadStyled = styled.th`
     padding: 5px 0 5px 15px;
     word-break: break-all;
 `;
+
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
@@ -63,6 +68,7 @@ const TDStyled = styled.td`
     vertical-align: middle;
     word-break: break-all;
 `;
+
 const TDStyledBusinessService = styled.td`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
@@ -75,12 +81,14 @@ const TDStyledBusinessService = styled.td`
     white-space: nowrap;
     max-width: 1px;
 `;
+
 const StyledAnchor = styled.a`
     color: ${colors.linkActive};
     text-decoration: none;
     cursor: pointer;
     font-weight: '';
 `;
+
 const TrStyled = styled.tr`
     ${(props) =>
         props.isSuccess === true &&
@@ -88,6 +96,7 @@ const TrStyled = styled.tr`
             animation: ${colorTransition} 3s ease;
         `}
 `;
+
 const colorTransition = keyframes`
         0% {
             background-color: rgba(21, 192, 70, 0.20);
@@ -96,6 +105,7 @@ const colorTransition = keyframes`
             background-color: transparent;
         }
 `;
+
 class ManageDomains extends React.Component {
     constructor(props) {
         super(props);
@@ -116,6 +126,7 @@ class ManageDomains extends React.Component {
         this.domainNameProvided = this.domainNameProvided.bind(this);
         this.dateUtils = new DateUtils();
     }
+
     onClickBusinessService(domainName, businessServiceName, auditEnabled) {
         this.setState({
             showBusinessService: true,
@@ -124,6 +135,7 @@ class ManageDomains extends React.Component {
             auditEnabled: auditEnabled,
         });
     }
+
     onClickBusinessServiceCancel() {
         this.setState({
             showBusinessService: false,
@@ -135,6 +147,7 @@ class ManageDomains extends React.Component {
             auditEnabled: false,
         });
     }
+
     onClickDelete(name, auditEnabled) {
         this.setState({
             showDelete: true,
@@ -142,6 +155,7 @@ class ManageDomains extends React.Component {
             auditEnabled: auditEnabled,
         });
     }
+
     onClickDeleteCancel() {
         this.setState({
             showDelete: false,
@@ -151,6 +165,7 @@ class ManageDomains extends React.Component {
             errorMessage: null,
         });
     }
+
     saveJustification(val) {
         this.setState({
             auditRef: val,
@@ -161,11 +176,13 @@ class ManageDomains extends React.Component {
             businessServiceName: val,
         });
     }
+
     domainNameProvided(val) {
         this.setState({
             domainNameProvided: val,
         });
     }
+
     ascertainDomainType(domain) {
         if (domain) {
             var splits = domain.split('.');
@@ -181,6 +198,7 @@ class ManageDomains extends React.Component {
         }
         return '';
     }
+
     onSubmitDelete() {
         let domainName = this.state.deleteName;
 
@@ -190,6 +208,7 @@ class ManageDomains extends React.Component {
             });
             return;
         }
+
         const splittedDomain = domainName.split('.');
         const domain = splittedDomain.pop();
         const parent = splittedDomain.join('.');
@@ -222,6 +241,7 @@ class ManageDomains extends React.Component {
                 });
             });
     }
+
     updateMeta(meta, domainName, csrf) {
         let auditMsg = this.state.auditRef;
         if (auditMsg === '') {
@@ -256,6 +276,7 @@ class ManageDomains extends React.Component {
                 });
             });
     }
+
     onSubmitBusinessService() {
         if (this.state.auditEnabled && !this.state.auditRef) {
             this.setState({
@@ -263,6 +284,7 @@ class ManageDomains extends React.Component {
             });
             return;
         }
+
         if (this.state.businessServiceName) {
             var index = this.props.validBusinessServicesAll.findIndex(
                 (x) =>
@@ -279,12 +301,14 @@ class ManageDomains extends React.Component {
                 return;
             }
         }
+
         let domainName = this.state.businessServiceDomainName;
         let businessServiceName = this.state.businessServiceName;
         let domainMeta = {};
         domainMeta.businessService = businessServiceName;
         this.updateMeta(domainMeta, domainName, this.props._csrf);
     }
+
     render() {
         const left = 'left';
         const center = 'center';
@@ -431,6 +455,7 @@ class ManageDomains extends React.Component {
                 />
             );
         }
+
         return (
             <ManageDomainSectionDiv data-testid='manage-domains'>
                 <AddContainerDiv />
@@ -471,6 +496,12 @@ class ManageDomains extends React.Component {
         );
     }
 }
+
+
+
+
+
+
 const mapStateToProps = (state, props) => {
     return {
         ...props,
@@ -479,6 +510,7 @@ const mapStateToProps = (state, props) => {
         timeZone: selectTimeZone(state),
     };
 };
+
 const mapDispatchToProps = (dispatch) => ({
     deleteSubDomain: (parentDomain, domain, auditRef, _csrf) =>
         dispatch(deleteSubDomain(parentDomain, domain, auditRef, _csrf)),
