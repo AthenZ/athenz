@@ -398,7 +398,7 @@ exports[`PageManageDomains should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-52 {
+.emotion-54 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -406,7 +406,7 @@ exports[`PageManageDomains should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-58 {
+.emotion-60 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -414,7 +414,7 @@ exports[`PageManageDomains should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-62 {
+.emotion-64 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -431,7 +431,7 @@ exports[`PageManageDomains should render 1`] = `
   position: relative;
 }
 
-.emotion-62>input[type='checkbox'] {
+.emotion-64>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -439,7 +439,7 @@ exports[`PageManageDomains should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-62>input[type='checkbox']+label {
+.emotion-64>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -450,7 +450,7 @@ exports[`PageManageDomains should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-62>input[type='checkbox']+label .label-content {
+.emotion-64>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -459,12 +459,12 @@ exports[`PageManageDomains should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-62>input[type='checkbox']+label .label-content {
+  .emotion-64>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-62>input[type='checkbox']+label:before {
+.emotion-64>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -480,7 +480,7 @@ exports[`PageManageDomains should render 1`] = `
   width: 34px;
 }
 
-.emotion-62>input[type='checkbox']+label::after {
+.emotion-64>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -497,38 +497,38 @@ exports[`PageManageDomains should render 1`] = `
   width: 18px;
 }
 
-.emotion-62>input[type='checkbox']:checked+label::before {
+.emotion-64>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-62>input[type='checkbox']:checked+label::after {
+.emotion-64>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label {
+.emotion-64>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label::before {
+.emotion-64>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:disabled+label::after {
+.emotion-64>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-62>input[type='checkbox']:checked:disabled+label::after {
+.emotion-64>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-65 {
+.emotion-69 {
   background-color: #3570f40D;
-  text-align: left;
+  text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -539,7 +539,7 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-67 {
+.emotion-71 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -547,22 +547,22 @@ exports[`PageManageDomains should render 1`] = `
   font-weight: '';
 }
 
-.emotion-73 {
+.emotion-77 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-79 {
+.emotion-83 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-86 {
-  text-align: left;
+.emotion-92 {
+  text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
@@ -573,7 +573,26 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-92 {
+.emotion-115 {
+  background-color: #3570f40D;
+  text-align: center;
+  title: yca.US;
+  padding: 5px 0 5px 15px;
+  vertical-align: middle;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 1px;
+}
+
+.emotion-121 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+.emotion-169 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -599,13 +618,13 @@ exports[`PageManageDomains should render 1`] = `
   width: 20px;
 }
 
-.emotion-94 {
+.emotion-171 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-95 {
+.emotion-172 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -620,7 +639,7 @@ exports[`PageManageDomains should render 1`] = `
   width: 350px;
 }
 
-.emotion-97 {
+.emotion-174 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -639,28 +658,28 @@ exports[`PageManageDomains should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-99 {
+.emotion-176 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-101 {
+.emotion-178 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-103 {
+.emotion-180 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-107 {
+.emotion-184 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-109 {
+.emotion-186 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -668,12 +687,12 @@ exports[`PageManageDomains should render 1`] = `
   display: flex;
 }
 
-.emotion-111 {
+.emotion-188 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-113 {
+.emotion-190 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -827,6 +846,11 @@ exports[`PageManageDomains should render 1`] = `
                     AWS Account #
                   </th>
                   <th
+                    class="emotion-40 emotion-35"
+                  >
+                    GCP Project ID
+                  </th>
+                  <th
                     class="emotion-34 emotion-35"
                   >
                     Business Service
@@ -840,36 +864,36 @@ exports[`PageManageDomains should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-50 emotion-51"
+                  class="emotion-52 emotion-53"
                 >
                   <td
-                    class="emotion-52 emotion-53"
+                    class="emotion-54 emotion-55"
                     color="#3570f40D"
                   >
                     home.mujibur
                   </td>
                   <td
-                    class="emotion-52 emotion-53"
+                    class="emotion-54 emotion-55"
                     color="#3570f40D"
                   >
                     Personal
                   </td>
                   <td
-                    class="emotion-52 emotion-53"
+                    class="emotion-54 emotion-55"
                     color="#3570f40D"
                   >
                     2018-01-31 19:43 UTC
                   </td>
                   <td
-                    class="emotion-58 emotion-53"
+                    class="emotion-60 emotion-55"
                     color="#3570f40D"
                   />
                   <td
-                    class="emotion-58 emotion-53"
+                    class="emotion-60 emotion-55"
                     color="#3570f40D"
                   >
                     <div
-                      class="emotion-62 denali-switch"
+                      class="emotion-64 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -886,58 +910,62 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-58 emotion-53"
+                    class="emotion-60 emotion-55"
                     color="#3570f40D"
                   >
                     111111
                   </td>
                   <td
-                    class="emotion-65 emotion-66"
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  />
+                  <td
+                    class="emotion-69 emotion-70"
                     color="#3570f40D"
                     title="add"
                   >
                     <a
-                      class="emotion-67 emotion-68"
+                      class="emotion-71 emotion-72"
                     >
                       add
                     </a>
                   </td>
                   <td
-                    class="emotion-58 emotion-53"
+                    class="emotion-60 emotion-55"
                     color="#3570f40D"
                   />
                 </tr>
                 <tr
-                  class="emotion-50 emotion-51"
+                  class="emotion-52 emotion-53"
                 >
                   <td
-                    class="emotion-73 emotion-53"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     home.pgote
                   </td>
                   <td
-                    class="emotion-73 emotion-53"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     Personal
                   </td>
                   <td
-                    class="emotion-73 emotion-53"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     2018-02-15 00:48 UTC
                   </td>
                   <td
-                    class="emotion-79 emotion-53"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
                   <td
-                    class="emotion-79 emotion-53"
+                    class="emotion-83 emotion-55"
                     color=""
                   >
                     <div
-                      class="emotion-62 denali-switch"
+                      class="emotion-64 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -954,26 +982,282 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-79 emotion-53"
+                    class="emotion-83 emotion-55"
                     color=""
                   >
                     14913436251
                   </td>
                   <td
-                    class="emotion-86 emotion-66"
+                    class="emotion-83 emotion-55"
+                    color=""
+                  />
+                  <td
+                    class="emotion-92 emotion-70"
                     color=""
                     title="add"
                   >
                     <a
-                      class="emotion-67 emotion-68"
+                      class="emotion-71 emotion-72"
                     >
                       add
                     </a>
                   </td>
                   <td
-                    class="emotion-79 emotion-53"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
+                </tr>
+                <tr
+                  class="emotion-52 emotion-53"
+                >
+                  <td
+                    class="emotion-54 emotion-55"
+                    color="#3570f40D"
+                  >
+                    home.craman.testingui
+                  </td>
+                  <td
+                    class="emotion-54 emotion-55"
+                    color="#3570f40D"
+                  >
+                    Sub domain
+                  </td>
+                  <td
+                    class="emotion-54 emotion-55"
+                    color="#3570f40D"
+                  >
+                    2023-10-26 16:05 UTC
+                  </td>
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  />
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  >
+                    <div
+                      class="emotion-64 denali-switch"
+                      data-testid="switch-wrapper"
+                    >
+                      <input
+                        data-testid="selfServe-2-switch-input"
+                        disabled=""
+                        id="switch-selfServe-2"
+                        name="selfServe-2"
+                        type="checkbox"
+                        value="false"
+                      />
+                      <label
+                        for="switch-selfServe-2"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  />
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  >
+                    random-test-home
+                  </td>
+                  <td
+                    class="emotion-115 emotion-70"
+                    color="#3570f40D"
+                    title="yca.US"
+                  >
+                    <a
+                      class="emotion-71 emotion-72"
+                    >
+                      yca.US
+                    </a>
+                  </td>
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  >
+                    <svg
+                      class="emotion-121"
+                      data-testid="icon"
+                      height="1.25em"
+                      id="home.craman.testingui-delete-button"
+                      viewBox="0 0 1024 1024"
+                      width="1.25em"
+                    >
+                      <title>
+                        trash
+                      </title>
+                      <path
+                        d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                      />
+                      <path
+                        d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                      />
+                    </svg>
+                  </td>
+                </tr>
+                <tr
+                  class="emotion-52 emotion-53"
+                >
+                  <td
+                    class="emotion-77 emotion-55"
+                    color=""
+                  >
+                    home.rkanchanapalli
+                  </td>
+                  <td
+                    class="emotion-77 emotion-55"
+                    color=""
+                  >
+                    Personal
+                  </td>
+                  <td
+                    class="emotion-77 emotion-55"
+                    color=""
+                  >
+                    2023-10-12 18:15 UTC
+                  </td>
+                  <td
+                    class="emotion-83 emotion-55"
+                    color=""
+                  />
+                  <td
+                    class="emotion-83 emotion-55"
+                    color=""
+                  >
+                    <div
+                      class="emotion-64 denali-switch"
+                      data-testid="switch-wrapper"
+                    >
+                      <input
+                        data-testid="selfServe-3-switch-input"
+                        disabled=""
+                        id="switch-selfServe-3"
+                        name="selfServe-3"
+                        type="checkbox"
+                        value="false"
+                      />
+                      <label
+                        for="switch-selfServe-3"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-83 emotion-55"
+                    color=""
+                  />
+                  <td
+                    class="emotion-83 emotion-55"
+                    color=""
+                  >
+                    test-home
+                  </td>
+                  <td
+                    class="emotion-92 emotion-70"
+                    color=""
+                    title="add"
+                  >
+                    <a
+                      class="emotion-71 emotion-72"
+                    >
+                      add
+                    </a>
+                  </td>
+                  <td
+                    class="emotion-83 emotion-55"
+                    color=""
+                  />
+                </tr>
+                <tr
+                  class="emotion-52 emotion-53"
+                >
+                  <td
+                    class="emotion-54 emotion-55"
+                    color="#3570f40D"
+                  >
+                    home.rkanchanapalli.test1
+                  </td>
+                  <td
+                    class="emotion-54 emotion-55"
+                    color="#3570f40D"
+                  >
+                    Sub domain
+                  </td>
+                  <td
+                    class="emotion-54 emotion-55"
+                    color="#3570f40D"
+                  >
+                    2023-10-18 16:20 UTC
+                  </td>
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  />
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  >
+                    <div
+                      class="emotion-64 denali-switch"
+                      data-testid="switch-wrapper"
+                    >
+                      <input
+                        data-testid="selfServe-4-switch-input"
+                        disabled=""
+                        id="switch-selfServe-4"
+                        name="selfServe-4"
+                        type="checkbox"
+                        value="false"
+                      />
+                      <label
+                        for="switch-selfServe-4"
+                      />
+                    </div>
+                  </td>
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  />
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  />
+                  <td
+                    class="emotion-69 emotion-70"
+                    color="#3570f40D"
+                    title="add"
+                  >
+                    <a
+                      class="emotion-71 emotion-72"
+                    >
+                      add
+                    </a>
+                  </td>
+                  <td
+                    class="emotion-60 emotion-55"
+                    color="#3570f40D"
+                  >
+                    <svg
+                      class="emotion-121"
+                      data-testid="icon"
+                      height="1.25em"
+                      id="home.rkanchanapalli.test1-delete-button"
+                      viewBox="0 0 1024 1024"
+                      width="1.25em"
+                    >
+                      <title>
+                        trash
+                      </title>
+                      <path
+                        d="M917.333 187.733c0.007 0.319 0.012 0.694 0.012 1.071 0 12.755-4.867 24.374-12.846 33.1l0.034-0.038c-6.696 7.89-16.62 12.864-27.706 12.864-0.76 0-1.515-0.023-2.264-0.069l0.103 0.005h-256c-23.564 0-42.667-19.103-42.667-42.667v0-42.667h-128v42.667c0 23.564-19.103 42.667-42.667 42.667v0h-253.867c-0.136 0.001-0.298 0.002-0.459 0.002-22.485 0-41.102-16.565-44.311-38.157l-0.030-0.245c-0.007-0.319-0.012-0.694-0.012-1.071 0-12.755 4.867-24.374 12.846-33.1l-0.034 0.038c6.696-7.89 16.62-12.864 27.706-12.864 0.76 0 1.515 0.023 2.264 0.069l-0.103-0.005h213.333v-42.667c0-23.564 19.103-42.667 42.667-42.667v0h213.333c23.564 0 42.667 19.103 42.667 42.667v0 42.667h211.2c0.136-0.001 0.298-0.002 0.459-0.002 22.485 0 41.102 16.565 44.311 38.157l0.030 0.245z"
+                      />
+                      <path
+                        d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
+                      />
+                    </svg>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -984,11 +1268,11 @@ exports[`PageManageDomains should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-92 emotion-93"
+          class="emotion-169 emotion-170"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-94"
+            class="emotion-171"
             data-testid="icon"
             height="1em"
             id=""
@@ -1004,45 +1288,45 @@ exports[`PageManageDomains should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-95 emotion-96"
+          class="emotion-172 emotion-173"
         >
           <div
-            class="emotion-97 emotion-98"
+            class="emotion-174 emotion-175"
           >
             <div
-              class="emotion-99 emotion-100"
+              class="emotion-176 emotion-177"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-101 emotion-102"
+                class="emotion-178 emotion-179"
               >
                 Create
               </a>
               <span
-                class="emotion-103 emotion-104"
+                class="emotion-180 emotion-181"
               >
                  | 
               </span>
               <a
-                class="emotion-101 emotion-102"
+                class="emotion-178 emotion-179"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-107 emotion-108"
+            class="emotion-184 emotion-185"
           >
             <div
-              class="emotion-109 emotion-110"
+              class="emotion-186 emotion-187"
             >
               <div
-                class="emotion-111 emotion-112"
+                class="emotion-188 emotion-189"
               >
                 <svg
-                  class="emotion-113"
+                  class="emotion-190"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1064,19 +1348,19 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-101 emotion-102"
+                class="emotion-178 emotion-179"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-109 emotion-110"
+              class="emotion-186 emotion-187"
             >
               <div
-                class="emotion-111 emotion-112"
+                class="emotion-188 emotion-189"
               >
                 <svg
-                  class="emotion-113"
+                  class="emotion-190"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1098,7 +1382,7 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-101 emotion-102"
+                class="emotion-178 emotion-179"
               >
                 athens.ci
               </a>
