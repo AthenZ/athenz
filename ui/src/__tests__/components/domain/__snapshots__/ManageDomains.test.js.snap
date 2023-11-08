@@ -190,21 +190,21 @@ exports[`ManageDomains should render 1`] = `
   font-weight: '';
 }
 
-.emotion-51 {
+.emotion-49 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-57 {
+.emotion-55 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-66 {
+.emotion-64 {
   text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
@@ -347,40 +347,34 @@ exports[`ManageDomains should render 1`] = `
           class="emotion-32 emotion-27"
           color="#3570f40D"
         />
-        <td
-          class="emotion-32 emotion-27"
-          color="#3570f40D"
-        >
-          111111
-        </td>
       </tr>
       <tr
         class="emotion-24 emotion-25"
       >
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           home.pgote
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           Personal
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           2018-02-15 00:48 UTC
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           <div
@@ -401,17 +395,17 @@ exports[`ManageDomains should render 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           14913436251
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-66 emotion-42"
+          class="emotion-64 emotion-42"
           color=""
           title="add"
         >
@@ -422,15 +416,9 @@ exports[`ManageDomains should render 1`] = `
           </a>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
-        <td
-          class="emotion-57 emotion-27"
-          color=""
-        >
-          14913436251
-        </td>
       </tr>
     </tbody>
   </table>
@@ -627,21 +615,21 @@ exports[`ManageDomains should render no domain 1`] = `
   font-weight: '';
 }
 
-.emotion-51 {
+.emotion-49 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-57 {
+.emotion-55 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-66 {
+.emotion-64 {
   text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
@@ -653,7 +641,7 @@ exports[`ManageDomains should render no domain 1`] = `
   max-width: 1px;
 }
 
-.emotion-72 {
+.emotion-70 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
@@ -790,40 +778,34 @@ exports[`ManageDomains should render no domain 1`] = `
           class="emotion-32 emotion-27"
           color="#3570f40D"
         />
-        <td
-          class="emotion-32 emotion-27"
-          color="#3570f40D"
-        >
-          111111
-        </td>
       </tr>
       <tr
         class="emotion-24 emotion-25"
       >
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           home.mujibur.test
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           Sub domain
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           2018-02-15 00:48 UTC
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           <div
@@ -844,17 +826,17 @@ exports[`ManageDomains should render no domain 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           14913436251
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-66 emotion-42"
+          class="emotion-64 emotion-42"
           color=""
           title="add"
         >
@@ -865,11 +847,11 @@ exports[`ManageDomains should render no domain 1`] = `
           </a>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           <svg
-            class="emotion-72"
+            class="emotion-70"
             data-testid="icon"
             height="1.25em"
             id="home.mujibur.test-delete-button"
@@ -886,12 +868,6 @@ exports[`ManageDomains should render no domain 1`] = `
               d="M742.4 358.4l-51.2 516.267h-358.4l-51.2-516.267c-2.24-21.656-20.391-38.401-42.453-38.401-0.075 0-0.15 0-0.225 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-23.564 0-42.667 19.103-42.667 42.667 0 1.503 0.078 2.988 0.229 4.45l-0.015-0.183 55.467 554.667c2.24 21.656 20.391 38.401 42.453 38.401 0.075 0 0.15-0 0.225-0.001l-0.012 0h435.2c0.064 0 0.139 0.001 0.214 0.001 22.062 0 40.213-16.744 42.437-38.218l0.015-0.183 55.467-554.667c0.136-1.28 0.214-2.764 0.214-4.267 0-23.564-19.103-42.667-42.667-42.667-0.075 0-0.15 0-0.226 0.001l0.012-0c-0.064-0-0.139-0.001-0.214-0.001-22.062 0-40.213 16.744-42.437 38.218l-0.015 0.183z"
             />
           </svg>
-        </td>
-        <td
-          class="emotion-57 emotion-27"
-          color=""
-        >
-          14913436251
         </td>
       </tr>
     </tbody>
@@ -1089,21 +1065,21 @@ exports[`ManageDomains should render personal domain 1`] = `
   font-weight: '';
 }
 
-.emotion-51 {
+.emotion-49 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-57 {
+.emotion-55 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-66 {
+.emotion-64 {
   text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
@@ -1246,40 +1222,34 @@ exports[`ManageDomains should render personal domain 1`] = `
           class="emotion-32 emotion-27"
           color="#3570f40D"
         />
-        <td
-          class="emotion-32 emotion-27"
-          color="#3570f40D"
-        >
-          111111
-        </td>
       </tr>
       <tr
         class="emotion-24 emotion-25"
       >
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           home.pgote
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           Personal
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           2018-02-15 00:48 UTC
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           <div
@@ -1300,17 +1270,17 @@ exports[`ManageDomains should render personal domain 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           14913436251
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-66 emotion-42"
+          class="emotion-64 emotion-42"
           color=""
           title="add"
         >
@@ -1321,15 +1291,9 @@ exports[`ManageDomains should render personal domain 1`] = `
           </a>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
-        <td
-          class="emotion-57 emotion-27"
-          color=""
-        >
-          14913436251
-        </td>
       </tr>
     </tbody>
   </table>
@@ -1526,21 +1490,21 @@ exports[`ManageDomains should render top level domain 1`] = `
   font-weight: '';
 }
 
-.emotion-51 {
+.emotion-49 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-57 {
+.emotion-55 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-66 {
+.emotion-64 {
   text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
@@ -1683,40 +1647,34 @@ exports[`ManageDomains should render top level domain 1`] = `
           class="emotion-32 emotion-27"
           color="#3570f40D"
         />
-        <td
-          class="emotion-32 emotion-27"
-          color="#3570f40D"
-        >
-          111111
-        </td>
       </tr>
       <tr
         class="emotion-24 emotion-25"
       >
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           home
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           Top Level
         </td>
         <td
-          class="emotion-51 emotion-27"
+          class="emotion-49 emotion-27"
           color=""
         >
           2018-02-15 00:48 UTC
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           <div
@@ -1737,17 +1695,17 @@ exports[`ManageDomains should render top level domain 1`] = `
           </div>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         >
           14913436251
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
         <td
-          class="emotion-66 emotion-42"
+          class="emotion-64 emotion-42"
           color=""
           title="add"
         >
@@ -1758,15 +1716,9 @@ exports[`ManageDomains should render top level domain 1`] = `
           </a>
         </td>
         <td
-          class="emotion-57 emotion-27"
+          class="emotion-55 emotion-27"
           color=""
         />
-        <td
-          class="emotion-57 emotion-27"
-          color=""
-        >
-          14913436251
-        </td>
       </tr>
     </tbody>
   </table>

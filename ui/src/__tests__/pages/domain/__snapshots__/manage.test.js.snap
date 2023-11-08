@@ -547,21 +547,21 @@ exports[`PageManageDomains should render 1`] = `
   font-weight: '';
 }
 
-.emotion-79 {
+.emotion-77 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-85 {
+.emotion-83 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-94 {
+.emotion-92 {
   text-align: center;
   title: add;
   padding: 5px 0 5px 15px;
@@ -573,7 +573,7 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-119 {
+.emotion-115 {
   background-color: #3570f40D;
   text-align: center;
   title: yca.US;
@@ -586,13 +586,13 @@ exports[`PageManageDomains should render 1`] = `
   max-width: 1px;
 }
 
-.emotion-125 {
+.emotion-121 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-179 {
+.emotion-169 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -618,13 +618,13 @@ exports[`PageManageDomains should render 1`] = `
   width: 20px;
 }
 
-.emotion-181 {
+.emotion-171 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-182 {
+.emotion-172 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -639,7 +639,7 @@ exports[`PageManageDomains should render 1`] = `
   width: 350px;
 }
 
-.emotion-184 {
+.emotion-174 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -658,28 +658,28 @@ exports[`PageManageDomains should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-186 {
+.emotion-176 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-188 {
+.emotion-178 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-190 {
+.emotion-180 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-194 {
+.emotion-184 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-196 {
+.emotion-186 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -687,12 +687,12 @@ exports[`PageManageDomains should render 1`] = `
   display: flex;
 }
 
-.emotion-198 {
+.emotion-188 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-200 {
+.emotion-190 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -934,40 +934,34 @@ exports[`PageManageDomains should render 1`] = `
                     class="emotion-60 emotion-55"
                     color="#3570f40D"
                   />
-                  <td
-                    class="emotion-60 emotion-55"
-                    color="#3570f40D"
-                  >
-                    111111
-                  </td>
                 </tr>
                 <tr
                   class="emotion-52 emotion-53"
                 >
                   <td
-                    class="emotion-79 emotion-55"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     home.pgote
                   </td>
                   <td
-                    class="emotion-79 emotion-55"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     Personal
                   </td>
                   <td
-                    class="emotion-79 emotion-55"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     2018-02-15 00:48 UTC
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   >
                     <div
@@ -988,17 +982,17 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   >
                     14913436251
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
                   <td
-                    class="emotion-94 emotion-70"
+                    class="emotion-92 emotion-70"
                     color=""
                     title="add"
                   >
@@ -1009,15 +1003,9 @@ exports[`PageManageDomains should render 1`] = `
                     </a>
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
-                  <td
-                    class="emotion-85 emotion-55"
-                    color=""
-                  >
-                    14913436251
-                  </td>
                 </tr>
                 <tr
                   class="emotion-52 emotion-53"
@@ -1076,7 +1064,7 @@ exports[`PageManageDomains should render 1`] = `
                     random-test-home
                   </td>
                   <td
-                    class="emotion-119 emotion-70"
+                    class="emotion-115 emotion-70"
                     color="#3570f40D"
                     title="yca.US"
                   >
@@ -1091,7 +1079,7 @@ exports[`PageManageDomains should render 1`] = `
                     color="#3570f40D"
                   >
                     <svg
-                      class="emotion-125"
+                      class="emotion-121"
                       data-testid="icon"
                       height="1.25em"
                       id="home.craman.testingui-delete-button"
@@ -1109,38 +1097,34 @@ exports[`PageManageDomains should render 1`] = `
                       />
                     </svg>
                   </td>
-                  <td
-                    class="emotion-60 emotion-55"
-                    color="#3570f40D"
-                  />
                 </tr>
                 <tr
                   class="emotion-52 emotion-53"
                 >
                   <td
-                    class="emotion-79 emotion-55"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     home.rkanchanapalli
                   </td>
                   <td
-                    class="emotion-79 emotion-55"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     Personal
                   </td>
                   <td
-                    class="emotion-79 emotion-55"
+                    class="emotion-77 emotion-55"
                     color=""
                   >
                     2023-10-12 18:15 UTC
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   >
                     <div
@@ -1161,17 +1145,17 @@ exports[`PageManageDomains should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
                   <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   >
                     test-home
                   </td>
                   <td
-                    class="emotion-94 emotion-70"
+                    class="emotion-92 emotion-70"
                     color=""
                     title="add"
                   >
@@ -1182,11 +1166,7 @@ exports[`PageManageDomains should render 1`] = `
                     </a>
                   </td>
                   <td
-                    class="emotion-85 emotion-55"
-                    color=""
-                  />
-                  <td
-                    class="emotion-85 emotion-55"
+                    class="emotion-83 emotion-55"
                     color=""
                   />
                 </tr>
@@ -1260,7 +1240,7 @@ exports[`PageManageDomains should render 1`] = `
                     color="#3570f40D"
                   >
                     <svg
-                      class="emotion-125"
+                      class="emotion-121"
                       data-testid="icon"
                       height="1.25em"
                       id="home.rkanchanapalli.test1-delete-button"
@@ -1278,10 +1258,6 @@ exports[`PageManageDomains should render 1`] = `
                       />
                     </svg>
                   </td>
-                  <td
-                    class="emotion-60 emotion-55"
-                    color="#3570f40D"
-                  />
                 </tr>
               </tbody>
             </table>
@@ -1292,11 +1268,11 @@ exports[`PageManageDomains should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-179 emotion-180"
+          class="emotion-169 emotion-170"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-181"
+            class="emotion-171"
             data-testid="icon"
             height="1em"
             id=""
@@ -1312,45 +1288,45 @@ exports[`PageManageDomains should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-182 emotion-183"
+          class="emotion-172 emotion-173"
         >
           <div
-            class="emotion-184 emotion-185"
+            class="emotion-174 emotion-175"
           >
             <div
-              class="emotion-186 emotion-187"
+              class="emotion-176 emotion-177"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-188 emotion-189"
+                class="emotion-178 emotion-179"
               >
                 Create
               </a>
               <span
-                class="emotion-190 emotion-191"
+                class="emotion-180 emotion-181"
               >
                  | 
               </span>
               <a
-                class="emotion-188 emotion-189"
+                class="emotion-178 emotion-179"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-194 emotion-195"
+            class="emotion-184 emotion-185"
           >
             <div
-              class="emotion-196 emotion-197"
+              class="emotion-186 emotion-187"
             >
               <div
-                class="emotion-198 emotion-199"
+                class="emotion-188 emotion-189"
               >
                 <svg
-                  class="emotion-200"
+                  class="emotion-190"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1372,19 +1348,19 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-188 emotion-189"
+                class="emotion-178 emotion-179"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-196 emotion-197"
+              class="emotion-186 emotion-187"
             >
               <div
-                class="emotion-198 emotion-199"
+                class="emotion-188 emotion-189"
               >
                 <svg
-                  class="emotion-200"
+                  class="emotion-190"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1406,7 +1382,7 @@ exports[`PageManageDomains should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-188 emotion-189"
+                class="emotion-178 emotion-179"
               >
                 athens.ci
               </a>
