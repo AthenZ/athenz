@@ -357,7 +357,6 @@ class ManageDomains extends React.Component {
                           </TDStyled>
                           <TDStyled color={color} align={center}>
                             {item.domain.gcpProject}
-                    
                           </TDStyled>   
                           <TDStyledBusinessService
                               color={color}
