@@ -62,7 +62,7 @@ describe('test service selectors', () => {
     describe('test thunkSelectServices selector', () => {
         it('should return services', () => {
             expect(thunkSelectServices(stateWithServices)).toEqual(
-                configStoreServices,
+                configStoreServices
             );
         });
         it('should return empty list', () => {
@@ -177,8 +177,8 @@ describe('test service selectors', () => {
             expect(
                 _.isEqual(
                     selectServices(stateWithServices),
-                    expectedServicesList,
-                ),
+                    expectedServicesList
+                )
             );
         });
         it('should return empty list', () => {
@@ -207,12 +207,12 @@ describe('test service selectors', () => {
                 modified: modified,
             };
             expect(
-                selectService(stateWithServices, domainName, 'service1'),
+                selectService(stateWithServices, domainName, 'service1')
             ).toEqual(expectedService);
         });
         it('should return empty object', () => {
             expect(
-                selectService(stateWithoutServices, domainName, 'service1'),
+                selectService(stateWithoutServices, domainName, 'service1')
             ).toEqual({});
         });
     });
@@ -232,8 +232,8 @@ describe('test service selectors', () => {
                 selectServicePublicKeys(
                     stateWithServices,
                     domainName,
-                    'service1',
-                ),
+                    'service1'
+                )
             ).toEqual(expectedPublicKeys);
         });
         it('should return empty list', () => {
@@ -241,8 +241,8 @@ describe('test service selectors', () => {
                 selectServicePublicKeys(
                     stateWithoutServices,
                     domainName,
-                    'service1',
-                ),
+                    'service1'
+                )
             ).toEqual([]);
         });
     });
@@ -253,8 +253,8 @@ describe('test service selectors', () => {
                 selectServiceDescription(
                     stateWithServices,
                     domainName,
-                    'service1',
-                ),
+                    'service1'
+                )
             ).toEqual(expectedDescription);
         });
         it('should return null', () => {
@@ -262,8 +262,8 @@ describe('test service selectors', () => {
                 selectServiceDescription(
                     stateWithoutServices,
                     domainName,
-                    'service1',
-                ),
+                    'service1'
+                )
             ).toEqual(null);
         });
     });
@@ -282,12 +282,12 @@ describe('test service selectors', () => {
                 aws_instance_launch_provider: 'allow',
             };
             expect(
-                selectProvider(stateWithServices, domainName, 'service2'),
+                selectProvider(stateWithServices, domainName, 'service2')
             ).toEqual(expectedProvider);
         });
         it('should return empty object', () => {
             expect(
-                selectProvider(stateWithoutServices, domainName, 'service2'),
+                selectProvider(stateWithoutServices, domainName, 'service2')
             ).toEqual({});
         });
     });
@@ -308,7 +308,7 @@ describe('test service selectors', () => {
                 },
             ];
             expect(selectAllProviders(stateWithServices)).toEqual(
-                expectedProviders,
+                expectedProviders
             );
         });
         it('should return empty list', () => {
@@ -327,8 +327,8 @@ describe('test service selectors', () => {
                 selectDynamicServiceHeaderDetails(
                     stateWithServices,
                     'dom',
-                    'service2',
-                ),
+                    'service2'
+                )
             ).toEqual(expectedDynamicHeaderDetails);
         });
         it('should return empty object', () => {
@@ -336,8 +336,8 @@ describe('test service selectors', () => {
                 selectDynamicServiceHeaderDetails(
                     stateWithoutServices,
                     'dom',
-                    'service2',
-                ),
+                    'service2'
+                )
             ).toEqual({});
         });
     });
@@ -354,8 +354,8 @@ describe('test service selectors', () => {
                 selectStaticServiceHeaderDetails(
                     stateWithServices,
                     'dom',
-                    'service2',
-                ),
+                    'service2'
+                )
             ).toEqual(expectedStaticHeaderDetails);
         });
         it('should return empty object', () => {
@@ -363,8 +363,8 @@ describe('test service selectors', () => {
                 selectStaticServiceHeaderDetails(
                     stateWithoutServices,
                     'dom',
-                    'service2',
-                ),
+                    'service2'
+                )
             ).toEqual({});
         });
     });
@@ -381,8 +381,8 @@ describe('test service selectors', () => {
                     stateWithServices,
                     'dom',
                     'service2',
-                    'dynamic',
-                ),
+                    'dynamic'
+                )
             ).toEqual(workLoadMeta);
         });
         it('should return empty object', () => {
@@ -391,8 +391,8 @@ describe('test service selectors', () => {
                     stateWithoutServices,
                     'dom',
                     'service2',
-                    'dynamic',
-                ),
+                    'dynamic'
+                )
             ).toEqual({});
         });
         it('should return static work load meta', () => {
@@ -407,8 +407,8 @@ describe('test service selectors', () => {
                     stateWithServices,
                     'dom',
                     'service2',
-                    'static',
-                ),
+                    'static'
+                )
             ).toEqual(workLoadMeta);
         });
         it('should return empty object', () => {
@@ -417,8 +417,8 @@ describe('test service selectors', () => {
                     stateWithoutServices,
                     'dom',
                     'service2',
-                    'static',
-                ),
+                    'static'
+                )
             ).toEqual({});
         });
     });
@@ -459,8 +459,8 @@ describe('test service selectors', () => {
                     stateWithServices,
                     'dom',
                     'service2',
-                    'dynamic',
-                ),
+                    'dynamic'
+                )
             ).toEqual(workLoadData);
         });
         it('should return empty array', () => {
@@ -469,8 +469,8 @@ describe('test service selectors', () => {
                     stateWithoutServices,
                     'dom',
                     'service2',
-                    'dynamic',
-                ),
+                    'dynamic'
+                )
             ).toEqual([]);
         });
         it('should return static work load data', () => {
@@ -505,8 +505,8 @@ describe('test service selectors', () => {
                     stateWithServices,
                     'dom',
                     'service2',
-                    'static',
-                ),
+                    'static'
+                )
             ).toEqual(workLoadData);
         });
         it('should return empty array', () => {
@@ -515,8 +515,8 @@ describe('test service selectors', () => {
                     stateWithoutServices,
                     'dom',
                     'service2',
-                    'static',
-                ),
+                    'static'
+                )
             ).toEqual([]);
         });
     });
@@ -527,14 +527,13 @@ describe('test service selectors', () => {
                 tag2: { list: ['tag3'] },
             };
             expect(
-                selectServiceTags(stateWithServices, domainName, 'service1'),
+                selectServiceTags(stateWithServices, domainName, 'service1')
             ).toEqual(expectedRoleTags);
         });
         it('should return empty object', () => {
             expect(
-                selectServiceTags(stateWithServices, domainName, 'admin'),
+                selectServiceTags(stateWithServices, domainName, 'admin')
             ).toEqual({});
         });
     });
-
 });

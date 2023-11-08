@@ -380,8 +380,8 @@ class ManageDomains extends React.Component {
                               {item.domain.account ? item.domain.account : ''}
                           </TDStyled>
                           <TDStyled color={color} align={center}>
-                            {item.domain.gcpProject}
-                          </TDStyled>   
+                              {item.domain.gcpProject}
+                          </TDStyled>
                           <TDStyledBusinessService
                               color={color}
                               align={center}
@@ -496,11 +496,6 @@ class ManageDomains extends React.Component {
         );
     }
 }
-
-
-
-
-
 
 const mapStateToProps = (state, props) => {
     return {

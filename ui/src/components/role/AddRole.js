@@ -132,7 +132,7 @@ const FlatPickrStyled = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 77%;
     }
 `;
@@ -272,8 +272,8 @@ class AddRole extends React.Component {
                     : '',
                 reviewReminder: reviewReminderDate
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                        reviewReminderDate
-                    )
+                          reviewReminderDate
+                      )
                     : '',
             });
         }
@@ -415,28 +415,28 @@ class AddRole extends React.Component {
         let deleteProtectionChanged = this.inputChanged.bind(this);
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                // dummy place holder so that it can be be used in the form
-                let member = { ...item };
-                member.approved = true;
-                // item.approved = true;
-                let remove = this.deleteMember.bind(this, idx);
-                return (
-                    <Member
-                        key={idx}
-                        item={member}
-                        onClickRemove={remove}
-                        noanim
-                    />
-                );
-            })
+                  // dummy place holder so that it can be be used in the form
+                  let member = { ...item };
+                  member.approved = true;
+                  // item.approved = true;
+                  let remove = this.deleteMember.bind(this, idx);
+                  return (
+                      <Member
+                          key={idx}
+                          item={member}
+                          onClickRemove={remove}
+                          noanim
+                      />
+                  );
+              })
             : '';
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
         let reviewToolTip =
             this.state.reviewEnabled || this.state.role.auditEnabled
                 ? ADD_ROLE_REVIEW_ENABLED_TOOLTIP +
-                '\n' +
-                ADD_ROLE_AUDIT_ENABLED_TOOLTIP
+                  '\n' +
+                  ADD_ROLE_AUDIT_ENABLED_TOOLTIP
                 : null;
         let reviewTriggerStyle =
             this.state.reviewEnabled || this.state.role.auditEnabled
@@ -573,26 +573,26 @@ class AddRole extends React.Component {
                 {this.state.showSettings && (
                     <StyleTable data-testid='advanced-setting-table'>
                         <tbody>
-                        <AddRoleAdvancedSettings
-                            userAuthorityAttributes={
-                                this.props.userAuthorityAttributes
-                            }
-                            userProfileLink={this.props.userProfileLink}
-                            advancedSettingsChanged={
-                                advancedSettingsChanged
-                            }
-                            reviewEnabledChanged={reviewEnabledChanged}
-                            deleteProtectionChanged={
-                                deleteProtectionChanged
-                            }
-                            auditEnabledChanged={this.toggleAuditEnabled}
-                            isDomainAuditEnabled={
-                                this.props.isDomainAuditEnabled
-                            }
-                            members={members}
-                            role={this.state.role}
-                            reviewEnabled={this.state.reviewEnabled}
-                        />
+                            <AddRoleAdvancedSettings
+                                userAuthorityAttributes={
+                                    this.props.userAuthorityAttributes
+                                }
+                                userProfileLink={this.props.userProfileLink}
+                                advancedSettingsChanged={
+                                    advancedSettingsChanged
+                                }
+                                reviewEnabledChanged={reviewEnabledChanged}
+                                deleteProtectionChanged={
+                                    deleteProtectionChanged
+                                }
+                                auditEnabledChanged={this.toggleAuditEnabled}
+                                isDomainAuditEnabled={
+                                    this.props.isDomainAuditEnabled
+                                }
+                                members={members}
+                                role={this.state.role}
+                                reviewEnabled={this.state.reviewEnabled}
+                            />
                         </tbody>
                     </StyleTable>
                 )}

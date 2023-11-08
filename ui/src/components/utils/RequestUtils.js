@@ -50,7 +50,7 @@ class RequestUtils {
             message = 'Session expired. Please refresh the page.';
         } else if (err.output && err.output.message) {
             message = `Status: ${err.statusCode}. Message: ${err.output.message}`;
-        } else if (err.body && err.body.message){
+        } else if (err.body && err.body.message) {
             message = `Status: ${err.statusCode}. Message: ${err.body.message}`;
         } else {
             message = `Status: ${err.statusCode}`;

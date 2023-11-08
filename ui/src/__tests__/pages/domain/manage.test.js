@@ -53,40 +53,39 @@ describe('PageManageDomains', () => {
                     modified: '2018-02-15T00:48:43.397Z',
                     id: '5fe71bb0-7642-11e7-8b74-f1fb574cabde',
                 },
-            }, 
-            {
-                domain: {
-                    enabled: true,
-                    auditEnabled: false,
-                    ypmId: 0,
-                    gcpProject: "random-test-home",
-                    gcpProjectNumber: "1243",
-                    businessService: "yca.US",
-                    name: "home.craman.testingui",
-                    modified: "2023-10-26T16:05:31.507Z"
-                },
-            },
-
-             {
-                domain: {
-                        enabled: true,
-                        auditEnabled: false,
-                        ypmId: 0,
-                        gcpProject: "test-home",
-                        gcpProjectNumber: "12432",
-                        name: "home.rkanchanapalli",
-                        modified: "2023-10-12T18:15:04.348Z"
-
-                },
             },
             {
                 domain: {
                     enabled: true,
                     auditEnabled: false,
                     ypmId: 0,
-                    name: "home.rkanchanapalli.test1",
-                    modified: "2023-10-18T16:20:21.738Z"
-                }
+                    gcpProject: 'random-test-home',
+                    gcpProjectNumber: '1243',
+                    businessService: 'yca.US',
+                    name: 'home.craman.testingui',
+                    modified: '2023-10-26T16:05:31.507Z',
+                },
+            },
+
+            {
+                domain: {
+                    enabled: true,
+                    auditEnabled: false,
+                    ypmId: 0,
+                    gcpProject: 'test-home',
+                    gcpProjectNumber: '12432',
+                    name: 'home.rkanchanapalli',
+                    modified: '2023-10-12T18:15:04.348Z',
+                },
+            },
+            {
+                domain: {
+                    enabled: true,
+                    auditEnabled: false,
+                    ypmId: 0,
+                    name: 'home.rkanchanapalli.test1',
+                    modified: '2023-10-18T16:20:21.738Z',
+                },
             },
         ];
 

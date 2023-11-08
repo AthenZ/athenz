@@ -22,7 +22,10 @@ import {
     renderWithRedux,
 } from '../../../../../../tests_utils/ComponentsTestUtils';
 import ServiceMicrosegmentationPage from '../../../../../../pages/domain/[domain]/service/[service]/microsegmentation';
-import {apiAssertionConditions, modified} from '../../../../../config/config.test';
+import {
+    apiAssertionConditions,
+    modified,
+} from '../../../../../config/config.test';
 
 describe('Service Microsegmentation Page', () => {
     afterEach(() => {
@@ -122,7 +125,7 @@ describe('Service Microsegmentation Page', () => {
                 version: '0',
                 active: true,
             },
-        ]
+        ];
 
         let roles = [
             {
@@ -152,7 +155,7 @@ describe('Service Microsegmentation Page', () => {
                     { memberName: 'user.test1' },
                     { memberName: 'user.test2' },
                 ],
-            }
+            },
         ];
 
         const mockApi = {
@@ -166,15 +169,11 @@ describe('Service Microsegmentation Page', () => {
             listUserDomains: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(domains)),
-            getPolicies: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(policies)),
+            getPolicies: jest.fn().mockReturnValue(Promise.resolve(policies)),
             getServices: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(apiServices)),
-            getRoles: jest
-                .fn()
-                .mockReturnValue(Promise.resolve(roles))
+            getRoles: jest.fn().mockReturnValue(Promise.resolve(roles)),
         };
         MockApi.setMockApi(mockApi);
 
@@ -199,7 +198,9 @@ describe('Service Microsegmentation Page', () => {
             expect(screen.getByText('Outbound (1)')).toBeInTheDocument()
         );
 
-        const serviceMicrosegmentationPage = getByTestId('service-microsegmentation');
+        const serviceMicrosegmentationPage = getByTestId(
+            'service-microsegmentation'
+        );
         expect(serviceMicrosegmentationPage).toMatchSnapshot();
     });
 });

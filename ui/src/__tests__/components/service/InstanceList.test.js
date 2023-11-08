@@ -29,46 +29,46 @@ describe('InstanceList', () => {
         let _csrf = '_csrfToken';
         let instanceDetails = [
             {
-                domainName: "test",
-                serviceName: "testService",
-                type: "SERVICE_SUBNET",
-                name: "10.0.0.0/8",
-                updateTime: "2023-09-27T22:16:55.326Z"
+                domainName: 'test',
+                serviceName: 'testService',
+                type: 'SERVICE_SUBNET',
+                name: '10.0.0.0/8',
+                updateTime: '2023-09-27T22:16:55.326Z',
             },
             {
-                domainName: "test",
-                serviceName: "testService",
-                type: "SERVICE_SUBNET",
-                name: "10.255.255.0/31",
-                updateTime: "2023-09-27T23:29:59.326Z"
+                domainName: 'test',
+                serviceName: 'testService',
+                type: 'SERVICE_SUBNET',
+                name: '10.255.255.0/31',
+                updateTime: '2023-09-27T23:29:59.326Z',
             },
             {
-                domainName: "test",
-                serviceName: "testService",
-                type: "SERVICE_SUBNET",
-                name: "10.255.255.0/8",
-                updateTime: "2023-09-27T23:29:42.864Z"
+                domainName: 'test',
+                serviceName: 'testService',
+                type: 'SERVICE_SUBNET',
+                name: '10.255.255.0/8',
+                updateTime: '2023-09-27T23:29:42.864Z',
             },
             {
-                domainName: "test",
-                serviceName: "testService",
-                type: "EXTERNAL_APPLIANCE",
-                name: "12.12.12.12/12",
-                updateTime: "2023-09-27T22:18:23.458Z"
+                domainName: 'test',
+                serviceName: 'testService',
+                type: 'EXTERNAL_APPLIANCE',
+                name: '12.12.12.12/12',
+                updateTime: '2023-09-27T22:18:23.458Z',
             },
             {
-                domainName: "test",
-                serviceName: "testService",
-                type: "EXTERNAL_APPLIANCE",
-                name: "255.255.0.0",
-                updateTime: "2023-09-27T22:18:02.661Z"
+                domainName: 'test',
+                serviceName: 'testService',
+                type: 'EXTERNAL_APPLIANCE',
+                name: '255.255.0.0',
+                updateTime: '2023-09-27T22:18:02.661Z',
             },
             {
-                domainName: "test",
-                serviceName: "testService",
-                type: "ENTERPRISE_APPLIANCE",
-                name: "pesmacro::randomstringbulabula1010",
-                updateTime: "2023-09-27T22:19:00.714Z"
+                domainName: 'test',
+                serviceName: 'testService',
+                type: 'ENTERPRISE_APPLIANCE',
+                name: 'pesmacro::randomstringbulabula1010',
+                updateTime: '2023-09-27T22:19:00.714Z',
             },
         ];
         let service = 'testService';

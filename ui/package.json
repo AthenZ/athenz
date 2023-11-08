@@ -133,7 +133,7 @@
         "mutationobserver-shim": "0.3.7",
         "nanoid": "4.0.0",
         "node-mocks-http": "1.11.0",
-        "prettier": "2.7.1",
+        "prettier": "2.8.8",
         "react-test-renderer": "18.2.0",
         "sinon": "14.0.0",
         "supertest": "6.2.4",

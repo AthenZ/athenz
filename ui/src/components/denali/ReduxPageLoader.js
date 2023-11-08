@@ -4,7 +4,7 @@ import Loader from './Loader';
 
 const LoaderDiv = styled.div`
     text-align: ${(props) => (props.textAlign ? props.textAlign : 'center')};
-    padding-top: ${(props) => (props.paddingTop ? props.paddingTop : '20%')}; ;
+    padding-top: ${(props) => (props.paddingTop ? props.paddingTop : '20%')};
 `;
 
 const LoaderP = styled.p`

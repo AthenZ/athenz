@@ -65,7 +65,9 @@ class ServiceTabs extends React.Component {
 
     render() {
         let shouldShowAllServiceTabs = this.props.featureFlag;
-        let serviceTabs = shouldShowAllServiceTabs ?  SERVICE_TABS : SERVICE_TABS.filter((tab) => tab.name === 'tags');
+        let serviceTabs = shouldShowAllServiceTabs
+            ? SERVICE_TABS
+            : SERVICE_TABS.filter((tab) => tab.name === 'tags');
         return (
             <TabGroup
                 tabs={serviceTabs}
