@@ -57,7 +57,6 @@ const RolesContainerDiv = styled.div`
 
 const RolesContentDiv = styled.div``;
 
-
 const PageHeaderDiv = styled.div`
     padding: 20px 30px 0;
 `;
@@ -83,7 +82,6 @@ export async function getServerSideProps(context) {
         api.getPendingDomainMembersList(),
         api.getForm(),
         api.getMeta(bServicesParams),
-      
     ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
@@ -117,7 +115,6 @@ export async function getServerSideProps(context) {
             manageDomains: domains[1],
             pending: domains[2],
             _csrf: domains[3],
-            test:domains[4],
             nonce: context.req.headers.rid,
             validBusinessServices: businessServiceOptions,
         },

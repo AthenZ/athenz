@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {StaticWorkloadType} from '../../../components/constants/constants';
+import { StaticWorkloadType } from '../../../components/constants/constants';
 import IPTestUtils from '../../../tests_utils/IPTestUtils';
-import {forEach} from 'async';
+import { forEach } from 'async';
 
 describe('StaticWorkloadType', () => {
     it('StaticWorkloadType should match the regex pattern based on types', () => {
@@ -26,8 +26,11 @@ describe('StaticWorkloadType', () => {
                     expect(vipName).toMatch(new RegExp(type.pattern));
                     break;
                 case 'ENTERPRISE_APPLIANCE':
-                    let enterpriseApplianceName = IPTestUtils.generateRandomString(30);
-                    expect(enterpriseApplianceName).toMatch(new RegExp(type.pattern));
+                    let enterpriseApplianceName =
+                        IPTestUtils.generateRandomString(30);
+                    expect(enterpriseApplianceName).toMatch(
+                        new RegExp(type.pattern)
+                    );
                     break;
                 case 'CLOUD_LB':
                     let cloudLBName = IPTestUtils.generateRandomFQDN();
@@ -39,13 +42,21 @@ describe('StaticWorkloadType', () => {
                     break;
                 case 'EXTERNAL_APPLIANCE':
                     let externalApplianceIP = IPTestUtils.generateRandomIP();
-                    expect(externalApplianceIP).toMatch(new RegExp(type.pattern));
-                    let externalApplicationCIDR = IPTestUtils.generateRandomCIDR();
-                    expect(externalApplicationCIDR).toMatch(new RegExp(type.pattern));
+                    expect(externalApplianceIP).toMatch(
+                        new RegExp(type.pattern)
+                    );
+                    let externalApplicationCIDR =
+                        IPTestUtils.generateRandomCIDR();
+                    expect(externalApplicationCIDR).toMatch(
+                        new RegExp(type.pattern)
+                    );
                     break;
                 case 'CLOUD_MANAGED':
-                    let externalCloudManagedName = IPTestUtils.generateRandomFQDN();
-                    expect(externalCloudManagedName).toMatch(new RegExp(type.pattern));
+                    let externalCloudManagedName =
+                        IPTestUtils.generateRandomFQDN();
+                    expect(externalCloudManagedName).toMatch(
+                        new RegExp(type.pattern)
+                    );
                     break;
                 case 'SERVICE_SUBNET':
                     let rfc1918CIDR = [
@@ -58,7 +69,7 @@ describe('StaticWorkloadType', () => {
                         '192.168.1.0/24',
                         '192.168.2.0/24',
                         '192.168.100.0/24',
-                        '10.255.255.0/24'
+                        '10.255.255.0/24',
                     ];
 
                     let nonRFC1918CIDR = [
@@ -70,7 +81,7 @@ describe('StaticWorkloadType', () => {
                         '224.0.0.0/4',
                         '240.0.0.0/4',
                         '169.254.0.0/16',
-                        '198.18.0.0/15'
+                        '198.18.0.0/15',
                     ];
                     forEach(rfc1918CIDR, (cidr) => {
                         expect(cidr).toMatch(new RegExp(type.pattern));

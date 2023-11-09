@@ -1,2675 +1,2675 @@
 {
-  "namespace": "com.yahoo.auth.ums",
-  "name": "UMS",
-  "version": 1,
-  "comment": "The User Management Service (UMS) API",
-  "types": [
-    {
-      "EnumTypeDef": {
-        "type": "Enum",
-        "name": "AthenzEntityAction",
-        "elements": [
-          {
-            "symbol": "create"
-          },
-          {
-            "symbol": "delete"
-          },
-          {
-            "symbol": "update"
-          }
-        ]
-      }
-    },
-    {
-      "EnumTypeDef": {
-        "type": "Enum",
-        "name": "AthenzEntityType",
-        "elements": [
-          {
-            "symbol": "domain"
-          },
-          {
-            "symbol": "role"
-          },
-          {
-            "symbol": "group"
-          },
-          {
-            "symbol": "service"
-          },
-          {
-            "symbol": "policy"
-          },
-          {
-            "symbol": "entity"
-          }
-        ]
-      }
-    },
-    {
-      "EnumTypeDef": {
-        "type": "Enum",
-        "name": "AthenzDependencyResponseStatus",
-        "elements": [
-          {
-            "symbol": "allow"
-          },
-          {
-            "symbol": "deny"
-          }
-        ]
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "AthenzDependencyRequest",
-        "fields": [
-          {
-            "name": "operation",
-            "type": "AthenzEntityAction",
-            "optional": false,
-            "comment": "domain action like, create/delete/..."
-          },
-          {
-            "name": "domainName",
-            "type": "String",
-            "optional": false,
-            "comment": "domain name"
-          },
-          {
-            "name": "objectType",
-            "type": "AthenzEntityType",
-            "optional": false,
-            "comment": "entity type like, domain/role/..."
-          },
-          {
-            "name": "objectName",
-            "type": "String",
-            "optional": false,
-            "comment": "name of the athenz entity"
-          },
-          {
-            "name": "principal",
-            "type": "String",
-            "optional": false,
-            "comment": "principal of the executing operation"
-          },
-          {
-            "name": "provider",
-            "type": "String",
-            "optional": false,
-            "comment": "provider service identity"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "AthenzDependencyResponse",
-        "fields": [
-          {
-            "name": "status",
-            "type": "AthenzDependencyResponseStatus",
-            "optional": false,
-            "comment": "whether the request is allowed or denied"
-          },
-          {
-            "name": "message",
-            "type": "String",
-            "optional": true,
-            "comment": "reason for denial"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "SimpleName",
-        "comment": "A simple identifier, an element of compound name.",
-        "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "CompoundName",
-        "comment": "A compound name. Most names in this API are compound names.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "DomainName",
-        "comment": "A domain name is the general qualifier prefix, as its uniqueness is managed.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "EntityName",
-        "comment": "An entity name is a short form of a resource name, including only the domain and entity.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "ServiceName",
-        "comment": "A service name will generally be a unique subdomain.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "LocationName",
-        "comment": "A location name is not yet defined, but will be a dotted name like everything else.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "ActionName",
-        "comment": "An action (operation) name.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "RestrictedResourceName",
-        "comment": "An identifier for Restricted Resource Name",
-        "pattern": "[a-zA-Z][a-zA-Z0-9_]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "ResourceName",
-        "comment": "A shorthand for a YRN with no service or location. The 'tail' of a YRN, just the domain:entity. Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "YRN",
-        "comment": "A full Yahoo Resource name (YRN).",
-        "pattern": "(yrn:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:)?([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "YBase64",
-        "comment": "The Y-specific URL-safe Base64 variant.",
-        "pattern": "[a-zA-Z0-9\\._-]+"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "YEncoded",
-        "comment": "YEncoded includes ybase64 chars, as well as = and %. This can represent a YBY cookie and URL-encoded values.",
-        "pattern": "[a-zA-Z0-9\\._%=-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "AuthorityName",
-        "comment": "Used as the prefix in a signed assertion. This uniquely identifies a signing authority.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "PathElement",
-        "comment": "A uri-safe path element",
-        "pattern": "[a-zA-Z0-9-\\._~=+@$,:]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "SignedToken",
-        "comment": "A signed assertion if identity. i.e. the YBY cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles",
-        "pattern": "[a-zA-Z0-9\\._%=;,-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "MemberName",
-        "comment": "Role Member name - could be one of three values: *, DomainName.* or ResourceName[*]",
-        "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?(\\*)?"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "HostName",
-        "comment": "HostNames must start with alphanumeric character and contain only alphanumeric, dot, wildcard or hyphen characters. Must not end in dot character.",
-        "pattern": "([a-zA-Z0-9\\*][a-zA-Z0-9-\\*]*\\.)*[a-zA-Z0-9\\*][a-zA-Z0-9-\\*]*$"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "Shell",
-        "comment": "Shell must start with forward slash '/' character and contain only alphanumeric, underscore, dots, hyphens or '/' characters.",
-        "pattern": "^\\/[a-z0-9._\\/-]+$"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "IP",
-        "comment": "IP address, should only be restricted to the range",
-        "pattern": "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "HostUuid",
-        "comment": "HostUuid, should only contain lower case alphanumberic character and hyphen",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "Service",
-        "comment": "A service name will generally be a unique subdomain.",
-        "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
-      }
-    },
-    {
-      "StringTypeDef": {
-        "type": "String",
-        "name": "ClusterInfo",
-        "comment": "Cluster info",
-        "pattern": "[a-z0-9][a-z0-9-]*"
-      }
-    },
-    {
-      "EnumTypeDef": {
-        "type": "Enum",
-        "name": "HeadlessState",
-        "elements": [
-          {
-            "symbol": "ID"
-          },
-          {
-            "symbol": "SSH_OUT"
-          },
-          {
-            "symbol": "SUDO"
-          },
-          {
-            "symbol": "SUDO_RR"
-          },
-          {
-            "symbol": "SSH_IN"
-          },
-          {
-            "symbol": "SSH_IN_RR"
-          },
-          {
-            "symbol": "SSH_IN_SUDO"
-          },
-          {
-            "symbol": "SSH_IN_SUDO_RR"
-          },
-          {
-            "symbol": "LOCAL"
-          }
-        ]
-      }
-    },
-    {
-      "EnumTypeDef": {
-        "type": "Enum",
-        "name": "IncludeState",
-        "elements": [
-          {
-            "symbol": "ALL_HUMAN"
-          },
-          {
-            "symbol": "ALL_HEADLESS"
-          },
-          {
-            "symbol": "ALL_GROUP"
-          }
-        ]
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "CalypsoCliVersion",
-        "fields": [
-          {
-            "name": "version",
-            "type": "String",
-            "optional": false,
-            "comment": "The calypso-cli package version"
-          },
-          {
-            "name": "emergency",
-            "type": "Bool",
-            "optional": false,
-            "comment": "Indicate whether its emergency version"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileDeleteError",
-        "fields": [
-          {
-            "name": "rolesNotDeleted",
-            "type": "Array",
-            "optional": false,
-            "items": "EntityName"
-          },
-          {
-            "name": "message",
-            "type": "String",
-            "optional": false
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "User",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false
-          },
-          {
-            "name": "uid",
-            "type": "Int32",
-            "optional": false
-          },
-          {
-            "name": "gid",
-            "type": "Int32",
-            "optional": true,
-            "comment": "Gid to be set explicitly"
-          },
-          {
-            "name": "shell",
-            "type": "String",
-            "optional": false
-          },
-          {
-            "name": "homeDir",
-            "type": "String",
-            "optional": true,
-            "comment": "Home Directory override for user"
-          },
-          {
-            "name": "comment",
-            "type": "String",
-            "optional": false,
-            "comment": "Gecos entry in passwd file"
-          },
-          {
-            "name": "headlessStates",
-            "type": "Array",
-            "optional": true,
-            "comment": "States of the headless user",
-            "items": "HeadlessState"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "SudoUser",
-        "fields": [
-          {
-            "name": "userList",
-            "type": "Array",
-            "optional": false,
-            "comment": "user names",
-            "items": "EntityName"
-          },
-          {
-            "name": "userToRoleMap",
-            "type": "String",
-            "optional": true,
-            "comment": "comment containing all the users and the roles they belong to in Athenz"
-          },
-          {
-            "name": "cmds",
-            "type": "String",
-            "optional": false,
-            "comment": "list of sudoable commands, default \"ALL\""
-          },
-          {
-            "name": "rrName",
-            "type": "RestrictedResourceName",
-            "optional": true
-          },
-          {
-            "name": "runAs",
-            "type": "String",
-            "optional": true,
-            "comment": "runas specification"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "UnixGroup",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "name of the group"
-          },
-          {
-            "name": "gid",
-            "type": "Int32",
-            "optional": false
-          },
-          {
-            "name": "userList",
-            "type": "Array",
-            "optional": false,
-            "comment": "list of users in the groups",
-            "items": "EntityName"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "AAP",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "name of the user"
-          },
-          {
-            "name": "text",
-            "type": "String",
-            "optional": false,
-            "comment": "content to go into the additional authorized principals"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileRoleMembers",
-        "fields": [
-          {
-            "name": "userList",
-            "type": "Array",
-            "optional": false,
-            "comment": "list of members with user capability",
-            "items": "User"
-          },
-          {
-            "name": "sudoList",
-            "type": "Array",
-            "optional": false,
-            "comment": "list of sudoers",
-            "items": "SudoUser"
-          },
-          {
-            "name": "groupList",
-            "type": "Array",
-            "optional": false,
-            "comment": "list of groups",
-            "items": "UnixGroup"
-          },
-          {
-            "name": "aapList",
-            "type": "Array",
-            "optional": true,
-            "comment": "list of authorized additional members",
-            "items": "AAP"
-          },
-          {
-            "name": "includeList",
-            "type": "Array",
-            "optional": true,
-            "comment": "list to indicate * pattern for humans, headless, groups",
-            "items": "IncludeState"
-          },
-          {
-            "name": "options",
-            "type": "String",
-            "optional": true,
-            "comment": "addional options in key=value form, semicolon seperated"
-          },
-          {
-            "name": "sshStrict",
-            "type": "Bool",
-            "optional": true,
-            "comment": "SSHStrict Enabled for Profile"
-          },
-          {
-            "name": "version",
-            "type": "CalypsoCliVersion",
-            "optional": true,
-            "comment": "calypso-cli version to install on the host"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "DomainMeta",
-        "fields": [
-          {
-            "name": "name",
-            "type": "DomainName",
-            "optional": false,
-            "comment": "Name of the domain"
-          },
-          {
-            "name": "chefCluster",
-            "type": "String",
-            "optional": false,
-            "comment": "cluster name: ie. oliver, elliot, chef.ops, etc..."
-          },
-          {
-            "name": "chefOrg",
-            "type": "String",
-            "optional": false
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ChefMeta",
-        "fields": [
-          {
-            "name": "chefEnv",
-            "type": "String",
-            "optional": false
-          },
-          {
-            "name": "chefRunlist",
-            "type": "String",
-            "optional": false
-          },
-          {
-            "name": "ykkInstance",
-            "type": "String",
-            "optional": false,
-            "comment": "ykeykey instance: ie. alpha, corp, prod, or vault"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileMeta",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "Name of the profile"
-          },
-          {
-            "name": "createdBy",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "who created the profile"
-          },
-          {
-            "name": "modifiedBy",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "who modified the profile last"
-          },
-          {
-            "name": "modified",
-            "type": "Timestamp",
-            "optional": false,
-            "comment": "when the profile modified last time"
-          },
-          {
-            "name": "created",
-            "type": "Timestamp",
-            "optional": false,
-            "comment": "when was the profile created"
-          },
-          {
-            "name": "domMeta",
+    "namespace": "com.yahoo.auth.ums",
+    "name": "UMS",
+    "version": 1,
+    "comment": "The User Management Service (UMS) API",
+    "types": [
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "AthenzEntityAction",
+                "elements": [
+                    {
+                        "symbol": "create"
+                    },
+                    {
+                        "symbol": "delete"
+                    },
+                    {
+                        "symbol": "update"
+                    }
+                ]
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "AthenzEntityType",
+                "elements": [
+                    {
+                        "symbol": "domain"
+                    },
+                    {
+                        "symbol": "role"
+                    },
+                    {
+                        "symbol": "group"
+                    },
+                    {
+                        "symbol": "service"
+                    },
+                    {
+                        "symbol": "policy"
+                    },
+                    {
+                        "symbol": "entity"
+                    }
+                ]
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "AthenzDependencyResponseStatus",
+                "elements": [
+                    {
+                        "symbol": "allow"
+                    },
+                    {
+                        "symbol": "deny"
+                    }
+                ]
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "AthenzDependencyRequest",
+                "fields": [
+                    {
+                        "name": "operation",
+                        "type": "AthenzEntityAction",
+                        "optional": false,
+                        "comment": "domain action like, create/delete/..."
+                    },
+                    {
+                        "name": "domainName",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "domain name"
+                    },
+                    {
+                        "name": "objectType",
+                        "type": "AthenzEntityType",
+                        "optional": false,
+                        "comment": "entity type like, domain/role/..."
+                    },
+                    {
+                        "name": "objectName",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "name of the athenz entity"
+                    },
+                    {
+                        "name": "principal",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "principal of the executing operation"
+                    },
+                    {
+                        "name": "provider",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "provider service identity"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "AthenzDependencyResponse",
+                "fields": [
+                    {
+                        "name": "status",
+                        "type": "AthenzDependencyResponseStatus",
+                        "optional": false,
+                        "comment": "whether the request is allowed or denied"
+                    },
+                    {
+                        "name": "message",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "reason for denial"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "SimpleName",
+                "comment": "A simple identifier, an element of compound name.",
+                "pattern": "[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "CompoundName",
+                "comment": "A compound name. Most names in this API are compound names.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "DomainName",
+                "comment": "A domain name is the general qualifier prefix, as its uniqueness is managed.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "EntityName",
+                "comment": "An entity name is a short form of a resource name, including only the domain and entity.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "ServiceName",
+                "comment": "A service name will generally be a unique subdomain.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "LocationName",
+                "comment": "A location name is not yet defined, but will be a dotted name like everything else.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "ActionName",
+                "comment": "An action (operation) name.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "RestrictedResourceName",
+                "comment": "An identifier for Restricted Resource Name",
+                "pattern": "[a-zA-Z][a-zA-Z0-9_]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "ResourceName",
+                "comment": "A shorthand for a YRN with no service or location. The 'tail' of a YRN, just the domain:entity. Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "YRN",
+                "comment": "A full Yahoo Resource name (YRN).",
+                "pattern": "(yrn:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?:)?([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "YBase64",
+                "comment": "The Y-specific URL-safe Base64 variant.",
+                "pattern": "[a-zA-Z0-9\\._-]+"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "YEncoded",
+                "comment": "YEncoded includes ybase64 chars, as well as = and %. This can represent a YBY cookie and URL-encoded values.",
+                "pattern": "[a-zA-Z0-9\\._%=-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "AuthorityName",
+                "comment": "Used as the prefix in a signed assertion. This uniquely identifies a signing authority.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "PathElement",
+                "comment": "A uri-safe path element",
+                "pattern": "[a-zA-Z0-9-\\._~=+@$,:]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "SignedToken",
+                "comment": "A signed assertion if identity. i.e. the YBY cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles",
+                "pattern": "[a-zA-Z0-9\\._%=;,-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "MemberName",
+                "comment": "Role Member name - could be one of three values: *, DomainName.* or ResourceName[*]",
+                "pattern": "\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?(\\*)?"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "HostName",
+                "comment": "HostNames must start with alphanumeric character and contain only alphanumeric, dot, wildcard or hyphen characters. Must not end in dot character.",
+                "pattern": "([a-zA-Z0-9\\*][a-zA-Z0-9-\\*]*\\.)*[a-zA-Z0-9\\*][a-zA-Z0-9-\\*]*$"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "Shell",
+                "comment": "Shell must start with forward slash '/' character and contain only alphanumeric, underscore, dots, hyphens or '/' characters.",
+                "pattern": "^\\/[a-z0-9._\\/-]+$"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "IP",
+                "comment": "IP address, should only be restricted to the range",
+                "pattern": "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "HostUuid",
+                "comment": "HostUuid, should only contain lower case alphanumberic character and hyphen",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "Service",
+                "comment": "A service name will generally be a unique subdomain.",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
+                "name": "ClusterInfo",
+                "comment": "Cluster info",
+                "pattern": "[a-z0-9][a-z0-9-]*"
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "HeadlessState",
+                "elements": [
+                    {
+                        "symbol": "ID"
+                    },
+                    {
+                        "symbol": "SSH_OUT"
+                    },
+                    {
+                        "symbol": "SUDO"
+                    },
+                    {
+                        "symbol": "SUDO_RR"
+                    },
+                    {
+                        "symbol": "SSH_IN"
+                    },
+                    {
+                        "symbol": "SSH_IN_RR"
+                    },
+                    {
+                        "symbol": "SSH_IN_SUDO"
+                    },
+                    {
+                        "symbol": "SSH_IN_SUDO_RR"
+                    },
+                    {
+                        "symbol": "LOCAL"
+                    }
+                ]
+            }
+        },
+        {
+            "EnumTypeDef": {
+                "type": "Enum",
+                "name": "IncludeState",
+                "elements": [
+                    {
+                        "symbol": "ALL_HUMAN"
+                    },
+                    {
+                        "symbol": "ALL_HEADLESS"
+                    },
+                    {
+                        "symbol": "ALL_GROUP"
+                    }
+                ]
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "CalypsoCliVersion",
+                "fields": [
+                    {
+                        "name": "version",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "The calypso-cli package version"
+                    },
+                    {
+                        "name": "emergency",
+                        "type": "Bool",
+                        "optional": false,
+                        "comment": "Indicate whether its emergency version"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileDeleteError",
+                "fields": [
+                    {
+                        "name": "rolesNotDeleted",
+                        "type": "Array",
+                        "optional": false,
+                        "items": "EntityName"
+                    },
+                    {
+                        "name": "message",
+                        "type": "String",
+                        "optional": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "User",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false
+                    },
+                    {
+                        "name": "uid",
+                        "type": "Int32",
+                        "optional": false
+                    },
+                    {
+                        "name": "gid",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Gid to be set explicitly"
+                    },
+                    {
+                        "name": "shell",
+                        "type": "String",
+                        "optional": false
+                    },
+                    {
+                        "name": "homeDir",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Home Directory override for user"
+                    },
+                    {
+                        "name": "comment",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Gecos entry in passwd file"
+                    },
+                    {
+                        "name": "headlessStates",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "States of the headless user",
+                        "items": "HeadlessState"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SudoUser",
+                "fields": [
+                    {
+                        "name": "userList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "user names",
+                        "items": "EntityName"
+                    },
+                    {
+                        "name": "userToRoleMap",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "comment containing all the users and the roles they belong to in Athenz"
+                    },
+                    {
+                        "name": "cmds",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "list of sudoable commands, default \"ALL\""
+                    },
+                    {
+                        "name": "rrName",
+                        "type": "RestrictedResourceName",
+                        "optional": true
+                    },
+                    {
+                        "name": "runAs",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "runas specification"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "UnixGroup",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the group"
+                    },
+                    {
+                        "name": "gid",
+                        "type": "Int32",
+                        "optional": false
+                    },
+                    {
+                        "name": "userList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of users in the groups",
+                        "items": "EntityName"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "AAP",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the user"
+                    },
+                    {
+                        "name": "text",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "content to go into the additional authorized principals"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileRoleMembers",
+                "fields": [
+                    {
+                        "name": "userList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of members with user capability",
+                        "items": "User"
+                    },
+                    {
+                        "name": "sudoList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of sudoers",
+                        "items": "SudoUser"
+                    },
+                    {
+                        "name": "groupList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of groups",
+                        "items": "UnixGroup"
+                    },
+                    {
+                        "name": "aapList",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list of authorized additional members",
+                        "items": "AAP"
+                    },
+                    {
+                        "name": "includeList",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list to indicate * pattern for humans, headless, groups",
+                        "items": "IncludeState"
+                    },
+                    {
+                        "name": "options",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "addional options in key=value form, semicolon seperated"
+                    },
+                    {
+                        "name": "sshStrict",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "SSHStrict Enabled for Profile"
+                    },
+                    {
+                        "name": "version",
+                        "type": "CalypsoCliVersion",
+                        "optional": true,
+                        "comment": "calypso-cli version to install on the host"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainMeta",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "Name of the domain"
+                    },
+                    {
+                        "name": "chefCluster",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "cluster name: ie. oliver, elliot, chef.ops, etc..."
+                    },
+                    {
+                        "name": "chefOrg",
+                        "type": "String",
+                        "optional": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ChefMeta",
+                "fields": [
+                    {
+                        "name": "chefEnv",
+                        "type": "String",
+                        "optional": false
+                    },
+                    {
+                        "name": "chefRunlist",
+                        "type": "String",
+                        "optional": false
+                    },
+                    {
+                        "name": "ykkInstance",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "ykeykey instance: ie. alpha, corp, prod, or vault"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileMeta",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "Name of the profile"
+                    },
+                    {
+                        "name": "createdBy",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "who created the profile"
+                    },
+                    {
+                        "name": "modifiedBy",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "who modified the profile last"
+                    },
+                    {
+                        "name": "modified",
+                        "type": "Timestamp",
+                        "optional": false,
+                        "comment": "when the profile modified last time"
+                    },
+                    {
+                        "name": "created",
+                        "type": "Timestamp",
+                        "optional": false,
+                        "comment": "when was the profile created"
+                    },
+                    {
+                        "name": "domMeta",
+                        "type": "DomainMeta",
+                        "optional": true
+                    },
+                    {
+                        "name": "chefMeta",
+                        "type": "ChefMeta",
+                        "optional": true
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileList",
+                "fields": [
+                    {
+                        "name": "names",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of profile meta data in a domain",
+                        "items": "ProfileMeta"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileRoleMember",
+                "fields": [
+                    {
+                        "name": "memberName",
+                        "type": "MemberName",
+                        "optional": false,
+                        "comment": "name of the member"
+                    },
+                    {
+                        "name": "expiration",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "the expiration timestamp"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "UserRole",
+                "fields": [
+                    {
+                        "name": "roleName",
+                        "type": "EntityName",
+                        "optional": false
+                    },
+                    {
+                        "name": "auditEnabled",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "only used for getProfile"
+                    },
+                    {
+                        "name": "users",
+                        "type": "Array",
+                        "optional": true,
+                        "items": "ProfileRoleMember"
+                    },
+                    {
+                        "name": "trusted",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "default: false"
+                    },
+                    {
+                        "name": "hostNames",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "user applied to the specified hosts",
+                        "items": "HostName"
+                    },
+                    {
+                        "name": "shell",
+                        "type": "Shell",
+                        "optional": true
+                    },
+                    {
+                        "name": "unixGroupRoles",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "used only for mapping of unix group to roles for unix groups",
+                        "items": "UserRole"
+                    },
+                    {
+                        "name": "sshTouchless",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "SSH Touchless Enabled for Role"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "HeadlessRole",
+                "fields": [
+                    {
+                        "name": "userRole",
+                        "type": "UserRole",
+                        "optional": false
+                    },
+                    {
+                        "name": "states",
+                        "type": "Array",
+                        "optional": false,
+                        "items": "HeadlessState"
+                    },
+                    {
+                        "name": "sudoRrName",
+                        "type": "RestrictedResourceName",
+                        "optional": true,
+                        "comment": "Restricted Resource name that goes in node_sudo_xxx"
+                    },
+                    {
+                        "name": "sshinRrName",
+                        "type": "RestrictedResourceName",
+                        "optional": true,
+                        "comment": "Restricted Resource name that goes in node_sshin_xxx action"
+                    },
+                    {
+                        "name": "aapText",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "text for additional authorized principals"
+                    },
+                    {
+                        "name": "group",
+                        "type": "EntityName",
+                        "optional": true,
+                        "comment": "unix group to be set as primay for the members in this role"
+                    },
+                    {
+                        "name": "gid",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "gid for the group to be set"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SudoAccess",
+                "fields": [
+                    {
+                        "name": "rrName",
+                        "type": "RestrictedResourceName",
+                        "optional": false,
+                        "comment": "Restricted Resource name that goes in \"node_sudo_xxx\" action"
+                    },
+                    {
+                        "name": "roleList",
+                        "type": "Array",
+                        "optional": false,
+                        "items": "UserRole"
+                    },
+                    {
+                        "name": "cmds",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "list of sudoable commands, default \"ALL\""
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "UserStats",
+                "fields": [
+                    {
+                        "name": "login",
+                        "type": "Int32",
+                        "optional": true
+                    },
+                    {
+                        "name": "sudo",
+                        "type": "Int32",
+                        "optional": true
+                    },
+                    {
+                        "name": "restrictedSudo",
+                        "type": "Int32",
+                        "optional": true
+                    },
+                    {
+                        "name": "headless",
+                        "type": "Int32",
+                        "optional": true
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "InstanceStats",
+                "fields": [
+                    {
+                        "name": "total",
+                        "type": "Int32",
+                        "optional": true
+                    },
+                    {
+                        "name": "totalActive",
+                        "type": "Int32",
+                        "optional": true
+                    },
+                    {
+                        "name": "error",
+                        "type": "Int32",
+                        "optional": true
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileStats",
+                "fields": [
+                    {
+                        "name": "user",
+                        "type": "UserStats",
+                        "optional": true
+                    },
+                    {
+                        "name": "instance",
+                        "type": "InstanceStats",
+                        "optional": true
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ProfileRoleMemberList",
+                "fields": [
+                    {
+                        "name": "profileRoleMemberList",
+                        "type": "Array",
+                        "optional": true,
+                        "items": "ProfileRoleMember"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "Profile",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "Name of the Profile"
+                    },
+                    {
+                        "name": "userRoleList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "List of login roles",
+                        "items": "UserRole"
+                    },
+                    {
+                        "name": "sudoRoleList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "List of full sudo roles",
+                        "items": "UserRole"
+                    },
+                    {
+                        "name": "restrictedSudoList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "List of restricted sudo roles",
+                        "items": "SudoAccess"
+                    },
+                    {
+                        "name": "unixGroupList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "List of unix group roles",
+                        "items": "UserRole"
+                    },
+                    {
+                        "name": "headlessList",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "List of headless roles",
+                        "items": "HeadlessRole"
+                    },
+                    {
+                        "name": "sshStrict",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "SSHStrict Enabled for Profile"
+                    },
+                    {
+                        "name": "domMeta",
+                        "type": "DomainMeta",
+                        "optional": true
+                    },
+                    {
+                        "name": "chefMeta",
+                        "type": "ChefMeta",
+                        "optional": true
+                    },
+                    {
+                        "name": "principalGroupMap",
+                        "type": "Map",
+                        "optional": true,
+                        "items": "ProfileRoleMemberList",
+                        "keys": "ResourceName"
+                    },
+                    {
+                        "name": "profileStats",
+                        "type": "ProfileStats",
+                        "optional": true
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "Group",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the group"
+                    },
+                    {
+                        "name": "gid",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "GID of the unix group"
+                    },
+                    {
+                        "name": "userList",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list of users in the groups",
+                        "items": "EntityName"
+                    },
+                    {
+                        "name": "description",
+                        "type": "String",
+                        "optional": true
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "RestrictedResource",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "RestrictedResourceName",
+                        "optional": false,
+                        "comment": "name of the restricted resource"
+                    },
+                    {
+                        "name": "commandList",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "list of cmds, ex: \"/usr/bin/yinst; ls /home/y/var/db/*\""
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "RestrictedResourceList",
+                "fields": [
+                    {
+                        "name": "nameList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "the restricted resource names",
+                        "items": "RestrictedResource"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ShellOverRide",
+                "fields": [
+                    {
+                        "name": "domain",
+                        "type": "DomainName",
+                        "optional": false
+                    },
+                    {
+                        "name": "role",
+                        "type": "EntityName",
+                        "optional": false
+                    },
+                    {
+                        "name": "shell",
+                        "type": "String",
+                        "optional": false
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainProfile",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "Name of the Profile"
+                    },
+                    {
+                        "name": "domain",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "Name of the Domain"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "HostError",
+                "fields": [
+                    {
+                        "name": "code",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "Predefined error code"
+                    },
+                    {
+                        "name": "text",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "Text describes the error"
+                    },
+                    {
+                        "name": "stdout",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Stdout, in case of system call"
+                    },
+                    {
+                        "name": "stderr",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "Stderr, in case of system call"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "HostStatus",
+                "fields": [
+                    {
+                        "name": "hostError",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "Host error descriptor",
+                        "items": "HostError"
+                    },
+                    {
+                        "name": "error",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "error sent by Calypso CLI"
+                    },
+                    {
+                        "name": "errorModified",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "timestamp of the error last reported by Calypso CLI"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "Host",
+                "fields": [
+                    {
+                        "name": "uuid",
+                        "type": "HostUuid",
+                        "optional": false,
+                        "comment": "UUID for the host"
+                    },
+                    {
+                        "name": "hostname",
+                        "type": "HostName",
+                        "optional": false,
+                        "comment": "Name of the host"
+                    },
+                    {
+                        "name": "ip",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "Ip address of the host",
+                        "items": "IP"
+                    },
+                    {
+                        "name": "service",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "Services of the host",
+                        "items": "Service"
+                    },
+                    {
+                        "name": "clusterinfo",
+                        "type": "ClusterInfo",
+                        "optional": true,
+                        "comment": "Host cluster information"
+                    },
+                    {
+                        "name": "modified",
+                        "type": "Timestamp",
+                        "optional": false,
+                        "comment": "when the host modified last time"
+                    },
+                    {
+                        "name": "hostStatus",
+                        "type": "HostStatus",
+                        "optional": true,
+                        "comment": "status of the host"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "HostList",
+                "fields": [
+                    {
+                        "name": "hostList",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "hosts with uuid, name and ip",
+                        "items": "Host"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "AapRole",
+                "fields": [
+                    {
+                        "name": "aap",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "additional authorized principals"
+                    },
+                    {
+                        "name": "roleName",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "role name"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "AapRoleList",
+                "fields": [
+                    {
+                        "name": "aapRoles",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "additional authorized principals roles",
+                        "items": "AapRole"
+                    }
+                ],
+                "closed": false
+            }
+        }
+    ],
+    "resources": [
+        {
+            "type": "AthenzDependencyRequest",
+            "method": "POST",
+            "path": "/dependency-check",
+            "comment": "update permission on the domain",
+            "inputs": [
+                {
+                    "name": "request",
+                    "type": "AthenzDependencyRequest",
+                    "comment": "request",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "access",
+                "resource": "sys.calypso:dependency"
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "ProfileRoleMembers",
+            "method": "GET",
+            "path": "/domain/{domainName}/profile/{profileName}/member",
+            "comment": "This is a special endpoint for user-provisioning support to return the list of members with node_user and node_sudo actions. If the caller is a service principal, it must be in the same domain, otherwise, the user principal must have read rights to profile resource",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "SimpleName",
+                    "comment": "name of the profile to retrieve members for",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "hostname",
+                    "type": "String",
+                    "comment": "host name which will be used for retrieving members for",
+                    "pathParam": false,
+                    "queryParam": "hostname",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "ProfileList",
+            "method": "GET",
+            "path": "/domain/{domainName}/profile",
+            "comment": "Enumerate the list of profiles provisioned in the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Profile",
+            "method": "GET",
+            "path": "/domain/{domainName}/profile/{profileName}",
+            "comment": "Get the specified Profile",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the profile",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "queryonly",
+                    "type": "Bool",
+                    "comment": "If true, checks if the Profile is present in db or not",
+                    "pathParam": false,
+                    "queryParam": "queryonly",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Profile",
+            "method": "PUT",
+            "path": "/domain/{domainName}/profile/{profileName}",
+            "comment": "Update the specified Profile update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profile",
+                    "type": "Profile",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Profile",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/profile/{profileName}",
+            "comment": "Delete the specified profile Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "deleteAllRoles",
+                    "type": "Bool",
+                    "comment": "If true, delete all Athenz roles associate with this profile",
+                    "pathParam": false,
+                    "queryParam": "deleteAllRoles",
+                    "optional": false,
+                    "flag": false,
+                    "default": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
             "type": "DomainMeta",
-            "optional": true
-          },
-          {
-            "name": "chefMeta",
-            "type": "ChefMeta",
-            "optional": true
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileList",
-        "fields": [
-          {
-            "name": "names",
-            "type": "Array",
-            "optional": false,
-            "comment": "list of profile meta data in a domain",
-            "items": "ProfileMeta"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileRoleMember",
-        "fields": [
-          {
-            "name": "memberName",
-            "type": "MemberName",
-            "optional": false,
-            "comment": "name of the member"
-          },
-          {
-            "name": "expiration",
-            "type": "Timestamp",
-            "optional": true,
-            "comment": "the expiration timestamp"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "UserRole",
-        "fields": [
-          {
-            "name": "roleName",
-            "type": "EntityName",
-            "optional": false
-          },
-          {
-            "name": "auditEnabled",
-            "type": "Bool",
-            "optional": true,
-            "comment": "only used for getProfile"
-          },
-          {
-            "name": "users",
-            "type": "Array",
-            "optional": true,
-            "items": "ProfileRoleMember"
-          },
-          {
-            "name": "trusted",
-            "type": "Bool",
-            "optional": true,
-            "comment": "default: false"
-          },
-          {
-            "name": "hostNames",
-            "type": "Array",
-            "optional": true,
-            "comment": "user applied to the specified hosts",
-            "items": "HostName"
-          },
-          {
-            "name": "shell",
-            "type": "Shell",
-            "optional": true
-          },
-          {
-            "name": "unixGroupRoles",
-            "type": "Array",
-            "optional": true,
-            "comment": "used only for mapping of unix group to roles for unix groups",
-            "items": "UserRole"
-          },
-          {
-            "name": "sshTouchless",
-            "type": "Bool",
-            "optional": true,
-            "comment": "SSH Touchless Enabled for Role"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "HeadlessRole",
-        "fields": [
-          {
-            "name": "userRole",
-            "type": "UserRole",
-            "optional": false
-          },
-          {
-            "name": "states",
-            "type": "Array",
-            "optional": false,
-            "items": "HeadlessState"
-          },
-          {
-            "name": "sudoRrName",
-            "type": "RestrictedResourceName",
-            "optional": true,
-            "comment": "Restricted Resource name that goes in node_sudo_xxx"
-          },
-          {
-            "name": "sshinRrName",
-            "type": "RestrictedResourceName",
-            "optional": true,
-            "comment": "Restricted Resource name that goes in node_sshin_xxx action"
-          },
-          {
-            "name": "aapText",
-            "type": "String",
-            "optional": true,
-            "comment": "text for additional authorized principals"
-          },
-          {
-            "name": "group",
-            "type": "EntityName",
-            "optional": true,
-            "comment": "unix group to be set as primay for the members in this role"
-          },
-          {
-            "name": "gid",
-            "type": "Int32",
-            "optional": true,
-            "comment": "gid for the group to be set"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "SudoAccess",
-        "fields": [
-          {
-            "name": "rrName",
-            "type": "RestrictedResourceName",
-            "optional": false,
-            "comment": "Restricted Resource name that goes in \"node_sudo_xxx\" action"
-          },
-          {
-            "name": "roleList",
-            "type": "Array",
-            "optional": false,
-            "items": "UserRole"
-          },
-          {
-            "name": "cmds",
-            "type": "String",
-            "optional": true,
-            "comment": "list of sudoable commands, default \"ALL\""
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "UserStats",
-        "fields": [
-          {
-            "name": "login",
-            "type": "Int32",
-            "optional": true
-          },
-          {
-            "name": "sudo",
-            "type": "Int32",
-            "optional": true
-          },
-          {
-            "name": "restrictedSudo",
-            "type": "Int32",
-            "optional": true
-          },
-          {
-            "name": "headless",
-            "type": "Int32",
-            "optional": true
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "InstanceStats",
-        "fields": [
-          {
-            "name": "total",
-            "type": "Int32",
-            "optional": true
-          },
-          {
-            "name": "totalActive",
-            "type": "Int32",
-            "optional": true
-          },
-          {
-            "name": "error",
-            "type": "Int32",
-            "optional": true
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileStats",
-        "fields": [
-          {
-            "name": "user",
-            "type": "UserStats",
-            "optional": true
-          },
-          {
-            "name": "instance",
-            "type": "InstanceStats",
-            "optional": true
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ProfileRoleMemberList",
-        "fields": [
-          {
-            "name": "profileRoleMemberList",
-            "type": "Array",
-            "optional": true,
-            "items": "ProfileRoleMember"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "Profile",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "Name of the Profile"
-          },
-          {
-            "name": "userRoleList",
-            "type": "Array",
-            "optional": false,
-            "comment": "List of login roles",
-            "items": "UserRole"
-          },
-          {
-            "name": "sudoRoleList",
-            "type": "Array",
-            "optional": false,
-            "comment": "List of full sudo roles",
-            "items": "UserRole"
-          },
-          {
-            "name": "restrictedSudoList",
-            "type": "Array",
-            "optional": false,
-            "comment": "List of restricted sudo roles",
-            "items": "SudoAccess"
-          },
-          {
-            "name": "unixGroupList",
-            "type": "Array",
-            "optional": false,
-            "comment": "List of unix group roles",
-            "items": "UserRole"
-          },
-          {
-            "name": "headlessList",
-            "type": "Array",
-            "optional": true,
-            "comment": "List of headless roles",
-            "items": "HeadlessRole"
-          },
-          {
-            "name": "sshStrict",
-            "type": "Bool",
-            "optional": true,
-            "comment": "SSHStrict Enabled for Profile"
-          },
-          {
-            "name": "domMeta",
+            "method": "PUT",
+            "path": "/domain/{domainName}/meta",
+            "comment": "Update the specified Domain update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "domMeta",
+                    "type": "DomainMeta",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
             "type": "DomainMeta",
-            "optional": true
-          },
-          {
-            "name": "chefMeta",
-            "type": "ChefMeta",
-            "optional": true
-          },
-          {
-            "name": "principalGroupMap",
-            "type": "Map",
-            "optional": true,
-            "items": "ProfileRoleMemberList",
-            "keys": "ResourceName"
-          },
-          {
-            "name": "profileStats",
-            "type": "ProfileStats",
-            "optional": true
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "Group",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "name of the group"
-          },
-          {
-            "name": "gid",
-            "type": "Int32",
-            "optional": true,
-            "comment": "GID of the unix group"
-          },
-          {
-            "name": "userList",
-            "type": "Array",
-            "optional": true,
-            "comment": "list of users in the groups",
-            "items": "EntityName"
-          },
-          {
-            "name": "description",
-            "type": "String",
-            "optional": true
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "RestrictedResource",
-        "fields": [
-          {
-            "name": "name",
-            "type": "RestrictedResourceName",
-            "optional": false,
-            "comment": "name of the restricted resource"
-          },
-          {
-            "name": "commandList",
-            "type": "String",
-            "optional": true,
-            "comment": "list of cmds, ex: \"/usr/bin/yinst; ls /home/y/var/db/*\""
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "RestrictedResourceList",
-        "fields": [
-          {
-            "name": "nameList",
-            "type": "Array",
-            "optional": false,
-            "comment": "the restricted resource names",
-            "items": "RestrictedResource"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "ShellOverRide",
-        "fields": [
-          {
-            "name": "domain",
-            "type": "DomainName",
-            "optional": false
-          },
-          {
-            "name": "role",
-            "type": "EntityName",
-            "optional": false
-          },
-          {
-            "name": "shell",
-            "type": "String",
-            "optional": false
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "DomainProfile",
-        "fields": [
-          {
-            "name": "name",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "Name of the Profile"
-          },
-          {
-            "name": "domain",
-            "type": "DomainName",
-            "optional": false,
-            "comment": "Name of the Domain"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "HostError",
-        "fields": [
-          {
-            "name": "code",
-            "type": "Int32",
-            "optional": false,
-            "comment": "Predefined error code"
-          },
-          {
-            "name": "text",
-            "type": "String",
-            "optional": false,
-            "comment": "Text describes the error"
-          },
-          {
-            "name": "stdout",
-            "type": "String",
-            "optional": true,
-            "comment": "Stdout, in case of system call"
-          },
-          {
-            "name": "stderr",
-            "type": "String",
-            "optional": true,
-            "comment": "Stderr, in case of system call"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "HostStatus",
-        "fields": [
-          {
-            "name": "hostError",
-            "type": "Array",
-            "optional": true,
-            "comment": "Host error descriptor",
-            "items": "HostError"
-          },
-          {
-            "name": "error",
-            "type": "String",
-            "optional": false,
-            "comment": "error sent by Calypso CLI"
-          },
-          {
-            "name": "errorModified",
-            "type": "Timestamp",
-            "optional": true,
-            "comment": "timestamp of the error last reported by Calypso CLI"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "Host",
-        "fields": [
-          {
-            "name": "uuid",
-            "type": "HostUuid",
-            "optional": false,
-            "comment": "UUID for the host"
-          },
-          {
-            "name": "hostname",
-            "type": "HostName",
-            "optional": false,
-            "comment": "Name of the host"
-          },
-          {
-            "name": "ip",
-            "type": "Array",
-            "optional": false,
-            "comment": "Ip address of the host",
-            "items": "IP"
-          },
-          {
-            "name": "service",
-            "type": "Array",
-            "optional": false,
-            "comment": "Services of the host",
-            "items": "Service"
-          },
-          {
-            "name": "clusterinfo",
-            "type": "ClusterInfo",
-            "optional": true,
-            "comment": "Host cluster information"
-          },
-          {
-            "name": "modified",
-            "type": "Timestamp",
-            "optional": false,
-            "comment": "when the host modified last time"
-          },
-          {
-            "name": "hostStatus",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/meta",
+            "comment": "update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Group",
+            "method": "GET",
+            "path": "/group/{name}",
+            "comment": "Get the Group information for the specified unix group name from sys.unix_groups domain",
+            "inputs": [
+                {
+                    "name": "name",
+                    "type": "SimpleName",
+                    "comment": "Name of the unix group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Group",
+            "method": "POST",
+            "path": "/group/{name}",
+            "comment": "Create the specified unix group name Updates will not be allowed. If a group exists, api will return BAD_REQUEST authorize based on sys.unix_groups:ums",
+            "inputs": [
+                {
+                    "name": "name",
+                    "type": "SimpleName",
+                    "comment": "Name of the unix group",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "group",
+                    "type": "Group",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "sys.unix-groups:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "RestrictedResource",
+            "method": "GET",
+            "path": "/domain/{domainName}/resource/{name}",
+            "comment": "Get the specified Restricted Resource",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "name",
+                    "type": "RestrictedResourceName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "RestrictedResourceList",
+            "method": "GET",
+            "path": "/domain/{domainName}/resource",
+            "comment": "Get the Restricted Resource names in the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "RestrictedResource",
+            "method": "PUT",
+            "path": "/domain/{domainName}/resource/{name}",
+            "comment": "Update the specified Restricted Resource update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "name",
+                    "type": "RestrictedResourceName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "resource",
+                    "type": "RestrictedResource",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "RestrictedResource",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/resource/{name}",
+            "comment": "Delete the specified Restricted Resource Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "name",
+                    "type": "RestrictedResourceName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "ShellOverRide",
+            "method": "GET",
+            "path": "/shell/{domainName}/role/{roleName}",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleName",
+                    "type": "EntityName",
+                    "comment": "name of the role",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "ShellOverRide",
+            "method": "PUT",
+            "path": "/shell/{domainName}/role/{roleName}",
+            "comment": "update permission on sys.calypso only",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleName",
+                    "type": "EntityName",
+                    "comment": "name of the role",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "shellOverRide",
+                    "type": "ShellOverRide",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "sys.calypso:shell"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "ShellOverRide",
+            "method": "DELETE",
+            "path": "/shell/{domainName}/role/{roleName}",
+            "comment": "update permission on sys.calypso only",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleName",
+                    "type": "EntityName",
+                    "comment": "name of the role",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "sys.calypso:shell"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "DomainProfile",
+            "method": "GET",
+            "path": "/host/{hostName}",
+            "comment": "Get the domain and profile by giving host name",
+            "inputs": [
+                {
+                    "name": "hostName",
+                    "type": "HostName",
+                    "comment": "name of the host",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "HostList",
+            "method": "GET",
+            "path": "/domain/{domainName}/profile/{profileName}/host",
+            "comment": "Get the host and ip by giving domain and profile",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Host",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/profile/{profileName}/host/{hostName}",
+            "comment": "Delete the specified host Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "hostName",
+                    "type": "HostName",
+                    "comment": "name of the host",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "Host",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}",
+            "comment": "Delete the specified host identity. If this is the only identity, the host will be removed completely. Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "the domain of the instance",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "serviceName",
+                    "type": "SimpleName",
+                    "comment": "the service this instance is supposed to run",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "instanceId",
+                    "type": "PathElement",
+                    "comment": "unique instance id within provider's namespace",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "deleteInstance"
+        },
+        {
+            "type": "Host",
+            "method": "PUT",
+            "path": "/domain/{domainName}/profile/{profileName}/host/{hostName}",
+            "comment": "Update the specified Host authorize based on sys.calypso",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the restricted resource",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "hostName",
+                    "type": "HostName",
+                    "comment": "name of the host",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "host",
+                    "type": "Host",
+                    "comment": "host object",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "sys.calypso:host"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
             "type": "HostStatus",
-            "optional": true,
-            "comment": "status of the host"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "HostList",
-        "fields": [
-          {
-            "name": "hostList",
-            "type": "Array",
-            "optional": false,
-            "comment": "hosts with uuid, name and ip",
-            "items": "Host"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "AapRole",
-        "fields": [
-          {
-            "name": "aap",
-            "type": "String",
-            "optional": false,
-            "comment": "additional authorized principals"
-          },
-          {
-            "name": "roleName",
-            "type": "EntityName",
-            "optional": false,
-            "comment": "role name"
-          }
-        ],
-        "closed": false
-      }
-    },
-    {
-      "StructTypeDef": {
-        "type": "Struct",
-        "name": "AapRoleList",
-        "fields": [
-          {
-            "name": "aapRoles",
-            "type": "Array",
-            "optional": false,
-            "comment": "additional authorized principals roles",
-            "items": "AapRole"
-          }
-        ],
-        "closed": false
-      }
-    }
-  ],
-  "resources": [
-    {
-      "type": "AthenzDependencyRequest",
-      "method": "POST",
-      "path": "/dependency-check",
-      "comment": "update permission on the domain",
-      "inputs": [
+            "method": "POST",
+            "path": "/host/{hostName}/status",
+            "comment": "Post status of Calypso CLI per host basis",
+            "inputs": [
+                {
+                    "name": "hostName",
+                    "type": "HostName",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "hostStatus",
+                    "type": "HostStatus",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
         {
-          "name": "request",
-          "type": "AthenzDependencyRequest",
-          "comment": "request",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
+            "type": "AapRoleList",
+            "method": "GET",
+            "path": "/domain/{domainName}/profile/{profileName}/aap",
+            "comment": "Get the specified aap for a domain:profile",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the profile",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "AapRole",
+            "method": "GET",
+            "path": "/domain/{domainName}/profile/{profileName}/role/{roleName}/aap",
+            "comment": "Get the specified aap for a domain:profile:role",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the profile",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleName",
+                    "type": "EntityName",
+                    "comment": "name of the role",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "AapRole",
+            "method": "PUT",
+            "path": "/domain/{domainName}/profile/{profileName}/role/{roleName}/aap",
+            "comment": "Put the specified aap for a domain:profile:role update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the profile",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleName",
+                    "type": "EntityName",
+                    "comment": "name of the role",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "aapRole",
+                    "type": "AapRole",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "AapRole",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/profile/{profileName}/role/{roleName}/aap",
+            "comment": "Delete the specified aap for a domain:profile:role update permission on the domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "profileName",
+                    "type": "EntityName",
+                    "comment": "name of the profile",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleName",
+                    "type": "EntityName",
+                    "comment": "name of the role",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "aapRole",
+                    "type": "AapRole",
+                    "pathParam": false,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "audit param required",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": false,
+                "action": "update",
+                "resource": "{domainName}:ums"
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
         }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "access",
-        "resource": "sys.calypso:dependency"
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "ProfileRoleMembers",
-      "method": "GET",
-      "path": "/domain/{domainName}/profile/{profileName}/member",
-      "comment": "This is a special endpoint for user-provisioning support to return the list of members with node_user and node_sudo actions. If the caller is a service principal, it must be in the same domain, otherwise, the user principal must have read rights to profile resource",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "SimpleName",
-          "comment": "name of the profile to retrieve members for",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "hostname",
-          "type": "String",
-          "comment": "host name which will be used for retrieving members for",
-          "pathParam": false,
-          "queryParam": "hostname",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "ProfileList",
-      "method": "GET",
-      "path": "/domain/{domainName}/profile",
-      "comment": "Enumerate the list of profiles provisioned in the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Profile",
-      "method": "GET",
-      "path": "/domain/{domainName}/profile/{profileName}",
-      "comment": "Get the specified Profile",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the profile",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "queryonly",
-          "type": "Bool",
-          "comment": "If true, checks if the Profile is present in db or not",
-          "pathParam": false,
-          "queryParam": "queryonly",
-          "optional": false,
-          "flag": false,
-          "default": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Profile",
-      "method": "PUT",
-      "path": "/domain/{domainName}/profile/{profileName}",
-      "comment": "Update the specified Profile update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profile",
-          "type": "Profile",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Profile",
-      "method": "DELETE",
-      "path": "/domain/{domainName}/profile/{profileName}",
-      "comment": "Delete the specified profile Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "deleteAllRoles",
-          "type": "Bool",
-          "comment": "If true, delete all Athenz roles associate with this profile",
-          "pathParam": false,
-          "queryParam": "deleteAllRoles",
-          "optional": false,
-          "flag": false,
-          "default": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "DomainMeta",
-      "method": "PUT",
-      "path": "/domain/{domainName}/meta",
-      "comment": "Update the specified Domain update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "domMeta",
-          "type": "DomainMeta",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "DomainMeta",
-      "method": "DELETE",
-      "path": "/domain/{domainName}/meta",
-      "comment": "update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Group",
-      "method": "GET",
-      "path": "/group/{name}",
-      "comment": "Get the Group information for the specified unix group name from sys.unix_groups domain",
-      "inputs": [
-        {
-          "name": "name",
-          "type": "SimpleName",
-          "comment": "Name of the unix group",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Group",
-      "method": "POST",
-      "path": "/group/{name}",
-      "comment": "Create the specified unix group name Updates will not be allowed. If a group exists, api will return BAD_REQUEST authorize based on sys.unix_groups:ums",
-      "inputs": [
-        {
-          "name": "name",
-          "type": "SimpleName",
-          "comment": "Name of the unix group",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "group",
-          "type": "Group",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "sys.unix-groups:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "RestrictedResource",
-      "method": "GET",
-      "path": "/domain/{domainName}/resource/{name}",
-      "comment": "Get the specified Restricted Resource",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "name",
-          "type": "RestrictedResourceName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "RestrictedResourceList",
-      "method": "GET",
-      "path": "/domain/{domainName}/resource",
-      "comment": "Get the Restricted Resource names in the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "RestrictedResource",
-      "method": "PUT",
-      "path": "/domain/{domainName}/resource/{name}",
-      "comment": "Update the specified Restricted Resource update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "name",
-          "type": "RestrictedResourceName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "resource",
-          "type": "RestrictedResource",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "RestrictedResource",
-      "method": "DELETE",
-      "path": "/domain/{domainName}/resource/{name}",
-      "comment": "Delete the specified Restricted Resource Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "name",
-          "type": "RestrictedResourceName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "ShellOverRide",
-      "method": "GET",
-      "path": "/shell/{domainName}/role/{roleName}",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "roleName",
-          "type": "EntityName",
-          "comment": "name of the role",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "ShellOverRide",
-      "method": "PUT",
-      "path": "/shell/{domainName}/role/{roleName}",
-      "comment": "update permission on sys.calypso only",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "roleName",
-          "type": "EntityName",
-          "comment": "name of the role",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "shellOverRide",
-          "type": "ShellOverRide",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "sys.calypso:shell"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "ShellOverRide",
-      "method": "DELETE",
-      "path": "/shell/{domainName}/role/{roleName}",
-      "comment": "update permission on sys.calypso only",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "roleName",
-          "type": "EntityName",
-          "comment": "name of the role",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "sys.calypso:shell"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "DomainProfile",
-      "method": "GET",
-      "path": "/host/{hostName}",
-      "comment": "Get the domain and profile by giving host name",
-      "inputs": [
-        {
-          "name": "hostName",
-          "type": "HostName",
-          "comment": "name of the host",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "HostList",
-      "method": "GET",
-      "path": "/domain/{domainName}/profile/{profileName}/host",
-      "comment": "Get the host and ip by giving domain and profile",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Host",
-      "method": "DELETE",
-      "path": "/domain/{domainName}/profile/{profileName}/host/{hostName}",
-      "comment": "Delete the specified host Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "hostName",
-          "type": "HostName",
-          "comment": "name of the host",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "Host",
-      "method": "DELETE",
-      "path": "/domain/{domainName}/service/{serviceName}/instanceId/{instanceId}",
-      "comment": "Delete the specified host identity. If this is the only identity, the host will be removed completely. Upon successful completion of this delete request, the server will return a NO_CONTENT status code and null data object update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "the domain of the instance",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "serviceName",
-          "type": "SimpleName",
-          "comment": "the service this instance is supposed to run",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "instanceId",
-          "type": "PathElement",
-          "comment": "unique instance id within provider's namespace",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      },
-      "name": "deleteInstance"
-    },
-    {
-      "type": "Host",
-      "method": "PUT",
-      "path": "/domain/{domainName}/profile/{profileName}/host/{hostName}",
-      "comment": "Update the specified Host authorize based on sys.calypso",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the restricted resource",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "hostName",
-          "type": "HostName",
-          "comment": "name of the host",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "host",
-          "type": "Host",
-          "comment": "host object",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "sys.calypso:host"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "HostStatus",
-      "method": "POST",
-      "path": "/host/{hostName}/status",
-      "comment": "Post status of Calypso CLI per host basis",
-      "inputs": [
-        {
-          "name": "hostName",
-          "type": "HostName",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "hostStatus",
-          "type": "HostStatus",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "AapRoleList",
-      "method": "GET",
-      "path": "/domain/{domainName}/profile/{profileName}/aap",
-      "comment": "Get the specified aap for a domain:profile",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the profile",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "AapRole",
-      "method": "GET",
-      "path": "/domain/{domainName}/profile/{profileName}/role/{roleName}/aap",
-      "comment": "Get the specified aap for a domain:profile:role",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the profile",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "roleName",
-          "type": "EntityName",
-          "comment": "name of the role",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": true
-      },
-      "expected": "OK",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "AapRole",
-      "method": "PUT",
-      "path": "/domain/{domainName}/profile/{profileName}/role/{roleName}/aap",
-      "comment": "Put the specified aap for a domain:profile:role update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the profile",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "roleName",
-          "type": "EntityName",
-          "comment": "name of the role",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "aapRole",
-          "type": "AapRole",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    },
-    {
-      "type": "AapRole",
-      "method": "DELETE",
-      "path": "/domain/{domainName}/profile/{profileName}/role/{roleName}/aap",
-      "comment": "Delete the specified aap for a domain:profile:role update permission on the domain",
-      "inputs": [
-        {
-          "name": "domainName",
-          "type": "DomainName",
-          "comment": "name of the domain",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "profileName",
-          "type": "EntityName",
-          "comment": "name of the profile",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "roleName",
-          "type": "EntityName",
-          "comment": "name of the role",
-          "pathParam": true,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "aapRole",
-          "type": "AapRole",
-          "pathParam": false,
-          "optional": false,
-          "flag": false
-        },
-        {
-          "name": "auditRef",
-          "type": "String",
-          "comment": "audit param required",
-          "pathParam": false,
-          "header": "Y-Audit-Ref",
-          "optional": true,
-          "flag": false
-        }
-      ],
-      "auth": {
-        "authenticate": false,
-        "action": "update",
-        "resource": "{domainName}:ums"
-      },
-      "expected": "NO_CONTENT",
-      "exceptions": {
-        "UNAUTHORIZED": {
-          "type": "ResourceError"
-        },
-        "BAD_REQUEST": {
-          "type": "ResourceError"
-        },
-        "NOT_FOUND": {
-          "type": "ResourceError"
-        },
-        "FORBIDDEN": {
-          "type": "ResourceError"
-        }
-      }
-    }
-  ]
+    ]
 }

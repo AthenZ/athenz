@@ -89,7 +89,12 @@ export const getRolesApiCall = async (domainName, dispatch) => {
 };
 
 // note: if showLoader is true it will show the loader page while the api call is in progress
-export const getRoleApiCall = async (domainName, roleName, dispatch, showLoader = true) => {
+export const getRoleApiCall = async (
+    domainName,
+    roleName,
+    dispatch,
+    showLoader = true
+) => {
     if (showLoader) {
         dispatch(loadingInProcess('getRole'));
     }

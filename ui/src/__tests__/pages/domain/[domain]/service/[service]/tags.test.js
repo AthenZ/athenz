@@ -20,7 +20,10 @@ import {
     mockAllDomainDataApiCalls,
     renderWithRedux,
 } from '../../../../../../tests_utils/ComponentsTestUtils';
-import { apiServices, singleStoreService } from '../../../../../redux/config/service.test';
+import {
+    apiServices,
+    singleStoreService,
+} from '../../../../../redux/config/service.test';
 import ServiceTagsPage from '../../../../../../pages/domain/[domain]/service/[service]/tags';
 
 describe('Service Tag Page', () => {

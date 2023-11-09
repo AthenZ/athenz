@@ -25,7 +25,7 @@ import DateUtils from '../utils/DateUtils';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
-import {selectTimeZone} from '../../redux/selectors/domains';
+import { selectTimeZone } from '../../redux/selectors/domains';
 
 const HistorySectionDiv = styled.div`
     margin: 20px;

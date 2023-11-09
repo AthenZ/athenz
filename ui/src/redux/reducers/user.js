@@ -41,12 +41,12 @@ export const user = (state = {}, action) => {
             let newState = produce(state, (draft) => {
                 if (
                     draft.pendingMembers[
-                    domainName + member.memberName + roleName
-                        ]
+                        domainName + member.memberName + roleName
+                    ]
                 ) {
                     delete draft.pendingMembers[
-                    domainName + member.memberName + roleName
-                        ];
+                        domainName + member.memberName + roleName
+                    ];
                 }
             });
             return newState;
@@ -56,12 +56,12 @@ export const user = (state = {}, action) => {
             let newState = produce(state, (draft) => {
                 if (
                     draft.pendingMembers[
-                    domainName + member.memberName + groupName
-                        ]
+                        domainName + member.memberName + groupName
+                    ]
                 ) {
                     delete draft.pendingMembers[
-                    domainName + member.memberName + groupName
-                        ];
+                        domainName + member.memberName + groupName
+                    ];
                 }
             });
             return newState;

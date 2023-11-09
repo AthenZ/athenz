@@ -16,16 +16,19 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import AddMemberToRoles from '../../../components/role/AddMemberToRoles';
-import {act} from 'react-dom/test-utils';
-import {getStateWithUserList, renderWithRedux} from '../../../tests_utils/ComponentsTestUtils';
+import { act } from 'react-dom/test-utils';
+import {
+    getStateWithUserList,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
-import {USER_DOMAIN} from "../../../components/constants/constants";
+import { USER_DOMAIN } from '../../../components/constants/constants';
 
 describe('AddMemberToRoles', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
     });
-    
+
     it('should render', () => {
         let domain = 'domain';
         let roles = [];
@@ -115,9 +118,9 @@ describe('AddMemberToRoles', () => {
         expect(roleMemberForm).toMatchSnapshot();
     });
 
-    it('search member to role', async() => {
+    it('search member to role', async () => {
         let domain = 'domain';
-        let userList = {userList: [{login: "mock", name: "Mock User"}]};
+        let userList = { userList: [{ login: 'mock', name: 'Mock User' }] };
         const onCancelMock = jest.fn();
         renderWithRedux(
             <AddMemberToRoles
@@ -128,18 +131,24 @@ describe('AddMemberToRoles', () => {
             />,
             getStateWithUserList(userList)
         );
-        
+
         // change input to mocked user
-        await act( async() => {
-            fireEvent.change(screen.getByPlaceholderText(`${USER_DOMAIN}.<shortid> or <domain>.<service>`), {
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(
+                    `${USER_DOMAIN}.<shortid> or <domain>.<service>`
+                ),
+                {
                     target: { value: 'mock' },
-                });
-            }
-        );
+                }
+            );
+        });
 
         // verify the correct input 'Mock User [user.mock]' is presented
         await waitFor(() =>
-            expect(screen.getByText('Mock User [user.mock]')).toBeInTheDocument()
+            expect(
+                screen.getByText('Mock User [user.mock]')
+            ).toBeInTheDocument()
         );
     });
 });

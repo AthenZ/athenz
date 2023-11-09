@@ -16,8 +16,11 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import AddMember from '../../../components/member/AddMember';
-import {getStateWithUserList, renderWithRedux} from '../../../tests_utils/ComponentsTestUtils';
-import {USER_DOMAIN} from "../../../components/constants/constants";
+import {
+    getStateWithUserList,
+    renderWithRedux,
+} from '../../../tests_utils/ComponentsTestUtils';
+import { USER_DOMAIN } from '../../../components/constants/constants';
 import { act } from 'react-dom/test-utils';
 
 describe('AddMember', () => {
@@ -37,10 +40,10 @@ describe('AddMember', () => {
         expect(roleMemberForm).toMatchSnapshot();
     });
 
-    it('search member', async() => {
+    it('search member', async () => {
         let domain = 'domain';
         let role = 'roleName';
-        let userList = {userList: [{login: "mock", name: "Mock User"}]};
+        let userList = { userList: [{ login: 'mock', name: 'Mock User' }] };
         const onCancelMock = jest.fn();
         renderWithRedux(
             <AddMember
@@ -52,18 +55,24 @@ describe('AddMember', () => {
             />,
             getStateWithUserList(userList)
         );
-        
+
         // change input to mocked user
-        await act( async() => {
-                fireEvent.change(screen.getByPlaceholderText(`${USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group>`), {
+        await act(async () => {
+            fireEvent.change(
+                screen.getByPlaceholderText(
+                    `${USER_DOMAIN}.<shortid> or <domain>.<service> or unix.<group>`
+                ),
+                {
                     target: { value: 'mock' },
-                })
-            }
-        );
-        
+                }
+            );
+        });
+
         // verify the correct input 'Mock User [user.mock]' is presented
-        await waitFor(() => 
-            expect(screen.getByText('Mock User [user.mock]')).toBeInTheDocument()
+        await waitFor(() =>
+            expect(
+                screen.getByText('Mock User [user.mock]')
+            ).toBeInTheDocument()
         );
     });
 });

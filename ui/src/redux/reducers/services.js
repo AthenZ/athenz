@@ -196,7 +196,8 @@ export const services = (state = {}, action) => {
             if (category === 'service') {
                 newState = produce(state, (draft) => {
                     draft.services[collectionName]
-                        ? (draft.services[collectionName].tags = collectionWithTags.tags)
+                        ? (draft.services[collectionName].tags =
+                              collectionWithTags.tags)
                         : (draft.services[collectionName] = collectionWithTags);
                 });
             }

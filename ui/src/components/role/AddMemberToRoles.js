@@ -94,7 +94,7 @@ const FlatPickrInputDiv = styled.div`
         outline: none;
         padding: 0.6em 12px;
         transition: background-color 0.2s ease-in-out 0s,
-        color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
+            color 0.2s ease-in-out 0s, border 0.2s ease-in-out 0s;
         width: 80%;
     }
 `;
@@ -166,15 +166,15 @@ class AddMemberToRoles extends React.Component {
             expiration:
                 this.state.memberExpiry && this.state.memberExpiry.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                        this.state.memberExpiry
-                    )
+                          this.state.memberExpiry
+                      )
                     : '',
             reviewReminder:
                 this.state.memberReviewReminder &&
                 this.state.memberReviewReminder.length > 0
                     ? this.dateUtils.uxDatetimeToRDLTimestamp(
-                        this.state.memberReviewReminder
-                    )
+                          this.state.memberReviewReminder
+                      )
                     : '',
         };
         // send api call and then reload existing members component

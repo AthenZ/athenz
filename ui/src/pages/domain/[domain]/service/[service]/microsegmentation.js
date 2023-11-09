@@ -31,9 +31,9 @@ import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';
 import { selectService } from '../../../../../redux/selectors/services';
 import ServiceTabs from '../../../../../components/header/ServiceTabs';
-import {getInboundOutbound} from "../../../../../redux/thunks/microsegmentation";
-import RulesList from "../../../../../components/microsegmentation/RulesList";
-import Alert from "../../../../../components/denali/Alert";
+import { getInboundOutbound } from '../../../../../redux/thunks/microsegmentation';
+import RulesList from '../../../../../components/microsegmentation/RulesList';
+import Alert from '../../../../../components/denali/Alert';
 import { selectFeatureFlag } from '../../../../../redux/selectors/domains';
 
 const AppContainerDiv = styled.div`
@@ -71,7 +71,10 @@ export async function getServerSideProps(context) {
     let reload = false;
     let notFound = false;
     let error = null;
-    const microsegmentationData = await Promise.all([api.getForm(), api.getPageFeatureFlag('microsegmentation')]).catch((err) => {
+    const microsegmentationData = await Promise.all([
+        api.getForm(),
+        api.getPageFeatureFlag('microsegmentation'),
+    ]).catch((err) => {
         let response = RequestUtils.errorCheckHelper(err);
         reload = response.reload;
         error = response.error;
@@ -109,7 +112,8 @@ class ServiceMicrosegmentationPage extends React.Component {
     }
 
     componentDidMount() {
-        const { domainName, userName, getDomainData, getInboundOutbound } = this.props;
+        const { domainName, userName, getDomainData, getInboundOutbound } =
+            this.props;
         Promise.all([
             getDomainData(domainName, userName),
             getInboundOutbound(domainName),
@@ -234,4 +238,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(getInboundOutbound(domainName)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ServiceMicrosegmentationPage);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(ServiceMicrosegmentationPage);
