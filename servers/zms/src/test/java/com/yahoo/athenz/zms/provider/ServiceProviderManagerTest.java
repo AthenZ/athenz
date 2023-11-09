@@ -62,7 +62,7 @@ public class ServiceProviderManagerTest {
     public void testIsServiceProvider() throws InterruptedException, ExecutionException {
         String testDomainName = "test.domain";
         String testRoleName = "test_role";
-        long fetchFrequency = 5L; // For the test, fetch every second
+        long fetchFrequency = 5L; // For the test, fetch every 5 seconds
         int numberOfThreads = 10;
         System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN, testDomainName);
         System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE, testRoleName);
