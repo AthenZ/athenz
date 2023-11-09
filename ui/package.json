@@ -119,7 +119,7 @@
         "@wdio/sauce-service": "8.0.13",
         "@wdio/spec-reporter": "8.0.13",
         "babel-jest": "29.0.3",
-        "chromedriver": "^112",
+        "chromedriver": "^119",
         "dotenv": "16.0.2",
         "expect": "29.0.3",
         "expect-webdriverio": "3.4.0",
