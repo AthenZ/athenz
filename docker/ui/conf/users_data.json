@@ -1,7 +1,7 @@
 [
     {
         "is_human": 1,
-        "login": "",
+        "login": "github-<REPLACE>",
         "gecos": "System Admin",
         "enabled_status": 1
     },
