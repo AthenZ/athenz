@@ -59,7 +59,7 @@ ENCODED_UI_PUBLIC_KEY="$(base64 -w 0 "${UI_PUBLIC_KEY_PATH}" | tr '\+\=\/' '\.\-
 
 DATA='{"name": "athenz.ui-server","publicKeys": [{"id": "0","key": "'"${ENCODED_UI_PUBLIC_KEY}"'"}]}'
 
-sed -i "s/github-<REPLACE>/$(echo ${DOMAIN_ADMIN} | grep -d' ' -f2-)/g" "${UI_CONF_DIR}/users_data.json"
+sed -i "s/github-<REPLACE>/$(echo ${DOMAIN_ADMIN} | cut -d'.' -f2-)/g" "${UI_CONF_DIR}/users_data.json"
 
 # add UI service using ZMS API
 ZMS_URL="https://${ZMS_HOST}:${ZMS_PORT}"
