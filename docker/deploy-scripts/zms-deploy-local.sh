@@ -93,8 +93,9 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo '4. start ZMS' | colored_cat g
-if [ ${LOCAL_SRC_INJECT} ]; then
+if [ ${ENABLE_LOCAL_BUILD_ZMS} ]; then
     EXTRA_ARGS="-v ${ZMS_ASSY_DIR}/webapps/:/opt/athenz/zms/webapps -v ${ZMS_ASSY_DIR}/lib/jars:/opt/athenz/zms/lib/jars"
+    echo $EXTRA_ARGS
 fi
 docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \

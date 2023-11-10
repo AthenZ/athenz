@@ -93,7 +93,7 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo '4. start ZTS' | colored_cat g
-if [ ${LOCAL_SRC_INJECT} ]; then
+if [ ${ENABLE_LOCAL_BUILD_ZTS} ]; then
     EXTRA_ARGS="-v ${ZTS_ASSY_DIR}/webapps/:/opt/athenz/zts/webapps -v ${ZTS_ASSY_DIR}/lib/jars:/opt/athenz/zts/lib/jars"
 fi
 docker run -d -h "${ZTS_HOST}" \
