@@ -97,7 +97,7 @@
         "redux-devtools-extension": "2.13.9",
         "redux-mock-store": "1.5.4",
         "redux-thunk": "2.4.1",
-        "axios": "1.4.0",
+        "axios": "1.6.0",
         "setimmediate": "1.0.5",
         "terser": "5.15.0",
         "tslib": "2.4.0",
