@@ -851,7 +851,7 @@ exports[`PageManageDomains should render 1`] = `
                     GCP Project ID
                   </th>
                   <th
-                    class="emotion-34 emotion-35"
+                    class="emotion-40 emotion-35"
                   >
                     Business Service
                   </th>

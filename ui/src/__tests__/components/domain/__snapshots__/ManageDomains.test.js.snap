@@ -264,7 +264,7 @@ exports[`ManageDomains should render 1`] = `
           GCP Project ID
         </th>
         <th
-          class="emotion-6 emotion-7"
+          class="emotion-12 emotion-7"
         >
           Business Service
         </th>
@@ -695,7 +695,7 @@ exports[`ManageDomains should render no domain 1`] = `
           GCP Project ID
         </th>
         <th
-          class="emotion-6 emotion-7"
+          class="emotion-12 emotion-7"
         >
           Business Service
         </th>
@@ -1139,7 +1139,7 @@ exports[`ManageDomains should render personal domain 1`] = `
           GCP Project ID
         </th>
         <th
-          class="emotion-6 emotion-7"
+          class="emotion-12 emotion-7"
         >
           Business Service
         </th>
@@ -1564,7 +1564,7 @@ exports[`ManageDomains should render top level domain 1`] = `
           GCP Project ID
         </th>
         <th
-          class="emotion-6 emotion-7"
+          class="emotion-12 emotion-7"
         >
           Business Service
         </th>
