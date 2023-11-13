@@ -482,7 +482,7 @@ class ManageDomains extends React.Component {
                             <TableHeadStyled align={center}>
                                 GCP Project ID
                             </TableHeadStyled>
-                            <TableHeadStyled align={left}>
+                            <TableHeadStyled align={center}>
                                 Business Service
                             </TableHeadStyled>
                             <TableHeadStyled align={center}>
