@@ -808,7 +808,7 @@ public class MSDSchema {
             .input("request", "KubernetesNetworkPolicyRequest", "Struct representing input options based on the cluster context")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
-            .auth("read", "{domain}:service.{service}")
+            .auth("read", "{domainName}:service.{serviceName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
