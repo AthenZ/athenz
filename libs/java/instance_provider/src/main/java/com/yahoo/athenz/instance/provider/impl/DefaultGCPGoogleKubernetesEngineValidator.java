@@ -77,7 +77,8 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
             return false;
         }
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, confirmation.getDomain(),
-                confirmation.getService(), gcpDNSSuffixes, gkeDnsSuffixes, gkeClusterNames.getStringsList(), true, instanceId)) {
+                confirmation.getService(), gcpDNSSuffixes, gkeDnsSuffixes, gkeClusterNames.getStringsList(),
+                true, instanceId, null)) {
             errMsg.append("Unable to validate certificate request hostnames");
             return false;
         }

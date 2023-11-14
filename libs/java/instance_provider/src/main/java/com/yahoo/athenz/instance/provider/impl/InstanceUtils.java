@@ -163,9 +163,27 @@ public class InstanceUtils {
         return false;
     }
 
+    /**
+     * validate the specifies sanDNS entries in the certificate request. If the failedDnsNames
+     * list is specified, it will be populated with the dns names that failed validation.
+     * However, if the failure is critical (e.g. we couldn't validate hostname, dns names suffix
+     * list is not specified), then the method will return false and the failedDnsNames list
+     * will be empty.
+     * @param attributes attributes from the certificate request
+     * @param domain name of the domain
+     * @param service name of the service
+     * @param dnsSuffixes list of dns suffixes
+     * @param k8sDnsSuffixes list of k8s dns suffixes
+     * @param k8sClusterNames list of k8s cluster names
+     * @param validateHostname flag to indicate whether we should validate hostname
+     * @param instanceId instance id value to be returned
+     * @param failedDnsNames list of failed dns names to be returned
+     * @return true if all dns names are valid, false otherwise
+     */
     public static boolean validateCertRequestSanDnsNames(final Map<String, String> attributes, final String domain,
             final String service, final Set<String> dnsSuffixes, final List<String> k8sDnsSuffixes,
-            final List<String> k8sClusterNames, boolean validateHostname, StringBuilder instanceId) {
+            final List<String> k8sClusterNames, boolean validateHostname, StringBuilder instanceId,
+            List<String> failedDnsNames) {
 
         // make sure we have valid dns suffix specified
 
@@ -237,20 +255,42 @@ public class InstanceUtils {
             }
 
             if (!validateSanDnsName(host, service, hostNameSuffixList, k8sDnsSuffixes, clusterNameSet)) {
-                return false;
+
+                // if we're not interested in the list of failed hostnames then
+                // we'll return failure right away. otherwise we'll keep track
+                // of the failed hostname and continue with the rest of the list
+
+                if (failedDnsNames == null) {
+                    return false;
+                } else {
+                    failedDnsNames.add(host);
+                    continue;
+                }
             }
 
             hostCheck = true;
         }
 
-        // if we have no host entry that it's a failure
+        // if we have no host entry that it's a failure. We're going to
+        // make sure the failedDnsNames list is empty and return false
+        // so the caller knows this is a critical failure as opposed to
+        // failure of not being able to validate the specified entries
 
         if (!hostCheck) {
             LOGGER.error("Request does not contain expected host SAN DNS entry");
+            if (failedDnsNames != null) {
+                failedDnsNames.clear();
+            }
             return false;
         }
 
-        return true;
+        // if we got here, then we're good to go as long as the
+        // failedDnsNames list is empty or null.
+        // if it's not empty then we have some failed entries
+        // and if it's null, then we would have already returned
+        // failure when processing the list
+
+        return failedDnsNames == null || failedDnsNames.isEmpty();
     }
 
     private static boolean extractCertRequestInstanceId(final Map<String, String> attributes, final String[] hosts,

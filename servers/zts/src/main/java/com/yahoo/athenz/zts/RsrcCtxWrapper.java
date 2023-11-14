@@ -143,9 +143,11 @@ public class RsrcCtxWrapper implements ResourceContext {
         if (principalName == null) {
             principalName = principal.getFullName();
         }
-        logPrincipal(principalName);
-        logAuthorityId(principal.getAuthority());
-        logCertificateSerialNumber(principal.getX509Certificate());
+        if (ctx.request() != null) {
+            logPrincipal(principalName);
+            logAuthorityId(principal.getAuthority());
+            logCertificateSerialNumber(principal.getX509Certificate());
+        }
         return principalName;
     }
 

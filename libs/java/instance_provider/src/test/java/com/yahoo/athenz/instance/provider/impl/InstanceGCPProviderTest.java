@@ -53,6 +53,10 @@ public class InstanceGCPProviderTest {
         InstanceGCPProvider provider = new InstanceGCPProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider", null, null);
         assertEquals(provider.getTimeOffsetInMilli(), 300000);
+        provider.setExternalCredentialsProvider(null);
+        provider.setRolesProvider(null);
+        assertNull(provider.getRolesProvider());
+        assertNull(provider.getExternalCredentialsProvider());
         provider.close();
     }
 

@@ -281,7 +281,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         StringBuilder instanceId = new StringBuilder(256);
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
                 instanceService, getDnsSuffixes(), getEksDnsSuffixes(), eksClusterNames.getStringsList(),
-                true, instanceId)) {
+                true, instanceId, null)) {
             throw error("Unable to validate certificate request hostnames");
         }
         

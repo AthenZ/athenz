@@ -65,7 +65,6 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.*;
-import com.yahoo.athenz.zts.external.gcp.GcpAccessTokenProvider;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
@@ -179,8 +178,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     private long lastAthenzJWKUpdateTime = 0;
     protected int millisBetweenAthenzJWKUpdates = 0;
     private final Object updateJWKMutex = new Object();
-    protected Map<String, ExternalCredentialsProvider> externalCredentialsProviders;
-    protected Set<String> enabledExternalCredentialsProviders;
+    protected ExternalCredentialsManager externalCredentialsManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -362,7 +360,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
                 ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore),
-                getServerPrivateKey(keyAlgoForPlugins), this);
+                getServerPrivateKey(keyAlgoForPlugins), this, this);
 
         // make sure to set the keystore for any instance that requires it
 
@@ -384,23 +382,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // initialize our external credentials providers
 
-        loadExternalCredentialsProviders();
-    }
-
-    void loadExternalCredentialsProviders() {
-
-        // initialize and load our known providers
-
-        externalCredentialsProviders = new HashMap<>();
-        ExternalCredentialsProvider gcpProvider = new GcpAccessTokenProvider();
-        gcpProvider.setAuthorizer(authorizer);
-        externalCredentialsProviders.put(ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP, gcpProvider);
-
-        // configure which providers are enabled
-
-        final String providerList = System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_CREDS_PROVIDERS,
-                ZTSConsts.ZTS_EXTERNAL_CREDS_PROVIDER_GCP);
-        enabledExternalCredentialsProviders = new HashSet<>(Arrays.asList(providerList.split(",")));
+        externalCredentialsManager = new ExternalCredentialsManager(authorizer);
     }
 
     void loadJsonMapper() {
@@ -2106,7 +2088,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setVersion(1);
         idToken.setAudience(getIdTokenAudience(clientId, roleInAudClaim, idTokenGroups));
         idToken.setSubject(principalName);
-        idToken.setIssuer(isOidcPortRequest(ctx.request().getLocalPort()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        idToken.setIssuer(isOidcPortRequest(ctx.request()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
         idToken.setNonce(nonce);
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
@@ -4872,7 +4854,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
     }
 
     @Override
-    public ExternalCredentialsResponse postExternalCredentialsRequest(ResourceContext ctx, String provider, String domainName, ExternalCredentialsRequest extCredsRequest) {
+    public ExternalCredentialsResponse postExternalCredentialsRequest(ResourceContext ctx, String provider,
+            String domainName, ExternalCredentialsRequest extCredsRequest) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -4889,8 +4872,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
 
         // before doing anything verify that our provider is valid
 
-        ExternalCredentialsProvider externalCredentialsProvider = externalCredentialsProviders.get(provider);
-        if (externalCredentialsProvider == null || !enabledExternalCredentialsProviders.contains(provider)) {
+        ExternalCredentialsProvider externalCredentialsProvider = externalCredentialsManager.getProvider(provider);
+        if (externalCredentialsProvider == null) {
             throw requestError("Invalid external credentials provider: " + provider, caller, domainName, principalDomain);
         }
 
@@ -4973,7 +4956,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setVersion(1);
         idToken.setAudience(getIdTokenAudience(extCredsRequest.getClientId(), false, idTokenGroups));
         idToken.setSubject(principalName);
-        idToken.setIssuer(isOidcPortRequest(ctx.request().getLocalPort()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        idToken.setIssuer(isOidcPortRequest(ctx.request()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
         idToken.setNonce(Crypto.randomSalt());
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
@@ -5214,8 +5197,14 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return successServerStatus;
     }
 
-    boolean isOidcPortRequest(int port) {
-        return port == oidcPort && oidcPort != httpsPort;
+    boolean isOidcPortRequest(HttpServletRequest httpServletRequest) {
+        // if our servlet request is false, then this should be an internal
+        // call from our provider instances thus we're assuming it's an oidc
+        // otherwise we'll handle it based on the port number
+        if (httpServletRequest == null) {
+            return true;
+        }
+        return httpServletRequest.getLocalPort() == oidcPort && oidcPort != httpsPort;
     }
 
     @Override
@@ -5225,7 +5214,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
-        return isOidcPortRequest(ctx.request().getLocalPort()) ? oidcPortConfig : openIDConfig;
+        return isOidcPortRequest(ctx.request()) ? oidcPortConfig : openIDConfig;
     }
 
     @Override

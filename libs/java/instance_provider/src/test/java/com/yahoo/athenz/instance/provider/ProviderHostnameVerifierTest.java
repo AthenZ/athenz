@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider;
 
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -58,6 +59,16 @@ public class ProviderHostnameVerifierTest {
         SSLSession session = Mockito.mock(SSLSession.class);
         Mockito.when(session.getPeerCertificates()).thenReturn(null);
         
+        ProviderHostnameVerifier verifier1 = new ProviderHostnameVerifier("athenz.production");
+        assertFalse(verifier1.verify("athenz", session));
+    }
+
+    @Test
+    public void testVerifyWithException() throws SSLPeerUnverifiedException {
+
+        SSLSession session = Mockito.mock(SSLSession.class);
+        Mockito.when(session.getPeerCertificates()).thenThrow(new SSLPeerUnverifiedException("invalid certs"));
+
         ProviderHostnameVerifier verifier1 = new ProviderHostnameVerifier("athenz.production");
         assertFalse(verifier1.verify("athenz", session));
     }

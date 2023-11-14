@@ -51,6 +51,7 @@ public class InstanceProviderManager {
     private final SSLContext athenzServerSSLContext;
     private final SSLContext athenzClientSSLContext;
     private final ServerPrivateKey serverPrivateKey;
+    private final ZTSHandler ztsHandler;
     List<String> providerEndpoints = Collections.emptyList();
 
     enum ProviderScheme {
@@ -60,13 +61,14 @@ public class InstanceProviderManager {
     }
     
     public InstanceProviderManager(DataStore dataStore, SSLContext athenzServerSSLContext, SSLContext athenzClientSSLContext,
-                                   ServerPrivateKey serverPrivateKey, KeyStore keyStore) {
+            ServerPrivateKey serverPrivateKey, KeyStore keyStore, ZTSHandler ztsHandler) {
         
         this.dataStore = dataStore;
         this.keyStore = keyStore;
         this.athenzServerSSLContext = athenzServerSSLContext;
         this.athenzClientSSLContext = athenzClientSSLContext;
         this.serverPrivateKey = serverPrivateKey;
+        this.ztsHandler = ztsHandler;
 
         providerMap = new ConcurrentHashMap<>();
         
@@ -168,6 +170,8 @@ public class InstanceProviderManager {
         }
         provider.initialize(providerName, className, context, keyStore);
         provider.setHostnameResolver(hostnameResolver);
+        provider.setRolesProvider(dataStore);
+        provider.setExternalCredentialsProvider(new InstanceExternalCredentialsProvider(providerName, ztsHandler));
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
         }

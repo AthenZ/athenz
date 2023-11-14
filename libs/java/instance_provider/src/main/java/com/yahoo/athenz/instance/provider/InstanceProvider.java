@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider;
 
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -115,6 +116,23 @@ public interface InstanceProvider {
      * @param hostnameResolver the resolver object
      */
     default void setHostnameResolver(HostnameResolver hostnameResolver) {
+    }
+
+    /**
+     * Set roles provider for all the provider in case the provider
+     * needs to look up role membership for a given principal in some domain
+     * @param rolesProvider the roles provider object
+     */
+    default void setRolesProvider(RolesProvider rolesProvider) {
+    }
+
+    /**
+     * Set the external credentials provider for the provider in case
+     * the provider needs to access a given external service to validate
+     * the request
+     * @param credsProvider the external credentials provider object
+     */
+    default void setExternalCredentialsProvider(ExternalCredentialsProvider credsProvider) {
     }
 
     /**

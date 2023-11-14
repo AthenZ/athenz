@@ -16,11 +16,12 @@
 
 package com.yahoo.athenz.instance.provider.impl;
 
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
+import com.yahoo.athenz.instance.provider.ExternalCredentialsProvider;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ResourceException;
@@ -57,15 +58,26 @@ public class InstanceGCPProvider implements InstanceProvider {
     List<String> gkeDnsSuffixes = null;
     InstanceGCPUtils gcpUtils = null;
     DynamicConfigCsv gkeClusterNames;        // list of eks cluster names
+    ExternalCredentialsProvider externalCredentialsProvider = null;
+    RolesProvider rolesProvider = null;
 
     public long getTimeOffsetInMilli() {
         return bootTimeOffsetSeconds.get() * 1000;
+    }
+
+    public RolesProvider getRolesProvider() {
+        return rolesProvider;
+    }
+
+    public ExternalCredentialsProvider getExternalCredentialsProvider() {
+        return externalCredentialsProvider;
     }
 
     @Override
     public Scheme getProviderScheme() {
         return Scheme.HTTP;
     }
+
     @Override
     public void initialize(String provider, String endpoint, SSLContext sslContext, KeyStore keyStore) {
 
@@ -107,6 +119,16 @@ public class InstanceGCPProvider implements InstanceProvider {
         gkeClusterNames = new DynamicConfigCsv(CONFIG_MANAGER, GCP_PROP_GKE_CLUSTER_NAMES, null);
     }
 
+    @Override
+    public void setRolesProvider(RolesProvider rolesProvider) {
+        this.rolesProvider = rolesProvider;
+    }
+
+    @Override
+    public void setExternalCredentialsProvider(ExternalCredentialsProvider externalCredentialsProvider) {
+        this.externalCredentialsProvider = externalCredentialsProvider;
+    }
+
     public ResourceException error(String message) {
         return error(ResourceException.FORBIDDEN, message);
     }
@@ -118,6 +140,14 @@ public class InstanceGCPProvider implements InstanceProvider {
 
     protected Set<String> getDnsSuffixes() {
         return dnsSuffixes;
+    }
+
+    protected List<String> getGkeDnsSuffixes() {
+        return gkeDnsSuffixes;
+    }
+
+    protected List<String> getGkeClusterNames() {
+        return gkeClusterNames.getStringsList();
     }
 
     boolean validateGCPProject(final String gcpProject, final String docProject, StringBuilder errMsg) {
@@ -234,10 +264,9 @@ public class InstanceGCPProvider implements InstanceProvider {
         // validate the certificate host names
 
         StringBuilder instanceId = new StringBuilder(256);
-        if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), gkeDnsSuffixes, gkeClusterNames.getStringsList(), true, instanceId)) {
-            throw error("Unable to validate certificate request hostnames");
-        }
+        validateSanDnsNames(instanceAttributes, instanceDomain, instanceService, instanceId);
+
+        // validate the attestation data
 
         validateAttestationData(confirmation, attestationData, derivedAttestationData, gcpProject,
                 instanceId.toString(), true, errMsg);
@@ -315,6 +344,15 @@ public class InstanceGCPProvider implements InstanceProvider {
         setConfirmationAttributes(confirmation, derivedAttestationData.getAdditionalAttestationData());
 
         return confirmation;
+    }
+
+    public void validateSanDnsNames(final Map<String, String> instanceAttributes, final String instanceDomain,
+                               final String instanceService, StringBuilder instanceId) {
+        if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
+                instanceService, getDnsSuffixes(), getGkeDnsSuffixes(), getGkeClusterNames(),
+                true, instanceId, null)) {
+            throw error("Unable to validate certificate request hostnames");
+        }
     }
 
     private void validateAttestationData(InstanceConfirmation confirmation, GCPAttestationData attestationData, GCPDerivedAttestationData derivedAttestationData, String gcpProject, String instanceId,
