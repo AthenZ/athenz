@@ -35,6 +35,8 @@ public final class AuthorityConsts {
 
     public static final String ZTS_CERT_PRINCIPAL_URI    = "athenz://principal/";
 
+    public static final String AUTH_PROP_MILLIS_BETWEEN_ZTS_CALLS = "athenz.auth.millis_between_zts_calls";
+
     // prevent object creation
     private AuthorityConsts() {
     }

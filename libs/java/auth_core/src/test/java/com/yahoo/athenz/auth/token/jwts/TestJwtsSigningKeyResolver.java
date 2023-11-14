@@ -69,4 +69,13 @@ public class TestJwtsSigningKeyResolver {
 
         resetConfProperty(oldConf);
     }
+
+    @Test
+    public void testCanFetch() {
+        JwtsSigningKeyResolver.setMillisBetweenZtsCalls(1000);
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(null, null);
+        assertFalse(JwtsSigningKeyResolver.canFetchLatestJwksFromZts());
+        JwtsSigningKeyResolver.setMillisBetweenZtsCalls(-1);
+        assertTrue(JwtsSigningKeyResolver.canFetchLatestJwksFromZts());
+    }
 }
