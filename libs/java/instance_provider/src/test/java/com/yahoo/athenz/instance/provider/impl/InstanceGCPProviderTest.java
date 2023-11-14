@@ -154,7 +154,7 @@ public class InstanceGCPProviderTest {
         attestationData.setIdentityToken("abc");
         InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
         Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any())).thenReturn(null);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertFalse(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -208,7 +208,7 @@ public class InstanceGCPProviderTest {
         attestationData.setIdentityToken("abc");
         InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
         Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any())).thenReturn(createPayload(true));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertFalse(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -229,7 +229,7 @@ public class InstanceGCPProviderTest {
         InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
         Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any())).thenReturn(createPayload(false));
         Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertTrue(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -253,7 +253,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(dummyPayload, derivedAttestationData);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertFalse(provider.validateIdentityToken("gcp.gce", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -277,7 +277,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(dummyPayload, derivedAttestationData);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertFalse(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -303,7 +303,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(dummyPayload, derivedAttestationData);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertFalse(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -329,7 +329,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(dummyPayload, derivedAttestationData);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertTrue(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -357,7 +357,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getProjectIdFromAttestedData(any())).thenReturn("my-gcp-project");
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(dummyPayload, derivedAttestationData);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         assertTrue(provider.validateIdentityToken("gcp.gce.us-west1", attestationData, derivedAttestationData,
                 gcpProject, instanceId, true, errMsg));
@@ -425,7 +425,7 @@ public class InstanceGCPProviderTest {
 
         InstanceGCPUtils gcpUtilsMock = Mockito.mock(InstanceGCPUtils.class);
         Mockito.when(gcpUtilsMock.validateGCPIdentityToken(anyString(), any(StringBuilder.class))).thenReturn(null);
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
@@ -462,7 +462,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
@@ -498,7 +498,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
@@ -537,7 +537,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
@@ -575,7 +575,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setAttestationData("{\"identityToken\": \"abc\"}");
@@ -616,7 +616,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setDomain("my.domain");
@@ -679,7 +679,7 @@ public class InstanceGCPProviderTest {
         Mockito.when(gcpUtilsMock.getGCPRegionFromZone(any())).thenReturn("us-west1");
         Mockito.when(gcpUtilsMock.getServiceNameFromAttestedData(any())).thenReturn("my-gcp-project.my-service");
         Mockito.doCallRealMethod().when(gcpUtilsMock).populateAttestationData(any(GoogleIdToken.Payload.class), any(GCPDerivedAttestationData.class));
-        provider.gcpUtils = gcpUtilsMock;
+        provider.setInstanceGcpUtils(gcpUtilsMock);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setAttestationData("{\"identityToken\": \"abc\"}");

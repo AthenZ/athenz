@@ -73,6 +73,10 @@ public class InstanceGCPProvider implements InstanceProvider {
         return externalCredentialsProvider;
     }
 
+    public void setInstanceGcpUtils(InstanceGCPUtils instanceGcpUtils) {
+        this.gcpUtils = instanceGcpUtils;
+    }
+
     @Override
     public Scheme getProviderScheme() {
         return Scheme.HTTP;
