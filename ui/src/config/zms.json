@@ -754,6 +754,12 @@
                         "optional": true,
                         "comment": "If true, ask for delete confirmation in audit and review enabled roles.",
                         "default": false
+                    },
+                    {
+                        "name": "lastReviewedDate",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "last review timestamp of the role"
                     }
                 ],
                 "closed": false
@@ -803,12 +809,6 @@
                         "optional": true,
                         "comment": "an audit log for role membership changes",
                         "items": "RoleAuditLog"
-                    },
-                    {
-                        "name": "lastReviewedDate",
-                        "type": "Timestamp",
-                        "optional": true,
-                        "comment": "last review timestamp of the role"
                     }
                 ],
                 "closed": false
@@ -2246,6 +2246,12 @@
                         "optional": true,
                         "comment": "If true, ask for delete confirmation in audit and review enabled groups.",
                         "default": false
+                    },
+                    {
+                        "name": "lastReviewedDate",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "last review timestamp of the group"
                     }
                 ],
                 "closed": false
@@ -2282,12 +2288,6 @@
                         "optional": true,
                         "comment": "an audit log for group membership changes",
                         "items": "GroupAuditLog"
-                    },
-                    {
-                        "name": "lastReviewedDate",
-                        "type": "Timestamp",
-                        "optional": true,
-                        "comment": "last review timestamp of the group"
                     }
                 ],
                 "closed": false
@@ -3175,6 +3175,87 @@
                         "optional": false,
                         "comment": "collection of dependent services and resource groups for tenant domain",
                         "items": "DependentServiceResourceGroup"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ReviewObject",
+                "comment": "Details for the roles and/or groups that need to be reviewed",
+                "fields": [
+                    {
+                        "name": "domainName",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "name of the domain"
+                    },
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the role and/or group"
+                    },
+                    {
+                        "name": "memberExpiryDays",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "all user members in the object have specified max expiry days"
+                    },
+                    {
+                        "name": "memberReviewDays",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "all user members in the object have specified max review days"
+                    },
+                    {
+                        "name": "serviceExpiryDays",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "all services in the object have specified max expiry days"
+                    },
+                    {
+                        "name": "serviceReviewDays",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "all services in the object have specified max review days"
+                    },
+                    {
+                        "name": "groupExpiryDays",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "all groups in the object have specified max expiry days"
+                    },
+                    {
+                        "name": "groupReviewDays",
+                        "type": "Int32",
+                        "optional": false,
+                        "comment": "all groups in the object have specified max review days"
+                    },
+                    {
+                        "name": "lastReviewedDate",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "last review timestamp of the object"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "ReviewObjects",
+                "comment": "The representation for a list of objects with full details",
+                "fields": [
+                    {
+                        "name": "list",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of review objects",
+                        "items": "ReviewObject"
                     }
                 ],
                 "closed": false
@@ -5741,7 +5822,7 @@
             "type": "DomainRoleMember",
             "method": "GET",
             "path": "/role",
-            "comment": "Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\")",
+            "comment": "Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\") 4. domain authorized (\"access\", \"{domainName}:meta.role.lookup\") if domainName is provided",
             "inputs": [
                 {
                     "name": "principal",
@@ -11034,6 +11115,84 @@
                 }
             },
             "name": "getDependentDomainList"
+        },
+        {
+            "type": "ReviewObjects",
+            "method": "GET",
+            "path": "/review/role",
+            "comment": "Fetch all the roles across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.review.lookup\")",
+            "inputs": [
+                {
+                    "name": "principal",
+                    "type": "ResourceName",
+                    "comment": "If not present, will return roles for the user making the call",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "GetRolesForReview"
+        },
+        {
+            "type": "ReviewObjects",
+            "method": "GET",
+            "path": "/review/group",
+            "comment": "Fetch all the groups across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.review.lookup\")",
+            "inputs": [
+                {
+                    "name": "principal",
+                    "type": "ResourceName",
+                    "comment": "If not present, will return groups for the user making the call",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "GetGroupsForReview"
         },
         {
             "type": "Info",
