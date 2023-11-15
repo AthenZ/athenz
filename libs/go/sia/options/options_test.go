@@ -374,6 +374,10 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.Equal(t, "/var/lib/sia/backup", opts.BackupDir)
 	assert.Equal(t, "host1.athenz.io,host2.athenz.io", opts.SshPrincipals)
 
+	assert.Equal(t, 2, len(opts.AddlSanDNSEntries))
+	assert.Equal(t, "svc1.athenz.io", opts.AddlSanDNSEntries[0])
+	assert.Equal(t, "svc2.athenz.io", opts.AddlSanDNSEntries[1])
+
 	// Make sure services are set
 	assert.Equal(t, 3, len(opts.Services))
 	assert.Equal(t, "athenz", opts.Domain)
@@ -700,6 +704,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
+	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
 
 	provider := MockAWSProvider{
 		Name:     fmt.Sprintf("athenz.aws.us-west-2"),
@@ -726,6 +731,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
+	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
 
 	assert.Equal(t, 1, len(cfg.AccessTokens))
 	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")

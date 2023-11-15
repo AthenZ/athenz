@@ -87,6 +87,7 @@ type Config struct {
 	SshPrincipals     string                   `json:"ssh_principals,omitempty"`      //ssh additional principals
 	SanDnsWildcard    bool                     `json:"sandns_wildcard,omitempty"`     //san dns wildcard support
 	SanDnsHostname    bool                     `json:"sandns_hostname,omitempty"`     //san dns hostname support
+	SanDnsX509Cnames  string                   `json:"sandns_x509_cnames,omitempty"`  //additional san dns entries to be added to the CSR
 	UseRegionalSTS    bool                     `json:"regionalsts,omitempty"`         //whether to use a regional STS endpoint (default is false)
 	Accounts          []ConfigAccount          `json:"accounts,omitempty"`            //array of configured accounts
 	GenerateRoleKey   bool                     `json:"generate_role_key,omitempty"`   //private key to be generated for role certificate
@@ -365,6 +366,9 @@ func InitEnvConfig(config *Config) (*Config, *ConfigAccount, error) {
 	if !config.SanDnsHostname {
 		config.SanDnsHostname = util.ParseEnvBooleanFlag("ATHENZ_SIA_SANDNS_HOSTNAME")
 	}
+	if config.SanDnsX509Cnames == "" {
+		config.SanDnsX509Cnames = os.Getenv("ATHENZ_SIA_SANDNS_X509_CNAMES")
+	}
 	if config.HostnameSuffix == "" {
 		config.HostnameSuffix = os.Getenv("ATHENZ_SIA_HOSTNAME_SUFFIX")
 	}
@@ -542,6 +546,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 	runAfter := ""
 	runAfterTokens := ""
 	spiffeTrustDomain := ""
+	addlSanDNSEntries := make([]string, 0)
 
 	var storeTokenOption *int
 	if config != nil {
@@ -598,6 +603,10 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		}
 		if config.SpiffeTrustDomain != "" {
 			spiffeTrustDomain = config.SpiffeTrustDomain
+		}
+		if config.SanDnsX509Cnames != "" {
+			sanDSNSEntries := strings.Split(config.SanDnsX509Cnames, ",")
+			addlSanDNSEntries = append(addlSanDNSEntries, sanDSNSEntries...)
 		}
 		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
@@ -768,6 +777,7 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 		SpiffeTrustDomain:   spiffeTrustDomain,
 		OmitDomain:          account.OmitDomain,
 		StoreTokenOption:    storeTokenOption,
+		AddlSanDNSEntries:   addlSanDNSEntries,
 	}, nil
 }
 

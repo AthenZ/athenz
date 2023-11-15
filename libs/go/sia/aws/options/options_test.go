@@ -266,6 +266,10 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 	assert.Equal(t, DefaultThreshold, opts.Threshold)
 	assert.Equal(t, "host1.athenz.io,host2.athenz.io", opts.SshPrincipals)
 	assert.False(t, opts.OmitDomain)
+
+	assert.Equal(t, 2, len(opts.AddlSanDNSEntries))
+	assert.Equal(t, "svc1.athenz.io", opts.AddlSanDNSEntries[0])
+	assert.Equal(t, "svc2.athenz.io", opts.AddlSanDNSEntries[1])
 }
 
 // TestOptionsWithProfileConfigAndProfileTag test the scenario when profile config file is present anbd has profile tag key
@@ -696,6 +700,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
+	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -718,6 +723,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
+	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
 
 	assert.Equal(t, 1, len(cfg.AccessTokens))
 	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
