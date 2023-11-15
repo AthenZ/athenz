@@ -689,7 +689,7 @@ public class InstanceGCPProviderTest {
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put(ZTS_INSTANCE_GCP_PROJECT, "my-gcp-project");
-        attrs.put(ZTS_INSTANCE_SAN_DNS, "my-service.my-domain.gcp.athenz.cloud,3692465099344887023.instanceid.athenz.gcp.athenz.cloud");
+        attrs.put(ZTS_INSTANCE_SAN_DNS, "my-service.my-domain.gcp.athenz.cloud");
         attrs.put(ZTS_INSTANCE_SAN_URI, "spiffe://my-domain/sa/my-service");
 
         confirmation.setAttributes(attrs);

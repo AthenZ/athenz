@@ -313,6 +313,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         StringBuilder errMsg = new StringBuilder(256);
 
         final Map<String, String> instanceAttributes = confirmation.getAttributes();
+        final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
 
         // make sure request is for a valid gcp project
@@ -322,16 +323,13 @@ public class InstanceGCPProvider implements InstanceProvider {
             throw error("Unable to find GCP Project id");
         }
 
-        // extract the instance id as well
+        // validate the certificate host names
 
-        final String instanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
-                InstanceProvider.ZTS_INSTANCE_ID);
-        if (instanceId == null) {
-            throw error("Unable to extract Instance Id");
-        }
+        StringBuilder instanceId = new StringBuilder(256);
+        validateSanDnsNames(instanceAttributes, instanceDomain, instanceService, instanceId);
 
         validateAttestationData(confirmation, attestationData, derivedAttestationData,
-                gcpProject, instanceId, false, errMsg);
+                gcpProject, instanceId.toString(), false, errMsg);
 
         // if we're given an instance name uri in the csr, then we should
         // validate that as well

@@ -130,6 +130,10 @@ public class InstanceAWSProvider implements InstanceProvider {
         return eksDnsSuffixes;
     }
 
+    protected List<String> getEksClusterNames() {
+        return eksClusterNames.getStringsList();
+    }
+
     public ResourceException error(String message) {
         return error(ResourceException.FORBIDDEN, message);
     }
@@ -279,11 +283,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // validate the certificate host names
         
         StringBuilder instanceId = new StringBuilder(256);
-        if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
-                instanceService, getDnsSuffixes(), getEksDnsSuffixes(), eksClusterNames.getStringsList(),
-                true, instanceId, null)) {
-            throw error("Unable to validate certificate request hostnames");
-        }
+        validateSanDnsNames(instanceAttributes, instanceDomain, instanceService, instanceId);
         
         // validate our document against given signature if one is provided
         // if there is no instance document then we're going to ask ZTS not
@@ -342,14 +342,6 @@ public class InstanceAWSProvider implements InstanceProvider {
             throw error("Unable to extract AWS Account id");
         }
 
-        // extract the instance id as well
-
-        final String instanceId = InstanceUtils.getInstanceProperty(instanceAttributes,
-                InstanceProvider.ZTS_INSTANCE_ID);
-        if (instanceId == null) {
-            throw error("Unable to extract Instance Id");
-        }
-
         // validate that the domain/service given in the confirmation
         // request match the attestation data. the role can represent
         // either one of two formats: <domain>.<service> or <service>.
@@ -361,6 +353,11 @@ public class InstanceAWSProvider implements InstanceProvider {
             throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
         }
 
+        // validate the certificate host names
+
+        StringBuilder instanceId = new StringBuilder(256);
+        validateSanDnsNames(instanceAttributes, instanceDomain, instanceService, instanceId);
+
         // validate our document against given signature if one is provided
         // if there is no instance document then we're going to ask ZTS not
         // to issue SSH host certificates
@@ -370,7 +367,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
-                    instanceId, false, privateIp, errMsg)) {
+                    instanceId.toString(), false, privateIp, errMsg)) {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
@@ -389,7 +386,16 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         return confirmation;
     }
-    
+
+    public void validateSanDnsNames(final Map<String, String> instanceAttributes, final String instanceDomain,
+                                    final String instanceService, StringBuilder instanceId) {
+        if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, instanceDomain,
+                instanceService, getDnsSuffixes(), getEksDnsSuffixes(), getEksClusterNames(),
+                true, instanceId, null)) {
+            throw error("Unable to validate certificate request hostnames");
+        }
+    }
+
     protected void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds,
                                    final String privateIp) {
 

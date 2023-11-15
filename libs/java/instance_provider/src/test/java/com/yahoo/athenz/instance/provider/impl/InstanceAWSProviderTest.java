@@ -796,7 +796,7 @@ public class InstanceAWSProviderTest {
                 .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("awsAccount", "1234");
-        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud");
         confirmation.setAttributes(attributes);
 
         try {
