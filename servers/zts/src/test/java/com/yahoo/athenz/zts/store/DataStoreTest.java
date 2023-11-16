@@ -2014,7 +2014,27 @@ public class DataStoreTest {
         assertTrue(accessibleRoles.contains("admin"));
         assertTrue(accessibleRoles.contains("writers"));
     }
-    
+
+    @Test
+    public void testGetRolesForPrincipal() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.loadAthenzPublicKeys();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather");
+        store.processSignedDomain(signedDomain, true);
+
+        // an unknown domain will return an empty set
+
+        Set<String> roles = store.getRolesForPrincipal("sports", "user_domain.user1");
+        assertTrue(roles.isEmpty());
+
+        roles = store.getRolesForPrincipal("coretech", "user_domain.user1");
+        assertEquals(roles.size(), 1);
+        assertTrue(roles.contains("writers"));
+    }
+
     @Test
     public void testStoreInitNoLastModTimeLocalDomainDelete() {
 

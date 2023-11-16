@@ -14429,24 +14429,34 @@ public class ZTSImplTest {
 
         DataStore store = new DataStore(structStore, null, ztsMetric);
 
+        HttpServletRequest servletRequest443 = Mockito.mock(HttpServletRequest.class);
+        when(servletRequest443.getLocalPort()).thenReturn(443);
+
+        HttpServletRequest servletRequest4443 = Mockito.mock(HttpServletRequest.class);
+        when(servletRequest4443.getLocalPort()).thenReturn(4443);
+
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
         ztsImpl.oidcPort = 0;
         ztsImpl.httpsPort = 4443;
 
-        assertFalse(ztsImpl.isOidcPortRequest(443));
-        assertFalse(ztsImpl.isOidcPortRequest(4443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443));
 
         ztsImpl.oidcPort = 443;
         ztsImpl.httpsPort = 4443;
 
-        assertTrue(ztsImpl.isOidcPortRequest(443));
-        assertFalse(ztsImpl.isOidcPortRequest(4443));
+        assertTrue(ztsImpl.isOidcPortRequest(servletRequest443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443));
 
         ztsImpl.oidcPort = 4443;
         ztsImpl.httpsPort = 4443;
 
-        assertFalse(ztsImpl.isOidcPortRequest(443));
-        assertFalse(ztsImpl.isOidcPortRequest(4443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443));
+
+        // with a null request object we get true always
+
+        assertTrue(ztsImpl.isOidcPortRequest(null));
     }
 
     @Test
@@ -14525,7 +14535,7 @@ public class ZTSImplTest {
         store.processSignedDomain(signedDomain, false);
 
         GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
-        ztsImpl.externalCredentialsProviders.put("gcp", provider);
+        ztsImpl.externalCredentialsManager.setProvider("gcp", provider);
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         provider.setAuthorizer(authorizer);
@@ -14553,9 +14563,15 @@ public class ZTSImplTest {
                 "gcp", "coretech", extCredsRequest);
         assertNotNull(extCredsResponse);
 
+        // now let's test the same api through our instance provider
+
+        InstanceExternalCredentialsProvider extCredsProvider = new InstanceExternalCredentialsProvider("user_domain.user", ztsImpl);
+        extCredsResponse = extCredsProvider.getExternalCredentials("gcp", "coretech", extCredsRequest);
+        assertNotNull(extCredsResponse);
+
         // let's temporarily disable gcp provider
 
-        ztsImpl.enabledExternalCredentialsProviders.remove("gcp");
+        ztsImpl.externalCredentialsManager.disableProvider("gcp");
         try {
             ztsImpl.postExternalCredentialsRequest(context, "gcp", "coretech", extCredsRequest);
             fail();
@@ -14563,7 +14579,7 @@ public class ZTSImplTest {
             assertEquals(400, ex.getCode());
             assertTrue(ex.getMessage().contains("Invalid external credentials provider"));
         }
-        ztsImpl.enabledExternalCredentialsProviders.add("gcp");
+        ztsImpl.externalCredentialsManager.enableProvider("gcp");
 
         // now let's configure our http driver to return failure
 
@@ -14602,7 +14618,7 @@ public class ZTSImplTest {
         store.processSignedDomain(signedDomain, false);
 
         GcpAccessTokenProvider provider = new GcpAccessTokenProvider();
-        ztsImpl.externalCredentialsProviders.put("gcp", provider);
+        ztsImpl.externalCredentialsManager.setProvider("gcp", provider);
 
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         provider.setAuthorizer(authorizer);

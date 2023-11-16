@@ -47,6 +47,8 @@ public class InstanceProviderTest {
 
         provider.setPrivateKey(null, null, null);
         provider.setHostnameResolver(null);
+        provider.setRolesProvider(null);
+        provider.setExternalCredentialsProvider(null);
 
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.UNKNOWN);
 

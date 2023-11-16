@@ -153,7 +153,8 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
             return false;
         }
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, confirmation.getDomain(),
-                confirmation.getService(), awsDNSSuffixes, eksDnsSuffixes, eksClusterNames.getStringsList(), true, instanceId)) {
+                confirmation.getService(), awsDNSSuffixes, eksDnsSuffixes, eksClusterNames.getStringsList(),
+                true, instanceId, null)) {
             errMsg.append("Unable to validate certificate request hostnames");
             return false;
         }

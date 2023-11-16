@@ -52,7 +52,8 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
     public static final String GCP_WORKLOAD_POOL_NAME = "gcpWorkloadPoolName";
     public static final String GCP_WORKLOAD_PROVIDER_NAME = "gcpWorkloadProviderName";
     public static final String GCP_ACCESS_TOKEN = "accessToken";
-
+    public static final String GCP_PROJECT_ID = "gcpProjectId";
+    public static final String GCP_PROJECT_NUMBER = "gcpProjectNumber";
     private static final String GCP_DEFAULT_TOKEN_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
     HttpDriver httpDriver;
@@ -195,6 +196,8 @@ public class GcpAccessTokenProvider implements ExternalCredentialsProvider {
             ExternalCredentialsResponse externalCredentialsResponse = new ExternalCredentialsResponse();
             attributes = new HashMap<>();
             attributes.put(GCP_ACCESS_TOKEN, gcpAccessTokenResponse.getAccessToken());
+            attributes.put(GCP_PROJECT_ID, domainDetails.getGcpProjectId());
+            attributes.put(GCP_PROJECT_NUMBER, domainDetails.getGcpProjectNumber());
             externalCredentialsResponse.setAttributes(attributes);
             externalCredentialsResponse.setExpiration(Timestamp.fromString(gcpAccessTokenResponse.getExpireTime()));
             return externalCredentialsResponse;

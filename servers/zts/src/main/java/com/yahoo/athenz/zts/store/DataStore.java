@@ -1634,6 +1634,20 @@ public class DataStore implements DataCacheProvider, RolesProvider {
         return groupMemberCache.getIfPresent(groupName);
     }
 
+    public Set<String> getRolesForPrincipal(String domainName, String principal) {
+
+        DataCache data = getDataCache(domainName);
+        if (data == null) {
+            return Collections.emptySet();
+        }
+
+        // process our request and retrieve the roles for the principal
+
+        Set<String> roles = new HashSet<>();
+        getAccessibleRoles(data, domainName, principal, null, false, roles, false);
+        return roles;
+    }
+
     // API
     public void getAccessibleRoles(DataCache data, String domainName, String identity,
             String[] requestedRoleList, boolean fullNameMatch, Set<String> accessibleRoles, boolean keepFullName) {

@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.server.db;
 
 import com.yahoo.athenz.zms.Role;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A common interface used by ZMS and ZTS for providing roles by domain
@@ -43,6 +44,17 @@ public interface RolesProvider {
      * @return the role object from the given domain
      */
     default Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Return a set of roles from the given domain that have
+     * the requested principal as a member
+     * @param domainName name of the domain
+     * @param principal name of the principal to look for
+     * @return a set of roles that have the principal as a member
+     */
+    default Set<String> getRolesForPrincipal(String domainName, String principal) {
         throw new UnsupportedOperationException();
     }
 }
