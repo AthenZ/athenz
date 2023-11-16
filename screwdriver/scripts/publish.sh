@@ -5,13 +5,23 @@ function deployProject ()
     max_retry=3
     counter=0
     echo "Publishing package $1..."
-    until mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects $1 --settings screwdriver/settings/settings-publish.xml
-    do
-      [[ counter -eq $max_retry ]] && echo "Failed to deploy package $1" && exit 1
-      counter=$(( $counter + 1 ))
-      sleep 30
-      echo "Re-trying to publish package (attempt #$counter)"
-    done
+
+    # before publishing we need to make sure that the package
+    # is not being asked to be skipped since it was already
+    # published in a previous build
+
+    if [[ $PUBLISH_SKIP_PACKAGES == *"$1"* ]]
+    then
+      echo "Package $1 already published. Skipping..."
+    else
+      until mvn -B deploy -P ossrh -Dmaven.test.skip=true --projects $1 --settings screwdriver/settings/settings-publish.xml
+      do
+        [[ counter -eq $max_retry ]] && echo "Failed to deploy package $1" && exit 1
+        counter=$(( $counter + 1 ))
+        sleep 30
+        echo "Re-trying to publish package (attempt #$counter)"
+      done
+    fi
 }
 
 # for openssl 1.1+ we need to add -pbkdf2 to remove the

@@ -65,15 +65,18 @@ public class JettyConnectionLoggerTest {
         when(mockConnection2.getEndPoint().isOpen()).thenReturn(false);
 
         jettyConnectionLogger.handshakeFailed(event, sslHandshakeException);
-        
+
         Mockito.verify(connectionLog, Mockito.times(1)).log(connectionLogEntryArgumentCaptor.capture());
         Mockito.verify(metric, Mockito.times(1)).increment(Mockito.eq(CONNECTION_LOGGER_METRIC_DEFAULT_NAME), metricArgumentCaptor.capture());
         assertEquals("no cipher suites in common", connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureMessage().get());
         assertFalse(connectionLogEntryArgumentCaptor.getValue().sslHandshakeFailureCause().isPresent());
         List<String[]> allMetricValues = metricArgumentCaptor.getAllValues();
-        assertEquals(2, allMetricValues.size());
-        assertEquals("failureType", allMetricValues.get(0));
-        assertEquals("INCOMPATIBLE_CLIENT_CIPHER_SUITES", allMetricValues.get(1));
+        assertEquals(allMetricValues.size(), 1);
+        String[] testValue = allMetricValues.get(0);
+        assertEquals(testValue.length, 2);
+        assertEquals("failureType", testValue[0]);
+        assertEquals("INCOMPATIBLE_CLIENT_CIPHER_SUITES", testValue[1]);
+        jettyConnectionLogger.doStop();
     }
 
     @Test
