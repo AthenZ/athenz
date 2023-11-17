@@ -846,7 +846,7 @@ func tokenOptions(opts *options.Options, ztsUrl string) (*config.TokenOptions, e
 	userAgent := fmt.Sprintf("%s-%s", opts.Provider, opts.InstanceId)
 	tokenOpts, err := tokens.NewTokenOptions(opts, ztsUrl, userAgent)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create token options: %s", err.Error())
+		return nil, fmt.Errorf("processing access tokens: %s", err.Error())
 	}
 	if opts.StoreTokenOption != nil {
 		tokenOpts.StoreOptions = config.StoreTokenOptions(*opts.StoreTokenOption)
