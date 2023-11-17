@@ -240,7 +240,7 @@ func makeTokenRequest(domain string, roles []string, expiryTime int, proxyPrinci
 
 func NewTokenOptions(options *options.Options, ztsUrl string, userAgent string) (*config.TokenOptions, error) {
 	if options.AccessTokens == nil {
-		return nil, fmt.Errorf("access-token object is not presented")
+		return nil, fmt.Errorf("not configured to fetch access tokens")
 	}
 	dirs := []string{options.CertDir, options.KeyDir, options.BackupDir}
 	dirs = append(dirs, TokenDirs(options.TokenDir, options.AccessTokens)...)
