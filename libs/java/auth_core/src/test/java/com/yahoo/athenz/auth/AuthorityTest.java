@@ -64,6 +64,11 @@ public class AuthorityTest {
             public String getUserEmail(String username) {
                 return username + "@example.com";
             }
+
+            @Override
+            public String getUserManager(String username) {
+                return username + "-manager";
+            }
         };
 
         assertNull(authority.getAuthenticateChallenge());
@@ -83,6 +88,7 @@ public class AuthorityTest {
         assertNull(authority.getDateAttribute("john", "review"));
         assertNotNull(authority.getDateAttribute("john", "expiry"));
         assertEquals(authority.getUserEmail("john"), "john@example.com");
+        assertEquals(authority.getUserManager("john"), "john-manager");
         assertEquals(authority.getID(), "Auth-ID");
     }
 

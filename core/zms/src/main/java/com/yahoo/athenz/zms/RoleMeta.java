@@ -71,6 +71,15 @@ public class RoleMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp lastReviewedDate;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean selfRenewEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer selfRenewMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer maxMembers;
 
     public RoleMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -205,6 +214,27 @@ public class RoleMeta {
     public Timestamp getLastReviewedDate() {
         return lastReviewedDate;
     }
+    public RoleMeta setSelfRenewEnabled(Boolean selfRenewEnabled) {
+        this.selfRenewEnabled = selfRenewEnabled;
+        return this;
+    }
+    public Boolean getSelfRenewEnabled() {
+        return selfRenewEnabled;
+    }
+    public RoleMeta setSelfRenewMins(Integer selfRenewMins) {
+        this.selfRenewMins = selfRenewMins;
+        return this;
+    }
+    public Integer getSelfRenewMins() {
+        return selfRenewMins;
+    }
+    public RoleMeta setMaxMembers(Integer maxMembers) {
+        this.maxMembers = maxMembers;
+        return this;
+    }
+    public Integer getMaxMembers() {
+        return maxMembers;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -268,6 +298,15 @@ public class RoleMeta {
                 return false;
             }
             if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
+                return false;
+            }
+            if (selfRenewEnabled == null ? a.selfRenewEnabled != null : !selfRenewEnabled.equals(a.selfRenewEnabled)) {
+                return false;
+            }
+            if (selfRenewMins == null ? a.selfRenewMins != null : !selfRenewMins.equals(a.selfRenewMins)) {
+                return false;
+            }
+            if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
                 return false;
             }
         }

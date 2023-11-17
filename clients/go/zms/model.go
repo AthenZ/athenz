@@ -278,6 +278,12 @@ type DomainMeta struct {
 	// features enabled per domain (system attribute)
 	//
 	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
+	// a single value
+	//
+	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -528,6 +534,12 @@ type Domain struct {
 	// features enabled per domain (system attribute)
 	//
 	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
+	// a single value
+	//
+	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -1275,6 +1287,22 @@ type RoleMeta struct {
 	// last review timestamp of the role
 	//
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether to allow expired members to renew their membership
+	//
+	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Number of minutes members can renew their membership if self review option
+	// is enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Maximum number of members allowed in the group
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewRoleMeta - creates an initialized RoleMeta instance, returns a pointer to it
@@ -1445,6 +1473,22 @@ type Role struct {
 	// last review timestamp of the role
 	//
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether to allow expired members to renew their membership
+	//
+	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Number of minutes members can renew their membership if self review option
+	// is enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Maximum number of members allowed in the group
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the role
@@ -3666,6 +3710,12 @@ type TopLevelDomain struct {
 	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
+	// a single value
+	//
+	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3938,6 +3988,12 @@ type SubDomain struct {
 	// features enabled per domain (system attribute)
 	//
 	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
+	// a single value
+	//
+	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -4226,6 +4282,12 @@ type UserDomain struct {
 	// features enabled per domain (system attribute)
 	//
 	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
+	// a single value
+	//
+	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -5405,6 +5467,22 @@ type GroupMeta struct {
 	// last review timestamp of the group
 	//
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether to allow expired members to renew their membership
+	//
+	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Number of minutes members can renew their membership if self review option
+	// is enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Maximum number of members allowed in the group
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewGroupMeta - creates an initialized GroupMeta instance, returns a pointer to it
@@ -5517,6 +5595,22 @@ type Group struct {
 	// last review timestamp of the group
 	//
 	LastReviewedDate *rdl.Timestamp `json:"lastReviewedDate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Flag indicates whether to allow expired members to renew their membership
+	//
+	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Number of minutes members can renew their membership if self review option
+	// is enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Maximum number of members allowed in the group
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the group
@@ -6698,6 +6792,12 @@ type DomainData struct {
 	// features enabled per domain (system attribute)
 	//
 	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
+	// a single value
+	//
+	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain

@@ -87,6 +87,9 @@ public class TopLevelDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer featureFlags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, String> contacts;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -261,6 +264,13 @@ public class TopLevelDomain {
     public Integer getFeatureFlags() {
         return featureFlags;
     }
+    public TopLevelDomain setContacts(Map<String, String> contacts) {
+        this.contacts = contacts;
+        return this;
+    }
+    public Map<String, String> getContacts() {
+        return contacts;
+    }
     public TopLevelDomain setName(String name) {
         this.name = name;
         return this;
@@ -360,6 +370,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
+                return false;
+            }
+            if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

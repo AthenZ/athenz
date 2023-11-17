@@ -90,6 +90,9 @@ public class Domain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer featureFlags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, String> contacts;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -266,6 +269,13 @@ public class Domain {
     public Integer getFeatureFlags() {
         return featureFlags;
     }
+    public Domain setContacts(Map<String, String> contacts) {
+        this.contacts = contacts;
+        return this;
+    }
+    public Map<String, String> getContacts() {
+        return contacts;
+    }
     public Domain setName(String name) {
         this.name = name;
         return this;
@@ -365,6 +375,9 @@ public class Domain {
                 return false;
             }
             if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
+                return false;
+            }
+            if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

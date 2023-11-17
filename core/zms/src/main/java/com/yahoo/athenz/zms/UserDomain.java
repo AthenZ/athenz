@@ -86,6 +86,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer featureFlags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, String> contacts;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -259,6 +262,13 @@ public class UserDomain {
     public Integer getFeatureFlags() {
         return featureFlags;
     }
+    public UserDomain setContacts(Map<String, String> contacts) {
+        this.contacts = contacts;
+        return this;
+    }
+    public Map<String, String> getContacts() {
+        return contacts;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -351,6 +361,9 @@ public class UserDomain {
                 return false;
             }
             if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
+                return false;
+            }
+            if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

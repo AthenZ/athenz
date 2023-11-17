@@ -830,7 +830,7 @@ func init() {
 	mPostKubernetesNetworkPolicyRequest.Input("request", "KubernetesNetworkPolicyRequest", false, "", "", false, nil, "Struct representing input options based on the cluster context")
 	mPostKubernetesNetworkPolicyRequest.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
 	mPostKubernetesNetworkPolicyRequest.Output("tag", "String", "ETag", false, "The current latest modification timestamp is returned in this header")
-	mPostKubernetesNetworkPolicyRequest.Auth("read", "{domain}:service.{service}", false, "")
+	mPostKubernetesNetworkPolicyRequest.Auth("read", "{domainName}:service.{serviceName}", false, "")
 	mPostKubernetesNetworkPolicyRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostKubernetesNetworkPolicyRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostKubernetesNetworkPolicyRequest.Exception("NOT_FOUND", "ResourceError", "")

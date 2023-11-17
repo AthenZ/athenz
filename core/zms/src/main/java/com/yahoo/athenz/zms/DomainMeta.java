@@ -86,6 +86,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer featureFlags;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Map<String, String> contacts;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -255,6 +258,13 @@ public class DomainMeta {
     public Integer getFeatureFlags() {
         return featureFlags;
     }
+    public DomainMeta setContacts(Map<String, String> contacts) {
+        this.contacts = contacts;
+        return this;
+    }
+    public Map<String, String> getContacts() {
+        return contacts;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -333,6 +343,9 @@ public class DomainMeta {
                 return false;
             }
             if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
+                return false;
+            }
+            if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
                 return false;
             }
         }
