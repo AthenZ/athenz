@@ -36,3 +36,4 @@ jobs:
       - GPG_KEYNAME
       - GPG_PASSPHRASE
       - GPG_ENCPHRASE
+      - PUBLISH_SKIP_PACKAGES
