@@ -15,18 +15,17 @@
  */
 package com.yahoo.athenz.example.zts.gcp;
 
-import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.*;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.dns.Dns;
+import com.google.cloud.dns.DnsOptions;
+import com.google.cloud.dns.RecordSet;
 import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.creds.gcp.GCPZTSCredentials;
 import org.apache.commons.cli.*;
 import java.io.IOException;
 import java.util.Collections;
 
-public class ZTSGCPCredsClient {
+public class ZTSGCPCredsDNSClient {
     
     public static void main(String[] args) throws KeyRefresherException, IOException, InterruptedException {
         
@@ -42,7 +41,6 @@ public class ZTSGCPCredsClient {
         final String clientId = cmd.getOptionValue("clientid");
         final String projectId = cmd.getOptionValue("projectId");
         final String projectNumber = cmd.getOptionValue("projectNumber");
-        final String bucketName = cmd.getOptionValue("bucket");
         final String trustStorePath = cmd.getOptionValue("trustStorePath");
         final String trustStorePassword = cmd.getOptionValue("trustStorePassword");
         final String workLoadPoolName = cmd.getOptionValue("workLoadPoolName");
@@ -76,15 +74,21 @@ public class ZTSGCPCredsClient {
         ExternalAccountCredentials credentials = gcpztsCredentials.getTokenAPICredentials();
 
         try {
-            // list the object names from the configured bucket
 
-            Storage storage = StorageOptions.newBuilder().setCredentials(credentials)
-                    .setProjectId(projectId).build().getService();
-            Page<Blob> blobs = storage.list(bucketName);
+            // list all the zones and then iterate through all the record sets
+            // and display all DNS TXT records
 
-            for (Blob blob : blobs.iterateAll()) {
-                System.out.println(blob.getName());
-            }
+            Dns dns = DnsOptions.newBuilder().setCredentials(credentials).setProjectId(projectId)
+                    .build().getService();
+
+            dns.listZones().iterateAll().forEach(zone -> {
+                zone.listRecordSets().iterateAll().forEach(recordSet -> {
+                    System.out.println("record: " + recordSet.getName() + " type: " + recordSet.getType());
+                    if (recordSet.getType().equals(RecordSet.Type.TXT)) {
+                        System.out.println(recordSet.getRecords());
+                    }
+                });
+            });
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -128,9 +132,9 @@ public class ZTSGCPCredsClient {
         clientId.setRequired(true);
         options.addOption(clientId);
 
-        Option bucket = new Option("b", "bucket", true, "bucket name");
-        bucket.setRequired(true);
-        options.addOption(bucket);
+        Option zone = new Option("b", "zone", true, "zone name");
+        zone.setRequired(true);
+        options.addOption(zone);
 
         Option projectId = new Option("j", "projectId", true, "project id");
         projectId.setRequired(true);
