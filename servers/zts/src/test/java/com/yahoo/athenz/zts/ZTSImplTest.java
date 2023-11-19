@@ -14439,24 +14439,31 @@ public class ZTSImplTest {
         ztsImpl.oidcPort = 0;
         ztsImpl.httpsPort = 4443;
 
-        assertFalse(ztsImpl.isOidcPortRequest(servletRequest443));
-        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest443, null));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443, null));
 
         ztsImpl.oidcPort = 443;
         ztsImpl.httpsPort = 4443;
 
-        assertTrue(ztsImpl.isOidcPortRequest(servletRequest443));
-        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443));
+        assertTrue(ztsImpl.isOidcPortRequest(servletRequest443, null));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443, null));
 
         ztsImpl.oidcPort = 4443;
         ztsImpl.httpsPort = 4443;
 
-        assertFalse(ztsImpl.isOidcPortRequest(servletRequest443));
-        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest443, null));
+        assertFalse(ztsImpl.isOidcPortRequest(servletRequest4443, null));
 
         // with a null request object we get true always
 
-        assertTrue(ztsImpl.isOidcPortRequest(null));
+        assertTrue(ztsImpl.isOidcPortRequest(null, null));
+
+        // with the issuer option specified we get the requested value
+
+        assertTrue(ztsImpl.isOidcPortRequest(null, "oidc_port"));
+        assertFalse(ztsImpl.isOidcPortRequest(null, "openid"));
+        assertTrue(ztsImpl.isOidcPortRequest(null, ""));
+        assertTrue(ztsImpl.isOidcPortRequest(null, "unknown_option"));
     }
 
     @Test
