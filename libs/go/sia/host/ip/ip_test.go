@@ -61,7 +61,9 @@ func getIpsFromIfConfig(t *testing.T) ([]string, error) {
 	ips := []string{}
 	for _, line := range strings.Split(string(o), "\n") {
 		line := strings.TrimSpace(line)
-		if strings.HasPrefix(line, "inet ") || strings.HasPrefix(line, "inet6 ") {
+		// automatically skip any autoconf entries that are created for docker/bridge
+		if (strings.HasPrefix(line, "inet ") || strings.HasPrefix(line, "inet6 ")) &&
+			!strings.Contains(line, "autoconf") {
 			// Process the IP
 			parts := strings.Split(line, " ")
 			if len(parts) > 2 {
