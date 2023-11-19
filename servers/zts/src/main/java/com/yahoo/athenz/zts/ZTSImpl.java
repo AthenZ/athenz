@@ -2088,7 +2088,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setVersion(1);
         idToken.setAudience(getIdTokenAudience(clientId, roleInAudClaim, idTokenGroups));
         idToken.setSubject(principalName);
-        idToken.setIssuer(isOidcPortRequest(ctx.request()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        idToken.setIssuer(isOidcPortRequest(ctx.request(), null) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
         idToken.setNonce(nonce);
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
@@ -4956,7 +4956,8 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         idToken.setVersion(1);
         idToken.setAudience(getIdTokenAudience(extCredsRequest.getClientId(), false, idTokenGroups));
         idToken.setSubject(principalName);
-        idToken.setIssuer(isOidcPortRequest(ctx.request()) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        final String issuerOption = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_ISSUER_OPTION);
+        idToken.setIssuer(isOidcPortRequest(ctx.request(), issuerOption) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
         idToken.setNonce(Crypto.randomSalt());
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
@@ -5197,10 +5198,25 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         return successServerStatus;
     }
 
-    boolean isOidcPortRequest(HttpServletRequest httpServletRequest) {
+    boolean isOidcPortRequest(HttpServletRequest httpServletRequest, final String issuerOption) {
+
+        // if the request includes a specified issuer config option
+        // then we'll return our result based on that option. We'll
+        // ignore any invalid values and fall back to return a result
+        // based on the port number
+
+        if (!StringUtil.isEmpty(issuerOption)) {
+            if (ZTSConsts.ZTS_ISSUER_TYPE_OPENID.equals(issuerOption)) {
+                return false;
+            } else if (ZTSConsts.ZTS_ISSUER_TYPE_OIDC_PORT.equals(issuerOption)) {
+                return true;
+            }
+        }
+
         // if our servlet request is false, then this should be an internal
         // call from our provider instances thus we're assuming it's an oidc
         // otherwise we'll handle it based on the port number
+
         if (httpServletRequest == null) {
             return true;
         }
@@ -5214,7 +5230,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
-        return isOidcPortRequest(ctx.request()) ? oidcPortConfig : openIDConfig;
+        return isOidcPortRequest(ctx.request(), null) ? oidcPortConfig : openIDConfig;
     }
 
     @Override
