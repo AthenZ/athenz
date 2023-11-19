@@ -3,6 +3,8 @@
 set -u
 set -o pipefail
 
+export ATHENZ_TAG=$(sed -n -e 's|<version>\(.*SNAPSHOT\)</version>|\1|p' ${BASE_DIR}/pom.xml | tr -d ' ')
+
 # Base dirs
 export BASE_DIR="$(git rev-parse --show-toplevel)"
 export DOCKER_DIR="${BASE_DIR}/docker"
@@ -18,6 +20,7 @@ export ZMS_LOGS_DIR="${DOCKER_DIR}/logs/zms"
 export ZMS_CONF_DIR="${ZMS_DIR}/conf"
 export ZMS_CERTS_DIR="${ZMS_DIR}/var/certs"
 export ZMS_KEYS_DIR="${ZMS_DIR}/var/keys"
+export ZMS_ASSY_DIR="${BASE_DIR}/assembly/zms/target/athenz-zms-${ATHENZ_TAG}"
 mkdir -p "${ZMS_LOGS_DIR}"
 mkdir -p "${ZMS_CONF_DIR}"
 mkdir -p "${ZMS_CERTS_DIR}"
@@ -43,6 +46,7 @@ export ZTS_LOGS_DIR="${DOCKER_DIR}/logs/zts"
 export ZTS_CONF_DIR="${ZTS_DIR}/conf"
 export ZTS_CERTS_DIR="${ZTS_DIR}/var/certs"
 export ZTS_KEYS_DIR="${ZTS_DIR}/var/keys"
+export ZTS_ASSY_DIR="${BASE_DIR}/assembly/zts/target/athenz-zts-${ATHENZ_TAG}"
 mkdir -p "${ZTS_LOGS_DIR}"
 mkdir -p "${ZTS_CONF_DIR}"
 mkdir -p "${ZTS_CERTS_DIR}"
@@ -79,6 +83,7 @@ export UI_LOGS_DIR="${DOCKER_DIR}/logs/ui"
 export UI_CONF_DIR="${UI_DIR}/conf"
 export UI_CERTS_DIR="${UI_DIR}/var/certs"
 export UI_KEYS_DIR="${UI_DIR}/var/keys"
+export UI_ASSY_DIR="${BASE_DIR}/assembly/ui/target/athenz-ui-${ATHENZ_TAG}"
 mkdir -p "${UI_LOGS_DIR}"
 mkdir -p "${UI_CONF_DIR}"
 mkdir -p "${UI_CERTS_DIR}"

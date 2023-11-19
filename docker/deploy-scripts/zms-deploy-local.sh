@@ -93,6 +93,10 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo '4. start ZMS' | colored_cat g
+if [ ${ENABLE_LOCAL_BUILD_ZMS} ]; then
+    EXTRA_ARGS="-v ${ZMS_ASSY_DIR}/webapps/:/opt/athenz/zms/webapps -v ${ZMS_ASSY_DIR}/lib/jars:/opt/athenz/zms/lib/jars"
+    echo $EXTRA_ARGS
+fi
 docker run -d -h "${ZMS_HOST}" \
     -p "${ZMS_PORT}:${ZMS_PORT}" \
     --dns="${DOCKER_DNS}" \
@@ -109,6 +113,7 @@ docker run -d -h "${ZMS_HOST}" \
     -e "ZMS_KEYSTORE_PASS=${ZMS_KEYSTORE_PASS}" \
     -e "ZMS_TRUSTSTORE_PASS=${ZMS_TRUSTSTORE_PASS}" \
     -e "ZMS_PORT=${ZMS_PORT}" \
+    ${EXTRA_ARGS} \
     --name "${ZMS_HOST}" athenz/athenz-zms-server:latest
 # wait for ZMS to be ready
 until docker run --rm --entrypoint curl \

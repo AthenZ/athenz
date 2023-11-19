@@ -93,6 +93,9 @@ docker exec --user mysql:mysql \
     --execute="SELECT user, host FROM user;"
 
 echo '4. start ZTS' | colored_cat g
+if [ ${ENABLE_LOCAL_BUILD_ZTS} ]; then
+    EXTRA_ARGS="-v ${ZTS_ASSY_DIR}/webapps/:/opt/athenz/zts/webapps -v ${ZTS_ASSY_DIR}/lib/jars:/opt/athenz/zts/lib/jars"
+fi
 docker run -d -h "${ZTS_HOST}" \
     -p "${ZTS_PORT}:${ZTS_PORT}" \
     --network="${DOCKER_NETWORK}" \
@@ -112,6 +115,7 @@ docker run -d -h "${ZTS_HOST}" \
     -e "ZMS_CLIENT_KEYSTORE_PASS=${ZMS_CLIENT_KEYSTORE_PASS}" \
     -e "ZMS_CLIENT_TRUSTSTORE_PASS=${ZMS_CLIENT_TRUSTSTORE_PASS}" \
     -e "ZTS_PORT=${ZTS_PORT}" \
+    ${EXTRA_ARGS} \
     --name "${ZTS_HOST}" athenz/athenz-zts-server:latest
 # wait for ZTS to be ready
 until docker run --rm --entrypoint curl \
