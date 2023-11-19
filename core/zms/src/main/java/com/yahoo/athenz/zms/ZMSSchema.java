@@ -137,7 +137,8 @@ public class ZMSSchema {
             .field("businessService", "String", true, "associated business service with domain")
             .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past")
             .field("productId", "String", true, "associated product id (system attribute - uniqueness check - if enabled)")
-            .field("featureFlags", "Int32", true, "features enabled per domain (system attribute)");
+            .field("featureFlags", "Int32", true, "features enabled per domain (system attribute)")
+            .mapField("contacts", "SimpleName", "MemberName", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")
@@ -213,7 +214,10 @@ public class ZMSSchema {
             .field("description", "String", true, "a description of the role")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false)
-            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role");
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role")
+            .field("selfRenewEnabled", "Bool", true, "Flag indicates whether to allow expired members to renew their membership", false)
+            .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
+            .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group");
 
         sb.structType("Role", "RoleMeta")
             .comment("The representation for a Role with set of members. The members (Array<MemberName>) field is deprecated and not used in role objects since it incorrectly lists all the members in the role without taking into account if the member is expired or possibly disabled. Thus, using this attribute will result in incorrect authorization checks by the client and, thus, it's no longer being populated. All applications must use the roleMembers field and take into account all the attributes of the member.")
@@ -509,7 +513,10 @@ public class ZMSSchema {
             .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled groups.", false)
-            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group");
+            .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group")
+            .field("selfRenewEnabled", "Bool", true, "Flag indicates whether to allow expired members to renew their membership", false)
+            .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
+            .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group");
 
         sb.structType("Group", "GroupMeta")
             .comment("The representation for a Group with set of members.")

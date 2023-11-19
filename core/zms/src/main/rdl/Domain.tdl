@@ -30,6 +30,7 @@ type DomainMeta Struct {
     Int32 memberPurgeExpiryDays (optional); //purge role/group members with expiry date configured days in the past
     String productId (optional); //associated product id (system attribute - uniqueness check - if enabled)
     Int32 featureFlags (optional); //features enabled per domain (system attribute)
+    Map<SimpleName,MemberName> contacts (optional); //list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value
 }
 
 //A domain is an independent partition of users, roles, and resources.

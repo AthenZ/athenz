@@ -161,6 +161,7 @@ func init() {
 	tDomainMeta.Field("memberPurgeExpiryDays", "Int32", true, nil, "purge role/group members with expiry date configured days in the past")
 	tDomainMeta.Field("productId", "String", true, nil, "associated product id (system attribute - uniqueness check - if enabled)")
 	tDomainMeta.Field("featureFlags", "Int32", true, nil, "features enabled per domain (system attribute)")
+	tDomainMeta.MapField("contacts", "SimpleName", "MemberName", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
@@ -246,6 +247,9 @@ func init() {
 	tRoleMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	tRoleMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled roles.")
 	tRoleMeta.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the role")
+	tRoleMeta.Field("selfRenewEnabled", "Bool", true, false, "Flag indicates whether to allow expired members to renew their membership")
+	tRoleMeta.Field("selfRenewMins", "Int32", true, nil, "Number of minutes members can renew their membership if self review option is enabled")
+	tRoleMeta.Field("maxMembers", "Int32", true, nil, "Maximum number of members allowed in the group")
 	sb.AddType(tRoleMeta.Build())
 
 	tRole := rdl.NewStructTypeBuilder("RoleMeta", "Role")
@@ -588,6 +592,9 @@ func init() {
 	tGroupMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it")
 	tGroupMeta.Field("deleteProtection", "Bool", true, false, "If true, ask for delete confirmation in audit and review enabled groups.")
 	tGroupMeta.Field("lastReviewedDate", "Timestamp", true, nil, "last review timestamp of the group")
+	tGroupMeta.Field("selfRenewEnabled", "Bool", true, false, "Flag indicates whether to allow expired members to renew their membership")
+	tGroupMeta.Field("selfRenewMins", "Int32", true, nil, "Number of minutes members can renew their membership if self review option is enabled")
+	tGroupMeta.Field("maxMembers", "Int32", true, nil, "Maximum number of members allowed in the group")
 	sb.AddType(tGroupMeta.Build())
 
 	tGroup := rdl.NewStructTypeBuilder("GroupMeta", "Group")

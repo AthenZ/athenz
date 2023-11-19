@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
@@ -84,7 +85,7 @@ public class DomainTest {
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -114,6 +115,7 @@ public class DomainTest {
         assertEquals(dm.getMemberPurgeExpiryDays(), 10);
         assertEquals(dm.getProductId(), "abcd-1234");
         assertEquals(dm.getFeatureFlags(), 3);
+        assertEquals(dm.getContacts(), Map.of("pe-owner", "user.test"));
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -124,10 +126,17 @@ public class DomainTest {
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
+
+        dm2.setContacts(Map.of("product-owner", "user.test"));
+        assertNotEquals(dm, dm2);
+        dm2.setContacts(null);
+        assertNotEquals(dm, dm2);
+        dm2.setContacts(Map.of("pe-owner", "user.test"));
+        assertEquals(dm, dm2);
 
         dm2.setUserAuthorityFilter("NotOnShore");
         assertNotEquals(dm, dm2);
@@ -302,7 +311,8 @@ public class DomainTest {
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3);
+                .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
+                .setContacts(Map.of("pe-owner", "user.test"));
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -335,6 +345,7 @@ public class DomainTest {
         assertEquals(tld.getMemberPurgeExpiryDays(), 10);
         assertEquals(tld.getProductId(), "abcd-1234");
         assertEquals(tld.getFeatureFlags(), 3);
+        assertEquals(tld.getContacts(), Map.of("pe-owner", "user.test"));
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -343,10 +354,18 @@ public class DomainTest {
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3);
+                .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
+                .setContacts(Map.of("pe-owner", "user.test"));
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
+
+        tld2.setContacts(Map.of("product-owner", "user.test"));
+        assertNotEquals(tld, tld2);
+        tld2.setContacts(null);
+        assertNotEquals(tld, tld2);
+        tld2.setContacts(Map.of("pe-owner", "user.test"));
+        assertEquals(tld, tld2);
 
         tld2.setUserAuthorityFilter("NotOnShore");
         assertNotEquals(tld, tld2);
@@ -509,7 +528,8 @@ public class DomainTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3);
+                .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
+                .setContacts(Map.of("pe-owner", "user.test"));
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -543,6 +563,7 @@ public class DomainTest {
         assertEquals(sd.getMemberPurgeExpiryDays(), 10);
         assertEquals(sd.getProductId(), "abcd-1234");
         assertEquals(sd.getFeatureFlags(), 3);
+        assertEquals(sd.getContacts(), Map.of("pe-owner", "user.test"));
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -553,11 +574,19 @@ public class DomainTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3);
+                .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
+                .setContacts(Map.of("pe-owner", "user.test"));
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
         assertNotEquals(schema, sd);
+
+        sd2.setContacts(Map.of("product-owner", "user.test"));
+        assertNotEquals(sd, sd2);
+        sd2.setContacts(null);
+        assertNotEquals(sd, sd2);
+        sd2.setContacts(Map.of("pe-owner", "user.test"));
+        assertEquals(sd, sd2);
 
         sd2.setUserAuthorityFilter("NotOnShore");
         assertNotEquals(sd, sd2);
@@ -719,7 +748,7 @@ public class DomainTest {
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
-                .setProductId("abcd-1234").setFeatureFlags(3);
+                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -751,6 +780,7 @@ public class DomainTest {
         assertEquals(ud.getMemberPurgeExpiryDays(), 10);
         assertEquals(ud.getProductId(), "abcd-1234");
         assertEquals(ud.getFeatureFlags(), 3);
+        assertEquals(ud.getContacts(), Map.of("pe-owner", "user.test"));
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -761,10 +791,17 @@ public class DomainTest {
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
-                .setProductId("abcd-1234").setFeatureFlags(3);
+                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
+
+        ud2.setContacts(Map.of("product-owner", "user.test"));
+        assertNotEquals(ud, ud2);
+        ud2.setContacts(null);
+        assertNotEquals(ud, ud2);
+        ud2.setContacts(Map.of("pe-owner", "user.test"));
+        assertEquals(ud, ud2);
 
         ud2.setUserAuthorityFilter("NotOnShore");
         assertNotEquals(ud, ud2);
@@ -945,7 +982,8 @@ public class DomainTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3);
+                .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
+                .setContacts(Map.of("pe-owner", "user.test"));
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -978,6 +1016,7 @@ public class DomainTest {
         assertEquals(d.getMemberPurgeExpiryDays(), 10);
         assertEquals(d.getProductId(), "abcd-1234");
         assertEquals(d.getFeatureFlags(), 3);
+        assertEquals(d.getContacts(), Map.of("pe-owner", "user.test"));
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -988,10 +1027,18 @@ public class DomainTest {
                 .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setAzureSubscription("azure")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
-                .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3);
+                .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
+                .setContacts(Map.of("pe-owner", "user.test"));
 
         assertEquals(d, d2);
         assertEquals(d, d);
+
+        d2.setContacts(Map.of("product-owner", "user.test"));
+        assertNotEquals(d, d2);
+        d2.setContacts(null);
+        assertNotEquals(d, d2);
+        d2.setContacts(Map.of("pe-owner", "user.test"));
+        assertEquals(d, d2);
 
         d2.setUserAuthorityFilter("NotOnShore");
         assertNotEquals(d, d2);

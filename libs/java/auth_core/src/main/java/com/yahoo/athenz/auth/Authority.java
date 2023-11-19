@@ -200,4 +200,15 @@ public interface Authority {
     default List<Principal> getPrincipals(EnumSet<Principal.State> principalStates) {
         return Collections.emptyList();
     }
+
+    /**
+     * Retrieves the principal's manager's username. This is used for domain contacts
+     * when a domain contact user is no longer valid, the server will automatically
+     * assign the contact type to the user's manager.
+     * @param username user's name or id
+     * @return user's manager's name or id
+     */
+    default String getUserManager(final String username) {
+        return null;
+    }
 }

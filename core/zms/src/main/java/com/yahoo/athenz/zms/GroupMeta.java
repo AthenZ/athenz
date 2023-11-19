@@ -47,6 +47,15 @@ public class GroupMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp lastReviewedDate;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean selfRenewEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer selfRenewMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer maxMembers;
 
     public GroupMeta setSelfServe(Boolean selfServe) {
         this.selfServe = selfServe;
@@ -125,6 +134,27 @@ public class GroupMeta {
     public Timestamp getLastReviewedDate() {
         return lastReviewedDate;
     }
+    public GroupMeta setSelfRenewEnabled(Boolean selfRenewEnabled) {
+        this.selfRenewEnabled = selfRenewEnabled;
+        return this;
+    }
+    public Boolean getSelfRenewEnabled() {
+        return selfRenewEnabled;
+    }
+    public GroupMeta setSelfRenewMins(Integer selfRenewMins) {
+        this.selfRenewMins = selfRenewMins;
+        return this;
+    }
+    public Integer getSelfRenewMins() {
+        return selfRenewMins;
+    }
+    public GroupMeta setMaxMembers(Integer maxMembers) {
+        this.maxMembers = maxMembers;
+        return this;
+    }
+    public Integer getMaxMembers() {
+        return maxMembers;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -164,6 +194,15 @@ public class GroupMeta {
                 return false;
             }
             if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
+                return false;
+            }
+            if (selfRenewEnabled == null ? a.selfRenewEnabled != null : !selfRenewEnabled.equals(a.selfRenewEnabled)) {
+                return false;
+            }
+            if (selfRenewMins == null ? a.selfRenewMins != null : !selfRenewMins.equals(a.selfRenewMins)) {
+                return false;
+            }
+            if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
                 return false;
             }
         }

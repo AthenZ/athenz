@@ -47,6 +47,15 @@ public class Group {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Timestamp lastReviewedDate;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean selfRenewEnabled;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer selfRenewMins;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer maxMembers;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -135,6 +144,27 @@ public class Group {
     public Timestamp getLastReviewedDate() {
         return lastReviewedDate;
     }
+    public Group setSelfRenewEnabled(Boolean selfRenewEnabled) {
+        this.selfRenewEnabled = selfRenewEnabled;
+        return this;
+    }
+    public Boolean getSelfRenewEnabled() {
+        return selfRenewEnabled;
+    }
+    public Group setSelfRenewMins(Integer selfRenewMins) {
+        this.selfRenewMins = selfRenewMins;
+        return this;
+    }
+    public Integer getSelfRenewMins() {
+        return selfRenewMins;
+    }
+    public Group setMaxMembers(Integer maxMembers) {
+        this.maxMembers = maxMembers;
+        return this;
+    }
+    public Integer getMaxMembers() {
+        return maxMembers;
+    }
     public Group setName(String name) {
         this.name = name;
         return this;
@@ -202,6 +232,15 @@ public class Group {
                 return false;
             }
             if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
+                return false;
+            }
+            if (selfRenewEnabled == null ? a.selfRenewEnabled != null : !selfRenewEnabled.equals(a.selfRenewEnabled)) {
+                return false;
+            }
+            if (selfRenewMins == null ? a.selfRenewMins != null : !selfRenewMins.equals(a.selfRenewMins)) {
+                return false;
+            }
+            if (maxMembers == null ? a.maxMembers != null : !maxMembers.equals(a.maxMembers)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {
