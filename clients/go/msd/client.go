@@ -435,6 +435,44 @@ func (client MSDClient) GetTransportPolicyRulesByDomain(domainName DomainName, m
 	}
 }
 
+func (client MSDClient) PutTransportPolicy(domainName DomainName, serviceName EntityName, payload *TransportPolicyRequest) (*TransportPolicyRules, error) {
+	var data *TransportPolicyRules
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/transportpolicy"
+	contentBytes, err := json.Marshal(payload)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPut(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204, 200:
+		if 204 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return data, err
+			}
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client MSDClient) GetWorkloadsByService(domainName DomainName, serviceName EntityName, matchingTag string) (*Workloads, string, error) {
 	var data *Workloads
 	headers := map[string]string{
