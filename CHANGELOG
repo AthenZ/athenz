@@ -1,3 +1,23 @@
+Athenz v1.11.47 Release / Nov 20, 2023
+--------------------------------------
+
+#2398 UI: add GCP project ID in manage domains
+#2399 update service provider manager test case
+#2400 UI: upgrade prettier and run fix-lint
+#2403 Enable use of locally built components in local Docker environment
+#2405 Fix the server side authorization for the msd api to return kubernetes network policy object
+#2406 UI: centre align business service column
+#2408 provide Roles/ExternalCredentials interfaces for instance providers
+#2409 zts gcp dns client example
+#2410 UI: pull in the latest and greatest rdl endpoints
+#2411 expose sandns_x509_cnames field in sia config file
+#2415 simplify error messages for access tokens to avoid confusion
+#2416 new role/group/domain attributes - no implementation
+#2418 provide option to request issuer based on external creds attributes
+#2419 update go host ip check test case to ignore docker/bridge interface
+#2421 update java and go dependencies to their latest releases
+#2422 new msd api to create transport policy
+
 Athenz v1.11.46 Release / Nov 07, 2023
 --------------------------------------
 
