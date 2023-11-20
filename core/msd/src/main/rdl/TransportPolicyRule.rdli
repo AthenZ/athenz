@@ -20,10 +20,10 @@ resource TransportPolicyRules GET "/transportpolicies" {
     }
 }
 
-// API to validate microsegmentation policies against network policies
+// API to validate micro-segmentation policies against network policies
 
 resource TransportPolicyValidationResponse POST "/transportpolicy/validate" (name=validateTransportPolicy) {
-    TransportPolicyValidationRequest transportPolicy ; // Struct representing microsegmentation policy entered by the user
+    TransportPolicyValidationRequest transportPolicy ; // Struct representing micro-segmentation policy entered by the user
     expected OK;
     authenticate;
     exceptions {
@@ -56,6 +56,22 @@ resource TransportPolicyRules GET "/domain/{domainName}/transportpolicies" (name
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     expected OK, NOT_MODIFIED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// API endpoint to create a transport policy for a given domain and service
+resource TransportPolicyRules PUT "/domain/{domainName}/service/{serviceName}/transportpolicy" (name=putTransportPolicy) {
+    DomainName domainName; //name of the domain
+    EntityName serviceName; //Name of the service
+    TransportPolicyRequest payload; //Struct representing input transport policy
+    authorize ("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected NO_CONTENT, OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

@@ -1189,6 +1189,181 @@ func (self *TransportPolicyValidationResponseList) Validate() error {
 	return nil
 }
 
+// TransportPolicySubjectSelectorRequirement - A subject selector requirement
+// is a selector that contains value, a key, and an operator that relates the
+// key and value.
+type TransportPolicySubjectSelectorRequirement struct {
+
+	//
+	// key that the selector applies to
+	//
+	Key string `json:"key"`
+
+	//
+	// Operator that is applied to the key and value
+	//
+	Operator string `json:"operator"`
+
+	//
+	// Value that the selector applies to
+	//
+	Value string `json:"value"`
+}
+
+// NewTransportPolicySubjectSelectorRequirement - creates an initialized TransportPolicySubjectSelectorRequirement instance, returns a pointer to it
+func NewTransportPolicySubjectSelectorRequirement(init ...*TransportPolicySubjectSelectorRequirement) *TransportPolicySubjectSelectorRequirement {
+	var o *TransportPolicySubjectSelectorRequirement
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySubjectSelectorRequirement)
+	}
+	return o
+}
+
+type rawTransportPolicySubjectSelectorRequirement TransportPolicySubjectSelectorRequirement
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySubjectSelectorRequirement
+func (self *TransportPolicySubjectSelectorRequirement) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySubjectSelectorRequirement
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySubjectSelectorRequirement(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySubjectSelectorRequirement) Validate() error {
+	if self.Key == "" {
+		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.key is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Key)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.key does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Operator == "" {
+		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.operator is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Operator)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.operator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Value == "" {
+		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.value is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Value)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.value does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// TransportPolicyRequest - Input to create a transport policy
+type TransportPolicyRequest struct {
+
+	//
+	// Direction of network traffic
+	//
+	Direction TransportPolicyTrafficDirection `json:"direction"`
+
+	//
+	// Policy Identifier
+	//
+	Identifier EntityName `json:"identifier"`
+
+	//
+	// Subject for the policy
+	//
+	Subject *TransportPolicySubject `json:"subject"`
+
+	//
+	// List of subject selector conditions
+	//
+	Conditions []*TransportPolicySubjectSelectorRequirement `json:"conditions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// List of source network traffic ports
+	//
+	SourcePorts []*TransportPolicyPort `json:"sourcePorts"`
+
+	//
+	// List of destination network traffic ports
+	//
+	DestinationPorts []*TransportPolicyPort `json:"destinationPorts"`
+
+	//
+	// Source or destination of the policy depending on direction
+	//
+	Peers []*TransportPolicySubject `json:"peers,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewTransportPolicyRequest - creates an initialized TransportPolicyRequest instance, returns a pointer to it
+func NewTransportPolicyRequest(init ...*TransportPolicyRequest) *TransportPolicyRequest {
+	var o *TransportPolicyRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicyRequest)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *TransportPolicyRequest) Init() *TransportPolicyRequest {
+	if self.Subject == nil {
+		self.Subject = NewTransportPolicySubject()
+	}
+	if self.SourcePorts == nil {
+		self.SourcePorts = make([]*TransportPolicyPort, 0)
+	}
+	if self.DestinationPorts == nil {
+		self.DestinationPorts = make([]*TransportPolicyPort, 0)
+	}
+	return self
+}
+
+type rawTransportPolicyRequest TransportPolicyRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicyRequest
+func (self *TransportPolicyRequest) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicyRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicyRequest(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicyRequest) Validate() error {
+	if self.Identifier == "" {
+		return fmt.Errorf("TransportPolicyRequest.identifier is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Identifier)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicyRequest.identifier does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Subject == nil {
+		return fmt.Errorf("TransportPolicyRequest: Missing required field: subject")
+	}
+	if self.SourcePorts == nil {
+		return fmt.Errorf("TransportPolicyRequest: Missing required field: sourcePorts")
+	}
+	if self.DestinationPorts == nil {
+		return fmt.Errorf("TransportPolicyRequest: Missing required field: destinationPorts")
+	}
+	return nil
+}
+
 // StaticWorkloadType - Enum representing defined types of static workloads.
 type StaticWorkloadType int
 

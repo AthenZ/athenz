@@ -183,6 +183,22 @@ public class MSDSchema {
             .comment("List of TransportPolicyValidationResponse")
             .arrayField("responseList", "TransportPolicyValidationResponse", false, "list of transport policy validation response");
 
+        sb.structType("TransportPolicySubjectSelectorRequirement")
+            .comment("A subject selector requirement is a selector that contains value, a key, and an operator that relates the key and value.")
+            .field("key", "String", false, "key that the selector applies to")
+            .field("operator", "String", false, "Operator that is applied to the key and value")
+            .field("value", "String", false, "Value that the selector applies to");
+
+        sb.structType("TransportPolicyRequest")
+            .comment("Input to create a transport policy")
+            .field("direction", "TransportPolicyTrafficDirection", false, "Direction of network traffic")
+            .field("identifier", "EntityName", false, "Policy Identifier")
+            .field("subject", "TransportPolicySubject", false, "Subject for the policy")
+            .arrayField("conditions", "TransportPolicySubjectSelectorRequirement", true, "List of subject selector conditions")
+            .arrayField("sourcePorts", "TransportPolicyPort", false, "List of source network traffic ports")
+            .arrayField("destinationPorts", "TransportPolicyPort", false, "List of destination network traffic ports")
+            .arrayField("peers", "TransportPolicySubject", true, "Source or destination of the policy depending on direction");
+
         sb.enumType("StaticWorkloadType")
             .comment("Enum representing defined types of static workloads.")
             .element("VIP")
@@ -564,9 +580,9 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicyValidationRequest", "POST", "/transportpolicy/validate")
-            .comment("API to validate microsegmentation policies against network policies")
+            .comment("API to validate micro-segmentation policies against network policies")
             .name("validateTransportPolicy")
-            .input("transportPolicy", "TransportPolicyValidationRequest", "Struct representing microsegmentation policy entered by the user")
+            .input("transportPolicy", "TransportPolicyValidationRequest", "Struct representing micro-segmentation policy entered by the user")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -605,6 +621,25 @@ public class MSDSchema {
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
             .auth("", "", true)
             .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicyRequest", "PUT", "/domain/{domainName}/service/{serviceName}/transportpolicy")
+            .comment("API endpoint to create a transport policy for a given domain and service")
+            .name("putTransportPolicy")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "Name of the service")
+            .input("payload", "TransportPolicyRequest", "Struct representing input transport policy")
+            .auth("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
@@ -808,7 +843,7 @@ public class MSDSchema {
             .input("request", "KubernetesNetworkPolicyRequest", "Struct representing input options based on the cluster context")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
-            .auth("read", "{domainName}:service.{serviceName}")
+            .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

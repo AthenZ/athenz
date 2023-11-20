@@ -121,3 +121,21 @@ type TransportPolicyValidationResponse Struct {
 type TransportPolicyValidationResponseList Struct {
     Array<TransportPolicyValidationResponse> responseList; //list of transport policy validation response
 }
+
+// A subject selector requirement is a selector that contains value, a key, and an operator that relates the key and value.
+type TransportPolicySubjectSelectorRequirement Struct {
+    String key; //key that the selector applies to
+    String operator; //Operator that is applied to the key and value
+    String value; //Value that the selector applies to
+}
+
+// Input to create a transport policy
+type TransportPolicyRequest Struct {
+    TransportPolicyTrafficDirection direction; //Direction of network traffic
+    EntityName identifier; //Policy Identifier
+    TransportPolicySubject subject; //Subject for the policy
+    Array<TransportPolicySubjectSelectorRequirement> conditions (optional); //List of subject selector conditions
+    Array<TransportPolicyPort> sourcePorts; //List of source network traffic ports
+    Array<TransportPolicyPort> destinationPorts; //List of destination network traffic ports
+    Array<TransportPolicySubject> peers (optional); //Source or destination of the policy depending on direction
+}
