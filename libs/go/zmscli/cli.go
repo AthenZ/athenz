@@ -983,6 +983,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetRoleSelfServe(dn, args[0], selfServe)
 			}
+		case "set-role-max-members":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleMaxMembers(dn, args[0], days)
+			}
 		case "set-role-member-expiry-days":
 			if argc == 2 {
 				days, err := cli.getInt32(args[1])
@@ -1116,6 +1124,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.SetGroupSelfServe(dn, args[0], selfServe)
+			}
+		case "set-group-max-members":
+			if argc == 2 {
+				days, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetGroupMaxMembers(dn, args[0], days)
 			}
 		case "set-group-member-expiry-days":
 			if argc == 2 {
@@ -2749,6 +2765,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   delete-protection : enable/disable protection flag for the role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-delete-protection readers true\n")
+	case "set-role-max-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-max-members role max-members\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain being updated\n")
+		}
+		buf.WriteString("   role        : name of the role to be modified\n")
+		buf.WriteString("   max-members : number of max members in the role\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-max-members writers 5\n")
 	case "set-role-member-expiry-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-member-expiry-days role days\n")
@@ -2967,6 +2994,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   delete-protection : enable/disable protection flag for the group\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-delete-protection readers true\n")
+	case "set-group-max-members":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-max-members role max-members\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain being updated\n")
+		}
+		buf.WriteString("   group       : name of the group to be modified\n")
+		buf.WriteString("   max-members : number of max members in the group\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-max-members writers 5\n")
 	case "set-group-member-expiry-days":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-member-expiry-days group days\n")
@@ -3317,6 +3355,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-review-enabled regular_role review-enabled\n")
 	buf.WriteString("   set-role-delete-protection regular_role delete-protection\n")
 	buf.WriteString("   set-role-self-serve regular_role self-serve\n")
+	buf.WriteString("   set-role-max-members regular_role max-members\n")
 	buf.WriteString("   set-role-member-expiry-days regular_role user-member-expiry-days\n")
 	buf.WriteString("   set-role-service-expiry-days regular_role service-member-expiry-days\n")
 	buf.WriteString("   set-role-group-expiry-days regular_role group-member-expiry-days\n")
@@ -3351,6 +3390,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-review-enabled group review-enabled\n")
 	buf.WriteString("   set-group-delete-protection group delete-protection\n")
 	buf.WriteString("   set-group-self-serve group self-serve\n")
+	buf.WriteString("   set-group-max-members group max-members\n")
 	buf.WriteString("   set-group-member-expiry-days group user-member-expiry-days\n")
 	buf.WriteString("   set-group-service-expiry-days group service-member-expiry-days\n")
 	buf.WriteString("   set-group-notify-roles group rolename[,rolename...]\n")

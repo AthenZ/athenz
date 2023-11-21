@@ -472,6 +472,7 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		UserAuthorityExpiration: role.UserAuthorityExpiration,
 		UserAuthorityFilter:     role.UserAuthorityFilter,
 		Tags:                    role.Tags,
+		MaxMembers:              role.MaxMembers,
 	}
 }
 
@@ -771,6 +772,27 @@ func (cli Zms) SetRoleTokenExpiryMins(dn string, rn string, mins int32) (*string
 		return nil, err
 	}
 	s := "[domain " + dn + " role " + rn + " token-expiry-mins attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetRoleMaxMembers(dn string, rn string, maxMembers int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.MaxMembers = &maxMembers
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " role-max-members attribute successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

@@ -943,6 +943,9 @@ public class DBService implements RolesProvider {
         if (templateRole.getUserAuthorityExpiration() == null) {
             templateRole.setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration());
         }
+        if (templateRole.getMaxMembers() == null) {
+            templateRole.setMaxMembers(originalRole.getMaxMembers());
+        }
         templateRole.setLastReviewedDate(originalRole.getLastReviewedDate());
     }
 
@@ -1888,7 +1891,8 @@ public class DBService implements RolesProvider {
 
                 // now we need verify our quota check
 
-                quotaCheck.checkRoleMembershipQuota(con, domainName, roleName, caller);
+                quotaCheck.checkRoleMembershipQuota(con, domainName, roleName, roleMember.getMemberName(),
+                        originalRole.getMaxMembers(), caller);
 
                 // process our insert role member support. since this is a "single"
                 // operation, we are not using any transactions.
@@ -1954,7 +1958,8 @@ public class DBService implements RolesProvider {
                 // now we need verify our quota check
 
                 final String groupName = ZMSUtils.extractGroupName(domainName, group.getName());
-                quotaCheck.checkGroupMembershipQuota(con, domainName, groupName, ctx.getApiName());
+                quotaCheck.checkGroupMembershipQuota(con, domainName, groupName, groupMember.getMemberName(),
+                        group.getMaxMembers(), ctx.getApiName());
 
                 // process our insert group member support. since this is a "single"
                 // operation, we are not using any transactions.
@@ -5898,6 +5903,7 @@ public class DBService implements RolesProvider {
                 .append("\", \"description\": \"").append(role.getDescription())
                 .append("\", \"deleteProtection\": \"").append(role.getDeleteProtection())
                 .append("\", \"lastReviewedDate\": \"").append(role.getLastReviewedDate())
+                .append("\", \"maxMembers\": \"").append(role.getMembers())
                 .append("\"}");
     }
 
@@ -5912,6 +5918,7 @@ public class DBService implements RolesProvider {
                 .append("\", \"userAuthorityExpiration\": \"").append(group.getUserAuthorityExpiration())
                 .append("\", \"deleteProtection\": \"").append(group.getDeleteProtection())
                 .append("\", \"lastReviewedDate\": \"").append(group.getLastReviewedDate())
+                .append("\", \"maxMembers\": \"").append(group.getMaxMembers())
                 .append("\"}");
     }
 
@@ -6079,7 +6086,8 @@ public class DBService implements RolesProvider {
                         .setReviewEnabled(originalRole.getReviewEnabled())
                         .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles())
-                        .setLastReviewedDate(originalRole.getLastReviewedDate());
+                        .setLastReviewedDate(originalRole.getLastReviewedDate())
+                        .setMaxMembers(originalRole.getMaxMembers());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6152,7 +6160,8 @@ public class DBService implements RolesProvider {
                         .setMemberExpiryDays(originalGroup.getMemberExpiryDays())
                         .setServiceExpiryDays(originalGroup.getServiceExpiryDays())
                         .setLastReviewedDate(originalGroup.getLastReviewedDate())
-                        .setDeleteProtection(originalGroup.getDeleteProtection());
+                        .setDeleteProtection(originalGroup.getDeleteProtection())
+                        .setMaxMembers(originalGroup.getMaxMembers());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6293,6 +6302,9 @@ public class DBService implements RolesProvider {
         if (meta.getTags() != null) {
             role.setTags(meta.getTags());
         }
+        if (meta.getMaxMembers() != null) {
+            role.setMaxMembers(meta.getMaxMembers());
+        }
         role.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
                 role.getLastReviewedDate(), caller));
     }
@@ -6335,7 +6347,8 @@ public class DBService implements RolesProvider {
                         .setUserAuthorityExpiration(originalRole.getUserAuthorityExpiration())
                         .setDescription(originalRole.getDescription())
                         .setTags(originalRole.getTags())
-                        .setLastReviewedDate(originalRole.getLastReviewedDate());
+                        .setLastReviewedDate(originalRole.getLastReviewedDate())
+                        .setMaxMembers(originalRole.getMaxMembers());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6414,6 +6427,9 @@ public class DBService implements RolesProvider {
         if (meta.getDeleteProtection() != null) {
             group.setDeleteProtection(meta.getDeleteProtection());
         }
+        if (meta.getMaxMembers() != null) {
+            group.setMaxMembers(meta.getMaxMembers());
+        }
         group.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
                 group.getLastReviewedDate(), caller));
     }
@@ -6453,7 +6469,8 @@ public class DBService implements RolesProvider {
                         .setUserAuthorityExpiration(originalGroup.getUserAuthorityExpiration())
                         .setTags(originalGroup.getTags())
                         .setDeleteProtection(originalGroup.getDeleteProtection())
-                        .setLastReviewedDate(originalGroup.getLastReviewedDate());
+                        .setLastReviewedDate(originalGroup.getLastReviewedDate())
+                        .setMaxMembers(originalGroup.getMaxMembers());
 
                 // then we're going to apply the updated fields
                 // from the given object

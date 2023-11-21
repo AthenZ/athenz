@@ -50,6 +50,7 @@ public class ZMSPrincipalRolesTest {
     @AfterClass
     public void stopMemoryMySQL() {
         zmsTestInitializer.stopMemoryMySQL();
+        System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
     }
 
     @BeforeMethod
@@ -63,9 +64,9 @@ public class ZMSPrincipalRolesTest {
     @Test
     public void testGetPrincipalRoles() {
 
-        createDomain("domain1");
-        createDomain("domain2");
-        createDomain("domain3");
+        zmsTestInitializer.createTopLevelDomain("domain1");
+        zmsTestInitializer.createTopLevelDomain("domain2");
+        zmsTestInitializer.createTopLevelDomain("domain3");
 
         String principal = "user.john-doe";
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -85,9 +86,9 @@ public class ZMSPrincipalRolesTest {
 
     @Test
     public void testGetPrincipalRolesCurrentPrincipal() {
-        createDomain("domain1");
-        createDomain("domain2");
-        createDomain("domain3");
+        zmsTestInitializer.createTopLevelDomain("domain1");
+        zmsTestInitializer.createTopLevelDomain("domain2");
+        zmsTestInitializer.createTopLevelDomain("domain3");
 
         String principalName = "user.john-doe";
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -172,16 +173,6 @@ public class ZMSPrincipalRolesTest {
         // Create role1 in domain3 only principal
         role = zmsTestInitializer.createRoleObject("domain3", "role1", null, roleMembers);
         zmsImpl.putRole(ctx, "domain3", "Role1", auditRef, false, role);
-    }
-
-    private void createDomain(String domainName) {
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        final String auditRef = zmsTestInitializer.getAuditRef();
-
-        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
-                "Test " + domainName, "testOrg", zmsTestInitializer.getAdminUser());
-        zmsImpl.postTopLevelDomain(ctx, auditRef, dom);
     }
 
     private void insertRecordsForGetPrincipalExpandRolesTest(final String principal) {
@@ -300,10 +291,10 @@ public class ZMSPrincipalRolesTest {
         //     user.john-doe is a member of domain4:role.trust-user-role
         //     and trustRoleName is set to domain1:role.wild-user-role
 
-        createDomain("domain1");
-        createDomain("domain2");
-        createDomain("domain3");
-        createDomain("domain4");
+        zmsTestInitializer.createTopLevelDomain("domain1");
+        zmsTestInitializer.createTopLevelDomain("domain2");
+        zmsTestInitializer.createTopLevelDomain("domain3");
+        zmsTestInitializer.createTopLevelDomain("domain4");
 
         String principalName = "user.john-doe";
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -335,10 +326,10 @@ public class ZMSPrincipalRolesTest {
         assertNotNull(domainRoleMember);
         verifyGetPrincipalExpandedRoles(principalName, domainRoleMember, false);
 
-        zmsImpl.deleteTopLevelDomain(ctx,"domain4", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain3", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain1", auditRef);
-        zmsImpl.deleteTopLevelDomain(ctx,"domain2", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain4", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain3", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain1", auditRef);
+        zmsImpl.deleteTopLevelDomain(ctx, "domain2", auditRef);
     }
 
     @Test
@@ -450,7 +441,7 @@ public class ZMSPrincipalRolesTest {
 
         // let's create the domain and without proper access, it still returns failure
 
-        createDomain(domainName);
+        zmsTestInitializer.createTopLevelDomain(domainName);
         assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", null));
 
         // now let's grant user.john update access over the service
@@ -516,7 +507,7 @@ public class ZMSPrincipalRolesTest {
 
         // let's create the domain and without proper access, it still returns failure
 
-        createDomain(domainName);
+        zmsTestInitializer.createTopLevelDomain(domainName);
         assertFalse(zmsImpl.isAllowedExpandedRoleLookup(principal, domainName + ".api", domainName));
 
         // now let's grant user.john update access over the domain
@@ -558,8 +549,8 @@ public class ZMSPrincipalRolesTest {
         //   role membership in domain2:role.trust-user-role
         // with domain1 filter - there are no matches
 
-        createDomain("domain1");
-        createDomain("domain2");
+        zmsTestInitializer.createTopLevelDomain("domain1");
+        zmsTestInitializer.createTopLevelDomain("domain2");
 
         String principalName = "user.john-doe";
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

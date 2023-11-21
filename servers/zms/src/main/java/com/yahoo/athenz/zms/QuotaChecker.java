@@ -105,19 +105,28 @@ class QuotaChecker {
     }
     
     void checkRoleQuota(ObjectStoreConnection con, String domainName, Role role, String caller) {
-        
-        // if quota check is disabled we have nothing to do
-        
-        if (!quotaCheckEnabled) {
-            return;
-        }
-        
+
         // if our role is null then there is no quota check
         
         if (role == null) {
             return;
         }
-        
+
+        // before doing the quota check let's see if our max member
+        // limit is configured for the role and it is satisfied
+
+        int objectCount = getListSize(role.getRoleMembers());
+        if (role.getMaxMembers() != null && role.getMaxMembers() < objectCount) {
+            throw ZMSUtils.quotaLimitError("role max members exceeded - limit: "
+                    + role.getMaxMembers() + " actual: " + objectCount, caller);
+        }
+
+        // if quota check is disabled we have nothing else to do
+
+        if (!quotaCheckEnabled) {
+            return;
+        }
+
         // first retrieve the domain quota
         
         final Quota quota = getDomainQuota(con, domainName);
@@ -125,7 +134,6 @@ class QuotaChecker {
         // first we're going to verify the elements that do not
         // require any further data from the object store
         
-        int objectCount = getListSize(role.getRoleMembers());
         if (quota.getRoleMember() < objectCount) {
             throw ZMSUtils.quotaLimitError("role member quota exceeded - limit: "
                     + quota.getRoleMember() + " actual: " + objectCount, caller);
@@ -143,15 +151,24 @@ class QuotaChecker {
 
     void checkGroupQuota(ObjectStoreConnection con, String domainName, Group group, String caller) {
 
-        // if quota check is disabled we have nothing to do
-
-        if (!quotaCheckEnabled) {
-            return;
-        }
-
         // if our group is null then there is no quota check
 
         if (group == null) {
+            return;
+        }
+
+        // before doing the quota check let's see if our max member
+        // limit is configured for the group and it is satisfied
+
+        int objectCount = getListSize(group.getGroupMembers());
+        if (group.getMaxMembers() != null && group.getMaxMembers() < objectCount) {
+            throw ZMSUtils.quotaLimitError("group max members exceeded - limit: "
+                    + group.getMaxMembers() + " actual: " + objectCount, caller);
+        }
+
+        // if quota check is disabled we have nothing else to do
+
+        if (!quotaCheckEnabled) {
             return;
         }
 
@@ -162,7 +179,6 @@ class QuotaChecker {
         // first we're going to verify the elements that do not
         // require any further data from the object store
 
-        int objectCount = getListSize(group.getGroupMembers());
         if (quota.getGroupMember() < objectCount) {
             throw ZMSUtils.quotaLimitError("group member quota exceeded - limit: "
                     + quota.getGroupMember() + " actual: " + objectCount, caller);
@@ -178,49 +194,93 @@ class QuotaChecker {
         }
     }
 
-    void checkRoleMembershipQuota(ObjectStoreConnection con, String domainName,
-            String roleName, String caller) {
-        
-        // if quota check is disabled we have nothing to do
-        
-        if (!quotaCheckEnabled) {
+    void checkRoleMembershipQuota(ObjectStoreConnection con, final String domainName,
+            final String roleName, final String memberName, Integer maxMembers, final String caller) {
+
+        // if quota check is disabled or the max member limit is not set
+        // on the role then we have nothing to do
+
+        if (!quotaCheckEnabled && (maxMembers == null || maxMembers == 0)) {
             return;
         }
-        
-        // first retrieve the domain quota
+
+        // we're going to check if the current member is already either
+        // a standard or pending member in the role. If that's the case
+        // then we don't need to enforce the quota since we're modifying
+        // an existing entry
+
+        Membership membership = con.getRoleMember(domainName, roleName, memberName, 0, false);
+        if (membership.getIsMember()) {
+            return;
+        }
+
+        // so at this point we know that we'll be adding a new member to the
+        // role. so first let's count the number of role members
+
+        int roleMemberCount = con.countRoleMembers(domainName, roleName);
+
+        // first, let's verify the max member limit if it is set
+
+        if (maxMembers != null && maxMembers > 0 && roleMemberCount >= maxMembers) {
+            throw ZMSUtils.quotaLimitError("role max members exceeded - limit: "
+                    + maxMembers + " actual: " + roleMemberCount, caller);
+        }
+
+        // next, let's retrieve the domain quota
         
         final Quota quota = getDomainQuota(con, domainName);
         
         // now check to make sure we can add 1 more member
         // to this role without exceeding the quota
         
-        int objectCount = con.countRoleMembers(domainName, roleName) + 1;
-        if (quota.getRoleMember() < objectCount) {
+        if (quota.getRoleMember() <= roleMemberCount) {
             throw ZMSUtils.quotaLimitError("role member quota exceeded - limit: "
-                    + quota.getRoleMember() + " actual: " + objectCount, caller);
+                    + quota.getRoleMember() + " actual: " + roleMemberCount, caller);
         }
     }
 
-    void checkGroupMembershipQuota(ObjectStoreConnection con, String domainName,
-                                  String groupName, String caller) {
+    void checkGroupMembershipQuota(ObjectStoreConnection con, final String domainName,
+             final String groupName, final String memberName, Integer maxMembers, final String caller) {
 
-        // if quota check is disabled we have nothing to do
+        // if quota check is disabled or the max member limit is not set
+        // on the group then we have nothing to do
 
-        if (!quotaCheckEnabled) {
+        if (!quotaCheckEnabled && (maxMembers == null || maxMembers == 0)) {
             return;
         }
 
-        // first retrieve the domain quota
+        // we're going to check if the current member is already either
+        // a standard or pending member in the group. If that's the case
+        // then we don't need to enforce the quota since we're modifying
+        // an existing entry
+
+        GroupMembership membership = con.getGroupMember(domainName, groupName, memberName, 0, false);
+        if (membership.getIsMember()) {
+            return;
+        }
+
+        // so at this point we know that we'll be adding a new member to the
+        // group. so first let's count the number of group members
+
+        int groupMemberCount = con.countGroupMembers(domainName, groupName);
+
+        // first, let's verify the max member limit if it is set
+
+        if (maxMembers != null && maxMembers > 0 && groupMemberCount >= maxMembers) {
+            throw ZMSUtils.quotaLimitError("group max members exceeded - limit: "
+                    + maxMembers + " actual: " + groupMemberCount, caller);
+        }
+
+        // next, let's retrieve the domain quota
 
         final Quota quota = getDomainQuota(con, domainName);
 
         // now check to make sure we can add 1 more member
         // to this group without exceeding the quota
 
-        int objectCount = con.countGroupMembers(domainName, groupName) + 1;
-        if (quota.getGroupMember() < objectCount) {
+        if (quota.getGroupMember() <= groupMemberCount) {
             throw ZMSUtils.quotaLimitError("group member quota exceeded - limit: "
-                    + quota.getGroupMember() + " actual: " + objectCount, caller);
+                    + quota.getGroupMember() + " actual: " + groupMemberCount, caller);
         }
     }
 

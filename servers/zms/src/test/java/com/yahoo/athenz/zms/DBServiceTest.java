@@ -1725,6 +1725,8 @@ public class DBServiceTest {
         Role role = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
         Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
+        Membership membership = new Membership().setMemberName("user.doe").setIsMember(false);
+        Mockito.when(mockJdbcConn.getRoleMember(domainName, roleName, "user.doe", 0, false)).thenReturn(membership);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -1753,6 +1755,8 @@ public class DBServiceTest {
         Role role = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
         Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role);
+        Membership membership = new Membership().setMemberName("user.doe").setIsMember(false);
+        Mockito.when(mockJdbcConn.getRoleMember(domainName, roleName, "user.doe", 0, false)).thenReturn(membership);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         int saveRetryCount = zms.dbService.defaultRetryCount;
@@ -1783,6 +1787,8 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, roleName, "sys.auth",
                 null, null);
         zms.putRole(mockDomRsrcCtx, domainName, roleName, auditRef, false, role1);
+        Membership membership = new Membership().setMemberName("user.doe").setIsMember(false);
+        Mockito.when(mockJdbcConn.getRoleMember(domainName, roleName, "user.doe", 0, false)).thenReturn(membership);
 
         try {
             zms.dbService.executePutMembership(mockDomRsrcCtx, domainName, roleName,
@@ -5765,7 +5771,8 @@ public class DBServiceTest {
                         + " \"groupReviewDays\": \"null\","
                         + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
                         + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\","
-                        + " \"description\": \"null\", \"deleteProtection\": \"null\", \"lastReviewedDate\": \"null\"}");
+                        + " \"description\": \"null\", \"deleteProtection\": \"null\", \"lastReviewedDate\": \"null\","
+                        + " \"maxMembers\": \"null\"}");
     }
 
     @Test
@@ -9601,7 +9608,8 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.insertGroupMember(domainName, groupName, groupMember, adminName, auditRef))
                 .thenReturn(false);
-
+        GroupMembership groupMembership = new GroupMembership().setMemberName(memberName).setIsMember(false);
+        Mockito.when(mockJdbcConn.getGroupMember(domainName, groupName, memberName, 0, false)).thenReturn(groupMembership);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 

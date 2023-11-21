@@ -1215,6 +1215,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(19, 0);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(20, false);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(21, null);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(22, 0);
 
         jdbcConn.close();
     }
@@ -1229,7 +1230,8 @@ public class JDBCConnectionTest {
                 .setGroupReviewDays(90)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry")
-                .setDescription("description").setDeleteProtection(true);
+                .setDescription("description").setDeleteProtection(true)
+                .setMaxMembers(3);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -1260,6 +1262,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(19, 0);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(20, true);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(21, null);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(22, 3);
+
         jdbcConn.close();
     }
 
@@ -1332,6 +1336,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(19, 0);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(20, false);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(21, null);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(22, 0);
 
         jdbcConn.close();
     }
@@ -1368,7 +1373,8 @@ public class JDBCConnectionTest {
                 .setGroupReviewDays(90).setDeleteProtection(true)
                 .setReviewEnabled(true).setNotifyRoles("role1,role2")
                 .setUserAuthorityFilter("filter").setUserAuthorityExpiration("expiry")
-                .setDescription("description").setLastReviewedDate(Timestamp.fromMillis(100));
+                .setDescription("description").setLastReviewedDate(Timestamp.fromMillis(100))
+                .setMaxMembers(10);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -1403,7 +1409,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(17, 50);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(18, true);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(19, new java.sql.Timestamp(100));
-        Mockito.verify(mockPrepStmt, times(1)).setInt(20, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(20, 10);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(21, 4);
         jdbcConn.close();
     }
 
@@ -1449,7 +1456,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(17, 0);
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(18, false);
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(19, null);
-        Mockito.verify(mockPrepStmt, times(1)).setInt(20, 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(20, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(21, 7);
         jdbcConn.close();
     }
 

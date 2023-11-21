@@ -77,6 +77,27 @@ func (cli Zms) ShowUpdatedGroup(group *zms.Group, auditLog bool) (*string, error
 	return cli.dumpByFormat(group, oldYamlConverter)
 }
 
+func (cli Zms) SetGroupMaxMembers(dn string, rn string, maxMembers int32) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.MaxMembers = &maxMembers
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + rn + " group-max-members attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetGroupMemberExpiryDays(dn string, rn string, days int32) (*string, error) {
 	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
 	if err != nil {
@@ -312,6 +333,7 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 		MemberExpiryDays:        group.MemberExpiryDays,
 		ServiceExpiryDays:       group.ServiceExpiryDays,
 		Tags:                    group.Tags,
+		MaxMembers:              group.MaxMembers,
 	}
 }
 

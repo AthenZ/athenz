@@ -2634,6 +2634,7 @@ public class ZMSImplTest {
         role1.setServiceReviewDays(80);
         role1.setGroupReviewDays(90);
         role1.setDescription("testroledescription");
+        role1.setMaxMembers(25);
         zmsImpl.putRole(ctx, "GetRoleDom1", "Role1", auditRef, false, role1);
 
         Role role = zmsImpl.getRole(ctx, "GetRoleDom1", "Role1", false, false, false);
@@ -2658,6 +2659,7 @@ public class ZMSImplTest {
         assertEquals(role.getGroupReviewDays(), Integer.valueOf(90));
         assertEquals(role.getDescription(), "testroledescription");
         assertTrue(role.getSelfServe());
+        assertEquals(role.getMaxMembers(), 25);
 
         zmsImpl.deleteTopLevelDomain(ctx, "GetRoleDom1", auditRef);
     }
@@ -3811,7 +3813,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testPutMembershipRespone() {
+    public void testPutMembershipResponse() {
 
         TestAuditLogger alogger = new TestAuditLogger();
         ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
