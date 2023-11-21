@@ -152,6 +152,7 @@ func TestToBeRefreshed(t *testing.T) {
 	err = os.WriteFile(tpath, token(360, currentUnixTime), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-time.Minute*90))
+	require.NoError(t, err, "error changing os time on file %q: %v", tpath, err)
 
 	tpath = filepath.Join(tokenDir, domain, "reader-fail1")
 	log.Printf("Creating a token at: %s\n", tpath)
@@ -212,7 +213,7 @@ func TestToBeRefreshedWithStoreOption(t *testing.T) {
 	err = os.WriteFile(tpath, token(360000, currentUnixTime), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 	err = os.Chtimes(tpath, time.Now(), time.Now().Add(-time.Minute*90))
-
+	require.NoError(t, err, "error changing os time on file %q: %v", tpath, err)
 	opts := config.TokenOptions{
 		TokenDir: tokenDir,
 		Tokens:   tokens,
@@ -749,6 +750,7 @@ func TestTokenRefreshOption(t *testing.T) {
 	siaDir := "/tmp"
 
 	opts, err := options.NewOptions(cfg, configAccount, nil, siaDir, "1.0.0", false, "us-west-2")
+	require.NoError(t, err, "error creating new options: %v", err)
 	tokenOpts, err := NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	dur, _ := time.ParseDuration(DefaultRefreshDuration)
