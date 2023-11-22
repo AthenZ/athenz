@@ -116,7 +116,7 @@ class QuotaChecker {
         // limit is configured for the role and it is satisfied
 
         int objectCount = getListSize(role.getRoleMembers());
-        if (role.getMaxMembers() != null && role.getMaxMembers() < objectCount) {
+        if (role.getMaxMembers() != null && role.getMaxMembers() != 0 && role.getMaxMembers() < objectCount) {
             throw ZMSUtils.quotaLimitError("role max members exceeded - limit: "
                     + role.getMaxMembers() + " actual: " + objectCount, caller);
         }
@@ -161,7 +161,7 @@ class QuotaChecker {
         // limit is configured for the group and it is satisfied
 
         int objectCount = getListSize(group.getGroupMembers());
-        if (group.getMaxMembers() != null && group.getMaxMembers() < objectCount) {
+        if (group.getMaxMembers() != null && group.getMaxMembers() != 0 && group.getMaxMembers() < objectCount) {
             throw ZMSUtils.quotaLimitError("group max members exceeded - limit: "
                     + group.getMaxMembers() + " actual: " + objectCount, caller);
         }

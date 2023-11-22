@@ -916,7 +916,8 @@ public class QuotaCheckerTest {
     public void testRoleWithMaxLimits() {
 
         final String domainName = "role-max-members";
-        final String roleName = "role1";
+        final String roleName1 = "role1";
+        final String roleName2 = "role2";
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -933,11 +934,11 @@ public class QuotaCheckerTest {
         // creating a role with the max members set to 1 should be
         // rejected
 
-        Role role = zmsTestInitializer.createRoleObject(domainName, roleName, null, roleMembers);
+        Role role = zmsTestInitializer.createRoleObject(domainName, roleName1, null, roleMembers);
         role.setMaxMembers(1);
 
         try {
-            zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+            zmsImpl.putRole(ctx, domainName, roleName1, auditRef, false, role);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -946,14 +947,14 @@ public class QuotaCheckerTest {
         // now we're going to increase the limit and make sure it works
 
         role.setMaxMembers(2);
-        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+        zmsImpl.putRole(ctx, domainName, roleName1, auditRef, false, role);
 
         // now we're going to add a 3rd member and make sure it fails
 
         roleMembers.add(new RoleMember().setMemberName("user.test3"));
         role.setRoleMembers(roleMembers);
         try {
-            zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, role);
+            zmsImpl.putRole(ctx, domainName, roleName1, auditRef, false, role);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -963,7 +964,7 @@ public class QuotaCheckerTest {
 
         Membership membership = new Membership().setMemberName("user.test3");
         try {
-            zmsImpl.putMembership(ctx, domainName, roleName, "user.test3", auditRef, false, membership);
+            zmsImpl.putMembership(ctx, domainName, roleName1, "user.test3", auditRef, false, membership);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -971,23 +972,23 @@ public class QuotaCheckerTest {
 
         // let's get our meta and verify the max members value
 
-        Role roleRes = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        Role roleRes = zmsImpl.getRole(ctx, domainName, roleName1, false, false, false);
         assertEquals(roleRes.getMaxMembers(), 2);
 
         // now let's update the max members through role meta
 
         RoleMeta roleMeta = new RoleMeta().setMaxMembers(3);
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName1, auditRef, roleMeta);
 
         // now let's try our membership operation which should succeed
 
-        zmsImpl.putMembership(ctx, domainName, roleName, "user.test3", auditRef, false, membership);
+        zmsImpl.putMembership(ctx, domainName, roleName1, "user.test3", auditRef, false, membership);
 
         // if we try another one then it should fail
 
         Membership membership4 = new Membership().setMemberName("user.test4");
         try {
-            zmsImpl.putMembership(ctx, domainName, roleName, "user.test4", auditRef, false, membership4);
+            zmsImpl.putMembership(ctx, domainName, roleName1, "user.test4", auditRef, false, membership4);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -996,14 +997,20 @@ public class QuotaCheckerTest {
         // let's remove the limit
 
         roleMeta = new RoleMeta().setMaxMembers(0);
-        zmsImpl.putRoleMeta(ctx, domainName, roleName, auditRef, roleMeta);
+        zmsImpl.putRoleMeta(ctx, domainName, roleName1, auditRef, roleMeta);
 
-        roleRes = zmsImpl.getRole(ctx, domainName, roleName, false, false, false);
+        roleRes = zmsImpl.getRole(ctx, domainName, roleName1, false, false, false);
         assertNull(roleRes.getMaxMembers());
 
         // now let's try our membership operation which should succeed
 
-        zmsImpl.putMembership(ctx, domainName, roleName, "user.test4", auditRef, false, membership4);
+        zmsImpl.putMembership(ctx, domainName, roleName1, "user.test4", auditRef, false, membership4);
+
+        // adding a role with the max member limit set to 0 is ok
+
+        role = zmsTestInitializer.createRoleObject(domainName, roleName2, null, roleMembers);
+        role.setMaxMembers(0);
+        zmsImpl.putRole(ctx, domainName, roleName2, auditRef, false, role);
 
         zmsTestInitializer.deleteTopLevelDomain(domainName);
     }
@@ -1012,7 +1019,8 @@ public class QuotaCheckerTest {
     public void testGroupWithMaxLimits() {
 
         final String domainName = "group-max-members";
-        final String groupName = "group1";
+        final String groupName1 = "group1";
+        final String groupName2 = "group2";
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1029,11 +1037,11 @@ public class QuotaCheckerTest {
         // creating a group with the max members set to 1 should be
         // rejected
 
-        Group group = zmsTestInitializer.createGroupObject(domainName, groupName, groupMembers);
+        Group group = zmsTestInitializer.createGroupObject(domainName, groupName1, groupMembers);
         group.setMaxMembers(1);
 
         try {
-            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+            zmsImpl.putGroup(ctx, domainName, groupName1, auditRef, false, group);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -1042,14 +1050,14 @@ public class QuotaCheckerTest {
         // now we're going to increase the limit and make sure it works
 
         group.setMaxMembers(2);
-        zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+        zmsImpl.putGroup(ctx, domainName, groupName1, auditRef, false, group);
 
         // now we're going to add a 3rd member and make sure it fails
 
         groupMembers.add(new GroupMember().setMemberName("user.test3"));
         group.setGroupMembers(groupMembers);
         try {
-            zmsImpl.putGroup(ctx, domainName, groupName, auditRef, false, group);
+            zmsImpl.putGroup(ctx, domainName, groupName1, auditRef, false, group);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -1059,7 +1067,7 @@ public class QuotaCheckerTest {
 
         GroupMembership membership = new GroupMembership().setMemberName("user.test3");
         try {
-            zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.test3", auditRef, false, membership);
+            zmsImpl.putGroupMembership(ctx, domainName, groupName1, "user.test3", auditRef, false, membership);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -1067,23 +1075,23 @@ public class QuotaCheckerTest {
 
         // let's get our meta and verify the max members value
 
-        Group groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        Group groupRes = zmsImpl.getGroup(ctx, domainName, groupName1, false, false);
         assertEquals(groupRes.getMaxMembers(), 2);
 
         // now let's update the max members through group meta
 
         GroupMeta groupMeta = new GroupMeta().setMaxMembers(3);
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName1, auditRef, groupMeta);
 
         // now let's try our membership operation which should succeed
 
-        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.test3", auditRef, false, membership);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName1, "user.test3", auditRef, false, membership);
 
         // if we try another one then it should fail
 
         GroupMembership membership4 = new GroupMembership().setMemberName("user.test4");
         try {
-            zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.test4", auditRef, false, membership4);
+            zmsImpl.putGroupMembership(ctx, domainName, groupName1, "user.test4", auditRef, false, membership4);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
@@ -1092,14 +1100,20 @@ public class QuotaCheckerTest {
         // let's remove the limit
 
         groupMeta = new GroupMeta().setMaxMembers(0);
-        zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
+        zmsImpl.putGroupMeta(ctx, domainName, groupName1, auditRef, groupMeta);
 
-        groupRes = zmsImpl.getGroup(ctx, domainName, groupName, false, false);
+        groupRes = zmsImpl.getGroup(ctx, domainName, groupName1, false, false);
         assertNull(groupRes.getMaxMembers());
 
         // now let's try our membership operation which should succeed
 
-        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.test4", auditRef, false, membership4);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName1, "user.test4", auditRef, false, membership4);
+
+        // adding a group with 0 as the limit is allowed
+
+        group = zmsTestInitializer.createGroupObject(domainName, groupName2, groupMembers);
+        group.setMaxMembers(0);
+        zmsImpl.putGroup(ctx, domainName, groupName2, auditRef, false, group);
 
         zmsTestInitializer.deleteTopLevelDomain(domainName);
     }
