@@ -29,7 +29,7 @@ import { getDomainData } from '../../../../../redux/thunks/domain';
 import { getGroup } from '../../../../../redux/thunks/groups';
 import { connect } from 'react-redux';
 import { selectIsLoading } from '../../../../../redux/selectors/loading';
-import { selectGroup } from '../../../../../redux/selectors/group';
+import { selectGroup } from '../../../../../redux/selectors/groups';
 import {
     selectDomainAuditEnabled,
     selectDomainData,

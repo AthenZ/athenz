@@ -97,6 +97,9 @@ describe('DynamicInstancePage', () => {
             listUserDomains: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(domains)),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         };
         MockApi.setMockApi(api);
         const { getByTestId } = renderWithRedux(

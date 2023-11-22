@@ -23,6 +23,9 @@ describe('Header', () => {
     beforeEach(() => {
         MockApi.setMockApi({
             getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         });
     });
     afterEach(() => MockApi.cleanMockApi());

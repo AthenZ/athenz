@@ -30,6 +30,7 @@ import {
     getRole,
     getRoles,
     reviewRole,
+    getReviewRoles,
 } from '../../../redux/thunks/roles';
 import {
     addRoleToStore,
@@ -38,6 +39,7 @@ import {
     loadRoles,
     returnRoles,
     reviewRoleToStore,
+    loadRolesToReview,
 } from '../../../redux/actions/roles';
 import { storeRoles } from '../../../redux/actions/domains';
 import {
@@ -699,5 +701,94 @@ describe('reviewRole method', () => {
         expect(fakeDispatch.getCall(1).args[0]).toEqual(
             reviewRoleToStore(singleStoreRole.name, singleStoreRole)
         );
+    });
+});
+
+describe('getReviewRoles', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+
+    it('should getReviewRoles no data in the store', async () => {
+        const getState = () => {
+            return { roles: {} };
+        };
+
+        MockApi.setMockApi({
+            getReviewRoles: jest.fn().mockReturnValue(Promise.resolve([])),
+        });
+        const fakeDispatch = sinon.spy();
+        await getReviewRoles()(fakeDispatch, getState);
+
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(0).args[0],
+                loadingInProcess('getReviewRoles')
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(fakeDispatch.getCall(1).args[0], loadRolesToReview([]))
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(2).args[0],
+                loadingSuccess('getReviewRoles')
+            )
+        ).toBeTruthy();
+    });
+
+    it('should getReviewRoles success', async () => {
+        const getState = () => {
+            return { roles: {} };
+        };
+
+        let mockResponse = [
+            {
+                domainName: 'home.jtsang01',
+                name: 'rolereviewtest',
+                memberExpiryDays: 10,
+                memberReviewDays: 10,
+                serviceExpiryDays: 0,
+                serviceReviewDays: 0,
+                groupExpiryDays: 10,
+                groupReviewDays: 10,
+            },
+            {
+                domainName: 'home.jtsang01',
+                name: 't',
+                memberExpiryDays: 5,
+                memberReviewDays: 5,
+                serviceExpiryDays: 5,
+                serviceReviewDays: 5,
+                groupExpiryDays: 5,
+                groupReviewDays: 5,
+            },
+        ];
+        MockApi.setMockApi({
+            getReviewRoles: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(mockResponse)),
+        });
+        const fakeDispatch = sinon.spy();
+        await getReviewRoles()(fakeDispatch, getState);
+
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(0).args[0],
+                loadingInProcess('getReviewRoles')
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(1).args[0],
+                loadRolesToReview(mockResponse)
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(2).args[0],
+                loadingSuccess('getReviewRoles')
+            )
+        ).toBeTruthy();
     });
 });

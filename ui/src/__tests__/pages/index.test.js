@@ -44,6 +44,9 @@ describe('Home', () => {
             getHeaderDetails: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(headerDetails)),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         });
 
         const { getByTestId } = renderWithRedux(

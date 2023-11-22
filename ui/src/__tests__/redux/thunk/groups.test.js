@@ -28,6 +28,7 @@ import {
     getGroup,
     getGroups,
     reviewGroup,
+    getReviewGroups,
 } from '../../../redux/thunks/groups';
 import {
     addGroupToStore,
@@ -35,6 +36,7 @@ import {
     loadGroup,
     loadGroupRoleMembers,
     loadGroups,
+    loadGroupsToReview,
     returnGroups,
     reviewGroupToStore,
 } from '../../../redux/actions/groups';
@@ -47,7 +49,7 @@ import {
 import AppUtils from '../../../components/utils/AppUtils';
 
 const groupsThunk = require('../../../redux/thunks/groups');
-const groupSelector = require('../../../redux/selectors/group');
+const groupSelector = require('../../../redux/selectors/groups');
 const domainName = 'dom';
 const utils = require('../../../redux/utils');
 
@@ -517,5 +519,84 @@ describe('reviewGroup method', () => {
         expect(fakeDispatch.getCall(1).args[0]).toEqual(
             reviewGroupToStore(singleStoreGroup.name, singleStoreGroup)
         );
+    });
+});
+
+describe('getReviewGroups', () => {
+    afterEach(() => {
+        MockApi.cleanMockApi();
+    });
+
+    it('should getReviewGroups no data in the store', async () => {
+        const getState = () => {
+            return { groups: {} };
+        };
+
+        MockApi.setMockApi({
+            getReviewGroups: jest.fn().mockReturnValue(Promise.resolve([])),
+        });
+        const fakeDispatch = sinon.spy();
+        await getReviewGroups()(fakeDispatch, getState);
+
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(0).args[0],
+                loadingInProcess('getReviewGroups')
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(fakeDispatch.getCall(1).args[0], loadGroupsToReview([]))
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(2).args[0],
+                loadingSuccess('getReviewGroups')
+            )
+        ).toBeTruthy();
+    });
+
+    it('should getReviewGroups success', async () => {
+        const getState = () => {
+            return { groups: {} };
+        };
+
+        let mockResponse = [
+            {
+                domainName: 'home.jtsang01',
+                name: 'heyreviewthis',
+                memberExpiryDays: 10,
+                memberReviewDays: 0,
+                serviceExpiryDays: 10,
+                serviceReviewDays: 0,
+                groupExpiryDays: 0,
+                groupReviewDays: 0,
+            },
+        ];
+        MockApi.setMockApi({
+            getReviewGroups: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(mockResponse)),
+        });
+        const fakeDispatch = sinon.spy();
+        await getReviewGroups()(fakeDispatch, getState);
+
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(0).args[0],
+                loadingInProcess('getReviewGroups')
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(1).args[0],
+                loadGroupsToReview(mockResponse)
+            )
+        ).toBeTruthy();
+        expect(
+            _.isEqual(
+                fakeDispatch.getCall(2).args[0],
+                loadingSuccess('getReviewGroups')
+            )
+        ).toBeTruthy();
     });
 });

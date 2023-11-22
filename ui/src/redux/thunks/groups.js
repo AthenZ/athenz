@@ -18,13 +18,15 @@ import {
     addGroupToStore,
     deleteGroupFromStore,
     loadGroups,
+    loadGroupsToReview,
     returnGroups,
+    returnGroupsToReview,
     reviewGroupToStore,
 } from '../actions/groups';
 import API from '../../api';
 import { storeGroups } from '../actions/domains';
 import { getGroupApiCall, getGroupsApiCall } from './utils/groups';
-import { thunkSelectGroup, thunkSelectGroups } from '../selectors/group';
+import { thunkSelectGroup, thunkSelectGroups } from '../selectors/groups';
 import {
     buildErrorForDoesntExistCase,
     buildErrorForDuplicateCase,
@@ -35,6 +37,11 @@ import {
 } from '../utils';
 import { groupDelimiter, memberNameKey } from '../config';
 import { getRoleApiCall } from './utils/roles';
+import {
+    loadingFailed,
+    loadingInProcess,
+    loadingSuccess,
+} from '../actions/loading';
 
 export const addGroup =
     (groupName, auditRef, group, _csrf) => async (dispatch, getState) => {
@@ -180,3 +187,19 @@ export const getGroupHistory =
             return Promise.reject(error);
         }
     };
+
+export const getReviewGroups = () => async (dispatch, getState) => {
+    try {
+        if (!getState().groups.groupsToReview) {
+            dispatch(loadingInProcess('getReviewGroups'));
+            const reviewGroups = await API().getReviewGroups();
+            dispatch(loadGroupsToReview(reviewGroups));
+            dispatch(loadingSuccess('getReviewGroups'));
+        } else {
+            dispatch(returnGroupsToReview());
+        }
+    } catch (error) {
+        dispatch(loadingFailed('getReviewGroups'));
+        throw error;
+    }
+};

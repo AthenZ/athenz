@@ -99,6 +99,9 @@ describe('PendingApprovalPage', () => {
                     resolve(pendingData);
                 })
             ),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
             listUserDomains: jest.fn().mockReturnValue(
                 new Promise((resolve, reject) => {
                     resolve(domains);

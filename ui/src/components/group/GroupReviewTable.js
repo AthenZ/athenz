@@ -20,7 +20,7 @@ import Button from '../denali/Button';
 import Color from '../denali/Color';
 import Input from '../denali/Input';
 import RequestUtils from '../utils/RequestUtils';
-import { selectReviewGroupMembers } from '../../redux/selectors/group';
+import { selectReviewGroupMembers } from '../../redux/selectors/groups';
 import { reviewGroup } from '../../redux/thunks/groups';
 import { connect } from 'react-redux';
 import produce from 'immer';

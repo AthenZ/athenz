@@ -23,7 +23,7 @@ import NameUtils from '../utils/NameUtils';
 import AddGroup from './AddGroup';
 import GroupTable from './GroupTable';
 import { connect } from 'react-redux';
-import { selectGroups } from '../../redux/selectors/group';
+import { selectGroups } from '../../redux/selectors/groups';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { selectTimeZone } from '../../redux/selectors/domains';

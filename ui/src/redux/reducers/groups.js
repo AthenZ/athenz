@@ -20,6 +20,7 @@ import {
     LOAD_GROUP,
     LOAD_GROUP_ROLE_MEMBERS,
     LOAD_GROUPS,
+    LOAD_GROUPS_TO_REVIEW,
     RETURN_GROUPS,
     REVIEW_GROUP,
 } from '../actions/groups';
@@ -46,6 +47,13 @@ export const groups = (state = {}, action) => {
                 draft.domainName = domainName;
                 draft.expiry = expiry;
                 draft.groups = groups;
+            });
+            return newState;
+        }
+        case LOAD_GROUPS_TO_REVIEW: {
+            const { groupsToReview } = payload;
+            let newState = produce(state, (draft) => {
+                draft.groupsToReview = groupsToReview;
             });
             return newState;
         }
