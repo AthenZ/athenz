@@ -128,6 +128,9 @@ const config = {
             microsegmentation: {
                 policyValidation: true,
             },
+            roleGroupReview: {
+                roleGroupReviewFeatureFlag: true,
+            },
         },
         serviceHeaderLinks: [
             {
@@ -170,6 +173,14 @@ const config = {
             },
         ],
         featureFlag: true,
+        pageFeatureFlag: {
+            microsegmentation: {
+                policyValidation: true,
+            },
+            roleGroupReview: {
+                roleGroupReviewFeatureFlag: true,
+            },
+        },
         serviceHeaderLinks: [
             {
                 description:

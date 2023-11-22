@@ -92,10 +92,16 @@ const HeaderMenuUserDiv = styled.div`
     margin-left: 15px;
 `;
 
+const NotificationIconRedDotContainer = styled.div`
+    position: relative;
+    width: 0;
+    height: 0;
+`;
+
 const ReviewNotificationSpan = styled.span`
     position: absolute;
-    top: 10px;
-    right: 90px;
+    top: -5px;
+    right: 0px;
     width: 15px;
     height: 15px;
     background-color: red;
@@ -126,6 +132,27 @@ class HeaderMenu extends React.Component {
         });
     }
 
+    shouldAlertUser() {
+        let props = this.props;
+        let reviewRolesHasLength =
+            Object.keys(props.reviewRoles).length > 0;
+        let reviewGroupsHasLength =
+            Object.keys(props.reviewGroups).length > 0;
+        let reviewPendingMembersHasLength = Object.keys(props.pending).length > 0;
+        // TODO clean up feature flag after full feature implemented and deployed to prod
+        return (
+            this.state.roleGroupReviewFeatureFlag &&
+            (reviewRolesHasLength ||
+                reviewGroupsHasLength ||
+                reviewPendingMembersHasLength)
+        );
+    }
+
+    notificationsExist() {
+        let props = this.props;
+        return props.pending || props.reviewRoles || props.reviewGroups;
+    }
+
     render() {
         let props = this.props;
         let reviewNotificationRedDot = '';
@@ -134,20 +161,9 @@ class HeaderMenu extends React.Component {
             this,
             PageUtils.workflowAdminPage()
         );
-        if (props.pending || props.reviewRoles || props.reviewGroups) {
-            let reviewRolesHasLength =
-                Object.keys(props.reviewRoles).length > 0;
-            let reviewGroupsHasLength =
-                Object.keys(props.reviewGroups).length > 0;
-            let reviewPendingMembersHasLength =
-                Object.keys(props.pending).length > 0;
-            // TODO clean up feature flag after full feature implemented and deployed to prod
-            if (
-                this.state.roleGroupReviewFeatureFlag &&
-                (reviewRolesHasLength ||
-                    reviewGroupsHasLength ||
-                    reviewPendingMembersHasLength)
-            ) {
+        if (this.notificationsExist()) {
+            let reviewPendingMembersHasLength = Object.keys(props.pending).length > 0;
+            if (this.shouldAlertUser()) {
                 icon = 'notification-solid';
                 reviewNotificationRedDot = <ReviewNotificationSpan />;
             }
@@ -181,7 +197,9 @@ class HeaderMenu extends React.Component {
                     size={'25px'}
                     color={colors.white}
                 />
-                {reviewNotificationRedDot}
+                <NotificationIconRedDotContainer>
+                    {reviewNotificationRedDot}
+                </NotificationIconRedDotContainer>
 
                 <HeaderMenuUserDiv>
                     <Menu

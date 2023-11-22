@@ -449,10 +449,16 @@ exports[`DynamicInstancePage should render 1`] = `
 }
 
 .emotion-15 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-17 {
   margin-left: 15px;
 }
 
-.emotion-18 {
+.emotion-20 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -460,7 +466,7 @@ exports[`DynamicInstancePage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-20 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -480,7 +486,7 @@ exports[`DynamicInstancePage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-22 {
+.emotion-24 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -499,39 +505,39 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-26 {
+.emotion-28 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-28 {
+.emotion-30 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-30 {
+.emotion-32 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-32 {
+.emotion-34 {
   margin: 3px;
   vertical-align: 3px;
 }
 
-.emotion-34 {
+.emotion-36 {
   fill: #0072df;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-35 {
+.emotion-37 {
   margin: 20px 0;
 }
 
-.emotion-37 {
+.emotion-39 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -542,15 +548,15 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-39 {
+.emotion-41 {
   padding-right: 50px;
 }
 
-.emotion-41 {
+.emotion-43 {
   font-weight: 600;
 }
 
-.emotion-43 {
+.emotion-45 {
   color: #9a9a9a;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -558,12 +564,12 @@ exports[`DynamicInstancePage should render 1`] = `
   cursor: pointer;
 }
 
-.emotion-45 {
+.emotion-47 {
   margin: 3px;
   vertical-align: 2px;
 }
 
-.emotion-57 {
+.emotion-59 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -578,7 +584,7 @@ exports[`DynamicInstancePage should render 1`] = `
   position: relative;
 }
 
-.emotion-57.vertical {
+.emotion-59.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -594,7 +600,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-58 {
+.emotion-60 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -618,11 +624,11 @@ exports[`DynamicInstancePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-58:hover {
+.emotion-60:hover {
   color: #3570f4;
 }
 
-.emotion-58.active {
+.emotion-60.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -630,11 +636,11 @@ exports[`DynamicInstancePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-58.active:hover {
+.emotion-60.active:hover {
   color: #303030;
 }
 
-.emotion-58.vertical {
+.emotion-60.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -646,21 +652,21 @@ exports[`DynamicInstancePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-58.vertical.active {
+.emotion-60.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-58.vertical.active:hover {
+.emotion-60.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-59 {
+.emotion-61 {
   margin: 20px;
 }
 
-.emotion-61 {
+.emotion-63 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -679,11 +685,11 @@ exports[`DynamicInstancePage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-63 {
+.emotion-65 {
   width: 50%;
 }
 
-.emotion-65 {
+.emotion-67 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -691,21 +697,21 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-67 {
+.emotion-69 {
   background: #ffffff;
   width: 35%;
 }
 
-.emotion-69 {
+.emotion-71 {
   position: relative;
   width: 100%;
 }
 
-.emotion-69 input {
+.emotion-71 input {
   cursor: pointer;
 }
 
-.emotion-70 {
+.emotion-72 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -722,7 +728,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-70 input {
+.emotion-72 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -748,42 +754,42 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-70.animated input {
+.emotion-72.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-70 input::-webkit-input-placeholder {
+.emotion-72 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-70 input::-moz-placeholder {
+.emotion-72 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-70 input:-ms-input-placeholder {
+.emotion-72 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-70 input::placeholder {
+.emotion-72 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-70 input.focused,
-.emotion-70 input:active,
-.emotion-70 input:focus {
+.emotion-72 input.focused,
+.emotion-72 input:active,
+.emotion-72 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-70 input:invalid {
+.emotion-72 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-70 .message {
+.emotion-72 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -791,22 +797,22 @@ exports[`DynamicInstancePage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-70.error input,
-.emotion-70.error input.focused,
-.emotion-70.error input:active,
-.emotion-70.error input:focus {
+.emotion-72.error input,
+.emotion-72.error input.focused,
+.emotion-72.error input:active,
+.emotion-72.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-70.error .message {
+.emotion-72.error .message {
   color: #d01111;
 }
 
-.emotion-70 input {
+.emotion-72 input {
   padding-right: 36px;
 }
 
-.emotion-70 .input-icon {
+.emotion-72 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -820,19 +826,19 @@ exports[`DynamicInstancePage should render 1`] = `
   right: 6px;
 }
 
-.emotion-71 {
+.emotion-73 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-72 {
+.emotion-74 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-76 {
+.emotion-78 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -840,7 +846,7 @@ exports[`DynamicInstancePage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-78 {
+.emotion-80 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -851,7 +857,7 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 5px 0 5px 25px;
 }
 
-.emotion-92 {
+.emotion-94 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -863,13 +869,13 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 5px 0 5px 15px;
 }
 
-.emotion-94 {
+.emotion-96 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
 }
 
-.emotion-96 {
+.emotion-98 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -880,19 +886,19 @@ exports[`DynamicInstancePage should render 1`] = `
   padding-bottom: 10px;
 }
 
-.emotion-108 {
+.emotion-110 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
 }
 
-.emotion-110 {
+.emotion-112 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-111 {
+.emotion-113 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -918,13 +924,13 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-113 {
+.emotion-115 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-114 {
+.emotion-116 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -939,7 +945,7 @@ exports[`DynamicInstancePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-116 {
+.emotion-118 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -958,28 +964,28 @@ exports[`DynamicInstancePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-118 {
+.emotion-120 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-120 {
+.emotion-122 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-122 {
+.emotion-124 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-126 {
+.emotion-128 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-128 {
+.emotion-130 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -987,12 +993,12 @@ exports[`DynamicInstancePage should render 1`] = `
   display: flex;
 }
 
-.emotion-130 {
+.emotion-132 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-132 {
+.emotion-134 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1091,6 +1097,9 @@ exports[`DynamicInstancePage should render 1`] = `
           </svg>
           <div
             class="emotion-15 emotion-16"
+          />
+          <div
+            class="emotion-17 emotion-18"
           >
             <svg
               class="emotion-14"
@@ -1119,36 +1128,36 @@ exports[`DynamicInstancePage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-18 emotion-19"
+    class="emotion-20 emotion-21"
   >
     <div
-      class="emotion-20 emotion-21"
+      class="emotion-22 emotion-23"
     >
       <div
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-26 emotion-27"
+            class="emotion-28 emotion-29"
           >
             <div
-              class="emotion-28 emotion-29"
+              class="emotion-30 emotion-31"
               data-testid="service-name-header"
             >
               <a
-                class="emotion-30 emotion-31"
+                class="emotion-32 emotion-33"
               >
                 dom
               </a>
               :service.
               serv
               <span
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               >
                 <svg
-                  class="emotion-34"
+                  class="emotion-36"
                   data-testid="icon"
                   height="15px"
                   id=""
@@ -1168,29 +1177,29 @@ exports[`DynamicInstancePage should render 1`] = `
               </span>
             </div>
             <div
-              class="emotion-35 emotion-36"
+              class="emotion-37 emotion-38"
             >
               <div
-                class="emotion-37 emotion-38"
+                class="emotion-39 emotion-40"
               >
                 <span>
                   <div
-                    class="emotion-39 emotion-40"
+                    class="emotion-41 emotion-42"
                   >
                     <div
-                      class="emotion-41 emotion-42"
+                      class="emotion-43 emotion-44"
                     >
                       10
                     </div>
                     <div
-                      class="emotion-43 emotion-44"
+                      class="emotion-45 emotion-46"
                     >
                       Total Dynamic Instances
                       <span
-                        class="emotion-45 emotion-46"
+                        class="emotion-47 emotion-48"
                       >
                         <svg
-                          class="emotion-34"
+                          class="emotion-36"
                           data-testid="icon"
                           height="15px"
                           id=""
@@ -1213,22 +1222,22 @@ exports[`DynamicInstancePage should render 1`] = `
                 </span>
                 <span>
                   <div
-                    class="emotion-39 emotion-40"
+                    class="emotion-41 emotion-42"
                   >
                     <div
-                      class="emotion-41 emotion-42"
+                      class="emotion-43 emotion-44"
                     >
                       8
                     </div>
                     <div
-                      class="emotion-43 emotion-44"
+                      class="emotion-45 emotion-46"
                     >
                       Total Healthy Dynamic Instances
                       <span
-                        class="emotion-45 emotion-46"
+                        class="emotion-47 emotion-48"
                       >
                         <svg
-                          class="emotion-34"
+                          class="emotion-36"
                           data-testid="icon"
                           height="15px"
                           id=""
@@ -1252,11 +1261,11 @@ exports[`DynamicInstancePage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-57 denali-tab-group"
+              class="emotion-59 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-58 denali-tab"
+                class="emotion-60 denali-tab"
                 data-active="false"
               >
                 Tags
@@ -1264,31 +1273,31 @@ exports[`DynamicInstancePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-59 emotion-60"
+            class="emotion-61 emotion-62"
             data-testid="instancelist"
           >
             <div
-              class="emotion-61 emotion-62"
+              class="emotion-63 emotion-64"
             >
               <div
-                class="emotion-63 emotion-64"
+                class="emotion-65 emotion-66"
               >
                 <div
-                  class="emotion-65 emotion-66"
+                  class="emotion-67 emotion-68"
                 >
                   <div
-                    class="emotion-67 emotion-68"
+                    class="emotion-69 emotion-70"
                   >
                     <div
                       aria-expanded="false"
                       aria-haspopup="listbox"
                       aria-labelledby="downshift-0-label"
-                      class="emotion-69 denali-input-dropdown"
+                      class="emotion-71 denali-input-dropdown"
                       data-testid="input-dropdown"
                       role="combobox"
                     >
                       <div
-                        class="emotion-70 denali-input animated"
+                        class="emotion-72 denali-input animated"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1308,7 +1317,7 @@ exports[`DynamicInstancePage should render 1`] = `
                           class="input-icon"
                         >
                           <svg
-                            class="emotion-71"
+                            class="emotion-73"
                             data-testid="icon"
                             height="24px"
                             id=""
@@ -1331,10 +1340,10 @@ exports[`DynamicInstancePage should render 1`] = `
                     </div>
                   </div>
                   <div
-                    class="emotion-72 emotion-73"
+                    class="emotion-74 emotion-75"
                   >
                     <div
-                      class="emotion-70 denali-input animated"
+                      class="emotion-72 denali-input animated"
                       data-testid="input-wrapper"
                     >
                       <input
@@ -1373,7 +1382,7 @@ exports[`DynamicInstancePage should render 1`] = `
               </div>
             </div>
             <table
-              class="emotion-76 emotion-77"
+              class="emotion-78 emotion-79"
               data-testid="instancetable"
             >
               <colgroup>
@@ -1402,37 +1411,37 @@ exports[`DynamicInstancePage should render 1`] = `
               <thead>
                 <tr>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     Instance
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     Hostname
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     Provider
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     ID
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     Expires On
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     Last Certificate Refresh
                   </th>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-80 emotion-81"
                   >
                     Delete
                   </th>
@@ -1440,52 +1449,52 @@ exports[`DynamicInstancePage should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-92 emotion-93"
+                  class="emotion-94 emotion-95"
                   data-testid="instance-row"
                 >
                   <td
-                    class="emotion-94 emotion-95"
+                    class="emotion-96 emotion-97"
                     color=""
                   >
                     <div
-                      class="emotion-96 emotion-97"
+                      class="emotion-98 emotion-99"
                     />
                   </td>
                   <td
-                    class="emotion-94 emotion-95"
+                    class="emotion-96 emotion-97"
                     color=""
                   />
                   <td
-                    class="emotion-94 emotion-95"
+                    class="emotion-96 emotion-97"
                     color=""
                   >
                     Static
                   </td>
                   <td
-                    class="emotion-94 emotion-95"
+                    class="emotion-96 emotion-97"
                     color=""
                   >
                     10.1.1.1
                   </td>
                   <td
-                    class="emotion-94 emotion-95"
+                    class="emotion-96 emotion-97"
                     color=""
                   >
                     Invalid date
                   </td>
                   <td
-                    class="emotion-94 emotion-95"
+                    class="emotion-96 emotion-97"
                     color=""
                   >
                     2021-05-15 01:17 UTC
                   </td>
                   <td
-                    class="emotion-108 emotion-95"
+                    class="emotion-110 emotion-97"
                     color=""
                   >
                     <span>
                       <svg
-                        class="emotion-110"
+                        class="emotion-112"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1514,11 +1523,11 @@ exports[`DynamicInstancePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-111 emotion-112"
+          class="emotion-113 emotion-114"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-113"
+            class="emotion-115"
             data-testid="icon"
             height="1em"
             id=""
@@ -1534,45 +1543,45 @@ exports[`DynamicInstancePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-114 emotion-115"
+          class="emotion-116 emotion-117"
         >
           <div
-            class="emotion-116 emotion-117"
+            class="emotion-118 emotion-119"
           >
             <div
-              class="emotion-118 emotion-119"
+              class="emotion-120 emotion-121"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-120 emotion-121"
+                class="emotion-122 emotion-123"
               >
                 Create
               </a>
               <span
-                class="emotion-122 emotion-123"
+                class="emotion-124 emotion-125"
               >
                  | 
               </span>
               <a
-                class="emotion-120 emotion-121"
+                class="emotion-122 emotion-123"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-126 emotion-127"
+            class="emotion-128 emotion-129"
           >
             <div
-              class="emotion-128 emotion-129"
+              class="emotion-130 emotion-131"
             >
               <div
-                class="emotion-130 emotion-131"
+                class="emotion-132 emotion-133"
               >
                 <svg
-                  class="emotion-132"
+                  class="emotion-134"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1594,19 +1603,19 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-120 emotion-121"
+                class="emotion-122 emotion-123"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-128 emotion-129"
+              class="emotion-130 emotion-131"
             >
               <div
-                class="emotion-130 emotion-131"
+                class="emotion-132 emotion-133"
               >
                 <svg
-                  class="emotion-132"
+                  class="emotion-134"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1628,7 +1637,7 @@ exports[`DynamicInstancePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-120 emotion-121"
+                class="emotion-122 emotion-123"
               >
                 athens.ci
               </a>

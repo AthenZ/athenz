@@ -299,10 +299,16 @@ exports[`Home should render 1`] = `
 }
 
 .emotion-13 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-15 {
   margin-left: 15px;
 }
 
-.emotion-16 {
+.emotion-18 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -310,7 +316,7 @@ exports[`Home should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-18 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -330,13 +336,13 @@ exports[`Home should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-20 {
+.emotion-22 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-22 {
+.emotion-24 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -356,16 +362,16 @@ exports[`Home should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-24 {
+.emotion-26 {
   padding-top: 20px;
 }
 
-.emotion-26 {
+.emotion-28 {
   height: 100px;
   width: 100px;
 }
 
-.emotion-28 {
+.emotion-30 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -376,19 +382,19 @@ exports[`Home should render 1`] = `
   width: 650px;
 }
 
-.emotion-30 {
+.emotion-32 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-32 {
+.emotion-34 {
   padding: 20px 0 0 0;
   width: 600px;
 }
 
-.emotion-34 {
+.emotion-36 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -405,7 +411,7 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-34 input {
+.emotion-36 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -431,42 +437,42 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-34.animated input {
+.emotion-36.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-34 input::-webkit-input-placeholder {
+.emotion-36 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-34 input::-moz-placeholder {
+.emotion-36 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-34 input:-ms-input-placeholder {
+.emotion-36 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-34 input::placeholder {
+.emotion-36 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-34 input.focused,
-.emotion-34 input:active,
-.emotion-34 input:focus {
+.emotion-36 input.focused,
+.emotion-36 input:active,
+.emotion-36 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-34 input:invalid {
+.emotion-36 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-34 .message {
+.emotion-36 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -474,22 +480,22 @@ exports[`Home should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-34.error input,
-.emotion-34.error input.focused,
-.emotion-34.error input:active,
-.emotion-34.error input:focus {
+.emotion-36.error input,
+.emotion-36.error input.focused,
+.emotion-36.error input:active,
+.emotion-36.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-34.error .message {
+.emotion-36.error .message {
   color: #d01111;
 }
 
-.emotion-34 input {
+.emotion-36 input {
   padding-right: 36px;
 }
 
-.emotion-34 .input-icon {
+.emotion-36 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -503,13 +509,13 @@ exports[`Home should render 1`] = `
   right: 6px;
 }
 
-.emotion-35 {
+.emotion-37 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-36 {
+.emotion-38 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -535,13 +541,13 @@ exports[`Home should render 1`] = `
   width: 20px;
 }
 
-.emotion-38 {
+.emotion-40 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-39 {
+.emotion-41 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -556,7 +562,7 @@ exports[`Home should render 1`] = `
   width: 350px;
 }
 
-.emotion-41 {
+.emotion-43 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -575,28 +581,28 @@ exports[`Home should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-43 {
+.emotion-45 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-45 {
+.emotion-47 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-47 {
+.emotion-49 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-51 {
+.emotion-53 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-53 {
+.emotion-55 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -604,12 +610,12 @@ exports[`Home should render 1`] = `
   display: flex;
 }
 
-.emotion-55 {
+.emotion-57 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-57 {
+.emotion-59 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -672,6 +678,9 @@ exports[`Home should render 1`] = `
           </svg>
           <div
             class="emotion-13 emotion-14"
+          />
+          <div
+            class="emotion-15 emotion-16"
           >
             <svg
               class="emotion-12"
@@ -700,33 +709,33 @@ exports[`Home should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-16 emotion-17"
+    class="emotion-18 emotion-19"
   >
     <div
-      class="emotion-18 emotion-19"
+      class="emotion-20 emotion-21"
     >
       <div
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         <div
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
         >
           <div
-            class="emotion-24 emotion-25"
+            class="emotion-26 emotion-27"
           >
             <img
-              class="emotion-26 emotion-27"
+              class="emotion-28 emotion-29"
               src="/static/athenz-logo.png"
             />
           </div>
           <div
-            class="emotion-28 emotion-29"
+            class="emotion-30 emotion-31"
           >
             <span>
               Athenz is an open source platform which provides secure identity in the form of X.509 certificate to every workload for service authentication (mutual TLS authentication) and provides fine-grained Role Based Access Control (RBAC) for authorization.
             </span>
             <a
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
               href="https://git.ouroath.com/pages/athens/athenz-guide/"
               rel="noopener"
               target="_blank"
@@ -735,10 +744,10 @@ exports[`Home should render 1`] = `
             </a>
           </div>
           <div
-            class="emotion-32 emotion-33"
+            class="emotion-34 emotion-35"
           >
             <div
-              class="emotion-34 denali-input animated"
+              class="emotion-36 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -752,7 +761,7 @@ exports[`Home should render 1`] = `
                 class="input-icon"
               >
                 <svg
-                  class="emotion-35"
+                  class="emotion-37"
                   data-testid="icon"
                   height="24px"
                   id=""
@@ -779,11 +788,11 @@ exports[`Home should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-36 emotion-37"
+          class="emotion-38 emotion-39"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-38"
+            class="emotion-40"
             data-testid="icon"
             height="1em"
             id=""
@@ -799,45 +808,45 @@ exports[`Home should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-39 emotion-40"
+          class="emotion-41 emotion-42"
         >
           <div
-            class="emotion-41 emotion-42"
+            class="emotion-43 emotion-44"
           >
             <div
-              class="emotion-43 emotion-44"
+              class="emotion-45 emotion-46"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-45 emotion-46"
+                class="emotion-47 emotion-48"
               >
                 Create
               </a>
               <span
-                class="emotion-47 emotion-48"
+                class="emotion-49 emotion-50"
               >
                  | 
               </span>
               <a
-                class="emotion-45 emotion-46"
+                class="emotion-47 emotion-48"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-51 emotion-52"
+            class="emotion-53 emotion-54"
           >
             <div
-              class="emotion-53 emotion-54"
+              class="emotion-55 emotion-56"
             >
               <div
-                class="emotion-55 emotion-56"
+                class="emotion-57 emotion-58"
               >
                 <svg
-                  class="emotion-57"
+                  class="emotion-59"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -859,19 +868,19 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-45 emotion-46"
+                class="emotion-47 emotion-48"
               >
                 dom1
               </a>
             </div>
             <div
-              class="emotion-53 emotion-54"
+              class="emotion-55 emotion-56"
             >
               <div
-                class="emotion-55 emotion-56"
+                class="emotion-57 emotion-58"
               >
                 <svg
-                  class="emotion-57"
+                  class="emotion-59"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -893,7 +902,7 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-45 emotion-46"
+                class="emotion-47 emotion-48"
               >
                 dom2
               </a>

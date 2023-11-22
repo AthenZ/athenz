@@ -449,10 +449,16 @@ exports[`GroupSettingPage should render 1`] = `
 }
 
 .emotion-15 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-17 {
   margin-left: 15px;
 }
 
-.emotion-18 {
+.emotion-20 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -460,7 +466,7 @@ exports[`GroupSettingPage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-20 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -480,7 +486,7 @@ exports[`GroupSettingPage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-22 {
+.emotion-24 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -499,28 +505,28 @@ exports[`GroupSettingPage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-26 {
+.emotion-28 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-28 {
+.emotion-30 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-30 {
+.emotion-32 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-32 {
+.emotion-34 {
   margin: 20px 0;
 }
 
-.emotion-34 {
+.emotion-36 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -531,21 +537,21 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-36 {
+.emotion-38 {
   padding-right: 50px;
 }
 
-.emotion-38 {
+.emotion-40 {
   font-weight: 600;
 }
 
-.emotion-40 {
+.emotion-42 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-48 {
+.emotion-50 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -560,7 +566,7 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-48.vertical {
+.emotion-50.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -576,7 +582,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-49 {
+.emotion-51 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -600,11 +606,11 @@ exports[`GroupSettingPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-49:hover {
+.emotion-51:hover {
   color: #3570f4;
 }
 
-.emotion-49.active {
+.emotion-51.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -612,11 +618,11 @@ exports[`GroupSettingPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-49.active:hover {
+.emotion-51.active:hover {
   color: #303030;
 }
 
-.emotion-49.vertical {
+.emotion-51.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -628,21 +634,21 @@ exports[`GroupSettingPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-49.vertical.active {
+.emotion-51.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-49.vertical.active:hover {
+.emotion-51.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-55 {
+.emotion-57 {
   margin: 20px;
 }
 
-.emotion-57 {
+.emotion-59 {
   width: 100%;
   border-spacing: 0 20px;
   display: table;
@@ -650,7 +656,7 @@ exports[`GroupSettingPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-59 {
+.emotion-61 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -662,7 +668,7 @@ exports[`GroupSettingPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-61 {
+.emotion-63 {
   text-align: left;
   width: auto;
   padding: 5px 0 5px 15px;
@@ -670,7 +676,7 @@ exports[`GroupSettingPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-65 {
+.emotion-67 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -687,7 +693,7 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-65>input[type='checkbox'] {
+.emotion-67>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -695,7 +701,7 @@ exports[`GroupSettingPage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-65>input[type='checkbox']+label {
+.emotion-67>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -706,7 +712,7 @@ exports[`GroupSettingPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-65>input[type='checkbox']+label .label-content {
+.emotion-67>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -715,12 +721,12 @@ exports[`GroupSettingPage should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-65>input[type='checkbox']+label .label-content {
+  .emotion-67>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-65>input[type='checkbox']+label:before {
+.emotion-67>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -736,7 +742,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 34px;
 }
 
-.emotion-65>input[type='checkbox']+label::after {
+.emotion-67>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -753,43 +759,43 @@ exports[`GroupSettingPage should render 1`] = `
   width: 18px;
 }
 
-.emotion-65>input[type='checkbox']:checked+label::before {
+.emotion-67>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-65>input[type='checkbox']:checked+label::after {
+.emotion-67>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-65>input[type='checkbox']:disabled+label {
+.emotion-67>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-65>input[type='checkbox']:disabled+label::before {
+.emotion-67>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-65>input[type='checkbox']:disabled+label::after {
+.emotion-67>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-65>input[type='checkbox']:checked:disabled+label::after {
+.emotion-67>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-92 {
+.emotion-94 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.emotion-94 {
+.emotion-96 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -806,7 +812,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-94 input {
+.emotion-96 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -832,42 +838,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-94.animated input {
+.emotion-96.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-94 input::-webkit-input-placeholder {
+.emotion-96 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-94 input::-moz-placeholder {
+.emotion-96 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-94 input:-ms-input-placeholder {
+.emotion-96 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-94 input::placeholder {
+.emotion-96 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-94 input.focused,
-.emotion-94 input:active,
-.emotion-94 input:focus {
+.emotion-96 input.focused,
+.emotion-96 input:active,
+.emotion-96 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-94 input:invalid {
+.emotion-96 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-94 .message {
+.emotion-96 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -875,36 +881,36 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-94.error input,
-.emotion-94.error input.focused,
-.emotion-94.error input:active,
-.emotion-94.error input:focus {
+.emotion-96.error input,
+.emotion-96.error input.focused,
+.emotion-96.error input:active,
+.emotion-96.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-94.error .message {
+.emotion-96.error .message {
   color: #d01111;
 }
 
-.emotion-95 {
+.emotion-97 {
   margin-top: 5px;
 }
 
-.emotion-120 {
+.emotion-122 {
   position: relative;
   width: 100%;
 }
 
-.emotion-120 input {
+.emotion-122 input {
   cursor: inherit;
 }
 
-.emotion-121 {
+.emotion-123 {
   margin-top: 5px;
   display: block;
 }
 
-.emotion-123 {
+.emotion-125 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -921,7 +927,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-123 input {
+.emotion-125 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -947,42 +953,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-123.animated input {
+.emotion-125.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-123 input::-webkit-input-placeholder {
+.emotion-125 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-123 input::-moz-placeholder {
+.emotion-125 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-123 input:-ms-input-placeholder {
+.emotion-125 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-123 input::placeholder {
+.emotion-125 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-123 input.focused,
-.emotion-123 input:active,
-.emotion-123 input:focus {
+.emotion-125 input.focused,
+.emotion-125 input:active,
+.emotion-125 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-123 input:invalid {
+.emotion-125 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-123 .message {
+.emotion-125 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -990,22 +996,22 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-123.error input,
-.emotion-123.error input.focused,
-.emotion-123.error input:active,
-.emotion-123.error input:focus {
+.emotion-125.error input,
+.emotion-125.error input.focused,
+.emotion-125.error input:active,
+.emotion-125.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-123.error .message {
+.emotion-125.error .message {
   color: #d01111;
 }
 
-.emotion-123 input {
+.emotion-125 input {
   padding-right: 36px;
 }
 
-.emotion-123 .input-icon {
+.emotion-125 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1019,13 +1025,13 @@ exports[`GroupSettingPage should render 1`] = `
   right: 6px;
 }
 
-.emotion-124 {
+.emotion-126 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-142 {
+.emotion-144 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1044,7 +1050,7 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-144 {
+.emotion-146 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -1070,25 +1076,25 @@ exports[`GroupSettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-144:first-of-type {
+.emotion-146:first-of-type {
   margin-left: 0;
 }
 
-.emotion-144:disabled {
+.emotion-146:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-144:disabled {
+.emotion-146:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-144:hover:not(:disabled) {
+.emotion-146:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-146 {
+.emotion-148 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1114,13 +1120,13 @@ exports[`GroupSettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-148 {
+.emotion-150 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-149 {
+.emotion-151 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1135,7 +1141,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-151 {
+.emotion-153 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1154,28 +1160,28 @@ exports[`GroupSettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-153 {
+.emotion-155 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-155 {
+.emotion-157 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-157 {
+.emotion-159 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-161 {
+.emotion-163 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-163 {
+.emotion-165 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -1183,12 +1189,12 @@ exports[`GroupSettingPage should render 1`] = `
   display: flex;
 }
 
-.emotion-165 {
+.emotion-167 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-167 {
+.emotion-169 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1287,6 +1293,9 @@ exports[`GroupSettingPage should render 1`] = `
           </svg>
           <div
             class="emotion-15 emotion-16"
+          />
+          <div
+            class="emotion-17 emotion-18"
           >
             <svg
               class="emotion-14"
@@ -1315,26 +1324,26 @@ exports[`GroupSettingPage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-18 emotion-19"
+    class="emotion-20 emotion-21"
   >
     <div
-      class="emotion-20 emotion-21"
+      class="emotion-22 emotion-23"
     >
       <div
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-26 emotion-27"
+            class="emotion-28 emotion-29"
           >
             <div
-              class="emotion-28 emotion-29"
+              class="emotion-30 emotion-31"
               data-testid="collection-name-header"
             >
               <a
-                class="emotion-30 emotion-31"
+                class="emotion-32 emotion-33"
               >
                 dom
               </a>
@@ -1344,36 +1353,36 @@ exports[`GroupSettingPage should render 1`] = `
               groupName
             </div>
             <div
-              class="emotion-32 emotion-33"
+              class="emotion-34 emotion-35"
               data-testid="collection-details"
             >
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-36 emotion-37"
+                  class="emotion-38 emotion-39"
                 >
                   <div
-                    class="emotion-38 emotion-39"
+                    class="emotion-40 emotion-41"
                   >
                     2020-02-12 21:44 UTC
                   </div>
                   <div
-                    class="emotion-40 emotion-41"
+                    class="emotion-42 emotion-43"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-36 emotion-37"
+                  class="emotion-38 emotion-39"
                 >
                   <div
-                    class="emotion-38 emotion-39"
+                    class="emotion-40 emotion-41"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-40 emotion-41"
+                    class="emotion-42 emotion-43"
                   >
                     REVIEWED DATE
                   </div>
@@ -1381,41 +1390,41 @@ exports[`GroupSettingPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-48 denali-tab-group"
+              class="emotion-50 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Members
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Review
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-49 denali-tab active"
+                class="emotion-51 denali-tab active"
                 data-active="true"
               >
                 Settings
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 History
@@ -1423,29 +1432,29 @@ exports[`GroupSettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-55 emotion-56"
+            class="emotion-57 emotion-58"
           >
             <table
-              class="emotion-57 emotion-58"
+              class="emotion-59 emotion-60"
               data-testid="setting-table"
             >
               <tbody>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Review
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-65 denali-switch"
+                      class="emotion-67 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1461,28 +1470,28 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Flag indicates whether or not group updates require another review and approval
                   </td>
                 </tr>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Delete Protection
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-65 denali-switch"
+                      class="emotion-67 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1498,28 +1507,28 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Flag indicates whether or not the group will be protected from accidental deletions
                   </td>
                 </tr>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Self-Service
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-65 denali-switch"
+                      class="emotion-67 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1535,31 +1544,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Flag indicates whether or not group allows self service
                   </td>
                 </tr>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     User Expiry (Days)
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-92 emotion-93"
+                      class="emotion-94 emotion-95"
                     >
                       <div
-                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        class="emotion-96 denali-input animated emotion-97 emotion-98"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1578,31 +1587,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     All user members in the group will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-92 emotion-93"
+                      class="emotion-94 emotion-95"
                     >
                       <div
-                        class="emotion-94 denali-input animated emotion-95 emotion-96"
+                        class="emotion-96 denali-input animated emotion-97 emotion-98"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1621,39 +1630,39 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     All services in the group will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     User Authority Filter
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-92 emotion-93"
+                      class="emotion-94 emotion-95"
                     >
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
                         aria-labelledby="downshift-2-label"
-                        class="emotion-120 denali-input-dropdown emotion-121 emotion-122"
+                        class="emotion-122 denali-input-dropdown emotion-123 emotion-124"
                         data-testid="input-dropdown"
                         role="combobox"
                       >
                         <div
-                          class="emotion-123 denali-input animated"
+                          class="emotion-125 denali-input animated"
                           data-testid="input-wrapper"
                         >
                           <input
@@ -1672,7 +1681,7 @@ exports[`GroupSettingPage should render 1`] = `
                             class="input-icon"
                           >
                             <svg
-                              class="emotion-124"
+                              class="emotion-126"
                               data-testid="icon"
                               height="24px"
                               id=""
@@ -1696,39 +1705,39 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     membership filtered based on user authority configured attributes
                   </td>
                 </tr>
                 <tr
-                  class="emotion-59 emotion-60"
+                  class="emotion-61 emotion-62"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     User Authority Expiration
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     <div
-                      class="emotion-92 emotion-93"
+                      class="emotion-94 emotion-95"
                     >
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
                         aria-labelledby="downshift-3-label"
-                        class="emotion-120 denali-input-dropdown emotion-121 emotion-122"
+                        class="emotion-122 denali-input-dropdown emotion-123 emotion-124"
                         data-testid="input-dropdown"
                         role="combobox"
                       >
                         <div
-                          class="emotion-123 denali-input animated"
+                          class="emotion-125 denali-input animated"
                           data-testid="input-wrapper"
                         >
                           <input
@@ -1747,7 +1756,7 @@ exports[`GroupSettingPage should render 1`] = `
                             class="input-icon"
                           >
                             <svg
-                              class="emotion-124"
+                              class="emotion-126"
                               data-testid="icon"
                               height="24px"
                               id=""
@@ -1771,7 +1780,7 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-61 emotion-62"
+                    class="emotion-63 emotion-64"
                     width="auto"
                   >
                     expiration enforced by a user authority configured attribute
@@ -1780,17 +1789,17 @@ exports[`GroupSettingPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-142 emotion-143"
+              class="emotion-144 emotion-145"
             >
               <div>
                 <button
-                  class="emotion-144 denali-button"
+                  class="emotion-146 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-144 denali-button"
+                  class="emotion-146 denali-button"
                 >
                   Reset
                 </button>
@@ -1803,11 +1812,11 @@ exports[`GroupSettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-146 emotion-147"
+          class="emotion-148 emotion-149"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-148"
+            class="emotion-150"
             data-testid="icon"
             height="1em"
             id=""
@@ -1823,45 +1832,45 @@ exports[`GroupSettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-149 emotion-150"
+          class="emotion-151 emotion-152"
         >
           <div
-            class="emotion-151 emotion-152"
+            class="emotion-153 emotion-154"
           >
             <div
-              class="emotion-153 emotion-154"
+              class="emotion-155 emotion-156"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-155 emotion-156"
+                class="emotion-157 emotion-158"
               >
                 Create
               </a>
               <span
-                class="emotion-157 emotion-158"
+                class="emotion-159 emotion-160"
               >
                  | 
               </span>
               <a
-                class="emotion-155 emotion-156"
+                class="emotion-157 emotion-158"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-161 emotion-162"
+            class="emotion-163 emotion-164"
           >
             <div
-              class="emotion-163 emotion-164"
+              class="emotion-165 emotion-166"
             >
               <div
-                class="emotion-165 emotion-166"
+                class="emotion-167 emotion-168"
               >
                 <svg
-                  class="emotion-167"
+                  class="emotion-169"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1883,19 +1892,19 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-155 emotion-156"
+                class="emotion-157 emotion-158"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-163 emotion-164"
+              class="emotion-165 emotion-166"
             >
               <div
-                class="emotion-165 emotion-166"
+                class="emotion-167 emotion-168"
               >
                 <svg
-                  class="emotion-167"
+                  class="emotion-169"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1917,7 +1926,7 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-155 emotion-156"
+                class="emotion-157 emotion-158"
               >
                 athens.ci
               </a>

@@ -299,10 +299,16 @@ exports[`CreateDomainPage should render 1`] = `
 }
 
 .emotion-13 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-15 {
   margin-left: 15px;
 }
 
-.emotion-16 {
+.emotion-18 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -310,7 +316,7 @@ exports[`CreateDomainPage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-18 {
+.emotion-20 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -330,7 +336,7 @@ exports[`CreateDomainPage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-20 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -349,20 +355,20 @@ exports[`CreateDomainPage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-24 {
+.emotion-26 {
   padding: 20px 30px 0;
 }
 
-.emotion-26 {
+.emotion-28 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-28 {
+.emotion-30 {
   margin: 20px;
 }
 
-.emotion-30 {
+.emotion-32 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -378,7 +384,7 @@ exports[`CreateDomainPage should render 1`] = `
   padding: 10px 30px;
 }
 
-.emotion-32 {
+.emotion-34 {
   -webkit-flex: 0 0 150px;
   -ms-flex: 0 0 150px;
   flex: 0 0 150px;
@@ -386,13 +392,13 @@ exports[`CreateDomainPage should render 1`] = `
   line-height: 36px;
 }
 
-.emotion-34 {
+.emotion-36 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-36 {
+.emotion-38 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -406,7 +412,7 @@ exports[`CreateDomainPage should render 1`] = `
   position: relative;
 }
 
-.emotion-36::before {
+.emotion-38::before {
   background: #fff;
   border: 2px solid #0072df;
   border-radius: 2px;
@@ -420,7 +426,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: calc(33.333333333333336% + 4px);
 }
 
-.emotion-37 {
+.emotion-39 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -448,11 +454,11 @@ exports[`CreateDomainPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-37:hover {
+.emotion-39:hover {
   color: #303030;
 }
 
-.emotion-38 {
+.emotion-40 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -480,19 +486,19 @@ exports[`CreateDomainPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-38:hover {
+.emotion-40:hover {
   color: #3570f4;
 }
 
-.emotion-46 {
+.emotion-48 {
   color: #9a9a9a;
 }
 
-.emotion-54 {
+.emotion-56 {
   width: 500px;
 }
 
-.emotion-56 {
+.emotion-58 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -509,7 +515,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-56 input {
+.emotion-58 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -535,42 +541,42 @@ exports[`CreateDomainPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-56.animated input {
+.emotion-58.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-56 input::-webkit-input-placeholder {
+.emotion-58 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-56 input::-moz-placeholder {
+.emotion-58 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-56 input:-ms-input-placeholder {
+.emotion-58 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-56 input::placeholder {
+.emotion-58 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-56 input.focused,
-.emotion-56 input:active,
-.emotion-56 input:focus {
+.emotion-58 input.focused,
+.emotion-58 input:active,
+.emotion-58 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-56 input:invalid {
+.emotion-58 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-56 .message {
+.emotion-58 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -578,29 +584,29 @@ exports[`CreateDomainPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-56.error input,
-.emotion-56.error input.focused,
-.emotion-56.error input:active,
-.emotion-56.error input:focus {
+.emotion-58.error input,
+.emotion-58.error input.focused,
+.emotion-58.error input:active,
+.emotion-58.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-56.error .message {
+.emotion-58.error .message {
   color: #d01111;
 }
 
-.emotion-56 input[disabled] {
+.emotion-58 input[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-63 {
+.emotion-65 {
   vertical-align: middle;
 }
 
-.emotion-65 {
+.emotion-67 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -617,7 +623,7 @@ exports[`CreateDomainPage should render 1`] = `
   position: relative;
 }
 
-.emotion-65>input[type='checkbox'] {
+.emotion-67>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -625,7 +631,7 @@ exports[`CreateDomainPage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-65>input[type='checkbox']+label {
+.emotion-67>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -636,7 +642,7 @@ exports[`CreateDomainPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-65>input[type='checkbox']+label .label-content {
+.emotion-67>input[type='checkbox']+label .label-content {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -645,12 +651,12 @@ exports[`CreateDomainPage should render 1`] = `
 }
 
 @-moz-document url-prefix() {
-  .emotion-65>input[type='checkbox']+label .label-content {
+  .emotion-67>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-65>input[type='checkbox']+label:before {
+.emotion-67>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -666,7 +672,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 34px;
 }
 
-.emotion-65>input[type='checkbox']+label::after {
+.emotion-67>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -683,50 +689,50 @@ exports[`CreateDomainPage should render 1`] = `
   width: 18px;
 }
 
-.emotion-65>input[type='checkbox']:checked+label::before {
+.emotion-67>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-65>input[type='checkbox']:checked+label::after {
+.emotion-67>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-65>input[type='checkbox']:disabled+label {
+.emotion-67>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-65>input[type='checkbox']:disabled+label::before {
+.emotion-67>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-65>input[type='checkbox']:disabled+label::after {
+.emotion-67>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-65>input[type='checkbox']:checked:disabled+label::after {
+.emotion-67>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-66 {
+.emotion-68 {
   color: #9a9a9a;
   margin-left: 5px;
   white-space: nowrap;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-74 {
+.emotion-76 {
   border-bottom: 1px solid #d5d5d5;
   margin-top: 10px;
   margin-bottom: 10px;
   width: 100%;
 }
 
-.emotion-82 {
+.emotion-84 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -755,17 +761,17 @@ exports[`CreateDomainPage should render 1`] = `
   color: #fff;
 }
 
-.emotion-82:first-of-type {
+.emotion-84:first-of-type {
   margin-left: 0;
 }
 
-.emotion-82:disabled {
+.emotion-84:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-82:hover:not(:disabled) {
+.emotion-84:hover:not(:disabled) {
   background: linear-gradient(
                   to right,
                   #3570f4,
@@ -773,7 +779,7 @@ exports[`CreateDomainPage should render 1`] = `
               );
 }
 
-.emotion-83 {
+.emotion-85 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -799,25 +805,25 @@ exports[`CreateDomainPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-83:first-of-type {
+.emotion-85:first-of-type {
   margin-left: 0;
 }
 
-.emotion-83:disabled {
+.emotion-85:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-83:disabled {
+.emotion-85:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-83:hover:not(:disabled) {
+.emotion-85:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-84 {
+.emotion-86 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -843,13 +849,13 @@ exports[`CreateDomainPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-86 {
+.emotion-88 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-87 {
+.emotion-89 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -864,7 +870,7 @@ exports[`CreateDomainPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-89 {
+.emotion-91 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -883,28 +889,28 @@ exports[`CreateDomainPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-91 {
+.emotion-93 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-93 {
+.emotion-95 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-95 {
+.emotion-97 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-99 {
+.emotion-101 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-101 {
+.emotion-103 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -912,12 +918,12 @@ exports[`CreateDomainPage should render 1`] = `
   display: flex;
 }
 
-.emotion-103 {
+.emotion-105 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-105 {
+.emotion-107 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -980,6 +986,9 @@ exports[`CreateDomainPage should render 1`] = `
           </svg>
           <div
             class="emotion-13 emotion-14"
+          />
+          <div
+            class="emotion-15 emotion-16"
           >
             <svg
               class="emotion-12"
@@ -1008,59 +1017,59 @@ exports[`CreateDomainPage should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-16 emotion-17"
+    class="emotion-18 emotion-19"
   >
     <div
-      class="emotion-18 emotion-19"
+      class="emotion-20 emotion-21"
     >
       <div
-        class="emotion-20 emotion-21"
+        class="emotion-22 emotion-23"
       >
         <div
-          class="emotion-22 emotion-23"
+          class="emotion-24 emotion-25"
         >
           <div
-            class="emotion-24 emotion-25"
+            class="emotion-26 emotion-27"
           >
             <div
-              class="emotion-26 emotion-27"
+              class="emotion-28 emotion-29"
             >
               Create New Domain
             </div>
           </div>
           <div
-            class="emotion-28 emotion-29"
+            class="emotion-30 emotion-31"
             data-testid="create-domain-component"
           >
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
             >
               <div
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               >
                 Domain Type
               </div>
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-36 denali-button-group"
+                  class="emotion-38 denali-button-group"
                   data-testid="buttongroup"
                 >
                   <div
-                    class="emotion-37"
+                    class="emotion-39"
                     data-active="true"
                   >
                     Top Level
                   </div>
                   <div
-                    class="emotion-38"
+                    class="emotion-40"
                     data-active="false"
                   >
                     Sub Domain
                   </div>
                   <div
-                    class="emotion-38"
+                    class="emotion-40"
                     data-active="false"
                   >
                     Personal
@@ -1069,16 +1078,16 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
             >
               <div
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               />
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-46 emotion-47"
+                  class="emotion-48 emotion-49"
                 >
                   <p>
                     create for testing
@@ -1087,21 +1096,21 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
             >
               <div
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               >
                 Domain Name
               </div>
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-54 emotion-55"
+                  class="emotion-56 emotion-57"
                 >
                   <div
-                    class="emotion-56 denali-input animated"
+                    class="emotion-58 denali-input animated"
                     data-testid="input-wrapper"
                   >
                     <input
@@ -1121,19 +1130,19 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
             >
               <div
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               />
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-63 emotion-64"
+                  class="emotion-65 emotion-66"
                 >
                   <div
-                    class="emotion-65 denali-switch"
+                    class="emotion-67 denali-switch"
                     data-testid="switch-wrapper"
                   >
                     <input
@@ -1148,7 +1157,7 @@ exports[`CreateDomainPage should render 1`] = `
                     />
                   </div>
                   <label
-                    class="emotion-66 emotion-67"
+                    class="emotion-68 emotion-69"
                   >
                     Audit Enabled
                   </label>
@@ -1156,38 +1165,38 @@ exports[`CreateDomainPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
             >
               <div
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               />
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-74 emotion-75"
+                  class="emotion-76 emotion-77"
                 />
               </div>
             </div>
             <div
-              class="emotion-30 emotion-31"
+              class="emotion-32 emotion-33"
             >
               <div
-                class="emotion-32 emotion-33"
+                class="emotion-34 emotion-35"
               />
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div>
                   <button
-                    class="emotion-82 denali-button"
+                    class="emotion-84 denali-button"
                     disabled=""
                     type="button"
                   >
                     Submit
                   </button>
                   <button
-                    class="emotion-83 denali-button"
+                    class="emotion-85 denali-button"
                     disabled=""
                     type="button"
                   >
@@ -1203,11 +1212,11 @@ exports[`CreateDomainPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-84 emotion-85"
+          class="emotion-86 emotion-87"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-86"
+            class="emotion-88"
             data-testid="icon"
             height="1em"
             id=""
@@ -1223,45 +1232,45 @@ exports[`CreateDomainPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-87 emotion-88"
+          class="emotion-89 emotion-90"
         >
           <div
-            class="emotion-89 emotion-90"
+            class="emotion-91 emotion-92"
           >
             <div
-              class="emotion-91 emotion-92"
+              class="emotion-93 emotion-94"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-93 emotion-94"
+                class="emotion-95 emotion-96"
               >
                 Create
               </a>
               <span
-                class="emotion-95 emotion-96"
+                class="emotion-97 emotion-98"
               >
                  | 
               </span>
               <a
-                class="emotion-93 emotion-94"
+                class="emotion-95 emotion-96"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-99 emotion-100"
+            class="emotion-101 emotion-102"
           >
             <div
-              class="emotion-101 emotion-102"
+              class="emotion-103 emotion-104"
             >
               <div
-                class="emotion-103 emotion-104"
+                class="emotion-105 emotion-106"
               >
                 <svg
-                  class="emotion-105"
+                  class="emotion-107"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1283,19 +1292,19 @@ exports[`CreateDomainPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-93 emotion-94"
+                class="emotion-95 emotion-96"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-101 emotion-102"
+              class="emotion-103 emotion-104"
             >
               <div
-                class="emotion-103 emotion-104"
+                class="emotion-105 emotion-106"
               >
                 <svg
-                  class="emotion-105"
+                  class="emotion-107"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1317,7 +1326,7 @@ exports[`CreateDomainPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-93 emotion-94"
+                class="emotion-95 emotion-96"
               >
                 athens.ci
               </a>
