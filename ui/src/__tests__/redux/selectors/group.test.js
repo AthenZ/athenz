@@ -25,7 +25,7 @@ import {
     thunkSelectGroupMember,
     thunkSelectGroupMembers,
     thunkSelectGroups,
-} from '../../../redux/selectors/group';
+} from '../../../redux/selectors/groups';
 
 describe('test group selectors', () => {
     const stateWithGroups = {

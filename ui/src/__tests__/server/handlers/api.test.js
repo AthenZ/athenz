@@ -325,6 +325,40 @@ describe('Fetchr Server API Test', () => {
                                           ],
                                       },
                                   }),
+                        getRolesForReview: (params, callback) =>
+                            params.forcefail
+                                ? callback({ status: 404 }, null)
+                                : callback(undefined, {
+                                      list: [
+                                          {
+                                              domainName: 'home.jtsang01',
+                                              name: 'testrole',
+                                              memberExpiryDays: 10,
+                                              memberReviewDays: 0,
+                                              serviceExpiryDays: 10,
+                                              serviceReviewDays: 0,
+                                              groupExpiryDays: 5,
+                                              groupReviewDays: 5,
+                                          },
+                                      ],
+                                  }),
+                        getGroupsForReview: (params, callback) =>
+                            params.forcefail
+                                ? callback({ status: 404 }, null)
+                                : callback(undefined, {
+                                      list: [
+                                          {
+                                              domainName: 'home.jtsang01',
+                                              name: 'testgroup',
+                                              memberExpiryDays: 10,
+                                              memberReviewDays: 0,
+                                              serviceExpiryDays: 10,
+                                              serviceReviewDays: 0,
+                                              groupExpiryDays: 5,
+                                              groupReviewDays: 5,
+                                          },
+                                      ],
+                                  }),
                     },
                 };
                 next();
@@ -1307,6 +1341,42 @@ describe('Fetchr Server API Test', () => {
                             ],
                         },
                     });
+                });
+        });
+        it('getRolesForReview test success', async () => {
+            await request(expressApp)
+                .get('/api/v1/roles-review')
+                .then((res) => {
+                    expect(res.body).toEqual([
+                        {
+                            domainName: 'home.jtsang01',
+                            name: 'testrole',
+                            memberExpiryDays: 10,
+                            memberReviewDays: 0,
+                            serviceExpiryDays: 10,
+                            serviceReviewDays: 0,
+                            groupExpiryDays: 5,
+                            groupReviewDays: 5,
+                        },
+                    ]);
+                });
+        });
+        it('getGroupsForReview test success', async () => {
+            await request(expressApp)
+                .get('/api/v1/groups-review')
+                .then((res) => {
+                    expect(res.body).toEqual([
+                        {
+                            domainName: 'home.jtsang01',
+                            name: 'testgroup',
+                            memberExpiryDays: 10,
+                            memberReviewDays: 0,
+                            serviceExpiryDays: 10,
+                            serviceReviewDays: 0,
+                            groupExpiryDays: 5,
+                            groupReviewDays: 5,
+                        },
+                    ]);
                 });
         });
     });

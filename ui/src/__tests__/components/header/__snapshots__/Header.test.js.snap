@@ -299,6 +299,12 @@ exports[`Header should render 1`] = `
 }
 
 .emotion-13 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-15 {
   margin-left: 15px;
 }
 
@@ -356,6 +362,9 @@ exports[`Header should render 1`] = `
         </svg>
         <div
           class="emotion-13 emotion-14"
+        />
+        <div
+          class="emotion-15 emotion-16"
         >
           <svg
             class="emotion-12"
@@ -834,6 +843,12 @@ exports[`Header should render with search 1`] = `
 }
 
 .emotion-15 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-17 {
   margin-left: 15px;
 }
 
@@ -927,6 +942,9 @@ exports[`Header should render with search 1`] = `
         </svg>
         <div
           class="emotion-15 emotion-16"
+        />
+        <div
+          class="emotion-17 emotion-18"
         >
           <svg
             class="emotion-14"

@@ -449,10 +449,16 @@ exports[`Roles Tag Page should render 1`] = `
 }
 
 .emotion-15 {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.emotion-17 {
   margin-left: 15px;
 }
 
-.emotion-18 {
+.emotion-20 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -460,7 +466,7 @@ exports[`Roles Tag Page should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-20 {
+.emotion-22 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -480,7 +486,7 @@ exports[`Roles Tag Page should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-22 {
+.emotion-24 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -499,28 +505,28 @@ exports[`Roles Tag Page should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-26 {
+.emotion-28 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-28 {
+.emotion-30 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-30 {
+.emotion-32 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-32 {
+.emotion-34 {
   margin: 20px 0;
 }
 
-.emotion-34 {
+.emotion-36 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -531,21 +537,21 @@ exports[`Roles Tag Page should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-36 {
+.emotion-38 {
   padding-right: 50px;
 }
 
-.emotion-38 {
+.emotion-40 {
   font-weight: 600;
 }
 
-.emotion-40 {
+.emotion-42 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-48 {
+.emotion-50 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -560,7 +566,7 @@ exports[`Roles Tag Page should render 1`] = `
   position: relative;
 }
 
-.emotion-48.vertical {
+.emotion-50.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -576,7 +582,7 @@ exports[`Roles Tag Page should render 1`] = `
   width: 300px;
 }
 
-.emotion-49 {
+.emotion-51 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -600,11 +606,11 @@ exports[`Roles Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-49:hover {
+.emotion-51:hover {
   color: #3570f4;
 }
 
-.emotion-49.active {
+.emotion-51.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -612,11 +618,11 @@ exports[`Roles Tag Page should render 1`] = `
   cursor: initial;
 }
 
-.emotion-49.active:hover {
+.emotion-51.active:hover {
   color: #303030;
 }
 
-.emotion-49.vertical {
+.emotion-51.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -628,21 +634,21 @@ exports[`Roles Tag Page should render 1`] = `
   text-align: left;
 }
 
-.emotion-49.vertical.active {
+.emotion-51.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-49.vertical.active:hover {
+.emotion-51.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-55 {
+.emotion-57 {
   margin: 20px;
 }
 
-.emotion-57 {
+.emotion-59 {
   padding-bottom: 20px;
   display: -webkit-box;
   display: -webkit-flex;
@@ -662,7 +668,7 @@ exports[`Roles Tag Page should render 1`] = `
   float: right;
 }
 
-.emotion-59 {
+.emotion-61 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -688,25 +694,25 @@ exports[`Roles Tag Page should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-59:first-of-type {
+.emotion-61:first-of-type {
   margin-left: 0;
 }
 
-.emotion-59:disabled {
+.emotion-61:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-59:disabled {
+.emotion-61:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-59:hover:not(:disabled) {
+.emotion-61:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-60 {
+.emotion-62 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -714,7 +720,7 @@ exports[`Roles Tag Page should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-62 {
+.emotion-64 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -726,7 +732,7 @@ exports[`Roles Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-66 {
+.emotion-68 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -738,7 +744,7 @@ exports[`Roles Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-72 {
+.emotion-74 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -746,7 +752,7 @@ exports[`Roles Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-76 {
+.emotion-78 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -769,11 +775,11 @@ exports[`Roles Tag Page should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-76:hover {
+.emotion-78:hover {
   background: #cbd9f9;
 }
 
-.emotion-76 .tag-remove {
+.emotion-78 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -801,13 +807,13 @@ exports[`Roles Tag Page should render 1`] = `
   width: 28px;
 }
 
-.emotion-76:hover .tag-remove {
+.emotion-78:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-77 {
+.emotion-79 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -817,22 +823,22 @@ exports[`Roles Tag Page should render 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-77:hover {
+.emotion-79:hover {
   background: #ffffff;
 }
 
-.emotion-79 {
+.emotion-81 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-81 {
+.emotion-83 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-82 {
+.emotion-84 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -840,13 +846,13 @@ exports[`Roles Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-84 {
+.emotion-86 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-88 {
+.emotion-90 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -872,13 +878,13 @@ exports[`Roles Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-90 {
+.emotion-92 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-91 {
+.emotion-93 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -893,7 +899,7 @@ exports[`Roles Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-93 {
+.emotion-95 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -912,28 +918,28 @@ exports[`Roles Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-95 {
+.emotion-97 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-97 {
+.emotion-99 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-99 {
+.emotion-101 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-103 {
+.emotion-105 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-105 {
+.emotion-107 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -941,12 +947,12 @@ exports[`Roles Tag Page should render 1`] = `
   display: flex;
 }
 
-.emotion-107 {
+.emotion-109 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-109 {
+.emotion-111 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1045,6 +1051,9 @@ exports[`Roles Tag Page should render 1`] = `
           </svg>
           <div
             class="emotion-15 emotion-16"
+          />
+          <div
+            class="emotion-17 emotion-18"
           >
             <svg
               class="emotion-14"
@@ -1073,26 +1082,26 @@ exports[`Roles Tag Page should render 1`] = `
     </div>
   </div>
   <div
-    class="emotion-18 emotion-19"
+    class="emotion-20 emotion-21"
   >
     <div
-      class="emotion-20 emotion-21"
+      class="emotion-22 emotion-23"
     >
       <div
-        class="emotion-22 emotion-23"
+        class="emotion-24 emotion-25"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-26 emotion-27"
         >
           <div
-            class="emotion-26 emotion-27"
+            class="emotion-28 emotion-29"
           >
             <div
-              class="emotion-28 emotion-29"
+              class="emotion-30 emotion-31"
               data-testid="collection-name-header"
             >
               <a
-                class="emotion-30 emotion-31"
+                class="emotion-32 emotion-33"
               >
                 dom
               </a>
@@ -1102,36 +1111,36 @@ exports[`Roles Tag Page should render 1`] = `
               singlerole
             </div>
             <div
-              class="emotion-32 emotion-33"
+              class="emotion-34 emotion-35"
               data-testid="collection-details"
             >
               <div
-                class="emotion-34 emotion-35"
+                class="emotion-36 emotion-37"
               >
                 <div
-                  class="emotion-36 emotion-37"
+                  class="emotion-38 emotion-39"
                 >
                   <div
-                    class="emotion-38 emotion-39"
+                    class="emotion-40 emotion-41"
                   >
                     Invalid date
                   </div>
                   <div
-                    class="emotion-40 emotion-41"
+                    class="emotion-42 emotion-43"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-36 emotion-37"
+                  class="emotion-38 emotion-39"
                 >
                   <div
-                    class="emotion-38 emotion-39"
+                    class="emotion-40 emotion-41"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-40 emotion-41"
+                    class="emotion-42 emotion-43"
                   >
                     REVIEWED DATE
                   </div>
@@ -1139,41 +1148,41 @@ exports[`Roles Tag Page should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-48 denali-tab-group"
+              class="emotion-50 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Members
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Review
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Policy Rules
               </div>
               <div
-                class="emotion-49 denali-tab active"
+                class="emotion-51 denali-tab active"
                 data-active="true"
               >
                 Tags
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-49 denali-tab"
+                class="emotion-51 denali-tab"
                 data-active="false"
               >
                 History
@@ -1181,42 +1190,42 @@ exports[`Roles Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-55 emotion-56"
+            class="emotion-57 emotion-58"
             data-testid="tag-list"
           >
             <div
-              class="emotion-57 emotion-58"
+              class="emotion-59 emotion-60"
             >
               <div>
                 <button
-                  class="emotion-59 denali-button"
+                  class="emotion-61 denali-button"
                 >
                   Add Tag
                 </button>
               </div>
             </div>
             <table
-              class="emotion-60 emotion-61"
+              class="emotion-62 emotion-63"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-62 emotion-63"
+                    class="emotion-64 emotion-65"
                   >
                     TAG NAME
                   </th>
                   <th
-                    class="emotion-62 emotion-63"
+                    class="emotion-64 emotion-65"
                   >
                     TAG VALUES
                   </th>
                   <th
-                    class="emotion-66 emotion-63"
+                    class="emotion-68 emotion-65"
                   >
                     EDIT
                   </th>
                   <th
-                    class="emotion-66 emotion-63"
+                    class="emotion-68 emotion-65"
                   >
                     DELETE
                   </th>
@@ -1224,25 +1233,25 @@ exports[`Roles Tag Page should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-72 emotion-73"
                   data-testid="tag-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-74 emotion-75"
                     color="#3570f40D"
                   >
                     tag
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-74 emotion-75"
                     color="#3570f40D"
                   >
                     <div
-                      class="emotion-76 denali-tag emotion-77 emotion-78"
+                      class="emotion-78 denali-tag emotion-79 emotion-80"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-79 emotion-80"
+                        class="emotion-81 emotion-82"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1253,7 +1262,7 @@ exports[`Roles Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-81"
+                          class="emotion-83"
                           data-testid="icon"
                           height="20px"
                           id=""
@@ -1271,12 +1280,12 @@ exports[`Roles Tag Page should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-82 emotion-73"
+                    class="emotion-84 emotion-75"
                     color="#3570f40D"
                   >
                     <span>
                       <svg
-                        class="emotion-84"
+                        class="emotion-86"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1293,12 +1302,12 @@ exports[`Roles Tag Page should render 1`] = `
                     </span>
                   </td>
                   <td
-                    class="emotion-82 emotion-73"
+                    class="emotion-84 emotion-75"
                     color="#3570f40D"
                   >
                     <span>
                       <svg
-                        class="emotion-84"
+                        class="emotion-86"
                         data-testid="icon"
                         height="1.25em"
                         id=""
@@ -1327,11 +1336,11 @@ exports[`Roles Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-88 emotion-89"
+          class="emotion-90 emotion-91"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-90"
+            class="emotion-92"
             data-testid="icon"
             height="1em"
             id=""
@@ -1347,45 +1356,45 @@ exports[`Roles Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-91 emotion-92"
+          class="emotion-93 emotion-94"
         >
           <div
-            class="emotion-93 emotion-94"
+            class="emotion-95 emotion-96"
           >
             <div
-              class="emotion-95 emotion-96"
+              class="emotion-97 emotion-98"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-99 emotion-100"
               >
                 Create
               </a>
               <span
-                class="emotion-99 emotion-100"
+                class="emotion-101 emotion-102"
               >
                  | 
               </span>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-99 emotion-100"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-103 emotion-104"
+            class="emotion-105 emotion-106"
           >
             <div
-              class="emotion-105 emotion-106"
+              class="emotion-107 emotion-108"
             >
               <div
-                class="emotion-107 emotion-108"
+                class="emotion-109 emotion-110"
               >
                 <svg
-                  class="emotion-109"
+                  class="emotion-111"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1407,19 +1416,19 @@ exports[`Roles Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-99 emotion-100"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-105 emotion-106"
+              class="emotion-107 emotion-108"
             >
               <div
-                class="emotion-107 emotion-108"
+                class="emotion-109 emotion-110"
               >
                 <svg
-                  class="emotion-109"
+                  class="emotion-111"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1441,7 +1450,7 @@ exports[`Roles Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-97 emotion-98"
+                class="emotion-99 emotion-100"
               >
                 athens.ci
               </a>

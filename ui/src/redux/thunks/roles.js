@@ -20,8 +20,10 @@ import {
     addRoleToStore,
     deleteRoleFromStore,
     loadRoles,
+    loadRolesToReview,
     marksRoleInStoreAsNeedRefresh,
     returnRoles,
+    returnRolesToReview,
     reviewRoleToStore,
 } from '../actions/roles';
 import {
@@ -42,6 +44,11 @@ import {
     addMemberToStore,
     deleteMemberFromStore,
 } from '../actions/collections';
+import {
+    loadingFailed,
+    loadingInProcess,
+    loadingSuccess,
+} from '../actions/loading';
 
 export const addRole =
     (roleName, auditRef, role, _csrf, overrideIfExists = false) =>
@@ -263,3 +270,19 @@ export const getRoleHistory =
             return Promise.reject(error);
         }
     };
+
+export const getReviewRoles = () => async (dispatch, getState) => {
+    try {
+        if (!getState().roles.rolesToReview) {
+            dispatch(loadingInProcess('getReviewRoles'));
+            const reviewRoles = await API().getReviewRoles();
+            dispatch(loadRolesToReview(reviewRoles));
+            dispatch(loadingSuccess('getReviewRoles'));
+        } else {
+            dispatch(returnRolesToReview());
+        }
+    } catch (error) {
+        dispatch(loadingFailed('getReviewRoles'));
+        throw error;
+    }
+};

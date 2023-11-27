@@ -33,7 +33,7 @@ import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import {
     selectGroup,
     selectGroupHistory,
-} from '../../../../../redux/selectors/group';
+} from '../../../../../redux/selectors/groups';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';

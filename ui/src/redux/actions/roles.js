@@ -25,6 +25,17 @@ export const returnRoles = () => ({
     type: RETURN_ROLES,
 });
 
+export const LOAD_ROLES_TO_REVIEW = 'LOAD_ROLES_TO_REVIEW';
+export const loadRolesToReview = (rolesToReview) => ({
+    type: LOAD_ROLES_TO_REVIEW,
+    payload: { rolesToReview: rolesToReview },
+});
+
+export const RETURN_ROLES_TO_REVIEW = 'RETURN_ROLES_TO_REVIEW';
+export const returnRolesToReview = () => ({
+    type: RETURN_ROLES_TO_REVIEW,
+});
+
 export const ADD_ROLE_TO_STORE = 'ADD_ROLE_TO_STORE';
 export const addRoleToStore = (roleData) => ({
     type: ADD_ROLE_TO_STORE,

@@ -2180,6 +2180,30 @@ const Api = (req) => {
                     });
             });
         },
+
+        getReviewRoles() {
+            return new Promise((resolve, reject) => {
+                fetchr.read('roles-review').end((err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            });
+        },
+
+        getReviewGroups() {
+            return new Promise((resolve, reject) => {
+                fetchr.read('groups-review').end((err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            });
+        },
     };
 };
 

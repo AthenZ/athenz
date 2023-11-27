@@ -28,6 +28,9 @@ describe('Search', () => {
     beforeEach(() => {
         MockApi.setMockApi({
             getPendingDomainMembersList: jest.fn().mockReturnValue([]),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         });
     });
     afterEach(() => MockApi.cleanMockApi());
@@ -40,6 +43,9 @@ describe('Search', () => {
             getPendingDomainMembersList: jest
                 .fn()
                 .mockReturnValue(Promise.resolve([])),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         };
         MockApi.setMockApi(mockApi);
         let headerDetails = {

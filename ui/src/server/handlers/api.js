@@ -3185,6 +3185,60 @@ Fetchr.registerService({
     },
 });
 
+Fetchr.registerService({
+    name: 'roles-review',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getRolesForReview(
+            { principal: `${appConfig.userDomain}.${req.session.shortId}` },
+            (err, data) => {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from ZMS while calling getRolesForReview API: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
+                    callback(errorHandler.fetcherError(err));
+                } else {
+                    if (!data || !data.list) {
+                        callback(null, []);
+                    } else {
+                        callback(null, data.list);
+                    }
+                }
+            }
+        );
+    },
+});
+
+Fetchr.registerService({
+    name: 'groups-review',
+    read(req, resource, params, config, callback) {
+        req.clients.zms.getGroupsForReview(
+            { principal: `${appConfig.userDomain}.${req.session.shortId}` },
+            (err, data) => {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from ZMS while calling getGroupsForReview API: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
+                    callback(errorHandler.fetcherError(err));
+                } else {
+                    if (!data || !data.list) {
+                        callback(null, []);
+                    } else {
+                        callback(null, data.list);
+                    }
+                }
+            }
+        );
+    },
+});
+
 module.exports.load = function (config, secrets) {
     appConfig = {
         zms: config.zms,

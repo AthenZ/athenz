@@ -24,6 +24,17 @@ export const loadGroups = (groups, domainName, expiry) => ({
     },
 });
 
+export const LOAD_GROUPS_TO_REVIEW = 'LOAD_GROUPS_TO_REVIEW';
+export const loadGroupsToReview = (groupsToReview) => ({
+    type: LOAD_GROUPS_TO_REVIEW,
+    payload: { groupsToReview: groupsToReview },
+});
+
+export const RETURN_GROUPS_TO_REVIEW = 'RETURN_GROUPS_TO_REVIEW';
+export const returnGroupsToReview = () => ({
+    type: RETURN_GROUPS_TO_REVIEW,
+});
+
 export const RETURN_GROUPS = 'RETURN_GROUPS';
 export const returnGroups = () => ({
     type: RETURN_GROUPS,

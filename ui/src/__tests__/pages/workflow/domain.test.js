@@ -125,6 +125,9 @@ describe('PendingApprovalPage', () => {
             getPendingDomainMembersList: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(pendingData)),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
             getTimeZone: jest.fn().mockReturnValue(Promise.resolve(timeZone)),
         };
         // const pendingUserData = buildUserForState(pendingData);

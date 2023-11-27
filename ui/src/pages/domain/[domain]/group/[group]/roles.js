@@ -37,7 +37,7 @@ import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import {
     selectGroup,
     selectGroupRoleMembers,
-} from '../../../../../redux/selectors/group';
+} from '../../../../../redux/selectors/groups';
 import { selectDomainData } from '../../../../../redux/selectors/domainData';
 import Alert from '../../../../../components/denali/Alert';
 import createCache from '@emotion/cache';

@@ -31,7 +31,7 @@ import { selectIsLoading } from '../../../../../redux/selectors/loading';
 import {
     selectGroup,
     selectGroupTags,
-} from '../../../../../redux/selectors/group';
+} from '../../../../../redux/selectors/groups';
 import TagList from '../../../../../components/tag/TagList';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';

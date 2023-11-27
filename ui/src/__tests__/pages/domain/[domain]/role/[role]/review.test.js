@@ -69,6 +69,9 @@ describe('ReviewPage', () => {
             listUserDomains: jest
                 .fn()
                 .mockReturnValue(Promise.resolve(domains)),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         };
         MockApi.setMockApi(mockApi);
         const { getByTestId } = renderWithRedux(

@@ -53,7 +53,7 @@ import { expiry, modified } from '../../config/config.test';
 
 const groupsThunk = require('../../../redux/thunks/groups');
 const rolesThunk = require('../../../redux/thunks/roles');
-const groupSelector = require('../../../redux/selectors/group');
+const groupSelector = require('../../../redux/selectors/groups');
 const roleSelector = require('../../../redux/selectors/roles');
 const domainName = 'dom';
 const utils = require('../../../redux/utils');

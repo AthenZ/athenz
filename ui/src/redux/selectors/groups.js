@@ -110,3 +110,7 @@ export const selectGroupTags = (state, domainName, groupName) => {
           ].tags
         : {};
 };
+
+export const selectUserReviewGroups = (state) => {
+    return state.groups.groupsToReview ? state.groups.groupsToReview : [];
+};

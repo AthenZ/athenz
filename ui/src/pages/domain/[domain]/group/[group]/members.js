@@ -34,7 +34,7 @@ import { selectDomainAuditEnabled } from '../../../../../redux/selectors/domainD
 import {
     selectGroup,
     selectGroupMembers,
-} from '../../../../../redux/selectors/group';
+} from '../../../../../redux/selectors/groups';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
 import { ReduxPageLoader } from '../../../../../components/denali/ReduxPageLoader';

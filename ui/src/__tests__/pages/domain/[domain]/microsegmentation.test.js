@@ -78,6 +78,9 @@ describe('MicrosegmentationPage', () => {
                     resolve([]);
                 })
             ),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
         };
 
         MockApi.setMockApi(mockApi);
