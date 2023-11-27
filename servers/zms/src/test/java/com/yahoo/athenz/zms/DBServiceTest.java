@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.AppenderBase;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
@@ -318,6 +319,17 @@ public class DBServiceTest {
     private TopLevelDomain createTopLevelDomainObject(String name,
             String description, String org, String admin) {
         return createTopLevelDomainObject(name, description, org, admin, true, false);
+    }
+
+    private boolean isValidJSON(String jsonText) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.readTree(jsonText);
+        } catch (Exception ex) {
+            return false;
+        }
+
+        return true;
     }
 
     @Test
@@ -9269,6 +9281,31 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testAuditLogAddSolutionTemplate() {
+
+        String domainName = "auditlog-solutiontemplate-rolemeta";
+        String caller = "testAuditLogAddSolutionTemplate";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithRoleMeta");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+
+        StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+        auditDetails.append("{\"add-templates\": ");
+        zms.dbService.addSolutionTemplate(mockDomRsrcCtx, conn, domainName, "templateWithRoleMeta", adminUser, domainTemplate.getParams(), auditRef, auditDetails);
+        auditDetails.append("}");
+
+        assertTrue(isValidJSON(auditDetails.toString()));
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testApplySolutionTemplateOnExistingRoleWithRoleMetaData() {
         String domainName = "solutiontemplate-existing-rolemeta";
         String caller = "testApplySolutionTemplateOnExistingRoleWithRoleMetaData";
@@ -12790,5 +12827,43 @@ public class DBServiceTest {
         assertEquals(filterObjects.getList().size(), 2);
         assertEquals(filterObjects.getList().get(0), object1);
         assertEquals(filterObjects.getList().get(1), object3);
+    }
+
+    @Test
+    public void testAuditLogDeleteSolutionTemplate() {
+
+        String domainName = "auditlog-solutiontemplate";
+        String caller = "testAuditLogDeleteSolutionTemplate";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithRoleMeta");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, caller);
+
+        DomainTemplateList domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertEquals(1, domainTemplateList.getTemplateNames().size());
+
+        StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+        auditDetails.append("{\"templates\": ");
+
+        Template template = zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithRoleMeta");
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+
+        // remove the templateWithRoleMeta template
+        zms.dbService.deleteSolutionTemplate(mockDomRsrcCtx, conn, domainName, "templateWithRoleMeta", template,
+                auditDetails);
+
+        auditDetails.append("}");
+
+        assertTrue(isValidJSON(auditDetails.toString()));
+        domainTemplateList = zms.dbService.listDomainTemplates(domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }

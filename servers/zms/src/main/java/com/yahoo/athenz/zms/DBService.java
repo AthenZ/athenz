@@ -4626,7 +4626,7 @@ public class DBService implements RolesProvider {
 
         auditDetails.append("{\"name\": \"").append(templateName).append('\"');
 
-        // we have already verified that our template is valid but
+        // we have already verified that our template is valid, but
         // we'll just double check to make sure it's not null
 
         Template template = zmsConfig.getServerSolutionTemplates().get(templateName);
@@ -4634,6 +4634,8 @@ public class DBService implements RolesProvider {
             auditDetails.append("}");
             return true;
         }
+
+        auditDetails.append(",");
 
         boolean firstEntry = true;
 
@@ -4775,6 +4777,8 @@ public class DBService implements RolesProvider {
             auditDetails.append("}");
             return;
         }
+
+        auditDetails.append(",");
 
         boolean firstEntry = true;
 
