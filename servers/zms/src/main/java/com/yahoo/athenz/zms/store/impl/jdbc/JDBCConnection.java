@@ -113,13 +113,13 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_INSERT_ROLE = "INSERT INTO role (name, domain_id, trust, audit_enabled, self_serve,"
             + " member_expiry_days, token_expiry_mins, cert_expiry_mins, sign_algorithm, service_expiry_days,"
             + " member_review_days, service_review_days, group_review_days, review_enabled, notify_roles, user_authority_filter, "
-            + " user_authority_expiration, description, group_expiry_days, delete_protection, last_reviewed_time) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " user_authority_expiration, description, group_expiry_days, delete_protection, last_reviewed_time, max_members) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_ROLE = "UPDATE role SET trust=?, audit_enabled=?, self_serve=?, "
             + "member_expiry_days=?, token_expiry_mins=?, cert_expiry_mins=?, sign_algorithm=?, "
             + "service_expiry_days=?, member_review_days=?, service_review_days=?, group_review_days=?, review_enabled=?, notify_roles=?, "
             + "user_authority_filter=?, user_authority_expiration=?, description=?, group_expiry_days=?, "
-            + "delete_protection=?, last_reviewed_time=? WHERE role_id=?;";
+            + "delete_protection=?, last_reviewed_time=?, max_members=? WHERE role_id=?;";
     private static final String SQL_DELETE_ROLE = "DELETE FROM role WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_ROLE_MOD_TIMESTAMP = "UPDATE role "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE role_id=?;";
@@ -424,13 +424,14 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_GROUP = "SELECT * FROM principal_group "
             + "JOIN domain ON domain.domain_id=principal_group.domain_id "
             + "WHERE domain.name=? AND principal_group.name=?;";
-    private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve,"
-            + " review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days,"
-            + " service_expiry_days, delete_protection, last_reviewed_time) "
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?);";
+    private static final String SQL_INSERT_GROUP = "INSERT INTO principal_group (name, domain_id, audit_enabled, self_serve, "
+            + "review_enabled, notify_roles, user_authority_filter, user_authority_expiration, member_expiry_days, "
+            + "service_expiry_days, delete_protection, last_reviewed_time, max_members) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_GROUP = "UPDATE principal_group SET audit_enabled=?, self_serve=?, "
-            + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?,"
-            + "member_expiry_days=?, service_expiry_days=?, delete_protection=?, last_reviewed_time=? WHERE group_id=?;";
+            + "review_enabled=?, notify_roles=?, user_authority_filter=?, user_authority_expiration=?, "
+            + "member_expiry_days=?, service_expiry_days=?, delete_protection=?, last_reviewed_time=?, "
+            + "max_members=? WHERE group_id=?;";
     private static final String SQL_GET_GROUP_ID = "SELECT group_id FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_DELETE_GROUP = "DELETE FROM principal_group WHERE domain_id=? AND name=?;";
     private static final String SQL_UPDATE_GROUP_MOD_TIMESTAMP = "UPDATE principal_group "
@@ -2020,6 +2021,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(19, processInsertValue(role.getGroupExpiryDays()));
             ps.setBoolean(20, processInsertValue(role.getDeleteProtection(), false));
             ps.setTimestamp(21, lastReviewedTime);
+            ps.setInt(22, processInsertValue(role.getMaxMembers()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -2071,7 +2073,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(17, processInsertValue(role.getGroupExpiryDays()));
             ps.setBoolean(18, processInsertValue(role.getDeleteProtection(), false));
             ps.setTimestamp(19, lastReviewedTime);
-            ps.setInt(20, roleId);
+            ps.setInt(20, processInsertValue(role.getMaxMembers()));
+            ps.setInt(21, roleId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -3935,7 +3938,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setNotifyRoles(saveValue(rs.getString(ZMSConsts.DB_COLUMN_NOTIFY_ROLES)))
                 .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
                 .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
-                .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)));
+                .setDescription(saveValue(rs.getString(ZMSConsts.DB_COLUMN_DESCRIPTION)))
+                .setMaxMembers(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MAX_MEMBERS), 0));
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
             role.setLastReviewedDate(Timestamp.fromMillis(lastReviewedTime.getTime()));
@@ -5927,7 +5931,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setUserAuthorityExpiration(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_EXPIRATION)))
                 .setMemberExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS), 0))
                 .setServiceExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_SERVICE_EXPIRY_DAYS), 0))
-                .setDeleteProtection(nullIfDefaultValue(rs.getBoolean(DB_COLUMN_DELETE_PROTECTION), false));
+                .setDeleteProtection(nullIfDefaultValue(rs.getBoolean(DB_COLUMN_DELETE_PROTECTION), false))
+                .setMaxMembers(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MAX_MEMBERS), 0));
 
         java.sql.Timestamp lastReviewedTime = rs.getTimestamp(ZMSConsts.DB_COLUMN_LAST_REVIEWED_TIME);
         if (lastReviewedTime != null) {
@@ -5986,6 +5991,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(10, processInsertValue(group.getServiceExpiryDays()));
             ps.setBoolean(11, processInsertValue(group.getDeleteProtection(), false));
             ps.setTimestamp(12, lastReviewedTime);
+            ps.setInt(13, processInsertValue(group.getMaxMembers()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -6027,7 +6033,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setInt(8, processInsertValue(group.getServiceExpiryDays()));
             ps.setBoolean(9, processInsertValue(group.getDeleteProtection(), false));
             ps.setTimestamp(10, lastReviewedTime);
-            ps.setInt(11, groupId);
+            ps.setInt(11, processInsertValue(group.getMaxMembers()));
+            ps.setInt(12, groupId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

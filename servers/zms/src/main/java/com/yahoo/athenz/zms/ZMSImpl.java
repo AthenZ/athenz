@@ -2445,6 +2445,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getMemberReviewDays(), "memberReviewDays");
         validateIntegerValue(meta.getServiceReviewDays(), "serviceReviewDays");
         validateIntegerValue(meta.getGroupReviewDays(), "groupReviewDays");
+        validateIntegerValue(meta.getMaxMembers(), "maxMembers");
 
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2463,6 +2464,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(role.getMemberReviewDays(), "memberReviewDays");
         validateIntegerValue(role.getServiceReviewDays(), "serviceReviewDays");
         validateIntegerValue(role.getGroupReviewDays(), "groupReviewDays");
+        validateIntegerValue(role.getMaxMembers(), "maxMembers");
 
         validateString(role.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(role.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2475,6 +2477,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateIntegerValue(group.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(group.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(group.getMaxMembers(), "maxMembers");
+
         validateString(group.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(group.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(group.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
@@ -2486,6 +2490,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
+        validateIntegerValue(meta.getMaxMembers(), "maxMembers");
+
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(meta.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);

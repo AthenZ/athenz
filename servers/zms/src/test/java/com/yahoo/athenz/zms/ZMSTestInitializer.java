@@ -806,10 +806,21 @@ public class ZMSTestInitializer {
                 "Test Domain1", "testOrg", getAdminUser());
         getZms().postTopLevelDomain(sysAdminCtx, getAuditRef(), dom1);
 
-
         Membership membership = new Membership();
         membership.setMemberName(admindomain + "." + serviceprincipal);
-        getZms().putMembership(sysAdminCtx, "sys.auth", "admin", admindomain + "." + serviceprincipal, getAuditRef(), false, membership);
+        getZms().putMembership(sysAdminCtx, "sys.auth", "admin", admindomain + "." + serviceprincipal,
+                getAuditRef(), false, membership);
         return contextWithMockPrincipal(caller, admindomain, serviceprincipal);
+    }
+
+    public void createTopLevelDomain(final String domainName) {
+
+        TopLevelDomain dom = createTopLevelDomainObject(domainName,
+                "Test " + domainName, "testOrg", getAdminUser());
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom);
+    }
+
+    public void deleteTopLevelDomain(final String domainName) {
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 }
