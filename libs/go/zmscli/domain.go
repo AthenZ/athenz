@@ -609,6 +609,7 @@ func (cli Zms) ShowDomainAttrs(dn string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	domain.Id = nil
 
 	oldYamlConverter := func(res interface{}) (*string, error) {
 		var buf bytes.Buffer
@@ -777,6 +778,36 @@ func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) 
 		return nil, err
 	}
 	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetDomainContact(dn, contactType, contactUser string) (*string, error) {
+	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
+	if err != nil {
+		return nil, err
+	}
+	domainContacts := domain.Contacts
+	if domainContacts == nil {
+		domainContacts = make(map[zms.SimpleName]zms.MemberName)
+	}
+	if contactUser == "" {
+		delete(domainContacts, zms.SimpleName(contactType))
+	} else {
+		domainContacts[zms.SimpleName(contactType)] = zms.MemberName(contactUser)
+	}
+	meta := zms.DomainMeta{
+		Contacts: domainContacts,
+	}
+	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " contacts successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

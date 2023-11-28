@@ -58,7 +58,6 @@ public interface ObjectStoreConnection extends Closeable {
 
     // Domain tags
 
-    Map<String, TagValueList> getDomainTags(String domainName);
     boolean insertDomainTags(String domainName, Map<String, TagValueList> tags);
     boolean deleteDomainTags(String domainName, Set<String> tagsToRemove);
     List<String> lookupDomainByTags(String tagKey, String tagValue);
@@ -260,4 +259,10 @@ public interface ObjectStoreConnection extends Closeable {
     boolean deletePolicyTags(String policyName, String domainName, Set<String> tagKeys, String version);
     Map<String, TagValueList> getPolicyTags(String domainName, String policyName, String version);
 
+    // domain contacts api
+
+    boolean insertDomainContact(String domainName, String contactType, String username);
+    boolean updateDomainContact(String domainName, String contactType, String username);
+    boolean deleteDomainContact(String domainName, String contactType);
+    Map<String, List<String>> listContactDomains(String username);
 }

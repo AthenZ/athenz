@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MySQLContainer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -116,9 +117,6 @@ public class DBServiceTest {
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_USER, DB_USER);
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_PASSWORD, DB_PASS);
 
-        Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
-        Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
-
         System.setProperty(ZMSConsts.ZMS_PROP_FILE_NAME, "src/test/resources/zms.properties");
         System.setProperty(ZMSConsts.ZMS_PROP_AUDIT_REF_CHECK_OBJECTS,
                 "role,group,policy,service,domain,entity,tenancy,template");
@@ -136,20 +134,27 @@ public class DBServiceTest {
         initializeZms();
     }
 
-    private ZMSImpl zmsInit() {
+    @BeforeMethod
+    void initMocks() {
+        Mockito.reset(mockJdbcConn, mockObjStore, mockDomRsrcCtx, mockDomRestRsrcCtx, mockServletRequest);
 
-        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
+        Mockito.when(mockServletRequest.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
+        Mockito.when(mockServletRequest.isSecure()).thenReturn(true);
+        Mockito.when(mockDomRestRsrcCtx.request()).thenReturn(mockServletRequest);
+        Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
 
         final Principal rsrcPrincipal = SimplePrincipal.create("user", "user1", "v=U1;d=user;n=user1;s=signature",
-                0, principalAuthority);
+                0, new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority());
         assertNotNull(rsrcPrincipal);
         ((SimplePrincipal) rsrcPrincipal).setUnsignedCreds("v=U1;d=user;n=user1");
 
-        Mockito.when(mockDomRestRsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockDomRestRsrcCtx.principal()).thenReturn(rsrcPrincipal);
         Mockito.when(mockDomRsrcCtx.context()).thenReturn(mockDomRestRsrcCtx);
-        Mockito.when(mockDomRsrcCtx.request()).thenReturn(mockServletRequest);
         Mockito.when(mockDomRsrcCtx.principal()).thenReturn(rsrcPrincipal);
+    }
+
+    private ZMSImpl zmsInit() {
 
         adminUser = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN);
 
@@ -950,7 +955,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
         Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true).thenReturn(false).thenReturn(true);
@@ -997,7 +1001,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
         Map<String, AssertionConditionData> conditionsMap = new HashMap<>();
@@ -1035,7 +1038,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy policy = createPolicyObject(domainName, policyName);
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(policy);
@@ -1064,7 +1066,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy policy = createPolicyObject(domainName, policyName);
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(policy);
@@ -1094,7 +1095,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
         originalPolicyVersion.setActive(false);
@@ -1165,7 +1165,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
 
         Policy policy = createPolicyObject(domainName, policyName);
@@ -1614,6 +1613,72 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecutePutDomainMetaTagFailure() {
+
+        final String domainName = "domain-meta-tag-failure";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put("key1", new TagValueList().setList(Collections.singletonList("value1")));
+        DomainMeta meta = new DomainMeta().setDescription("Test2 Domain")
+                .setTags(tags);
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.updateDomain(any())).thenReturn(true);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domain, meta,
+                    null, false, auditRef, "tag-failure");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+            assertTrue(ex.getMessage().contains("Unable to update tags"));
+        }
+
+        zms.dbService.store = saveStore;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testExecutePutDomainMetaContactFailure() {
+
+        final String domainName = "domain-meta-tag-failure";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        Map<String, String> contacts = new HashMap<>();
+        contacts.put("security-contact", "user.joe");
+        DomainMeta meta = new DomainMeta().setDescription("Test2 Domain")
+                .setContacts(contacts);
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.updateDomain(any())).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertDomainContact(domainName, "security-contact", "user.joe"))
+                .thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executePutDomainMeta(mockDomRsrcCtx, domain, meta,
+                    null, false, auditRef, "contact-failure");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+            assertTrue(ex.getMessage().contains("Unable to update contacts"));
+        }
+
+        zms.dbService.store = saveStore;
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
     public void testExecutePutDomainMetaRetryException() {
 
         String domainName = "metadom1retry";
@@ -1626,7 +1691,6 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001);
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.updateDomain(any()))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -1703,7 +1767,6 @@ public class DBServiceTest {
         String domainName = "mgradddom1";
         String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
                 anyString(), anyString())).thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -1729,7 +1792,6 @@ public class DBServiceTest {
         String domainName = "mgradddom1";
         String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
                 anyString(), anyString())).thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -1759,7 +1821,6 @@ public class DBServiceTest {
         String domainName = "mgradddom1";
         String roleName = "role1";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
                 anyString(), anyString())).thenThrow(new ResourceException(ResourceException.CONFLICT));
         Domain domain = new Domain().setName(domainName);
@@ -1917,7 +1978,6 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteServiceIdentity(domainName, serviceName)).thenReturn(false);
 
@@ -1942,7 +2002,6 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteServiceIdentity(domainName, serviceName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -1971,7 +2030,6 @@ public class DBServiceTest {
         String entityName = "entity1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteEntity(domainName, entityName)).thenReturn(false);
 
@@ -1996,7 +2054,6 @@ public class DBServiceTest {
         String entityName = "entity1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteEntity(domainName, entityName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -2025,7 +2082,6 @@ public class DBServiceTest {
         String roleName = "role1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteRole(domainName, roleName)).thenReturn(false);
 
@@ -2050,7 +2106,6 @@ public class DBServiceTest {
         String roleName = "role1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteRole(domainName, roleName))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -2079,7 +2134,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.getAssertion(domainName, policyName, 1001L)).thenReturn(null);
 
@@ -2104,7 +2158,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
@@ -2132,7 +2185,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
@@ -2164,7 +2216,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
@@ -2194,7 +2245,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Assertion assertion = new Assertion().setRole("reader").setResource("table")
                 .setAction("update").setId(1001L);
@@ -2225,7 +2275,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.getPolicy(domainName, policyName, null)).thenReturn(null);
 
@@ -2250,7 +2299,6 @@ public class DBServiceTest {
         String policyName = "policy1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy policy = new Policy().setName(policyName);
         Mockito.when(mockJdbcConn.getPolicy(domainName, policyName, "0")).thenReturn(null).thenReturn(policy);
@@ -2295,7 +2343,6 @@ public class DBServiceTest {
         String version = "0";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy policy = new Policy().setName(policyName).setVersion(version).setActive(true);
         Mockito.when(mockJdbcConn.getPolicy(domainName, policyName, version)).thenReturn(policy);
@@ -2327,7 +2374,6 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         PublicKeyEntry keyEntry = new PublicKeyEntry().setId("0").setKey("key");
         Mockito.when(mockJdbcConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
@@ -2358,7 +2404,6 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deletePublicKeyEntry(domainName, serviceName, "0"))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -2387,7 +2432,6 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         PublicKeyEntry keyEntry = new PublicKeyEntry().setId("0").setKey("key");
         Mockito.when(mockJdbcConn.getPublicKeyEntry(domainName, serviceName, "0", false)).thenReturn(keyEntry);
@@ -2440,7 +2484,6 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertRole(anyString(), any(Role.class)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -2465,7 +2508,6 @@ public class DBServiceTest {
         String domainName = "putDomainDependencyFail1";
         String serviceName = "svc1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertDomainDependency(eq(domainName), eq(serviceName)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -2490,7 +2532,6 @@ public class DBServiceTest {
         String domainName = "deleteDomainDependencyFail1";
         String serviceName = "svc1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.deleteDomainDependency(eq(domainName), eq(serviceName)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -2518,7 +2559,6 @@ public class DBServiceTest {
         Role role1 = createRoleObject(domainName, roleName, null,
                 "user.joe", "user.jane");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertRole(anyString(), any(Role.class)))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT));
         Domain domain = new Domain().setName(domainName);
@@ -2546,7 +2586,6 @@ public class DBServiceTest {
         String domainName = "putDomainDependencyRetryFail1";
         String serviceName = "service1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertDomainDependency(eq(domainName), eq(serviceName)))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT));
         Domain domain = new Domain().setName(domainName);
@@ -2575,7 +2614,6 @@ public class DBServiceTest {
         String domainName = "deleteDomainDependencyRetryFail1";
         String serviceName = "service-retry1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.deleteDomainDependency(eq(domainName), eq(serviceName)))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT));
         Domain domain = new Domain().setName(domainName);
@@ -2659,7 +2697,6 @@ public class DBServiceTest {
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertServiceIdentity(anyString(), any(ServiceIdentity.class)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -2690,7 +2727,6 @@ public class DBServiceTest {
                 "users", "host1");
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.insertServiceIdentity(domainName, service))
             .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -2718,7 +2754,6 @@ public class DBServiceTest {
         String domainName = "serviceadddom1";
         String serviceName = "service1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(null);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -2744,7 +2779,6 @@ public class DBServiceTest {
         String serviceName = "service1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         ServiceIdentity service = new ServiceIdentity().setProviderEndpoint("https://localhost");
         Mockito.when(mockJdbcConn.getServiceIdentity(domainName, serviceName)).thenReturn(service);
@@ -2900,6 +2934,31 @@ public class DBServiceTest {
         assertEquals("*", assertionAdded.getAction());
         assertEquals(domainName + ":role.vip_admin", assertionAdded.getRole());
         assertEquals("solutiontemplate-withpolicy:vip*", assertionAdded.getResource());
+    }
+
+    @Test
+    public void testAuditLogAddSolutionTemplate() {
+
+        String domainName = "auditlog-solutiontemplate-rolemeta";
+        String caller = "testAuditLogAddSolutionTemplate";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
+
+        // apply the template
+
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithRoleMeta");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
+
+        StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+        auditDetails.append("{\"add-templates\": ");
+        zms.dbService.addSolutionTemplate(mockDomRsrcCtx, conn, domainName, "templateWithRoleMeta", adminUser, domainTemplate.getParams(), auditRef, auditDetails);
+        auditDetails.append("}");
+
+        assertTrue(isValidJSON(auditDetails.toString()));
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
     @Test
@@ -4234,6 +4293,29 @@ public class DBServiceTest {
 
         key = zms.dbService.getPublicKeyFromCache(domainName2, "service2", "1");
         assertNull(key);
+
+        // unknown domain case
+
+        key = zms.dbService.getPublicKeyFromCache("unknown-domain", "service1", "1");
+        assertNull(key);
+
+        // domain without the proper object
+
+        DataCache dataCache3 = new DataCache(null, 101);
+        zms.dbService.cacheStore.put("domain-without-object", dataCache3);
+
+        key = zms.dbService.getPublicKeyFromCache("domain-without-object", "service1", "1");
+        assertNull(key);
+
+        // domain without services
+
+        AthenzDomain athenzDomain4 = new AthenzDomain("domain-without-services");
+        athenzDomain4.setServices(null);
+        DataCache dataCache4 = new DataCache(athenzDomain4, 101);
+        zms.dbService.cacheStore.put("domain-without-services", dataCache4);
+
+        key = zms.dbService.getPublicKeyFromCache("domain-without-services", "service1", "1");
+        assertNull(key);
     }
 
     @Test
@@ -4628,7 +4710,6 @@ public class DBServiceTest {
     @Test
     public void testExecuteDeleteDomainRoleMemberRetryException() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getPrincipalRoles("user.joe", "dom1"))
                 .thenThrow(new ResourceException(410));
 
@@ -4724,7 +4805,6 @@ public class DBServiceTest {
     @Test
     public void testExecuteDeleteUserRetryException() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.listDomains("home.joe.", 0))
                 .thenThrow(new ResourceException(409));
 
@@ -4823,7 +4903,6 @@ public class DBServiceTest {
 
         String domainName = "putquota";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Quota quota = new Quota();
         Mockito.when(mockJdbcConn.insertQuota(domainName, quota))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -4850,7 +4929,6 @@ public class DBServiceTest {
 
         String domainName = "putquota";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.deleteQuota(domainName))
                 .thenReturn(false)
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -5363,7 +5441,6 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         ResourceException rex = new ResourceException(409);
         Mockito.when(mockJdbcConn.getGroup(eq(domainName), eq(groupName))).thenReturn(group);
         Mockito.when(mockJdbcConn.updateGroup(eq(domainName), any(Group.class))).thenThrow(rex);
@@ -5674,7 +5751,6 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         ResourceException rex = new ResourceException(409);
         Domain d = new Domain().setName("MetaDom1").setAuditEnabled(true);
         Mockito.when(mockJdbcConn.getDomain(anyString())).thenReturn(d);
@@ -5903,7 +5979,6 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         ResourceException rex = new ResourceException(409);
         Mockito.when(mockJdbcConn.getRole(anyString(), anyString())).thenReturn(role);
         Mockito.when(mockJdbcConn.updateRole(anyString(), any(Role.class))).thenThrow(rex);
@@ -6170,7 +6245,6 @@ public class DBServiceTest {
         RoleMember roleMem = new RoleMember().setMemberName("user.doe").setActive(true).setApproved(true);
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role1);
         Mockito.when(mockJdbcConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
                 anyString())).thenReturn(false);
@@ -6251,7 +6325,6 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         zms.dbService.defaultRetryCount = 2;
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getRole(domainName, roleName)).thenReturn(role1);
         ResourceException rex = new ResourceException(409);
         Mockito.when(mockJdbcConn.confirmRoleMember(anyString(), anyString(), any(), anyString(),
@@ -6291,7 +6364,6 @@ public class DBServiceTest {
         dummyResult.put(domainName, Collections.singletonList(new DomainGroupMember()));
         dummyResult.put("domain2", Collections.singletonList(new DomainGroupMember()));
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getPendingDomainGroupMembersByPrincipal(principal)).thenReturn(dummyResult);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -6326,7 +6398,6 @@ public class DBServiceTest {
         dummyResult.put(domainName, Collections.singletonList(new DomainRoleMember()));
         dummyResult.put("domain2", Collections.singletonList(new DomainRoleMember()));
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getPendingDomainRoleMembersByPrincipal(principal)).thenReturn(dummyResult);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -6482,7 +6553,6 @@ public class DBServiceTest {
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         recipients.add("unix.moe");
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(true);
         Mockito.when(mockJdbcConn.getPendingMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
 
@@ -6500,7 +6570,6 @@ public class DBServiceTest {
     @Test
     public void testGetPendingMembershipNotificationsTimestampUpdateFailed() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.updatePendingRoleMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -6535,7 +6604,6 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getExpiredPendingDomainRoleMembers(30)).thenReturn(memberList);
         Mockito.when(mockJdbcConn.deletePendingRoleMember("dom1", "role1", "user.user1", "sys.auth.monitor",
                 "Expired - auto reject")).thenReturn(true);
@@ -7324,7 +7392,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getPublicKeyEntry(domainName, serviceName, keyId, false))
                 .thenThrow(new ResourceException(ResourceException.SERVICE_UNAVAILABLE));
 
@@ -7535,7 +7603,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt(), anyBoolean())).thenReturn(false);
 
         assertNull(zms.dbService.getRoleExpiryMembers(1, false));
@@ -7656,7 +7724,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.updateRoleMemberReviewNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
         assertNull(zms.dbService.getRoleReviewMembers(1));
@@ -7670,7 +7738,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.updateGroupMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
         assertNull(zms.dbService.getGroupExpiryMembers(1));
@@ -7939,7 +8007,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getDomain(domainName)).thenReturn(resDom);
         Mockito.when(mockConn.getRole(domainName, "role1")).thenReturn(role1);
         Mockito.when(mockConn.listRoleMembers(domainName, "role1", false)).thenReturn(role1.getRoleMembers());
@@ -8014,7 +8082,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getDomain(domainName)).thenReturn(resDom);
         Mockito.when(mockConn.getRole(domainName, "role1")).thenReturn(role1);
         Mockito.when(mockConn.listRoleMembers(domainName, "role1", false)).thenReturn(role1.getRoleMembers());
@@ -8091,7 +8159,7 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getDomain(domainName)).thenThrow(new ResourceException(ResourceException.CONFLICT));
 
         MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), new Role().setMemberExpiryDays(10), MemberDueDays.Type.EXPIRY);
@@ -8169,7 +8237,7 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getDomain(domainName)).thenThrow(new ResourceException(ResourceException.CONFLICT));
 
         MemberDueDays expiryDueDays = new MemberDueDays(new Domain(), new Group().setMemberExpiryDays(10));
@@ -8247,7 +8315,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getDomain(domainName)).thenReturn(resDom);
         Mockito.when(mockConn.getGroup(domainName, "group1")).thenReturn(group1);
         Mockito.when(mockConn.listGroupMembers(domainName, "group1", false)).thenReturn(group1.getGroupMembers());
@@ -8323,7 +8391,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
         Mockito.when(mockConn.getDomain(domainName)).thenReturn(resDom);
         Mockito.when(mockConn.getGroup(domainName, "group1")).thenReturn(group1);
         Mockito.when(mockConn.listGroupMembers(domainName, "group1", false)).thenReturn(group1.getGroupMembers());
@@ -8375,7 +8443,6 @@ public class DBServiceTest {
         AthenzDomain athenzDomain = new AthenzDomain(domainName);
         athenzDomain.setDomain(domain);
         athenzDomain.setRoles(null);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -8401,7 +8468,6 @@ public class DBServiceTest {
         AthenzDomain athenzDomain = new AthenzDomain(domainName);
         athenzDomain.setDomain(domain);
         athenzDomain.setRoles(roles);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getAthenzDomain(domainName)).thenReturn(athenzDomain);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -8425,7 +8491,6 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deletePendingRoleMember(domainName, roleName, memberName, adminName, auditRef))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -8456,7 +8521,6 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
                 .thenReturn(false);
@@ -8484,7 +8548,6 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteRoleMember(domainName, roleName, memberName, adminName, auditRef))
                 .thenThrow(new ResourceException(ResourceException.CONFLICT, "conflict"));
@@ -8852,7 +8915,7 @@ public class DBServiceTest {
         final String domainName = "authority-test";
         final String roleName = "auth-role";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null role and then a role
         // with no members - in both cases we return without processing
@@ -8898,7 +8961,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null role and then a role
         // with no members - in both cases we return without processing
@@ -8945,7 +9008,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null role and then a role
         // with no members - in both cases we return without processing
@@ -8991,7 +9054,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null role and then a role
         // with no members - in both cases we return without processing
@@ -9037,8 +9100,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null role and then a role
         // with no members - in both cases we return without processing
@@ -9103,6 +9165,7 @@ public class DBServiceTest {
         // we're going to return an exception for the first insert role member
         // and then success for the second one
 
+        Mockito.reset(mockObjStore);
         Mockito.when(mockObjStore.getConnection(true, true))
                 .thenThrow(new ResourceException(500, "DB Error"))
                 .thenReturn(mockConn);
@@ -9161,7 +9224,7 @@ public class DBServiceTest {
         Authority authority = Mockito.mock(Authority.class);
         zms.dbService.zmsConfig.setUserAuthority(authority);
 
-        Mockito.when(mockObjStore.getConnection(true, false))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
                 .thenThrow(new ResourceException(400, "invalid request"));
 
         ObjectStore savedStore = zms.dbService.store;
@@ -9284,31 +9347,6 @@ public class DBServiceTest {
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
-        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
-    }
-
-    @Test
-    public void testAuditLogAddSolutionTemplate() {
-
-        String domainName = "auditlog-solutiontemplate-rolemeta";
-        String caller = "testAuditLogAddSolutionTemplate";
-        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
-                "Test Domain1", "testOrg", adminUser);
-        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, dom1);
-
-        // apply the template
-
-        List<String> templates = new ArrayList<>();
-        templates.add("templateWithRoleMeta");
-        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
-        ObjectStoreConnection conn = zms.dbService.store.getConnection(true, false);
-
-        StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-        auditDetails.append("{\"add-templates\": ");
-        zms.dbService.addSolutionTemplate(mockDomRsrcCtx, conn, domainName, "templateWithRoleMeta", adminUser, domainTemplate.getParams(), auditRef, auditDetails);
-        auditDetails.append("}");
-
-        assertTrue(isValidJSON(auditDetails.toString()));
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
     }
 
@@ -9477,7 +9515,6 @@ public class DBServiceTest {
         roles.add(testRole);
         athenzDomain.setRoles(roles);
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(eq("test1"))).thenReturn(domain);
         Mockito.when(mockJdbcConn.getAthenzDomain(eq("test1"))).thenReturn(athenzDomain);
 
@@ -9492,7 +9529,6 @@ public class DBServiceTest {
     @Test
     public void testGetRolesByDomainUnknown() {
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         try {
             zms.dbService.getRolesByDomain("unknownDomain");
             fail();
@@ -9545,7 +9581,6 @@ public class DBServiceTest {
 
         group1 = new Group().setName(domainName + ":group.group1");
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
                 .thenReturn(false);
 
@@ -9575,7 +9610,6 @@ public class DBServiceTest {
         Group groupOriginal = createGroupObject(domainName, groupName, "user.user1", "user.user2");
         Group groupUpdated = createGroupObject(domainName, groupName, "user.user2", "user.user3");
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.updateGroup(anyString(), any(Group.class)))
                 .thenReturn(true);
 
@@ -9610,7 +9644,6 @@ public class DBServiceTest {
 
         Group group = createGroupObject(domainName, groupName, "user.user2", "user.user3");
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.insertGroup(anyString(), any(Group.class)))
                 .thenReturn(false);
         Domain domain = new Domain().setName(domainName);
@@ -9641,7 +9674,6 @@ public class DBServiceTest {
         Group group = new Group().setName(ResourceUtils.groupResourceName(domainName, groupName));
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.insertGroupMember(domainName, groupName, groupMember, adminName, auditRef))
                 .thenReturn(false);
@@ -9669,7 +9701,6 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteGroupMember(domainName, groupName, memberName, adminName, auditRef))
                 .thenReturn(false);
@@ -9697,7 +9728,6 @@ public class DBServiceTest {
         final String adminName = "user.user1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deletePendingGroupMember(domainName, groupName, memberName, adminName, auditRef))
                 .thenReturn(false);
@@ -9723,7 +9753,6 @@ public class DBServiceTest {
         final String groupName = "group1";
 
         Domain domain = new Domain().setAuditEnabled(false);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Mockito.when(mockJdbcConn.deleteGroup(domainName, groupName)).thenReturn(false);
 
@@ -9957,7 +9986,6 @@ public class DBServiceTest {
         final String domainName = "put-group-mbr-dec-err";
         final String groupName = "group1";
 
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.confirmGroupMember(anyString(), anyString(), any(GroupMember.class),
                 anyString(), anyString())).thenReturn(false).thenThrow(new ResourceException(409));
         ObjectStore saveStore = zms.dbService.store;
@@ -10058,7 +10086,6 @@ public class DBServiceTest {
         Set<String> recipients = new HashSet<>();
         recipients.add("user.joe");
         recipients.add("unix.moe");
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.updatePendingGroupMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(true);
         Mockito.when(mockJdbcConn.getPendingGroupMembershipApproverRoles(anyString(), anyLong())).thenReturn(recipients);
 
@@ -10076,7 +10103,6 @@ public class DBServiceTest {
     @Test
     public void testGetPendingGroupMembershipNotificationsTimestampUpdateFailed() {
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.updatePendingGroupMembersNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
         ObjectStore saveStore = zms.dbService.store;
@@ -10111,7 +10137,6 @@ public class DBServiceTest {
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getExpiredPendingDomainGroupMembers(30)).thenReturn(memberList);
         Mockito.when(mockJdbcConn.deletePendingGroupMember("dom1", "role1", "user.user1", "sys.auth.monitor",
                 "Expired - auto reject")).thenReturn(true);
@@ -10136,7 +10161,7 @@ public class DBServiceTest {
         final String domainName = "authority-test";
         final String groupName = "auth-group";
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null group and then a group
         // with no members - in both cases we return without processing
@@ -10182,7 +10207,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null group and then a group
         // with no members - in both cases we return without processing
@@ -10229,7 +10254,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null group and then a group
         // with no members - in both cases we return without processing
@@ -10275,7 +10300,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null group and then a group
         // with no members - in both cases we return without processing
@@ -10321,8 +10346,7 @@ public class DBServiceTest {
                 Mockito.any(), Mockito.anyString())).thenReturn(true);
         Mockito.when(mockConn.updateDomainModTimestamp(domainName)).thenReturn(true);
 
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockConn);
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
 
         // first we're going to return a null group and then a group
         // with no members - in both cases we return without processing
@@ -10387,6 +10411,7 @@ public class DBServiceTest {
         // we're going to return an exception for the first insert group member
         // and then success for the second one
 
+        Mockito.reset(mockObjStore);
         Mockito.when(mockObjStore.getConnection(true, true))
                 .thenThrow(new ResourceException(500, "DB Error"))
                 .thenReturn(mockConn);
@@ -10566,7 +10591,6 @@ public class DBServiceTest {
     @Test
     public void testGetPrincipals() {
         List<String> dbPrincipals = Arrays.asList("user.user1","user.user2","dom1.svc1");
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(mockJdbcConn);
         Mockito.when(mockJdbcConn.getPrincipals(2)).thenReturn(dbPrincipals);
 
         ObjectStore savedStore = zms.dbService.store;
@@ -10581,7 +10605,6 @@ public class DBServiceTest {
 
     @Test
     public void testUpdatePrincipalByStateFromAuthority() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10646,7 +10669,7 @@ public class DBServiceTest {
     @Test
     public void testUpdatePrincipalByStateFromAuthorityExistingDisabled() {
         JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(jdbcConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(jdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10710,7 +10733,6 @@ public class DBServiceTest {
 
     @Test
     public void testUpdatePrincipalByStateFromAuthorityExceptionUpdatePrincipal() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10731,7 +10753,6 @@ public class DBServiceTest {
 
     @Test
     public void testUpdatePrincipalByStateFromAuthorityInvalidUpdatePrincipal() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10753,7 +10774,7 @@ public class DBServiceTest {
     @Test
     public void testUpdatePrincipalByStateFromAuthorityExceptionUpdateRoleMembership() {
         JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(jdbcConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(jdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10780,7 +10801,7 @@ public class DBServiceTest {
     @Test
     public void testUpdatePrincipalByStateFromAuthorityExceptionUpdateGroupMembership() {
         JDBCConnection jdbcConn = Mockito.mock(JDBCConnection.class);
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(jdbcConn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(jdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -10814,7 +10835,6 @@ public class DBServiceTest {
 
     @Test
     public void testUpdatePrincipalByStateFromAuthorityEmptyPrincipal() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
         List<Principal> changedPrincipals = new ArrayList<>();
@@ -10828,7 +10848,6 @@ public class DBServiceTest {
 
     @Test
     public void testUpdatePrincipalByStateFromAuthorityEmptyMembershipInDB() {
-        Mockito.when(mockObjStore.getConnection(true, true)).thenReturn(mockJdbcConn);
         ObjectStore savedStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
@@ -11169,7 +11188,7 @@ public class DBServiceTest {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(conn.updateRole(any(), any())).thenReturn(true);
         Mockito.when(conn.insertRoleTags(anyString(), anyString(), anyMap())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
         // update role meta
@@ -11216,7 +11235,7 @@ public class DBServiceTest {
         Mockito.when(conn.updateRole(any(), any())).thenReturn(true);
         Mockito.when(conn.deleteRoleTags(anyString(), anyString(), anySet())).thenReturn(true);
         Mockito.when(conn.insertRoleTags(anyString(), anyString(), anyMap())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
         // update role meta
@@ -11260,7 +11279,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
         Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
@@ -11286,7 +11305,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
         Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
@@ -11304,7 +11323,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertDomainTags(anyString(), anyMap())).thenReturn(true);
         Mockito.when(conn.getDomain("newDomain")).thenReturn(domain);
 
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
 
         // update domain meta
@@ -11358,7 +11377,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
         Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
                 .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
@@ -11370,7 +11389,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertDomainTags(anyString(), anyMap())).thenReturn(true);
         Mockito.when(conn.getDomain("newDomain")).thenReturn(domain);
 
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
                 .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
 
         // update domain meta
@@ -11395,7 +11414,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertRoleMember(any(), any(), any(), any(), any())).thenReturn(true);
         Mockito.when(conn.insertPolicy(any(), any())).thenReturn(true);
         Mockito.when(conn.insertAssertion(any(), any(), any(), any())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
@@ -11410,7 +11429,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertDomainTags(anyString(), anyMap())).thenReturn(true);
         Mockito.when(conn.getDomain("newDomainTagsUpdate")).thenReturn(domain);
 
-        Mockito.when(mockObjStore.getConnection(false, true))
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
             .thenReturn(conn).thenReturn(conn).thenReturn(conn).thenReturn(conn);
 
         // update domain meta
@@ -11477,8 +11496,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         Domain dom = new Domain().setName(domain);
-        Mockito.when(mockObjStore.getConnection(false, true))
-                .thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
 
         Map<String, AssertionConditionData> m1 = new HashMap<>();
@@ -11547,8 +11565,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         Domain dom = new Domain().setName(domain);
-        Mockito.when(mockObjStore.getConnection(false, true))
-                .thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
         Mockito.when(conn.getNextConditionId(anyLong(), anyString())).thenReturn(1);
 
@@ -11641,8 +11658,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         Domain dom = new Domain().setName(domain);
-        Mockito.when(mockObjStore.getConnection(true, true))
-                .thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
         List<AssertionCondition> acList = new ArrayList<>();
         Mockito.when(conn.getAssertionConditions(anyLong()))
@@ -11700,8 +11716,7 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         Domain dom = new Domain().setName(domain);
-        Mockito.when(mockObjStore.getConnection(true, true))
-                .thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.getDomain(anyString())).thenReturn(dom);
         AssertionCondition ac = new AssertionCondition();
         ac.setConditionsMap(new HashMap<>());
@@ -11920,7 +11935,7 @@ public class DBServiceTest {
         Mockito.when(conn.updateGroup(any(), any())).thenReturn(true);
         Mockito.when(conn.getGroup(domainName, groupName)).thenReturn(group);
         Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
         // update group meta
@@ -11971,7 +11986,7 @@ public class DBServiceTest {
         Mockito.when(conn.insertGroupTags(anyString(), anyString(), anyMap())).thenReturn(true);
         Mockito.when(conn.getGroup(domainName, groupName)).thenReturn(group);
         Mockito.when(conn.getGroupTags(domainName, groupName)).thenReturn(initialGroupTag);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         zms.dbService.store = mockObjStore;
 
         // update group meta
@@ -12010,8 +12025,7 @@ public class DBServiceTest {
 
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
                 eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
 
@@ -12100,8 +12114,7 @@ public class DBServiceTest {
                 .setPrincipalName("user.test3").setExpiration(Timestamp.fromMillis(100));
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3);
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.getAllExpiredRoleMembers(ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180)).thenReturn(purgeMemberList);
         Mockito.when(conn.deleteExpiredRoleMember(anyString(), anyString(), anyString(), anyString(),
                 eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
@@ -12144,7 +12157,8 @@ public class DBServiceTest {
         int saveRetryCount = zms.dbService.defaultRetryCount;
         zms.dbService.defaultRetryCount = 2;
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenThrow(new ResourceException(500, "DB Error"));
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
+                .thenThrow(new ResourceException(500, "DB Error"));
 
         try {
             zms.dbService.executeDeleteAllExpiredRoleMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
@@ -12167,8 +12181,7 @@ public class DBServiceTest {
 
         zms.dbService.store = mockObjStore;
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
                 eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true);
 
@@ -12298,8 +12311,7 @@ public class DBServiceTest {
                 .setExpiration(Timestamp.fromMillis(100));
         List<ExpiryMember> purgeMemberList = List.of(member1, member2, member3);
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenReturn(conn);
-        Mockito.when(mockObjStore.getConnection(false, true)).thenReturn(conn);
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(conn);
         Mockito.when(conn.getAllExpiredGroupMembers(ZMS_PURGE_TASK_LIMIT_PER_CALL_DEF, 0, 180)).thenReturn(purgeMemberList);
         Mockito.when(conn.deleteExpiredGroupMember(anyString(), anyString(), anyString(), anyString(),
                 eq(Timestamp.fromMillis(100)), anyString())).thenReturn(true).thenReturn(false).thenReturn(true);
@@ -12342,7 +12354,8 @@ public class DBServiceTest {
         int savedRetryCount = zms.dbService.defaultRetryCount;
         zms.dbService.defaultRetryCount = 2;
 
-        Mockito.when(mockObjStore.getConnection(true, false)).thenThrow(new ResourceException(500, "DB Error"));
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
+                .thenThrow(new ResourceException(500, "DB Error"));
 
         try {
             zms.dbService.executeDeleteAllExpiredGroupMemberships(mockDomRsrcCtx, auditRef, "deleteExpiredMembers");
@@ -12873,5 +12886,78 @@ public class DBServiceTest {
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    @Test
+    public void testProcessDomainContacts() {
+
+        final String domainName = "process-domain-contacts";
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        Mockito.when(conn.insertDomainContact(domainName, "security-contact", "user.joe"))
+                .thenReturn(false); // test case 1 - original list empty
+        Mockito.when(conn.deleteDomainContact(domainName, "security-contact"))
+                .thenReturn(false); // test case 2 - update list is empty
+        Mockito.when(conn.updateDomainContact(domainName, "security-contact", "user.jane"))
+                .thenReturn(false); // test case 3 - updating security-contact
+        Mockito.when(conn.insertDomainContact(domainName, "pe-contact", "user.jane"))
+                .thenReturn(false); // test case 4 - adding an entry during update
+        Mockito.when(conn.deleteDomainContact(domainName, "sre-contact"))
+                .thenReturn(false); // test case 5 - deleting an entry during update
+
+        // with null list we do not make any changes
+
+        assertTrue(zms.dbService.processDomainContacts(conn, domainName, null, null));
+
+        // test case 1 - we're adding one new contact
+
+        Map<String, String> updatedContacts = new HashMap<>();
+        updatedContacts.put("security-contact", "user.joe");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, null));
+
+        // test case 2 - we're deleting an existing contact
+
+        Map<String, String> originalContacts = new HashMap<>();
+        originalContacts.put("security-contact", "user.joe");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, Collections.emptyMap(), originalContacts));
+
+        // test case 3 - add one new contact, update an existing contact and delete one.
+
+        updatedContacts = new HashMap<>();
+        updatedContacts.put("security-contact", "user.jack");
+        updatedContacts.put("pe-contact", "user.jane");
+
+        originalContacts = new HashMap<>();
+        originalContacts.put("security-contact", "user.joe");
+        originalContacts.put("sre-contact", "user.jack");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, originalContacts));
+
+        // test case 3 - update an existing contact
+
+        updatedContacts = new HashMap<>();
+        updatedContacts.put("security-contact", "user.jack");
+
+        originalContacts = new HashMap<>();
+        originalContacts.put("security-contact", "user.joe");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, originalContacts));
+
+        // test case 4 - insert a new contact during update
+
+        updatedContacts = new HashMap<>();
+        updatedContacts.put("security-contact", "user.joe");
+        updatedContacts.put("pe-contact", "user.jane");
+
+        originalContacts = new HashMap<>();
+        originalContacts.put("security-contact", "user.joe");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, originalContacts));
+
+        // test case 5 - delete a contact during update
+
+        updatedContacts = new HashMap<>();
+        updatedContacts.put("security-contact", "user.joe");
+
+        originalContacts = new HashMap<>();
+        originalContacts.put("security-contact", "user.joe");
+        originalContacts.put("sre-contact", "user.joe");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, originalContacts));
     }
 }

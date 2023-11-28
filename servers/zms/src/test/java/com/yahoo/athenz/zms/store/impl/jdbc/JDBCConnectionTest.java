@@ -6496,6 +6496,7 @@ public class JDBCConnectionTest {
         // 1 service, 1 public key
         Mockito.when(mockResultSet.next()).thenReturn(true) // domain
             .thenReturn(true).thenReturn(false) // domain with 1 tag
+            .thenReturn(true).thenReturn(false) // domain with 1 contact
             .thenReturn(true).thenReturn(true).thenReturn(false) // 2 roles
             .thenReturn(true).thenReturn(true).thenReturn(false) // 1 member each
             .thenReturn(true).thenReturn(true).thenReturn(false)// roles tags
@@ -6511,7 +6512,11 @@ public class JDBCConnectionTest {
             .thenReturn(true).thenReturn(false) // 1 public key
             .thenReturn(true).thenReturn(false); // 1 host
 
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_TYPE))
+                .thenReturn("security-contact");
+
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
+            .thenReturn("user.joe") // contact name
             .thenReturn("role1").thenReturn("role2") // role names
             .thenReturn("group1").thenReturn("group2") // group names
             .thenReturn("service1"); // service name
@@ -6583,6 +6588,8 @@ public class JDBCConnectionTest {
         assertNotNull(athenzDomain);
         assertEquals("my-domain", athenzDomain.getDomain().getName());
         assertEquals(athenzDomain.getDomain().getSignAlgorithm(), "rsa");
+        assertEquals(athenzDomain.getDomain().getContacts().size(), 1);
+        assertEquals(athenzDomain.getDomain().getContacts().get("security-contact"), "user.joe");
         assertEquals(2, athenzDomain.getRoles().size());
         assertEquals(1, athenzDomain.getRoles().get(0).getRoleMembers().size());
         assertEquals(1, athenzDomain.getRoles().get(1).getRoleMembers().size());
@@ -13725,7 +13732,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(true, true, false);
 
-        Map<String, TagValueList> domainTags = jdbcConn.getDomainTags("domain");
+        Map<String, TagValueList> domainTags = jdbcConn.getDomainTags(5);
         assertNotNull(domainTags);
 
         TagValueList tagValues = domainTags.get("tagKey");
@@ -13733,7 +13740,7 @@ public class JDBCConnectionTest {
         assertNotNull(tagValues);
         assertTrue(tagValues.getList().containsAll(Arrays.asList("tagVal1", "tagVal2")));
 
-        Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
 
         jdbcConn.close();
     }
@@ -13745,9 +13752,9 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(false);
 
-        Map<String, TagValueList> domainTags = jdbcConn.getDomainTags("domain");
+        Map<String, TagValueList> domainTags = jdbcConn.getDomainTags(5);
         assertNull(domainTags);
-        Mockito.verify(mockPrepStmt, times(1)).setString(1, "domain");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
 
         jdbcConn.close();
     }
@@ -13758,7 +13765,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.next())
             .thenReturn(true).thenThrow(new SQLException("sql error"));
         try {
-            jdbcConn.getDomainTags("domain");
+            jdbcConn.getDomainTags(5);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
@@ -15518,6 +15525,271 @@ public class JDBCConnectionTest {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertDomainContact() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertDomainContact("my-domain", "security-contact", "user.joe");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "security-contact");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "user.joe");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertDomainContactInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.insertDomainContact("my-domain", "security-contact", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertDomainContactException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.insertDomainContact("my-domain", "security-contact", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateDomainContact() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        TemplateMetaData templateMetaData = new TemplateMetaData();
+        templateMetaData.setLatestVersion(4);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.updateDomainContact("my-domain", "security-contact", "user.joe");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.joe");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "security-contact");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateDomainContactWithInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        TemplateMetaData templateMetaData = new TemplateMetaData();
+        templateMetaData.setLatestVersion(4);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.updateDomainContact("my-domain", "security-contact", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdateDomainContactException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.updateDomainContact("my-domain", "security-contact", "user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteDomainContact() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.deleteDomainContact("my-domain", "security-contact");
+
+        // this is combined for all operations above
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "security-contact");
+
+        assertTrue(requestSuccess);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteDomainContactInvalidDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(false); // this one is for domain id
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        try {
+            jdbcConn.deleteDomainContact("my-domain", "security-contact");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeleteDomainContactException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.getInt(1))
+                .thenReturn(5); // domain id
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true); // this one is for domain id
+
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.deleteDomainContact("my-domain", "security-contact");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListContactDomains() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(1))
+                .thenReturn("coretech")
+                .thenReturn("coretech")
+                .thenReturn("weather");
+        Mockito.when(mockResultSet.getString(2))
+                .thenReturn("security-contact")
+                .thenReturn("se-contact")
+                .thenReturn("security-contact");
+
+        Map<String, List<String>> contactDomains = jdbcConn.listContactDomains("user.joe");
+
+        // data back is sorted
+
+        assertEquals(contactDomains.size(), 2);
+        assertEquals(contactDomains.get("coretech").size(), 2);
+        assertEquals(contactDomains.get("coretech").get(0), "security-contact");
+        assertEquals(contactDomains.get("coretech").get(1), "se-contact");
+        assertEquals(contactDomains.get("weather").size(), 1);
+        assertEquals(contactDomains.get("weather").get(0), "security-contact");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListContactDomainsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.listContactDomains("user.joe");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetDomainContactsException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        try {
+            jdbcConn.getDomainContacts(5);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
         jdbcConn.close();
     }
 }

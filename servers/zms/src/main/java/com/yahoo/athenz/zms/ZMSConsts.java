@@ -98,6 +98,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_RESERVED_SERVICE_NAMES  = "athenz.zms.reserved_service_names";
     public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS     = "athenz.zms.max_policy_versions";
+    public static final String ZMS_PROP_DOMAIN_CONTACT_TYPES    = "athenz.zms.domain_contact_types";
 
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
@@ -205,6 +206,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_AUDIT_ENABLED      = "audit_enabled";
     public static final String DB_COLUMN_MODIFIED           = "modified";
     public static final String DB_COLUMN_NAME               = "name";
+    public static final String DB_COLUMN_TYPE               = "type";
     public static final String DB_COLUMN_TRUST              = "trust";
     public static final String DB_COLUMN_MEMBER             = "member";
     public static final String DB_COLUMN_ENTITY             = "entity";
