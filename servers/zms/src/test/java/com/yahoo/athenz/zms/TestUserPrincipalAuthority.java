@@ -33,4 +33,15 @@ class TestUserPrincipalAuthority extends PrincipalAuthority {
             return false;
         }
     }
+
+    @Override
+    public String getUserManager(String userName) {
+        if (userName.equals("user.joe")) {
+            return "user.jane";
+        } else if (userName.equals("user.jane")) {
+            return "user.jack";
+        } else {
+            return null;
+        }
+    }
 }

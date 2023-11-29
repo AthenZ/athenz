@@ -580,8 +580,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(domain_id, domain_tags.key, domain_tags.value) VALUES (?,?,?);";
     private static final String SQL_DOMAIN_TAG_COUNT = "SELECT COUNT(*) FROM domain_tags WHERE domain_id=?";
     private static final String SQL_DELETE_DOMAIN_TAG = "DELETE FROM domain_tags WHERE domain_id=? AND domain_tags.key=?;";
-    private static final String SQL_GET_DOMAIN_TAGS = "SELECT dt.key, dt.value FROM domain_tags dt "
-            + "JOIN domain d ON dt.domain_id = d.domain_id WHERE d.name=?";
+    private static final String SQL_GET_DOMAIN_TAGS = "SELECT dt.key, dt.value FROM domain_tags dt WHERE dt.domain_id=?";
     private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY = "SELECT d.name FROM domain d "
             + "JOIN domain_tags dt ON dt.domain_id = d.domain_id WHERE dt.key=?";
     private static final String SQL_LOOKUP_DOMAIN_BY_TAG_KEY_VAL = "SELECT d.name FROM domain d "
@@ -686,6 +685,13 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id"
             + " WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin')"
             + " ORDER BY domain.name, principal_group.name;";
+    private static final String SQL_INSERT_DOMAIN_CONTACT = "INSERT INTO domain_contacts (domain_id, type, name) VALUES (?,?,?);";
+    private static final String SQL_UPDATE_DOMAIN_CONTACT = "UPDATE domain_contacts SET name=? WHERE domain_id=? and type=?;";
+    private static final String SQL_DELETE_DOMAIN_CONTACT = "DELETE FROM domain_contacts WHERE domain_id=? AND type=?;";
+    private static final String SQL_LIST_CONTACT_DOMAINS = "SELECT domain.name, domain_contacts.type FROM domain_contacts "
+            + "JOIN domain ON domain_contacts.domain_id=domain.domain_id "
+            + "WHERE domain_contacts.name=?;";
+    private static final String SQL_LIST_DOMAIN_CONTACTS = "SELECT type, name FROM domain_contacts WHERE domain_id=?;";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -835,7 +841,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         return ps.executeBatch();
     }
 
-    Domain saveDomainSettings(String domainName, ResultSet rs, boolean fetchTags) throws SQLException {
+    Domain saveDomainSettings(String domainName, ResultSet rs, boolean fetchAddlDetails) throws SQLException {
         Domain domain = new Domain().setName(domainName)
                 .setAuditEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_AUDIT_ENABLED))
                 .setEnabled(rs.getBoolean(ZMSConsts.DB_COLUMN_ENABLED))
@@ -862,8 +868,10 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setBusinessService(saveValue(rs.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)))
                 .setMemberPurgeExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS), 0))
                 .setFeatureFlags(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS), 0));
-        if (fetchTags) {
-            domain.setTags(getDomainTags(domainName));
+        if (fetchAddlDetails) {
+            int domainId = rs.getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
+            domain.setTags(getDomainTags(domainId));
+            domain.setContacts(getDomainContacts(domainId));
         }
         return domain;
     }
@@ -1448,12 +1456,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
 
-    public Map<String, TagValueList> getDomainTags(String domainName) {
+    public Map<String, TagValueList> getDomainTags(int domainId) {
         final String caller = "getDomainTags";
         Map<String, TagValueList> domainTag = null;
 
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_TAGS)) {
-            ps.setString(1, domainName);
+            ps.setInt(1, domainId);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     String tagKey = rs.getString(1);
@@ -7719,5 +7727,101 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return new ReviewObjects().setList(reviewRoles);
+    }
+
+    @Override
+    public boolean insertDomainContact(String domainName, String contactType, String username) {
+
+        final String caller = "insertDomainContact";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_DOMAIN_CONTACT)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, contactType);
+            ps.setString(3, username);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean updateDomainContact(String domainName, String contactType, String username) {
+
+        final String caller = "updateDomainContact";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_DOMAIN_CONTACT)) {
+            ps.setString(1, username);
+            ps.setInt(2, domainId);
+            ps.setString(3, contactType);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deleteDomainContact(String domainName, String contactType) {
+
+        final String caller = "deleteDomainContact";
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, ZMSConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_DOMAIN_CONTACT)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, contactType);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public Map<String, List<String>> listContactDomains(String username) {
+
+        final String caller = "listContactDomains";
+
+        Map<String, List<String>> contactDomains = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_CONTACT_DOMAINS)) {
+            ps.setString(1, username);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    List<String> contactTypes = contactDomains.computeIfAbsent(rs.getString(1), k -> new ArrayList<>());
+                    contactTypes.add(rs.getString(2));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return contactDomains;
+    }
+
+    public Map<String, String> getDomainContacts(int domainId) {
+
+        final String caller = "getDomainContacts";
+        Map<String, String> domainContacts = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAIN_CONTACTS)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    domainContacts.put(rs.getString(ZMSConsts.DB_COLUMN_TYPE), rs.getString(ZMSConsts.DB_COLUMN_NAME));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return domainContacts;
     }
 }

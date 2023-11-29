@@ -390,7 +390,8 @@ public class DBService implements RolesProvider {
                 quotaCheck.checkSubdomainQuota(con, domainName, caller);
 
                 boolean objectsInserted = con.insertDomain(domain);
-                objectsInserted &= processDomainTags(con, domain.getTags(), null, domainName, false);
+                objectsInserted &= processDomainTags(con, domain.getTags(), null, domainName);
+                objectsInserted &= processDomainContacts(con, domainName, domain.getContacts(), null);
 
                 if (!objectsInserted) {
                     con.rollbackChanges();
@@ -409,7 +410,7 @@ public class DBService implements RolesProvider {
                 if (!processRole(con, null, domainName, ZMSConsts.ADMIN_ROLE_NAME, adminRole,
                         principalName, auditRef, false, auditDetails)) {
                     con.rollbackChanges();
-                    throw ZMSUtils.internalServerError("makeDomain: Cannot process role: '" +
+                    throw ZMSUtils.internalServerError("makeDomain: Cannot process role: " +
                             adminRole.getName(), caller);
                 }
 
@@ -420,7 +421,7 @@ public class DBService implements RolesProvider {
                 if (!processPolicy(con, null, domainName, ZMSConsts.ADMIN_POLICY_NAME, adminPolicy,
                         false, auditDetails)) {
                     con.rollbackChanges();
-                    throw ZMSUtils.internalServerError("makeDomain: Cannot process policy: '" +
+                    throw ZMSUtils.internalServerError("makeDomain: Cannot process policy: " +
                             adminPolicy.getName(), caller);
                 }
 
@@ -433,7 +434,7 @@ public class DBService implements RolesProvider {
                         if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
                                 null, auditRef, auditDetails)) {
                             con.rollbackChanges();
-                            throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: '" +
+                            throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: " +
                                     domain, caller);
                         }
                     }
@@ -2981,6 +2982,10 @@ public class DBService implements RolesProvider {
                             + userName, caller);
                 }
 
+                // automatically update any domain contact record where this user is referenced
+
+                updateDomainContactReferences(con, userName);
+
                 // audit log the request
 
                 auditLogRequest(ctx, userName, auditRef, caller, ZMSConsts.HTTP_DELETE, userName, null);
@@ -2992,6 +2997,67 @@ public class DBService implements RolesProvider {
                 }
             }
         }
+    }
+
+    void updateDomainContactReferences(ObjectStoreConnection con, final String userName) {
+
+        // first check what domain is this user referenced in
+
+        Map<String, List<String>> contactDomains;
+        try {
+            contactDomains = con.listContactDomains(userName);
+            if (contactDomains == null || contactDomains.isEmpty()) {
+                return;
+            }
+        } catch (Exception ex) {
+            LOG.error("unable to obtain contact references for user: {} - error: {}",
+                    userName, ex.getMessage());
+            return;
+        }
+
+        // find the manager for this user
+
+        final String manager = getUserManager(userName);
+
+        // go through each contact reference and update it. if we get any
+        // failures for any of the updates, we're just going to log it
+        // and continue - we will not fail the transaction
+
+        for (Map.Entry<String, List<String>> entry : contactDomains.entrySet()) {
+            final String domainName = entry.getKey();
+            for (String contactType : entry.getValue()) {
+                try {
+                    if (manager == null) {
+                        con.deleteDomainContact(domainName, contactType);
+                    } else {
+                        con.updateDomainContact(domainName, contactType, manager);
+                    }
+                } catch (Exception ex) {
+                    LOG.error("unable to update contact {} reference for user: {} - error: {}",
+                            contactType, userName, ex.getMessage());
+                }
+            }
+        }
+    }
+
+    String getUserManager(final String userName) {
+
+        // find the manager for this user
+
+        String manager = null;
+        try {
+            if (zmsConfig.getUserAuthority() != null) {
+                manager = zmsConfig.getUserAuthority().getUserManager(userName);
+            }
+            if (manager == null) {
+                LOG.info("unable to determine manager for user: {}", userName);
+            }
+        } catch (Exception ex) {
+            LOG.error("unable to determine manager for user: {} - error: {}",
+                    userName, ex.getMessage());
+        }
+
+        return manager;
     }
 
     public ServiceIdentity getServiceIdentity(String domainName, String serviceName, boolean attrsOnly) {
@@ -4086,7 +4152,8 @@ public class DBService implements RolesProvider {
                         .setTags(domain.getTags())
                         .setBusinessService(domain.getBusinessService())
                         .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays())
-                        .setFeatureFlags(domain.getFeatureFlags());
+                        .setFeatureFlags(domain.getFeatureFlags())
+                        .setContacts(domain.getContacts());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4104,11 +4171,17 @@ public class DBService implements RolesProvider {
                 // updated during the updateDomain call if there are no other
                 // changes present in the request
 
-                if (!processDomainTags(con, meta.getTags(), domain, domainName, true)) {
+                if (!processDomainTags(con, meta.getTags(), domain, domainName)) {
                     con.rollbackChanges();
                     throw ZMSUtils.internalServerError(caller + "Unable to update tags", caller);
                 }
 
+                if (!processDomainContacts(con, domainName, meta.getContacts(), domain.getContacts())) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError(caller + "Unable to update contacts", caller);
+                }
+
+                con.updateDomainModTimestamp(domainName);
                 con.commitChanges();
                 cacheStore.invalidate(domainName);
 
@@ -4145,20 +4218,82 @@ public class DBService implements RolesProvider {
         }
     }
 
-    private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
-            Domain originalDomain, final String domainName, boolean updateDomainLastModTimestamp) {
+    boolean processDomainContacts(ObjectStoreConnection con, final String domainName,
+            Map<String, String> updatedContacts, Map<String, String> originalContacts) {
 
-        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
-        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+        // if our new list is null then we're going to skip updating any
+        // of our contacts
 
-        if (processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp)) {
-            if (updateDomainLastModTimestamp) {
-                con.updateDomainModTimestamp(domainName);
+        if (updatedContacts == null) {
+            return true;
+        }
+
+        // if our original list is empty then we're going to insert
+        // all of our new contacts if any are present
+
+        if (originalContacts == null || originalContacts.isEmpty()) {
+            for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
+                if (!con.insertDomainContact(domainName, entry.getKey(), entry.getValue())) {
+                    return false;
+                }
             }
             return true;
         }
 
-        return false;
+        // if our new list is empty then we're going to delete all of our
+        // existing contacts
+
+        if (updatedContacts.isEmpty()) {
+            for (String contact : originalContacts.keySet()) {
+                if (!con.deleteDomainContact(domainName, contact)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // process our updated contacts - we're either going to update
+        // or insert our contacts
+
+        for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
+            String type = entry.getKey();
+            String name = entry.getValue();
+            if (originalContacts.containsKey(type)) {
+                if (!originalContacts.get(type).equals(name)) {
+                    if (!con.updateDomainContact(domainName, type, name)) {
+                        return false;
+                    }
+                }
+            } else {
+                if (!con.insertDomainContact(domainName, type, name)) {
+                    return false;
+                }
+            }
+        }
+
+        // now we have process any of our deletes - these are the contacts
+        // that were in our original list but not in our updated list
+
+        for (String type : originalContacts.keySet()) {
+            if (!updatedContacts.containsKey(type)) {
+                if (!con.deleteDomainContact(domainName, type)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean processDomainTags(ObjectStoreConnection con, Map<String, TagValueList> domainTags,
+            Domain originalDomain, final String domainName) {
+
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertDomainTags(domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
+                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteDomainTags(domainName, tagKeys);
+
+        return processTags(con, domainTags, (originalDomain != null ? originalDomain.getTags() : null) , insertOp, deleteOp);
     }
 
     void updateDomainMembersUserAuthorityFilter(ResourceContext ctx, ObjectStoreConnection con, Domain domain,
@@ -4362,6 +4497,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getMemberPurgeExpiryDays() != null) {
             domain.setMemberPurgeExpiryDays(meta.getMemberPurgeExpiryDays());
+        }
+        if (meta.getContacts() != null) {
+            domain.setContacts(meta.getContacts());
         }
     }
 

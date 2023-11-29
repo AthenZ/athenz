@@ -891,6 +891,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.SetDomainFeatureFlags(dn, flags)
 			}
+		case "set-domain-contact":
+			if argc == 2 {
+				return cli.SetDomainContact(dn, args[0], args[1])
+			}
 		case "set-audit-enabled":
 			if argc == 1 {
 				auditEnabled, err := strconv.ParseBool(args[0])
@@ -1593,6 +1597,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   flags         : Optional features enabled for this domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-feature-flags 3\n")
+	case "set-domain-contact":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-contact type user\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   type         : contact type\n")
+		buf.WriteString("   user         : user name\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-contact security-owner user.joe\n")
 	case "set-org-name":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-org-name org-name\n")
@@ -3290,6 +3305,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
 	buf.WriteString("   set-domain-user-authority-filter filter\n")
 	buf.WriteString("   set-domain-feature-flags flags\n")
+	buf.WriteString("   set-domain-contact type user\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
 	buf.WriteString("   export-domain domain [file.yaml] - no file means stdout\n")
 	buf.WriteString("   delete-domain domain\n")

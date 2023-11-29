@@ -231,6 +231,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ServiceProviderManager serviceProviderManager;
     protected ServiceProviderClient serviceProviderClient;
     protected Info serverInfo = null;
+    protected Set<String> domainContactTypes = new HashSet<>();
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -966,6 +967,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             healthCheckFile = new File(healthCheckPath);
         }
 
+        // get our domain contact types
+
+        final String contactTypeList = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_CONTACT_TYPES);
+        if (!StringUtil.isEmpty(contactTypeList)) {
+            domainContactTypes.addAll(Arrays.asList(contactTypeList.split(",")));
+        }
+
         // get server region
 
         serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
@@ -1583,7 +1591,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setTags(detail.getTags())
                 .setBusinessService(detail.getBusinessService())
                 .setCertDnsDomain(detail.getCertDnsDomain())
-                .setFeatureFlags(detail.getFeatureFlags());
+                .setFeatureFlags(detail.getFeatureFlags())
+                .setContacts(detail.getContacts());
 
         // before processing validate the fields
 
@@ -1816,7 +1825,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm())
                 .setTags(detail.getTags())
-                .setBusinessService(detail.getBusinessService());
+                .setBusinessService(detail.getBusinessService())
+                .setContacts(detail.getContacts());
 
         // before processing validate the fields
 
@@ -1910,7 +1920,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setRoleCertExpiryMins(detail.getRoleCertExpiryMins())
                 .setSignAlgorithm(detail.getSignAlgorithm())
                 .setTags(detail.getTags())
-                .setBusinessService(detail.getBusinessService());
+                .setBusinessService(detail.getBusinessService())
+                .setContacts(detail.getContacts());
 
         // before processing validate the fields
 
@@ -2171,6 +2182,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
     }
 
+    void validateDomainContacts(Map<String, String> contacts, final String caller) {
+
+        if (contacts == null || contacts.isEmpty()) {
+            return;
+        }
+
+        // verify the type is a registered type in the server and the value
+        // is a valid principal according to the user authority
+
+        for (Map.Entry<String, String> entry : contacts.entrySet()) {
+            if (!domainContactTypes.contains(entry.getKey())) {
+                throw ZMSUtils.requestError("invalid domain contact type: " + entry.getKey(), caller);
+            }
+            if (userAuthority != null && !userAuthority.isValidUser(entry.getValue())) {
+                throw ZMSUtils.requestError("invalid domain contact: " + entry.getKey() + "/" + entry.getValue(), caller);
+            }
+        }
+    }
+
     void validateString(final String value, final String type, final String caller) {
         if (value != null && !value.isEmpty()) {
             validate(value, type, caller);
@@ -2227,6 +2257,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!domainMetaStore.isValidProductId(domain.getName(), domain.getProductId())) {
             throw ZMSUtils.requestError("invalid product id for domain", caller);
         }
+
+        // validate the domain contacts types and names
+
+        validateDomainContacts(domain.getContacts(), caller);
     }
 
     boolean validateGcpProjectDetails(final String gcpProjectId, final String gcpProjectNumber) {
@@ -2335,6 +2369,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+
+        // validate the domain contacts types and names
+
+        validateDomainContacts(meta.getContacts(), caller);
     }
 
     void updateDomainMetaStoreAttributeDetails(final String domainName, int metaAttribute, final Object value) {
@@ -6396,6 +6434,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setSignAlgorithm(domain.getSignAlgorithm());
         domainData.setCertDnsDomain(domain.getCertDnsDomain());
         domainData.setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays());
+        domainData.setContacts(domain.getContacts());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
@@ -6483,9 +6522,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainData.setMemberPurgeExpiryDays(athenzDomain.getDomain().getMemberPurgeExpiryDays());
         }
 
-        // set the domain tags
+        // set the domain tags and contacts
 
         domainData.setTags(athenzDomain.getDomain().getTags());
+        domainData.setContacts(athenzDomain.getDomain().getContacts());
 
         // set the roles, services, groups and entities
 
@@ -8163,7 +8203,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // first validate if we're required process this over TLS only
 
         if (secureRequestsOnly && !request.isSecure()) {
-            throw ZMSUtils.requestError(caller + "request must be over TLS", caller);
+            throw ZMSUtils.requestError(caller + " request must be over TLS", caller);
         }
 
         // second check if this is a status port so we can only
