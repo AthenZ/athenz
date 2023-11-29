@@ -155,6 +155,8 @@ resource DomainRoleMember GET "/role?principal={principal}&domain={domainName}&e
 }
 
 //Add the specified user to the role's member list.
+//If the role is selfReviewEnabled, then an existing member may extend their expiration time by the configured
+//number of minutes (selfReviewMins) by calling this API regardless or not if the user is expired or not.
 //If the role is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:role.{roleName}")
 //or ("update_members", "{domainName}:role.{roleName}"). This only allows access to members and not role attributes.
 //otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to

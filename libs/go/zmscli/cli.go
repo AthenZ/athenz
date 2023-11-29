@@ -955,6 +955,22 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 0 {
 				return cli.DeleteQuota(dn)
 			}
+		case "set-role-self-renew":
+			if argc == 2 {
+				selfRenew, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleSelfRenew(dn, args[0], selfRenew)
+			}
+		case "set-role-self-renew-mins":
+			if argc == 2 {
+				mins, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetRoleSelfRenewMins(dn, args[0], mins)
+			}
 		case "set-role-audit-enabled":
 			if argc == 2 {
 				auditEnabled, err := strconv.ParseBool(args[1])
@@ -1096,6 +1112,22 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 					return nil, err
 				}
 				return cli.PutMembershipDecision(dn, args[0], args[1], approval)
+			}
+		case "set-group-self-renew":
+			if argc == 2 {
+				selfRenew, err := strconv.ParseBool(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetGroupSelfRenew(dn, args[0], selfRenew)
+			}
+		case "set-group-self-renew-mins":
+			if argc == 2 {
+				mins, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetGroupSelfRenewMins(dn, args[0], mins)
 			}
 		case "set-group-audit-enabled":
 			if argc == 2 {
@@ -2923,6 +2955,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   self-serve : enable/disable self-serve flag for the role\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-role-self-serve readers true\n")
+	case "set-role-self-renew":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-self-renew role self-renew\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that role belongs to\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   self-renew : enable/disable self-renew flag for the role\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-self-renew readers true\n")
+	case "set-role-self-renew-mins":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-role-self-renew-mins role mins\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   role    : name of the role to be modified\n")
+		buf.WriteString("   mins    : allow self-renew for these many minutes\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-role-self-renew-mins writers 60\n")
 	case "set-role-user-authority-filter":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-role-user-authority-filter role attribute[,attribute...]\n")
@@ -3009,6 +3063,28 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   delete-protection : enable/disable protection flag for the group\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-group-delete-protection readers true\n")
+	case "set-group-self-renew":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-self-renew group self-renew\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   self-renew : enable/disable self-renew flag for the group\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-self-renew readers true\n")
+	case "set-group-self-renew-mins":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-group-self-renew-mins group mins\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain  : name of the domain being updated\n")
+		}
+		buf.WriteString("   group    : name of the group to be modified\n")
+		buf.WriteString("   mins     : allow self-renew for these many minutes\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-group-self-renew-mins writers 60\n")
 	case "set-group-max-members":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-group-max-members role max-members\n")
@@ -3370,6 +3446,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-role-audit-enabled regular_role audit-enabled\n")
 	buf.WriteString("   set-role-review-enabled regular_role review-enabled\n")
 	buf.WriteString("   set-role-delete-protection regular_role delete-protection\n")
+	buf.WriteString("   set-role-self-renew regular_role self-renew\n")
+	buf.WriteString("   set-role-self-renew-mins regular_role self-serve-mins\n")
 	buf.WriteString("   set-role-self-serve regular_role self-serve\n")
 	buf.WriteString("   set-role-max-members regular_role max-members\n")
 	buf.WriteString("   set-role-member-expiry-days regular_role user-member-expiry-days\n")
@@ -3405,6 +3483,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-group-audit-enabled group audit-enabled\n")
 	buf.WriteString("   set-group-review-enabled group review-enabled\n")
 	buf.WriteString("   set-group-delete-protection group delete-protection\n")
+	buf.WriteString("   set-group-self-renew group self-renew\n")
+	buf.WriteString("   set-group-self-renew-mins group self-serve-mins\n")
 	buf.WriteString("   set-group-self-serve group self-serve\n")
 	buf.WriteString("   set-group-max-members group max-members\n")
 	buf.WriteString("   set-group-member-expiry-days group user-member-expiry-days\n")

@@ -59,7 +59,7 @@ public class GroupTest {
                 .setServiceExpiryDays(20)
                 .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -79,7 +79,7 @@ public class GroupTest {
                 .setServiceExpiryDays(20)
                 .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -102,7 +102,7 @@ public class GroupTest {
         assertFalse(r.getDeleteProtection());
         assertEquals(r.getTags().get("tagKey").getList().get(0), "tagValue");
         assertEquals(r.getSelfRenewMins(), 180);
-        assertEquals(r.getSelfRenewEnabled(), Boolean.TRUE);
+        assertEquals(r.getSelfRenew(), Boolean.TRUE);
         assertEquals(r.getMaxMembers(), 5);
 
         r2.setLastReviewedDate(Timestamp.fromMillis(123456789124L));
@@ -133,11 +133,11 @@ public class GroupTest {
         r2.setReviewEnabled(false);
         assertEquals(r, r2);
 
-        r2.setSelfRenewEnabled(false);
+        r2.setSelfRenew(false);
         assertNotEquals(r, r2);
-        r2.setSelfRenewEnabled(null);
+        r2.setSelfRenew(null);
         assertNotEquals(r, r2);
-        r2.setSelfRenewEnabled(true);
+        r2.setSelfRenew(true);
         assertEquals(r, r2);
 
         r2.setSelfRenewMins(15);
@@ -526,7 +526,7 @@ public class GroupTest {
                 .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setLastReviewedDate(Timestamp.fromMillis(100))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -542,7 +542,7 @@ public class GroupTest {
         assertEquals(gm1.getTags().get("tagKey").getList().get(0), "tagValue");
         assertEquals(gm1.getLastReviewedDate(), Timestamp.fromMillis(100));
         assertEquals(gm1.getSelfRenewMins(), 180);
-        assertEquals(gm1.getSelfRenewEnabled(), Boolean.TRUE);
+        assertEquals(gm1.getSelfRenew(), Boolean.TRUE);
         assertEquals(gm1.getMaxMembers(), 5);
 
         GroupMeta gm2 = new GroupMeta()
@@ -557,7 +557,7 @@ public class GroupTest {
                 .setDeleteProtection(false)
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setLastReviewedDate(Timestamp.fromMillis(100))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -587,11 +587,11 @@ public class GroupTest {
         gm2.setReviewEnabled(false);
         assertEquals(gm2, gm1);
 
-        gm2.setSelfRenewEnabled(false);
+        gm2.setSelfRenew(false);
         assertNotEquals(gm1, gm2);
-        gm2.setSelfRenewEnabled(null);
+        gm2.setSelfRenew(null);
         assertNotEquals(gm1, gm2);
-        gm2.setSelfRenewEnabled(true);
+        gm2.setSelfRenew(true);
         assertEquals(gm1, gm2);
 
         gm2.setSelfRenewMins(15);

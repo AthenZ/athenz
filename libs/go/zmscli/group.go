@@ -77,6 +77,48 @@ func (cli Zms) ShowUpdatedGroup(group *zms.Group, auditLog bool) (*string, error
 	return cli.dumpByFormat(group, oldYamlConverter)
 }
 
+func (cli Zms) SetGroupSelfRenew(dn string, gn string, selfRenew bool) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.SelfRenew = &selfRenew
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + gn + " self-renew attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetGroupSelfRenewMins(dn string, gn string, selfRenewMins int32) (*string, error) {
+	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(gn), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getGroupMetaObject(group)
+	meta.SelfRenewMins = &selfRenewMins
+
+	err = cli.Zms.PutGroupMeta(zms.DomainName(dn), zms.EntityName(gn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " group " + gn + " role-self-renew-mins attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetGroupMaxMembers(dn string, rn string, maxMembers int32) (*string, error) {
 	group, err := cli.Zms.GetGroup(zms.DomainName(dn), zms.EntityName(rn), nil, nil)
 	if err != nil {
@@ -334,6 +376,8 @@ func getGroupMetaObject(group *zms.Group) zms.GroupMeta {
 		ServiceExpiryDays:       group.ServiceExpiryDays,
 		Tags:                    group.Tags,
 		MaxMembers:              group.MaxMembers,
+		SelfRenew:               group.SelfRenew,
+		SelfRenewMins:           group.SelfRenewMins,
 	}
 }
 

@@ -5374,8 +5374,8 @@ public class DBServiceTest {
         GroupMeta gm = new GroupMeta();
         gm.setSelfServe(true);
 
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         Group resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
         assertTrue(resGroup1.getSelfServe());
@@ -5389,8 +5389,8 @@ public class DBServiceTest {
         gm.setUserAuthorityFilter("employee");
         gm.setUserAuthorityExpiration("elevated-clearance");
 
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
         resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
         assertTrue(resGroup1.getSelfServe());
         assertEquals(resGroup1.getMemberExpiryDays(), Integer.valueOf(10));
@@ -5406,8 +5406,8 @@ public class DBServiceTest {
         gm.setReviewEnabled(false);
         gm.setUserAuthorityFilter("contractor");
 
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
         resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
         assertNull(resGroup1.getSelfServe());
         assertEquals(resGroup1.getMemberExpiryDays(), Integer.valueOf(10));
@@ -5446,8 +5446,8 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.updateGroup(eq(domainName), any(Group.class))).thenThrow(rex);
 
         try {
-            zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                    gm, auditRef);
+            Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+            zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
             fail();
         }catch (ResourceException r) {
             assertEquals(r.getCode(), 409);
@@ -5480,8 +5480,8 @@ public class DBServiceTest {
         gm.setMemberExpiryDays(40);
         gm.setServiceExpiryDays(40);
 
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         Group resGroup1 = zms.dbService.getGroup(domainName, groupName, true, false);
 
@@ -5512,8 +5512,8 @@ public class DBServiceTest {
 
         gm.setMemberExpiryDays(20);
         gm.setServiceExpiryDays(20);
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
 
@@ -5544,8 +5544,8 @@ public class DBServiceTest {
 
         gm.setMemberExpiryDays(40);
         gm.setServiceExpiryDays(40);
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
 
@@ -5573,8 +5573,8 @@ public class DBServiceTest {
         // now set the service down to 5 days.
 
         gm.setServiceExpiryDays(5);
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName,
-                gm, auditRef);
+        originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName, groupName, originalGroup, gm, auditRef);
 
         resGroup1 = zms.dbService.getGroup(domainName, groupName, false, false);
 
@@ -5850,8 +5850,9 @@ public class DBServiceTest {
     @Test
     public void testAuditLogRoleMeta() {
         StringBuilder auditDetails = new StringBuilder();
-        Role role = new Role().setName("dom1:role.role1").setSelfServe(true).setReviewEnabled(false);
-        zms.dbService.auditLogRoleMeta(auditDetails, role, "role1");
+        Role role = new Role().setName("dom1:role.role1").setSelfServe(true).setReviewEnabled(false)
+                        .setSelfRenew(true).setSelfRenewMins(10);
+        zms.dbService.auditLogRoleMeta(auditDetails, role, "role1", true);
         assertEquals(auditDetails.toString(),
                 "{\"name\": \"role1\", \"selfServe\": \"true\", \"memberExpiryDays\": \"null\","
                         + " \"serviceExpiryDays\": \"null\", \"groupExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\","
@@ -5860,7 +5861,7 @@ public class DBServiceTest {
                         + " \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", \"signAlgorithm\": \"null\","
                         + " \"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\","
                         + " \"description\": \"null\", \"deleteProtection\": \"null\", \"lastReviewedDate\": \"null\","
-                        + " \"maxMembers\": \"null\"}");
+                        + " \"maxMembers\": \"null\", \"selfRenew\": \"true\", \"selfRenewMins\": \"10\"}");
     }
 
     @Test
@@ -11939,7 +11940,8 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         // update group meta
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName , groupName, rm, auditRef);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName , groupName, originalGroup, rm, auditRef);
 
         // assert tags to add contains group meta tags
         ArgumentCaptor<String> groupCapture = ArgumentCaptor.forClass(String.class);
@@ -11975,7 +11977,7 @@ public class DBServiceTest {
                 new TagValueList().setList(initialTagValues));
 
         // group meta with updated tags
-        GroupMeta rm = new GroupMeta()
+        GroupMeta gm = new GroupMeta()
                 .setTags(Collections.singletonMap(updateGroupMetaTag,
                         new TagValueList().setList(updateGroupMetaTagValues)));
 
@@ -11990,7 +11992,8 @@ public class DBServiceTest {
         zms.dbService.store = mockObjStore;
 
         // update group meta
-        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName , groupName, rm, auditRef);
+        Group originalGroup = zms.dbService.getGroup(domainName, groupName, false, false);
+        zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName , groupName, originalGroup, gm, auditRef);
 
         // assert tags to removed
         ArgumentCaptor<Set<String>> tagCapture = ArgumentCaptor.forClass(Set.class);

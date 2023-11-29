@@ -1291,7 +1291,7 @@ type RoleMeta struct {
 	//
 	// Flag indicates whether to allow expired members to renew their membership
 	//
-	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Number of minutes members can renew their membership if self review option
@@ -1477,7 +1477,7 @@ type Role struct {
 	//
 	// Flag indicates whether to allow expired members to renew their membership
 	//
-	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Number of minutes members can renew their membership if self review option
@@ -5471,7 +5471,7 @@ type GroupMeta struct {
 	//
 	// Flag indicates whether to allow expired members to renew their membership
 	//
-	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Number of minutes members can renew their membership if self review option
@@ -5599,7 +5599,7 @@ type Group struct {
 	//
 	// Flag indicates whether to allow expired members to renew their membership
 	//
-	SelfRenewEnabled *bool `json:"selfRenewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Number of minutes members can renew their membership if self review option
