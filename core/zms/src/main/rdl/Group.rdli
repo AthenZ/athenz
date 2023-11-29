@@ -106,6 +106,8 @@ resource DomainGroupMember GET "/group?principal={principal}&domain={domainName}
 }
 
 //Add the specified user to the group's member list.
+//If the group is selfRenewEnabled, then an existing member may extend their expiration time by the configured
+//number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active.
 //If the group is neither auditEnabled nor selfserve, then it will use authorize ("update", "{domainName}:group.{groupName}")
 //otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to
 //domain admins ( in case of selfserve groups )

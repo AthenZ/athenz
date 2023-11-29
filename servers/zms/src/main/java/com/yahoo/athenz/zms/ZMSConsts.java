@@ -272,6 +272,8 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_POLICY_ID          = "policy_id";
     public static final String DB_COLUMN_FEATURE_FLAGS      = "feature_flags";
     public static final String DB_COLUMN_MAX_MEMBERS        = "max_members";
+    public static final String DB_COLUMN_SELF_RENEW         = "self_renew";
+    public static final String DB_COLUMN_SELF_RENEW_MINS    = "self_renew_mins";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";

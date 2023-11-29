@@ -215,7 +215,7 @@ public class ZMSSchema {
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false)
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the role")
-            .field("selfRenewEnabled", "Bool", true, "Flag indicates whether to allow expired members to renew their membership", false)
+            .field("selfRenew", "Bool", true, "Flag indicates whether to allow expired members to renew their membership")
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
             .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group");
 
@@ -514,7 +514,7 @@ public class ZMSSchema {
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled groups.", false)
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group")
-            .field("selfRenewEnabled", "Bool", true, "Flag indicates whether to allow expired members to renew their membership", false)
+            .field("selfRenew", "Bool", true, "Flag indicates whether to allow expired members to renew their membership")
             .field("selfRenewMins", "Int32", true, "Number of minutes members can renew their membership if self review option is enabled")
             .field("maxMembers", "Int32", true, "Maximum number of members allowed in the group");
 
@@ -1484,7 +1484,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("Membership", "PUT", "/domain/{domainName}/role/{roleName}/member/{memberName}")
-            .comment("Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
+            .comment("Add the specified user to the role's member list. If the role is selfRenewEnabled, then an existing member may extend their expiration time by the configured number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role")
             .pathParam("memberName", "MemberName", "name of the user to be added as a member")
@@ -1772,7 +1772,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("GroupMembership", "PUT", "/domain/{domainName}/group/{groupName}/member/{memberName}")
-            .comment("Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )")
+            .comment("Add the specified user to the group's member list. If the group is selfRenewEnabled, then an existing member may extend their expiration time by the configured number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("groupName", "EntityName", "name of the group")
             .pathParam("memberName", "GroupMemberName", "name of the user to be added as a member")

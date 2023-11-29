@@ -92,6 +92,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -2484,6 +2485,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getServiceReviewDays(), "serviceReviewDays");
         validateIntegerValue(meta.getGroupReviewDays(), "groupReviewDays");
         validateIntegerValue(meta.getMaxMembers(), "maxMembers");
+        validateIntegerValue(meta.getSelfRenewMins(), "selfRenewMins");
 
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2503,6 +2505,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(role.getServiceReviewDays(), "serviceReviewDays");
         validateIntegerValue(role.getGroupReviewDays(), "groupReviewDays");
         validateIntegerValue(role.getMaxMembers(), "maxMembers");
+        validateIntegerValue(role.getSelfRenewMins(), "selfRenewMins");
 
         validateString(role.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(role.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2516,6 +2519,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(group.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(group.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(group.getMaxMembers(), "maxMembers");
+        validateIntegerValue(group.getSelfRenewMins(), "selfRenewMins");
 
         validateString(group.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(group.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -2529,6 +2533,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getMemberExpiryDays(), "memberExpiryDays");
         validateIntegerValue(meta.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(meta.getMaxMembers(), "maxMembers");
+        validateIntegerValue(meta.getSelfRenewMins(), "selfRenewMins");
 
         validateString(meta.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(meta.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -9525,9 +9530,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // can not be set to active/approved. It has to be approved by audit/review admins.
             // for all other roles, set member status to active/approved immediately
 
-            boolean auditEnabled = (role.getAuditEnabled() == Boolean.TRUE || role.getReviewEnabled() == Boolean.TRUE);
-            member.setActive(!auditEnabled);
-            member.setApproved(!auditEnabled);
+            updateRoleMemberActiveState(member, role);
+            return true;
+
+        } else if (isRoleSelfRenewAllowed(role, principal, member)) {
+
+            // even with update access, if the role is audit/review enabled, member status
+            // can not be set to active/approved. It has to be approved by audit/review admins.
+            // for all other roles, set member status to active/approved immediately
+
+            updateRoleMemberActiveState(member, role);
+
+            // we need to update the expiration before returning
+
+            updateRoleMemberSelfRenewExpiration(member, role.getSelfRenewMins());
             return true;
 
         } else if (role.getSelfServe() == Boolean.TRUE) {
@@ -9539,6 +9555,63 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             member.setActive(false);
             member.setApproved(false);
             return true;
+        }
+
+        return false;
+    }
+
+    void updateRoleMemberActiveState(RoleMember member, Role role) {
+
+        // even with update access, if the role is audit/review enabled, member status
+        // can not be set to active/approved. It has to be approved by audit/review admins.
+        // for all other roles, set member status to active/approved immediately
+
+        boolean auditEnabled = (role.getAuditEnabled() == Boolean.TRUE || role.getReviewEnabled() == Boolean.TRUE);
+        member.setActive(!auditEnabled);
+        member.setApproved(!auditEnabled);
+    }
+
+    void updateRoleMemberSelfRenewExpiration(RoleMember member, int expiryMins) {
+
+        // only set the expiry based on the self-renew minutes if the
+        // member either does not have one set or it's set to a value
+        // that is longer than what's configured by the self-renew mins
+
+        long selfRenewExpiry = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryMins, TimeUnit.MINUTES);
+        Timestamp memberExpiry = member.getExpiration();
+        if (memberExpiry == null || memberExpiry.millis() > selfRenewExpiry) {
+            member.setExpiration(Timestamp.fromMillis(selfRenewExpiry));
+        }
+    }
+
+    boolean isRoleSelfRenewAllowed(Role role, Principal principal, RoleMember member) {
+
+        // to allow self renew the following conditions must be met
+        // 1. role self-renew option is enabled
+        // 2. role self-renew-mins has valid number of minutes
+        // 3. the principal is the same as the member name
+        // 4. the member is an existing role member (regardless expired or not)
+
+        if (role.getSelfRenew() != Boolean.TRUE) {
+            return false;
+        }
+
+        if (role.getSelfRenewMins() == null || role.getSelfRenewMins() <= 0) {
+            return false;
+        }
+
+        if (!principal.getFullName().equals(member.getMemberName())) {
+            return false;
+        }
+
+        if (role.getRoleMembers() == null) {
+            return false;
+        }
+
+        for (RoleMember roleMember : role.getRoleMembers()) {
+            if (roleMember.getMemberName().equals(member.getMemberName())) {
+                return true;
+            }
         }
 
         return false;
@@ -10148,9 +10221,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // can not be set to active/approved. It has to be approved by audit/review admins.
             // for all other groups, set member status to active/approved immediately
 
-            boolean auditEnabled = (group.getAuditEnabled() == Boolean.TRUE || group.getReviewEnabled() == Boolean.TRUE);
-            groupMember.setActive(!auditEnabled);
-            groupMember.setApproved(!auditEnabled);
+            updateGroupMemberActiveState(groupMember, group);
+            return true;
+
+        } else if (isGroupSelfRenewAllowed(group, principal, groupMember)) {
+
+            // even with update access, if the group is audit/review enabled, member status
+            // can not be set to active/approved. It has to be approved by audit/review admins.
+            // for all other groups, set member status to active/approved immediately
+
+            updateGroupMemberActiveState(groupMember, group);
+
+            // we need to update the expiration before returning
+
+            updateGroupMemberSelfRenewExpiration(groupMember, group.getSelfRenewMins());
             return true;
 
         } else if (group.getSelfServe() == Boolean.TRUE) {
@@ -10162,6 +10246,63 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             groupMember.setActive(false);
             groupMember.setApproved(false);
             return true;
+        }
+
+        return false;
+    }
+
+    void updateGroupMemberActiveState(GroupMember member, Group group) {
+
+        // even with update access, if the group is audit/review enabled, member status
+        // can not be set to active/approved. It has to be approved by audit/review admins.
+        // for all other groups, set member status to active/approved immediately
+
+        boolean auditEnabled = (group.getAuditEnabled() == Boolean.TRUE || group.getReviewEnabled() == Boolean.TRUE);
+        member.setActive(!auditEnabled);
+        member.setApproved(!auditEnabled);
+    }
+
+    void updateGroupMemberSelfRenewExpiration(GroupMember member, int expiryMins) {
+
+        // only set the expiry based on the self-renew minutes if the
+        // member either does not have one set or it's set to a value
+        // that is longer than what's configured by the self-renew mins
+
+        long selfRenewExpiry = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(expiryMins, TimeUnit.MINUTES);
+        Timestamp memberExpiry = member.getExpiration();
+        if (memberExpiry == null || memberExpiry.millis() > selfRenewExpiry) {
+            member.setExpiration(Timestamp.fromMillis(selfRenewExpiry));
+        }
+    }
+
+    boolean isGroupSelfRenewAllowed(Group group, Principal principal, GroupMember member) {
+
+        // to allow self renew the following conditions must be met
+        // 1. group self-renew option is enabled
+        // 2. group self-renew-mins has valid number of minutes
+        // 3. the principal is the same as the member name
+        // 4. the member is an existing group member (regardless expired or not)
+
+        if (group.getSelfRenew() != Boolean.TRUE) {
+            return false;
+        }
+
+        if (group.getSelfRenewMins() == null || group.getSelfRenewMins() <= 0) {
+            return false;
+        }
+
+        if (!principal.getFullName().equals(member.getMemberName())) {
+            return false;
+        }
+
+        if (group.getGroupMembers() == null) {
+            return false;
+        }
+
+        for (GroupMember groupMember : group.getGroupMembers()) {
+            if (groupMember.getMemberName().equals(member.getMemberName())) {
+                return true;
+            }
         }
 
         return false;
@@ -10494,7 +10635,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("putGroupMeta: name={}, role={} meta={}", domainName, groupName, meta);
         }
 
-        dbService.executePutGroupMeta(ctx, domainName, groupName, meta, auditRef);
+        dbService.executePutGroupMeta(ctx, domainName, groupName, group, meta, auditRef);
     }
 
     void validateGroupMetaAuditEnabledFlag(GroupMeta meta, Group group, Domain domain, final String caller) {

@@ -49,7 +49,7 @@ public class Group {
     public Timestamp lastReviewedDate;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public Boolean selfRenewEnabled;
+    public Boolean selfRenew;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer selfRenewMins;
@@ -144,12 +144,12 @@ public class Group {
     public Timestamp getLastReviewedDate() {
         return lastReviewedDate;
     }
-    public Group setSelfRenewEnabled(Boolean selfRenewEnabled) {
-        this.selfRenewEnabled = selfRenewEnabled;
+    public Group setSelfRenew(Boolean selfRenew) {
+        this.selfRenew = selfRenew;
         return this;
     }
-    public Boolean getSelfRenewEnabled() {
-        return selfRenewEnabled;
+    public Boolean getSelfRenew() {
+        return selfRenew;
     }
     public Group setSelfRenewMins(Integer selfRenewMins) {
         this.selfRenewMins = selfRenewMins;
@@ -234,7 +234,7 @@ public class Group {
             if (lastReviewedDate == null ? a.lastReviewedDate != null : !lastReviewedDate.equals(a.lastReviewedDate)) {
                 return false;
             }
-            if (selfRenewEnabled == null ? a.selfRenewEnabled != null : !selfRenewEnabled.equals(a.selfRenewEnabled)) {
+            if (selfRenew == null ? a.selfRenew != null : !selfRenew.equals(a.selfRenew)) {
                 return false;
             }
             if (selfRenewMins == null ? a.selfRenewMins != null : !selfRenewMins.equals(a.selfRenewMins)) {

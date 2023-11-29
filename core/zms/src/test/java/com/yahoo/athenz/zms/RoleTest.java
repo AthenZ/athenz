@@ -52,7 +52,7 @@ public class RoleTest {
                 .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setLastReviewedDate(Timestamp.fromMillis(100))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -76,7 +76,7 @@ public class RoleTest {
         assertEquals(rm1.getDescription(), "test role");
         assertEquals(rm1.getLastReviewedDate(), Timestamp.fromMillis(100));
         assertEquals(rm1.getSelfRenewMins(), 180);
-        assertEquals(rm1.getSelfRenewEnabled(), Boolean.TRUE);
+        assertEquals(rm1.getSelfRenew(), Boolean.TRUE);
         assertEquals(rm1.getMaxMembers(), 5);
 
         RoleMeta rm2 = new RoleMeta()
@@ -99,7 +99,7 @@ public class RoleTest {
                 .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setLastReviewedDate(Timestamp.fromMillis(100))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -115,11 +115,11 @@ public class RoleTest {
         rm2.setMaxMembers(5);
         assertEquals(rm1, rm2);
 
-        rm2.setSelfRenewEnabled(false);
+        rm2.setSelfRenew(false);
         assertNotEquals(rm1, rm2);
-        rm2.setSelfRenewEnabled(null);
+        rm2.setSelfRenew(null);
         assertNotEquals(rm1, rm2);
-        rm2.setSelfRenewEnabled(true);
+        rm2.setSelfRenew(true);
         assertEquals(rm1, rm2);
 
         rm2.setSelfRenewMins(15);
@@ -309,7 +309,7 @@ public class RoleTest {
                 .setUserAuthorityFilter("attr2,attr3")
                 .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -338,7 +338,7 @@ public class RoleTest {
         assertEquals(r.getUserAuthorityFilter(), "attr2,attr3");
         assertEquals(r.getTags().get("tagKey").getList().get(0), "tagValue");
         assertEquals(r.getDescription(), "test role");
-        assertEquals(r.getSelfRenewEnabled(), Boolean.TRUE);
+        assertEquals(r.getSelfRenew(), Boolean.TRUE);
         assertEquals(r.getSelfRenewMins(), 180);
         assertEquals(r.getMaxMembers(), 5);
 
@@ -368,7 +368,7 @@ public class RoleTest {
                 .setUserAuthorityFilter("attr2,attr3")
                 .setDescription("test role")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
-                .setSelfRenewEnabled(true)
+                .setSelfRenew(true)
                 .setSelfRenewMins(180)
                 .setMaxMembers(5);
 
@@ -396,11 +396,11 @@ public class RoleTest {
         r2.setMaxMembers(5);
         assertEquals(r, r2);
 
-        r2.setSelfRenewEnabled(false);
+        r2.setSelfRenew(false);
         assertNotEquals(r, r2);
-        r2.setSelfRenewEnabled(null);
+        r2.setSelfRenew(null);
         assertNotEquals(r, r2);
-        r2.setSelfRenewEnabled(true);
+        r2.setSelfRenew(true);
         assertEquals(r, r2);
 
         r2.setSelfRenewMins(15);
