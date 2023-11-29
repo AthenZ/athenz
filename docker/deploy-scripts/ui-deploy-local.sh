@@ -41,7 +41,7 @@ if ! docker network inspect "${DOCKER_NETWORK}" > /dev/null 2>&1; then
 fi
 
 echo '2. start UI' | colored_cat g
-if [ ${ENABLE_LOCAL_BUILD_UI} ]; then
+if [ ${ENABLE_LOCAL_BUILD_UI:-} ]; then
     EXTRA_ARGS="-v ${UI_ASSY_DIR}/src:/opt/athenz/ui/src"
 fi
 docker run -d -h "${UI_HOST}" \
@@ -60,7 +60,7 @@ docker run -d -h "${UI_HOST}" \
     -e "PORT=${UI_CONTAINER_PORT}" \
     -e "UI_CONF_PATH=/opt/athenz/ui/conf/ui_server" \
     -e "ZMS_SERVER_URL=https://${ZMS_HOST}:${ZMS_PORT}/zms/v1/" \
-    ${EXTRA_ARGS} \
+    ${EXTRA_ARGS:-} \
     --name "${UI_HOST}" athenz/athenz-ui:latest
 # wait for UI to be ready
 until docker run --rm --entrypoint curl \
