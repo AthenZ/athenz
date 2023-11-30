@@ -473,7 +473,51 @@ func getRoleMetaObject(role *zms.Role) zms.RoleMeta {
 		UserAuthorityFilter:     role.UserAuthorityFilter,
 		Tags:                    role.Tags,
 		MaxMembers:              role.MaxMembers,
+		SelfRenew:               role.SelfRenew,
+		SelfRenewMins:           role.SelfRenewMins,
 	}
+}
+
+func (cli Zms) SetRoleSelfRenew(dn string, rn string, selfRenew bool) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.SelfRenew = &selfRenew
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " role-self-renew attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetRoleSelfRenewMins(dn string, rn string, selfRenewMins int32) (*string, error) {
+	role, err := cli.Zms.GetRole(zms.DomainName(dn), zms.EntityName(rn), nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	meta := getRoleMetaObject(role)
+	meta.SelfRenewMins = &selfRenewMins
+
+	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " role " + rn + " role-self-renew-mins attribute successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
 func (cli Zms) SetRoleSelfServe(dn string, rn string, selfServe bool) (*string, error) {

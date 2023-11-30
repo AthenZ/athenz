@@ -741,8 +741,8 @@ public class DBService implements RolesProvider {
 
         // open our audit record and log our trust field if one is available
 
-        auditDetails.append("{\"name\": \"").append(roleName)
-            .append("\", \"trust\": \"").append(role.getTrust()).append('\"');
+        auditLogRoleMeta(auditDetails, role, roleName, false);
+        auditDetails.append("\", \"trust\": \"").append(role.getTrust()).append('\"');
 
         // now we need process our role members depending on if this is
         // a new insert operation or an update
@@ -753,7 +753,6 @@ public class DBService implements RolesProvider {
             // we are just going to process all members as new inserts
 
             if (roleMembers != null) {
-
                 for (RoleMember member : roleMembers) {
                     String pendingState = member.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null;
                     if (!con.insertRoleMember(domainName, roleName, member.setPendingState(pendingState), admin, auditRef)) {
@@ -780,10 +779,12 @@ public class DBService implements RolesProvider {
     private boolean processRoleTags(Role role, String roleName, String domainName,
                                     Role originalRole, ObjectStoreConnection con) {
 
-        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertRoleTags(roleName, domainName, tags);
-        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteRoleTags(roleName, domainName, tagKeys);
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertRoleTags(roleName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
+                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteRoleTags(roleName, domainName, tagKeys);
 
-        return processTags(con, role.getTags(), (originalRole != null ? originalRole.getTags() : null) , insertOp, deleteOp);
+        return processTags(con, role.getTags(), (originalRole != null ? originalRole.getTags() : null), insertOp, deleteOp);
     }
     
     boolean processGroup(ObjectStoreConnection con, Group originalGroup, final String domainName,
@@ -809,7 +810,7 @@ public class DBService implements RolesProvider {
 
         // open our audit record and log our trust field if one is available
 
-        auditDetails.append("{\"name\": \"").append(groupName).append('\"');
+        auditLogGroupMeta(auditDetails, group, groupName, false);
 
         // now we need process our groups members depending this is
         // a new insert operation or an update
@@ -6026,7 +6027,7 @@ public class DBService implements RolesProvider {
                 .append("\"}");
     }
 
-    void auditLogRoleMeta(StringBuilder auditDetails, Role role, String roleName) {
+    void auditLogRoleMeta(StringBuilder auditDetails, Role role, String roleName, boolean close) {
         auditDetails.append("{\"name\": \"").append(roleName)
                 .append("\", \"selfServe\": \"").append(role.getSelfServe())
                 .append("\", \"memberExpiryDays\": \"").append(role.getMemberExpiryDays())
@@ -6046,10 +6047,15 @@ public class DBService implements RolesProvider {
                 .append("\", \"deleteProtection\": \"").append(role.getDeleteProtection())
                 .append("\", \"lastReviewedDate\": \"").append(role.getLastReviewedDate())
                 .append("\", \"maxMembers\": \"").append(role.getMembers())
-                .append("\"}");
+                .append("\", \"selfRenew\": \"").append(role.getSelfRenew())
+                .append("\", \"selfRenewMins\": \"").append(role.getSelfRenewMins());
+        auditLogTags(auditDetails, role.getTags());
+        if (close) {
+            auditDetails.append("\"}");
+        }
     }
 
-    void auditLogGroupMeta(StringBuilder auditDetails, Group group, final String groupName) {
+    void auditLogGroupMeta(StringBuilder auditDetails, Group group, final String groupName, boolean close) {
         auditDetails.append("{\"name\": \"").append(groupName)
                 .append("\", \"selfServe\": \"").append(group.getSelfServe())
                 .append("\", \"memberExpiryDays\": \"").append(group.getMemberExpiryDays())
@@ -6061,7 +6067,35 @@ public class DBService implements RolesProvider {
                 .append("\", \"deleteProtection\": \"").append(group.getDeleteProtection())
                 .append("\", \"lastReviewedDate\": \"").append(group.getLastReviewedDate())
                 .append("\", \"maxMembers\": \"").append(group.getMaxMembers())
-                .append("\"}");
+                .append("\", \"selfRenew\": \"").append(group.getSelfRenew())
+                .append("\", \"selfRenewMins\": \"").append(group.getSelfRenewMins());
+        auditLogTags(auditDetails, group.getTags());
+        if (close) {
+            auditDetails.append("\"}");
+        }
+    }
+
+    void auditLogTags(StringBuilder auditDetails, Map<String, TagValueList> tags) {
+        if (tags != null) {
+            auditDetails.append("\", \"tags\": {");
+            boolean firstEntry = true;
+            for (String key : tags.keySet()) {
+                firstEntry = auditLogTag(auditDetails, tags.get(key), key, firstEntry);
+            }
+            auditDetails.append("}");
+        }
+    }
+
+    private boolean auditLogTag(StringBuilder auditDetails, TagValueList tagValueList, String key, boolean firstEntry) {
+        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+        auditDetails.append("\"").append(key).append("\": [");
+        boolean innerFirstEntry = true;
+        for (String value : tagValueList.getList()) {
+            innerFirstEntry = auditLogSeparator(auditDetails, innerFirstEntry);
+            auditDetails.append("\"").append(value).append("\"");
+        }
+        auditDetails.append("]");
+        return firstEntry;
     }
 
     void auditLogAssertionConditions(StringBuilder auditDetails, List<AssertionCondition> assertionConditions, String label)  {
@@ -6229,7 +6263,9 @@ public class DBService implements RolesProvider {
                         .setDeleteProtection(originalRole.getDeleteProtection())
                         .setNotifyRoles(originalRole.getNotifyRoles())
                         .setLastReviewedDate(originalRole.getLastReviewedDate())
-                        .setMaxMembers(originalRole.getMaxMembers());
+                        .setMaxMembers(originalRole.getMaxMembers())
+                        .setSelfRenew(originalRole.getSelfRenew())
+                        .setSelfRenewMins(originalRole.getSelfRenewMins());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6303,7 +6339,9 @@ public class DBService implements RolesProvider {
                         .setServiceExpiryDays(originalGroup.getServiceExpiryDays())
                         .setLastReviewedDate(originalGroup.getLastReviewedDate())
                         .setDeleteProtection(originalGroup.getDeleteProtection())
-                        .setMaxMembers(originalGroup.getMaxMembers());
+                        .setMaxMembers(originalGroup.getMaxMembers())
+                        .setSelfRenew(originalGroup.getSelfRenew())
+                        .setSelfRenewMins(originalGroup.getSelfRenewMins());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6322,6 +6360,7 @@ public class DBService implements RolesProvider {
                         domainName, auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
                 
                 return updatedGroup;
@@ -6447,6 +6486,12 @@ public class DBService implements RolesProvider {
         if (meta.getMaxMembers() != null) {
             role.setMaxMembers(meta.getMaxMembers());
         }
+        if (meta.getSelfRenew() != null) {
+            role.setSelfRenew(meta.getSelfRenew());
+        }
+        if (meta.getSelfRenewMins() != null) {
+            role.setSelfRenewMins(meta.getSelfRenewMins());
+        }
         role.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
                 role.getLastReviewedDate(), caller));
     }
@@ -6490,23 +6535,25 @@ public class DBService implements RolesProvider {
                         .setDescription(originalRole.getDescription())
                         .setTags(originalRole.getTags())
                         .setLastReviewedDate(originalRole.getLastReviewedDate())
-                        .setMaxMembers(originalRole.getMaxMembers());
+                        .setMaxMembers(originalRole.getMaxMembers())
+                        .setSelfRenew(originalRole.getSelfRenew())
+                        .setSelfRenewMins(originalRole.getSelfRenewMins());
 
                 // then we're going to apply the updated fields
                 // from the given object
 
                 updateRoleMetaFields(updatedRole, meta, caller);
-
                 con.updateRole(domainName, updatedRole);
 
-                processRoleTags(updatedRole, roleName, domainName, originalRole, con);
+                // create our audit log object
 
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogRoleMeta(auditDetails, updatedRole, roleName, true);
+
+                processRoleTags(updatedRole, roleName, domainName, originalRole, con);
                 saveChanges(con, domainName);
 
                 // audit log the request
-
-                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditLogRoleMeta(auditDetails, updatedRole, roleName);
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
@@ -6572,12 +6619,18 @@ public class DBService implements RolesProvider {
         if (meta.getMaxMembers() != null) {
             group.setMaxMembers(meta.getMaxMembers());
         }
+        if (meta.getSelfRenew() != null) {
+            group.setSelfRenew(meta.getSelfRenew());
+        }
+        if (meta.getSelfRenewMins() != null) {
+            group.setSelfRenewMins(meta.getSelfRenewMins());
+        }
         group.setLastReviewedDate(objectLastReviewDate(meta.getLastReviewedDate(),
                 group.getLastReviewedDate(), caller));
     }
 
     public Group executePutGroupMeta(ResourceContext ctx, final String domainName, final String groupName,
-                                    GroupMeta meta, final String auditRef) {
+                                     Group originalGroup, GroupMeta meta, final String auditRef) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -6586,12 +6639,6 @@ public class DBService implements RolesProvider {
         for (int retryCount = defaultRetryCount; ; retryCount--) {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
-
-                Group originalGroup = getGroup(con, domainName, groupName, false, false);
-                if (originalGroup == null) {
-                    con.rollbackChanges();
-                    throw ZMSUtils.notFoundError("Unknown group: " + groupName, ctx.getApiName());
-                }
 
                 checkObjectAuditEnabled(con, originalGroup.getAuditEnabled(), originalGroup.getName(),
                         auditRef, ctx.getApiName(), getPrincipalName(ctx));
@@ -6612,7 +6659,9 @@ public class DBService implements RolesProvider {
                         .setTags(originalGroup.getTags())
                         .setDeleteProtection(originalGroup.getDeleteProtection())
                         .setLastReviewedDate(originalGroup.getLastReviewedDate())
-                        .setMaxMembers(originalGroup.getMaxMembers());
+                        .setMaxMembers(originalGroup.getMaxMembers())
+                        .setSelfRenew(originalGroup.getSelfRenew())
+                        .setSelfRenewMins(originalGroup.getSelfRenewMins());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -6628,14 +6677,17 @@ public class DBService implements RolesProvider {
 
                 con.updateGroup(domainName, updatedGroup);
 
-                processGroupTags(updatedGroup, groupName, domainName, originalGroup, con);
+                // create our audit log object
 
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogGroupMeta(auditDetails, updatedGroup, groupName, true);
+
+                // process our tags
+
+                processGroupTags(updatedGroup, groupName, domainName, originalGroup, con);
                 saveChanges(con, domainName);
 
                 // audit log the request
-
-                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                auditLogGroupMeta(auditDetails, updatedGroup, groupName);
 
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
                         domainName, auditDetails.toString());
@@ -6653,6 +6705,7 @@ public class DBService implements RolesProvider {
                         updatedGroup, auditRef);
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
                 
                 return updatedGroup;

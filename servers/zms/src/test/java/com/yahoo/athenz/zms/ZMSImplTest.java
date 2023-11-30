@@ -93,6 +93,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
+import static org.testng.Assert.assertNull;
 
 public class ZMSImplTest {
 
@@ -2635,6 +2636,8 @@ public class ZMSImplTest {
         role1.setGroupReviewDays(90);
         role1.setDescription("testroledescription");
         role1.setMaxMembers(25);
+        role1.setSelfRenew(true);
+        role1.setSelfRenewMins(99);
         zmsImpl.putRole(ctx, "GetRoleDom1", "Role1", auditRef, false, role1);
 
         Role role = zmsImpl.getRole(ctx, "GetRoleDom1", "Role1", false, false, false);
@@ -2660,6 +2663,8 @@ public class ZMSImplTest {
         assertEquals(role.getDescription(), "testroledescription");
         assertTrue(role.getSelfServe());
         assertEquals(role.getMaxMembers(), 25);
+        assertTrue(role.getSelfRenew());
+        assertEquals(role.getSelfRenewMins(), 99);
 
         zmsImpl.deleteTopLevelDomain(ctx, "GetRoleDom1", auditRef);
     }
@@ -2848,7 +2853,7 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"added-members\": [");
+            int index2 = msg.indexOf("\"name\": \"role1\",");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -2877,7 +2882,16 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"name\": \"role1\", \"trust\": \"null\", \"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], \"added-members\": []");
+            int index2 = msg.indexOf("{\"name\": \"role1\", \"selfServe\": \"false\", \"memberExpiryDays\": \"null\", "
+                    + "\"serviceExpiryDays\": \"null\", \"groupExpiryDays\": \"null\", \"tokenExpiryMins\": \"null\", "
+                    + "\"certExpiryMins\": \"null\", \"memberReviewDays\": \"null\", \"serviceReviewDays\": \"null\", "
+                    + "\"groupReviewDays\": \"null\", \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", "
+                    + "\"signAlgorithm\": \"null\", \"userAuthorityFilter\": \"null\", "
+                    + "\"userAuthorityExpiration\": \"null\", \"description\": \"null\", "
+                    + "\"deleteProtection\": \"false\", \"lastReviewedDate\": \"null\", \"maxMembers\": \"null\", "
+                    + "\"selfRenew\": \"null\", \"selfRenewMins\": \"null\", \"trust\": \"null\", "
+                    + "\"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], "
+                    + "\"added-members\": []}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -23030,6 +23044,9 @@ public class ZMSImplTest {
         rm.setGroupReviewDays(90);
         rm.setSignAlgorithm("ec");
         rm.setDescription("testroledescription");
+        rm.setMaxMembers(25);
+        rm.setSelfRenew(true);
+        rm.setSelfRenewMins(99);
         zmsImpl.putRoleMeta(ctx, "rolemetadom1", "role1", auditRef, rm);
 
         Role resRole1 = zmsImpl.getRole(ctx, "rolemetadom1", "role1", true, false, false);
@@ -23046,6 +23063,9 @@ public class ZMSImplTest {
         assertEquals(resRole1.getGroupReviewDays(), Integer.valueOf(90));
         assertEquals(resRole1.getDescription(), "testroledescription");
         assertEquals(resRole1.getSignAlgorithm(), "ec");
+        assertTrue(resRole1.getSelfRenew());
+        assertEquals(resRole1.getMaxMembers(), 25);
+        assertEquals(resRole1.getSelfRenewMins(), 99);
 
         // if we pass a null for the expiry days (e.g. old client)
         // then we're not going to modify the value
@@ -23065,6 +23085,9 @@ public class ZMSImplTest {
         assertEquals(resRole1.getMemberReviewDays(), Integer.valueOf(70));
         assertEquals(resRole1.getServiceReviewDays(), Integer.valueOf(80));
         assertEquals(resRole1.getGroupReviewDays(), Integer.valueOf(90));
+        assertTrue(resRole1.getSelfRenew());
+        assertEquals(resRole1.getMaxMembers(), 25);
+        assertEquals(resRole1.getSelfRenewMins(), 99);
 
         // now let's reset to 0
 
@@ -23077,6 +23100,9 @@ public class ZMSImplTest {
         rm3.setMemberReviewDays(0);
         rm3.setServiceReviewDays(0);
         rm3.setGroupReviewDays(0);
+        rm3.setSelfRenewMins(0);
+        rm3.setSelfRenew(false);
+        rm3.setMaxMembers(0);
         zmsImpl.putRoleMeta(ctx, "rolemetadom1", "role1", auditRef, rm3);
 
         resRole1 = zmsImpl.getRole(ctx, "rolemetadom1", "role1", true, false, false);
@@ -23091,6 +23117,9 @@ public class ZMSImplTest {
         assertNull(resRole1.getMemberReviewDays());
         assertNull(resRole1.getServiceReviewDays());
         assertNull(resRole1.getGroupReviewDays());
+        assertNull(resRole1.getSelfRenew());
+        assertNull(resRole1.getMaxMembers());
+        assertNull(resRole1.getSelfRenewMins());
 
         // invalid negative values
 
@@ -27172,7 +27201,8 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
         when(ctx.getApiName()).thenReturn("posttopleveldomain").thenReturn("putgroup");
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
@@ -27187,7 +27217,7 @@ public class ZMSImplTest {
         assertNull(group1a.getAuditEnabled());
         assertNull(group1a.getReviewEnabled());
 
-        // check audit log msg for putRole
+        // check audit log msg for putgroup
         boolean foundError = false;
         System.err.println("testCreateGroup: Number of lines: " + aLogMsgs.size());
         for (String msg: aLogMsgs) {
@@ -27197,14 +27227,14 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"name\": \"" + groupName + "\", \"added-members\": [");
+            int index2 = msg.indexOf("\"name\": \"" + groupName + "\",");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
         }
         assertTrue(foundError);
 
-        // delete member of the role
+        // delete member of the group
         //
         List<GroupMember> listrm = group1.getGroupMembers();
         for (GroupMember rmemb: listrm) {
@@ -27226,7 +27256,13 @@ public class ZMSImplTest {
             assertTrue(msg.contains("CLIENT-IP=(" + ZMSTestInitializer.MOCKCLIENTADDR + ")"), msg);
             int index = msg.indexOf("WHAT-details=(");
             assertTrue(index != -1, msg);
-            int index2 = msg.indexOf("\"name\": \"" + groupName + "\", \"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], \"added-members\": []");
+            int index2 = msg.indexOf("{\"name\": \"group1\", \"selfServe\": \"false\", \"memberExpiryDays\": \"null\", "
+                    + "\"serviceExpiryDays\": \"null\", \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", "
+                    + "\"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\", "
+                    + "\"deleteProtection\": \"false\", \"lastReviewedDate\": \"null\", \"maxMembers\": \"null\", "
+                    + "\"selfRenew\": \"null\", \"selfRenewMins\": \"null, "
+                    + "\"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], "
+                    + "\"added-members\": []}");
             assertTrue(index2 > index, msg);
             foundError = true;
             break;
@@ -30194,6 +30230,9 @@ public class ZMSImplTest {
         assertNull(resGroup1.getNotifyRoles());
         assertNull(resGroup1.getUserAuthorityExpiration());
         assertNull(resGroup1.getUserAuthorityFilter());
+        assertNull(resGroup1.getMaxMembers());
+        assertNull(resGroup1.getSelfRenew());
+        assertNull(resGroup1.getSelfRenewMins());
 
         groupMeta = new GroupMeta()
                 .setSelfServe(true)
@@ -30202,7 +30241,10 @@ public class ZMSImplTest {
                 .setUserAuthorityExpiration("elevated-clearance")
                 .setUserAuthorityFilter("OnShore-US")
                 .setMemberExpiryDays(45)
-                .setServiceExpiryDays(45);
+                .setServiceExpiryDays(45)
+                .setSelfRenew(true)
+                .setSelfRenewMins(99)
+                .setMaxMembers(23);
         zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);
 
         resGroup1 = zmsImpl.getGroup(ctx, domainName, groupName, true, false);
@@ -30214,6 +30256,9 @@ public class ZMSImplTest {
         assertEquals(resGroup1.getUserAuthorityFilter(), "OnShore-US");
         assertEquals(resGroup1.getMemberExpiryDays(), Integer.valueOf(45));
         assertEquals(resGroup1.getServiceExpiryDays(), Integer.valueOf(45));
+        assertEquals(resGroup1.getMaxMembers(), 23);
+        assertTrue(resGroup1.getSelfRenew());
+        assertEquals(resGroup1.getSelfRenewMins(), 99);
 
         groupMeta = new GroupMeta().setNotifyRoles("role2,role3");
         zmsImpl.putGroupMeta(ctx, domainName, groupName, auditRef, groupMeta);

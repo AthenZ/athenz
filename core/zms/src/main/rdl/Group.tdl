@@ -56,7 +56,7 @@ type GroupMeta Struct {
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
     Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled groups.
     Timestamp lastReviewedDate (optional); //last review timestamp of the group
-    Bool selfRenewEnabled (optional, default=false); //Flag indicates whether to allow expired members to renew their membership
+    Bool selfRenew (optional); //Flag indicates whether to allow expired members to renew their membership
     Int32 selfRenewMins (optional); //Number of minutes members can renew their membership if self review option is enabled
     Int32 maxMembers (optional); //Maximum number of members allowed in the group
 }
