@@ -55,16 +55,13 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
 
     @Override
     public List<Notification> getNotifications() {
-        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1, false);
+        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1);
         if (expiryMembers == null || expiryMembers.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No expiry members available to send email notifications");
-            }
-            return getMetricNotificationDetails();
+            LOGGER.info("No expiry members available to send email notifications");
+            return Collections.emptyList();
         }
 
-        List<Notification> metricNotificationDetails = getMetricNotificationDetails();
-        List<Notification> metricAndEmailNotificationDetails = roleMemberNotificationCommon.getNotificationDetails(
+        return roleMemberNotificationCommon.getNotificationDetails(
                 expiryMembers,
                 roleExpiryPrincipalNotificationToEmailConverter,
                 roleExpiryDomainNotificationToEmailConverter,
@@ -72,28 +69,6 @@ public class RoleMemberExpiryNotificationTask implements NotificationTask {
                 roleExpiryPrincipalNotificationToMetricConverter,
                 roleExpiryDomainNotificationToMetricConverter,
                 new ReviewDisableRoleMemberNotificationFilter());
-        metricNotificationDetails.addAll(metricAndEmailNotificationDetails);
-        return metricNotificationDetails;
-    }
-
-    private List<Notification> getMetricNotificationDetails() {
-        Map<String, DomainRoleMember> expiryMembers = dbService.getRoleExpiryMembers(1, true);
-        if (expiryMembers == null || expiryMembers.isEmpty()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No expiry members available to send metric notifications");
-            }
-
-            return new ArrayList<>();
-        }
-
-        return roleMemberNotificationCommon.getNotificationDetails(
-                expiryMembers,
-                null,
-                null,
-                new ExpiryRoleMemberDetailStringer(),
-                roleExpiryPrincipalNotificationToMetricConverter,
-                roleExpiryDomainNotificationToMetricConverter,
-                memberRole -> DisableNotificationEnum.getEnumSet(0));
     }
 
     static class ExpiryRoleMemberDetailStringer implements RoleMemberNotificationCommon.RoleMemberDetailStringer {

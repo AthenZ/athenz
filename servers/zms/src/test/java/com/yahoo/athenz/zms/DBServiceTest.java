@@ -7508,7 +7508,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName2, "role3", role3, "test", "putrole", false);
 
         Map<String, DomainRoleMember> domainRoleMembers = isRoleExpire ?
-                zms.dbService.getRoleExpiryMembers(0, false) : zms.dbService.getRoleReviewMembers(0);
+                zms.dbService.getRoleExpiryMembers(0) : zms.dbService.getRoleReviewMembers(0);
         assertNotNull(domainRoleMembers);
         assertEquals(domainRoleMembers.size(), 3);
 
@@ -7605,9 +7605,9 @@ public class DBServiceTest {
 
         ObjectStoreConnection mockConn = Mockito.mock(ObjectStoreConnection.class);
         Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean())).thenReturn(mockConn);
-        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt(), anyBoolean())).thenReturn(false);
+        Mockito.when(mockConn.updateRoleMemberExpirationNotificationTimestamp(anyString(), anyLong(), anyInt())).thenReturn(false);
 
-        assertNull(zms.dbService.getRoleExpiryMembers(1, false));
+        assertNull(zms.dbService.getRoleExpiryMembers(1));
         zms.dbService.store = saveStore;
     }
 

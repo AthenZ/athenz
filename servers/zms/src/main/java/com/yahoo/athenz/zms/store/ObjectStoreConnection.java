@@ -200,7 +200,7 @@ public interface ObjectStoreConnection extends Closeable {
     boolean updatePendingRoleMembersNotificationTimestamp(String server, long timestamp, int delayDays);
 
     Map<String, DomainRoleMember> getNotifyTemporaryRoleMembers(String server, long timestamp);
-    boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays, boolean metricsOnly);
+    boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays);
 
     Map<String, DomainRoleMember> getNotifyReviewRoleMembers(String server, long timestamp);
     boolean updateRoleMemberReviewNotificationTimestamp(String server, long timestamp, int delayDays);
