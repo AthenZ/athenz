@@ -128,10 +128,10 @@ public class NotificationManager {
                     notifications.stream()
                             .filter(Objects::nonNull)
                             .forEach(notification -> notificationServices.forEach(service -> service.notify(notification)));
-                    LOGGER.info("PeriodicNotificationsSender: Sent {} notifications of type {}.",
+                    LOGGER.info("PeriodicNotificationsSender: Sent {} notifications of type {}",
                             notifications.size(), notificationTask.getDescription());
                 } catch (Throwable t) {
-                    LOGGER.error(String.format("PeriodicNotificationsSender: unable to send %s: ", notificationTask.getDescription()), t);
+                    LOGGER.error("PeriodicNotificationsSender: unable to send {}", notificationTask.getDescription(), t);
                 }
             }
 

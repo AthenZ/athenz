@@ -383,22 +383,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE DAYOFWEEK(req_time)=DAYOFWEEK(?) AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
     private static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP =
               "UPDATE role_member SET last_notified_time=?, server=? "
-            + "WHERE ("
-              // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
-            + "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28)) OR"
-              // Expiration and Review both set and review is before expiration - start sending from review date
-            + "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28))"
-            + ") AND "
-            + "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
-    public static final String SQL_UPDATE_ROLE_MEMBERS_EXPIRY_METRIC_NOTIFICATION_TIMESTAMP =
-              "UPDATE role_member SET last_notified_time=?, server=? "
-            + "WHERE ("
-               // Expiration is set and Review isn't (or after expiration) - start sending a month before expiration
-            + "(expiration > CURRENT_TIME AND (review_reminder is NULL OR review_reminder >= expiration) AND DATEDIFF(expiration, CURRENT_TIME) < 28 AND DATEDIFF(expiration, CURRENT_TIME) NOT IN (0,1,7,14,21,28)) OR"
-               // Expiration and Review both set and review is before expiration - start sending from review date
-            + "(expiration > CURRENT_TIME AND review_reminder is not NULL AND review_reminder <= CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) < 28 AND DATEDIFF(expiration, CURRENT_TIME) NOT IN (0,1,7,14,21,28))"
-            + ") AND "
-            + "(last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
+            + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
             + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
@@ -407,9 +392,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "WHERE role_member.last_notified_time=? AND role_member.server=?;";
     private static final String SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP =
               "UPDATE role_member SET review_last_notified_time=?, review_server=? "
-            + "WHERE ("
-            + "review_reminder > CURRENT_TIME AND (expiration is NULL) AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,7,14,21,28) AND "
-            + "(review_last_notified_time IS NULL || review_last_notified_time < (CURRENT_TIME - INTERVAL ? DAY)));";
+            + "WHERE review_reminder > CURRENT_TIME AND expiration IS NULL AND DATEDIFF(review_reminder, CURRENT_TIME) IN (0,1,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_REVIEW_ROLE_MEMBERS = "SELECT domain.name AS domain_name, role.name AS role_name, "
             + "principal.name AS principal_name, role_member.expiration, role_member.review_reminder FROM role_member "
             + "JOIN role ON role.role_id=role_member.role_id "
@@ -555,9 +538,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_ADMIN_PENDING_GROUP_MEMBERSHIP_REMINDER_DOMAINS = "SELECT distinct d.name FROM pending_principal_group_member pgm "
             + "JOIN principal_group grp ON grp.group_id=pgm.group_id JOIN domain d ON grp.domain_id=d.domain_id "
             + "WHERE grp.self_serve=true AND pgm.last_notified_time=? AND pgm.server=?;";
-    private static final String SQL_UPDATE_GROUP_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP = "UPDATE principal_group_member SET last_notified_time=?, server=? "
-            + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28) "
-            + "AND (last_notified_time IS NULL || last_notified_time < (CURRENT_TIME - INTERVAL ? DAY));";
+    private static final String SQL_UPDATE_GROUP_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP =
+              "UPDATE principal_group_member SET last_notified_time=?, server=? "
+            + "WHERE expiration > CURRENT_TIME AND DATEDIFF(expiration, CURRENT_TIME) IN (0,1,7,14,21,28);";
     private static final String SQL_LIST_NOTIFY_TEMPORARY_GROUP_MEMBERS = "SELECT domain.name AS domain_name, principal_group.name AS group_name, "
             + "principal.name AS principal_name, principal_group_member.expiration FROM principal_group_member "
             + "JOIN principal_group ON principal_group.group_id=principal_group_member.group_id "
@@ -5726,24 +5709,21 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays, boolean metricsOnly) {
+    public boolean updateRoleMemberExpirationNotificationTimestamp(String server, long timestamp, int delayDays) {
 
         // first verify that we haven't had any updates in the last configured
         // number of delayed days. We don't want multiple instances running
         // and generating multiple emails depending on the time. We want to
         // make sure, for example, to generate only a single email per day
 
-        if (!metricsOnly) {
-            if (isLastNotifyTimeWithinSpecifiedDays(SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME, delayDays)) {
-                return false;
-            }
+        if (isLastNotifyTimeWithinSpecifiedDays(SQL_ROLE_EXPIRY_LAST_NOTIFIED_TIME, delayDays)) {
+            return false;
         }
 
         // process our request
 
-        return updateMemberNotificationTimestamp(server, timestamp, delayDays,
-                metricsOnly ? SQL_UPDATE_ROLE_MEMBERS_EXPIRY_METRIC_NOTIFICATION_TIMESTAMP : SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP,
-                "updateRoleMemberExpirationNotificationTimestamp");
+        return updateMemberNotificationTimestamp(server, timestamp,
+                SQL_UPDATE_ROLE_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP, "updateRoleMemberExpirationNotificationTimestamp");
     }
 
     @Override
@@ -5800,7 +5780,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             return false;
         }
 
-        return updateMemberNotificationTimestamp(server, timestamp, delayDays,
+        return updateMemberNotificationTimestamp(server, timestamp,
                 SQL_UPDATE_GROUP_MEMBERS_EXPIRY_NOTIFICATION_TIMESTAMP, "updateGroupMemberExpirationNotificationTimestamp");
     }
 
@@ -5821,17 +5801,15 @@ public class JDBCConnection implements ObjectStoreConnection {
             return false;
         }
 
-        return updateMemberNotificationTimestamp(server, timestamp, delayDays,
+        return updateMemberNotificationTimestamp(server, timestamp,
                 SQL_UPDATE_ROLE_MEMBERS_REVIEW_NOTIFICATION_TIMESTAMP, "updateRoleMemberReviewNotificationTimestamp");
     }
 
-    private boolean updateMemberNotificationTimestamp(final String server, long timestamp, int delayDays,
-                                                      final String query, final String caller) {
+    private boolean updateMemberNotificationTimestamp(final String server, long timestamp, final String query, final String caller) {
         int affectedRows;
         try (PreparedStatement ps = con.prepareStatement(query)) {
             ps.setTimestamp(1, new java.sql.Timestamp(timestamp));
             ps.setString(2, server);
-            ps.setInt(3, delayDays);
 
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
