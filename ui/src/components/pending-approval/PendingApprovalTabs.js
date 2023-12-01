@@ -18,11 +18,25 @@ import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
 import { WORKFLOW_TABS } from '../constants/constants';
 import PageUtils from '../utils/PageUtils';
+import API from '../../api';
 
 class PendingApprovalTabs extends React.Component {
     constructor(props) {
         super(props);
         this.tabClicked = this.tabClicked.bind(this);
+        this.api = API();
+        this.state = {
+            roleGroupReviewFeatureFlag: false,
+        };
+    }
+
+    // TODO clean up feature flag when feature is done
+    componentDidMount() {
+        this.api.getPageFeatureFlag('roleGroupReview').then((data) => {
+            this.setState({
+                roleGroupReviewFeatureFlag: data['roleGroupReviewFeatureFlag'],
+            });
+        });
     }
 
     tabClicked(tab) {
@@ -33,13 +47,26 @@ class PendingApprovalTabs extends React.Component {
             case 'domain':
                 this.props.router.push(PageUtils.workflowDomainPage());
                 break;
+            case 'roleReview':
+                this.props.router.push(PageUtils.workflowRoleReviewPage());
+                break;
+            case 'groupReview':
+                this.props.router.push(PageUtils.workflowGroupReviewPage());
+                break;
         }
     }
 
     render() {
+        let shouldShowAllWorkflowTabs = this.state.roleGroupReviewFeatureFlag;
+        let workflowTabs = shouldShowAllWorkflowTabs
+            ? WORKFLOW_TABS
+            : WORKFLOW_TABS.filter(
+                  (tab) =>
+                      tab.name !== 'roleReview' && tab.name !== 'groupReview'
+              );
         return (
             <TabGroup
-                tabs={WORKFLOW_TABS}
+                tabs={workflowTabs}
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim

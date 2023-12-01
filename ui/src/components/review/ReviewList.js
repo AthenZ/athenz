@@ -89,6 +89,7 @@ class ReviewList extends React.Component {
                         timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
+                        justification={this.props.justification}
                     />
                 )}
                 {this.props.category === 'role' && (
@@ -100,6 +101,7 @@ class ReviewList extends React.Component {
                         timeZone={this.props.timeZone}
                         _csrf={this.props._csrf}
                         onUpdateSuccess={this.submitSuccess}
+                        justification={this.props.justification}
                     />
                 )}
                 {this.state.showSuccess ? (

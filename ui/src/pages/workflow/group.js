@@ -23,14 +23,17 @@ import Head from 'next/head';
 import RequestUtils from '../../components/utils/RequestUtils';
 import Error from '../_error';
 import PendingApprovalTabs from '../../components/pending-approval/PendingApprovalTabs';
-import PendingApprovalTable from '../../components/pending-approval/PendingApprovalTable';
 import { connect } from 'react-redux';
-import { getUserPendingMembers } from '../../redux/thunks/user';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
+import Input from '../../components/denali/Input.js';
+import InputLabel from '../../components/denali/InputLabel.js';
 import { WORKFLOW_TITLE } from '../../components/constants/constants.js';
+import ReviewCard from '../../components/review/ReviewCard.js';
+import { getReviewGroups } from '../../redux/thunks/groups.js';
+import { selectUserReviewGroups } from '../../redux/selectors/groups.js';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -76,6 +79,23 @@ const WorkFlowDiv = styled.div`
     box-sizing: content-box !important;
 `;
 
+const StyledJustification = styled(Input)`
+    width: 300px;
+    margin-top: 5px;
+`;
+
+const StyledInputLabel = styled(InputLabel)`
+    margin-top: 5px;
+    flex-basis: 20%;
+    display: block;
+`;
+
+const BusinessJustificationContainer = styled.div`
+    margin-left: 50px;
+    margin-top: 20px;
+    display: flex;
+`;
+
 export async function getServerSideProps(context) {
     let api = API(context.req);
     let reload = false;
@@ -92,11 +112,12 @@ export async function getServerSideProps(context) {
             error,
             _csrf: domains[0],
             nonce: context.req && context.req.headers.rid,
+            userName: context.req.session.shortId,
         },
     };
 }
 
-class WorkflowAdmin extends React.Component {
+class WorkflowGroup extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
@@ -106,12 +127,16 @@ class WorkflowAdmin extends React.Component {
         });
         this.state = {
             pendingData: props.pendingData,
+            justification: '',
         };
     }
 
     componentDidMount() {
-        const { getUserPendingMembers } = this.props;
-        getUserPendingMembers();
+        this.props.getReviewGroups();
+    }
+
+    inputChanged(key, evt) {
+        this.setState({ [key]: evt.target.value });
     }
 
     render() {
@@ -122,11 +147,27 @@ class WorkflowAdmin extends React.Component {
         if (this.props.error) {
             return <Error err={this.props.error} />;
         }
+        let reviewCards = [];
+        if (this.props.reviewGroups && this.props.reviewGroups.length > 0) {
+            this.props.reviewGroups.forEach((group) => {
+                reviewCards.push(
+                    <ReviewCard
+                        category={'group'}
+                        key={group.domainName + group.name}
+                        domainName={group.domainName}
+                        name={group.name}
+                        userName={this.props.userName}
+                        justification={this.state.justification}
+                        _csrf={this.props._csrf}
+                    />
+                );
+            });
+        }
         return this.props.isLoading.length > 0 ? (
-            <ReduxPageLoader message={'Loading pending members'} />
+            <ReduxPageLoader message={'Loading groups to review'} />
         ) : (
             <CacheProvider value={this.cache}>
-                <div data-testid='pending-approval'>
+                <div data-testid='workflow-group-review'>
                     <Head>
                         <title>Athenz</title>
                     </Head>
@@ -141,15 +182,33 @@ class WorkflowAdmin extends React.Component {
                                                 {WORKFLOW_TITLE}
                                             </TitleDiv>
                                             <PendingApprovalTabs
-                                                selectedName={'admin'}
+                                                selectedName={'groupReview'}
                                             />
                                         </PageHeaderDiv>
-
-                                        <WorkFlowSectionDiv>
-                                            <PendingApprovalTable
-                                                _csrf={this.props._csrf}
-                                                view={'admin'}
+                                        <BusinessJustificationContainer>
+                                            <StyledInputLabel>
+                                                Provide Justification for All
+                                                Reviews
+                                            </StyledInputLabel>
+                                            <StyledJustification
+                                                id='all-justification'
+                                                name='all-justification'
+                                                value={
+                                                    this.state.justification
+                                                        ? this.state
+                                                              .justification
+                                                        : ''
+                                                }
+                                                onChange={this.inputChanged.bind(
+                                                    this,
+                                                    'justification'
+                                                )}
+                                                autoComplete={'off'}
+                                                placeholder='Enter justification for all here'
                                             />
+                                        </BusinessJustificationContainer>
+                                        <WorkFlowSectionDiv>
+                                            {reviewCards}
                                         </WorkFlowSectionDiv>
                                     </div>
                                 </WorkFlowDiv>
@@ -167,11 +226,12 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
+        reviewGroups: selectUserReviewGroups(state),
     };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    getUserPendingMembers: () => dispatch(getUserPendingMembers()),
+    getReviewGroups: () => dispatch(getReviewGroups()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(WorkflowAdmin);
+export default connect(mapStateToProps, mapDispatchToProps)(WorkflowGroup);

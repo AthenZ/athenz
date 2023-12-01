@@ -38,6 +38,12 @@ class PageUtils {
     static workflowDomainPage() {
         return `/workflow/domain`;
     }
+    static workflowRoleReviewPage() {
+        return `/workflow/role`;
+    }
+    static workflowGroupReviewPage() {
+        return `/workflow/group`;
+    }
 }
 
 export default PageUtils;

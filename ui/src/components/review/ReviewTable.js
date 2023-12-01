@@ -112,7 +112,16 @@ export class ReviewTable extends React.Component {
             showDeleteConfirmation: false,
             extendedMembers: new Set(members),
             deletedMembers: new Set(),
+            justification: props.justification || '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.justification !== this.props.justification) {
+            this.setState({
+                justification: this.props.justification,
+            });
+        }
     }
 
     inputChanged(key, evt) {
@@ -124,25 +133,22 @@ export class ReviewTable extends React.Component {
     }
 
     submitReview() {
-        if (this.props.members && this.props.members.length > 0) {
-            if (
-                this.state.justification === undefined ||
-                this.state.justification.trim() === ''
-            ) {
-                this.setState({
-                    errorMessage:
-                        'Justification is required to submit the review.',
-                });
-                return;
-            }
+        if (
+            this.state.justification === undefined ||
+            this.state.justification.trim() === ''
+        ) {
+            this.setState({
+                errorMessage: 'Justification is required to submit the review.',
+            });
+            return;
+        }
 
-            // show prompt for user to ask for confirmation once the user asked to delete member/s
+        // show prompt for user to ask for confirmation once the user asked to delete member/s
 
-            if (this.state.deletedMembers.size > 0) {
-                this.setState({ showDeleteConfirmation: true });
-            } else {
-                this.updateReviewRole();
-            }
+        if (this.state.deletedMembers.size > 0) {
+            this.setState({ showDeleteConfirmation: true });
+        } else {
+            this.updateReviewRole();
         }
     }
 
@@ -309,8 +315,16 @@ export class ReviewTable extends React.Component {
                           return (
                               <ReviewRow
                                   category={'role'}
-                                  key={'role-review-' + item.memberName}
-                                  idx={'role-review-' + item.memberName}
+                                  key={
+                                      'role-review-' +
+                                      this.props.role +
+                                      item.memberName
+                                  }
+                                  idx={
+                                      'role-review-' +
+                                      this.props.role +
+                                      item.memberName
+                                  }
                                   details={item}
                                   role={this.props.role}
                                   color={color}
@@ -335,14 +349,6 @@ export class ReviewTable extends React.Component {
                 </ReviewMembersContainerDiv>
             );
         }
-        if (!this.props.members || this.props.members.length === 0) {
-            return (
-                <ReviewMembersContainerDiv>
-                    There is no members to review for role: {this.props.role}.
-                </ReviewMembersContainerDiv>
-            );
-        }
-
         return (
             <ReviewMembersContainerDiv>
                 <TitleDiv>REVIEW EXPIRING MEMBERS</TitleDiv>
@@ -375,6 +381,14 @@ export class ReviewTable extends React.Component {
                         </thead>
                         <tbody>
                             {rows}
+                            {rows.length > 0 ? (
+                                ''
+                            ) : (
+                                <tr key='no-members'>
+                                    There are no members to review for role:{' '}
+                                    {this.props.role}.
+                                </tr>
+                            )}
                             <tr key='submit-review'>
                                 <td colSpan={2}>
                                     <StyledJustification

@@ -92,7 +92,16 @@ class GroupReviewTable extends React.Component {
             showDeleteConfirmation: false,
             extendedMembers: new Set(members),
             deletedMembers: new Set(),
+            justification: props.justification || '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.justification !== this.props.justification) {
+            this.setState({
+                justification: this.props.justification,
+            });
+        }
     }
 
     inputChanged(key, evt) {
@@ -104,25 +113,22 @@ class GroupReviewTable extends React.Component {
     }
 
     submitReview() {
-        if (this.props.members && this.props.members.length > 0) {
-            if (
-                this.state.justification === undefined ||
-                this.state.justification.trim() === ''
-            ) {
-                this.setState({
-                    errorMessage:
-                        'Justification is required to submit the review.',
-                });
-                return;
-            }
+        if (
+            this.state.justification === undefined ||
+            this.state.justification.trim() === ''
+        ) {
+            this.setState({
+                errorMessage: 'Justification is required to submit the review.',
+            });
+            return;
+        }
 
-            // show prompt for user to ask for confirmation once the user asked to delete member/s
+        // show prompt for user to ask for confirmation once the user asked to delete member/s
 
-            if (this.state.deletedMembers.size > 0) {
-                this.setState({ showDeleteConfirmation: true });
-            } else {
-                this.updateReviewGroup();
-            }
+        if (this.state.deletedMembers.size > 0) {
+            this.setState({ showDeleteConfirmation: true });
+        } else {
+            this.updateReviewGroup();
         }
     }
 
@@ -203,8 +209,16 @@ class GroupReviewTable extends React.Component {
                           return (
                               <ReviewRow
                                   category={'group'}
-                                  key={'group-review-' + item.memberName}
-                                  idx={'group-review-' + item.memberName}
+                                  key={
+                                      'group-review-' +
+                                      this.props.groupName +
+                                      item.memberName
+                                  }
+                                  idx={
+                                      'group-review-' +
+                                      this.props.groupName +
+                                      item.memberName
+                                  }
                                   details={item}
                                   collection={this.props.groupName}
                                   color={color}
@@ -225,15 +239,6 @@ class GroupReviewTable extends React.Component {
                             </Color>
                         )}
                     </ContentDiv>
-                </ReviewMembersContainerDiv>
-            );
-        }
-
-        if (!this.props.members || this.props.members.length === 0) {
-            return (
-                <ReviewMembersContainerDiv>
-                    There is no members to review for group:{' '}
-                    {this.props.groupName}.
                 </ReviewMembersContainerDiv>
             );
         }
@@ -267,6 +272,14 @@ class GroupReviewTable extends React.Component {
                         </thead>
                         <tbody>
                             {rows}
+                            {rows.length > 0 ? (
+                                ''
+                            ) : (
+                                <p key='no-members'>
+                                    There are no members to review for group:{' '}
+                                    {this.props.groupName}.
+                                </p>
+                            )}
                             <tr key='submit-review'>
                                 <td colSpan={2}>
                                     <StyledJustification

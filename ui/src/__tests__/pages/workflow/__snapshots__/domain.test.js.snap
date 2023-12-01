@@ -1519,7 +1519,7 @@ exports[`PendingApprovalPage should render 1`] = `
               <div
                 class="emotion-30 emotion-31"
               >
-                Pending Items for Approval
+                Action Required
               </div>
               <div
                 class="emotion-32 denali-tab-group"
@@ -1529,13 +1529,13 @@ exports[`PendingApprovalPage should render 1`] = `
                   class="emotion-33 denali-tab"
                   data-active="false"
                 >
-                  Admin View
+                  Admin Member Approval
                 </div>
                 <div
                   class="emotion-33 denali-tab active"
                   data-active="true"
                 >
-                  Domain View
+                  Domain Member Approval
                 </div>
               </div>
             </div>

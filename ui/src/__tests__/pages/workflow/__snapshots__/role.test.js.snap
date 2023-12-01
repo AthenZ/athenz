@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ReviewPage should render 1`] = `
+exports[`WorkflowRole should render without error 1`] = `
 .emotion-0 {
   height: 60px;
   position: relative;
@@ -463,7 +463,7 @@ exports[`ReviewPage should render 1`] = `
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
   overflow: hidden;
-  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  font: 500 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
 .emotion-22 {
@@ -487,6 +487,12 @@ exports[`ReviewPage should render 1`] = `
 }
 
 .emotion-24 {
+  -webkit-flex: 1 1;
+  -ms-flex: 1 1;
+  flex: 1 1;
+}
+
+.emotion-26 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -496,62 +502,21 @@ exports[`ReviewPage should render 1`] = `
   flex: 1 1;
   height: calc(100vh - 60px);
   overflow: auto;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
+  position: relative;
+  box-sizing: content-box!important;
 }
 
 .emotion-28 {
   background: linear-gradient(to top, #f2f2f2, #fff);
-  padding: 20px 30px 0;
+  padding: 20px 30px 0px 30px;
 }
 
 .emotion-30 {
+  padding-bottom: 20px;
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  margin-bottom: 10px;
 }
 
 .emotion-32 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-34 {
-  margin: 20px 0;
-}
-
-.emotion-36 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-38 {
-  padding-right: 50px;
-}
-
-.emotion-40 {
-  font-weight: 600;
-}
-
-.emotion-42 {
-  color: #9a9a9a;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.emotion-50 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -560,13 +525,13 @@ exports[`ReviewPage should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   margin-top: 0;
   min-width: 80px;
   position: relative;
 }
 
-.emotion-50.vertical {
+.emotion-32.vertical {
   background: #f5f8fe;
   display: -webkit-box;
   display: -webkit-flex;
@@ -582,7 +547,7 @@ exports[`ReviewPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-51 {
+.emotion-33 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -606,11 +571,11 @@ exports[`ReviewPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-51:hover {
+.emotion-33:hover {
   color: #3570f4;
 }
 
-.emotion-51.active {
+.emotion-33.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -618,11 +583,11 @@ exports[`ReviewPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-51.active:hover {
+.emotion-33.active:hover {
   color: #303030;
 }
 
-.emotion-51.vertical {
+.emotion-33.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -634,67 +599,42 @@ exports[`ReviewPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-51.vertical.active {
+.emotion-33.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-51.vertical.active:hover {
+.emotion-33.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-57 {
-  margin: 20px;
+.emotion-35 {
+  margin-left: 50px;
+  margin-top: 20px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
 }
 
-.emotion-59 {
-  margin: 0;
-}
-
-.emotion-61 {
-  font-size: 16px;
+.emotion-37 {
+  font-size: 14px;
   font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
 }
 
-.emotion-63 {
-  margin: 20px;
+.emotion-38 {
+  margin-top: 5px;
+  -webkit-flex-basis: 20%;
+  -ms-flex-preferred-size: 20%;
+  flex-basis: 20%;
+  display: block;
 }
 
-.emotion-65 {
-  width: 100%;
-  border-spacing: 0 15px;
-  display: table;
-  border-collapse: separate;
-  border-color: grey;
-  table-layout: fixed;
-}
-
-.emotion-67 {
-  text-align: left;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-75 {
-  text-align: center;
-  border-bottom: 2px solid #d5d5d5;
-  color: #9a9a9a;
-  font-weight: 600;
-  padding-bottom: 5px;
-  vertical-align: top;
-  text-transform: uppercase;
-  padding: 5px 0 5px 15px;
-  word-break: break-all;
-}
-
-.emotion-81 {
+.emotion-40 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -711,7 +651,7 @@ exports[`ReviewPage should render 1`] = `
   width: 250px;
 }
 
-.emotion-81 input {
+.emotion-40 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -737,42 +677,42 @@ exports[`ReviewPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-81.animated input {
+.emotion-40.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-81 input::-webkit-input-placeholder {
+.emotion-40 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input::-moz-placeholder {
+.emotion-40 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input:-ms-input-placeholder {
+.emotion-40 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input::placeholder {
+.emotion-40 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input.focused,
-.emotion-81 input:active,
-.emotion-81 input:focus {
+.emotion-40 input.focused,
+.emotion-40 input:active,
+.emotion-40 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-81 input:invalid {
+.emotion-40 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-81 .message {
+.emotion-40 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -780,75 +720,30 @@ exports[`ReviewPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-81.error input,
-.emotion-81.error input.focused,
-.emotion-81.error input:active,
-.emotion-81.error input:focus {
+.emotion-40.error input,
+.emotion-40.error input.focused,
+.emotion-40.error input:active,
+.emotion-40.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-81.error .message {
+.emotion-40.error .message {
   color: #d01111;
 }
 
-.emotion-82 {
+.emotion-41 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-84 {
-  margin-top: 10px;
+.emotion-43 {
+  width: calc(100vw - 15em);
+  overflow-x: scroll;
+  overflow-y: visible;
+  box-sizing: content-box!important;
 }
 
-.emotion-86 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  color: #3697f2;
-}
-
-.emotion-86:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-86:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-86:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-86:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-87 {
-  color: #9a9a9a;
-}
-
-.emotion-91 {
+.emotion-45 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -874,88 +769,14 @@ exports[`ReviewPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-93 {
+.emotion-47 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-94 {
-  margin-right: 0;
-  border-left: 1px solid #d5d5d5;
-  -webkit-flex: 0 0 350px;
-  -ms-flex: 0 0 350px;
-  flex: 0 0 350px;
-  height: calc(100vh - 60px);
-  overflow: auto;
-  -webkit-transition: margin 0.4s ease-in-out;
-  transition: margin 0.4s ease-in-out;
-  display: block;
-  min-width: 350px;
-  width: 350px;
-}
-
-.emotion-96 {
-  -webkit-align-items: baseline;
-  -webkit-box-align: baseline;
-  -ms-flex-align: baseline;
-  align-items: baseline;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  padding: 20px 30px 20px 15px;
-}
-
-.emotion-98 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.emotion-100 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-102 {
-  padding: 0 5px;
-  color: #d5d5d5;
-}
-
-.emotion-106 {
-  padding: 0 30px 0 15px;
-}
-
-.emotion-108 {
-  padding: 10px 0;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.emotion-110 {
-  font-size: 1.25em;
-  margin-right: 5px;
-}
-
-.emotion-112 {
-  fill: #303030;
-  cursor: inherit;
-  vertical-align: baseline;
-}
-
 <div
-  data-testid="review"
+  data-testid="workflow-role-review"
 >
   <div
     class="emotion-0 emotion-1"
@@ -1089,230 +910,62 @@ exports[`ReviewPage should render 1`] = `
         <div
           class="emotion-26 emotion-27"
         >
-          <div
-            class="emotion-28 emotion-29"
-          >
+          <div>
             <div
-              class="emotion-30 emotion-31"
-              data-testid="collection-name-header"
-            >
-              <a
-                class="emotion-32 emotion-33"
-              >
-                dom
-              </a>
-              :
-              role
-              .
-              role1
-            </div>
-            <div
-              class="emotion-34 emotion-35"
-              data-testid="collection-details"
+              class="emotion-28 emotion-29"
             >
               <div
-                class="emotion-36 emotion-37"
+                class="emotion-30 emotion-31"
+              >
+                Action Required
+              </div>
+              <div
+                class="emotion-32 denali-tab-group"
+                data-testid="tabgroup"
               >
                 <div
-                  class="emotion-38 emotion-39"
+                  class="emotion-33 denali-tab"
+                  data-active="false"
                 >
-                  <div
-                    class="emotion-40 emotion-41"
-                  >
-                    2020-02-12 21:44 UTC
-                  </div>
-                  <div
-                    class="emotion-42 emotion-43"
-                  >
-                    MODIFIED DATE
-                  </div>
+                  Admin Member Approval
                 </div>
                 <div
-                  class="emotion-38 emotion-39"
+                  class="emotion-33 denali-tab"
+                  data-active="false"
                 >
-                  <div
-                    class="emotion-40 emotion-41"
-                  >
-                    N/A
-                  </div>
-                  <div
-                    class="emotion-42 emotion-43"
-                  >
-                    REVIEWED DATE
-                  </div>
+                  Domain Member Approval
                 </div>
               </div>
             </div>
             <div
-              class="emotion-50 denali-tab-group"
-              data-testid="tabgroup"
+              class="emotion-35 emotion-36"
             >
-              <div
-                class="emotion-51 denali-tab"
-                data-active="false"
+              <label
+                class="emotion-37 denali-input-label emotion-38 emotion-39"
               >
-                Members
-              </div>
+                Provide Justification for All Reviews
+              </label>
               <div
-                class="emotion-51 denali-tab active"
-                data-active="true"
+                class="emotion-40 denali-input animated emotion-41 emotion-42"
+                data-testid="input-wrapper"
               >
-                Review
-              </div>
-              <div
-                class="emotion-51 denali-tab"
-                data-active="false"
-              >
-                Policy Rules
-              </div>
-              <div
-                class="emotion-51 denali-tab"
-                data-active="false"
-              >
-                Tags
-              </div>
-              <div
-                class="emotion-51 denali-tab"
-                data-active="false"
-              >
-                Settings
-              </div>
-              <div
-                class="emotion-51 denali-tab"
-                data-active="false"
-              >
-                History
+                <input
+                  autocomplete="off"
+                  data-testid="input-node"
+                  id="all-justification"
+                  name="all-justification"
+                  placeholder="Enter justification for all here"
+                  value=""
+                />
+                <div
+                  class="message"
+                  data-testid="message"
+                />
               </div>
             </div>
-          </div>
-          <div
-            class="emotion-57 emotion-58"
-            data-testid="review-list"
-          >
             <div
-              class="emotion-59 emotion-60"
-            >
-              <div
-                class="emotion-61 emotion-62"
-              >
-                REVIEW EXPIRING MEMBERS
-              </div>
-              <div
-                class="emotion-63 emotion-64"
-                data-testid="review-table"
-              >
-                <table
-                  class="emotion-65 emotion-66"
-                >
-                  <thead>
-                    <tr>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        MEMBER
-                      </th>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        MEMBER NAME
-                      </th>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        EXPIRATION DATE
-                      </th>
-                      <th
-                        class="emotion-67 emotion-68"
-                      >
-                        REVIEW REMINDER DATE
-                      </th>
-                      <th
-                        class="emotion-75 emotion-68"
-                      >
-                        EXTEND
-                      </th>
-                      <th
-                        class="emotion-75 emotion-68"
-                      >
-                        NO ACTION
-                      </th>
-                      <th
-                        class="emotion-75 emotion-68"
-                      >
-                        DELETE
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      There are no members to review for role:
-                       
-                      role1
-                      .
-                    </tr>
-                    <tr>
-                      <td
-                        colspan="2"
-                      >
-                        <div
-                          class="emotion-81 denali-input animated emotion-82 emotion-83"
-                          data-testid="input-wrapper"
-                        >
-                          <input
-                            autocomplete="off"
-                            data-testid="input-node"
-                            id="justification"
-                            name="justification"
-                            placeholder="Enter justification here"
-                            value=""
-                          />
-                          <div
-                            class="message"
-                            data-testid="message"
-                          />
-                        </div>
-                      </td>
-                      <td
-                        colspan="1"
-                      >
-                        <div
-                          class="emotion-84 emotion-85"
-                        >
-                          <button
-                            class="emotion-86 denali-button"
-                          >
-                            Submit Review
-                          </button>
-                        </div>
-                      </td>
-                      <td
-                        colspan="3"
-                      >
-                        <span
-                          class="emotion-87 emotion-88"
-                        >
-                          Current default settings are - None
-                          <br />
-                          To change it, please click 
-                          <a
-                            class="emotion-32 emotion-90"
-                          >
-                             
-                            here
-                             
-                          </a>
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colspan="6"
-                      />
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+              class="emotion-43 emotion-44"
+            />
           </div>
         </div>
       </div>
@@ -1320,11 +973,11 @@ exports[`ReviewPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-91 emotion-92"
+          class="emotion-45 emotion-46"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-93"
+            class="emotion-47"
             data-testid="icon"
             height="1em"
             id=""
@@ -1332,114 +985,12 @@ exports[`ReviewPage should render 1`] = `
             width="1em"
           >
             <title>
-              arrow-right
+              arrow-left
             </title>
             <path
-              d="M579.627 512l-225.707 226.133c-7.425 7.668-12.002 18.133-12.002 29.667 0 14.028 6.77 26.476 17.222 34.252l0.114 0.081c6.877 4.635 15.35 7.398 24.467 7.398 12.618 0 24-5.292 32.048-13.778l0.019-0.020 254.293-253.653c7.731-7.723 12.514-18.396 12.514-30.187s-4.782-22.464-12.513-30.186l-0-0-254.293-254.507c-8.066-8.506-19.448-13.798-32.066-13.798-9.118 0-17.59 2.763-24.625 7.498l0.158-0.1c-10.919 7.83-17.949 20.483-17.949 34.778 0 11.841 4.824 22.556 12.613 30.286l0.003 0.003z"
+              d="M444.373 512l225.707-226.133c7.792-7.733 12.616-18.447 12.616-30.289 0-14.295-7.030-26.948-17.822-34.691l-0.128-0.087c-6.877-4.635-15.35-7.398-24.467-7.398-12.618 0-24 5.292-32.048 13.778l-0.019 0.020-254.293 254.72c-7.731 7.723-12.514 18.396-12.514 30.187s4.782 22.464 12.513 30.186l0 0 254.293 254.507c8.066 8.506 19.448 13.798 32.066 13.798 9.118 0 17.59-2.763 24.625-7.498l-0.158 0.1c10.565-7.858 17.335-20.305 17.335-34.333 0-11.534-4.577-21.999-12.013-29.678l0.011 0.011z"
             />
           </svg>
-        </div>
-        <div
-          class="emotion-94 emotion-95"
-        >
-          <div
-            class="emotion-96 emotion-97"
-          >
-            <div
-              class="emotion-98 emotion-99"
-            >
-              My Domains
-            </div>
-            <div>
-              <a
-                class="emotion-100 emotion-101"
-              >
-                Create
-              </a>
-              <span
-                class="emotion-102 emotion-103"
-              >
-                 | 
-              </span>
-              <a
-                class="emotion-100 emotion-101"
-              >
-                Manage
-              </a>
-            </div>
-          </div>
-          <div
-            class="emotion-106 emotion-107"
-          >
-            <div
-              class="emotion-108 emotion-109"
-            >
-              <div
-                class="emotion-110 emotion-111"
-              >
-                <svg
-                  class="emotion-112"
-                  data-testid="icon"
-                  height="1em"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="1em"
-                >
-                  <title>
-                    user-group
-                  </title>
-                  <path
-                    d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
-                  />
-                  <path
-                    d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
-                  />
-                  <path
-                    d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
-                  />
-                </svg>
-              </div>
-              <a
-                class="emotion-100 emotion-101"
-              >
-                athens
-              </a>
-            </div>
-            <div
-              class="emotion-108 emotion-109"
-            >
-              <div
-                class="emotion-110 emotion-111"
-              >
-                <svg
-                  class="emotion-112"
-                  data-testid="icon"
-                  height="1em"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="1em"
-                >
-                  <title>
-                    user-group
-                  </title>
-                  <path
-                    d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
-                  />
-                  <path
-                    d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
-                  />
-                  <path
-                    d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
-                  />
-                </svg>
-              </div>
-              <a
-                class="emotion-100 emotion-101"
-              >
-                athens.ci
-              </a>
-            </div>
-          </div>
         </div>
       </div>
     </div>

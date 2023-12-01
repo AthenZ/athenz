@@ -126,19 +126,21 @@ class HeaderMenu extends React.Component {
         this.props.getReviewRoles();
         this.props.getReviewGroups();
         this.api.getPageFeatureFlag('roleGroupReview').then((data) => {
-            this.setState({
-                roleGroupReviewFeatureFlag: data['roleGroupReviewFeatureFlag'],
-            });
+            if (data) {
+                this.setState({
+                    roleGroupReviewFeatureFlag:
+                        data['roleGroupReviewFeatureFlag'],
+                });
+            }
         });
     }
 
     shouldAlertUser() {
         let props = this.props;
-        let reviewRolesHasLength =
-            Object.keys(props.reviewRoles).length > 0;
-        let reviewGroupsHasLength =
-            Object.keys(props.reviewGroups).length > 0;
-        let reviewPendingMembersHasLength = Object.keys(props.pending).length > 0;
+        let reviewRolesHasLength = Object.keys(props.reviewRoles).length > 0;
+        let reviewGroupsHasLength = Object.keys(props.reviewGroups).length > 0;
+        let reviewPendingMembersHasLength =
+            Object.keys(props.pending).length > 0;
         // TODO clean up feature flag after full feature implemented and deployed to prod
         return (
             this.state.roleGroupReviewFeatureFlag &&
@@ -162,7 +164,8 @@ class HeaderMenu extends React.Component {
             PageUtils.workflowAdminPage()
         );
         if (this.notificationsExist()) {
-            let reviewPendingMembersHasLength = Object.keys(props.pending).length > 0;
+            let reviewPendingMembersHasLength =
+                Object.keys(props.pending).length > 0;
             if (this.shouldAlertUser()) {
                 icon = 'notification-solid';
                 reviewNotificationRedDot = <ReviewNotificationSpan />;

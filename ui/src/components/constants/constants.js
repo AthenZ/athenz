@@ -204,8 +204,11 @@ export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =
     'Microsegmentation Assertion Condition deletion';
 export const MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION =
     'Microsegmentation Transport Rule deletion';
-export const WORKFLOW_ADMIN_VIEW_TAB = 'Admin View';
-export const WORKFLOW_DOMAIN_VIEW_TAB = 'Domain View';
+export const WORKFLOW_ADMIN_VIEW_TAB = 'Admin Member Approval';
+export const WORKFLOW_DOMAIN_VIEW_TAB = 'Domain Member Approval';
+export const WORKFLOW_ROLE_REVIEW = 'Role Review';
+export const WORKFLOW_GROUP_REVIEW = 'Group Review';
+export const WORKFLOW_TITLE = 'Action Required';
 export const WORKFLOW_DOMAIN_VIEW_DROPDOWN_PLACEHOLDER =
     'Select a Domain to View Pending Members';
 export const VIEW_PENDING_MEMBERS_BY_DOMAIN_TITLE =
@@ -222,6 +225,14 @@ export const WORKFLOW_TABS = [
     {
         label: WORKFLOW_DOMAIN_VIEW_TAB,
         name: 'domain',
+    },
+    {
+        label: WORKFLOW_ROLE_REVIEW,
+        name: 'roleReview',
+    },
+    {
+        label: WORKFLOW_GROUP_REVIEW,
+        name: 'groupReview',
     },
 ];
 
