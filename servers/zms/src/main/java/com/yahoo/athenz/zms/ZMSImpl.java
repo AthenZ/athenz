@@ -2193,11 +2193,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is a valid principal according to the user authority
 
         for (Map.Entry<String, String> entry : contacts.entrySet()) {
+
             if (!domainContactTypes.contains(entry.getKey())) {
                 throw ZMSUtils.requestError("invalid domain contact type: " + entry.getKey(), caller);
             }
+
+            // empty value indicates that we want to delete the contact
+
+            if (StringUtil.isEmpty(entry.getValue())) {
+                continue;
+            }
+
+            // if we have a user authority defined, verify that the given contact
+            // is a valid principal according to the user authority
+
             if (userAuthority != null && !userAuthority.isValidUser(entry.getValue())) {
-                throw ZMSUtils.requestError("invalid domain contact: " + entry.getKey() + "/" + entry.getValue(), caller);
+                throw ZMSUtils.requestError("invalid domain contact: " + entry.getKey(), caller);
             }
         }
     }

@@ -12892,7 +12892,7 @@ public class DBServiceTest {
     }
 
     @Test
-    public void testProcessDomainContacts() {
+    public void testProcessDomainContactsFailureCases() {
 
         final String domainName = "process-domain-contacts";
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
@@ -12957,6 +12957,17 @@ public class DBServiceTest {
 
         updatedContacts = new HashMap<>();
         updatedContacts.put("security-contact", "user.joe");
+
+        originalContacts = new HashMap<>();
+        originalContacts.put("security-contact", "user.joe");
+        originalContacts.put("sre-contact", "user.joe");
+        assertFalse(zms.dbService.processDomainContacts(conn, domainName, updatedContacts, originalContacts));
+
+        // test case 5 - delete a contact during update with empty string
+
+        updatedContacts = new HashMap<>();
+        updatedContacts.put("security-contact", "user.joe");
+        updatedContacts.put("sre-contact", "");
 
         originalContacts = new HashMap<>();
         originalContacts.put("security-contact", "user.joe");
