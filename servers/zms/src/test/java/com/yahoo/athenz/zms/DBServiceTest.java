@@ -2954,7 +2954,8 @@ public class DBServiceTest {
 
         StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
         auditDetails.append("{\"add-templates\": ");
-        zms.dbService.addSolutionTemplate(mockDomRsrcCtx, conn, domainName, "templateWithRoleMeta", adminUser, domainTemplate.getParams(), auditRef, auditDetails);
+        zms.dbService.addSolutionTemplate(mockDomRsrcCtx, conn, domainName, "templateWithRoleMeta",
+                adminUser, domainTemplate.getParams(), auditRef, auditDetails);
         auditDetails.append("}");
 
         assertTrue(isValidJSON(auditDetails.toString()));

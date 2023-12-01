@@ -27260,7 +27260,7 @@ public class ZMSImplTest {
                     + "\"serviceExpiryDays\": \"null\", \"reviewEnabled\": \"false\", \"notifyRoles\": \"null\", "
                     + "\"userAuthorityFilter\": \"null\", \"userAuthorityExpiration\": \"null\", "
                     + "\"deleteProtection\": \"false\", \"lastReviewedDate\": \"null\", \"maxMembers\": \"null\", "
-                    + "\"selfRenew\": \"null\", \"selfRenewMins\": \"null, "
+                    + "\"selfRenew\": \"null\", \"selfRenewMins\": \"null\", "
                     + "\"deleted-members\": [{\"member\": \"user.jane\", \"approved\": true, \"system-disabled\": 0}], "
                     + "\"added-members\": []}");
             assertTrue(index2 > index, msg);
