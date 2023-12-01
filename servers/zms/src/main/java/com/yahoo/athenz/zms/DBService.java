@@ -4230,12 +4230,15 @@ public class DBService implements RolesProvider {
         }
 
         // if our original list is empty then we're going to insert
-        // all of our new contacts if any are present
+        // all of our new contacts if any are present. we'll make
+        // sure they all have non-empty values
 
         if (originalContacts == null || originalContacts.isEmpty()) {
             for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
-                if (!con.insertDomainContact(domainName, entry.getKey(), entry.getValue())) {
-                    return false;
+                if (!StringUtil.isEmpty(entry.getValue())) {
+                    if (!con.insertDomainContact(domainName, entry.getKey(), entry.getValue())) {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -4253,21 +4256,29 @@ public class DBService implements RolesProvider {
             return true;
         }
 
-        // process our updated contacts - we're either going to update
-        // or insert our contacts
+        // process our updated contacts - we're either going to update, insert,
+        // or delete our contacts
 
         for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
             String type = entry.getKey();
             String name = entry.getValue();
             if (originalContacts.containsKey(type)) {
                 if (!originalContacts.get(type).equals(name)) {
-                    if (!con.updateDomainContact(domainName, type, name)) {
-                        return false;
+                    if (StringUtil.isEmpty(name)) {
+                        if (!con.deleteDomainContact(domainName, type)) {
+                            return false;
+                        }
+                    } else {
+                        if (!con.updateDomainContact(domainName, type, name)) {
+                            return false;
+                        }
                     }
                 }
             } else {
-                if (!con.insertDomainContact(domainName, type, name)) {
-                    return false;
+                if (!StringUtil.isEmpty(entry.getValue())) {
+                    if (!con.insertDomainContact(domainName, type, name)) {
+                        return false;
+                    }
                 }
             }
         }
