@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS;
 import static org.testng.Assert.*;
 
 public class ZMSPrincipalRolesTest {
@@ -50,14 +49,11 @@ public class ZMSPrincipalRolesTest {
     @AfterClass
     public void stopMemoryMySQL() {
         zmsTestInitializer.stopMemoryMySQL();
-        System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
     }
 
     @BeforeMethod
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
-
-        System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS, String.valueOf(1L));
         zmsTestInitializer.setUp();
     }
 

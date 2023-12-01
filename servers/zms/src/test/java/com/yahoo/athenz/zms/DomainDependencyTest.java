@@ -53,17 +53,27 @@ public class DomainDependencyTest {
         System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS, String.valueOf(fetchFrequency));
 
         // Reset ServiceProviderManager Singleton
-        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
-        instance.setAccessible(true);
-        instance.set(null, null);
-
+        resetServiceProviderManager();
         zmsTestInitializer.setUp();
     }
 
     @AfterMethod
-    public void clearConnections() {
+    public void clearConnections() throws Exception {
+
         zmsTestInitializer.clearConnections();
+
+        // Reset ServiceProviderManager Singleton
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        ServiceProviderManager.getInstance(zmsImpl.dbService, zmsImpl).shutdown();
+        resetServiceProviderManager();
+
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
+    }
+
+    void resetServiceProviderManager() throws Exception {
+        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
+        instance.setAccessible(true);
+        instance.set(null, null);
     }
 
     @Test
