@@ -641,7 +641,10 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 	switch siaCmd {
 	case "rolecert":
 		count, failures := GetRoleCertificates(ztsUrl, opts)
-		if failures != count {
+		if failures != 0 {
+			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
+		}
+		if count != 0 {
 			util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		}
 	case "token":
@@ -674,7 +677,10 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		log.Printf("identity registered for services: %s\n", svcs)
-		GetRoleCertificates(ztsUrl, opts)
+		count, failures := GetRoleCertificates(ztsUrl, opts)
+		if failures != 0 {
+			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
+		}
 		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		if tokenOpts != nil {
 			err := accessTokenRequest(tokenOpts)
