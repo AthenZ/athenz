@@ -81,6 +81,9 @@ type AuthorityKeyword string
 // AuthorityKeywords -
 type AuthorityKeywords string
 
+// TagKey -
+type TagKey string
+
 // TagValue - TagValue to contain generic string patterns
 type TagValue string
 
@@ -257,7 +260,7 @@ type DomainMeta struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated business service with domain
@@ -513,7 +516,7 @@ type Domain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated business service with domain
@@ -1264,7 +1267,7 @@ type RoleMeta struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// a description of the role
@@ -1450,7 +1453,7 @@ type Role struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// a description of the role
@@ -2588,7 +2591,7 @@ type Policy struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewPolicy - creates an initialized Policy instance, returns a pointer to it
@@ -2872,7 +2875,7 @@ type ServiceIdentity struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3687,7 +3690,7 @@ type TopLevelDomain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated business service with domain
@@ -3967,7 +3970,7 @@ type SubDomain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated business service with domain
@@ -4261,7 +4264,7 @@ type UserDomain struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated business service with domain
@@ -5449,7 +5452,7 @@ type GroupMeta struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Flag indicates whether or not group updates should require GRC approval. If
@@ -5577,7 +5580,7 @@ type Group struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// Flag indicates whether or not group updates should require GRC approval. If
@@ -6771,7 +6774,7 @@ type DomainData struct {
 	//
 	// key-value pair tags, tag might contain multiple values
 	//
-	Tags map[CompoundName]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
+	Tags map[TagKey]*TagValueList `json:"tags,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated business service with domain

@@ -433,11 +433,11 @@ func (cli Zms) DeletePolicyTags(dn string, pn, tagKey string, tagValues []string
 		}
 		return cli.dumpByFormat(message, cli.buildYAMLOutput)
 	} else {
-		tagValueArr = cli.GetTagsAfterDeletion(Policy.Tags[zms.CompoundName(tagKey)], tagValues)
+		tagValueArr = cli.GetTagsAfterDeletion(Policy.Tags[zms.TagKey(tagKey)], tagValues)
 		if len(tagValueArr) == 0 {
-			delete(Policy.Tags, zms.CompoundName(tagKey))
+			delete(Policy.Tags, zms.TagKey(tagKey))
 		}
-		Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+		Policy.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	}
 
 	returnObj := false
@@ -463,10 +463,10 @@ func (cli Zms) AddPolicyTags(dn string, pn, tagKey string, tagValues []string) (
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 
 	if Policy.Tags == nil {
-		Policy.Tags = map[zms.CompoundName]*zms.TagValueList{}
+		Policy.Tags = map[zms.TagKey]*zms.TagValueList{}
 	} else {
 		// append current tags
-		currentTagValues := Policy.Tags[zms.CompoundName(tagKey)]
+		currentTagValues := Policy.Tags[zms.TagKey(tagKey)]
 		if currentTagValues != nil {
 			tagValueArr = append(tagValueArr, currentTagValues.List...)
 		}
@@ -476,7 +476,7 @@ func (cli Zms) AddPolicyTags(dn string, pn, tagKey string, tagValues []string) (
 		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
 	}
 
-	Policy.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	Policy.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
 	_, err = cli.Zms.PutPolicy(zms.DomainName(dn), zms.EntityName(pn), cli.AuditRef, &returnObj, Policy)
 	if err != nil {

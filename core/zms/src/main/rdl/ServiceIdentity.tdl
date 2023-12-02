@@ -20,7 +20,7 @@ type ServiceIdentity Struct {
     Array<String> hosts (optional); //list of host names that this service can run on
     String user (optional);         //local (unix) user name this service can run as
     String group (optional);        //local (unix) group name this service can run as
-    Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
+    Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
 }
 
 //The representation of list of services

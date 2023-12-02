@@ -89,6 +89,9 @@ public class ZMSSchema {
         sb.stringType("AuthorityKeywords")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*,)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("TagKey")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*[:\\.])*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.stringType("TagValue")
             .comment("TagValue to contain generic string patterns")
             .pattern("[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*");
@@ -133,7 +136,7 @@ public class ZMSSchema {
             .field("azureSubscription", "String", true, "associated azure subscription id (system attribute - uniqueness check - if enabled)")
             .field("gcpProject", "String", true, "associated gcp project id (system attribute - uniqueness check - if enabled)")
             .field("gcpProjectNumber", "String", true, "associated gcp project number (system attribute)")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("businessService", "String", true, "associated business service with domain")
             .field("memberPurgeExpiryDays", "Int32", true, "purge role/group members with expiry date configured days in the past")
             .field("productId", "String", true, "associated product id (system attribute - uniqueness check - if enabled)")
@@ -210,7 +213,7 @@ public class ZMSSchema {
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("groupExpiryDays", "Int32", true, "all groups in the domain roles will have specified max expiry days")
             .field("groupReviewDays", "Int32", true, "all groups in the domain roles will have specified max review days")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("description", "String", true, "a description of the role")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled roles.", false)
@@ -318,7 +321,7 @@ public class ZMSSchema {
             .field("version", "SimpleName", true, "optional version string, defaults to 0")
             .field("active", "Bool", true, "if multi-version policy then indicates active version")
             .field("description", "String", true, "a description of the policy")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("Policies")
             .comment("The representation of list of policy objects")
@@ -345,7 +348,7 @@ public class ZMSSchema {
             .arrayField("hosts", "String", true, "list of host names that this service can run on")
             .field("user", "String", true, "local (unix) user name this service can run as")
             .field("group", "String", true, "local (unix) group name this service can run as")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values");
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")
@@ -510,7 +513,7 @@ public class ZMSSchema {
             .field("userAuthorityExpiration", "String", true, "expiration enforced by a user authority configured attribute")
             .field("memberExpiryDays", "Int32", true, "all user members in the group will have specified max expiry days")
             .field("serviceExpiryDays", "Int32", true, "all services in the group will have specified max expiry days")
-            .mapField("tags", "CompoundName", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
+            .mapField("tags", "TagKey", "TagValueList", true, "key-value pair tags, tag might contain multiple values")
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it", false)
             .field("deleteProtection", "Bool", true, "If true, ask for delete confirmation in audit and review enabled groups.", false)
             .field("lastReviewedDate", "Timestamp", true, "last review timestamp of the group")
