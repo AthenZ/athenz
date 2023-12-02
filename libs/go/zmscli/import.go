@@ -269,29 +269,39 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 	return nil
 }
 
-func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, skipErrors bool) error {
+func (cli Zms) importPolicies(dn string, lstPolicies []*zms.Policy, updateDomain bool) error {
 	for _, policy := range lstPolicies {
 		name := localName(string(policy.Name), ":policy.")
 		_, _ = fmt.Fprintf(os.Stdout, "Processing policy "+name+"...\n")
-		assertions := make([]*zms.Assertion, 0)
 		if len(policy.Assertions) == 0 {
 			_, _ = fmt.Fprintf(os.Stdout, "Skipping empty policy: "+name+"\n")
 			continue
 		}
-		for _, a := range policy.Assertions {
-			if name == "admin" && a.Role == "admin" && a.Action == "*" && a.Resource == "*" {
+		if name == "admin" {
+			_, _ = fmt.Fprintln(os.Stdout, "Skipping admin policy")
+			continue
+		}
+		if updateDomain {
+			// if the policy already exists then we're going to only apply
+			// all the assertions
+			_, err := cli.Zms.GetPolicy(zms.DomainName(dn), zms.EntityName(name))
+			if err == nil {
+				for _, assertion := range policy.Assertions {
+					_, err := cli.Zms.PutAssertion(zms.DomainName(dn), zms.EntityName(name), cli.AuditRef, assertion)
+					if shouldReportError(updateDomain, cli.SkipErrors, err) {
+						return err
+					}
+				}
 				continue
 			}
-
-			assertions = append(assertions, a)
 		}
 
-		if name != "admin" {
-			_, err := cli.AddPolicyWithAssertions(dn, name, assertions)
-			if shouldReportError(skipErrors, cli.SkipErrors, err) {
-				return err
-			}
+		// otherwise we'll be adding the full policy with assertions
+		_, err := cli.AddPolicyWithAssertions(dn, name, policy.Assertions)
+		if shouldReportError(updateDomain, cli.SkipErrors, err) {
+			return err
 		}
+
 	}
 	return nil
 }
