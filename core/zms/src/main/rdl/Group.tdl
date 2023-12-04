@@ -52,7 +52,7 @@ type GroupMeta Struct {
     String userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
     Int32 memberExpiryDays (optional); //all user members in the group will have specified max expiry days
     Int32 serviceExpiryDays (optional); //all services in the group will have specified max expiry days
-    Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
+    Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not group updates should require GRC approval. If true, the auditRef parameter must be supplied(not empty) for any API defining it
     Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled groups.
     Timestamp lastReviewedDate (optional); //last review timestamp of the group

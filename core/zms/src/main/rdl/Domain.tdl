@@ -25,7 +25,7 @@ type DomainMeta Struct {
     String azureSubscription (optional); //associated azure subscription id (system attribute - uniqueness check - if enabled)
     String gcpProject (optional); //associated gcp project id (system attribute - uniqueness check - if enabled)
     String gcpProjectNumber (optional); //associated gcp project number (system attribute)
-    Map<CompoundName,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
+    Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
     String businessService (optional, x_allowempty="true"); //associated business service with domain
     Int32 memberPurgeExpiryDays (optional); //purge role/group members with expiry date configured days in the past
     String productId (optional); //associated product id (system attribute - uniqueness check - if enabled)

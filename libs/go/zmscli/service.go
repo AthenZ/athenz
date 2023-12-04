@@ -84,10 +84,10 @@ func (cli Zms) DeleteServiceTags(dn string, sn, tagKey string, tagValues []strin
 		}
 		return cli.dumpByFormat(message, cli.buildYAMLOutput)
 	} else {
-		tagValueArr = cli.GetTagsAfterDeletion(service.Tags[zms.CompoundName(tagKey)], tagValues)
+		tagValueArr = cli.GetTagsAfterDeletion(service.Tags[zms.TagKey(tagKey)], tagValues)
 	}
 
-	service.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	service.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
 
 	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, service)
@@ -112,10 +112,10 @@ func (cli Zms) AddServiceTags(dn string, sn, tagKey string, tagValues []string) 
 	tagValueArr := make([]zms.TagCompoundValue, 0)
 
 	if service.Tags == nil {
-		service.Tags = map[zms.CompoundName]*zms.TagValueList{}
+		service.Tags = map[zms.TagKey]*zms.TagValueList{}
 	} else {
 		// append current tags
-		currentTagValues := service.Tags[zms.CompoundName(tagKey)]
+		currentTagValues := service.Tags[zms.TagKey(tagKey)]
 		if currentTagValues != nil {
 			tagValueArr = append(tagValueArr, currentTagValues.List...)
 		}
@@ -125,7 +125,7 @@ func (cli Zms) AddServiceTags(dn string, sn, tagKey string, tagValues []string) 
 		tagValueArr = append(tagValueArr, zms.TagCompoundValue(tagValue))
 	}
 
-	service.Tags[zms.CompoundName(tagKey)] = &zms.TagValueList{List: tagValueArr}
+	service.Tags[zms.TagKey(tagKey)] = &zms.TagValueList{List: tagValueArr}
 	returnObj := false
 	_, err = cli.Zms.PutServiceIdentity(zms.DomainName(dn), zms.SimpleName(sn), cli.AuditRef, &returnObj, service)
 	if err != nil {
