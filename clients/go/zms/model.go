@@ -286,7 +286,7 @@ type DomainMeta struct {
 	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
 	// a single value
 	//
-	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -542,7 +542,7 @@ type Domain struct {
 	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
 	// a single value
 	//
-	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// the common name to be referred to, the symbolic id. It is immutable
@@ -3716,7 +3716,7 @@ type TopLevelDomain struct {
 	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
 	// a single value
 	//
-	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -3996,7 +3996,7 @@ type SubDomain struct {
 	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
 	// a single value
 	//
-	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain
@@ -4290,7 +4290,7 @@ type UserDomain struct {
 	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
 	// a single value
 	//
-	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// user id which will be the domain name
@@ -6800,7 +6800,7 @@ type DomainData struct {
 	// list of domain contacts (PE-Owner, Product-Owner, etc), each type can have
 	// a single value
 	//
-	Contacts map[SimpleName]MemberName `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// name of the domain

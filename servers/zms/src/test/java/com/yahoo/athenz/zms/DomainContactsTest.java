@@ -33,7 +33,7 @@ public class DomainContactsTest {
 
     @BeforeClass
     public void startMemoryMySQL() {
-        System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_CONTACT_TYPES, "pe-owner,security-contact,audit-contact");
+        System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_CONTACT_TYPES, "pe-owner,security-contact,audit-contact,product-owner");
         zmsTestInitializer.startMemoryMySQL();
     }
 
@@ -62,6 +62,7 @@ public class DomainContactsTest {
         Map<String, String> domainContacts = new HashMap<>();
         domainContacts.put("pe-owner", "user.user1");
         domainContacts.put("security-contact", "user.user2");
+        domainContacts.put("audit-contact", "");
         dom1.setContacts(domainContacts);
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
 
@@ -90,11 +91,15 @@ public class DomainContactsTest {
         assertEquals(domainContactsRes.get("security-contact"), "user.user2");
 
         // this time we're going to add a new contact, update one and then
-        // delete one
+        // delete one (we're going to delete the security-contact by passing
+        // an empty string). the code should also skip new product-owner since
+        // it has an empty value
 
         domainContacts = new HashMap<>();
         domainContacts.put("pe-owner", "user.user2");
         domainContacts.put("audit-contact", "user.user3");
+        domainContacts.put("security-contact", "");
+        domainContacts.put("product-owner", "");
         domainMeta = new DomainMeta().setContacts(domainContacts);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, domainMeta);
 
@@ -221,7 +226,7 @@ public class DomainContactsTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("invalid domain contact: security-contact/user.user3"));
+            assertTrue(ex.getMessage().contains("invalid domain contact: security-contact"));
         }
 
         // now let's add all three valid users and contacts

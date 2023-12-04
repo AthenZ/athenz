@@ -793,13 +793,9 @@ func (cli Zms) SetDomainContact(dn, contactType, contactUser string) (*string, e
 	}
 	domainContacts := domain.Contacts
 	if domainContacts == nil {
-		domainContacts = make(map[zms.SimpleName]zms.MemberName)
+		domainContacts = make(map[zms.SimpleName]string)
 	}
-	if contactUser == "" {
-		delete(domainContacts, zms.SimpleName(contactType))
-	} else {
-		domainContacts[zms.SimpleName(contactType)] = zms.MemberName(contactUser)
-	}
+	domainContacts[zms.SimpleName(contactType)] = contactUser
 	meta := zms.DomainMeta{
 		Contacts: domainContacts,
 	}

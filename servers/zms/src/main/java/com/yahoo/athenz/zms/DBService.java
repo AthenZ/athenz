@@ -742,7 +742,7 @@ public class DBService implements RolesProvider {
         // open our audit record and log our trust field if one is available
 
         auditLogRoleMeta(auditDetails, role, roleName, false);
-        auditDetails.append("\", \"trust\": \"").append(role.getTrust()).append('\"');
+        auditDetails.append(", \"trust\": \"").append(role.getTrust()).append('\"');
 
         // now we need process our role members depending on if this is
         // a new insert operation or an update
@@ -4230,12 +4230,15 @@ public class DBService implements RolesProvider {
         }
 
         // if our original list is empty then we're going to insert
-        // all of our new contacts if any are present
+        // all of our new contacts if any are present. we'll make
+        // sure they all have non-empty values
 
         if (originalContacts == null || originalContacts.isEmpty()) {
             for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
-                if (!con.insertDomainContact(domainName, entry.getKey(), entry.getValue())) {
-                    return false;
+                if (!StringUtil.isEmpty(entry.getValue())) {
+                    if (!con.insertDomainContact(domainName, entry.getKey(), entry.getValue())) {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -4253,21 +4256,29 @@ public class DBService implements RolesProvider {
             return true;
         }
 
-        // process our updated contacts - we're either going to update
-        // or insert our contacts
+        // process our updated contacts - we're either going to update, insert,
+        // or delete our contacts
 
         for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
             String type = entry.getKey();
             String name = entry.getValue();
             if (originalContacts.containsKey(type)) {
                 if (!originalContacts.get(type).equals(name)) {
-                    if (!con.updateDomainContact(domainName, type, name)) {
-                        return false;
+                    if (StringUtil.isEmpty(name)) {
+                        if (!con.deleteDomainContact(domainName, type)) {
+                            return false;
+                        }
+                    } else {
+                        if (!con.updateDomainContact(domainName, type, name)) {
+                            return false;
+                        }
                     }
                 }
             } else {
-                if (!con.insertDomainContact(domainName, type, name)) {
-                    return false;
+                if (!StringUtil.isEmpty(entry.getValue())) {
+                    if (!con.insertDomainContact(domainName, type, name)) {
+                        return false;
+                    }
                 }
             }
         }
@@ -6005,8 +6016,22 @@ public class DBService implements RolesProvider {
                 .append("\", \"userAuthorityFilter\": \"").append(domain.getUserAuthorityFilter())
                 .append("\", \"businessService\": \"").append(domain.getBusinessService())
                 .append("\", \"productId\": \"").append(domain.getProductId())
-                .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags())
-                .append("\"}");
+                .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags()).append("\"");
+        auditLogTags(auditDetails, domain.getTags());
+        auditLogDomainContacts(auditDetails, domain.getContacts());
+        auditDetails.append("}");
+    }
+
+    void auditLogDomainContacts(StringBuilder auditDetails, Map<String, String> contacts) {
+        if (contacts != null) {
+            auditDetails.append(", \"contacts\": {");
+            boolean firstEntry = true;
+            for (Map.Entry<String, String> entry: contacts.entrySet()) {
+                firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                auditDetails.append("\"").append(entry.getKey()).append("\": \"").append(entry.getValue()).append("\"");
+            }
+            auditDetails.append("}");
+        }
     }
 
     void auditLogRoleSystemMeta(StringBuilder auditDetails, Role role, String roleName) {
@@ -6048,10 +6073,10 @@ public class DBService implements RolesProvider {
                 .append("\", \"lastReviewedDate\": \"").append(role.getLastReviewedDate())
                 .append("\", \"maxMembers\": \"").append(role.getMembers())
                 .append("\", \"selfRenew\": \"").append(role.getSelfRenew())
-                .append("\", \"selfRenewMins\": \"").append(role.getSelfRenewMins());
+                .append("\", \"selfRenewMins\": \"").append(role.getSelfRenewMins()).append("\"");
         auditLogTags(auditDetails, role.getTags());
         if (close) {
-            auditDetails.append("\"}");
+            auditDetails.append("}");
         }
     }
 
@@ -6068,16 +6093,16 @@ public class DBService implements RolesProvider {
                 .append("\", \"lastReviewedDate\": \"").append(group.getLastReviewedDate())
                 .append("\", \"maxMembers\": \"").append(group.getMaxMembers())
                 .append("\", \"selfRenew\": \"").append(group.getSelfRenew())
-                .append("\", \"selfRenewMins\": \"").append(group.getSelfRenewMins());
+                .append("\", \"selfRenewMins\": \"").append(group.getSelfRenewMins()).append("\"");
         auditLogTags(auditDetails, group.getTags());
         if (close) {
-            auditDetails.append("\"}");
+            auditDetails.append("}");
         }
     }
 
     void auditLogTags(StringBuilder auditDetails, Map<String, TagValueList> tags) {
         if (tags != null) {
-            auditDetails.append("\", \"tags\": {");
+            auditDetails.append(", \"tags\": {");
             boolean firstEntry = true;
             for (String key : tags.keySet()) {
                 firstEntry = auditLogTag(auditDetails, tags.get(key), key, firstEntry);

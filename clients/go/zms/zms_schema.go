@@ -165,7 +165,7 @@ func init() {
 	tDomainMeta.Field("memberPurgeExpiryDays", "Int32", true, nil, "purge role/group members with expiry date configured days in the past")
 	tDomainMeta.Field("productId", "String", true, nil, "associated product id (system attribute - uniqueness check - if enabled)")
 	tDomainMeta.Field("featureFlags", "Int32", true, nil, "features enabled per domain (system attribute)")
-	tDomainMeta.MapField("contacts", "SimpleName", "MemberName", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
+	tDomainMeta.MapField("contacts", "SimpleName", "String", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
