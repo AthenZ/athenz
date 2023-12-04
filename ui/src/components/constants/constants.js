@@ -204,7 +204,10 @@ export const MICROSEG_CONDITION_DELETE_JUSTIFICATION =
     'Microsegmentation Assertion Condition deletion';
 export const MICROSEG_TRANSPORT_RULE_DELETE_JUSTIFICATION =
     'Microsegmentation Transport Rule deletion';
-export const WORKFLOW_ADMIN_VIEW_TAB = 'Admin Member Approval';
+export const WORKFLOW_PENDING_MEMBERS_APPROVAL_ADMIN_VIEW_TAB =
+    'Pending Members Approval (Admin View)';
+export const WORKFLOW_PENDING_MEMBERS_APPROVAL_DOMAIN_VIEW_TAB =
+    'Pending Members Approval (Domain View)';
 export const WORKFLOW_DOMAIN_VIEW_TAB = 'Domain Member Approval';
 export const WORKFLOW_ROLE_REVIEW = 'Role Review';
 export const WORKFLOW_GROUP_REVIEW = 'Group Review';
@@ -219,11 +222,11 @@ export const ADD_GROUP_DELETE_PROTECTION_DESC =
     'Flag indicates whether or not the group will be protected from accidental deletions';
 export const WORKFLOW_TABS = [
     {
-        label: WORKFLOW_ADMIN_VIEW_TAB,
+        label: WORKFLOW_PENDING_MEMBERS_APPROVAL_ADMIN_VIEW_TAB,
         name: 'admin',
     },
     {
-        label: WORKFLOW_DOMAIN_VIEW_TAB,
+        label: WORKFLOW_PENDING_MEMBERS_APPROVAL_DOMAIN_VIEW_TAB,
         name: 'domain',
     },
     {

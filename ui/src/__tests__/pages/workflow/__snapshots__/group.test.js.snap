@@ -737,7 +737,7 @@ exports[`WorkflowGroup should render without error 1`] = `
 }
 
 .emotion-43 {
-  width: calc(100vw - 15em);
+  width: 100%;
   overflow-x: scroll;
   overflow-y: visible;
   box-sizing: content-box!important;
@@ -927,13 +927,27 @@ exports[`WorkflowGroup should render without error 1`] = `
                   class="emotion-33 denali-tab"
                   data-active="false"
                 >
-                  Admin Member Approval
+                  <span
+                    style="text-align: center;"
+                  >
+                    Pending Members Approval 
+                    <br />
+                    (
+                    Admin View)
+                  </span>
                 </div>
                 <div
                   class="emotion-33 denali-tab"
                   data-active="false"
                 >
-                  Domain Member Approval
+                  <span
+                    style="text-align: center;"
+                  >
+                    Pending Members Approval 
+                    <br />
+                    (
+                    Domain View)
+                  </span>
                 </div>
               </div>
             </div>

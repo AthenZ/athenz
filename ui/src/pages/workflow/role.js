@@ -40,7 +40,7 @@ const HomeContainerDiv = styled.div`
 `;
 
 const WorkFlowSectionDiv = styled.div`
-    width: calc(100vw - 15em);
+    width: 100%;
     overflow-x: scroll;
     overflow-y: visible;
     box-sizing: content-box !important;

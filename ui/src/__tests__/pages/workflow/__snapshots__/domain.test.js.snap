@@ -1529,13 +1529,27 @@ exports[`PendingApprovalPage should render 1`] = `
                   class="emotion-33 denali-tab"
                   data-active="false"
                 >
-                  Admin Member Approval
+                  <span
+                    style="text-align: center;"
+                  >
+                    Pending Members Approval 
+                    <br />
+                    (
+                    Admin View)
+                  </span>
                 </div>
                 <div
                   class="emotion-33 denali-tab active"
                   data-active="true"
                 >
-                  Domain Member Approval
+                  <span
+                    style="text-align: center;"
+                  >
+                    Pending Members Approval 
+                    <br />
+                    (
+                    Domain View)
+                  </span>
                 </div>
               </div>
             </div>
