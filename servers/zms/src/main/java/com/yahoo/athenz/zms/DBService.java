@@ -572,6 +572,7 @@ public class DBService implements RolesProvider {
         if (!processPolicyTags(policy, policyName, domainName, originalPolicy, con)) {
             return false;
         }
+        auditLogTags(auditDetails, policy.getTags());
 
         auditDetails.append('}');
         return true;
@@ -582,8 +583,12 @@ public class DBService implements RolesProvider {
 
         String policyVersion = policy.getVersion();
 
-        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertPolicyTags(policyName, domainName, tags, policyVersion);
-        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) ->
+                        c.insertPolicyTags(policyName, domainName, tags, policyVersion);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
+                (ObjectStoreConnection c, Set<String> tagKeys) ->
+                        c.deletePolicyTags(policyName, domainName, tagKeys, policyVersion);
 
         return processTags(con, policy.getTags(), (originalPolicy != null ? originalPolicy.getTags() : null) , insertOp, deleteOp);
     }
@@ -850,8 +855,10 @@ public class DBService implements RolesProvider {
     private boolean processGroupTags(Group group, String groupName, String domainName,
                                     Group originalGroup, ObjectStoreConnection con) {
         
-        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp = (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertGroupTags(groupName, domainName, tags);
-        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp = (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteGroupTags(groupName, domainName, tagKeys);
+        BiFunction<ObjectStoreConnection, Map<String, TagValueList>, Boolean> insertOp =
+                (ObjectStoreConnection c, Map<String, TagValueList> tags) -> c.insertGroupTags(groupName, domainName, tags);
+        BiFunction<ObjectStoreConnection, Set<String>, Boolean> deleteOp =
+                (ObjectStoreConnection c, Set<String> tagKeys) -> c.deleteGroupTags(groupName, domainName, tagKeys);
         
         return processTags(con, group.getTags(), (originalGroup != null ? originalGroup.getTags() : null) , insertOp, deleteOp);
     }
@@ -1178,6 +1185,7 @@ public class DBService implements RolesProvider {
         if (!processServiceIdentityTags(service, serviceName, domainName, originalService, con)) {
             return false;
         }
+        auditLogTags(auditDetails, service.getTags());
 
         auditDetails.append('}');
         return true;
@@ -1297,47 +1305,21 @@ public class DBService implements RolesProvider {
 
                 // now we need process our policy assertions
 
-                List<Assertion> newAssertions = originalPolicy.getAssertions();
-                if (newAssertions != null) {
-                    for (Assertion assertion : newAssertions) {
-
-                        // get assertion conditions for original assertion
-
-                        AssertionConditions assertionConditions = new AssertionConditions();
-                        if (assertion.getId() != null) {
-                            assertionConditions.setConditionsList(con.getAssertionConditions(assertion.getId()));
-                        }
-
-                        // insert assertion (and get new assertion id)
-
-                        if (!con.insertAssertion(domainName, policyName, version, assertion)) {
-                            con.rollbackChanges();
-                            throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
-                                    ", version: " + version + ", fail inserting assertion", caller);
-                        }
-
-                        // copy assertion conditions for new assertion id
-
-                        if (assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
-                            if (!con.insertAssertionConditions(assertion.getId(), assertionConditions)) {
-                                con.rollbackChanges();
-                                throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
-                                        ", version: " + version + ", fail inserting assertion conditions", caller);
-                            }
-                        }
-                    }
-
-                    // Log copied assertions and assertion conditions
-
-                    auditLogAssertions(auditDetails, "copied-assertions", newAssertions);
-                    for (Assertion assertion : newAssertions) {
-                        if (assertion.getId() != null) {
-                            auditLogAssertionConditions(auditDetails, con.getAssertionConditions(assertion.getId()),
-                                    "copied-assertion-conditions");
-                        }
-                    }
+                if (!processPolicyCopyAssertions(con, originalPolicy, domainName, policyName, version, auditDetails)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
+                        ", version: " + version + ", fail copying assertions", caller);
                 }
 
+                // include all the tags from the original version
+
+                if (!processPolicyTags(originalPolicy, policyName, domainName, null, con)) {
+                    con.rollbackChanges();
+                    throw ZMSUtils.internalServerError("unable to put policy: " + originalPolicy.getName() +
+                            ", version: " + version + ", fail copying tags", caller);
+                }
+
+                auditLogTags(auditDetails, originalPolicy.getTags());
                 auditDetails.append('}');
 
                 // update our domain time-stamp and save changes
@@ -1350,6 +1332,7 @@ public class DBService implements RolesProvider {
                         policyName, auditDetails.toString());
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
 
                 return returnObj == Boolean.TRUE ?  getPolicy(con, domainName, policyName, version) :  null;
@@ -1360,6 +1343,43 @@ public class DBService implements RolesProvider {
                 }
             }
         }
+    }
+
+    boolean processPolicyCopyAssertions(ObjectStoreConnection con, Policy policy, final String domainName,
+            final String policyName, final String version, StringBuilder auditDetails) {
+
+        List<Assertion> assertions = policy.getAssertions();
+        if (assertions == null) {
+            return true;
+        }
+
+        auditLogAssertions(auditDetails, "copied-assertions", assertions);
+        for (Assertion assertion : assertions) {
+
+            // get assertion conditions for original assertion
+
+            AssertionConditions assertionConditions = new AssertionConditions();
+            if (assertion.getId() != null) {
+                assertionConditions.setConditionsList(con.getAssertionConditions(assertion.getId()));
+                auditLogAssertionConditions(auditDetails, assertionConditions.getConditionsList(),
+                        "copied-assertion-conditions");
+            }
+
+            // insert assertion (and get new assertion id)
+
+            if (!con.insertAssertion(domainName, policyName, version, assertion)) {
+                return false;
+            }
+
+            // copy assertion conditions for new assertion id
+
+            if (assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
+                if (!con.insertAssertionConditions(assertion.getId(), assertionConditions)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     Policy executePutPolicy(ResourceContext ctx, String domainName, String policyName, Policy policy,
@@ -6139,13 +6159,16 @@ public class DBService implements RolesProvider {
                 .append(", \"conditionsMap\": {");
         boolean innerFirstEntry = true;
         for (String key : assertionCondition.getConditionsMap().keySet()) {
-            innerFirstEntry = auditLogAssertionConditionData(auditDetails, assertionCondition.getConditionsMap().get(key), key, innerFirstEntry);
+            innerFirstEntry = auditLogAssertionConditionData(auditDetails, assertionCondition.getConditionsMap().get(key),
+                    key, innerFirstEntry);
         }
         auditDetails.append("}}");
         return firstEntry;
     }
 
-    boolean auditLogAssertionConditionData(StringBuilder auditDetails, AssertionConditionData assertionConditionData, String conditionKey, boolean firstEntry) {
+    boolean auditLogAssertionConditionData(StringBuilder auditDetails, AssertionConditionData assertionConditionData,
+            String conditionKey, boolean firstEntry) {
+
         firstEntry = auditLogSeparator(auditDetails, firstEntry);
         auditDetails.append("\"").append(conditionKey)
                 .append("\": {\"operator\": \"").append(assertionConditionData.getOperator().name())
