@@ -649,7 +649,7 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 		}
 	case "token":
 		if tokenOpts != nil {
-			err := accessTokenRequest(tokenOpts)
+			err := fetchAccessToken(tokenOpts)
 			if err != nil {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
@@ -683,7 +683,7 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 		}
 		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		if tokenOpts != nil {
-			err := accessTokenRequest(tokenOpts)
+			err := fetchAccessToken(tokenOpts)
 			if err != nil {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
