@@ -20,6 +20,7 @@ import { GROUP_ROLES_CATEGORY } from '../constants/constants';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
+import {selectTimeZone} from "../../redux/selectors/domains";
 
 const StyleTable = styled.div`
     width: 100%;
@@ -110,6 +111,7 @@ class GroupRoleTable extends React.Component {
                             roles={this.state.rows[name]}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
+                            timeZone={this.props.timeZone}
                         />
                     );
                     rows.push(roleGroup);
@@ -150,6 +152,8 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         isLoading: selectIsLoading(state),
+        timeZone: selectTimeZone(state),
+
     };
 };
 
