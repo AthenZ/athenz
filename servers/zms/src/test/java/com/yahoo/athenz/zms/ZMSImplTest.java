@@ -6956,7 +6956,7 @@ public class ZMSImplTest {
             zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, service);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid/Reserved service name"));
+            assertTrue(ex.getMessage().contains("reserved service name"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx,  domainName, auditRef);
@@ -21861,40 +21861,45 @@ public class ZMSImplTest {
     public void testValidateServiceName() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        StringBuilder errorMessage = new StringBuilder(64);
 
         // reserved names
-        assertFalse(zmsImpl.isValidServiceName("athenz", "com"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "gov"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "info"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "org"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "com", errorMessage));
+        assertEquals(errorMessage.toString(), "reserved service name");
+        assertFalse(zmsImpl.isValidServiceName("athenz", "gov", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "info", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "org", errorMessage));
 
-        assertTrue(zmsImpl.isValidServiceName("athenz", "svc"));
-        assertTrue(zmsImpl.isValidServiceName("athenz", "acom"));
-        assertTrue(zmsImpl.isValidServiceName("athenz", "coms"));
-        assertTrue(zmsImpl.isValidServiceName("athenz", "borg"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "svc", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "acom", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "coms", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "borg", errorMessage));
 
         // service names with 1 or 2 chars
 
-        assertFalse(zmsImpl.isValidServiceName("athenz", "u"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "k"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "r"));
+        errorMessage.setLength(0);
+        assertFalse(zmsImpl.isValidServiceName("athenz", "u", errorMessage));
+        assertEquals(errorMessage.toString(), "service name length too short");
 
-        assertFalse(zmsImpl.isValidServiceName("athenz", "us"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "uk"));
-        assertFalse(zmsImpl.isValidServiceName("athenz", "fr"));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "k", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "r", errorMessage));
+
+        assertFalse(zmsImpl.isValidServiceName("athenz", "us", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "uk", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "fr", errorMessage));
 
         // set the min length to 0 and verify all pass
 
         zmsImpl.serviceNameMinLength = 0;
-        assertTrue(zmsImpl.isValidServiceName("athenz", "r"));
-        assertTrue(zmsImpl.isValidServiceName("athenz", "us"));
-        assertTrue(zmsImpl.isValidServiceName("athenz", "svc"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "r", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "us", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "svc", errorMessage));
 
         // set map to null and verify all pass
 
         zmsImpl.reservedServiceNames = null;
-        assertTrue(zmsImpl.isValidServiceName("athenz", "com"));
-        assertTrue(zmsImpl.isValidServiceName("athenz", "gov"));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "com", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "gov", errorMessage));
 
         // create new impl objects with new settings
 
@@ -21902,24 +21907,24 @@ public class ZMSImplTest {
         System.setProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH, "0");
         ZMSImpl zmsImpl2 = zmsTestInitializer.zmsInit();
 
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "com"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "gov"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "info"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "com", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "gov", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "info", errorMessage));
 
-        assertFalse(zmsImpl2.isValidServiceName("athenz", "one"));
-        assertFalse(zmsImpl2.isValidServiceName("athenz", "two"));
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "one", errorMessage));
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "two", errorMessage));
 
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "u"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "k"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "r"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "u", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "k", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "r", errorMessage));
         System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES);
         System.clearProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH);
 
         // validate service names with underscores set to allow
 
         zmsImpl2.allowUnderscoreInServiceNames = new DynamicConfigBoolean(Boolean.TRUE);
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name", errorMessage));
 
         // while to allow option is enabled, let's create a service with underscore
 
@@ -21938,9 +21943,11 @@ public class ZMSImplTest {
         // be allowed but non-existent service name with be rejected
 
         zmsImpl2.allowUnderscoreInServiceNames = new DynamicConfigBoolean(Boolean.FALSE);
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
-        assertFalse(zmsImpl2.isValidServiceName("athenz", "service_name2"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name", errorMessage));
+        errorMessage.setLength(0);
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "service_name2", errorMessage));
+        assertEquals(errorMessage.toString(), "service name with underscore not allowed");
 
         // by default the feature flag is not enabled for the domain
 
@@ -21956,10 +21963,10 @@ public class ZMSImplTest {
         assertTrue(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 1));
         assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 2));
 
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name2"));
-        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name3"));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name2", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name3", errorMessage));
 
         zmsImpl2.deleteDomain(ctx, auditRef, "athenz", "unit-test");
 

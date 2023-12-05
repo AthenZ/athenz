@@ -5926,11 +5926,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return true;
     }
 
-    public boolean isValidServiceName(final String domainName, final String serviceName) {
+    public boolean isValidServiceName(final String domainName, final String serviceName, StringBuilder errorMessage) {
 
         // first check the list of configured reserved names
 
         if (reservedServiceNames != null && reservedServiceNames.contains(serviceName)) {
+            errorMessage.append("reserved service name");
             return false;
         }
 
@@ -5943,13 +5944,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (allowUnderscoreInServiceNames.get() == Boolean.FALSE && serviceName.indexOf('_') != -1) {
             if ((!isDomainFeatureFlagEnabled(domainName, ZMSConsts.ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE)) &&
                     dbService.getServiceIdentity(domainName, serviceName, true) == null) {
+                errorMessage.append("service name with underscore not allowed");
                 return false;
             }
         }
 
         // finally, return result based on the configured minimum length of the service name
 
-        return serviceNameMinLength <= 0 || serviceNameMinLength <= serviceName.length();
+        if (serviceNameMinLength > 0 && serviceNameMinLength > serviceName.length()) {
+            errorMessage.append("service name length too short");
+            return false;
+        }
+
+        return true;
     }
 
     boolean isDomainFeatureFlagEnabled(final String domainName, int flag) {
@@ -5986,8 +5993,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // validate that the service name is valid
 
-        if (!isValidServiceName(domainName, serviceName)) {
-            throw ZMSUtils.requestError("putServiceIdentity: Invalid/Reserved service name", caller);
+        StringBuilder errorMessage = new StringBuilder(64);
+        if (!isValidServiceName(domainName, serviceName, errorMessage)) {
+            throw ZMSUtils.requestError("putServiceIdentity: " + errorMessage, caller);
         }
 
         // verify that request is properly authenticated for this request
