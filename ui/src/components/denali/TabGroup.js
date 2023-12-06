@@ -166,6 +166,17 @@ class TabGroup extends React.PureComponent {
                 onClick(tab);
             };
 
+            let shouldSplitOnParentheses = typeof(label) === 'string' && label.includes('(');
+            if (shouldSplitOnParentheses) {
+                let splitLabel = label.split('(');
+                label = (
+                    <span style={{ 'text-align': 'center' }}>
+                        {splitLabel[0]}
+                        <br />({splitLabel[1]}
+                    </span>
+                );
+            };
+
             return (
                 <div
                     className={classes}
