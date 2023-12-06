@@ -118,7 +118,7 @@ func (cli Zms) AddDelegatedRole(dn string, rn string, trusted string) (*string, 
 	return cli.ShowUpdatedRole(updatedRole, false)
 }
 
-func (cli Zms) AddRegularRole(dn string, rn string, roleMembers []*zms.RoleMember) (*string, error) {
+func (cli Zms) AddRegularRole(dn string, rn string, auditEnabled bool, roleMembers []*zms.RoleMember) (*string, error) {
 	fullResourceName := dn + ":role." + rn
 	var role zms.Role
 	if !cli.Overwrite {
@@ -137,6 +137,9 @@ func (cli Zms) AddRegularRole(dn string, rn string, roleMembers []*zms.RoleMembe
 		return nil, fmt.Errorf("cannot replace reserved 'admin' role")
 	}
 	role.Name = zms.ResourceName(fullResourceName)
+	if auditEnabled {
+		role.AuditEnabled = &auditEnabled
+	}
 	role.RoleMembers = roleMembers
 	cli.validateRoleMembers(role.RoleMembers)
 	returnObject := true

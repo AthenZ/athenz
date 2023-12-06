@@ -89,11 +89,7 @@ func (cli Zms) importGroups(dn string, lstGroups []*zms.Group, existingGroups *z
 			}
 			_, err = cli.AddGroupMembers(dn, gn, groupMembers)
 		} else {
-			groupMembers := make([]*zms.GroupMember, 0)
-			for _, groupMember := range group.GroupMembers {
-				groupMembers = append(groupMembers, groupMember)
-			}
-			_, err = cli.AddGroup(dn, gn, groupMembers)
+			_, err = cli.AddGroup(dn, gn, *group.AuditEnabled, group.GroupMembers)
 		}
 		cli.Verbose = b
 		if shouldReportError(updateDomain, cli.SkipErrors, err) {
@@ -118,7 +114,7 @@ func (cli Zms) importGroupsOld(dn string, lstGroups []interface{}, skipErrors bo
 		}
 		b := cli.Verbose
 		cli.Verbose = true
-		_, err := cli.AddGroup(dn, gn, groupMembers)
+		_, err := cli.AddGroup(dn, gn, false, groupMembers)
 		cli.Verbose = b
 		if shouldReportError(skipErrors, cli.SkipErrors, err) {
 			return err
@@ -176,7 +172,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 				if updateDomain && roleExists(role.Name, existingRoles) {
 					_, err = cli.AddRoleMembers(dn, rn, roleMembers)
 				} else {
-					_, err = cli.AddRegularRole(dn, rn, roleMembers)
+					_, err = cli.AddRegularRole(dn, rn, *role.AuditEnabled, roleMembers)
 				}
 				cli.Verbose = b
 			}
@@ -194,7 +190,7 @@ func (cli Zms) importRoles(dn string, lstRoles []*zms.Role, existingRoles *zms.R
 				roleMembers := make([]*zms.RoleMember, 0)
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err := cli.AddRegularRole(dn, rn, roleMembers)
+				_, err := cli.AddRegularRole(dn, rn, *role.AuditEnabled, roleMembers)
 				cli.Verbose = b
 				if shouldReportError(updateDomain, cli.SkipErrors, err) {
 					return err
@@ -214,24 +210,24 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 			mem := val.([]interface{})
 			roleMembers := make([]*zms.RoleMember, 0)
 			var err error
-			var role *zms.Role
+			var adminRole *zms.Role
 			if rn == "admin" && validatedAdmins != nil {
 				// need to retrieve the current admin role
 				// and make sure to remove any existing admin
-				role, err = cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
+				adminRole, err = cli.Zms.GetRole(zms.DomainName(dn), "admin", nil, nil, nil)
 				if err != nil {
 					return err
 				}
 				for _, mbr := range mem {
 					roleMember := parseRoleMember(mbr.(map[string]interface{}))
-					if !cli.containsMember(role.RoleMembers, string(roleMember.MemberName)) {
+					if !cli.containsMember(adminRole.RoleMembers, string(roleMember.MemberName)) {
 						roleMembers = append(roleMembers, roleMember)
 					}
 				}
 				for _, admin := range validatedAdmins {
 					roleMember := zms.NewRoleMember()
 					roleMember.MemberName = zms.MemberName(admin)
-					if !cli.containsMember(roleMembers, admin) && !cli.containsMember(role.RoleMembers, admin) {
+					if !cli.containsMember(roleMembers, admin) && !cli.containsMember(adminRole.RoleMembers, admin) {
 						roleMembers = append(roleMembers, roleMember)
 					}
 				}
@@ -243,7 +239,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 				}
 				b := cli.Verbose
 				cli.Verbose = true
-				_, err = cli.AddRegularRole(dn, rn, roleMembers)
+				_, err = cli.AddRegularRole(dn, rn, false, roleMembers)
 				cli.Verbose = b
 			}
 			if shouldReportError(skipErrors, cli.SkipErrors, err) {
@@ -259,7 +255,7 @@ func (cli Zms) importRolesOld(dn string, lstRoles []interface{}, validatedAdmins
 			roleMembers := make([]*zms.RoleMember, 0)
 			b := cli.Verbose
 			cli.Verbose = true
-			_, err := cli.AddRegularRole(dn, rn, roleMembers)
+			_, err := cli.AddRegularRole(dn, rn, false, roleMembers)
 			cli.Verbose = b
 			if shouldReportError(skipErrors, cli.SkipErrors, err) {
 				return err

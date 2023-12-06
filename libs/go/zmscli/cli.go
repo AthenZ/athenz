@@ -5,6 +5,7 @@ package zmscli
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"gopkg.in/yaml.v2"
@@ -554,8 +555,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			}
 		case "add-group-role", "add-regular-role":
 			if argc >= 1 {
-				roleMembers := cli.convertRoleMembers(args[1:])
-				return cli.AddRegularRole(dn, args[0], roleMembers)
+				auditEnabled := false
+				var roleMembers []*zms.RoleMember
+				if argc >= 2 && args[1] == "-audit-enabled" {
+					auditEnabled = true
+					roleMembers = cli.convertRoleMembers(args[2:])
+				} else {
+					roleMembers = cli.convertRoleMembers(args[1:])
+				}
+				return cli.AddRegularRole(dn, args[0], auditEnabled, roleMembers)
 			}
 		case "add-provider-role-member", "add-provider-role-members":
 			if argc >= 4 {
@@ -638,8 +646,15 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			return output, err
 		case "add-group":
 			if argc >= 1 {
-				groupMembers := cli.convertGroupMembers(args[1:])
-				return cli.AddGroup(dn, args[0], groupMembers)
+				auditEnabled := false
+				var groupMembers []*zms.GroupMember
+				if argc >= 2 && args[1] == "-audit-enabled" {
+					auditEnabled = true
+					groupMembers = cli.convertGroupMembers(args[2:])
+				} else {
+					groupMembers = cli.convertGroupMembers(args[1:])
+				}
+				return cli.AddGroup(dn, args[0], auditEnabled, groupMembers)
 			}
 		case "add-group-member", "add-group-members":
 			if argc >= 2 {
@@ -2001,15 +2016,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-delegated-role tenant.sports.readers sports\n")
 	case "add-group-role", "add-regular-role":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-regular-role role member [member ... ]\n")
+		buf.WriteString("   " + domainParam + " add-regular-role role [-audit-enabled] [member ... ]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain that role belongs to\n")
 		}
 		buf.WriteString("   role    : name of the standard role\n")
+		buf.WriteString("   -audit-enabled : mark the role as audit-enabled - can't have any members specified \n")
 		buf.WriteString("   member  : list of members that could be either users or services\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-regular-role readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
+		buf.WriteString("   " + domainExample + " add-regular-role readers -audit-enabled\n")
 	case "add-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-member regular_role user_or_service [user_or_service ...]\n")
@@ -2187,15 +2204,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   show-groups-principal\n")
 	case "add-group":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-group group member [member ... ]\n")
+		buf.WriteString("   " + domainParam + " add-group group [-audit-enabled] [member ... ]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain  : name of the domain that group belongs to\n")
 		}
 		buf.WriteString("   group    : name of the group\n")
+		buf.WriteString("   -audit-enabled : mark the group as audit-enabled - can't have any members specified \n")
 		buf.WriteString("   member  : list of group members that could be either users or services\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-group readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
+		buf.WriteString("   " + domainExample + " add-group readers -audit-enabled\n")
 	case "add-group-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-member group user_or_service [user_or_service ...]\n")
@@ -3430,7 +3449,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-roles-principal [principal] [expand]\n")
 	buf.WriteString("   list-roles-for-review [principal]\n")
 	buf.WriteString("   add-delegated-role role trusted_domain\n")
-	buf.WriteString("   add-regular-role role member [member ... ]\n")
+	buf.WriteString("   add-regular-role role [-audit-enabled] [member ... ]\n")
 	buf.WriteString("   add-member regular_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   add-temporary-member regular_role user_or_service expiration\n")
 	buf.WriteString("   add-reviewed-member regular_role user_or_service review\n")
@@ -3473,7 +3492,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-groups [tag_key] [tag_value]\n")
 	buf.WriteString("   show-groups-principal [principal]\n")
 	buf.WriteString("   list-groups-for-review [principal]\n")
-	buf.WriteString("   add-group group member [member ... ]\n")
+	buf.WriteString("   add-group group [-audit-enabled] [member ... ]\n")
 	buf.WriteString("   add-group-member group user_or_service [user_or_service ...]\n")
 	buf.WriteString("   check-group-member group user_or_service [user_or_service ...]\n")
 	buf.WriteString("   check-active-group-member group user_or_service\n")
@@ -3586,15 +3605,15 @@ func SetX509CertClient(cli *Zms, keyFile, certFile, caCertFile, socksProxy strin
 			return err
 		}
 	}
-	config, err := config.ClientTLSConfigFromPEM(keypem, certpem, cacertpem)
+	tlsConfig, err := config.ClientTLSConfigFromPEM(keypem, certpem, cacertpem)
 	if err != nil {
 		return err
 	}
 	if skipVerify {
-		config.InsecureSkipVerify = skipVerify
+		tlsConfig.InsecureSkipVerify = skipVerify
 	}
 	tr := &http.Transport{
-		TLSClientConfig: config,
+		TLSClientConfig: tlsConfig,
 	}
 	if httpProxy {
 		tr.Proxy = http.ProxyFromEnvironment
@@ -3603,7 +3622,10 @@ func SetX509CertClient(cli *Zms, keyFile, certFile, caCertFile, socksProxy strin
 		dialer := &net.Dialer{}
 		dialSocksProxy, err := proxy.SOCKS5("tcp", socksProxy, nil, dialer)
 		if err == nil {
-			tr.Dial = dialSocksProxy.Dial
+			dialContext := func(ctx context.Context, network, address string) (net.Conn, error) {
+				return dialSocksProxy.Dial(network, address)
+			}
+			tr.DialContext = dialContext
 		}
 	}
 	cli.Zms = zms.NewClient(cli.ZmsUrl, tr)
