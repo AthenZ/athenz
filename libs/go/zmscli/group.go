@@ -182,7 +182,7 @@ func (cli Zms) SetGroupServiceExpiryDays(dn string, rn string, days int32) (*str
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
-func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (*string, error) {
+func (cli Zms) AddGroup(dn string, gn string, auditEnabled bool, groupMembers []*zms.GroupMember) (*string, error) {
 	fullResourceName := dn + ":group." + gn
 	var group zms.Group
 	if !cli.Overwrite {
@@ -198,6 +198,9 @@ func (cli Zms) AddGroup(dn string, gn string, groupMembers []*zms.GroupMember) (
 		}
 	}
 	group.Name = zms.ResourceName(fullResourceName)
+	if auditEnabled {
+		group.AuditEnabled = &auditEnabled
+	}
 	group.GroupMembers = groupMembers
 	cli.validateGroupMembers(group.GroupMembers)
 	returnObject := true
