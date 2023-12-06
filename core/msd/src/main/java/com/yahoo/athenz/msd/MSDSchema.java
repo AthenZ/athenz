@@ -619,7 +619,7 @@ public class MSDSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
-            .auth("", "", true)
+            .auth("msd.GetNetworkPolicy", "{domainName}:domain")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -640,6 +640,26 @@ public class MSDSchema {
             .input("payload", "TransportPolicyRequest", "Struct representing input transport policy")
             .auth("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicyRules", "GET", "/domain/{domainName}/service/{serviceName}/transportpolicies")
+            .comment("API endpoint to get the transport policy rules defined in Athenz for a given domain and service")
+            .name("getTransportPolicyRulesByService")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "Name of the service")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
+            .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

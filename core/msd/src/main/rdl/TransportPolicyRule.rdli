@@ -52,7 +52,7 @@ resource TransportPolicyValidationResponseList GET "/domain/{domainName}/transpo
 // API endpoint to get the transport policy rules defined in Athenz for a given domain
 resource TransportPolicyRules GET "/domain/{domainName}/transportpolicies" (name=getTransportPolicyRulesByDomain) {
     DomainName domainName; //name of the domain
-    authenticate;
+    authorize ("msd.GetNetworkPolicy", "{domainName}:domain");
     String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
     expected OK, NOT_MODIFIED;
@@ -72,6 +72,23 @@ resource TransportPolicyRules PUT "/domain/{domainName}/service/{serviceName}/tr
     TransportPolicyRequest payload; //Struct representing input transport policy
     authorize ("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}");
     expected NO_CONTENT, OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// API endpoint to get the transport policy rules defined in Athenz for a given domain and service
+resource TransportPolicyRules GET "/domain/{domainName}/service/{serviceName}/transportpolicies" (name=getTransportPolicyRulesByService) {
+    DomainName domainName; //name of the domain
+    EntityName serviceName; //Name of the service
+    authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
+    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+    String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    expected OK, NOT_MODIFIED;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
