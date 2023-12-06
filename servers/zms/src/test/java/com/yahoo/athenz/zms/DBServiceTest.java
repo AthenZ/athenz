@@ -933,17 +933,21 @@ public class DBServiceTest {
                 policy1, auditRef, "putPolicy", false);
 
         // Put new version
-        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion", false);
+        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version",
+                null, auditRef, "putPolicyVersion", false);
 
         // Put third version (max number is 3)
-        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version2", null, auditRef, "putPolicyVersion", false);
+        zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version2",
+                null, auditRef, "putPolicyVersion", false);
 
         // Trying to put another version will throw an exception
         try {
-            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version3", null, auditRef, "putPolicyVersion", false);
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version3",
+                    null, auditRef, "putPolicyVersion", false);
             fail();
         } catch (Exception ex) {
-            assertEquals(ex.getMessage(), "ResourceException (429): {code: 429, message: \"unable to put policy: policy1, version: new-version3, max number of versions reached (3)\"}");
+            assertEquals(ex.getMessage(), "ResourceException (429): {code: 429, message: \"unable to put "
+                    + "policy: policy1, version: new-version3, max number of versions reached (3)\"}");
         }
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
@@ -956,16 +960,31 @@ public class DBServiceTest {
 
         Domain domain = new Domain().setAuditEnabled(false);
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
-        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
-        Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true).thenReturn(false).thenReturn(true);
-        Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion.getAssertions());
-        Mockito.when(mockJdbcConn.listAssertions(domainName, policyName, "new-version")).thenReturn(originalPolicyVersion.getAssertions());
 
-        Policy newPolicyVersion = createPolicyObject(domainName, policyName);
-        newPolicyVersion.setVersion("new-version");
-        newPolicyVersion.setActive(false);
-        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), isNull(), any())).thenReturn(true).thenReturn(false);
-        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(null).thenReturn(originalPolicyVersion);
+        Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
+
+        Map<String, TagValueList> tags = new HashMap<>();
+        tags.put("tagKey1", new TagValueList().setList(Collections.singletonList("tagValue1")));
+
+        Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion))
+                .thenReturn(true).thenReturn(false).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertPolicyTags(domainName, policyName, tags, null))
+                .thenReturn(true);
+        Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull()))
+                .thenReturn(originalPolicyVersion.getAssertions());
+        Mockito.when(mockJdbcConn.listAssertions(domainName, policyName, "new-version"))
+                .thenReturn(originalPolicyVersion.getAssertions());
+
+        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), isNull(), any()))
+                .thenReturn(true).thenReturn(false);
+        Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), eq("new-version"), any()))
+                .thenReturn(false).thenReturn(true);
+        Mockito.when(mockJdbcConn.insertPolicyTags(eq(domainName), eq(policyName), any(), eq("new-version")))
+                .thenReturn(false);
+        Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull()))
+                .thenReturn(null).thenReturn(originalPolicyVersion);
+        Mockito.when(mockJdbcConn.getPolicyTags(eq(domainName), eq(policyName), isNull()))
+                .thenReturn(tags);
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
@@ -973,22 +992,39 @@ public class DBServiceTest {
         zms.dbService.defaultRetryCount = 2;
 
         // Put policy
-        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, originalPolicyVersion, auditRef, "putPolicy", false);
+        zms.dbService.executePutPolicy(mockDomRsrcCtx, domainName, policyName, originalPolicyVersion,
+                auditRef, "putPolicy", false);
 
         // Put policy version - simulate failure in inserting policy
         try {
-            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion", false);
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version",
+                    null, auditRef, "putPolicyVersion", false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: policy-put-policy-version-failure:policy.policy1, version: new-version\"}");
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put "
+                    + "policy: policy-put-policy-version-failure:policy.policy1, version: new-version\"}");
         }
 
         // Put policy version - simulate failure in inserting assertion
         try {
-            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion", false);
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version",
+                    null, auditRef, "putPolicyVersion", false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: policy-put-policy-version-failure:policy.policy1, version: new-version, fail inserting assertion\"}");
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put "
+                    + "policy: policy-put-policy-version-failure:policy.policy1, version: new-version, "
+                    + "fail copying assertions\"}");
+        }
+
+        // Put policy version - simulate failure in inserting tags
+        try {
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version",
+                    null, auditRef, "putPolicyVersion", false);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put "
+                    + "policy: policy-put-policy-version-failure:policy.policy1, version: new-version, "
+                    + "fail copying tags\"}");
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
@@ -1004,13 +1040,16 @@ public class DBServiceTest {
         Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
         Policy originalPolicyVersion = createPolicyObject(domainName, policyName);
         Map<String, AssertionConditionData> conditionsMap = new HashMap<>();
-        conditionsMap.put("cond1", new AssertionConditionData().setValue("testVal"));
+        conditionsMap.put("cond1", new AssertionConditionData()
+                .setOperator(AssertionConditionOperator.EQUALS).setValue("testVal"));
         final List<AssertionCondition> assertionConditions = new ArrayList<>();
         assertionConditions.add(new AssertionCondition().setConditionsMap(conditionsMap));
-        originalPolicyVersion.getAssertions().get(0).setConditions(new AssertionConditions().setConditionsList(assertionConditions));
+        originalPolicyVersion.getAssertions().get(0).setConditions(
+                new AssertionConditions().setConditionsList(assertionConditions));
         originalPolicyVersion.getAssertions().get(0).setId(1L);
         Mockito.when(mockJdbcConn.insertPolicy(domainName, originalPolicyVersion)).thenReturn(true);
-        Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion.getAssertions());
+        Mockito.when(mockJdbcConn.listAssertions(eq(domainName), eq(policyName), isNull()))
+                .thenReturn(originalPolicyVersion.getAssertions());
         Mockito.when(mockJdbcConn.getPolicy(eq(domainName), eq(policyName), isNull())).thenReturn(originalPolicyVersion);
         Mockito.when(mockJdbcConn.insertAssertion(eq(domainName), eq(policyName), any(), any())).thenReturn(true);
         Mockito.when(mockJdbcConn.getAssertionConditions(anyLong())).thenReturn(assertionConditions);
@@ -1022,14 +1061,22 @@ public class DBServiceTest {
 
         // Put policy version - simulate failure in inserting assertion conditions
         try {
-            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version", null, auditRef, "putPolicyVersion", false);
+            zms.dbService.executePutPolicyVersion(mockDomRsrcCtx, domainName, policyName, "new-version",
+                    null, auditRef, "putPolicyVersion", false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put policy: policy-put-policy-version-condition-failure:policy.policy1, version: new-version, fail inserting assertion conditions\"}");
+            assertEquals(ex.getMessage(), "ResourceException (500): {code: 500, message: \"unable to put "
+                    + "policy: policy-put-policy-version-condition-failure:policy.policy1, version: new-version, "
+                    + "fail copying assertions\"}");
         }
 
         zms.dbService.defaultRetryCount = saveRetryCount;
         zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testProcessPolicyAssertionsNull() {
+        assertTrue(zms.dbService.processPolicyCopyAssertions(null, new Policy(), null, null, null, null));
     }
 
     @Test
