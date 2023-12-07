@@ -26,7 +26,11 @@ import {
 import API from '../../api';
 import { storeGroups } from '../actions/domains';
 import { getGroupApiCall, getGroupsApiCall } from './utils/groups';
-import { thunkSelectGroup, thunkSelectGroups } from '../selectors/groups';
+import {
+    selectUserReviewGroups,
+    thunkSelectGroup,
+    thunkSelectGroups,
+} from '../selectors/groups';
 import {
     buildErrorForDoesntExistCase,
     buildErrorForDuplicateCase,
@@ -125,7 +129,16 @@ export const reviewGroup =
             );
             reviewedGroup.groupMembers = members;
             reviewedGroup.groupPendingMembers = pendingMembers;
-
+            let groupsToReview = selectUserReviewGroups(getState());
+            groupsToReview = groupsToReview.filter(
+                (g) => g.domainName + ':group.' + g.name !== reviewedGroup.name
+            );
+            if (
+                selectUserReviewGroups(getState()).length !==
+                groupsToReview.length
+            ) {
+                dispatch(loadGroupsToReview(groupsToReview));
+            }
             dispatch(reviewGroupToStore(reviewedGroup.name, reviewedGroup));
             return Promise.resolve();
         } catch (err) {

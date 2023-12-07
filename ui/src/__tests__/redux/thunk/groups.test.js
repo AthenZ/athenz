@@ -481,6 +481,7 @@ describe('reviewGroup method', () => {
     afterAll(() => {
         jest.spyOn(groupsThunk, 'getGroups').mockRestore();
         jest.spyOn(groupSelector, 'thunkSelectGroups').mockRestore();
+        jest.spyOn(groupSelector, 'selectUserReviewGroups').mockRestore();
         jest.spyOn(groupsThunk, 'getGroups').mockRestore();
     });
     afterEach(() => {
@@ -499,6 +500,7 @@ describe('reviewGroup method', () => {
                 },
             };
         };
+        jest.spyOn(groupSelector, 'selectUserReviewGroups').mockReturnValue([]);
         MockApi.setMockApi({
             reviewGroup: jest
                 .fn()

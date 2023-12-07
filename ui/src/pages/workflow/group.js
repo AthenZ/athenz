@@ -30,10 +30,14 @@ import { selectIsLoading } from '../../redux/selectors/loading';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
 import Input from '../../components/denali/Input.js';
 import InputLabel from '../../components/denali/InputLabel.js';
-import { WORKFLOW_TITLE } from '../../components/constants/constants.js';
+import {
+    MODAL_TIME_OUT,
+    WORKFLOW_TITLE,
+} from '../../components/constants/constants.js';
 import ReviewCard from '../../components/review/ReviewCard.js';
 import { getReviewGroups } from '../../redux/thunks/groups.js';
 import { selectUserReviewGroups } from '../../redux/selectors/groups.js';
+import Alert from '../../components/denali/Alert.js';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -121,6 +125,7 @@ class WorkflowGroup extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
+        this.onSuccessReview = this.onSuccessReview.bind(this);
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
@@ -128,6 +133,8 @@ class WorkflowGroup extends React.Component {
         this.state = {
             pendingData: props.pendingData,
             justification: '',
+            showSuccess: false,
+            successMessage: '',
         };
     }
 
@@ -137,6 +144,19 @@ class WorkflowGroup extends React.Component {
 
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
+    }
+
+    onSuccessReview(successMessage) {
+        this.setState({
+            showSuccess: true,
+            successMessage,
+        });
+        setTimeout(() => {
+            this.setState({
+                showSuccess: false,
+                successMessage: '',
+            });
+        }, MODAL_TIME_OUT);
     }
 
     render() {
@@ -159,6 +179,7 @@ class WorkflowGroup extends React.Component {
                         userName={this.props.userName}
                         justification={this.state.justification}
                         _csrf={this.props._csrf}
+                        onSuccessReview={this.onSuccessReview}
                     />
                 );
             });
@@ -209,7 +230,22 @@ class WorkflowGroup extends React.Component {
                                         </BusinessJustificationContainer>
                                         <WorkFlowSectionDiv>
                                             {reviewCards}
+                                            {reviewCards.length ? null : (
+                                                <BusinessJustificationContainer>
+                                                    No groups to review.
+                                                </BusinessJustificationContainer>
+                                            )}
                                         </WorkFlowSectionDiv>
+                                        {this.state.showSuccess ? (
+                                            <Alert
+                                                isOpen={this.state.showSuccess}
+                                                title={
+                                                    this.state.successMessage
+                                                }
+                                                onClose={this.closeModal}
+                                                type='success'
+                                            />
+                                        ) : null}
                                     </div>
                                 </WorkFlowDiv>
                             </HomeContainerDiv>

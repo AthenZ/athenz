@@ -31,7 +31,11 @@ import {
     getRoleApiCall,
     getRolesApiCall,
 } from './utils/roles';
-import { thunkSelectRole, thunkSelectRoles } from '../selectors/roles';
+import {
+    thunkSelectRole,
+    thunkSelectRoles,
+    selectUserReviewRoles,
+} from '../selectors/roles';
 import {
     buildErrorForDoesntExistCase,
     buildErrorForDuplicateCase,
@@ -232,6 +236,16 @@ export const reviewRole =
             reviewedRole.rolePendingMembers = pendingMembers;
 
             dispatch(reviewRoleToStore(reviewedRole.name, reviewedRole));
+            let rolesToReview = selectUserReviewRoles(getState());
+            rolesToReview = rolesToReview.filter(
+                (r) => r.domainName + ':role.' + r.name !== reviewedRole.name
+            );
+            if (
+                rolesToReview.length !==
+                selectUserReviewRoles(getState()).length
+            ) {
+                dispatch(loadRolesToReview(rolesToReview));
+            }
             dispatch(marksRoleAsNeedRefresh(domainName, role.name));
             return Promise.resolve();
         } catch (error) {

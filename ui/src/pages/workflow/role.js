@@ -19,6 +19,7 @@ import UserDomains from '../../components/domain/UserDomains';
 import API from '../../api.js';
 import styled from '@emotion/styled';
 import Head from 'next/head';
+import Alert from '../../components/denali/Alert.js';
 
 import RequestUtils from '../../components/utils/RequestUtils';
 import Error from '../_error';
@@ -30,7 +31,10 @@ import { selectIsLoading } from '../../redux/selectors/loading';
 import { ReduxPageLoader } from '../../components/denali/ReduxPageLoader';
 import Input from '../../components/denali/Input.js';
 import InputLabel from '../../components/denali/InputLabel.js';
-import { WORKFLOW_TITLE } from '../../components/constants/constants.js';
+import {
+    MODAL_TIME_OUT,
+    WORKFLOW_TITLE,
+} from '../../components/constants/constants.js';
 import { getReviewRoles } from '../../redux/thunks/roles.js';
 import { selectUserReviewRoles } from '../../redux/selectors/roles.js';
 import ReviewCard from '../../components/review/ReviewCard.js';
@@ -121,6 +125,7 @@ class WorkflowRole extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
+        this.onSuccessReview = this.onSuccessReview.bind(this);
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
@@ -128,6 +133,8 @@ class WorkflowRole extends React.Component {
         this.state = {
             pendingData: props.pendingData,
             justification: '',
+            showSuccess: false,
+            successMessage: '',
         };
     }
 
@@ -137,6 +144,19 @@ class WorkflowRole extends React.Component {
 
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
+    }
+
+    onSuccessReview(successMessage) {
+        this.setState({
+            showSuccess: true,
+            successMessage,
+        });
+        setTimeout(() => {
+            this.setState({
+                showSuccess: false,
+                successMessage: '',
+            });
+        }, MODAL_TIME_OUT);
     }
 
     render() {
@@ -159,6 +179,7 @@ class WorkflowRole extends React.Component {
                         userName={this.props.userName}
                         justification={this.state.justification}
                         _csrf={this.props._csrf}
+                        onSuccessReview={this.onSuccessReview}
                     />
                 );
             });
@@ -209,7 +230,22 @@ class WorkflowRole extends React.Component {
                                         </BusinessJustificationContainer>
                                         <WorkFlowSectionDiv>
                                             {reviewCards}
+                                            {reviewCards.length ? null : (
+                                                <BusinessJustificationContainer>
+                                                    No roles to review.
+                                                </BusinessJustificationContainer>
+                                            )}
                                         </WorkFlowSectionDiv>
+                                        {this.state.showSuccess ? (
+                                            <Alert
+                                                isOpen={this.state.showSuccess}
+                                                title={
+                                                    this.state.successMessage
+                                                }
+                                                onClose={this.closeModal}
+                                                type='success'
+                                            />
+                                        ) : null}
                                     </div>
                                 </WorkFlowDiv>
                             </HomeContainerDiv>
