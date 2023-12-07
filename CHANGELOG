@@ -1,3 +1,34 @@
+Athenz v1.11.48 Release / Dec 06, 2023
+--------------------------------------
+
+#2414 Bump axios from 1.4.0 to 1.6.0 in /clients/nodejs/zts
+#2423 libs/go/sia/access/tokens: fix dropped test errors
+#2424 support max member limit on roles and groups
+#2425 show notification bell icon more obviously with role/group to review
+#2426 fix unbound variable errors in deploy-scripts
+#2428 fix invalid audit log json on adding /deleting a template
+#2431 support domain contacts
+#2434 self-renew option for roles/groups
+#2435 Bump ch.qos.logback:logback-classic from 1.4.11 to 1.4.12 in gcp_zts_creds
+#2439 simplify expiry notification lookups
+#2440 update java dependencies to their latest releases
+#2443 extend schema for contact type to string
+#2445 sia init/rolecert command line option - report error code for failures
+#2446 add role and group review tabs
+#2447 enhance zms-cli update-domain to handle assertions in existing policies
+#2448 extend schema to allow : (colon) in Tag keys
+#2449 missing tags from policy/service requests
+#2450 unique error message for invalid/reserved service names
+#2451 UI: fix bug when viewing roles, group is part of with expiry
+#2452 new get transport policies for a domain and service api
+#2453 zms-cli: add -audit-enabled flag for role/group add operations
+#2454 update java and go dependencies
+
+This release includes required schema updates:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20231120.sql
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20231122.sql
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20231127.sql
+
 Athenz v1.11.47 Release / Nov 20, 2023
 --------------------------------------
 
