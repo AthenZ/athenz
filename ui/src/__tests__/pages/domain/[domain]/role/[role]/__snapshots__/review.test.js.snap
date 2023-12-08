@@ -646,6 +646,7 @@ exports[`ReviewPage should render 1`] = `
 
 .emotion-57 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-59 {
@@ -659,6 +660,7 @@ exports[`ReviewPage should render 1`] = `
 
 .emotion-63 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-65 {

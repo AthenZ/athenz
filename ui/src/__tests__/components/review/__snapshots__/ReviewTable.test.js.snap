@@ -3,6 +3,7 @@
 exports[`ReviewTable should render review table 1`] = `
 .emotion-0 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-2 {
@@ -778,6 +779,7 @@ exports[`ReviewTable should render review table 1`] = `
 exports[`ReviewTable should render review table with reminder settings 1`] = `
 .emotion-0 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-2 {
@@ -1553,6 +1555,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
 exports[`ReviewTable should render review table without expiry settings 1`] = `
 .emotion-0 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-2 {

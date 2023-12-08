@@ -646,6 +646,7 @@ exports[`GroupReviewPage should render 1`] = `
 
 .emotion-57 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-59 {

@@ -27,6 +27,7 @@ import { withRouter } from 'next/router';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
+    margin-bottom: 0px;
 `;
 
 // dont need to make it as redux because it get props from groups and role and in order to not need to figure out
@@ -62,7 +63,7 @@ class ReviewList extends React.Component {
             errorMessage: null,
         });
         this.props.onSuccessReview &&
-            this.props.onSuccessReview(successMessage);
+            this.props.onSuccessReview(successMessage + ` Removed ${this.props.category} from view.`);
         setTimeout(() => {
             this.setState({
                 showSuccess: false,

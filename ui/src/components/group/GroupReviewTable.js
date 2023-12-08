@@ -172,7 +172,7 @@ class GroupReviewTable extends React.Component {
                     justification: '',
                 });
                 this.props.onUpdateSuccess(
-                    `Successfully submitted the review for group ${this.props.groupName}`
+                    `Successfully submitted the review for group ${this.props.groupName}.`
                 );
             })
             .catch((err) => {

@@ -39,6 +39,7 @@ const ReviewMembersContainerDiv = styled.div`
 
 const ReviewMembersSectionDiv = styled.div`
     margin: 20px;
+    margin-bottom: 0px;
 `;
 
 const ReviewMembersTable = styled.table`
@@ -193,7 +194,7 @@ export class ReviewTable extends React.Component {
                     showDeleteConfirmation: false,
                 });
                 this.props.onUpdateSuccess(
-                    `Successfully submitted the review for role ${this.props.role}`
+                    `Successfully submitted the review for role ${this.props.role}.`
                 );
             })
             .catch((err) => {
