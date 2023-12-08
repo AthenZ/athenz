@@ -695,6 +695,10 @@ exports[`GroupReviewPage should render 1`] = `
 }
 
 .emotion-79 {
+  width: 500px;
+}
+
+.emotion-81 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -711,7 +715,7 @@ exports[`GroupReviewPage should render 1`] = `
   width: 250px;
 }
 
-.emotion-79 input {
+.emotion-81 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -737,42 +741,42 @@ exports[`GroupReviewPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-79.animated input {
+.emotion-81.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-79 input::-webkit-input-placeholder {
+.emotion-81 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-79 input::-moz-placeholder {
+.emotion-81 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-79 input:-ms-input-placeholder {
+.emotion-81 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-79 input::placeholder {
+.emotion-81 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-79 input.focused,
-.emotion-79 input:active,
-.emotion-79 input:focus {
+.emotion-81 input.focused,
+.emotion-81 input:active,
+.emotion-81 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-79 input:invalid {
+.emotion-81 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-79 .message {
+.emotion-81 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -780,27 +784,27 @@ exports[`GroupReviewPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-79.error input,
-.emotion-79.error input.focused,
-.emotion-79.error input:active,
-.emotion-79.error input:focus {
+.emotion-81.error input,
+.emotion-81.error input.focused,
+.emotion-81.error input:active,
+.emotion-81.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-79.error .message {
+.emotion-81.error .message {
   color: #d01111;
 }
 
-.emotion-80 {
+.emotion-82 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-82 {
+.emotion-84 {
   margin-top: 10px;
 }
 
-.emotion-84 {
+.emotion-86 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -826,25 +830,25 @@ exports[`GroupReviewPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-84:first-of-type {
+.emotion-86:first-of-type {
   margin-left: 0;
 }
 
-.emotion-84:disabled {
+.emotion-86:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-84:disabled {
+.emotion-86:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-84:hover:not(:disabled) {
+.emotion-86:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-85 {
+.emotion-87 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -870,13 +874,13 @@ exports[`GroupReviewPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-87 {
+.emotion-89 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-88 {
+.emotion-90 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -891,7 +895,7 @@ exports[`GroupReviewPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-90 {
+.emotion-92 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -910,28 +914,28 @@ exports[`GroupReviewPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-92 {
+.emotion-94 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-94 {
+.emotion-96 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-96 {
+.emotion-98 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-100 {
+.emotion-102 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-102 {
+.emotion-104 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -939,12 +943,12 @@ exports[`GroupReviewPage should render 1`] = `
   display: flex;
 }
 
-.emotion-104 {
+.emotion-106 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-106 {
+.emotion-108 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1236,7 +1240,9 @@ exports[`GroupReviewPage should render 1`] = `
                     </tr>
                   </thead>
                   <tbody>
-                    <p>
+                    <p
+                      class="emotion-79 emotion-80"
+                    >
                       There are no members to review for group:
                        
                       group1
@@ -1247,7 +1253,7 @@ exports[`GroupReviewPage should render 1`] = `
                         colspan="2"
                       >
                         <div
-                          class="emotion-79 denali-input animated emotion-80 emotion-81"
+                          class="emotion-81 denali-input animated emotion-82 emotion-83"
                           data-testid="input-wrapper"
                         >
                           <input
@@ -1268,10 +1274,10 @@ exports[`GroupReviewPage should render 1`] = `
                         colspan="1"
                       >
                         <div
-                          class="emotion-82 emotion-83"
+                          class="emotion-84 emotion-85"
                         >
                           <button
-                            class="emotion-84 denali-button"
+                            class="emotion-86 denali-button"
                           >
                             Submit Review
                           </button>
@@ -1297,11 +1303,11 @@ exports[`GroupReviewPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-85 emotion-86"
+          class="emotion-87 emotion-88"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-87"
+            class="emotion-89"
             data-testid="icon"
             height="1em"
             id=""
@@ -1317,45 +1323,45 @@ exports[`GroupReviewPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-88 emotion-89"
+          class="emotion-90 emotion-91"
         >
           <div
-            class="emotion-90 emotion-91"
+            class="emotion-92 emotion-93"
           >
             <div
-              class="emotion-92 emotion-93"
+              class="emotion-94 emotion-95"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-94 emotion-95"
+                class="emotion-96 emotion-97"
               >
                 Create
               </a>
               <span
-                class="emotion-96 emotion-97"
+                class="emotion-98 emotion-99"
               >
                  | 
               </span>
               <a
-                class="emotion-94 emotion-95"
+                class="emotion-96 emotion-97"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-100 emotion-101"
+            class="emotion-102 emotion-103"
           >
             <div
-              class="emotion-102 emotion-103"
+              class="emotion-104 emotion-105"
             >
               <div
-                class="emotion-104 emotion-105"
+                class="emotion-106 emotion-107"
               >
                 <svg
-                  class="emotion-106"
+                  class="emotion-108"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1377,19 +1383,19 @@ exports[`GroupReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-94 emotion-95"
+                class="emotion-96 emotion-97"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-102 emotion-103"
+              class="emotion-104 emotion-105"
             >
               <div
-                class="emotion-104 emotion-105"
+                class="emotion-106 emotion-107"
               >
                 <svg
-                  class="emotion-106"
+                  class="emotion-108"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1411,7 +1417,7 @@ exports[`GroupReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-94 emotion-95"
+                class="emotion-96 emotion-97"
               >
                 athens.ci
               </a>

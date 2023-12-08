@@ -257,3 +257,4 @@ export const PENDING_STATE_ENUM = Object.freeze({
     ADD: 'ADD',
     DELETE: 'DELETE',
 });
+export const REVIEW_CARDS_SIZE = 5;

@@ -95,6 +95,10 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
+const MessageP = styled.p`
+    width: 500px;
+`;
+
 export class ReviewTable extends React.Component {
     constructor(props) {
         super(props);
@@ -384,10 +388,10 @@ export class ReviewTable extends React.Component {
                             {rows.length > 0 ? (
                                 ''
                             ) : (
-                                <tr key='no-members'>
+                                <MessageP key='no-members'>
                                     There are no members to review for role:{' '}
                                     {this.props.role}.
-                                </tr>
+                                </MessageP>
                             )}
                             <tr key='submit-review'>
                                 <td colSpan={2}>

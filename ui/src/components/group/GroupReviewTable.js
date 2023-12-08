@@ -79,6 +79,10 @@ const StyledJustification = styled(Input)`
     margin-top: 5px;
 `;
 
+const MessageP = styled.p`
+    width: 500px;
+`;
+
 class GroupReviewTable extends React.Component {
     constructor(props) {
         super(props);
@@ -275,10 +279,10 @@ class GroupReviewTable extends React.Component {
                             {rows.length > 0 ? (
                                 ''
                             ) : (
-                                <p key='no-members'>
+                                <MessageP key='no-members'>
                                     There are no members to review for group:{' '}
                                     {this.props.groupName}.
-                                </p>
+                                </MessageP>
                             )}
                             <tr key='submit-review'>
                                 <td colSpan={2}>

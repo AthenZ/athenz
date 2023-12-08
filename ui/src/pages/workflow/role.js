@@ -33,11 +33,13 @@ import Input from '../../components/denali/Input.js';
 import InputLabel from '../../components/denali/InputLabel.js';
 import {
     MODAL_TIME_OUT,
+    REVIEW_CARDS_SIZE,
     WORKFLOW_TITLE,
 } from '../../components/constants/constants.js';
 import { getReviewRoles } from '../../redux/thunks/roles.js';
 import { selectUserReviewRoles } from '../../redux/selectors/roles.js';
 import ReviewCard from '../../components/review/ReviewCard.js';
+import Button from '../../components/denali/Button.js';
 
 const HomeContainerDiv = styled.div`
     flex: 1 1;
@@ -94,10 +96,16 @@ const StyledInputLabel = styled(InputLabel)`
     display: block;
 `;
 
-const BusinessJustificationContainer = styled.div`
+const StyledDiv = styled.div`
     margin-left: 50px;
     margin-top: 20px;
     display: flex;
+`;
+
+const MessageDiv = styled.div`
+    display: grid;
+    margin-right: 3%;
+    align-items: center;
 `;
 
 export async function getServerSideProps(context) {
@@ -126,6 +134,8 @@ class WorkflowRole extends React.Component {
         super(props);
         this.api = API();
         this.onSuccessReview = this.onSuccessReview.bind(this);
+        this.handleNextPage = this.handleNextPage.bind(this);
+        this.handlePreviousPage = this.handlePreviousPage.bind(this);
         this.cache = createCache({
             key: 'athenz',
             nonce: this.props.nonce,
@@ -135,12 +145,26 @@ class WorkflowRole extends React.Component {
             justification: '',
             showSuccess: false,
             successMessage: '',
+            currentPage: 1,
+            totalPages: 1,
         };
     }
 
     componentDidMount() {
         this.props.getReviewRoles();
     }
+
+    handleNextPage = () => {
+        this.setState({
+            currentPage: this.state.currentPage + 1,
+        });
+    };
+
+    handlePreviousPage = () => {
+        this.setState({
+            currentPage: this.state.currentPage - 1,
+        });
+    };
 
     inputChanged(key, evt) {
         this.setState({ [key]: evt.target.value });
@@ -184,6 +208,19 @@ class WorkflowRole extends React.Component {
                 );
             });
         }
+        const totalPages = Math.ceil(reviewCards.length / REVIEW_CARDS_SIZE); // Calculate total number of pages
+        const { currentPage } = this.state;
+
+        // Calculate the start and end index of the review cards for the current page
+        const startIndex = (currentPage - 1) * REVIEW_CARDS_SIZE;
+        const endIndex = Math.min(
+            startIndex + REVIEW_CARDS_SIZE,
+            reviewCards.length
+        );
+
+        // Slice the review cards array based on the start and end index
+        const paginatedReviewCards = reviewCards.slice(startIndex, endIndex);
+
         return this.props.isLoading.length > 0 ? (
             <ReduxPageLoader message={'Loading roles to review'} />
         ) : (
@@ -206,7 +243,7 @@ class WorkflowRole extends React.Component {
                                                 selectedName={'roleReview'}
                                             />
                                         </PageHeaderDiv>
-                                        <BusinessJustificationContainer>
+                                        <StyledDiv>
                                             <StyledInputLabel>
                                                 Provide Justification for All
                                                 Reviews
@@ -227,14 +264,42 @@ class WorkflowRole extends React.Component {
                                                 autoComplete={'off'}
                                                 placeholder='Enter justification for all here'
                                             />
-                                        </BusinessJustificationContainer>
+                                        </StyledDiv>
                                         <WorkFlowSectionDiv>
-                                            {reviewCards}
+                                            {paginatedReviewCards}
                                             {reviewCards.length ? null : (
-                                                <BusinessJustificationContainer>
+                                                <StyledDiv>
                                                     No roles to review.
-                                                </BusinessJustificationContainer>
+                                                </StyledDiv>
                                             )}
+                                            <StyledDiv>
+                                                <MessageDiv>
+                                                    Displaying page{' '}
+                                                    {currentPage} of{' '}
+                                                    {totalPages}
+                                                </MessageDiv>
+                                                {currentPage > 1 && (
+                                                    <Button
+                                                        secondary
+                                                        onClick={
+                                                            this
+                                                                .handlePreviousPage
+                                                        }
+                                                    >
+                                                        Previous
+                                                    </Button>
+                                                )}
+                                                {currentPage < totalPages && (
+                                                    <Button
+                                                        secondary
+                                                        onClick={
+                                                            this.handleNextPage
+                                                        }
+                                                    >
+                                                        Next
+                                                    </Button>
+                                                )}
+                                            </StyledDiv>
                                         </WorkFlowSectionDiv>
                                         {this.state.showSuccess ? (
                                             <Alert
