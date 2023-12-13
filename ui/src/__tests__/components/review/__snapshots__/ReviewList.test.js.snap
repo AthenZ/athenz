@@ -3,6 +3,7 @@
 exports[`ReviewList should render 1`] = `
 .emotion-0 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 <div
@@ -14,6 +15,7 @@ exports[`ReviewList should render 1`] = `
 exports[`ReviewList should render delegated role 1`] = `
 .emotion-0 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 <div

@@ -27,6 +27,7 @@ import { withRouter } from 'next/router';
 
 const RolesSectionDiv = styled.div`
     margin: 20px;
+    margin-bottom: 0px;
 `;
 
 // dont need to make it as redux because it get props from groups and role and in order to not need to figure out
@@ -61,14 +62,18 @@ class ReviewList extends React.Component {
             successMessage,
             errorMessage: null,
         });
+        this.props.onSuccessReview &&
+            this.props.onSuccessReview(successMessage + ` Removed ${this.props.category} from view.`);
         setTimeout(() => {
             this.setState({
                 showSuccess: false,
             });
-            this.props.router.push(
-                `/domain/${this.props.domain}/${this.props.category}/${this.props.collection}/members`,
-                `/domain/${this.props.domain}/${this.props.category}/${this.props.collection}/members`
-            );
+            if (!this.props.isCardView) {
+                this.props.router.push(
+                    `/domain/${this.props.domain}/${this.props.category}/${this.props.collection}/members`,
+                    `/domain/${this.props.domain}/${this.props.category}/${this.props.collection}/members`
+                );
+            }
         }, MODAL_TIME_OUT);
     }
 

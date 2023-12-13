@@ -743,7 +743,16 @@ exports[`WorkflowRole should render without error 1`] = `
   box-sizing: content-box!important;
 }
 
-.emotion-45 {
+.emotion-49 {
+  display: grid;
+  margin-right: 3%;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.emotion-51 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -769,7 +778,7 @@ exports[`WorkflowRole should render without error 1`] = `
   width: 20px;
 }
 
-.emotion-47 {
+.emotion-53 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
@@ -979,7 +988,27 @@ exports[`WorkflowRole should render without error 1`] = `
             </div>
             <div
               class="emotion-43 emotion-44"
-            />
+            >
+              <div
+                class="emotion-35 emotion-36"
+              >
+                No roles to review.
+              </div>
+              <div
+                class="emotion-35 emotion-36"
+              >
+                <div
+                  class="emotion-49 emotion-50"
+                >
+                  Displaying page
+                   
+                  1
+                   of
+                   
+                  0
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -987,11 +1016,11 @@ exports[`WorkflowRole should render without error 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-45 emotion-46"
+          class="emotion-51 emotion-52"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-47"
+            class="emotion-53"
             data-testid="icon"
             height="1em"
             id=""

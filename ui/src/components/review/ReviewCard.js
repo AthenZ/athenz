@@ -122,7 +122,9 @@ class ReviewCard extends React.Component {
             isLoading,
         } = this.props;
         let members = category === 'group' ? groupMembers : roleMembers;
-        let collectionDetails = roleDetails || groupDetails;
+        let collectionDetails = Object.keys(roleDetails).length
+            ? roleDetails
+            : groupDetails;
         if (reload || this.state.reload) {
             window.location.reload();
             return <div />;
@@ -158,6 +160,8 @@ class ReviewCard extends React.Component {
                                     _csrf={_csrf}
                                     category={this.props.category}
                                     justification={this.props.justification}
+                                    isCardView={true}
+                                    onSuccessReview={this.props.onSuccessReview}
                                 />
                             </RolesContentDiv>
                         </RolesContainerDiv>

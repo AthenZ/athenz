@@ -1422,7 +1422,7 @@ exports[`PendingApprovalPage should render 1`] = `
                     Pending Members Approval 
                     <br />
                     (
-                    Admin View)
+                    Admin View) *
                   </span>
                 </div>
                 <div

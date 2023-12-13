@@ -646,6 +646,7 @@ exports[`ReviewPage should render 1`] = `
 
 .emotion-57 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-59 {
@@ -659,6 +660,7 @@ exports[`ReviewPage should render 1`] = `
 
 .emotion-63 {
   margin: 20px;
+  margin-bottom: 0px;
 }
 
 .emotion-65 {
@@ -695,6 +697,10 @@ exports[`ReviewPage should render 1`] = `
 }
 
 .emotion-81 {
+  width: 500px;
+}
+
+.emotion-83 {
   box-sizing: border-box;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -711,7 +717,7 @@ exports[`ReviewPage should render 1`] = `
   width: 250px;
 }
 
-.emotion-81 input {
+.emotion-83 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -737,42 +743,42 @@ exports[`ReviewPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-81.animated input {
+.emotion-83.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-81 input::-webkit-input-placeholder {
+.emotion-83 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input::-moz-placeholder {
+.emotion-83 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input:-ms-input-placeholder {
+.emotion-83 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input::placeholder {
+.emotion-83 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-81 input.focused,
-.emotion-81 input:active,
-.emotion-81 input:focus {
+.emotion-83 input.focused,
+.emotion-83 input:active,
+.emotion-83 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-81 input:invalid {
+.emotion-83 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-81 .message {
+.emotion-83 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -780,27 +786,27 @@ exports[`ReviewPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-81.error input,
-.emotion-81.error input.focused,
-.emotion-81.error input:active,
-.emotion-81.error input:focus {
+.emotion-83.error input,
+.emotion-83.error input.focused,
+.emotion-83.error input:active,
+.emotion-83.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-81.error .message {
+.emotion-83.error .message {
   color: #d01111;
 }
 
-.emotion-82 {
+.emotion-84 {
   width: 300px;
   margin-top: 5px;
 }
 
-.emotion-84 {
+.emotion-86 {
   margin-top: 10px;
 }
 
-.emotion-86 {
+.emotion-88 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px transparent inset,0 0 0 0 #d5d5d5 inset;
@@ -826,29 +832,29 @@ exports[`ReviewPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-86:first-of-type {
+.emotion-88:first-of-type {
   margin-left: 0;
 }
 
-.emotion-86:disabled {
+.emotion-88:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-86:disabled {
+.emotion-88:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-86:hover:not(:disabled) {
+.emotion-88:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-87 {
+.emotion-89 {
   color: #9a9a9a;
 }
 
-.emotion-91 {
+.emotion-93 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -874,13 +880,13 @@ exports[`ReviewPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-93 {
+.emotion-95 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-94 {
+.emotion-96 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -895,7 +901,7 @@ exports[`ReviewPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-96 {
+.emotion-98 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -914,28 +920,28 @@ exports[`ReviewPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-98 {
+.emotion-100 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-100 {
+.emotion-102 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-102 {
+.emotion-104 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-106 {
+.emotion-108 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-108 {
+.emotion-110 {
   padding: 10px 0;
   display: -webkit-box;
   display: -webkit-flex;
@@ -943,12 +949,12 @@ exports[`ReviewPage should render 1`] = `
   display: flex;
 }
 
-.emotion-110 {
+.emotion-112 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-112 {
+.emotion-114 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1244,18 +1250,20 @@ exports[`ReviewPage should render 1`] = `
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
+                    <p
+                      class="emotion-81 emotion-82"
+                    >
                       There are no members to review for role:
                        
                       role1
                       .
-                    </tr>
+                    </p>
                     <tr>
                       <td
                         colspan="2"
                       >
                         <div
-                          class="emotion-81 denali-input animated emotion-82 emotion-83"
+                          class="emotion-83 denali-input animated emotion-84 emotion-85"
                           data-testid="input-wrapper"
                         >
                           <input
@@ -1276,10 +1284,10 @@ exports[`ReviewPage should render 1`] = `
                         colspan="1"
                       >
                         <div
-                          class="emotion-84 emotion-85"
+                          class="emotion-86 emotion-87"
                         >
                           <button
-                            class="emotion-86 denali-button"
+                            class="emotion-88 denali-button"
                           >
                             Submit Review
                           </button>
@@ -1289,13 +1297,13 @@ exports[`ReviewPage should render 1`] = `
                         colspan="3"
                       >
                         <span
-                          class="emotion-87 emotion-88"
+                          class="emotion-89 emotion-90"
                         >
                           Current default settings are - None
                           <br />
                           To change it, please click 
                           <a
-                            class="emotion-32 emotion-90"
+                            class="emotion-32 emotion-92"
                           >
                              
                             here
@@ -1320,11 +1328,11 @@ exports[`ReviewPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-91 emotion-92"
+          class="emotion-93 emotion-94"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-93"
+            class="emotion-95"
             data-testid="icon"
             height="1em"
             id=""
@@ -1340,45 +1348,45 @@ exports[`ReviewPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-94 emotion-95"
+          class="emotion-96 emotion-97"
         >
           <div
-            class="emotion-96 emotion-97"
+            class="emotion-98 emotion-99"
           >
             <div
-              class="emotion-98 emotion-99"
+              class="emotion-100 emotion-101"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-100 emotion-101"
+                class="emotion-102 emotion-103"
               >
                 Create
               </a>
               <span
-                class="emotion-102 emotion-103"
+                class="emotion-104 emotion-105"
               >
                  | 
               </span>
               <a
-                class="emotion-100 emotion-101"
+                class="emotion-102 emotion-103"
               >
                 Manage
               </a>
             </div>
           </div>
           <div
-            class="emotion-106 emotion-107"
+            class="emotion-108 emotion-109"
           >
             <div
-              class="emotion-108 emotion-109"
+              class="emotion-110 emotion-111"
             >
               <div
-                class="emotion-110 emotion-111"
+                class="emotion-112 emotion-113"
               >
                 <svg
-                  class="emotion-112"
+                  class="emotion-114"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1400,19 +1408,19 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-100 emotion-101"
+                class="emotion-102 emotion-103"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-108 emotion-109"
+              class="emotion-110 emotion-111"
             >
               <div
-                class="emotion-110 emotion-111"
+                class="emotion-112 emotion-113"
               >
                 <svg
-                  class="emotion-112"
+                  class="emotion-114"
                   data-testid="icon"
                   height="1em"
                   id=""
@@ -1434,7 +1442,7 @@ exports[`ReviewPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-100 emotion-101"
+                class="emotion-102 emotion-103"
               >
                 athens.ci
               </a>

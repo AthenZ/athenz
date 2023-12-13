@@ -674,6 +674,7 @@ describe('reviewRole method', () => {
     afterAll(() => {
         jest.spyOn(rolesThunk, 'getRole').mockRestore();
         jest.spyOn(roleSelector, 'thunkSelectRoles').mockRestore();
+        jest.spyOn(roleSelector, 'selectUserReviewRoles').mockRestore();
     });
     afterEach(() => {
         MockApi.cleanMockApi();
@@ -683,6 +684,7 @@ describe('reviewRole method', () => {
         const fakeDispatch = sinon.spy();
         const getState = () => {};
 
+        jest.spyOn(roleSelector, 'selectUserReviewRoles').mockReturnValue([]);
         MockApi.setMockApi({
             reviewRole: jest
                 .fn()
