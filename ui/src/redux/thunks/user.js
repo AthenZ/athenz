@@ -35,11 +35,20 @@ import {
 } from '../actions/loading';
 
 export const getUserPendingMembers = () => async (dispatch, getState) => {
-    let userPendingMembers = selectUserPendingMembers(getState());
-    if (userPendingMembers === undefined || isExpired(getState().user.expiry)) {
-        let userPendingMembersList = await API().getPendingDomainMembersList();
-        const expiry = getExpiryTime();
-        dispatch(loadUserPendingMembers(userPendingMembersList, expiry));
+    const expiry = getExpiryTime();
+    try {
+        let userPendingMembers = selectUserPendingMembers(getState());
+        if (
+            userPendingMembers === undefined ||
+            isExpired(getState().user.expiry)
+        ) {
+            let userPendingMembersList =
+                await API().getPendingDomainMembersList();
+            dispatch(loadUserPendingMembers(userPendingMembersList, expiry));
+        }
+    } catch (error) {
+        // if error, set userPendingMembers to empty array
+        dispatch(loadUserPendingMembers([], expiry));
     }
 };
 

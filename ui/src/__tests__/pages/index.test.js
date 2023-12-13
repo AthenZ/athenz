@@ -55,4 +55,45 @@ describe('Home', () => {
         );
         await waitFor(() => expect(getByTestId('home')).toMatchSnapshot());
     });
+
+    it('should render', async () => {
+        let domains = [];
+        domains.push({ name: 'dom1' });
+        domains.push({ name: 'dom2' });
+        let headerDetails = {
+            headerLinks: [
+                {
+                    title: 'Website',
+                    url: 'http://www.athenz.io',
+                    target: '_blank',
+                },
+            ],
+        };
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest
+                .fn()
+                .mockRejectedValue(new Error('Error fetching pending members')),
+            getHeaderDetails: jest
+                .fn()
+                .mockRejectedValue(new Error('Error fetching header details')),
+            getReviewGroups: jest
+                .fn()
+                .mockImplementation(() => new Error('Error fetching groups')),
+            getReviewRoles: jest
+                .fn()
+                .mockImplementation(() => new Error('Error fetching roles')),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
+            getHeaderDetails: jest
+                .fn()
+                .mockImplementation(
+                    () => new Error('Error fetching header details')
+                ),
+        });
+
+        const { getByTestId } = renderWithRedux(
+            <Home domains={domains} userId='test' />,
+            { domains: { domainsList: domains } }
+        );
+        await waitFor(() => expect(getByTestId('home')).toMatchSnapshot());
+    });
 });

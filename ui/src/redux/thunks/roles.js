@@ -282,6 +282,8 @@ export const getReviewRoles = () => async (dispatch, getState) => {
             dispatch(returnRolesToReview());
         }
     } catch (error) {
+        // if error, set rolesToReview to empty array
+        dispatch(loadRolesToReview([]));
         dispatch(loadingFailed('getReviewRoles'));
         throw error;
     }
