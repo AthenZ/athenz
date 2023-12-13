@@ -199,6 +199,8 @@ export const getReviewGroups = () => async (dispatch, getState) => {
             dispatch(returnGroupsToReview());
         }
     } catch (error) {
+        // if error, set groupsToReview to empty array
+        dispatch(loadGroupsToReview([]));
         dispatch(loadingFailed('getReviewGroups'));
         throw error;
     }

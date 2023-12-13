@@ -58,6 +58,8 @@ export const getUserDomainsList = () => async (dispatch, getState) => {
             dispatch(returnDomainList());
         }
     } catch (err) {
+        // if error, set domainsList to empty array
+        dispatch(loadUserDomainList([]));
         dispatch(loadingFailed('getUserDomainsList'));
         throw err;
     }
