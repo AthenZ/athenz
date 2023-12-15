@@ -697,6 +697,7 @@ export class PolicyRow extends React.Component {
                         enableDuplicate={this.state.enableDuplicate}
                         isChild={true}
                         router={this.props.router}
+                        timeZone={this.props.timeZone}
                     />
                 );
             });
