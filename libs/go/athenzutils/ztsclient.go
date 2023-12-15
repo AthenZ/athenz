@@ -46,7 +46,7 @@ func ZtsClient(ztsURL, keyFile, certFile, caCertFile string, proxy bool) (*zts.Z
 }
 
 // GenerateAccessTokenRequestString generates and urlencodes an access token string.
-func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris string, expiryTime int) string {
+func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, proxyForPrincipal string, expiryTime int) string {
 
 	params := url.Values{}
 	params.Add("grant_type", "client_credentials")
@@ -79,6 +79,9 @@ func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, prox
 	}
 	if proxyPrincipalSpiffeUris != "" {
 		params.Add("proxy_principal_spiffe_uris", proxyPrincipalSpiffeUris)
+	}
+	if proxyForPrincipal != "" {
+		params.Add("proxy_for_principal", proxyForPrincipal)
 	}
 	return params.Encode()
 }
