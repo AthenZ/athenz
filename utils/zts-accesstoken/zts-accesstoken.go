@@ -7,14 +7,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzconf"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/jwt"
-	"log"
-	"os"
-	"strings"
 )
 
 var (
@@ -160,7 +161,7 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	}
 
 	// generate the scope for the request, convert time to seconds
-	request := athenzutils.GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, expireTime*60)
+	request := athenzutils.GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, "", expireTime*60)
 
 	// request an access token
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
