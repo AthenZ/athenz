@@ -3,8 +3,10 @@
 
 package zmscli
 
+import "github.com/AthenZ/athenz/clients/go/zms"
+
 func (cli Zms) GetRolesForReview(principal string) (*string, error) {
-	reviewObjects, err := cli.GetRolesForReview(principal)
+	reviewObjects, err := cli.Zms.GetRolesForReview(zms.ResourceName(principal))
 	if err != nil {
 		return nil, err
 	}
@@ -13,7 +15,7 @@ func (cli Zms) GetRolesForReview(principal string) (*string, error) {
 }
 
 func (cli Zms) GetGroupsForReview(principal string) (*string, error) {
-	reviewObjects, err := cli.GetGroupsForReview(principal)
+	reviewObjects, err := cli.Zms.GetGroupsForReview(zms.ResourceName(principal))
 	if err != nil {
 		return nil, err
 	}
