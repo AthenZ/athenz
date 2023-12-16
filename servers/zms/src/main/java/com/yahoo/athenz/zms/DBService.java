@@ -93,6 +93,7 @@ public class DBService implements RolesProvider {
     protected DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
     protected DynamicConfigInteger purgeMembersLimitPerCall;
     protected DynamicConfigInteger purgeMemberExpiryDays;
+    protected DynamicConfigInteger minReviewDaysPercentage;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig,
                      AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
@@ -178,6 +179,9 @@ public class DBService implements RolesProvider {
         int maxLastReviewDateOffsetDays = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS,
                 ZMSConsts.ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_DEFAULT));
         maxLastReviewDateOffsetMillis = TimeUnit.MILLISECONDS.convert(maxLastReviewDateOffsetDays, TimeUnit.DAYS);
+
+        minReviewDaysPercentage = new DynamicConfigInteger(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE, ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT);
     }
 
     void setAuditRefObjectBits() {
@@ -3555,6 +3559,10 @@ public class DBService implements RolesProvider {
         }
         List<ReviewObject> filteredRoles = new ArrayList<>();
         long now = System.currentTimeMillis();
+        int reviewDaysPercentage = minReviewDaysPercentage.get();
+        if (reviewDaysPercentage >= 100) {
+            reviewDaysPercentage = ZMSConsts.ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT;
+        }
         for (ReviewObject role : roles) {
 
             // if the role hasn't been reviewed before then we're going to add it to our list always
@@ -3568,13 +3576,14 @@ public class DBService implements RolesProvider {
 
             int minDays = minReviewDays(role);
 
-            // we want to review before 1/3 period is left since the last review date. For example,
-            // if the min review period is 30 days then we want to review before 10 days. If the review
-            // period is 90 days, then we want to review before 30 days. We should never get a review
-            // period of 0 days since the connection store must return only objects where one of the
-            // expiry/review dates is not 0.
+            // we want to review before configured period (based on the percentage) is left since the
+            // last review date. For example, if the percentage is 75% and the min review period is
+            // 30 days then we want to review before 7.5 days. If the review period is 90 days, then
+            // we want to review before 22.5 days. We should never get a review period of 0 days since
+            // the connection store must return only objects where one of the expiry/review dates is not 0.
 
-            if (now - role.getLastReviewedDate().millis() > ((long) minDays * 24 * 60 * 60 * 1000 / 3)) {
+            if (now - role.getLastReviewedDate().millis() >=
+                    ((TimeUnit.MILLISECONDS.convert(minDays, TimeUnit.DAYS) * reviewDaysPercentage) / 100)) {
                 filteredRoles.add(role);
             }
         }

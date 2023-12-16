@@ -422,6 +422,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS = "athenz.zms.review_date_offset_days";
     public static final String ZMS_PROP_REVIEW_DATE_OFFSET_DAYS_DEFAULT = "3";
 
+    public static final String ZMS_PROP_REVIEW_DAYS_PERCENTAGE  = "athenz.zms.review_days_percentage";
+    public static final Integer ZMS_PROP_REVIEW_DAYS_PERCENTAGE_DEFAULT = 75;
+
     // ZMS feature flag bits
     public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;
 }

@@ -12863,11 +12863,20 @@ public class DBServiceTest {
     @Test
     public void testFilterObjectsForReview() {
 
+        // we're specifying an invalid value which will be ignored by the
+        // service and set back to default 75%
+
+        System.setProperty(ZMS_PROP_REVIEW_DAYS_PERCENTAGE, "120");
+
+        ZMSConfig zmsConfig = new ZMSConfig();
+        zmsConfig.setUserDomain("user");
+        DBService dbService = new DBService(mockObjStore, null, zmsConfig, null, null);
+
         ReviewObjects reviewObjects = new ReviewObjects();
-        assertEquals(zms.dbService.filterObjectsForReview(reviewObjects), reviewObjects);
+        assertEquals(dbService.filterObjectsForReview(reviewObjects), reviewObjects);
 
         reviewObjects.setList(Collections.emptyList());
-        assertEquals(zms.dbService.filterObjectsForReview(reviewObjects), reviewObjects);
+        assertEquals(dbService.filterObjectsForReview(reviewObjects), reviewObjects);
 
         // we're going to create three objects in our list
         // object1 - no last reviewed date, so it must be included
@@ -12885,20 +12894,24 @@ public class DBServiceTest {
                 .setMemberExpiryDays(90).setMemberReviewDays(120)
                 .setServiceReviewDays(90).setGroupReviewDays(120)
                 .setGroupReviewDays(110).setGroupReviewDays(150)
-                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30 + 60 * 1000));
+                // last review must be done less than 75% of 90 days (67.5 days) before today - e.g. 65 days
+                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 1000L * 65 * 24 * 60 * 60));
         reviewObjectList.add(object2);
 
         ReviewObject object3 = new ReviewObject().setDomainName("domain3").setName("object3")
                 .setMemberExpiryDays(90).setMemberReviewDays(120)
                 .setServiceReviewDays(90).setGroupReviewDays(120)
                 .setGroupReviewDays(110).setGroupReviewDays(150)
-                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30 - 60 * 1000));
+                // last review must be done more than 75% of 90 days (67.5 days) before today - e.g. 70 days
+                .setLastReviewedDate(Timestamp.fromMillis(System.currentTimeMillis() - 1000L * 70 * 24 * 60 * 60));
         reviewObjectList.add(object3);
 
-        ReviewObjects filterObjects = zms.dbService.filterObjectsForReview(reviewObjects);
+        ReviewObjects filterObjects = dbService.filterObjectsForReview(reviewObjects);
         assertEquals(filterObjects.getList().size(), 2);
         assertEquals(filterObjects.getList().get(0), object1);
         assertEquals(filterObjects.getList().get(1), object3);
+
+        System.clearProperty(ZMS_PROP_REVIEW_DAYS_PERCENTAGE);
     }
 
     @Test
