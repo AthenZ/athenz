@@ -140,9 +140,5 @@
         "wdio-chromedriver-service": "8.0.1",
         "webdriver-manager": "12.1.8",
         "webdriverio": "8.0.13"
-    },
-    "overrides": {
-        "got": "^11.8.2",
-        "qs": "^6.10.3"
     }
 }
