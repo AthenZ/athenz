@@ -303,7 +303,12 @@ class GroupReviewTable extends React.Component {
                                     />
                                 </td>
                                 <td colSpan={1}>
-                                    <SubmitDiv>
+                                    <SubmitDiv
+                                        id={
+                                            'submit-button-' +
+                                            this.props.groupName
+                                        }
+                                    >
                                         <Button
                                             secondary={true}
                                             onClick={this.submitReview}

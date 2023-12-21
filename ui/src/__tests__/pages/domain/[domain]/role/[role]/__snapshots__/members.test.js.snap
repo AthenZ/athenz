@@ -990,7 +990,7 @@ exports[`MemberPage should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
-            id=""
+            id="notifications-icon"
             viewBox="0 0 1024 1024"
             width="25px"
           >

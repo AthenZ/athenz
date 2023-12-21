@@ -413,7 +413,9 @@ export class ReviewTable extends React.Component {
                                     />
                                 </td>
                                 <td colSpan={1}>
-                                    <SubmitDiv>
+                                    <SubmitDiv
+                                        id={'submit-button-' + this.props.role}
+                                    >
                                         <Button
                                             secondary={true}
                                             onClick={this.submitReview}

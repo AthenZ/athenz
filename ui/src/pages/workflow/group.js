@@ -208,7 +208,8 @@ class WorkflowGroup extends React.Component {
                 );
             });
         }
-        const totalPages = Math.ceil(reviewCards.length / REVIEW_CARDS_SIZE); // Calculate total number of pages
+        const totalPages =
+            Math.ceil(reviewCards.length / REVIEW_CARDS_SIZE) || 1; // Calculate total number of pages
         const { currentPage } = this.state;
 
         // Calculate the start and end index of the review cards for the current page

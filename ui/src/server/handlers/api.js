@@ -3188,8 +3188,12 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'roles-review',
     read(req, resource, params, config, callback) {
+        let principal = `${appConfig.userDomain}.${req.session.shortId}`;
+        if (req.session.shortId.indexOf('.') !== -1) {
+            principal = req.session.shortId;
+        }
         req.clients.zms.getRolesForReview(
-            { principal: `${appConfig.userDomain}.${req.session.shortId}` },
+            { principal: principal },
             (err, data) => {
                 if (err) {
                     debug(
@@ -3215,8 +3219,12 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'groups-review',
     read(req, resource, params, config, callback) {
+        let principal = `${appConfig.userDomain}.${req.session.shortId}`;
+        if (req.session.shortId.indexOf('.') !== -1) {
+            principal = req.session.shortId;
+        }
         req.clients.zms.getGroupsForReview(
-            { principal: `${appConfig.userDomain}.${req.session.shortId}` },
+            { principal: principal },
             (err, data) => {
                 if (err) {
                     debug(

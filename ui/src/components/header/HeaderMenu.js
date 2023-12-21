@@ -194,6 +194,7 @@ class HeaderMenu extends React.Component {
         return (
             <HeaderMenuDiv data-testid='header-menu'>
                 <Icon
+                    id='notifications-icon'
                     icon={icon}
                     isLink
                     onClick={clickIcon}

@@ -559,6 +559,7 @@ class AddRole extends React.Component {
                 {this.getJustification()}
                 <SectionDiv>
                     <Icon
+                        id={'advanced-settings-icon'}
                         icon={this.state.showSettings ? arrowup : arrowdown}
                         onClick={this.expandSettings}
                         color={colors.icons}

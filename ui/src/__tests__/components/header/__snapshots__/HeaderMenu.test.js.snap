@@ -32,7 +32,7 @@ exports[`HeaderMenu should render with no notifications 1`] = `
     class="emotion-2"
     data-testid="icon"
     height="25px"
-    id=""
+    id="notifications-icon"
     viewBox="0 0 1024 1024"
     width="25px"
   >
@@ -106,7 +106,7 @@ exports[`HeaderMenu should render with notifications 1`] = `
     class="emotion-2"
     data-testid="icon"
     height="25px"
-    id=""
+    id="notifications-icon"
     viewBox="0 0 1024 1024"
     width="25px"
   >

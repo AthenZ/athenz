@@ -864,7 +864,7 @@ exports[`WorkflowRole should render without error 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
-            id=""
+            id="notifications-icon"
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1005,7 +1005,7 @@ exports[`WorkflowRole should render without error 1`] = `
                   1
                    of
                    
-                  0
+                  1
                 </div>
               </div>
             </div>

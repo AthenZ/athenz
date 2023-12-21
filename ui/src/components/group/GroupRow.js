@@ -298,6 +298,7 @@ class GroupRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    id={`group-settings-icon-${this.state.name}`}
                                     icon={'setting'}
                                     onClick={clickSettings}
                                     color={colors.icons}
@@ -336,6 +337,7 @@ class GroupRow extends React.Component {
                         trigger={
                             <span>
                                 <Icon
+                                    id={`delete-group-icon-${this.state.name}`}
                                     icon={'trash'}
                                     onClick={clickDelete}
                                     color={colors.icons}

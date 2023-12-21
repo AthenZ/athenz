@@ -1035,7 +1035,7 @@ exports[`GroupReviewPage should render 1`] = `
             class="emotion-14"
             data-testid="icon"
             height="25px"
-            id=""
+            id="notifications-icon"
             viewBox="0 0 1024 1024"
             width="25px"
           >
@@ -1276,6 +1276,7 @@ exports[`GroupReviewPage should render 1`] = `
                       >
                         <div
                           class="emotion-84 emotion-85"
+                          id="submit-button-group1"
                         >
                           <button
                             class="emotion-86 denali-button"
