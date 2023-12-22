@@ -37,8 +37,8 @@ if (process.env.INSTANCE) {
     athenzService = 'devui';
 }
 
-let sdAthenzKeyFilePath = WORK_DIR + '/func.key.pem';
-let sdAthenzCertFiledPath = WORK_DIR + '/func.cert.pem';
+let sdAthenzKeyFilePath = '/tokens/key';
+let sdAthenzCertFiledPath = '/tokens/cert';
 let localAthenzKeyFilePath =
     '~/.athenz/keys/' + athenzDomain + '.' + athenzService + '.key.pem';
 let localAthenzCertFilePath =
