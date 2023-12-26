@@ -321,6 +321,7 @@ class AddGroup extends React.Component {
                     <StyledInputLabel>Group Name</StyledInputLabel>
                     <ContentDiv>
                         <StyledInput
+                            id={'group-name-input'}
                             placeholder='Enter New Group Name'
                             value={this.state.name}
                             onChange={nameChanged}

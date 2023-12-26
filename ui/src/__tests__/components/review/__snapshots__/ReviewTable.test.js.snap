@@ -739,6 +739,7 @@ exports[`ReviewTable should render review table 1`] = `
         >
           <div
             class="emotion-97 emotion-98"
+            id="submit-button-roleName"
           >
             <button
               class="emotion-99 denali-button"
@@ -1515,6 +1516,7 @@ exports[`ReviewTable should render review table with reminder settings 1`] = `
         >
           <div
             class="emotion-97 emotion-98"
+            id="submit-button-roleName"
           >
             <button
               class="emotion-99 denali-button"
@@ -2291,6 +2293,7 @@ exports[`ReviewTable should render review table without expiry settings 1`] = `
         >
           <div
             class="emotion-97 emotion-98"
+            id="submit-button-roleName"
           >
             <button
               class="emotion-99 denali-button"
