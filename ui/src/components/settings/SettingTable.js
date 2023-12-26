@@ -25,6 +25,7 @@ import {
     ADD_GROUP_DELETE_PROTECTION_DESC,
     ADD_ROLE_DELETE_PROTECTION_DESC,
     MODAL_TIME_OUT,
+    SELF_RENEW_MINS_DESC,
 } from '../constants/constants';
 import { updateSettings } from '../../redux/thunks/collections';
 import { connect } from 'react-redux';
@@ -134,6 +135,7 @@ class SettingTable extends React.Component {
                 Object.keys(collection.groupMembers).length !== 0,
             deleteProtection: !!collection.deleteProtection,
             selfServe: !!collection.selfServe,
+            selfRenew: !!collection.selfRenew,
             memberExpiryDays:
                 collection.memberExpiryDays === undefined
                     ? ''
@@ -178,6 +180,14 @@ class SettingTable extends React.Component {
                 collection.userAuthorityExpiration === undefined
                     ? ''
                     : collection.userAuthorityExpiration.toString(),
+            maxMembers:
+                collection.maxMembers === undefined
+                    ? ''
+                    : collection.maxMembers.toString(),
+            selfRenewMins:
+                collection.selfRenewMins === undefined
+                    ? ''
+                    : collection.selfRenewMins.toString(),
         };
         return collectionDetails;
     }
@@ -254,6 +264,10 @@ class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.reviewEnabled;
             collectionMeta.selfServe =
                 this.state.copyCollectionDetails.selfServe;
+            collectionMeta.selfRenew =
+                this.state.copyCollectionDetails.selfRenew;
+            collectionMeta.selfRenewMins =
+                this.state.copyCollectionDetails.selfRenewMins;
             collectionMeta.memberExpiryDays =
                 this.state.copyCollectionDetails.memberExpiryDays;
             collectionMeta.serviceExpiryDays =
@@ -264,6 +278,8 @@ class SettingTable extends React.Component {
                 this.state.copyCollectionDetails.userAuthorityExpiration;
             collectionMeta.deleteProtection =
                 this.state.copyCollectionDetails.deleteProtection;
+            collectionMeta.maxMembers =
+                this.state.copyCollectionDetails.maxMembers;
         } else if (this.props.category === 'domain') {
             collectionMeta.memberExpiryDays =
                 this.state.copyCollectionDetails.memberExpiryDays;
@@ -432,6 +448,42 @@ class SettingTable extends React.Component {
                     type='switch'
                     desc={selfServiceDesc}
                     value={this.state.copyCollectionDetails.selfServe}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                />
+            );
+
+        let selfRenewDesc =
+            'Flag indicates whether or not ' +
+            this.props.category +
+            ' allows self Renew';
+        (this.props.category === 'role' || this.props.category === 'group') &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-selfRenew'}
+                    domain={this.props.domain}
+                    name='selfRenew'
+                    label='Self-Renew'
+                    type='switch'
+                    desc={selfRenewDesc}
+                    value={this.state.copyCollectionDetails.selfRenew}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                />
+            );
+
+        (this.props.category === 'role' || this.props.category === 'group') &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-selfRenewMins'}
+                    domain={this.props.domain}
+                    name='selfRenewMins'
+                    label='Self Renew'
+                    type='input'
+                    unit='Mins'
+                    desc={SELF_RENEW_MINS_DESC}
+                    value={this.state.copyCollectionDetails.selfRenewMins}
+                    disabled={!this.state.copyCollectionDetails.selfRenew}
                     onValueChange={this.onValueChange}
                     _csrf={this.props._csrf}
                 />
@@ -649,7 +701,24 @@ class SettingTable extends React.Component {
                 />
             );
 
-        rows.push();
+        (this.props.category === 'role' || this.props.category === 'group') &&
+            rows.push(
+                <StyledSettingRow
+                    key={'setting-row-maxmembers'}
+                    domain={this.props.domain}
+                    name='maxMembers'
+                    label='Max Members'
+                    type='input'
+                    unit='Number'
+                    desc={
+                        'Maximum number of members allowed in the ' +
+                        this.props.category
+                    }
+                    value={this.state.copyCollectionDetails.maxMembers}
+                    onValueChange={this.onValueChange}
+                    _csrf={this.props._csrf}
+                />
+            );
 
         return this.props.isLoading.length !== 0 ? (
             <ReduxPageLoader message={'Loading setting'} />

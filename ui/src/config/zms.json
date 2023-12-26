@@ -150,6 +150,13 @@
         {
             "StringTypeDef": {
                 "type": "String",
+                "name": "TagKey",
+                "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*[:\\.])*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
                 "name": "TagValue",
                 "comment": "TagValue to contain generic string patterns",
                 "pattern": "[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:,\\/-]*"
@@ -335,7 +342,7 @@
                         "optional": true,
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "TagValueList",
-                        "keys": "CompoundName"
+                        "keys": "TagKey"
                     },
                     {
                         "name": "businessService",
@@ -360,6 +367,14 @@
                         "type": "Int32",
                         "optional": true,
                         "comment": "features enabled per domain (system attribute)"
+                    },
+                    {
+                        "name": "contacts",
+                        "type": "Map",
+                        "optional": true,
+                        "comment": "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value",
+                        "items": "String",
+                        "keys": "SimpleName"
                     }
                 ],
                 "closed": false
@@ -733,7 +748,7 @@
                         "optional": true,
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "TagValueList",
-                        "keys": "CompoundName"
+                        "keys": "TagKey"
                     },
                     {
                         "name": "description",
@@ -760,6 +775,24 @@
                         "type": "Timestamp",
                         "optional": true,
                         "comment": "last review timestamp of the role"
+                    },
+                    {
+                        "name": "selfRenew",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag indicates whether to allow expired members to renew their membership"
+                    },
+                    {
+                        "name": "selfRenewMins",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Number of minutes members can renew their membership if self review option is enabled"
+                    },
+                    {
+                        "name": "maxMembers",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Maximum number of members allowed in the group"
                     }
                 ],
                 "closed": false
@@ -1268,7 +1301,7 @@
                         "optional": true,
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "TagValueList",
-                        "keys": "CompoundName"
+                        "keys": "TagKey"
                     }
                 ],
                 "closed": false
@@ -1403,7 +1436,7 @@
                         "optional": true,
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "TagValueList",
-                        "keys": "CompoundName"
+                        "keys": "TagKey"
                     }
                 ],
                 "closed": false
@@ -2231,7 +2264,7 @@
                         "optional": true,
                         "comment": "key-value pair tags, tag might contain multiple values",
                         "items": "TagValueList",
-                        "keys": "CompoundName"
+                        "keys": "TagKey"
                     },
                     {
                         "name": "auditEnabled",
@@ -2252,6 +2285,24 @@
                         "type": "Timestamp",
                         "optional": true,
                         "comment": "last review timestamp of the group"
+                    },
+                    {
+                        "name": "selfRenew",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "Flag indicates whether to allow expired members to renew their membership"
+                    },
+                    {
+                        "name": "selfRenewMins",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Number of minutes members can renew their membership if self review option is enabled"
+                    },
+                    {
+                        "name": "maxMembers",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "Maximum number of members allowed in the group"
                     }
                 ],
                 "closed": false
@@ -5880,7 +5931,7 @@
             "type": "Membership",
             "method": "PUT",
             "path": "/domain/{domainName}/role/{roleName}/member/{memberName}",
-            "comment": "Add the specified user to the role's member list. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )",
+            "comment": "Add the specified user to the role's member list. If the role is selfRenewEnabled, then an existing member may extend their expiration time by the configured number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active. If the role is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:role.{roleName}\") or (\"update_members\", \"{domainName}:role.{roleName}\"). This only allows access to members and not role attributes. otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled roles ) or to domain admins ( in case of selfserve roles )",
             "inputs": [
                 {
                     "name": "domainName",
@@ -6815,7 +6866,7 @@
             "type": "GroupMembership",
             "method": "PUT",
             "path": "/domain/{domainName}/group/{groupName}/member/{memberName}",
-            "comment": "Add the specified user to the group's member list. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )",
+            "comment": "Add the specified user to the group's member list. If the group is selfRenewEnabled, then an existing member may extend their expiration time by the configured number of minutes (selfRenewMins) by calling this API regardless or not the user is expired or active. If the group is neither auditEnabled nor selfserve, then it will use authorize (\"update\", \"{domainName}:group.{groupName}\") otherwise membership will be sent for approval to either designated delegates ( in case of auditEnabled groups ) or to domain admins ( in case of selfserve groups )",
             "inputs": [
                 {
                     "name": "domainName",

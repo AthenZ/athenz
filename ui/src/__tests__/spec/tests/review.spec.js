@@ -21,7 +21,7 @@ describe('Review user journey', () => {
 
         let domain = 'athenz.dev.functional-test';
         let testDomain = await $(`a*=${domain}`);
-        let testRoleName = 'testrole';
+        let testRoleName = 'testrole2';
         await browser.waitUntil(async () => await testDomain.isClickable());
         await testDomain.click();
 

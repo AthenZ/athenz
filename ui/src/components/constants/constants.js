@@ -169,6 +169,12 @@ export const ADD_ROLE_REVIEW_DESC =
     'Flag indicates whether or not role updates require another review and approval';
 export const ADD_ROLE_SELF_SERVICE_DESC =
     'Flag indicates whether or not role allows self service';
+export const ADD_ROLE_SELF_RENEW_DESC =
+    'Flag indicates whether or not role allows self renew';
+export const SELF_RENEW_MINS_DESC =
+    'Number of minutes members can renew their membership if self review option is enabled';
+export const ADD_ROLE_MAX_MEMBERS_DESC =
+    'Maximum number of members allowed in the role';
 export const ADD_ROLE_MEMBER_EXPIRY_DAYS_DESC =
     'All user members in the role will have specified max expiry days';
 export const ADD_ROLE_MEMBER_REVIEW_DAYS_DESC =
