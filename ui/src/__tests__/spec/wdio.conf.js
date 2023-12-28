@@ -37,8 +37,13 @@ if (process.env.INSTANCE) {
     athenzService = 'devui';
 }
 
-let sdAthenzKeyFilePath = '/tokens/key';
-let sdAthenzCertFiledPath = '/tokens/cert';
+if (SD_JOB_NAME === 'functional') { // TODO: hardcode fix later
+    athenzDomain = 'athens.ci';
+    athenzService =  'athenz-ui-func-test';
+}
+
+let sdAthenzKeyFilePath = WORK_DIR + '/func.key.pem';
+let sdAthenzCertFiledPath = WORK_DIR + '/func.cert.pem';
 let localAthenzKeyFilePath =
     '~/.athenz/keys/' + athenzDomain + '.' + athenzService + '.key.pem';
 let localAthenzCertFilePath =
