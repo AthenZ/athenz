@@ -122,6 +122,7 @@ export default class SettingRow extends React.Component {
                             onChange={this.onTimeChange}
                             onKeyPress={this.numRestricted}
                             value={this.props.value}
+                            disabled={this.props.disabled || false}
                         />
                     </StyledDiv>
                 );

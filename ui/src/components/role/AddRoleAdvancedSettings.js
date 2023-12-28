@@ -34,6 +34,9 @@ import {
     ADD_ROLE_AUDIT_ENABLED_TOOLTIP,
     ADD_ROLE_DELETE_PROTECTION_DESC,
     ADD_ROLE_DESCRIPTION,
+    ADD_ROLE_SELF_RENEW_DESC,
+    SELF_RENEW_MINS_DESC,
+    ADD_ROLE_MAX_MEMBERS_DESC,
 } from '../constants/constants';
 import SettingRow from '../settings/SettingRow';
 
@@ -128,6 +131,29 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 desc={ADD_ROLE_SELF_SERVICE_DESC}
                 onValueChange={this.advancedSettingsChanged}
                 value={this.props.role['selfServe']}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
+            />,
+            <SettingRow
+                key={'setting-row-selfRenew'}
+                name='selfRenew'
+                label='Self-Renew'
+                type='switch'
+                desc={ADD_ROLE_SELF_RENEW_DESC}
+                onValueChange={this.advancedSettingsChanged}
+                value={this.props.role['selfRenew']}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
+            />,
+            <SettingRow
+                key={'setting-row-selfRenewMins'}
+                name='selfRenewMins'
+                label='Self Renew'
+                type='input'
+                desc={SELF_RENEW_MINS_DESC}
+                unit='Mins'
+                disabled={!this.props.role['selfRenew']}
+                onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
             />,
@@ -249,6 +275,17 @@ export default class AddRoleAdvancedSettings extends React.Component {
                 label='Description'
                 type='text'
                 desc={ADD_ROLE_DESCRIPTION}
+                onValueChange={this.advancedSettingsChanged}
+                userProfileLink={this.props.userProfileLink}
+                inModal={true}
+            />,
+            <SettingRow
+                key={'setting-row-maxmembers'}
+                name='maxMembers'
+                label='Max Members'
+                type='input'
+                unit='Number'
+                desc={ADD_ROLE_MAX_MEMBERS_DESC}
                 onValueChange={this.advancedSettingsChanged}
                 userProfileLink={this.props.userProfileLink}
                 inModal={true}
