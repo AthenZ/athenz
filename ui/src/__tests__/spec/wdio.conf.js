@@ -27,19 +27,12 @@ let athenzDomain;
 let athenzService;
 let sdv4FunctionalJob = SD_JOB_NAME && SD_JOB_NAME === appConfig.devSdJobName;
 
-if (process.env.INSTANCE) {
-    // executing functional test pointing at dev environment
-    athenzDomain = 'athenz.k8s';
-    athenzService = 'athenz-ui-development';
-} else {
-    // executing functional test pointing at local environment
-    athenzDomain = 'athenz.dev';
-    athenzService = 'devui';
-}
+athenzDomain = appConfig.athenzDomain;
+    athenzService = appConfig.athenzService;
 
 if (SD_JOB_NAME === 'functional') { // TODO: hardcode fix later
-    athenzDomain = 'athens.ci';
-    athenzService =  'athenz-ui-func-test';
+    athenzDomain = appConfig.sdDomain;
+    athenzService = appConfig.sdService;
 }
 
 let sdAthenzKeyFilePath = WORK_DIR + '/func.key.pem';
@@ -487,6 +480,9 @@ let config = {
     // }
 };
 
+if (config.sauceKey) {
+    delete config.sauceKey;
+};
 console.log('final config object: %O', config);
 
 exports.config = config;
