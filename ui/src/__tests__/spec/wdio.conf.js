@@ -30,7 +30,7 @@ let sdv4FunctionalJob = SD_JOB_NAME && SD_JOB_NAME === appConfig.devSdJobName;
 athenzDomain = appConfig.athenzDomain;
     athenzService = appConfig.athenzService;
 
-if (SD_JOB_NAME === 'functional') { // TODO: hardcode fix later
+if (sdv4FunctionalJob) { // TODO: hardcode fix later
     athenzDomain = appConfig.sdDomain;
     athenzService = appConfig.sdService;
 }
@@ -479,10 +479,5 @@ let config = {
     // onReload: function(oldSessionId, newSessionId) {
     // }
 };
-
-if (config.sauceKey) {
-    delete config.sauceKey;
-};
-console.log('final config object: %O', config);
 
 exports.config = config;
