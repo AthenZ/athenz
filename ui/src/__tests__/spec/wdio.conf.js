@@ -27,12 +27,13 @@ let athenzDomain;
 let athenzService;
 let sdv4FunctionalJob = SD_JOB_NAME && SD_JOB_NAME === appConfig.devSdJobName;
 
-athenzDomain = appConfig.athenzDomain;
+if (process.env.INSTANCE) {
+    // executing functional test pointing at dev environment
+    athenzDomain = appConfig.devDomain;
+    athenzService = appConfig.devService;
+} else {
+    athenzDomain = appConfig.athenzDomain;
     athenzService = appConfig.athenzService;
-
-if (sdv4FunctionalJob) { // TODO: hardcode fix later
-    athenzDomain = appConfig.sdDomain;
-    athenzService = appConfig.sdService;
 }
 
 let sdAthenzKeyFilePath = WORK_DIR + '/func.key.pem';
