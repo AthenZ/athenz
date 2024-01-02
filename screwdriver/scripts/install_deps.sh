@@ -31,8 +31,8 @@ apt-get install -y gcc
 apt-get install -y g++
 
 echo "-----------------Install golang: -----------------"
-wget https://golang.org/dl/go1.19.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.19.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 
 echo "-----------------Install Docker: -----------------"

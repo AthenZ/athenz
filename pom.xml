@@ -72,38 +72,38 @@
 
   <properties>
     <apache.httpclient.version>4.5.14</apache.httpclient.version>
-    <aws.version>1.12.606</aws.version>
-    <aws2.version>2.21.39</aws2.version>
+    <aws.version>1.12.629</aws.version>
+    <aws2.version>2.22.9</aws2.version>
     <bouncycastle.version>1.77</bouncycastle.version>
     <commons.daemon.version>1.3.4</commons.daemon.version>
     <commons.logging.version>1.3.0</commons.logging.version>
     <gcp.api-client.version>2.2.0</gcp.api-client.version>
-    <gcp.bom.version>26.27.0</gcp.bom.version>
-    <guava.version>32.1.3-jre</guava.version>
+    <gcp.bom.version>26.29.0</gcp.bom.version>
+    <guava.version>33.0.0-jre</guava.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <jackson-core.version>2.16.0</jackson-core.version>
-    <jackson-databind.version>2.16.0</jackson-databind.version>
+    <jackson-core.version>2.16.1</jackson-core.version>
+    <jackson-databind.version>2.16.1</jackson-databind.version>
     <jakarta.activation.version>2.0.1</jakarta.activation.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
     <jakarta.servlet.version>5.0.0</jakarta.servlet.version>
     <jakarta.ws.version>3.1.0</jakarta.ws.version>
     <jaxb.api.version>4.0.0</jaxb.api.version>
     <jaxb.impl.version>4.0.4</jaxb.impl.version>
-    <jersey.version>3.1.4</jersey.version>
-    <jetty.version>11.0.18</jetty.version>
+    <jersey.version>3.1.5</jersey.version>
+    <jetty.version>11.0.19</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
-    <jna.version>5.13.0</jna.version>
+    <jna.version>5.14.0</jna.version>
     <logback.client.version>1.2.13</logback.client.version>
     <logback.server.version>1.4.14</logback.server.version>
     <mockito.version>5.8.0</mockito.version>
     <mysql.connector.version>8.0.33</mysql.connector.version>
-    <nimbus.jose.version>9.37.2</nimbus.jose.version>
+    <nimbus.jose.version>9.37.3</nimbus.jose.version>
     <rdl.version>1.5.4</rdl.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
-    <slf4j.server.version>2.0.9</slf4j.server.version>
-    <swagger.version>2.2.19</swagger.version>
+    <slf4j.server.version>2.0.10</slf4j.server.version>
+    <swagger.version>2.2.20</swagger.version>
     <testcontainers.version>1.19.3</testcontainers.version>
-    <testng.version>7.8.0</testng.version>
+    <testng.version>7.9.0</testng.version>
 
     <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
