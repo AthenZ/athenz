@@ -7435,6 +7435,7 @@ public class JDBCConnectionTest {
     public void testGetTrustedRoles() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -7472,6 +7473,34 @@ public class JDBCConnectionTest {
 
         assertEquals("103:trole3", roles.get(0));
 
+        // now we're going to call the api again with the current timestamp
+        // this will call our update trust role map again
+
+        long now = System.currentTimeMillis();
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED))
+                .thenReturn(new java.sql.Timestamp(now));
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true) // for timestamp lookup
+                .thenReturn(true) // single entry returned
+                .thenReturn(false);
+
+        assertEquals(jdbcConn.getTrustedRoles("getTrustedRoles").size(), 1);
+
+        // when we call the update trust map with timestamp in the past, it should return
+        // right away without making any mysql calls
+
+        jdbcConn.updateTrustRolesMap(now - 1000, false, "trustMapTest");
+
+        // second time calling the api should now give us an empty map
+        // since our values will no longer match
+
+        jdbcConn.updateTrustRolesMap(now + 1000000, false, "trustMapTest");
+        assertTrue(jdbcConn.getTrustedRoles("getTrustedRoles").isEmpty());
+
+        // specifying timeout update with a second difference should not
+        // trigger an update
+
+        jdbcConn.updateTrustRolesMap(now + 1000001, true, "trustMapTest");
         jdbcConn.close();
     }
 
@@ -7656,6 +7685,7 @@ public class JDBCConnectionTest {
     public void testListResourceAccessNotRegisteredRolePrincipals() throws SQLException {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.resetTrustRolesMap();
 
         // no role principals
 
@@ -7678,6 +7708,7 @@ public class JDBCConnectionTest {
     public void testListResourceAccessRegisteredRolePrincipals() throws SQLException {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.resetTrustRolesMap();
 
         // no role principals
 
@@ -7705,6 +7736,7 @@ public class JDBCConnectionTest {
     public void testListResourceAccessEmptyRoleAssertions() throws SQLException {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -7743,6 +7775,7 @@ public class JDBCConnectionTest {
     public void testListResourceAccess() throws SQLException {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -7808,6 +7841,7 @@ public class JDBCConnectionTest {
     public void testListResourceAccessAws() throws SQLException {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        jdbcConn.resetTrustRolesMap();
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -7819,6 +7853,7 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(false) // up to here is role assertions
+            .thenReturn(true) // this is for last modified timestamp
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
@@ -7827,6 +7862,8 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(false); // up to here is aws domains
+        Mockito.when(mockResultSet.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED))
+            .thenReturn(new java.sql.Timestamp(1454358916));
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_NAME))
             .thenReturn("dom1")
             .thenReturn("dom2")
@@ -7893,6 +7930,7 @@ public class JDBCConnectionTest {
 
         jdbcConn.close();
     }
+
     @Test
     public void testGetResourceAccessObject() throws SQLException {
 
@@ -15794,6 +15832,15 @@ public class JDBCConnectionTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
         }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testLastTrustRoleUpdatesTimestampException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+        assertEquals(jdbcConn.lastTrustRoleUpdatesTimestamp(), 0);
         jdbcConn.close();
     }
 }

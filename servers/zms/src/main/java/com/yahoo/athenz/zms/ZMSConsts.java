@@ -163,6 +163,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_QUOTA_SERVICE_TAG   = "athenz.zms.quota_service_tag";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
+    public static final String ZMS_PROP_MYSQL_SERVER_TRUST_ROLES_UPDATE_TIMEOUT = "athenz.zms.mysql_server_trust_roles_update_timeout";
 
     public static final String ZMS_PRINCIPAL_AUTHORITY_CLASS  = "com.yahoo.athenz.auth.impl.PrincipalAuthority";
 
