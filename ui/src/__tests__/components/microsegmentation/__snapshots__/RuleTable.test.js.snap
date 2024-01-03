@@ -67,7 +67,7 @@ exports[`RuleTable should render rule table 1`] = `
   word-break: break-all;
 }
 
-.emotion-19 {
+.emotion-21 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -80,7 +80,7 @@ exports[`RuleTable should render rule table 1`] = `
   word-break: break-all;
 }
 
-.emotion-27 {
+.emotion-29 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -88,7 +88,7 @@ exports[`RuleTable should render rule table 1`] = `
   word-break: break-all;
 }
 
-.emotion-33 {
+.emotion-35 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -98,7 +98,7 @@ exports[`RuleTable should render rule table 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-40 {
+.emotion-44 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -108,7 +108,7 @@ exports[`RuleTable should render rule table 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-43 {
+.emotion-47 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -179,17 +179,22 @@ exports[`RuleTable should render rule table 1`] = `
         Layer
       </th>
       <th
-        class="emotion-19 emotion-12"
+        class="emotion-11 emotion-12"
+      >
+        Scope
+      </th>
+      <th
+        class="emotion-21 emotion-12"
       >
         Enforcement State
       </th>
       <th
-        class="emotion-19 emotion-12"
+        class="emotion-21 emotion-12"
       >
         Edit
       </th>
       <th
-        class="emotion-19 emotion-12"
+        class="emotion-21 emotion-12"
       >
         Delete
       </th>
@@ -197,25 +202,25 @@ exports[`RuleTable should render rule table 1`] = `
   </thead>
   <tbody>
     <tr
-      class="emotion-25 emotion-26"
+      class="emotion-27 emotion-28"
       data-testid="segmentation-row"
     >
       <td
-        class="emotion-27 emotion-28"
+        class="emotion-29 emotion-30"
         color="#3570f40D"
       />
       <td
-        class="emotion-27 emotion-28"
+        class="emotion-29 emotion-30"
         color="#3570f40D"
       />
       <td
-        class="emotion-27 emotion-28"
+        class="emotion-29 emotion-30"
         color="#3570f40D"
       >
         2222
       </td>
       <td
-        class="emotion-33 emotion-34"
+        class="emotion-35 emotion-36"
         color="#3570f40D"
       >
         <span>
@@ -240,19 +245,23 @@ exports[`RuleTable should render rule table 1`] = `
         </span>
       </td>
       <td
-        class="emotion-27 emotion-28"
+        class="emotion-29 emotion-30"
         color="#3570f40D"
       >
         1111
       </td>
       <td
-        class="emotion-27 emotion-28"
+        class="emotion-29 emotion-30"
         color="#3570f40D"
       >
         tcp
       </td>
       <td
-        class="emotion-40 emotion-34"
+        class="emotion-29 emotion-30"
+        color="#3570f40D"
+      />
+      <td
+        class="emotion-44 emotion-36"
         color="#3570f40D"
       >
         <span>
@@ -283,7 +292,7 @@ exports[`RuleTable should render rule table 1`] = `
         </span>
       </td>
       <td
-        class="emotion-43 emotion-28"
+        class="emotion-47 emotion-30"
         color="#3570f40D"
       >
         <span>
@@ -305,7 +314,7 @@ exports[`RuleTable should render rule table 1`] = `
         </span>
       </td>
       <td
-        class="emotion-43 emotion-28"
+        class="emotion-47 emotion-30"
         color="#3570f40D"
       >
         <span>

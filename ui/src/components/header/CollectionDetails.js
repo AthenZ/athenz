@@ -75,6 +75,14 @@ class CollectionDetails extends React.Component {
                             <LabelDiv>REVIEWED DATE</LabelDiv>
                         </SectionDiv>
                     ) : null}
+                    {this.props.collectionDetails.description ? (
+                        <SectionDiv>
+                            <ValueDiv>
+                                {this.props.collectionDetails.description}
+                            </ValueDiv>
+                            <LabelDiv>Description</LabelDiv>
+                        </SectionDiv>
+                    ) : null}
                 </DetailsDiv>
                 {this.props.category === 'policy' ? (
                     <SectionDiv>

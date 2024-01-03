@@ -139,7 +139,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-26 {
+.emotion-28 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -152,7 +152,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-34 {
+.emotion-36 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -160,7 +160,7 @@ exports[`RulesList should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-40 {
+.emotion-42 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -170,7 +170,7 @@ exports[`RulesList should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-47 {
+.emotion-51 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -180,7 +180,7 @@ exports[`RulesList should render 1`] = `
   text-decoration: dashed underline;
 }
 
-.emotion-50 {
+.emotion-54 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -297,17 +297,22 @@ exports[`RulesList should render 1`] = `
           Layer
         </th>
         <th
-          class="emotion-26 emotion-19"
+          class="emotion-18 emotion-19"
+        >
+          Scope
+        </th>
+        <th
+          class="emotion-28 emotion-19"
         >
           Enforcement State
         </th>
         <th
-          class="emotion-26 emotion-19"
+          class="emotion-28 emotion-19"
         >
           Edit
         </th>
         <th
-          class="emotion-26 emotion-19"
+          class="emotion-28 emotion-19"
         >
           Delete
         </th>
@@ -315,25 +320,25 @@ exports[`RulesList should render 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-32 emotion-33"
+        class="emotion-34 emotion-35"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         />
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         />
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           2222
         </td>
         <td
-          class="emotion-40 emotion-41"
+          class="emotion-42 emotion-43"
           color="#3570f40D"
         >
           <span>
@@ -358,19 +363,23 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           1111
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           tcp
         </td>
         <td
-          class="emotion-47 emotion-41"
+          class="emotion-36 emotion-37"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-51 emotion-43"
           color="#3570f40D"
         >
           <span>
@@ -401,7 +410,7 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-50 emotion-35"
+          class="emotion-54 emotion-37"
           color="#3570f40D"
         >
           <span>
@@ -423,7 +432,7 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-50 emotion-35"
+          class="emotion-54 emotion-37"
           color="#3570f40D"
         >
           <span>
@@ -514,17 +523,22 @@ exports[`RulesList should render 1`] = `
           Layer
         </th>
         <th
-          class="emotion-26 emotion-19"
+          class="emotion-18 emotion-19"
+        >
+          Scope
+        </th>
+        <th
+          class="emotion-28 emotion-19"
         >
           Enforcement State
         </th>
         <th
-          class="emotion-26 emotion-19"
+          class="emotion-28 emotion-19"
         >
           Edit
         </th>
         <th
-          class="emotion-26 emotion-19"
+          class="emotion-28 emotion-19"
         >
           Delete
         </th>
@@ -532,27 +546,27 @@ exports[`RulesList should render 1`] = `
     </thead>
     <tbody>
       <tr
-        class="emotion-32 emotion-33"
+        class="emotion-34 emotion-35"
         data-testid="segmentation-row"
       >
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         />
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           serviceE
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           3333
         </td>
         <td
-          class="emotion-40 emotion-41"
+          class="emotion-42 emotion-43"
           color="#3570f40D"
         >
           <span>
@@ -577,19 +591,23 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           4444
         </td>
         <td
-          class="emotion-34 emotion-35"
+          class="emotion-36 emotion-37"
           color="#3570f40D"
         >
           udp
         </td>
         <td
-          class="emotion-47 emotion-41"
+          class="emotion-36 emotion-37"
+          color="#3570f40D"
+        />
+        <td
+          class="emotion-51 emotion-43"
           color="#3570f40D"
         >
           <span>
@@ -611,7 +629,7 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-50 emotion-35"
+          class="emotion-54 emotion-37"
           color="#3570f40D"
         >
           <span>
@@ -633,7 +651,7 @@ exports[`RulesList should render 1`] = `
           </span>
         </td>
         <td
-          class="emotion-50 emotion-35"
+          class="emotion-54 emotion-37"
           color="#3570f40D"
         >
           <span>
