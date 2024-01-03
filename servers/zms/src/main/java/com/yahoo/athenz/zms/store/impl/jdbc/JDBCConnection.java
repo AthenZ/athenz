@@ -47,7 +47,6 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String MYSQL_EXC_STATE_DEADLOCK   = "40001";
     private static final String MYSQL_EXC_STATE_COMM_ERROR = "08S01";
 
-
     private static final String SQL_TABLE_DOMAIN = "domain";
     private static final String SQL_TABLE_ROLE = "role";
     private static final String SQL_TABLE_ROLE_MEMBER = "role_member";
@@ -675,6 +674,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain_contacts.domain_id=domain.domain_id "
             + "WHERE domain_contacts.name=?;";
     private static final String SQL_LIST_DOMAIN_CONTACTS = "SELECT type, name FROM domain_contacts WHERE domain_id=?;";
+    private static final String SQL_GET_LAST_ASSUME_ROLE_ASSERTION = "SELECT policy.modified FROM policy "
+            + " JOIN assertion ON policy.policy_id=assertion.policy_id WHERE assertion.action='assume_role' "
+            + " ORDER BY policy.modified DESC LIMIT 1";
 
     private static final String CACHE_DOMAIN    = "d:";
     private static final String CACHE_ROLE      = "r:";
@@ -698,12 +700,24 @@ public class JDBCConnection implements ObjectStoreConnection {
     Map<String, Integer> objectMap;
     boolean transactionCompleted;
     DomainOptions domainOptions;
+    private static Map<String, List<String>> SERVER_TRUST_ROLES_MAP;
+    private static long SERVER_TRUST_ROLES_TIMESTAMP;
+    private static final long SERVER_TRUST_ROLES_UPDATE_TIMEOUT = Long.parseLong(
+            System.getProperty(ZMSConsts.ZMS_PROP_MYSQL_SERVER_TRUST_ROLES_UPDATE_TIMEOUT, "600000"));
 
     public JDBCConnection(Connection con, boolean autoCommit) throws SQLException {
         this.con = con;
         con.setAutoCommit(autoCommit);
         transactionCompleted = autoCommit;
         objectMap = new HashMap<>();
+    }
+
+    /**
+     * Used only by the test classes to reset the server trust roles map
+     */
+    void resetTrustRolesMap() {
+        SERVER_TRUST_ROLES_MAP = null;
+        SERVER_TRUST_ROLES_TIMESTAMP = 0;
     }
 
     @Override
@@ -4612,12 +4626,75 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
 
+    long lastTrustRoleUpdatesTimestamp() {
+
+        final String caller = "lastTrustRoleUpdatesTimestamp";
+
+        long timeStamp = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_LAST_ASSUME_ROLE_ASSERTION)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    timeStamp = rs.getTimestamp(ZMSConsts.DB_COLUMN_MODIFIED).getTime();
+                }
+            }
+        } catch (SQLException ignored) {
+        }
+
+        return timeStamp;
+    }
+
     Map<String, List<String>> getTrustedRoles(String caller) {
+
+        // if our last timestamp has passed our timeout or our map has not been
+        // initialized, then we need to update our trust map so need for any
+        // extra timestamp checks
+
+        long now = System.currentTimeMillis();
+        if (SERVER_TRUST_ROLES_MAP == null || now - SERVER_TRUST_ROLES_TIMESTAMP > SERVER_TRUST_ROLES_UPDATE_TIMEOUT) {
+            updateTrustRolesMap(now, true, caller);
+
+        } else {
+
+            // we want to make sure to capture any additions right away, so we'll get
+            // the last modification timestamp of the latest policy that has an assume_role
+            // assertion
+
+            long lastTimeStamp = lastTrustRoleUpdatesTimestamp();
+            if (lastTimeStamp > SERVER_TRUST_ROLES_TIMESTAMP) {
+                updateTrustRolesMap(lastTimeStamp, false, caller);
+            }
+        }
+
+        return SERVER_TRUST_ROLES_MAP;
+    }
+
+    synchronized void updateTrustRolesMap(long lastTimeStamp, boolean timeoutUpdate, final String caller) {
+
+        // a couple of simple checks in case we already have a valid
+        // map to see if we can skip updating the map
+
+        if (SERVER_TRUST_ROLES_MAP != null) {
+
+            // if our last timestamp is older than the one we have
+            // then we're going to skip the update
+
+            if (SERVER_TRUST_ROLES_TIMESTAMP >= lastTimeStamp) {
+                return;
+            }
+
+            // if this is a timeout update we're going to check if the map
+            // has already been updated by another thread while we were waiting
+
+            if (timeoutUpdate && lastTimeStamp - SERVER_TRUST_ROLES_TIMESTAMP < SERVER_TRUST_ROLES_UPDATE_TIMEOUT) {
+                return;
+            }
+        }
 
         Map<String, List<String>> trustedRoles = new HashMap<>();
         getTrustedSubTypeRoles(SQL_LIST_TRUSTED_STANDARD_ROLES, trustedRoles, caller);
         getTrustedSubTypeRoles(SQL_LIST_TRUSTED_WILDCARD_ROLES, trustedRoles, caller);
-        return trustedRoles;
+        SERVER_TRUST_ROLES_TIMESTAMP = lastTimeStamp;
+        SERVER_TRUST_ROLES_MAP = trustedRoles;
     }
 
     void addRoleAssertions(List<Assertion> principalAssertions, List<Assertion> roleAssertions) {

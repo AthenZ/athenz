@@ -8961,11 +8961,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller, true);
 
-        // for now we're going to verify our database connectivity
-        // in case of failure we're going to return not found
+        // we're going to verify our database connectivity
+        // by listing our system domains. In case of failure
+        // we're going to return not found
 
-        DomainList dlist = listDomains(null, null, null, null, 0, false);
-        if (dlist.getNames() == null || dlist.getNames().isEmpty()) {
+        if (dbService.listDomains(SYS_AUTH, 0, false).isEmpty()) {
             throw ZMSUtils.notFoundError("Error - no domains available", caller);
         }
 
