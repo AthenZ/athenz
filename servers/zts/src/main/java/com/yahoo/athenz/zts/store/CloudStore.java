@@ -16,20 +16,21 @@
 
 package com.yahoo.athenz.zts.store;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.amazonaws.AmazonServiceException;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,12 @@ import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAM
 
 public class CloudStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(CloudStore.class);
+
     private static final String AWS_ROLE_SESSION_NAME = "athenz-zts-service";
+    private static final String AWS_METADATA_BASE_URI = "http://169.254.169.254/latest";
+    private static final String AWS_METADATA_TOKEN_URI = "http://169.254.169.254/latest/api/token";
+    private static final String AWS_METADATA_TOKEN_HEADER = "X-aws-ec2-metadata-token";
+    private static final String AWS_METADATA_TOKEN_TTL_HEADER = "X-aws-ec2-metadata-token-ttl-seconds";
 
     String awsRole = null;
     String awsRegion;
@@ -208,7 +214,7 @@ public class CloudStore {
 
         // first load the dynamic document
 
-        String document = getMetaData("/dynamic/instance-identity/document");
+        final String document = getMetaData("/dynamic/instance-identity/document");
         if (document == null) {
             return false;
         }
@@ -220,14 +226,14 @@ public class CloudStore {
 
         // then the document signature
 
-        String docSignature = getMetaData("/dynamic/instance-identity/pkcs7");
+        final String docSignature = getMetaData("/dynamic/instance-identity/pkcs7");
         if (docSignature == null) {
             return false;
         }
 
         // next the iam profile data
 
-        String iamRole = getMetaData("/meta-data/iam/info");
+        final String iamRole = getMetaData("/meta-data/iam/info");
         if (iamRole == null) {
             return false;
         }
@@ -360,25 +366,38 @@ public class CloudStore {
 
     String getMetaData(String path) {
 
-        final String baseUri = "http://169.254.169.254/latest";
+        // first we need to get a token for IMDSv2 support
+        // if the token is not available we'll just try without
+        // it to see if we can get the data with v1 support
+
+        final String token = processHttpRequest(HttpMethod.PUT, AWS_METADATA_TOKEN_URI, AWS_METADATA_TOKEN_TTL_HEADER, "60");
+        if (StringUtil.isEmpty(token)) {
+            LOGGER.info("unable to get token for IMDSv2 support");
+        }
+        return processHttpRequest(HttpMethod.GET, AWS_METADATA_BASE_URI + path, AWS_METADATA_TOKEN_HEADER, token);
+    }
+
+    String processHttpRequest(HttpMethod httpMethod, String uri, String headerName, String headerValue) {
+
         ContentResponse response;
         try {
-            response = httpClient.GET(baseUri + path);
-        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-            LOGGER.error("CloudStore: unable to fetch requested uri '{}':{}",
-                    path, ex.getMessage());
+            Request request = httpClient.newRequest(URI.create(uri)).method(httpMethod);
+            if (!StringUtil.isEmpty(headerName) && !StringUtil.isEmpty(headerValue)) {
+                request.headers((fields) -> fields.put(headerName, headerValue));
+            }
+            response = request.send();
+        } catch (Exception ex) {
+            LOGGER.error("unable to fetch requested uri '{}':{}", uri, ex.getMessage());
             return null;
         }
         if (response.getStatus() != 200) {
-            LOGGER.error("CloudStore: unable to fetch requested uri '{}' status:{}",
-                    path, response.getStatus());
+            LOGGER.error("unable to fetch requested uri '{}' status:{}", uri, response.getStatus());
             return null;
         }
 
         String data = response.getContentAsString();
-        if (data == null || data.isEmpty()) {
-            LOGGER.error("CloudStore: received empty response from uri '{}' status:{}",
-                    path, response.getStatus());
+        if (StringUtil.isEmpty(data)) {
+            LOGGER.error("received empty response from uri '{}' status:{}", uri, response.getStatus());
             return null;
         }
 
