@@ -435,14 +435,17 @@ func (client MSDClient) GetTransportPolicyRulesByDomain(domainName DomainName, m
 	}
 }
 
-func (client MSDClient) PutTransportPolicy(domainName DomainName, serviceName EntityName, payload *TransportPolicyRequest) (*TransportPolicyRules, error) {
+func (client MSDClient) PutTransportPolicy(domainName DomainName, serviceName EntityName, auditRef string, payload *TransportPolicyRequest) (*TransportPolicyRules, error) {
 	var data *TransportPolicyRules
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/transportpolicy"
 	contentBytes, err := json.Marshal(payload)
 	if err != nil {
 		return data, err
 	}
-	resp, err := client.httpPut(url, nil, contentBytes)
+	resp, err := client.httpPut(url, headers, contentBytes)
 	if err != nil {
 		return data, err
 	}
@@ -508,6 +511,36 @@ func (client MSDClient) GetTransportPolicyRulesByService(domainName DomainName, 
 			errobj.Message = string(contentBytes)
 		}
 		return nil, "", errobj
+	}
+}
+
+func (client MSDClient) DeleteTransportPolicy(domainName DomainName, serviceName EntityName, id int64, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/" + fmt.Sprint(id)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
 	}
 }
 

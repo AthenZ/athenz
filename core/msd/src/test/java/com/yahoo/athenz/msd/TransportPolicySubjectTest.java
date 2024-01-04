@@ -25,11 +25,11 @@ public class TransportPolicySubjectTest {
   @Test
   public void testTransportPolicySubjectFields() {
 
-    TransportPolicySubject tps1 = new TransportPolicySubject().setDomainName("dom1").setServiceName("svc1");
+    TransportPolicySubject tps1 = new TransportPolicySubject().setDomainName("dom1").setServiceName("svc1").setExternalPeer("ext1");
     assertFalse(tps1.equals("xyz"));
     assertEquals(tps1, tps1);
 
-    TransportPolicySubject tps2 = new TransportPolicySubject().setDomainName("dom1").setServiceName("svc1");
+    TransportPolicySubject tps2 = new TransportPolicySubject().setDomainName("dom1").setServiceName("svc1").setExternalPeer("ext1");
     assertEquals(tps1,tps2);
 
     tps2.setServiceName(null);
@@ -39,8 +39,13 @@ public class TransportPolicySubjectTest {
     tps2.setDomainName(null);
     assertNotEquals(tps1, tps2);
 
+    tps2.setDomainName("dom1");
+    tps2.setExternalPeer(null);
+    assertNotEquals(tps1, tps2);
+
     assertEquals(tps1.getDomainName(), "dom1");
     assertEquals(tps1.getServiceName(), "svc1");
+    assertEquals(tps1.getExternalPeer(), "ext1");
 
   }
 }

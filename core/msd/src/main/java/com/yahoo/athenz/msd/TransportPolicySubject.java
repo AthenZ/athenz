@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.msd;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.yahoo.rdl.*;
 
 //
@@ -13,6 +14,9 @@ import com.yahoo.rdl.*;
 public class TransportPolicySubject {
     public String domainName;
     public String serviceName;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String externalPeer;
 
     public TransportPolicySubject setDomainName(String domainName) {
         this.domainName = domainName;
@@ -28,6 +32,13 @@ public class TransportPolicySubject {
     public String getServiceName() {
         return serviceName;
     }
+    public TransportPolicySubject setExternalPeer(String externalPeer) {
+        this.externalPeer = externalPeer;
+        return this;
+    }
+    public String getExternalPeer() {
+        return externalPeer;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -40,6 +51,9 @@ public class TransportPolicySubject {
                 return false;
             }
             if (serviceName == null ? a.serviceName != null : !serviceName.equals(a.serviceName)) {
+                return false;
+            }
+            if (externalPeer == null ? a.externalPeer != null : !externalPeer.equals(a.externalPeer)) {
                 return false;
             }
         }

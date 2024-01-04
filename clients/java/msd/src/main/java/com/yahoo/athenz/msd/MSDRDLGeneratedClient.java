@@ -251,7 +251,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicyRules putTransportPolicy(String domainName, String serviceName, TransportPolicyRequest payload) throws URISyntaxException, IOException {
+    public TransportPolicyRules putTransportPolicy(String domainName, String serviceName, String auditRef, TransportPolicyRequest payload) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/transportpolicy")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
@@ -263,6 +263,9 @@ public class MSDRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -314,6 +317,39 @@ public class MSDRDLGeneratedClient {
                     return null;
                 }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicyRules.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ResourceException(code, jsonMapper.readValue(errorData, ResourceError.class))
+                    : new ResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public TransportPolicyRules deleteTransportPolicy(String domainName, String serviceName, Long id, String auditRef) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/{id}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName)
+            .resolveTemplate("id", id);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpUriRequest httpUriRequest = RequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getStatusLine().getStatusCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
             default:
                 final String errorData = (httpResponseEntity == null) ? null : EntityUtils.toString(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

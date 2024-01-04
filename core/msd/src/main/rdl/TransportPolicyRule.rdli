@@ -69,6 +69,7 @@ resource TransportPolicyRules GET "/domain/{domainName}/transportpolicies" (name
 resource TransportPolicyRules PUT "/domain/{domainName}/service/{serviceName}/transportpolicy" (name=putTransportPolicy) {
     DomainName domainName; //name of the domain
     EntityName serviceName; //Name of the service
+    String     auditRef (header="Y-Audit-Ref"); // Audit param required(not empty) if domain auditEnabled is true.
     TransportPolicyRequest payload; //Struct representing input transport policy
     authorize ("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}");
     expected NO_CONTENT, OK;
@@ -85,15 +86,35 @@ resource TransportPolicyRules PUT "/domain/{domainName}/service/{serviceName}/tr
 resource TransportPolicyRules GET "/domain/{domainName}/service/{serviceName}/transportpolicies" (name=getTransportPolicyRulesByService) {
     DomainName domainName; //name of the domain
     EntityName serviceName; //Name of the service
-    authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
-    String matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
+    String     matchingTag (header="If-None-Match"); //Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time
     String tag (header="ETag", out); //The current latest modification timestamp is returned in this header
+    authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
     expected OK, NOT_MODIFIED;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// API endpoint to delete the transport policy
+// Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data
+// (no object will be returned).
+resource TransportPolicyRules DELETE "/domain/{domainName}/service/{serviceName}/{id}" (name=deleteTransportPolicy) {
+    DomainName domainName; // Name of the domain
+    EntityName serviceName; // Name of the service
+    Int64      id; // Id of the assertion representing the transport policy
+    String     auditRef (header="Y-Audit-Ref"); // Audit param required(not empty) if domain auditEnabled is true.
+    authorize("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
         ResourceError TOO_MANY_REQUESTS;
     }
 }
