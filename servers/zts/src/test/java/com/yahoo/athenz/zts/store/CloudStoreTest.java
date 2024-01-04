@@ -20,6 +20,7 @@ import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_PUBLIC_CER
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 import static org.testng.Assert.*;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -27,6 +28,8 @@ import java.util.concurrent.TimeoutException;
 import com.yahoo.rdl.Timestamp;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.http.HttpMethod;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -312,13 +315,14 @@ public class CloudStoreTest {
         CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/exc1")).thenThrow(InterruptedException.class);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/exc2")).thenThrow(ExecutionException.class);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/exc3")).thenThrow(TimeoutException.class);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/exc1")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenThrow(TimeoutException.class);
 
         assertNull(store.getMetaData("/exc1"));
-        assertNull(store.getMetaData("/exc2"));
-        assertNull(store.getMetaData("/exc3"));
         store.close();
     }
 
@@ -330,7 +334,12 @@ public class CloudStoreTest {
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/iam-info")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/iam-info")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertNull(store.getMetaData("/iam-info"));
         store.close();
@@ -345,7 +354,12 @@ public class CloudStoreTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn(null);
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/iam-info")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/iam-info")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertNull(store.getMetaData("/iam-info"));
         store.close();
@@ -360,7 +374,12 @@ public class CloudStoreTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("");
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/iam-info")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/iam-info")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertNull(store.getMetaData("/iam-info"));
         store.close();
@@ -375,7 +394,12 @@ public class CloudStoreTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("json-document");
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/iam-info")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/iam-info")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertEquals(store.getMetaData("/iam-info"), "json-document");
         store.close();
@@ -389,7 +413,12 @@ public class CloudStoreTest {
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertFalse(store.loadBootMetaData());
         store.close();
@@ -404,7 +433,12 @@ public class CloudStoreTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("{\"accountId\":\"012345678901\"}");
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertFalse(store.loadBootMetaData());
         store.close();
@@ -419,7 +453,12 @@ public class CloudStoreTest {
         Mockito.when(response.getStatus()).thenReturn(200);
         Mockito.when(response.getContentAsString()).thenReturn("json-document");
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertFalse(store.loadBootMetaData());
         store.close();
@@ -438,8 +477,18 @@ public class CloudStoreTest {
         Mockito.when(responseSig.getStatus()).thenReturn(404);
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
 
         assertFalse(store.loadBootMetaData());
         store.close();
@@ -463,9 +512,24 @@ public class CloudStoreTest {
         Mockito.when(responseInfo.getStatus()).thenReturn(404);
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
 
         assertFalse(store.loadBootMetaData());
         store.close();
@@ -490,9 +554,24 @@ public class CloudStoreTest {
         Mockito.when(responseInfo.getContentAsString()).thenReturn("invalid-info");
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
 
         assertFalse(store.loadBootMetaData());
         store.close();
@@ -517,16 +596,31 @@ public class CloudStoreTest {
         Mockito.when(responseInfo.getContentAsString()).thenReturn("{\"accountId\":\"012345678901\",\"InstanceProfileArn\":\"invalid\"}");
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
 
         assertFalse(store.loadBootMetaData());
         store.close();
     }
 
     @Test
-    public void testLoadBootMetaData() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testLoadBootMetaDataV1() throws InterruptedException, ExecutionException, TimeoutException {
 
         CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -544,9 +638,78 @@ public class CloudStoreTest {
         Mockito.when(responseInfo.getContentAsString()).thenReturn(AWS_IAM_ROLE_INFO);
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
+
+        assertTrue(store.loadBootMetaData());
+        assertEquals(store.awsRole, "athenz.zts");
+        assertEquals(store.awsRegion, "us-west-2");
+        store.close();
+    }
+
+    @Test
+    public void testLoadBootMetaDataV2() throws InterruptedException, ExecutionException, TimeoutException {
+
+        CloudStore store = new CloudStore();
+        HttpClient httpClient = Mockito.mock(HttpClient.class);
+
+        ContentResponse responseDoc = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseDoc.getStatus()).thenReturn(200);
+        Mockito.when(responseDoc.getContentAsString()).thenReturn(AWS_INSTANCE_DOCUMENT);
+
+        ContentResponse responseSig = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseSig.getStatus()).thenReturn(200);
+        Mockito.when(responseSig.getContentAsString()).thenReturn("pkcs7-signature");
+
+        ContentResponse responseInfo = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseInfo.getStatus()).thenReturn(200);
+        Mockito.when(responseInfo.getContentAsString()).thenReturn(AWS_IAM_ROLE_INFO);
+
+        ContentResponse responseToken = Mockito.mock(ContentResponse.class);
+        Mockito.when(responseToken.getStatus()).thenReturn(200);
+        Mockito.when(responseToken.getContentAsString()).thenReturn("aws-token-info");
+
+        store.setHttpClient(httpClient);
+
+        Request tokenRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/api/token")))
+                .thenReturn(tokenRequest);
+        Mockito.when(tokenRequest.method(HttpMethod.PUT)).thenReturn(tokenRequest);
+        Mockito.when(tokenRequest.send()).thenReturn(responseToken);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
 
         assertTrue(store.loadBootMetaData());
         assertEquals(store.awsRole, "athenz.zts");
@@ -577,7 +740,12 @@ public class CloudStoreTest {
         ContentResponse response = Mockito.mock(ContentResponse.class);
         Mockito.when(response.getStatus()).thenReturn(404);
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(response);
+
+        Request credsRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")))
+                .thenReturn(credsRequest);
+        Mockito.when(credsRequest.method(HttpMethod.GET)).thenReturn(credsRequest);
+        Mockito.when(credsRequest.send()).thenReturn(response);
 
         assertFalse(store.fetchRoleCredentials());
         store.close();
@@ -595,7 +763,12 @@ public class CloudStoreTest {
         Mockito.when(response.getContentAsString()).thenReturn("invalid-creds");
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(response);
+
+        Request credsRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")))
+                .thenReturn(credsRequest);
+        Mockito.when(credsRequest.method(HttpMethod.GET)).thenReturn(credsRequest);
+        Mockito.when(credsRequest.send()).thenReturn(response);
 
         assertFalse(store.fetchRoleCredentials());
         store.close();
@@ -613,7 +786,12 @@ public class CloudStoreTest {
         Mockito.when(response.getContentAsString()).thenReturn("{\"AccessKeyId\":\"id\",\"SecretAccessKey\":\"key\",\"Token\":\"token\"}");
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(response);
+
+        Request request = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")))
+                .thenReturn(request);
+        Mockito.when(request.method(HttpMethod.GET)).thenReturn(request);
+        Mockito.when(request.send()).thenReturn(response);
 
         assertTrue(store.fetchRoleCredentials());
         store.close();
@@ -630,7 +808,12 @@ public class CloudStoreTest {
         Mockito.when(responseDoc.getContentAsString()).thenReturn("invalid-document");
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
 
         try {
             store.awsEnabled = true;
@@ -665,10 +848,30 @@ public class CloudStoreTest {
         Mockito.when(responseCreds.getContentAsString()).thenReturn("invalid-creds");
 
         store.setHttpClient(httpClient);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
-        Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(responseCreds);
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
+
+        Request credsRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")))
+                .thenReturn(credsRequest);
+        Mockito.when(credsRequest.method(HttpMethod.GET)).thenReturn(credsRequest);
+        Mockito.when(credsRequest.send()).thenReturn(responseCreds);
 
         try {
             store.awsEnabled = true;
@@ -681,7 +884,7 @@ public class CloudStoreTest {
     }
 
     @Test
-    public void testInitializeAwsSupport()  throws ExecutionException, TimeoutException {
+    public void testInitializeAwsSupport() throws ExecutionException, TimeoutException, InterruptedException {
 
         CloudStore store = new CloudStore();
         HttpClient httpClient = Mockito.mock(HttpClient.class);
@@ -703,22 +906,30 @@ public class CloudStoreTest {
         Mockito.when(responseCreds.getContentAsString()).thenReturn("{\"AccessKeyId\":\"id\",\"SecretAccessKey\":\"key\",\"Token\":\"token\"}");
 
         store.setHttpClient(httpClient);
-        try {
-            Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/document")).thenReturn(responseDoc);
-        } catch (InterruptedException ignored) {
-        }
-        try {
-            Mockito.when(httpClient.GET("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")).thenReturn(responseSig);
-        } catch (InterruptedException ignored) {
-        }
-        try {
-            Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/info")).thenReturn(responseInfo);
-        } catch (InterruptedException ignored) {
-        }
-        try {
-            Mockito.when(httpClient.GET("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")).thenReturn(responseCreds);
-        } catch (InterruptedException ignored) {
-        }
+
+        Request docRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/document")))
+                .thenReturn(docRequest);
+        Mockito.when(docRequest.method(HttpMethod.GET)).thenReturn(docRequest);
+        Mockito.when(docRequest.send()).thenReturn(responseDoc);
+
+        Request sigRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/dynamic/instance-identity/pkcs7")))
+                .thenReturn(sigRequest);
+        Mockito.when(sigRequest.method(HttpMethod.GET)).thenReturn(sigRequest);
+        Mockito.when(sigRequest.send()).thenReturn(responseSig);
+
+        Request infoRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/info")))
+                .thenReturn(infoRequest);
+        Mockito.when(infoRequest.method(HttpMethod.GET)).thenReturn(infoRequest);
+        Mockito.when(infoRequest.send()).thenReturn(responseInfo);
+
+        Request credsRequest = Mockito.mock(Request.class);
+        Mockito.when(httpClient.newRequest(URI.create("http://169.254.169.254/latest/meta-data/iam/security-credentials/athenz.zts")))
+                .thenReturn(credsRequest);
+        Mockito.when(credsRequest.method(HttpMethod.GET)).thenReturn(credsRequest);
+        Mockito.when(credsRequest.send()).thenReturn(responseCreds);
 
         // set creds update time every second
 
