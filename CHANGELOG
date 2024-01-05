@@ -1,3 +1,20 @@
+Athenz v1.11.49 Release / Jan 03, 2024
+--------------------------------------
+
+#2455 UI: add logic to handle submit of role/group review
+#2456 UI: fix first time user error
+#2457 support proxyForPrincipal parameter in GenerateAccessTokenRequestString
+#2458 UI: add missing props timeZone for policy versions
+#2459 fix zms-cli calls for get role/group for review
+#2461 make role/group review days limit configurable
+#2463 UI: fix functional tests pt1
+#2465 UI: Add functional test support for role and group review
+#2466 UI: fix functional test sd job
+#2467 UI: add maxmembers and self renew fields
+#2468 UI: attempt to fix functional test
+#2469 UI: fix functional test, tested and works
+#2470 update java and go dependencies to their latest releases
+
 Athenz v1.11.48 Release / Dec 06, 2023
 --------------------------------------
 
