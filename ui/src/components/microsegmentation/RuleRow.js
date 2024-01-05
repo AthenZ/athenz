@@ -319,12 +319,16 @@ export class RuleRow extends React.Component {
             ''
         );
 
-        let scope = '';
+        let scope = new Set();
         if (data && data['conditionsList']) {
-            data['conditionsList'].forEach((item) => {
-                scope = this.stringUtils.getScopeString(item);
+            data['conditionsList'].forEach(item => {
+                scope.add(this.stringUtils.getScopeString(item));
             });
+        } else {
+            // Backward compatability - if no scope, assume on-prem
+            scope.add('OnPrem');
         }
+        scope = [...scope].sort().join(' ');
 
         rows.push(
             <TrStyled key={key} data-testid='segmentation-row'>
