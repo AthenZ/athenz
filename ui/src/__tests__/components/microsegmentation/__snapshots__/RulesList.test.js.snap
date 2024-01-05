@@ -377,7 +377,9 @@ exports[`RulesList should render 1`] = `
         <td
           class="emotion-36 emotion-37"
           color="#3570f40D"
-        />
+        >
+          OnPrem
+        </td>
         <td
           class="emotion-51 emotion-43"
           color="#3570f40D"
@@ -605,7 +607,9 @@ exports[`RulesList should render 1`] = `
         <td
           class="emotion-36 emotion-37"
           color="#3570f40D"
-        />
+        >
+          OnPrem
+        </td>
         <td
           class="emotion-51 emotion-43"
           color="#3570f40D"

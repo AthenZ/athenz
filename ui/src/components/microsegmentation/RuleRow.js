@@ -321,7 +321,7 @@ export class RuleRow extends React.Component {
 
         let scope = new Set();
         if (data && data['conditionsList']) {
-            data['conditionsList'].forEach(item => {
+            data['conditionsList'].forEach((item) => {
                 scope.add(this.stringUtils.getScopeString(item));
             });
         } else {

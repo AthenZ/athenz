@@ -259,7 +259,9 @@ exports[`RuleTable should render rule table 1`] = `
       <td
         class="emotion-29 emotion-30"
         color="#3570f40D"
-      />
+      >
+        OnPrem
+      </td>
       <td
         class="emotion-44 emotion-36"
         color="#3570f40D"
