@@ -73,6 +73,9 @@ type StaticWorkloadFQDN string
 // StaticWorkloadName -
 type StaticWorkloadName string
 
+// TransportPolicySubjectExternal -
+type TransportPolicySubjectExternal string
+
 // TransportPolicyEnforcementState - Types of transport policy enforcement
 // states
 type TransportPolicyEnforcementState int
@@ -444,6 +447,11 @@ type TransportPolicySubject struct {
 	// Name of the service
 	//
 	ServiceName TransportPolicySubjectServiceName `json:"serviceName"`
+
+	//
+	// External peer ( not in Athenz )
+	//
+	ExternalPeer TransportPolicySubjectExternal `json:"externalPeer,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTransportPolicySubject - creates an initialized TransportPolicySubject instance, returns a pointer to it
@@ -489,6 +497,87 @@ func (self *TransportPolicySubject) Validate() error {
 			return fmt.Errorf("TransportPolicySubject.serviceName does not contain a valid TransportPolicySubjectServiceName (%v)", val.Error)
 		}
 	}
+	if self.ExternalPeer != "" {
+		val := rdl.Validate(MSDSchema(), "TransportPolicySubjectExternal", self.ExternalPeer)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubject.externalPeer does not contain a valid TransportPolicySubjectExternal (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// TransportPolicySubjectSelectorRequirement - A subject selector requirement
+// is a selector that contains value, a key, and an operator that relates the
+// key and value.
+type TransportPolicySubjectSelectorRequirement struct {
+
+	//
+	// key that the selector applies to
+	//
+	Key string `json:"key"`
+
+	//
+	// Operator that is applied to the key and value
+	//
+	Operator string `json:"operator"`
+
+	//
+	// Value that the selector applies to
+	//
+	Value string `json:"value"`
+}
+
+// NewTransportPolicySubjectSelectorRequirement - creates an initialized TransportPolicySubjectSelectorRequirement instance, returns a pointer to it
+func NewTransportPolicySubjectSelectorRequirement(init ...*TransportPolicySubjectSelectorRequirement) *TransportPolicySubjectSelectorRequirement {
+	var o *TransportPolicySubjectSelectorRequirement
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySubjectSelectorRequirement)
+	}
+	return o
+}
+
+type rawTransportPolicySubjectSelectorRequirement TransportPolicySubjectSelectorRequirement
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySubjectSelectorRequirement
+func (self *TransportPolicySubjectSelectorRequirement) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySubjectSelectorRequirement
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySubjectSelectorRequirement(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySubjectSelectorRequirement) Validate() error {
+	if self.Key == "" {
+		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.key is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Key)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.key does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Operator == "" {
+		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.operator is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Operator)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.operator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Value == "" {
+		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.value is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Value)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.value does not contain a valid String (%v)", val.Error)
+		}
+	}
 	return nil
 }
 
@@ -511,6 +600,11 @@ type TransportPolicyCondition struct {
 	// Scope of transport policy
 	//
 	Scope []TransportPolicyScope `json:"scope,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// List of any additional conditions
+	//
+	AdditionalConditions []*TransportPolicySubjectSelectorRequirement `json:"additionalConditions,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTransportPolicyCondition - creates an initialized TransportPolicyCondition instance, returns a pointer to it
@@ -1185,81 +1279,6 @@ func (self *TransportPolicyValidationResponseList) UnmarshalJSON(b []byte) error
 func (self *TransportPolicyValidationResponseList) Validate() error {
 	if self.ResponseList == nil {
 		return fmt.Errorf("TransportPolicyValidationResponseList: Missing required field: responseList")
-	}
-	return nil
-}
-
-// TransportPolicySubjectSelectorRequirement - A subject selector requirement
-// is a selector that contains value, a key, and an operator that relates the
-// key and value.
-type TransportPolicySubjectSelectorRequirement struct {
-
-	//
-	// key that the selector applies to
-	//
-	Key string `json:"key"`
-
-	//
-	// Operator that is applied to the key and value
-	//
-	Operator string `json:"operator"`
-
-	//
-	// Value that the selector applies to
-	//
-	Value string `json:"value"`
-}
-
-// NewTransportPolicySubjectSelectorRequirement - creates an initialized TransportPolicySubjectSelectorRequirement instance, returns a pointer to it
-func NewTransportPolicySubjectSelectorRequirement(init ...*TransportPolicySubjectSelectorRequirement) *TransportPolicySubjectSelectorRequirement {
-	var o *TransportPolicySubjectSelectorRequirement
-	if len(init) == 1 {
-		o = init[0]
-	} else {
-		o = new(TransportPolicySubjectSelectorRequirement)
-	}
-	return o
-}
-
-type rawTransportPolicySubjectSelectorRequirement TransportPolicySubjectSelectorRequirement
-
-// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySubjectSelectorRequirement
-func (self *TransportPolicySubjectSelectorRequirement) UnmarshalJSON(b []byte) error {
-	var m rawTransportPolicySubjectSelectorRequirement
-	err := json.Unmarshal(b, &m)
-	if err == nil {
-		o := TransportPolicySubjectSelectorRequirement(m)
-		*self = o
-		err = self.Validate()
-	}
-	return err
-}
-
-// Validate - checks for missing required fields, etc
-func (self *TransportPolicySubjectSelectorRequirement) Validate() error {
-	if self.Key == "" {
-		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.key is missing but is a required field")
-	} else {
-		val := rdl.Validate(MSDSchema(), "String", self.Key)
-		if !val.Valid {
-			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.key does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Operator == "" {
-		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.operator is missing but is a required field")
-	} else {
-		val := rdl.Validate(MSDSchema(), "String", self.Operator)
-		if !val.Valid {
-			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.operator does not contain a valid String (%v)", val.Error)
-		}
-	}
-	if self.Value == "" {
-		return fmt.Errorf("TransportPolicySubjectSelectorRequirement.value is missing but is a required field")
-	} else {
-		val := rdl.Validate(MSDSchema(), "String", self.Value)
-		if !val.Valid {
-			return fmt.Errorf("TransportPolicySubjectSelectorRequirement.value does not contain a valid String (%v)", val.Error)
-		}
 	}
 	return nil
 }

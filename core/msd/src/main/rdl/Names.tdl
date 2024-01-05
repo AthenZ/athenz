@@ -54,3 +54,5 @@ type TransportPolicySubjectServiceName String (pattern="\\*|{EntityName}");
 type StaticWorkloadComponent String (pattern="[a-zA-Z0-9][a-zA-Z0-9-:._]*");
 type StaticWorkloadFQDN String (pattern="({StaticWorkloadComponent}\\.)*{StaticWorkloadComponent}");
 type StaticWorkloadName String (pattern="({StaticWorkloadFQDN})(\\/[0-9]{1,3})?");
+
+type TransportPolicySubjectExternal String (pattern="({StaticWorkloadFQDN})(\\/[0-9]{1,3})?");

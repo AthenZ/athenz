@@ -29,15 +29,23 @@ public class TransportPolicyConditionTest {
     TransportPolicyCondition tpc1 = new TransportPolicyCondition().setEnforcementState(TransportPolicyEnforcementState.ENFORCE);
     List<String> tpci1 = Collections.singletonList("host1");
     tpc1.setInstances(tpci1);
-
+    List<TransportPolicySubjectSelectorRequirement> additionalConditions =
+            Collections.singletonList(new TransportPolicySubjectSelectorRequirement()
+                    .setKey("key1").setOperator("EQ").setValue("value1"));
+    tpc1.setAdditionalConditions(additionalConditions);
     assertEquals(tpc1, tpc1);
     assertFalse(tpc1.equals("xyz"));
     assertEquals(tpc1.getEnforcementState(), TransportPolicyEnforcementState.ENFORCE);
     assertEquals(tpc1.getInstances(), tpci1);
+    assertEquals(tpc1.getAdditionalConditions(), additionalConditions);
 
     TransportPolicyCondition tpc2 = new TransportPolicyCondition().setEnforcementState(TransportPolicyEnforcementState.ENFORCE);
     List<String> tpci2 = Collections.singletonList("host1");
     tpc2.setInstances(tpci2);
+    List<TransportPolicySubjectSelectorRequirement> additionalConditions2 =
+            Collections.singletonList(new TransportPolicySubjectSelectorRequirement()
+                    .setKey("key1").setOperator("EQ").setValue("value1"));
+    tpc2.setAdditionalConditions(additionalConditions2);
 
     assertEquals(tpc1, tpc2);
 
@@ -46,6 +54,10 @@ public class TransportPolicyConditionTest {
 
     tpc2.setEnforcementState(TransportPolicyEnforcementState.ENFORCE);
     tpc2.setInstances(null);
+    assertNotEquals(tpc1, tpc2);
+
+    tpc2.setInstances(tpci2);
+    tpc2.setAdditionalConditions(null);
     assertNotEquals(tpc1, tpc2);
 
   }
