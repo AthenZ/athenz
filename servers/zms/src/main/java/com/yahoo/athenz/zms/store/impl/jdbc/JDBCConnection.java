@@ -700,8 +700,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     Map<String, Integer> objectMap;
     boolean transactionCompleted;
     DomainOptions domainOptions;
-    private static Map<String, List<String>> SERVER_TRUST_ROLES_MAP;
-    private static long SERVER_TRUST_ROLES_TIMESTAMP;
+    private volatile static Map<String, List<String>> SERVER_TRUST_ROLES_MAP;
+    private volatile static long SERVER_TRUST_ROLES_TIMESTAMP;
     private static final long SERVER_TRUST_ROLES_UPDATE_TIMEOUT = Long.parseLong(
             System.getProperty(ZMSConsts.ZMS_PROP_MYSQL_SERVER_TRUST_ROLES_UPDATE_TIMEOUT, "600000"));
 
