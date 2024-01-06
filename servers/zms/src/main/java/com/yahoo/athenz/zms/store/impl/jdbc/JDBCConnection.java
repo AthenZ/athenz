@@ -700,6 +700,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     Map<String, Integer> objectMap;
     boolean transactionCompleted;
     DomainOptions domainOptions;
+    private Object synchronizer = new Object();
     private volatile static Map<String, List<String>> SERVER_TRUST_ROLES_MAP;
     private volatile static long SERVER_TRUST_ROLES_TIMESTAMP;
     private static final long SERVER_TRUST_ROLES_UPDATE_TIMEOUT = Long.parseLong(
@@ -710,6 +711,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         con.setAutoCommit(autoCommit);
         transactionCompleted = autoCommit;
         objectMap = new HashMap<>();
+    }
+
+    public void setObjectSynchronizer(Object synchronizer) {
+        this.synchronizer = synchronizer;
     }
 
     /**
@@ -4652,7 +4657,6 @@ public class JDBCConnection implements ObjectStoreConnection {
         long now = System.currentTimeMillis();
         if (SERVER_TRUST_ROLES_MAP == null || now - SERVER_TRUST_ROLES_TIMESTAMP > SERVER_TRUST_ROLES_UPDATE_TIMEOUT) {
             updateTrustRolesMap(now, true, caller);
-
         } else {
 
             // we want to make sure to capture any additions right away, so we'll get
@@ -4668,33 +4672,36 @@ public class JDBCConnection implements ObjectStoreConnection {
         return SERVER_TRUST_ROLES_MAP;
     }
 
-    synchronized void updateTrustRolesMap(long lastTimeStamp, boolean timeoutUpdate, final String caller) {
+    void updateTrustRolesMap(long lastTimeStamp, boolean timeoutUpdate, final String caller) {
 
-        // a couple of simple checks in case we already have a valid
-        // map to see if we can skip updating the map
+        synchronized (synchronizer) {
 
-        if (SERVER_TRUST_ROLES_MAP != null) {
+            // a couple of simple checks in case we already have a valid
+            // map to see if we can skip updating the map
 
-            // if our last timestamp is older than the one we have
-            // then we're going to skip the update
+            if (SERVER_TRUST_ROLES_MAP != null) {
 
-            if (SERVER_TRUST_ROLES_TIMESTAMP >= lastTimeStamp) {
-                return;
+                // if our last timestamp is older than the one we have
+                // then we're going to skip the update
+
+                if (SERVER_TRUST_ROLES_TIMESTAMP >= lastTimeStamp) {
+                    return;
+                }
+
+                // if this is a timeout update we're going to check if the map
+                // has already been updated by another thread while we were waiting
+
+                if (timeoutUpdate && lastTimeStamp - SERVER_TRUST_ROLES_TIMESTAMP < SERVER_TRUST_ROLES_UPDATE_TIMEOUT) {
+                    return;
+                }
             }
 
-            // if this is a timeout update we're going to check if the map
-            // has already been updated by another thread while we were waiting
-
-            if (timeoutUpdate && lastTimeStamp - SERVER_TRUST_ROLES_TIMESTAMP < SERVER_TRUST_ROLES_UPDATE_TIMEOUT) {
-                return;
-            }
+            Map<String, List<String>> trustedRoles = new HashMap<>();
+            getTrustedSubTypeRoles(SQL_LIST_TRUSTED_STANDARD_ROLES, trustedRoles, caller);
+            getTrustedSubTypeRoles(SQL_LIST_TRUSTED_WILDCARD_ROLES, trustedRoles, caller);
+            SERVER_TRUST_ROLES_TIMESTAMP = lastTimeStamp;
+            SERVER_TRUST_ROLES_MAP = trustedRoles;
         }
-
-        Map<String, List<String>> trustedRoles = new HashMap<>();
-        getTrustedSubTypeRoles(SQL_LIST_TRUSTED_STANDARD_ROLES, trustedRoles, caller);
-        getTrustedSubTypeRoles(SQL_LIST_TRUSTED_WILDCARD_ROLES, trustedRoles, caller);
-        SERVER_TRUST_ROLES_TIMESTAMP = lastTimeStamp;
-        SERVER_TRUST_ROLES_MAP = trustedRoles;
     }
 
     void addRoleAssertions(List<Assertion> principalAssertions, List<Assertion> roleAssertions) {
