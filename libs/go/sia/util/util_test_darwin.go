@@ -109,3 +109,23 @@ func TestUidGidForUserGroupCommand(t *testing.T) {
 		t.Errorf("Unexpected gid value returned: %d, expected: 0", testGid)
 	}
 }
+
+func TestValidateScriptArgumens(t *testing.T) {
+	// Test if function returns true for valid script path.
+	if !validateScriptArguments([]string{"/bin/sh", "-c", "/bin/ls"}) {
+		t.Errorf("Unexpected return value for valid script path")
+		return
+	}
+
+	// Test if function returns true for empty path
+	if !validateScriptArguments([]string{""}) {
+		t.Errorf("Unexpected return value for valid script path")
+		return
+	}
+
+	// Test if function returns false for invalid script path.
+	if validateScriptArguments([]string{"ls", "-l"}) {
+		t.Errorf("Unexpected return value for invalid script path")
+		return
+	}
+}

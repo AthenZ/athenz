@@ -149,16 +149,16 @@ func ZtsClient(ztsUrl, ztsServerName string, keyFile, certFile, caCertFile strin
 		if caCertFile != "" {
 			log.Printf("ZTS Client: CA certificate file: %s\n", caCertFile)
 		}
-		config, err := tlsConfiguration(keyFile, certFile, caCertFile)
+		tlsConfig, err := tlsConfiguration(keyFile, certFile, caCertFile)
 		if err != nil {
 			return nil, err
 		}
 		if ztsServerName != "" {
 			log.Printf("ZTS Client: Server Name: %s\n", ztsServerName)
-			config.ServerName = ztsServerName
+			tlsConfig.ServerName = ztsServerName
 		}
 		tr := &http.Transport{
-			TLSClientConfig: config,
+			TLSClientConfig: tlsConfig,
 			Proxy:           http.ProxyFromEnvironment,
 		}
 		client := zts.NewClient(ztsUrl, tr)
@@ -1181,8 +1181,7 @@ func ParseScriptArguments(script string) []string {
 		log.Printf("invalid script: %q, err: %v\n", script, err)
 		return []string{}
 	}
-	if len(parts) != 0 && !strings.HasPrefix(parts[0], "/") {
-		log.Printf("script path should be a fully qualified path: %q\n", script)
+	if !validateScriptArguments(parts) {
 		return []string{}
 	}
 
