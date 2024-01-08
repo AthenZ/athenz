@@ -20,6 +20,27 @@ class StringUtils {
     isEmpty(str) {
         return !str || str.length === 0;
     }
+
+    getScopeString(item) {
+        let scopeStr = '';
+        if (item['scopeall'] === 'true') {
+            scopeStr += 'All';
+        } else if (
+            item['scopeonprem'] === 'true' ||
+            item['scopeaws'] === 'true'
+        ) {
+            if (item['scopeonprem'] === 'true') {
+                scopeStr += 'OnPrem ';
+            }
+            if (item['scopeaws'] === 'true') {
+                scopeStr += 'AWS ';
+            }
+        } else {
+            // Backward compatability - if no scope, assume on-prem
+            scopeStr += 'OnPrem';
+        }
+        return scopeStr.split(' ').sort().join(' ');
+    }
 }
 
 export default StringUtils;

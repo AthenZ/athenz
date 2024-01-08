@@ -30,6 +30,7 @@ import { connect } from 'react-redux';
 import { deleteTransportRule } from '../../redux/thunks/microsegmentation';
 import { deleteAssertionCondition } from '../../redux/thunks/policies';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import StringUtils from '../utils/StringUtils';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -98,6 +99,7 @@ export class RuleRow extends React.Component {
             showEditSegmentation: false,
         };
         this.localDate = new DateUtils();
+        this.stringUtils = new StringUtils();
     }
 
     saveJustification(val) {
@@ -317,6 +319,17 @@ export class RuleRow extends React.Component {
             ''
         );
 
+        let scope = new Set();
+        if (data && data['conditionsList']) {
+            data['conditionsList'].forEach((item) => {
+                scope.add(this.stringUtils.getScopeString(item));
+            });
+        } else {
+            // Backward compatability - if no scope, assume on-prem
+            scope.add('OnPrem');
+        }
+        scope = [...scope].sort().join(' ');
+
         rows.push(
             <TrStyled key={key} data-testid='segmentation-row'>
                 <TDStyled color={color} align={left}>
@@ -389,6 +402,10 @@ export class RuleRow extends React.Component {
 
                 <TDStyled color={color} align={left}>
                     {data['layer']}
+                </TDStyled>
+
+                <TDStyled color={color} align={left}>
+                    {scope}
                 </TDStyled>
 
                 <GroupTDStyled color={color} align={center}>

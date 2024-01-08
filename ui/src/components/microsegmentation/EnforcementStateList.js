@@ -22,6 +22,7 @@ import { colors } from '../denali/styles';
 import Menu from '../denali/Menu/Menu';
 import DeleteModal from '../modal/DeleteModal';
 import RequestUtils from '../utils/RequestUtils';
+import StringUtils from '../utils/StringUtils';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -66,34 +67,13 @@ class EnforcementStateList extends React.Component {
     constructor(props) {
         super(props);
         this.localDate = new DateUtils();
-        this.getScopeString = this.getScopeString.bind(this);
+        this.stringUtils = new StringUtils();
     }
 
     onClickDelete(assertionId, conditionId, policyName) {
         if (this.props.list.length > 1) {
             this.props.deleteCondition(assertionId, conditionId, policyName);
         }
-    }
-
-    getScopeString(item) {
-        let scopeStr = '';
-        if (item['scopeall'] === 'true') {
-            scopeStr += 'All';
-        } else if (
-            item['scopeonprem'] === 'true' ||
-            item['scopeaws'] === 'true'
-        ) {
-            if (item['scopeonprem'] === 'true') {
-                scopeStr += 'OnPrem ';
-            }
-            if (item['scopeaws'] === 'true') {
-                scopeStr += 'AWS ';
-            }
-        } else {
-            // Backward compatability - if no scope, assume on-prem
-            scopeStr += 'OnPrem';
-        }
-        return scopeStr;
     }
 
     render() {
@@ -109,7 +89,7 @@ class EnforcementStateList extends React.Component {
                     item['id'],
                     policyName[1]
                 );
-                let scopeString = this.getScopeString(item);
+                let scopeString = this.stringUtils.getScopeString(item);
                 return (
                     <StyledTr key={item + i + new Date().getTime()}>
                         <StyledTd>{item['enforcementstate']}</StyledTd>
