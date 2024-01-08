@@ -183,6 +183,7 @@ class AddSegmentation extends React.Component {
                 instances: '',
                 scopeonprem: 'true',
                 scopeaws: 'false',
+                scopegcp: 'false',
                 scopeall: 'false',
                 id: 1,
             },
@@ -196,6 +197,7 @@ class AddSegmentation extends React.Component {
                 if (
                     pesList[i].scopeonprem !== 'true' &&
                     pesList[i].scopeaws !== 'true' &&
+                    pesList[i].scopegcp !== 'true' &&
                     pesList[i].scopeall !== 'true'
                 ) {
                     pesList[i].scopeonprem = 'true';
@@ -236,13 +238,13 @@ class AddSegmentation extends React.Component {
             members: this.props.editMode
                 ? this.props.data['category'] === 'inbound'
                     ? this.props.data['source_services'].map((str) => ({
-                          memberName: str,
-                          approved: true,
-                      }))
+                        memberName: str,
+                        approved: true,
+                    }))
                     : this.props.data['destination_services'].map((str) => ({
-                          memberName: str,
-                          approved: true,
-                      }))
+                        memberName: str,
+                        approved: true,
+                    }))
                 : [],
             protocolValid: true,
             action: '',
@@ -356,6 +358,7 @@ class AddSegmentation extends React.Component {
             if (
                 pesList[i].scopeonprem != 'true' &&
                 pesList[i].scopeaws != 'true' &&
+                pesList[i].scopegcp !== 'true' &&
                 pesList[i].scopeall != 'true'
             ) {
                 return false;
@@ -1063,6 +1066,7 @@ class AddSegmentation extends React.Component {
                         other.scopeall == current.scopeall &&
                         other.scopeonprem == current.scopeonprem &&
                         other.scopeaws == current.scopeaws &&
+                        other.scopegcp == current.scopegcp &&
                         other.id == current.id
                 ).length == 0;
 
@@ -1231,12 +1235,16 @@ class AddSegmentation extends React.Component {
         } else if (name.includes('scopeall')) {
             list[index]['scopeall'] = checkedStr;
             list[index]['scopeaws'] = 'false';
+            list[index]['scopegcp'] = 'false';
             list[index]['scopeonprem'] = 'false';
             this.toggleDisableRadioButton(checked, list, index, inputs);
         } else if (name.includes('scopeonprem')) {
             list[index]['scopeonprem'] = checkedStr;
         } else if (name.includes('scopeaws')) {
             list[index]['scopeaws'] = checkedStr;
+            this.toggleDisableRadioButton(checked, list, index, inputs);
+        } else if (name.includes('scopegcp')) {
+            list[index]['scopegcp'] = checkedStr;
             this.toggleDisableRadioButton(checked, list, index, inputs);
         }
         this.setState({
@@ -1260,6 +1268,7 @@ class AddSegmentation extends React.Component {
                     scopeonprem: 'true',
                     scopeaws: 'false',
                     scopeall: 'false',
+                    scopegcp: 'false',
                 },
             ],
         });
@@ -1277,19 +1286,19 @@ class AddSegmentation extends React.Component {
     render() {
         let members = this.state.members
             ? this.state.members.map((item, idx) => {
-                  // dummy place holder so that it can be be used in the form
-                  const newItem = { ...item };
-                  newItem.approved = true;
-                  let remove = this.deleteMember.bind(this, idx);
-                  return (
-                      <Member
-                          key={idx}
-                          item={newItem}
-                          onClickRemove={remove}
-                          noanim
-                      />
-                  );
-              })
+                // dummy place holder so that it can be be used in the form
+                const newItem = { ...item };
+                newItem.approved = true;
+                let remove = this.deleteMember.bind(this, idx);
+                return (
+                    <Member
+                        key={idx}
+                        item={newItem}
+                        onClickRemove={remove}
+                        noanim
+                    />
+                );
+            })
             : '';
 
         let sections = (
@@ -1388,6 +1397,17 @@ class AddSegmentation extends React.Component {
                                         id={'scopeawsCheckBox' + i}
                                         key={'scopeawsCheckBox' + i}
                                         label='AWS'
+                                        onChange={(e) =>
+                                            this.handleInputChange(e, i)
+                                        }
+                                    />
+                                    <StyledCheckBox
+                                        checked={x.scopegcp === 'true'}
+                                        disabled={x.scopeall === 'true'}
+                                        name={'scopegcpCheckBox' + i}
+                                        id={'scopegcpCheckBox' + i}
+                                        key={'scopegcpCheckBox' + i}
+                                        label='GCP'
                                         onChange={(e) =>
                                             this.handleInputChange(e, i)
                                         }

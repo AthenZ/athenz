@@ -27,7 +27,8 @@ class StringUtils {
             scopeStr += 'All';
         } else if (
             item['scopeonprem'] === 'true' ||
-            item['scopeaws'] === 'true'
+            item['scopeaws'] === 'true' ||
+            item['scopegcp'] === 'true'
         ) {
             if (item['scopeonprem'] === 'true') {
                 scopeStr += 'OnPrem ';
@@ -35,11 +36,14 @@ class StringUtils {
             if (item['scopeaws'] === 'true') {
                 scopeStr += 'AWS ';
             }
+            if (item['scopegcp'] === 'true') {
+                scopeStr += 'GCP ';
+            }
         } else {
             // Backward compatability - if no scope, assume on-prem
             scopeStr += 'OnPrem';
         }
-        return scopeStr.split(' ').sort().join(' ');
+        return scopeStr;
     }
 }
 

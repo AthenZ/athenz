@@ -495,7 +495,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 4.5px;
 }
 
-.emotion-53 {
+.emotion-56 {
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
   display: -ms-inline-flexbox;
@@ -506,18 +506,18 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   flex-flow: row nowrap;
 }
 
-.emotion-53>* {
+.emotion-56>* {
   -webkit-flex: 1 0 auto;
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
 }
 
-.emotion-54 {
+.emotion-57 {
   padding-top: 18px;
   width: 26%;
 }
 
-.emotion-56 {
+.emotion-59 {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   box-sizing: border-box;
@@ -530,7 +530,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   vertical-align: bottom;
 }
 
-.emotion-56>input[type='radio'] {
+.emotion-59>input[type='radio'] {
   box-sizing: border-box;
   cursor: pointer;
   display: inline-block;
@@ -539,7 +539,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   visibility: hidden;
 }
 
-.emotion-56>input[type='radio']+label {
+.emotion-59>input[type='radio']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -552,7 +552,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   white-space: nowrap;
 }
 
-.emotion-56>input[type='radio']+label:before {
+.emotion-59>input[type='radio']+label:before {
   background: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -568,29 +568,29 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 16px;
 }
 
-.emotion-56>input[type='radio']:hover+label:before {
+.emotion-59>input[type='radio']:hover+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-56>input[type='radio']:focus+label:before {
+.emotion-59>input[type='radio']:focus+label:before {
   border: 2px solid rgba(54,151,242,0.5);
 }
 
-.emotion-56>input[type='radio']:checked+label:before {
+.emotion-59>input[type='radio']:checked+label:before {
   border: 2px solid #3697f2;
 }
 
-.emotion-56>input[type='radio']:disabled+label {
+.emotion-59>input[type='radio']:disabled+label {
   color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-56>input[type='radio']:disabled+label:before {
+.emotion-59>input[type='radio']:disabled+label:before {
   border: 2px solid #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-56>input[type='radio']:checked+label:after {
+.emotion-59>input[type='radio']:checked+label:after {
   background-color: #3697f2;
   border-radius: 50%;
   box-sizing: border-box;
@@ -605,14 +605,14 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8px;
 }
 
-.emotion-56>input[type='radio']:disabled:checked+label:after {
+.emotion-59>input[type='radio']:disabled:checked+label:after {
   color: #d5d5d5;
   border: 2px solid #d5d5d5;
   background-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-59 {
+.emotion-62 {
   float: left;
   font-size: 14px;
   font-weight: 700;
@@ -620,35 +620,35 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
   width: 8%;
 }
 
-.emotion-62 {
+.emotion-65 {
   width: 415px;
   padding-top: 12px;
 }
 
-.emotion-64 {
+.emotion-67 {
   margin-top: 5px;
   margin-left: 10px;
   padding-top: 12px;
 }
 
-.emotion-66 {
+.emotion-69 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-72 {
+.emotion-75 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
   margin-right: 1px;
 }
 
-.emotion-90 {
+.emotion-93 {
   width: 65%;
 }
 
-.emotion-99 {
+.emotion-102 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -832,6 +832,22 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
               AWS
             </label>
           </div>
+          <div
+            class="emotion-39 denali-checkbox emotion-40 emotion-41"
+            data-testid="checkbox-wrapper"
+          >
+            <input
+              data-partial="false"
+              id="scopegcpCheckBox0"
+              name="scopegcpCheckBox0"
+              type="checkbox"
+            />
+            <label
+              for="scopegcpCheckBox0"
+            >
+              GCP
+            </label>
+          </div>
         </div>
       </div>
       <div
@@ -843,11 +859,11 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           Policy Enforcement State
         </label>
         <div
-          class="emotion-53 denali-radiobutton-group emotion-54 emotion-55"
+          class="emotion-56 denali-radiobutton-group emotion-57 emotion-58"
           data-testid="radiobuttongroup"
         >
           <div
-            class="emotion-56 denali-radiobutton"
+            class="emotion-59 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -864,7 +880,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
             </label>
           </div>
           <div
-            class="emotion-56 denali-radiobutton"
+            class="emotion-59 denali-radiobutton"
             data-testid="radiobutton-wrapper"
           >
             <input
@@ -881,12 +897,12 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           </div>
         </div>
         <label
-          class="emotion-6 denali-input-label emotion-59 emotion-295"
+          class="emotion-6 denali-input-label emotion-62 emotion-295"
         >
           Hosts
         </label>
         <div
-          class="emotion-19 denali-input emotion-62 emotion-292"
+          class="emotion-19 denali-input emotion-65 emotion-292"
           data-testid="input-wrapper"
         >
           <input
@@ -902,10 +918,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
           />
         </div>
         <div
-          class="emotion-64 emotion-291"
+          class="emotion-67 emotion-291"
         >
           <svg
-            class="emotion-66"
+            class="emotion-69"
             data-testid="icon"
             height="1.75em"
             id=""
@@ -934,7 +950,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Destination Port(s)
       </label>
       <div
-        class="emotion-72 emotion-73"
+        class="emotion-75 emotion-76"
       >
         <div
           class="emotion-19 denali-input emotion-20 emotion-21"
@@ -984,7 +1000,7 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         class="emotion-6 denali-input-label emotion-7 emotion-8"
       />
       <div
-        class="emotion-90 emotion-91"
+        class="emotion-93 emotion-94"
       />
     </div>
     <div
@@ -996,10 +1012,10 @@ exports[`AddSegmentation should render fail to submit add-segmentation: destinat
         Source Port(s)
       </label>
       <div
-        class="emotion-72 emotion-73"
+        class="emotion-75 emotion-76"
       >
         <div
-          class="emotion-99 emotion-100"
+          class="emotion-102 emotion-103"
         >
           <div
             class="emotion-19 denali-input emotion-20 emotion-21"

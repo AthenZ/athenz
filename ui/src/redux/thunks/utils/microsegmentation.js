@@ -79,7 +79,7 @@ export const buildInboundOutbound = (domainName, state) => {
                                     tempCondition[key] =
                                         condition['conditionsMap'][key][
                                             'value'
-                                        ];
+                                            ];
                                 }
                             );
                             tempCondition['id'] = condition['id'];
@@ -121,11 +121,11 @@ export const buildInboundOutbound = (domainName, state) => {
                         if (category === 'inbound') {
                             jsonData[category][index - 1][
                                 'source_services'
-                            ].push(roleMember.memberName);
+                                ].push(roleMember.memberName);
                         } else if (category === 'outbound') {
                             jsonData[category][index - 1][
                                 'destination_services'
-                            ].push(roleMember.memberName);
+                                ].push(roleMember.memberName);
                         }
                     });
                 }
@@ -195,6 +195,7 @@ export const editMicrosegmentationHandler = async (
                 scopeall,
                 scopeaws,
                 scopeonprem,
+                scopegcp,
             } = condition;
             conditionsList.push({
                 enforcementstate,
@@ -203,6 +204,7 @@ export const editMicrosegmentationHandler = async (
                 scopeall,
                 scopeaws,
                 scopeonprem,
+                scopegcp,
             });
         }
     }
