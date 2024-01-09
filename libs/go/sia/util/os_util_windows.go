@@ -53,3 +53,7 @@ func SyscallSetUid(uid int) error {
 
 func setupDirOwnership(siaDir string, ownerUid, ownerGid int) {
 }
+
+func validateScriptArguments(args []string) bool {
+	return true
+}

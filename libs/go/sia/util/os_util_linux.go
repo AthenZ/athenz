@@ -201,3 +201,13 @@ func SyscallSetGid(gid int) error {
 func SyscallSetUid(uid int) error {
 	return syscall.Setuid(uid)
 }
+
+func validateScriptArguments(args []string) bool {
+
+	if len(args) != 0 && !strings.HasPrefix(args[0], "/") {
+		log.Printf("script must start with fully qualified path: %s\n", args[0])
+		return false
+	}
+
+	return true
+}
