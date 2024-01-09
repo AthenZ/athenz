@@ -33,6 +33,7 @@ public class JDBCObjectStore implements ObjectStore {
     private int serviceTagsLimit;
     private int policyTagsLimit;
     private DomainOptions domainOptions;
+    private final Object synchronizer = new Object();
 
     public JDBCObjectStore(PoolableDataSource rwSrc, PoolableDataSource roSrc) {
         this.rwSrc = rwSrc;
@@ -52,6 +53,7 @@ public class JDBCObjectStore implements ObjectStore {
         try {
             PoolableDataSource src = readWrite ? rwSrc : roSrc;
             JDBCConnection jdbcConn = new JDBCConnection(src.getConnection(), autoCommit);
+            jdbcConn.setObjectSynchronizer(synchronizer);
             jdbcConn.setOperationTimeout(opTimeout);
             jdbcConn.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit, serviceTagsLimit);
             jdbcConn.setDomainOptions(domainOptions);
