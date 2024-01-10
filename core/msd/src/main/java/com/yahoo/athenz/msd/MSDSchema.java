@@ -638,7 +638,7 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicyRequest", "PUT", "/domain/{domainName}/service/{serviceName}/transportpolicy")
-            .comment("API endpoint to create a transport policy for a given domain and service")
+            .comment("This API endpoint facilitates the creation or update of a transport policy for a specified domain and service. It is designed exclusively for the purpose of creating or updating transport policies, and does not support mixed-case scenarios. Once a transport policy is established, the destination service, protocol, and both source and destination ports become non-editable. To modify any of these fields, it is necessary to create a new policy and delete the old one.")
             .name("putTransportPolicy")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "Name of the service")
@@ -677,7 +677,7 @@ public class MSDSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("TransportPolicyRules", "DELETE", "/domain/{domainName}/service/{serviceName}/{id}")
+        sb.resource("TransportPolicyRules", "DELETE", "/domain/{domainName}/service/{serviceName}/transportpolicy/{id}")
             .comment("API endpoint to delete the transport policy Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
             .name("deleteTransportPolicy")
             .pathParam("domainName", "DomainName", "Name of the domain")
