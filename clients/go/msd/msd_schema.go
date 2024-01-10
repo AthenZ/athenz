@@ -709,7 +709,7 @@ func init() {
 	sb.AddResource(mGetTransportPolicyRulesByDomain.Build())
 
 	mPutTransportPolicy := rdl.NewResourceBuilder("TransportPolicyRules", "PUT", "/domain/{domainName}/service/{serviceName}/transportpolicy")
-	mPutTransportPolicy.Comment("API endpoint to create a transport policy for a given domain and service")
+	mPutTransportPolicy.Comment("This API endpoint facilitates the creation or update of a transport policy for a specified domain and service. It is designed exclusively for the purpose of creating or updating transport policies, and does not support mixed-case scenarios. Once a transport policy is established, the destination service, protocol, and both source and destination ports become non-editable. To modify any of these fields, it is necessary to create a new policy and delete the old one.")
 	mPutTransportPolicy.Name("putTransportPolicy")
 	mPutTransportPolicy.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mPutTransportPolicy.Input("serviceName", "EntityName", true, "", "", false, nil, "Name of the service")
@@ -739,7 +739,7 @@ func init() {
 	mGetTransportPolicyRulesByService.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mGetTransportPolicyRulesByService.Build())
 
-	mDeleteTransportPolicy := rdl.NewResourceBuilder("TransportPolicyRules", "DELETE", "/domain/{domainName}/service/{serviceName}/{id}")
+	mDeleteTransportPolicy := rdl.NewResourceBuilder("TransportPolicyRules", "DELETE", "/domain/{domainName}/service/{serviceName}/transportpolicy/{id}")
 	mDeleteTransportPolicy.Comment("API endpoint to delete the transport policy Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
 	mDeleteTransportPolicy.Name("deleteTransportPolicy")
 	mDeleteTransportPolicy.Input("domainName", "DomainName", true, "", "", false, nil, "Name of the domain")

@@ -518,7 +518,7 @@ func (client MSDClient) DeleteTransportPolicy(domainName DomainName, serviceName
 	headers := map[string]string{
 		"Y-Audit-Ref": auditRef,
 	}
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/" + fmt.Sprint(id)
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/transportpolicy/" + fmt.Sprint(id)
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err

@@ -329,7 +329,7 @@ public class MSDRDLGeneratedClient {
     }
 
     public TransportPolicyRules deleteTransportPolicy(String domainName, String serviceName, Long id, String auditRef) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/{id}")
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/transportpolicy/{id}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("id", id);
