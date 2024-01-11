@@ -43,7 +43,7 @@ class StringUtils {
             // Backward compatability - if no scope, assume on-prem
             scopeStr += 'OnPrem';
         }
-        return scopeStr;
+        return scopeStr.split(' ').sort().join(' ');
     }
 }
 
