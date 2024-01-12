@@ -141,12 +141,12 @@ class EnforcementStateList extends React.Component {
             >
                 <StyleTable>
                     <thead>
-                        <StyledTr>
-                            <StyledTh> Enforcement State </StyledTh>
-                            <StyledTh> Hosts </StyledTh>
-                            <StyledTh> Scope </StyledTh>
-                            <StyledTh> Action </StyledTh>
-                        </StyledTr>
+                    <StyledTr>
+                        <StyledTh> Enforcement State </StyledTh>
+                        <StyledTh> Hosts </StyledTh>
+                        <StyledTh> Scope </StyledTh>
+                        <StyledTh> Action </StyledTh>
+                    </StyledTr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </StyleTable>
