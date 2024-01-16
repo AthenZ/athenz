@@ -182,7 +182,12 @@ exports[`GCP Login Page should render projects api returns results 1`] = `
         value=""
       />
       <input
-        name="isAdmin"
+        name="userAuthority"
+        type="hidden"
+        value="dev"
+      />
+      <input
+        name="startPath"
         type="hidden"
         value=""
       />

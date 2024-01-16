@@ -81,16 +81,20 @@ const SubmitContainer = styled.div`
     display: flex;
 `;
 
-function getAssertionsFromResourceAccessList(resourceAccessList, isAdmin) {
+function getAssertionsFromResourceAccessList(resourceAccessList, userAuthority) {
     let assertionsList = [];
     if (resourceAccessList.resources) {
         resourceAccessList.resources.forEach(function (resources) {
             resources.assertions.forEach(function (assertion) {
+                if (userAuthority === 'all') {
+                    assertionsList.push(assertion);
+                    return;
+                }
                 if (assertion.role.toLowerCase().indexOf('admin') > -1) {
-                    if (isAdmin) {
+                    if (userAuthority === 'admin') {
                         assertionsList.push(assertion);
                     }
-                } else if (!isAdmin) {
+                } else if (userAuthority === 'dev') {
                     assertionsList.push(assertion);
                 }
             });
@@ -139,6 +143,8 @@ export async function getServerSideProps(context) {
 
     let queryParams = context.query || {};
     let isAdmin = queryParams.isAdmin === 'true';
+    let userAuthority = queryParams.userAuthority || 'dev';
+    let startPath = queryParams.startPath || '';
     let projectDomainName = queryParams.projectDomainName || '';
     let validationError = queryParams.validationError || '';
     return {
@@ -148,6 +154,8 @@ export async function getServerSideProps(context) {
             error,
             validationError,
             isAdmin,
+            startPath,
+            userAuthority,
             projectDomainName,
             _csrf: domains[0],
         },
@@ -199,10 +207,10 @@ class GCPLoginPage extends React.Component {
     }
 
     getAssertionList() {
-        const { resourceAccessList, isAdmin, projectDomainName } = this.props;
+        const { resourceAccessList, isAdmin, projectDomainName, userAuthority } = this.props;
         let assertionsList = getAssertionsFromResourceAccessList(
             resourceAccessList,
-            isAdmin
+            userAuthority
         );
         // filter project list if projectDomainName is specified in the query
         if (projectDomainName) {
@@ -312,8 +320,13 @@ class GCPLoginPage extends React.Component {
                         ></input>
                         <input
                             type='hidden'
-                            name='isAdmin'
-                            value={this.props.isAdmin}
+                            name='userAuthority'
+                            value={this.props.userAuthority}
+                        ></input>
+                        <input
+                            type='hidden'
+                            name='startPath'
+                            value={this.props.startPath}
                         ></input>
                         <StyledP>Select a role:</StyledP>
                         {displayProjects}

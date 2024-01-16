@@ -57,7 +57,9 @@ describe('GCP Login Page', () => {
                 .mockReturnValue(Promise.resolve(testData)),
         };
         MockApi.setMockApi(mockApi);
-        const { getByTestId } = renderWithRedux(<GCPLoginPage />);
+        const { getByTestId } = renderWithRedux(<GCPLoginPage
+            userAuthority='dev'
+         />);
         await waitFor(() => expect(getByTestId('gcp-login')).toMatchSnapshot());
     });
 });
