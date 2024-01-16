@@ -1,3 +1,18 @@
+Athenz v1.11.50 Release / Jan 16, 2024
+--------------------------------------
+
+#2471 UI: add scope field to micro-segmentation table
+#2472 use relocated mysql artifact id
+#2474 support for IMSDv2 when reading AWS metadata
+#2475 delete transport policies api, optional attribute for existing api
+#2476 maintain a static map of trusted roles for resource list lookup api
+#2477 don't use --user flag for local
+#2478 mark trust role vars as volatile
+#2479 remove sia run-after script path starting with / on windows
+#2481 Change transport policy delete endpoint to match with create
+#2480 UI: Add GCP scope for micro-segmentation policy
+#2482 UI: Bump follow-redirects from 1.15.1 to 1.15.4 in /ui
+
 Athenz v1.11.49 Release / Jan 03, 2024
 --------------------------------------
 
