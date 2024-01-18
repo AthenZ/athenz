@@ -307,20 +307,7 @@ describe('Fetchr Server API Test', () => {
                                           principal: 'user.dummy1',
                                           assertions: [
                                               {
-                                                  role: 'dummy.project:role.gcp.fed.power.user',
-                                                  resource:
-                                                      'dummy.project:fed.power.user',
-                                                  action: 'gcp.assume_role',
-                                                  effect: 'ALLOW',
-                                                  id: 1,
-                                              },
-                                              {
-                                                  role: 'dummy.project2:role.gcp.fed.admin.user',
-                                                  resource:
-                                                      'dummy.project2:fed.admin.user',
-                                                  action: 'gcp.assume_role',
-                                                  effect: 'ALLOW',
-                                                  id: 2,
+                                                  dummyProperty: 'dummyValue'
                                               },
                                           ],
                                       },
@@ -1325,18 +1312,7 @@ describe('Fetchr Server API Test', () => {
                             principal: 'user.dummy1',
                             assertions: [
                                 {
-                                    role: 'dummy.project:role.gcp.fed.power.user',
-                                    resource: 'dummy.project:fed.power.user',
-                                    action: 'gcp.assume_role',
-                                    effect: 'ALLOW',
-                                    id: 1,
-                                },
-                                {
-                                    role: 'dummy.project2:role.gcp.fed.admin.user',
-                                    resource: 'dummy.project2:fed.admin.user',
-                                    action: 'gcp.assume_role',
-                                    effect: 'ALLOW',
-                                    id: 2,
+                                    dummyProperty: 'dummyValue'
                                 },
                             ],
                         },
