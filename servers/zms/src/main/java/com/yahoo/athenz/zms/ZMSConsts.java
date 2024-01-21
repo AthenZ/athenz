@@ -99,6 +99,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SERVICE_NAME_MIN_LENGTH = "athenz.zms.service_name_min_length";
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS     = "athenz.zms.max_policy_versions";
     public static final String ZMS_PROP_DOMAIN_CONTACT_TYPES    = "athenz.zms.domain_contact_types";
+    public static final String ZMS_PROP_DOMAIN_ENVIRONMENTS     = "athenz.zms.domain_environments";
+
+    public static final String ZMS_DEFAULT_DOMAIN_ENVIRONMENTS  = "production,integration,staging,sandbox,qa,development";
 
     public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
@@ -275,6 +278,7 @@ public final class ZMSConsts {
     public static final String DB_COLUMN_MAX_MEMBERS        = "max_members";
     public static final String DB_COLUMN_SELF_RENEW         = "self_renew";
     public static final String DB_COLUMN_SELF_RENEW_MINS    = "self_renew_mins";
+    public static final String DB_COLUMN_ENVIRONMENT        = "environment";
 
     public static final String DB_COLUMN_SERVICE_REVIEW_DAYS      = "service_review_days";
     public static final String DB_COLUMN_SERVICE_EXPIRY_DAYS      = "service_expiry_days";

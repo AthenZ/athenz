@@ -4183,7 +4183,8 @@ public class DBService implements RolesProvider {
                         .setBusinessService(domain.getBusinessService())
                         .setMemberPurgeExpiryDays(domain.getMemberPurgeExpiryDays())
                         .setFeatureFlags(domain.getFeatureFlags())
-                        .setContacts(domain.getContacts());
+                        .setContacts(domain.getContacts())
+                        .setEnvironment(domain.getEnvironment());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4541,6 +4542,9 @@ public class DBService implements RolesProvider {
         }
         if (meta.getContacts() != null) {
             domain.setContacts(meta.getContacts());
+        }
+        if (meta.getEnvironment() != null) {
+            domain.setEnvironment(meta.getEnvironment());
         }
     }
 

@@ -89,6 +89,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> contacts;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String environment;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -272,6 +275,13 @@ public class DomainData {
     public Map<String, String> getContacts() {
         return contacts;
     }
+    public DomainData setEnvironment(String environment) {
+        this.environment = environment;
+        return this;
+    }
+    public String getEnvironment() {
+        return environment;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -402,6 +412,9 @@ public class DomainData {
                 return false;
             }
             if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
+                return false;
+            }
+            if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

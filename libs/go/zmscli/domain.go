@@ -786,6 +786,23 @@ func (cli Zms) SetDomainUserAuthorityFilter(dn, filter string) (*string, error) 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetDomainEnvironment(dn, environment string) (*string, error) {
+	meta := zms.DomainMeta{
+		Environment: environment,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "environment", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " metadata successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetDomainContact(dn, contactType, contactUser string) (*string, error) {
 	domain, err := cli.Zms.GetDomain(zms.DomainName(dn))
 	if err != nil {

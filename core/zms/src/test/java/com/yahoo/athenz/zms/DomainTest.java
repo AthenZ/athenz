@@ -85,7 +85,7 @@ public class DomainTest {
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
-                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
+                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -116,6 +116,7 @@ public class DomainTest {
         assertEquals(dm.getProductId(), "abcd-1234");
         assertEquals(dm.getFeatureFlags(), 3);
         assertEquals(dm.getContacts(), Map.of("pe-owner", "user.test"));
+        assertEquals(dm.getEnvironment(), "production");
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -126,10 +127,17 @@ public class DomainTest {
                 .setAzureSubscription("azure").setGcpProject("gcp").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProjectNumber("1240").setProductId("abcd-1234")
-                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
+                .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
+
+        dm2.setEnvironment("staging");
+        assertNotEquals(dm, dm2);
+        dm2.setEnvironment(null);
+        assertNotEquals(dm, dm2);
+        dm2.setEnvironment("production");
+        assertEquals(dm, dm2);
 
         dm2.setContacts(Map.of("product-owner", "user.test"));
         assertNotEquals(dm, dm2);
@@ -312,7 +320,7 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -346,6 +354,7 @@ public class DomainTest {
         assertEquals(tld.getProductId(), "abcd-1234");
         assertEquals(tld.getFeatureFlags(), 3);
         assertEquals(tld.getContacts(), Map.of("pe-owner", "user.test"));
+        assertEquals(tld.getEnvironment(), "production");
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -355,10 +364,17 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1242").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
+
+        tld2.setEnvironment("staging");
+        assertNotEquals(tld, tld2);
+        tld2.setEnvironment(null);
+        assertNotEquals(tld, tld2);
+        tld2.setEnvironment("production");
+        assertEquals(tld, tld2);
 
         tld2.setContacts(Map.of("product-owner", "user.test"));
         assertNotEquals(tld, tld2);
@@ -529,7 +545,7 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -564,6 +580,7 @@ public class DomainTest {
         assertEquals(sd.getProductId(), "abcd-1234");
         assertEquals(sd.getFeatureFlags(), 3);
         assertEquals(sd.getContacts(), Map.of("pe-owner", "user.test"));
+        assertEquals(sd.getEnvironment(), "production");
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -575,11 +592,18 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1244").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
         assertNotEquals(schema, sd);
+
+        sd2.setEnvironment("staging");
+        assertNotEquals(sd, sd2);
+        sd2.setEnvironment(null);
+        assertNotEquals(sd, sd2);
+        sd2.setEnvironment("production");
+        assertEquals(sd, sd2);
 
         sd2.setContacts(Map.of("product-owner", "user.test"));
         assertNotEquals(sd, sd2);
@@ -748,7 +772,8 @@ public class DomainTest {
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
-                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
+                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
+                .setEnvironment("production");
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -781,6 +806,7 @@ public class DomainTest {
         assertEquals(ud.getProductId(), "abcd-1234");
         assertEquals(ud.getFeatureFlags(), 3);
         assertEquals(ud.getContacts(), Map.of("pe-owner", "user.test"));
+        assertEquals(ud.getEnvironment(), "production");
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -791,10 +817,18 @@ public class DomainTest {
                 .setGroupExpiryDays(50).setAzureSubscription("azure").setBusinessService("business-service")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1246")
-                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
+                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
+                .setEnvironment("production");
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
+
+        ud2.setEnvironment("staging");
+        assertNotEquals(ud, ud2);
+        ud2.setEnvironment(null);
+        assertNotEquals(ud, ud2);
+        ud2.setEnvironment("production");
+        assertEquals(ud, ud2);
 
         ud2.setContacts(Map.of("product-owner", "user.test"));
         assertNotEquals(ud, ud2);
@@ -983,7 +1017,7 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1017,6 +1051,7 @@ public class DomainTest {
         assertEquals(d.getProductId(), "abcd-1234");
         assertEquals(d.getFeatureFlags(), 3);
         assertEquals(d.getContacts(), Map.of("pe-owner", "user.test"));
+        assertEquals(d.getEnvironment(), "production");
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1028,10 +1063,17 @@ public class DomainTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1237").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         assertEquals(d, d2);
         assertEquals(d, d);
+
+        d2.setEnvironment("staging");
+        assertNotEquals(d, d2);
+        d2.setEnvironment(null);
+        assertNotEquals(d, d2);
+        d2.setEnvironment("production");
+        assertEquals(d, d2);
 
         d2.setContacts(Map.of("product-owner", "user.test"));
         assertNotEquals(d, d2);

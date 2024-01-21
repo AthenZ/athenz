@@ -922,6 +922,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainUserAuthorityFilter(dn, args[0])
 			}
+		case "set-domain-environment":
+			if argc == 1 {
+				return cli.SetDomainEnvironment(dn, args[0])
+			}
 		case "set-product-id", "set-domain-product-id":
 			if argc == 1 {
 				productIDString := ""
@@ -1514,6 +1518,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   filter : comma separated list of user authority filters\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-user-authority-filter OnShore-US\n")
+	case "set-domain-environment":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-domain-environment environment\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   environment : valid enviornment value for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-environment production\n")
 	case "set-product-id", "set-domain-product-id":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-product-id product-id\n")
@@ -3399,6 +3413,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-domain-role-cert-expiry-mins cert-expiry-mins\n")
 	buf.WriteString("   set-domain-token-sign-algorithm algorithm\n")
 	buf.WriteString("   set-domain-user-authority-filter filter\n")
+	buf.WriteString("   set-domain-environment environment\n")
 	buf.WriteString("   set-domain-feature-flags flags\n")
 	buf.WriteString("   set-domain-contact type user\n")
 	buf.WriteString("   import-domain domain [file.yaml [admin ...]] - no file means stdin\n")

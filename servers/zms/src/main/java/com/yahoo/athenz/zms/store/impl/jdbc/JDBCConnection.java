@@ -77,14 +77,14 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
-            + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags)"
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment)"
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?, application_id=?,"
             + " cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
             + " role_cert_expiry_mins=?, sign_algorithm=?, service_expiry_days=?, user_authority_filter=?,"
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
-            + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=? WHERE name=?;";
+            + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -869,7 +869,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setUserAuthorityFilter(saveValue(rs.getString(ZMSConsts.DB_COLUMN_USER_AUTHORITY_FILTER)))
                 .setBusinessService(saveValue(rs.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)))
                 .setMemberPurgeExpiryDays(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS), 0))
-                .setFeatureFlags(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS), 0));
+                .setFeatureFlags(nullIfDefaultValue(rs.getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS), 0))
+                .setEnvironment(saveValue(rs.getString(ZMSConsts.DB_COLUMN_ENVIRONMENT)));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(ZMSConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -938,6 +939,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(23, processInsertValue(domain.getGcpProjectNumber()));
             ps.setString(24, processInsertValue(domain.getProductId()));
             ps.setInt(25, processInsertValue(domain.getFeatureFlags()));
+            ps.setString(26, processInsertValue(domain.getEnvironment()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1081,7 +1083,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(22, processInsertValue(domain.getGcpProjectNumber()));
             ps.setString(23, processInsertValue(domain.getProductId()));
             ps.setInt(24, processInsertValue(domain.getFeatureFlags()));
-            ps.setString(25, domain.getName());
+            ps.setString(25, processInsertValue(domain.getEnvironment()));
+            ps.setString(26, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

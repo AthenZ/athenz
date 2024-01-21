@@ -89,6 +89,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> contacts;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String environment;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -269,6 +272,13 @@ public class UserDomain {
     public Map<String, String> getContacts() {
         return contacts;
     }
+    public UserDomain setEnvironment(String environment) {
+        this.environment = environment;
+        return this;
+    }
+    public String getEnvironment() {
+        return environment;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -364,6 +374,9 @@ public class UserDomain {
                 return false;
             }
             if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
+                return false;
+            }
+            if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {
