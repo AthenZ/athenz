@@ -89,6 +89,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> contacts;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String environment;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -271,6 +274,13 @@ public class SubDomain {
     public Map<String, String> getContacts() {
         return contacts;
     }
+    public SubDomain setEnvironment(String environment) {
+        this.environment = environment;
+        return this;
+    }
+    public String getEnvironment() {
+        return environment;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -380,6 +390,9 @@ public class SubDomain {
                 return false;
             }
             if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
+                return false;
+            }
+            if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

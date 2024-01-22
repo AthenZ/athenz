@@ -84,6 +84,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
         Mockito.doReturn("abcd-1234").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn("production").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ENVIRONMENT);
         Mockito.doReturn(3).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -101,6 +102,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getProductId(), "abcd-1234");
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
         assertEquals(domain.getFeatureFlags(), 3);
+        assertEquals(domain.getEnvironment(), "production");
         jdbcConn.close();
     }
 
@@ -128,6 +130,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
         Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn("").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ENVIRONMENT);
         Mockito.doReturn(0).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -143,6 +146,7 @@ public class JDBCConnectionTest {
         assertNull(domain.getProductId());
         assertNull(domain.getFeatureFlags());
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
+        assertNull(domain.getEnvironment());
 
         jdbcConn.close();
     }
@@ -412,6 +416,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("tag-key").when(mockResultSet).getString(1);
         Mockito.doReturn("tag-val").when(mockResultSet).getString(2);
         Mockito.doReturn("abcd-1234").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_PRODUCT_ID);
+        Mockito.doReturn("production").when(mockResultSet).getString(ZMSConsts.DB_COLUMN_ENVIRONMENT);
         Mockito.doReturn(1).when(mockResultSet).getInt(ZMSConsts.DB_COLUMN_FEATURE_FLAGS);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -427,6 +432,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getProductId(), "abcd-1234");
         assertEquals(domain.getTags(), Collections.singletonMap("tag-key", new TagValueList().setList(Collections.singletonList("tag-val"))));
         assertEquals(domain.getFeatureFlags(), 1);
+        assertEquals(domain.getEnvironment(), "production");
 
         jdbcConn.close();
     }
@@ -643,7 +649,8 @@ public class JDBCConnectionTest {
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1235")
                 .setProductId("abcd-1234")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3)
+                .setEnvironment("production");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -673,7 +680,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(22, "1235");
         Mockito.verify(mockPrepStmt, times(1)).setString(23, "abcd-1234");
         Mockito.verify(mockPrepStmt, times(1)).setInt(24, 3);
-        Mockito.verify(mockPrepStmt, times(1)).setString(25, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(25, "production");
+        Mockito.verify(mockPrepStmt, times(1)).setString(26, "my-domain");
         jdbcConn.close();
     }
 
@@ -714,7 +722,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(22, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(23, "");
         Mockito.verify(mockPrepStmt, times(1)).setInt(24, 0);
-        Mockito.verify(mockPrepStmt, times(1)).setString(25, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(25, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(26, "my-domain");
         jdbcConn.close();
     }
 
@@ -6431,6 +6440,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ENVIRONMENT)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
 
@@ -6587,6 +6597,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_GCP_PROJECT_NUMBER)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_BUSINESS_SERVICE)).thenReturn("");
         Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_PRODUCT_ID)).thenReturn("");
+        Mockito.when(mockResultSet.getString(ZMSConsts.DB_COLUMN_ENVIRONMENT)).thenReturn("");
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
         assertNotNull(athenzDomain);

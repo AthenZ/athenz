@@ -89,6 +89,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> contacts;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String environment;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -265,6 +268,13 @@ public class DomainMeta {
     public Map<String, String> getContacts() {
         return contacts;
     }
+    public DomainMeta setEnvironment(String environment) {
+        this.environment = environment;
+        return this;
+    }
+    public String getEnvironment() {
+        return environment;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -346,6 +356,9 @@ public class DomainMeta {
                 return false;
             }
             if (contacts == null ? a.contacts != null : !contacts.equals(a.contacts)) {
+                return false;
+            }
+            if (environment == null ? a.environment != null : !environment.equals(a.environment)) {
                 return false;
             }
         }

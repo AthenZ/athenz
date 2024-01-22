@@ -31,6 +31,7 @@ type DomainMeta Struct {
     String productId (optional); //associated product id (system attribute - uniqueness check - if enabled)
     Int32 featureFlags (optional); //features enabled per domain (system attribute)
     Map<SimpleName,String> contacts (optional); //list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value
+    String environment (optional); //domain environment e.g. production, staging, etc
 }
 
 //A domain is an independent partition of users, roles, and resources.

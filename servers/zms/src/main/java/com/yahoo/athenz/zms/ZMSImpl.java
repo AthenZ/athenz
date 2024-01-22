@@ -233,6 +233,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ServiceProviderClient serviceProviderClient;
     protected Info serverInfo = null;
     protected Set<String> domainContactTypes = new HashSet<>();
+    protected Set<String> domainEnvironments = new HashSet<>();
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -975,6 +976,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainContactTypes.addAll(Arrays.asList(contactTypeList.split(",")));
         }
 
+        // get our domain classification values
+
+        final String environments = System.getProperty(ZMSConsts.ZMS_PROP_DOMAIN_ENVIRONMENTS,
+                ZMSConsts.ZMS_DEFAULT_DOMAIN_ENVIRONMENTS);
+        domainEnvironments.addAll(Arrays.asList(environments.split(",")));
+
         // get server region
 
         serverRegion = System.getProperty(ZMSConsts.ZMS_PROP_SERVER_REGION);
@@ -1593,7 +1600,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setBusinessService(detail.getBusinessService())
                 .setCertDnsDomain(detail.getCertDnsDomain())
                 .setFeatureFlags(detail.getFeatureFlags())
-                .setContacts(detail.getContacts());
+                .setContacts(detail.getContacts())
+                .setEnvironment(detail.getEnvironment());
 
         // before processing validate the fields
 
@@ -1827,7 +1835,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSignAlgorithm(detail.getSignAlgorithm())
                 .setTags(detail.getTags())
                 .setBusinessService(detail.getBusinessService())
-                .setContacts(detail.getContacts());
+                .setContacts(detail.getContacts())
+                .setEnvironment(detail.getEnvironment());
 
         // before processing validate the fields
 
@@ -1922,7 +1931,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSignAlgorithm(detail.getSignAlgorithm())
                 .setTags(detail.getTags())
                 .setBusinessService(detail.getBusinessService())
-                .setContacts(detail.getContacts());
+                .setContacts(detail.getContacts())
+                .setEnvironment(detail.getEnvironment());
 
         // before processing validate the fields
 
@@ -2273,6 +2283,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate the domain contacts types and names
 
         validateDomainContacts(domain.getContacts(), caller);
+
+        // validate the domain environment if specified
+
+        if (!StringUtil.isEmpty(domain.getEnvironment()) && !domainEnvironments.contains(domain.getEnvironment())) {
+            throw ZMSUtils.requestError("invalid environment for domain", caller);
+        }
     }
 
     boolean validateGcpProjectDetails(final String gcpProjectId, final String gcpProjectNumber) {
@@ -2385,6 +2401,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate the domain contacts types and names
 
         validateDomainContacts(meta.getContacts(), caller);
+
+        // validate the domain environment if specified
+
+        if (!StringUtil.isEmpty(meta.getEnvironment()) && !domainEnvironments.contains(meta.getEnvironment())) {
+            throw ZMSUtils.requestError("invalid environment for domain", caller);
+        }
     }
 
     void updateDomainMetaStoreAttributeDetails(final String domainName, int metaAttribute, final Object value) {

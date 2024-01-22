@@ -22234,7 +22234,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetSignedDomainsNotModified() {
+    public void testGetSignedDomainsNotModified() throws InterruptedException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -22249,13 +22249,15 @@ public class ZMSImplTest {
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
         zmsImpl.putDomainMeta(ctx, "signeddom1", auditRef, meta);
 
-        zmsImpl.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(Crypto.ybase64DecodeString(zmsTestInitializer.getPrivKey())), "0");
+        zmsImpl.privateKey = new ServerPrivateKey(Crypto.loadPrivateKey(
+                Crypto.ybase64DecodeString(zmsTestInitializer.getPrivKey())), "0");
 
         Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
         Principal sysPrincipal = principalAuthority.authenticate("v=U1;d=sys;n=zts;s=signature",
                 "10.11.12.13", "GET", null);
         ResourceContext rsrcCtx = zmsTestInitializer.createResourceContext(sysPrincipal);
 
+        Thread.sleep(1000);
         EntityTag eTag = new EntityTag(Timestamp.fromCurrentTime().toString());
         Response response = zmsImpl.getSignedDomains(rsrcCtx, "signeddom1", null, null, Boolean.TRUE, false, eTag.getValue());
         assertEquals(response.getStatus(), 304);
@@ -31504,9 +31506,9 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testCreateTopLevelDomainNegativeProductId(){
+    public void testCreateTopLevelDomainInvalidFields(){
 
-        final String domainName = "negative-product-id";
+        final String domainName = "invalid-fields";
 
         TestAuditLogger alogger = new TestAuditLogger();
         System.setProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT, "true");
@@ -31514,14 +31516,28 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", "user.user1");
-        dom1.setYpmId(-11001);
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
 
+        // first try with negative product id
+
+        dom1.setYpmId(-11001);
         try {
             zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
             fail();
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Product Id must be a positive integer"));
+        }
+
+        // try with invalid environment
+
+        dom1.setYpmId(101999);
+        dom1.setEnvironment("unknown");
+        try {
+            zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid environment for domain"));
         }
 
         System.clearProperty(ZMSConsts.ZMS_PROP_PRODUCT_ID_SUPPORT);
@@ -32234,6 +32250,62 @@ public class ZMSImplTest {
         assertNotNull(domain);
         assertNull(domain.getBusinessService());
         assertEquals(domain.getDescription(), "new description");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
+    }
+
+    @Test
+    public void testPutDomainMetaEnvironment() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-with-environment";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, dom1);
+
+        Domain domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getEnvironment());
+
+        // set the environment
+
+        DomainMeta dm = new DomainMeta().setEnvironment("production");
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getEnvironment(), "production");
+
+        // update the environment
+
+        dm.setEnvironment("staging");
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getEnvironment(), "staging");
+
+        // set an invalid value and verify failure
+
+        dm = new DomainMeta().setEnvironment("unknown");
+        try {
+            zmsImpl.putDomainMeta(ctx, domainName, auditRef, dm);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("invalid environment for domain"));
+        }
+
+        // remove the environment
+
+        dm = new DomainMeta().setEnvironment("");
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getEnvironment());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef);
     }

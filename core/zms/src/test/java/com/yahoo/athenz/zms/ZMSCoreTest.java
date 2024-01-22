@@ -578,7 +578,8 @@ public class ZMSCoreTest {
                 .setUserAuthorityFilter("OnShore").setGroups(gl).setAzureSubscription("azure").setGcpProject("gcp")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProjectNumber("1235")
-                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"));
+                .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
+                .setEnvironment("production");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -616,6 +617,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getProductId(), "abcd-1234");
         assertEquals(dd.getFeatureFlags(), 3);
         assertEquals(dd.getContacts(), Map.of("pe-owner", "user.test"));
+        assertEquals(dd.getEnvironment(), "production");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -626,7 +628,7 @@ public class ZMSCoreTest {
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
                 .setGcpProjectNumber("1235").setProductId("abcd-1234").setFeatureFlags(3)
-                .setContacts(Map.of("pe-owner", "user.test"));
+                .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production");
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
@@ -639,6 +641,13 @@ public class ZMSCoreTest {
         dd2.setGroups(null);
         assertNotEquals(dd, dd2);
         dd2.setGroups(gl);
+        assertEquals(dd, dd2);
+
+        dd2.setEnvironment("staging");
+        assertNotEquals(dd, dd2);
+        dd2.setEnvironment(null);
+        assertNotEquals(dd, dd2);
+        dd2.setEnvironment("production");
         assertEquals(dd, dd2);
 
         dd2.setContacts(Map.of("product-owner", "user.test"));

@@ -287,6 +287,11 @@ type DomainMeta struct {
 	// a single value
 	//
 	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// domain environment e.g. production, staging, etc
+	//
+	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -399,6 +404,12 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Environment != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.environment does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -545,6 +556,11 @@ type Domain struct {
 	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// domain environment e.g. production, staging, etc
+	//
+	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// the common name to be referred to, the symbolic id. It is immutable
 	//
 	Name DomainName `json:"name"`
@@ -670,6 +686,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
 		if !val.Valid {
 			return fmt.Errorf("Domain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Environment != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
+		if !val.Valid {
+			return fmt.Errorf("Domain.environment does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -3719,6 +3741,11 @@ type TopLevelDomain struct {
 	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// domain environment e.g. production, staging, etc
+	//
+	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -3847,6 +3874,12 @@ func (self *TopLevelDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
 		if !val.Valid {
 			return fmt.Errorf("TopLevelDomain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Environment != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.environment does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -3999,6 +4032,11 @@ type SubDomain struct {
 	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// domain environment e.g. production, staging, etc
+	//
+	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -4132,6 +4170,12 @@ func (self *SubDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
 		if !val.Valid {
 			return fmt.Errorf("SubDomain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Environment != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.environment does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -4293,6 +4337,11 @@ type UserDomain struct {
 	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// domain environment e.g. production, staging, etc
+	//
+	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -4413,6 +4462,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Environment != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.environment does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -6803,6 +6858,11 @@ type DomainData struct {
 	Contacts map[SimpleName]string `json:"contacts,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// domain environment e.g. production, staging, etc
+	//
+	Environment string `json:"environment" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -6963,6 +7023,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ProductId)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.productId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Environment != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Environment)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.environment does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

@@ -166,6 +166,7 @@ func init() {
 	tDomainMeta.Field("productId", "String", true, nil, "associated product id (system attribute - uniqueness check - if enabled)")
 	tDomainMeta.Field("featureFlags", "Int32", true, nil, "features enabled per domain (system attribute)")
 	tDomainMeta.MapField("contacts", "SimpleName", "String", true, "list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value")
+	tDomainMeta.Field("environment", "String", true, nil, "domain environment e.g. production, staging, etc")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")
