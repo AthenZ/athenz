@@ -109,12 +109,12 @@ func getAuthNToken(identity, authorizedServices, zmsURL string, tr *http.Transpo
 	var authHeader = "Authorization"
 	var authCreds = "Basic " + str
 	zmsClient := zms.ZMSClient{
-		URL:         zmsURL,
-		Transport:   tr,
-		CredsHeader: &authHeader,
-		CredsToken:  &authCreds,
-		Timeout:     timeout,
+		URL:          zmsURL,
+		Transport:    tr,
+		CredsHeaders: make(map[string]string),
+		Timeout:      timeout,
 	}
+	zmsClient.AddCredentials(authHeader, authCreds)
 	tok, err := zmsClient.GetUserToken(zms.SimpleName(user), authorizedServices, nil)
 	if err != nil {
 		return "", fmt.Errorf("Cannot get user token for user: %s error: %v", user, err)

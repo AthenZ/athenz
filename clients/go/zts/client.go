@@ -26,21 +26,19 @@ var _ = ioutil.NopCloser
 type ZTSClient struct {
 	URL             string
 	Transport       http.RoundTripper
-	CredsHeader     *string
-	CredsToken      *string
+	CredsHeaders    map[string]string
 	Timeout         time.Duration
 	DisableRedirect bool
 }
 
 // NewClient creates and returns a new HTTP client object for the ZTS service
 func NewClient(url string, transport http.RoundTripper) ZTSClient {
-	return ZTSClient{url, transport, nil, nil, 0, false}
+	return ZTSClient{url, transport, make(map[string]string), 0, false}
 }
 
 // AddCredentials adds the credentials to the client for subsequent requests.
 func (client *ZTSClient) AddCredentials(header string, token string) {
-	client.CredsHeader = &header
-	client.CredsToken = &token
+	client.CredsHeaders[header] = token
 }
 
 func (client ZTSClient) getClient() *http.Client {
@@ -62,11 +60,14 @@ func (client ZTSClient) getClient() *http.Client {
 }
 
 func (client ZTSClient) addAuthHeader(req *http.Request) {
-	if client.CredsHeader != nil && client.CredsToken != nil {
-		if strings.HasPrefix(*client.CredsHeader, "Cookie.") {
-			req.Header.Add("Cookie", (*client.CredsHeader)[7:]+"="+*client.CredsToken)
+	if len(client.CredsHeaders) == 0 {
+		return
+	}
+	for key, value := range client.CredsHeaders {
+		if strings.HasPrefix(key, "Cookie.") {
+			req.Header.Add("Cookie", (key)[7:]+"="+value)
 		} else {
-			req.Header.Add(*client.CredsHeader, *client.CredsToken)
+			req.Header.Add(key, value)
 		}
 	}
 }
