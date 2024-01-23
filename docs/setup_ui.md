@@ -16,22 +16,22 @@ configured to run UI server.
 
 ### Node.js
 
-UI Server is a Node.js 14.x application.
+UI Server is a Node.js 18.x application.
 
 [Node.js JavaScript Runtime](https://nodejs.org/en/)
 
-Verify that you have the following versions of `node` and
+Verify that you have the following or newer versions of `node` and
 `nodemon` binaries installed on your system and are included
 in your runtime path:
 
 ```shell
 $ node --version
-v14.18.2
+v18.19.0
 $ npm -v
-8.3.0
+10.3.0
 $ npm install -g nodemon
 $ nodemon --version
-2.0.15
+3.0.3
 ```
  
 ## Getting Software
@@ -132,6 +132,19 @@ $ bin/<platform>/athenz-conf -o config/athenz.conf -z https://<zms-server>:4443/
 ## Start/Stop UI Server
 
 Set the following environment variable before starting the UI Server:
+
+### Development Environment
+
+```shell
+$ cd athenz-ui-X.Y
+$ export UI_SERVER=<ui-server-host-name> ZMS_SERVER=<zms-server-host-name> NODE_TLS_REJECT_UNAUTHORIZED=0
+$ sudo -E bin/athenz_ui start
+```
+
+We're setting the `NODE_TLS_REJECT_UNAUTHORIZED` environment variable to `0` to disable the certificate
+verification since we're running with self-signed certificates in our development environment.
+
+### Production Environment
 
 ```shell
 $ cd athenz-ui-X.Y
