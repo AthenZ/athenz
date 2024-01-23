@@ -9,8 +9,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/ardielle/ardielle-go/rdl"
-	"gopkg.in/yaml.v2"
 	"log"
 	"net"
 	"net/http"
@@ -19,6 +17,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/ardielle/ardielle-go/rdl"
+	"gopkg.in/yaml.v2"
 
 	"golang.org/x/crypto/ssh/terminal"
 	"golang.org/x/net/proxy"
@@ -120,12 +121,13 @@ func getAuthNToken(identity, authorizedServices, zmsUrl string, tr *http.Transpo
 	var authHeader = "Authorization"
 	var authCreds = "Basic " + str
 	zmsClient := zms.ZMSClient{
-		URL:         zmsUrl,
-		Transport:   tr,
-		CredsHeader: &authHeader,
-		CredsToken:  &authCreds,
-		Timeout:     0,
+		URL:          zmsUrl,
+		Transport:    tr,
+		CredsHeaders: make(map[string]string),
+		Timeout:      0,
 	}
+
+	zmsClient.AddCredentials(authHeader, authCreds)
 	tok, err := zmsClient.GetUserToken(zms.SimpleName(user), authorizedServices, nil)
 	if err != nil {
 		return "", fmt.Errorf("cannot get user token for user: %s error: %v", user, err)

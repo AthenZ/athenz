@@ -12,11 +12,10 @@ import (
 func TestAssertionMatchTrue(t *testing.T) {
 
 	zmsCli := zms.ZMSClient{
-		URL:         "dev.zms",
-		Transport:   nil,
-		CredsHeader: nil,
-		CredsToken:  nil,
-		Timeout:     0,
+		URL:          "dev.zms",
+		Transport:    nil,
+		CredsHeaders: make(map[string]string),
+		Timeout:      0,
 	}
 
 	cli := Zms{
@@ -76,11 +75,10 @@ func TestAssertionMatchTrue(t *testing.T) {
 func TestAssertionMatchFalse(t *testing.T) {
 
 	zmsCli := zms.ZMSClient{
-		URL:         "dev.zms",
-		Transport:   nil,
-		CredsHeader: nil,
-		CredsToken:  nil,
-		Timeout:     0,
+		URL:          "dev.zms",
+		Transport:    nil,
+		CredsHeaders: make(map[string]string),
+		Timeout:      0,
 	}
 
 	cli := Zms{

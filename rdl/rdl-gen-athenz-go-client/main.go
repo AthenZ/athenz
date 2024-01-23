@@ -116,7 +116,7 @@ var _ = ioutil.NopCloser
 type {{client}} struct {
 	URL             string
 	Transport       http.RoundTripper
-	credsHeaders    map[string]string
+	CredsHeaders    map[string]string
 	Timeout         time.Duration
 	DisableRedirect bool
 }
@@ -128,7 +128,7 @@ func NewClient(url string, transport http.RoundTripper) {{client}} {
 
 // AddCredentials adds the credentials to the client for subsequent requests.
 func (client *{{client}}) AddCredentials(header string, token string) {
-	client.credsHeaders[header] = token
+	client.CredsHeaders[header] = token
 }
 
 func (client {{client}}) getClient() *http.Client {
@@ -150,10 +150,10 @@ func (client {{client}}) getClient() *http.Client {
 }
 
 func (client {{client}}) addAuthHeader(req *http.Request) {
-	if len(client.credsHeaders) == 0 {
+	if len(client.CredsHeaders) == 0 {
 		return
 	}
-	for key, value := range client.credsHeaders {
+	for key, value := range client.CredsHeaders {
 		if strings.HasPrefix(key, "Cookie.") {
 			req.Header.Add("Cookie", (key)[7:]+"="+value)
 		} else {
