@@ -25,7 +25,8 @@ COPY --from=athenz-utils /usr/bin/zts-rolecert /usr/bin/zts-rolecert
 RUN apt-get update && \
     apt-get -y install coreutils libncurses5-dev libncursesw5-dev \
     git curl tree openssl jq && \
-    rm -rf /var/cache/apt/*
+    rm -rf /var/cache/apt/* && \
+    git config --system --add safe.directory /athenz
 
 # RUN mkdir /athenz
 WORKDIR /athenz
