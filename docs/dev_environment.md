@@ -80,12 +80,12 @@ in your runtime path:
 
 ```shell
 $ node --version
-v18.12.1
+v18.19.0
 $ npm -v
-8.19.2
+10.3.0
 $ npm install -g nodemon
 $ nodemon --version
-2.0.20
+3.0.3
 ```
 
 ## Build Steps
