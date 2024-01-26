@@ -769,19 +769,14 @@ public class ZMSImplTest {
         // let's get the current time
 
         Date now = new Date();
+        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz");
+        String modifiedSince = df.format(now);
 
-        ZMSUtils.threadSleep(1000);
+        ZMSUtils.threadSleep(2000);
 
         TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject("ListDom2",
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, dom2);
-
-        DateFormat df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss zzz");
-        String modifiedSince = df.format(now);
-
-        // this is only a partial list since our file struct store
-        // which the unit tests use does not support last modified
-        // option so this will be tested in zms_system_test package
 
         DomainList domList = zmsImpl.getDomainList(ctx, null, null, null,
                 null, null, null, null, null, null, null, null, null, null, null, modifiedSince);
@@ -13968,7 +13963,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        long timestamp = System.currentTimeMillis() - 1001;
+        long timestamp = System.currentTimeMillis() - 2001;
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ListDomMod1",
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());

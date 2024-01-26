@@ -93,6 +93,21 @@ public class ZMSObjectReviewTest {
 
         assertTrue(zmsImpl.isAllowedObjectReviewLookup(principal, "user.jane"));
 
+        // try the access check with role based principal
+
+        List<String> roles = List.of("review-role");
+        Authority principalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();
+        principal = SimplePrincipal.create("sys.auth", "unsigned-creds", roles, principalAuthority);
+
+        assertTrue(zmsImpl.isAllowedObjectReviewLookup(principal, "user.jane"));
+
+        // without the required role, we should get failure
+
+        roles = List.of("role1", "role2");
+        principal = SimplePrincipal.create("sys.auth", "unsigned-creds", roles, principalAuthority);
+
+        assertFalse(zmsImpl.isAllowedObjectReviewLookup(principal, "user.jane"));
+
         zmsImpl.deletePolicy(ctx, "sys.auth", "review-policy", auditRef);
         zmsImpl.deleteRole(ctx, "sys.auth", "review-role", auditRef);
     }

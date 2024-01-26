@@ -1963,8 +1963,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // our action are always converted to lowercase
 
         String resource = SYS_AUTH + ":domain";
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "create",
-                resource, null, null, principal);
+        AccessStatus accessStatus = hasAccess(domain, "create", resource, principal, null);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -3768,8 +3767,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!StringUtil.isEmpty(domainName)) {
             AthenzDomain requestDomain = getAthenzDomain(domainName, true);
             if (requestDomain != null) {
-                AccessStatus accessStatus = evaluateAccess(requestDomain, principal.getFullName(), "access",
-                        domainName + ":meta.role.lookup", null, null, principal);
+                AccessStatus accessStatus = hasAccess(requestDomain, "access",
+                        domainName + ":meta.role.lookup", principal, null);
                 if (accessStatus == AccessStatus.ALLOWED) {
                     return true;
                 }
@@ -3785,9 +3784,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
-                "sys.auth:meta.role.lookup", null, null, principal);
 
+        AccessStatus accessStatus = hasAccess(domain, "access", "sys.auth:meta.role.lookup", principal, null);
         if (accessStatus == AccessStatus.ALLOWED) {
             return true;
         }
@@ -3816,8 +3814,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        accessStatus = evaluateAccess(domain, principal.getFullName(), "update",
-                checkResource, null, null, principal);
+        accessStatus = hasAccess(domain, "update", checkResource, principal, null);
         return accessStatus == AccessStatus.ALLOWED;
     }
 
@@ -9118,8 +9115,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // our action are always converted to lowercase
 
         String resource = SYS_AUTH + ":meta." + objectType + "." + attribute + "." + reqDomain;
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "delete",
-                resource, null, null, principal);
+        AccessStatus accessStatus = hasAccess(domain, "delete", resource, principal, null);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -9486,8 +9482,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // our action are always converted to lowercase
 
         String resource = ZMSConsts.SYS_AUTH_AUDIT_BY_DOMAIN + ":audit." + reqDomain.getDomain().getName();
-        AccessStatus accessStatus = evaluateAccess(authDomain, principal.getFullName(),
-                "update", resource, null, null, principal);
+        AccessStatus accessStatus = hasAccess(authDomain, "update", resource, principal, null);
         if (accessStatus == AccessStatus.ALLOWED) {
             return true;
         }
@@ -9497,8 +9492,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         authDomain = getAthenzDomain(ZMSConsts.SYS_AUTH_AUDIT_BY_ORG, true);
         resource = ZMSConsts.SYS_AUTH_AUDIT_BY_ORG + ":audit." + reqDomain.getDomain().getOrg();
-        accessStatus = evaluateAccess(authDomain, principal.getFullName(),
-                "update", resource, null, null, principal);
+        accessStatus = hasAccess(authDomain, "update", resource, principal, null);
 
         return accessStatus == AccessStatus.ALLOWED;
     }
@@ -9543,7 +9537,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return isAllowedActionOnResource(principal, domain, roleName, "update", "update_meta");
     }
 
-    private boolean isAllowedActionOnResource(Principal principal, final AthenzDomain domain, final String resourceName, String... actions) {
+    private boolean isAllowedActionOnResource(Principal principal, final AthenzDomain domain,
+            final String resourceName, String... actions) {
 
         // evaluate our domain's roles and policies to see if one of the actions specified
         // is allowed for the given resource (role or group):
@@ -9552,7 +9547,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // update_meta - only allows access to manage metadata
 
         for (String action : actions) {
-            if (evaluateAccess(domain, principal.getFullName(), action, resourceName, null, null, principal) == AccessStatus.ALLOWED) {
+            if (hasAccess(domain, action, resourceName, principal, null) == AccessStatus.ALLOWED) {
                 return true;
             }
         }
@@ -11402,8 +11397,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // is allowed or not for the given operation and resource
         // our action are always converted to lowercase
 
-        AccessStatus accessStatus = evaluateAccess(domain, principal.getFullName(), "access",
-                "sys.auth:meta.review.lookup", null, null, principal);
+        AccessStatus accessStatus = hasAccess(domain, "access", "sys.auth:meta.review.lookup", principal, null);
         return accessStatus == AccessStatus.ALLOWED;
     }
 }
