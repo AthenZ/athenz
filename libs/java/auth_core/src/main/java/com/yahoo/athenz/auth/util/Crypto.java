@@ -34,6 +34,10 @@ import javax.security.auth.x500.X500Principal;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +46,6 @@ import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.ExtensionsGenerator;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
@@ -1368,13 +1363,33 @@ public class Crypto {
         return convertToPEMFormat(publicKey);
     }
 
+    public static X500Name utf8DEREncodedIssuer(final String issuer) {
+
+        X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
+        X500Name x500Name = new X500Name(issuer);
+        RDN[] rdns = x500Name.getRDNs();
+
+        // for compatibility with openssl generated certificates
+        // we're going to make sure all the RDNs in the issuer
+        // field are encoded as UTF8Strings except for C field
+        // which is encoded as a PrintableString
+
+        for (int i = rdns.length - 1; i >= 0; i--) {
+            ASN1ObjectIdentifier asn1ObjectIdentifier = rdns[i].getFirst().getType();
+            ASN1Encodable value = (asn1ObjectIdentifier == BCStyle.C) ?
+                new DERPrintableString(IETFUtils.valueToString(rdns[i].getFirst().getValue())) :
+                new DERUTF8String(IETFUtils.valueToString(rdns[i].getFirst().getValue()));
+            builder.addRDN(asn1ObjectIdentifier, value);
+        }
+        return builder.build();
+    }
+
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
             PrivateKey caPrivateKey, X509Certificate caCertificate, int validityTimeout,
             boolean basicConstraints) {
 
-        return generateX509Certificate(certReq, caPrivateKey,
-                X500Name.getInstance(caCertificate.getSubjectX500Principal().getEncoded()),
-                validityTimeout, basicConstraints);
+        X500Name issuer = utf8DEREncodedIssuer(caCertificate.getSubjectX500Principal().getName());
+        return generateX509Certificate(certReq, caPrivateKey, issuer, validityTimeout, basicConstraints);
     }
 
     public static X509Certificate generateX509Certificate(PKCS10CertificationRequest certReq,
@@ -1396,15 +1411,28 @@ public class Crypto {
             JcaPKCS10CertificationRequest jcaPKCS10CertificationRequest = new JcaPKCS10CertificationRequest(certReq);
             PublicKey publicKey = jcaPKCS10CertificationRequest.getPublicKey();
 
-            X509v3CertificateBuilder caBuilder = new JcaX509v3CertificateBuilder(
-                    issuer, BigInteger.valueOf(System.currentTimeMillis()),
-                    notBefore, notAfter, certReq.getSubject(), publicKey)
-                    .addExtension(Extension.basicConstraints, false,
+            SecureRandom random = new SecureRandom();
+            BigInteger serial = new BigInteger(160, random);
+
+            X509v3CertificateBuilder caBuilder = new JcaX509v3CertificateBuilder(issuer, serial,
+                        notBefore, notAfter, certReq.getSubject(), publicKey)
+                    .addExtension(Extension.basicConstraints, basicConstraints,
                             new BasicConstraints(basicConstraints))
-                    .addExtension(Extension.keyUsage, true,
+                    .addExtension(Extension.extendedKeyUsage, false,
+                            new ExtendedKeyUsage(new KeyPurposeId[]
+                                    { KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth }));
+
+            if (basicConstraints) {
+                caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
+                        new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment |
+                                X509KeyUsage.keyCertSign | X509KeyUsage.cRLSign));
+            } else {
+                final PublicKey caPublicKey = extractPublicKey(caPrivateKey);
+                caBuilder = caBuilder.addExtension(Extension.keyUsage, false,
                             new X509KeyUsage(X509KeyUsage.digitalSignature | X509KeyUsage.keyEncipherment))
-                    .addExtension(Extension.extendedKeyUsage, true,
-                            new ExtendedKeyUsage(new KeyPurposeId[]{ KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth }));
+                        .addExtension(Extension.authorityKeyIdentifier, false,
+                            new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(caPublicKey));
+            }
 
             // see if we have the dns/rfc822/ip address extensions specified in the csr
 
@@ -1442,23 +1470,19 @@ public class Crypto {
             JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider(BC_PROVIDER);
             cert = converter.getCertificate(caBuilder.build(caSigner));
         } catch (CertificateException ex) {
-            LOG.error("generateX509Certificate: Caught CertificateException when generating certificate: "
-                    + ex.getMessage());
+            LOG.error("generateX509Certificate: Caught CertificateException when generating certificate", ex);
             throw new CryptoException(ex);
         } catch (OperatorCreationException ex) {
-            LOG.error("generateX509Certificate: Caught OperatorCreationException when creating JcaContentSignerBuilder: "
-                    + ex.getMessage());
+            LOG.error("generateX509Certificate: Caught OperatorCreationException when creating JcaContentSignerBuilder", ex);
             throw new CryptoException(ex);
         } catch (InvalidKeyException ex) {
-            LOG.error("generateX509Certificate: Caught InvalidKeySpecException, invalid key spec is being used: "
-                    + ex.getMessage());
+            LOG.error("generateX509Certificate: Caught InvalidKeySpecException, invalid key spec is being used", ex);
             throw new CryptoException(ex);
         } catch (NoSuchAlgorithmException ex) {
-            LOG.error("generateX509Certificate: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider: "
-                    + ex.getMessage());
+            LOG.error("generateX509Certificate: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider", ex) ;
             throw new CryptoException(ex);
         } catch (Exception ex) {
-            LOG.error("generateX509Certificate: unable to generate X509 Certificate: {}", ex.getMessage());
+            LOG.error("generateX509Certificate: unable to generate X509 Certificate", ex);
             throw new CryptoException("Unable to generate X509 Certificate");
         }
         return cert;
