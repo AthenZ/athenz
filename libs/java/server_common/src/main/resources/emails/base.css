@@ -17,8 +17,8 @@ body {
     min-height: 402px;
 }
 .athenz-wrapper .mbrapproval {
-    width: 500px;
-    height: 402px;
+    width: 100%;
+    min-height: 402px;
     margin: auto;
     background-color:white;
     border-radius: 5px;
@@ -52,7 +52,7 @@ body {
 .mbrapproval .bt {
     background-color: rgba(255, 255, 255, 0.0);
     height: auto;
-    width: 440px;
+    width: 100%;
     margin: 20px;
     font-size: 14px;
     color: rgba(47, 48, 47, 1.0);
