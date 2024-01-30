@@ -25,9 +25,9 @@ import java.security.cert.X509Certificate;
 
 public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
 
-    private X509Certificate caCertificate;
-    private PrivateKey caPrivateKey;
-    private int maxCertExpiryTimeMins;
+    private final X509Certificate caCertificate;
+    private final PrivateKey caPrivateKey;
+    private final int maxCertExpiryTimeMins;
 
     public KeyStoreCertSigner(X509Certificate caCertificate, PrivateKey caPrivateKey, int maxCertExpiryTimeMins) {
         this.caCertificate = caCertificate;
@@ -41,11 +41,12 @@ public class KeyStoreCertSigner implements CertSigner, AutoCloseable {
     }
 
     @Override
-    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage, int certExpiryMins, Priority priority) {
+    public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
+            int certExpiryMins, Priority priority) {
+
         int certExpiryTime = (certExpiryMins == 0) ? this.maxCertExpiryTimeMins : certExpiryMins;
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
-        // keyUsage is ignored
         X509Certificate cert = Crypto.generateX509Certificate(certReq, caPrivateKey, caCertificate, certExpiryTime, false);
 
         return Crypto.convertToPEMFormat(cert);

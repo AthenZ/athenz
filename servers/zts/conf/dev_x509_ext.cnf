@@ -1,0 +1,8 @@
+basicConstraints = CA:FALSE
+authorityKeyIdentifier=keyid,issuer
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = __athenz_hostname__

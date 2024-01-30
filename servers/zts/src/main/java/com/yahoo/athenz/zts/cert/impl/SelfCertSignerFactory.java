@@ -33,7 +33,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
 import java.io.IOException;
-import javax.security.auth.x500.X500Principal;
 
 public class SelfCertSignerFactory implements CertSignerFactory {
 
@@ -47,7 +46,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         final String pKeyFileName = System.getProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME);
         final String pKeyPassword = System.getProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD);
         final String csrDn = System.getProperty(ZTSConsts.ZTS_PROP_SELF_SIGNER_CERT_DN,
-                "cn=Self Signed Athenz CA,o=Athenz,c=US");
+                "CN=Self Signed Athenz CA, O=Athenz, C=US");
         final int maxCertExpiryTimeMins = Integer.parseInt(System.getProperty(ZTSConsts.ZTS_PROP_CERTSIGN_MAX_EXPIRY_TIME, "43200"));
 
         if (StringUtil.isEmpty(pKeyFileName)) {
@@ -69,12 +68,11 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         }
         
         // generate our self-signed certificate
-        
-        X500Principal subject = new X500Principal(csrDn);
-        X500Name issuer = X500Name.getInstance(subject.getEncoded());
+
+        X500Name issuer = Crypto.utf8DEREncodedIssuer(csrDn);
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         X509Certificate caCertificate = Crypto.generateX509Certificate(certReq,
-                caPrivateKey, issuer, 30 * 24 * 60, true);
+                caPrivateKey, issuer, 365 * 24 * 60, true);
 
         return new KeyStoreCertSigner(caCertificate, caPrivateKey, maxCertExpiryTimeMins);
     }

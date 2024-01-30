@@ -39,7 +39,7 @@ JAVA_OPTS="${JAVA_OPTS} -Dathenz.prop_file=${ROOT}/conf/zts_server/athenz.proper
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.prop_file=${ROOT}/conf/zts_server/zts.properties"
 JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=${ROOT}/conf/zts_server/logback.xml"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_key_store=${ROOT}/var/zts_server/certs/zts_keystore.pkcs12"
-JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_trust_store=${ROOT}/var/zts_server/certs/zts_truststore.jks"
+JAVA_OPTS="${JAVA_OPTS} -Dathenz.ssl_trust_store=${ROOT}/var/zts_server/certs/zts_client_truststore.jks"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.ssl_key_store=${ROOT}/var/zts_server/certs/zts_keystore.pkcs12"
 JAVA_OPTS="${JAVA_OPTS} -Dathenz.zts.ssl_trust_store=${ROOT}/var/zts_server/certs/zts_truststore.jks"
 JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=${ROOT}/var/zts_server/certs/zts_truststore.jks"
