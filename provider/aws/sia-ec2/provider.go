@@ -42,11 +42,11 @@ func (ec2 EC2Provider) GetHostname(fqdn bool) string {
 	return utils.GetHostname(fqdn)
 }
 
-func (ec2 EC2Provider) AttestationData(svc string, key crypto.PrivateKey, sigInfo *signature.SignatureInfo) (string, error) {
+func (ec2 EC2Provider) AttestationData(_ string, _ crypto.PrivateKey, _ *signature.SignatureInfo) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (ec2 EC2Provider) PrepareKey(file string) (crypto.PrivateKey, error) {
+func (ec2 EC2Provider) PrepareKey(_ string) (crypto.PrivateKey, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
@@ -54,23 +54,23 @@ func (ec2 EC2Provider) GetCsrDn() pkix.Name {
 	return pkix.Name{}
 }
 
-func (ec2 EC2Provider) GetSanDns(service string, includeHost bool, wildcard bool, cnames []string) []string {
+func (ec2 EC2Provider) GetSanDns(_ string, _ bool, _ bool, _ []string) []string {
 	return nil
 }
 
-func (ec2 EC2Provider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
+func (ec2 EC2Provider) GetSanUri(_ string, _ ip.Opts, _, _ string) []*url.URL {
 	return nil
 }
 
-func (ec2 EC2Provider) GetEmail(service string) []string {
+func (ec2 EC2Provider) GetEmail(_ string) []string {
 	return nil
 }
 
-func (ec2 EC2Provider) GetRoleDnsNames(cert *x509.Certificate, service string) []string {
+func (ec2 EC2Provider) GetRoleDnsNames(_ *x509.Certificate, _ string) []string {
 	return nil
 }
 
-func (ec2 EC2Provider) GetSanIp(docIp map[string]bool, ips []net.IP, opts ip.Opts) []net.IP {
+func (ec2 EC2Provider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts) []net.IP {
 	return nil
 }
 
@@ -78,18 +78,24 @@ func (ec2 EC2Provider) GetSuffix() string {
 	return ""
 }
 
-func (eks EC2Provider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
+func (ec2 EC2Provider) CloudAttestationData(_, _, _ string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (eks EC2Provider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+func (ec2 EC2Provider) GetAccountDomainServiceFromMeta(_ string) (string, string, string, error) {
 	return "", "", "", fmt.Errorf("not implemented")
 }
 
-func (tp EC2Provider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+func (ec2 EC2Provider) GetAccessManagementProfileFromMeta(_ string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (tp EC2Provider) GetAdditionalSshHostPrincipals(base string) (string, error) {
-	return "", nil
+// GetAdditionalSshHostPrincipals returns the additional ssh host principals
+func (ec2 EC2Provider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+	// we're going to use our instance id as the additional ssh host principal
+	_, _, _, instanceId, _, _, _, err := GetEC2DocumentDetails(base)
+	if err != nil {
+		return "", err
+	}
+	return instanceId, nil
 }

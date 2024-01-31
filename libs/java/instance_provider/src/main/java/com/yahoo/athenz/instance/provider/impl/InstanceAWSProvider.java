@@ -302,7 +302,7 @@ public class InstanceAWSProvider implements InstanceProvider {
             
         // set the attributes to be returned to the ZTS server
 
-        setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString());
+        setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
 
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
@@ -338,7 +338,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // object has an associated aws account id
         
         final String awsAccount = InstanceUtils.getInstanceProperty(instanceAttributes, ZTS_INSTANCE_AWS_ACCOUNT);
-        if (awsAccount == null) {
+        if (StringUtil.isEmpty(awsAccount)) {
             throw error("Unable to extract AWS Account id");
         }
 
@@ -374,7 +374,7 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         // set the attributes to be returned to the ZTS server
 
-        setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString());
+        setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
         
         // verify that the temporary credentials specified in the request
         // can be used to assume the given role thus verifying the
@@ -397,7 +397,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
 
     protected void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds,
-                                   final String privateIp) {
+            final String privateIp, final String instanceId) {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceProvider.ZTS_CERT_SSH, Boolean.toString(instanceDocumentCreds));
@@ -406,6 +406,9 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         if (!privateIp.isEmpty()) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_PRIVATE_IP, privateIp);
+        }
+        if (!instanceId.isEmpty()) {
+            attributes.put(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS, instanceId);
         }
         confirmation.setAttributes(attributes);
     }

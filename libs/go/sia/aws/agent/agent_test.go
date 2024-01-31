@@ -229,7 +229,7 @@ func TestRegisterInstance(test *testing.T) {
 		CommonName: "athenz.hockey",
 	}
 
-	err := RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5084/zts/v1", opts, false)
+	err := RegisterInstance([]*attestation.AttestationData{a}, "http://127.0.0.1:5084/zts/v1", "http://127.0.0.1:48888", opts, false)
 	assert.Nil(test, err, "unable to register instance")
 
 	if err != nil {
@@ -320,7 +320,7 @@ func TestRefreshInstance(test *testing.T) {
 		return
 	}
 
-	err := RefreshInstance([]*attestation.AttestationData{attestationData}, "http://127.0.0.1:5084/zts/v1", opts)
+	err := RefreshInstance([]*attestation.AttestationData{attestationData}, "http://127.0.0.1:5084/zts/v1", "http://127.0.0.1:48888", opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	oldCert, _ := os.ReadFile("devel/data/cert.pem")
@@ -611,11 +611,15 @@ func TestServiceAlreadyRegistered(test *testing.T) {
 
 func TestGenerateSshRequest(test *testing.T) {
 
+	tp := TestProvider{
+		Name: "athenz.aws.us-west-2",
+	}
 	opts := options.Options{
-		Ssh: false,
+		Ssh:      false,
+		Provider: tp,
 	}
 	// ssh option false we should get success with nils and empty csr
-	sshReq, sshCsr, err := generateSshRequest(&opts, "backend", "hostname.athenz.io")
+	sshReq, sshCsr, err := generateSshRequest(&opts, "backend", "hostname.athenz.io", "http://127.0.0.1:48888")
 	assert.Nil(test, sshReq)
 	assert.Equal(test, "", sshCsr)
 	assert.Nil(test, err)
@@ -626,7 +630,7 @@ func TestGenerateSshRequest(test *testing.T) {
 			Name: "api",
 		},
 	}
-	sshReq, sshCsr, err = generateSshRequest(&opts, "backend", "hostname.athenz.io")
+	sshReq, sshCsr, err = generateSshRequest(&opts, "backend", "hostname.athenz.io", "http://127.0.0.1:48888")
 	assert.Nil(test, sshReq)
 	assert.Equal(test, "", sshCsr)
 	assert.Nil(test, err)
@@ -635,13 +639,13 @@ func TestGenerateSshRequest(test *testing.T) {
 	opts.Domain = "athenz"
 	opts.ZTSAWSDomains = []string{"athenz.io"}
 	opts.SshHostKeyType = hostkey.Rsa
-	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io", "http://127.0.0.1:48888")
 	assert.Nil(test, sshReq)
 	assert.NotEmpty(test, sshCsr)
 	assert.Nil(test, err)
 	// ssh enabled with primary service and key type is ecdsa - empty csr but not-nil cert request
 	opts.SshHostKeyType = hostkey.Ecdsa
-	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io", "http://127.0.0.1:48888")
 	assert.NotNil(test, sshReq)
 	assert.Empty(test, sshCsr)
 	assert.Nil(test, err)
@@ -667,7 +671,7 @@ func TestShouldExitRightAwayCertificate(test *testing.T) {
 		return
 	}
 
-	err := RefreshInstance([]*attestation.AttestationData{attestationData}, "http://127.0.0.1:5084/zts/v1", opts)
+	err := RefreshInstance([]*attestation.AttestationData{attestationData}, "http://127.0.0.1:5084/zts/v1", "http://127.0.0.1:48888", opts)
 	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
 
 	// our certs are valid for 30 days, so we'll set the refresh

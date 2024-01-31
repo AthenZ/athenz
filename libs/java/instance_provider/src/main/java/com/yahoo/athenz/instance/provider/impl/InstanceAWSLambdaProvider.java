@@ -36,7 +36,7 @@ public class InstanceAWSLambdaProvider extends InstanceAWSProvider {
     
     @Override
     protected void setConfirmationAttributes(InstanceConfirmation confirmation, boolean instanceDocumentCreds,
-             final String privateIP) {
+             final String privateIP, final String instanceId) {
         
         // for lambda we can only issue client certificates
         // and we always do not allow ssh certs

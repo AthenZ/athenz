@@ -132,5 +132,5 @@ func main() {
 	}
 
 	agent.SetupAgent(opts, siaMainDir, "")
-	agent.RunAgent(*cmd, ztsUrl, opts)
+	agent.RunAgent(*cmd, ztsUrl, *ec2MetaEndPoint, opts)
 }

@@ -106,5 +106,5 @@ func main() {
 	opts.Provider = provider
 
 	agent.SetupAgent(opts, siaMainDir, "")
-	agent.RunAgent(*cmd, ztsUrl, opts)
+	agent.RunAgent(*cmd, ztsUrl, *eksMetaEndPoint, opts)
 }
