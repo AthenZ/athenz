@@ -1,3 +1,20 @@
+Athenz v1.11.51 Release / Jan 30, 2024
+--------------------------------------
+
+#2485 UI: remove gcp related changes
+#2487 introduce environment metadata field for domains
+#2489 Update go clients to support additional request headers
+#2490 Adding Vespa.ai as an adopter
+#2491 update developer documentation
+#2492 mark athenz directory as a safe
+#2494 support internal authz check with roles specified
+#2495 improve interoperability between self-signer in dev environments with openssl generated certs
+#2496 increase width for email notification body to full page
+#2497 update java/go dependencies to their latest releases
+
+This release includes required schema updates:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20240121.sql
+
 Athenz v1.11.50 Release / Jan 16, 2024
 --------------------------------------
 
