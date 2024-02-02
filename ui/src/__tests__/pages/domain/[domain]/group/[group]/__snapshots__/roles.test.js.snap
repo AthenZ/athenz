@@ -1046,6 +1046,7 @@ exports[`GroupRolesPage should render 1`] = `
             >
               <a
                 class="emotion-32 emotion-33"
+                href="/domain/dom/group"
               >
                 dom
               </a>
@@ -1224,6 +1225,7 @@ exports[`GroupRolesPage should render 1`] = `
             <div>
               <a
                 class="emotion-76 emotion-77"
+                href="/domain/create"
               >
                 Create
               </a>
@@ -1234,6 +1236,7 @@ exports[`GroupRolesPage should render 1`] = `
               </span>
               <a
                 class="emotion-76 emotion-77"
+                href="/domain/manage"
               >
                 Manage
               </a>
@@ -1272,6 +1275,7 @@ exports[`GroupRolesPage should render 1`] = `
               </div>
               <a
                 class="emotion-76 emotion-77"
+                href="/domain/athens/role"
               >
                 athens
               </a>
@@ -1306,6 +1310,7 @@ exports[`GroupRolesPage should render 1`] = `
               </div>
               <a
                 class="emotion-76 emotion-77"
+                href="/domain/athens.ci/role"
               >
                 athens.ci
               </a>

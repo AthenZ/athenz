@@ -1116,6 +1116,7 @@ exports[`Policies Tag Page should render 1`] = `
             >
               <a
                 class="emotion-32 emotion-33"
+                href="/domain/dom/service"
               >
                 dom
               </a>
@@ -1494,6 +1495,7 @@ exports[`Policies Tag Page should render 1`] = `
             <div>
               <a
                 class="emotion-124 emotion-125"
+                href="/domain/create"
               >
                 Create
               </a>
@@ -1504,6 +1506,7 @@ exports[`Policies Tag Page should render 1`] = `
               </span>
               <a
                 class="emotion-124 emotion-125"
+                href="/domain/manage"
               >
                 Manage
               </a>
@@ -1542,6 +1545,7 @@ exports[`Policies Tag Page should render 1`] = `
               </div>
               <a
                 class="emotion-124 emotion-125"
+                href="/domain/athens/role"
               >
                 athens
               </a>
@@ -1576,6 +1580,7 @@ exports[`Policies Tag Page should render 1`] = `
               </div>
               <a
                 class="emotion-124 emotion-125"
+                href="/domain/athens.ci/role"
               >
                 athens.ci
               </a>

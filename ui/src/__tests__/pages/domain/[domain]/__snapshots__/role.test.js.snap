@@ -1737,6 +1737,7 @@ exports[`RolePage should render 1`] = `
             <div>
               <a
                 class="emotion-142 emotion-143"
+                href="/domain/create"
               >
                 Create
               </a>
@@ -1747,6 +1748,7 @@ exports[`RolePage should render 1`] = `
               </span>
               <a
                 class="emotion-142 emotion-143"
+                href="/domain/manage"
               >
                 Manage
               </a>
@@ -1785,6 +1787,7 @@ exports[`RolePage should render 1`] = `
               </div>
               <a
                 class="emotion-142 emotion-143"
+                href="/domain/athens/role"
               >
                 athens
               </a>
@@ -1819,6 +1822,7 @@ exports[`RolePage should render 1`] = `
               </div>
               <a
                 class="emotion-142 emotion-143"
+                href="/domain/athens.ci/role"
               >
                 athens.ci
               </a>
