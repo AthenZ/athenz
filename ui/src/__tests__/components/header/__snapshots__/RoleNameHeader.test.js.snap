@@ -106,6 +106,7 @@ exports[`Header should render delegated role 1`] = `
   </span>
   <a
     class="emotion-3 emotion-4"
+    href="/domain/home.mujibur/role"
   >
     home.mujibur
   </a>
@@ -114,6 +115,7 @@ exports[`Header should render delegated role 1`] = `
    (Delegated to 
   <a
     class="emotion-3 emotion-4"
+    href="/domain/home.hga/role"
   >
     home.hga
   </a>

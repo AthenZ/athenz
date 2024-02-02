@@ -96,12 +96,12 @@ class NameHeader extends React.Component {
                 <TitleDiv data-testid='collection-name-header'>
                     {roleTypeIcon}
                     {roleAuditIcon}
-                    <Link href={PageUtils.rolePage(domain)}>
+                    <Link href={PageUtils.rolePage(domain)} passHref legacyBehavior>
                         <StyledAnchor>{domain}</StyledAnchor>
                     </Link>
                     :role.{collection}
                     {' (Delegated to '}
-                    <Link href={PageUtils.rolePage(deDomain)}>
+                    <Link href={PageUtils.rolePage(deDomain)} passHref legacyBehavior>
                         <StyledAnchor>{deDomain}</StyledAnchor>
                     </Link>
                     {')'}
@@ -111,25 +111,25 @@ class NameHeader extends React.Component {
         let link;
         if (this.props.category === 'group') {
             link = (
-                <Link href={PageUtils.groupPage(domain)}>
+                <Link href={PageUtils.groupPage(domain)} passHref legacyBehavior>
                     <StyledAnchor>{domain}</StyledAnchor>
                 </Link>
             );
         } else if (this.props.category === 'role') {
             link = (
-                <Link href={PageUtils.rolePage(domain)}>
+                <Link href={PageUtils.rolePage(domain)} passHref legacyBehavior>
                     <StyledAnchor>{domain}</StyledAnchor>
                 </Link>
             );
         } else if (this.props.category === 'policy') {
             link = (
-                <Link href={PageUtils.servicePage(domain)}>
+                <Link href={PageUtils.servicePage(domain)} passHref legacyBehavior>
                     <StyledAnchor>{domain}</StyledAnchor>
                 </Link>
             );
         } else if (this.props.category === 'service') {
             link = (
-                <Link href={PageUtils.servicePage(domain)}>
+                <Link href={PageUtils.servicePage(domain)} passHref legacyBehavior>
                     <StyledAnchor>{domain}</StyledAnchor>
                 </Link>
             );

@@ -50,9 +50,7 @@ const Header = (props) => {
             <NavBar background={'#002339'}>
                 <NavBarItem>
                     <Link href={PageUtils.homePage()}>
-                        <a>
-                            <LogoStyled />
-                        </a>
+                        <LogoStyled />
                     </Link>
                 </NavBarItem>
                 <NavBarItemDiv>
