@@ -51,7 +51,7 @@ export default function ServiceNameHeader(props) {
     const { domain, service, serviceHeaderDetails } = props;
 
     let link = (
-        <Link href={PageUtils.servicePage(domain)}>
+        <Link href={PageUtils.servicePage(domain)} passHref legacyBehavior>
             <StyledAnchor>{domain}</StyledAnchor>
         </Link>
     );

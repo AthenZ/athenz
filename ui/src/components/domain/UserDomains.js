@@ -145,7 +145,7 @@ class UserDomains extends React.Component {
                                 verticalAlign={'baseline'}
                             />
                         </UserAdminLogoDiv>
-                        <Link href={PageUtils.rolePage(domainName)}>
+                        <Link href={PageUtils.rolePage(domainName)} passHref legacyBehavior>
                             <StyledAnchor active={currentDomain === domainName}>
                                 {domainName}
                             </StyledAnchor>
@@ -177,11 +177,11 @@ class UserDomains extends React.Component {
                                 My Domains
                             </ManageDomainsTitleDiv>
                             <div>
-                                <Link href={PageUtils.createDomainPage()}>
+                                <Link href={PageUtils.createDomainPage()} passHref legacyBehavior>
                                     <StyledAnchor>Create</StyledAnchor>
                                 </Link>
                                 <DividerSpan> | </DividerSpan>
-                                <Link href={PageUtils.manageDomainPage()}>
+                                <Link href={PageUtils.manageDomainPage()} passHref legacyBehavior>
                                     <StyledAnchor>Manage</StyledAnchor>
                                 </Link>
                             </div>

@@ -113,7 +113,7 @@ class Error extends React.Component {
                                         </span>
                                         <HomeDiv>
                                             <Link href={PageUtils.homePage()}>
-                                                <a>Athenz Home</a>
+                                                Athenz Home
                                             </Link>
                                         </HomeDiv>
                                     </DetailsDiv>
