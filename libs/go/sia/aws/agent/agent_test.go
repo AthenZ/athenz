@@ -611,8 +611,12 @@ func TestServiceAlreadyRegistered(test *testing.T) {
 
 func TestGenerateSshRequest(test *testing.T) {
 
+	tp := TestProvider{
+		Name: "athenz.aws.us-west-2",
+	}
 	opts := options.Options{
-		Ssh: false,
+		Ssh:      false,
+		Provider: tp,
 	}
 	// ssh option false we should get success with nils and empty csr
 	sshReq, sshCsr, err := generateSshRequest(&opts, "backend", "hostname.athenz.io")

@@ -472,7 +472,17 @@ func generateSshRequest(opts *options.Options, primaryServiceName, hostname stri
 		if opts.SshHostKeyType == hostkey.Rsa {
 			sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSAWSDomains)
 		} else {
-			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, opts.SshPrincipals, opts.ZTSAWSDomains)
+			sshPrincipals := opts.SshPrincipals
+			// additional ssh host principals are added on best effort basis, hence error below is ignored.
+			additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(opts.MetaEndPoint)
+			if additionalSshHostPrincipals != "" {
+				if sshPrincipals != "" {
+					sshPrincipals = sshPrincipals + "," + additionalSshHostPrincipals
+				} else {
+					sshPrincipals = additionalSshHostPrincipals
+				}
+			}
+			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, sshPrincipals, opts.ZTSAWSDomains)
 		}
 	}
 	return sshCertRequest, sshCsr, err
@@ -609,6 +619,11 @@ func SetupAgent(opts *options.Options, siaMainDir, siaLinkDir string) {
 }
 
 func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
+
+	//make sure the meta endpoint is configured by the caller
+	if opts.MetaEndPoint == "" {
+		log.Fatalf("meta endpoint not configured")
+	}
 
 	//the default value is to rotate once every day since our
 	//server and role certs are valid for 30 days by default

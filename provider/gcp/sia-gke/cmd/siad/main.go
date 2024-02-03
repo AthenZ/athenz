@@ -102,6 +102,7 @@ func main() {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
+	opts.MetaEndPoint = *gkeMetaEndPoint
 	opts.Ssh = false
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
@@ -123,5 +124,5 @@ func main() {
 	// opts.SshHostKeyType = hostkey.Ecdsa
 
 	agent.SetupAgent(opts, siaMainDir, "")
-	agent.RunAgent(*cmd, ztsUrl, *gkeMetaEndPoint, opts)
+	agent.RunAgent(*cmd, ztsUrl, opts)
 }

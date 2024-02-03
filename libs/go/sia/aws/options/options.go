@@ -155,6 +155,7 @@ type Service struct {
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
 	Provider            provider.Provider //provider instance
+	MetaEndPoint        string            //meta data service endpoint
 	Name                string            //name of the service identity
 	User                string            //the username to chown the cert/key dirs to. If absent, then root
 	Group               string            //the group name to chown the cert/key dirs to. If absent, then athenz

@@ -37,15 +37,15 @@ func (fargate FargateProvider) GetName() string {
 }
 
 // GetHostname returns the hostname as per the provider
-func (fargate FargateProvider) GetHostname(fqdn bool) string {
+func (fargate FargateProvider) GetHostname(_ bool) string {
 	return ""
 }
 
-func (fargate FargateProvider) AttestationData(svc string, key crypto.PrivateKey, sigInfo *signature.SignatureInfo) (string, error) {
+func (fargate FargateProvider) AttestationData(_ string, _ crypto.PrivateKey, _ *signature.SignatureInfo) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (fargate FargateProvider) PrepareKey(file string) (crypto.PrivateKey, error) {
+func (fargate FargateProvider) PrepareKey(_ string) (crypto.PrivateKey, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
@@ -53,23 +53,23 @@ func (fargate FargateProvider) GetCsrDn() pkix.Name {
 	return pkix.Name{}
 }
 
-func (fargate FargateProvider) GetSanDns(service string, includeHost bool, wildcard bool, cnames []string) []string {
+func (fargate FargateProvider) GetSanDns(_ string, _ bool, _ bool, _ []string) []string {
 	return nil
 }
 
-func (fargate FargateProvider) GetSanUri(svc string, opts ip.Opts, spiffeTrustDomain, spiffeNamespace string) []*url.URL {
+func (fargate FargateProvider) GetSanUri(_ string, _ ip.Opts, _, _ string) []*url.URL {
 	return nil
 }
 
-func (fargate FargateProvider) GetEmail(service string) []string {
+func (fargate FargateProvider) GetEmail(_ string) []string {
 	return nil
 }
 
-func (fargate FargateProvider) GetRoleDnsNames(cert *x509.Certificate, service string) []string {
+func (fargate FargateProvider) GetRoleDnsNames(_ *x509.Certificate, _ string) []string {
 	return nil
 }
 
-func (fargate FargateProvider) GetSanIp(docIp map[string]bool, ips []net.IP, opts ip.Opts) []net.IP {
+func (fargate FargateProvider) GetSanIp(_ map[string]bool, _ []net.IP, _ ip.Opts) []net.IP {
 	return nil
 }
 
@@ -77,18 +77,18 @@ func (fargate FargateProvider) GetSuffix() string {
 	return ""
 }
 
-func (eks FargateProvider) CloudAttestationData(base, svc, ztSserverName string) (string, error) {
+func (fargate FargateProvider) CloudAttestationData(_, _, _ string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (eks FargateProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+func (fargate FargateProvider) GetAccountDomainServiceFromMeta(_ string) (string, string, string, error) {
 	return "", "", "", fmt.Errorf("not implemented")
 }
 
-func (tp FargateProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+func (fargate FargateProvider) GetAccessManagementProfileFromMeta(_ string) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-func (tp FargateProvider) GetAdditionalSshHostPrincipals(base string) (string, error) {
+func (fargate FargateProvider) GetAdditionalSshHostPrincipals(_ string) (string, error) {
 	return "", nil
 }

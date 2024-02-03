@@ -86,6 +86,7 @@ func main() {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
+	opts.MetaEndPoint = *eksMetaEndPoint
 	opts.Ssh = false
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName

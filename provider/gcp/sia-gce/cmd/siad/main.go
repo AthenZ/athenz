@@ -138,6 +138,7 @@ func main() {
 		opts.SDSUdsPath = *udsPath
 	}
 
+	opts.MetaEndPoint = *gceMetaEndPoint
 	opts.Ssh = true
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
@@ -156,5 +157,5 @@ func main() {
 	opts.SshPubKeyFile = hostkey.PubKeyFile(sshDir, opts.SshHostKeyType)
 
 	agent.SetupAgent(opts, siaMainDir, "")
-	agent.RunAgent(*cmd, ztsUrl, *gceMetaEndPoint, opts)
+	agent.RunAgent(*cmd, ztsUrl, opts)
 }
