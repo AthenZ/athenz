@@ -102,6 +102,7 @@ func main() {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
+	opts.MetaEndPoint = *ec2MetaEndPoint
 	opts.Ssh = false
 	opts.EC2Document = string(document)
 	opts.EC2Signature = string(signature)
@@ -132,5 +133,5 @@ func main() {
 	}
 
 	agent.SetupAgent(opts, siaMainDir, "")
-	agent.RunAgent(*cmd, ztsUrl, *ec2MetaEndPoint, opts)
+	agent.RunAgent(*cmd, ztsUrl, opts)
 }

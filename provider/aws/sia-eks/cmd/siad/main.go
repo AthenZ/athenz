@@ -86,6 +86,7 @@ func main() {
 		log.Fatalf("Unable to formulate options, error: %v\n", err)
 	}
 
+	opts.MetaEndPoint = *eksMetaEndPoint
 	opts.Ssh = false
 	opts.ZTSCACertFile = *ztsCACert
 	opts.ZTSServerName = *ztsServerName
@@ -106,5 +107,5 @@ func main() {
 	opts.Provider = provider
 
 	agent.SetupAgent(opts, siaMainDir, "")
-	agent.RunAgent(*cmd, ztsUrl, *eksMetaEndPoint, opts)
+	agent.RunAgent(*cmd, ztsUrl, opts)
 }

@@ -173,7 +173,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 	return len(opts.Roles), failures
 }
 
-func RegisterInstance(ztsUrl, metaEndpoint string, opts *options.Options, docExpiryCheck bool) error {
+func RegisterInstance(ztsUrl string, opts *options.Options, docExpiryCheck bool) error {
 
 	//special handling for VM instances ( EC2 / GCE )
 	//before we process our register event we need to check to
@@ -185,7 +185,7 @@ func RegisterInstance(ztsUrl, metaEndpoint string, opts *options.Options, docExp
 	}
 
 	for _, svc := range opts.Services {
-		err := registerSvc(svc, ztsUrl, metaEndpoint, opts)
+		err := registerSvc(svc, ztsUrl, opts)
 		if err != nil {
 			return fmt.Errorf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -193,9 +193,9 @@ func RegisterInstance(ztsUrl, metaEndpoint string, opts *options.Options, docExp
 	return nil
 }
 
-func RefreshInstance(ztsUrl, metaEndpoint string, opts *options.Options) error {
+func RefreshInstance(ztsUrl string, opts *options.Options) error {
 	for _, svc := range opts.Services {
-		err := refreshSvc(svc, ztsUrl, metaEndpoint, opts)
+		err := refreshSvc(svc, ztsUrl, opts)
 		if err != nil {
 			return fmt.Errorf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
 		}
@@ -237,7 +237,7 @@ func getServiceHostname(opts *options.Options, svc options.Service, fqdn bool) s
 	return fmt.Sprintf("%s.%s.%s.%s", hostname, svc.Name, hyphenDomain, opts.HostnameSuffix)
 }
 
-func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.Options) error {
+func registerSvc(svc options.Service, ztsUrl string, opts *options.Options) error {
 
 	key, err := util.GenerateKeyPair(2048)
 	if err != nil {
@@ -247,7 +247,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc, false)
-	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname, metaEndpoint)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 	if err != nil {
 		return err
 	}
-	attestData, err := opts.Provider.CloudAttestationData(metaEndpoint, svc.Name, ztsUrl)
+	attestData, err := opts.Provider.CloudAttestationData(opts.MetaEndPoint, svc.Name, ztsUrl)
 	if err != nil {
 		log.Printf("Failed to get attestation data to prove the identity, err:%v\n", err)
 		return err
@@ -351,7 +351,7 @@ func registerSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options
 	return nil
 }
 
-func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.Options) error {
+func refreshSvc(svc options.Service, ztsUrl string, opts *options.Options) error {
 
 	keyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	certFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
@@ -365,7 +365,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	//if ssh support is enabled then we need to generate the csr
 	//it is also generated for the primary service only
 	hostname := getServiceHostname(opts, svc, false)
-	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname, metaEndpoint)
+	sshCertRequest, sshCsr, err := generateSshRequest(opts, svc.Name, hostname)
 	if err != nil {
 		return err
 	}
@@ -399,7 +399,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 		return err
 	}
 
-	attestData, err := opts.Provider.CloudAttestationData(metaEndpoint, svc.Name, ztsUrl)
+	attestData, err := opts.Provider.CloudAttestationData(opts.MetaEndPoint, svc.Name, ztsUrl)
 	if err != nil {
 		log.Printf("Failed to get attestation data to prove the identity, err:%v\n", err)
 		return err
@@ -468,7 +468,7 @@ func refreshSvc(svc options.Service, ztsUrl, metaEndpoint string, opts *options.
 	return nil
 }
 
-func generateSshRequest(opts *options.Options, primaryServiceName, hostname, metaEndpoint string) (*zts.SSHCertRequest, string, error) {
+func generateSshRequest(opts *options.Options, primaryServiceName, hostname string) (*zts.SSHCertRequest, string, error) {
 	var err error
 	var sshCsr string
 	var sshCertRequest *zts.SSHCertRequest
@@ -478,7 +478,7 @@ func generateSshRequest(opts *options.Options, primaryServiceName, hostname, met
 		} else {
 			sshPrincipals := opts.SshPrincipals
 			// additional ssh host principals are added on best effort basis, hence error below is ignored.
-			additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(metaEndpoint)
+			additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(opts.MetaEndPoint)
 			if additionalSshHostPrincipals != "" {
 				if sshPrincipals != "" {
 					sshPrincipals = sshPrincipals + "," + additionalSshHostPrincipals
@@ -622,7 +622,12 @@ func SetupAgent(opts *options.Options, siaMainDir, siaLinkDir string) {
 	}
 }
 
-func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
+func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
+
+	//make sure the meta endpoint is configured by the caller
+	if opts.MetaEndPoint == "" {
+		log.Fatalf("meta endpoint not configured")
+	}
 
 	//the default value is to rotate once every day since our
 	//server and role certs are valid for 30 days by default
@@ -658,21 +663,21 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
 	case "post", "register":
-		err := RegisterInstance(ztsUrl, metaEndpoint, opts, false)
+		err := RegisterInstance(ztsUrl, opts, false)
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
-		err = RefreshInstance(ztsUrl, metaEndpoint, opts)
+		err = RefreshInstance(ztsUrl, opts)
 		if err != nil {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
 		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
-		err := RegisterInstance(ztsUrl, metaEndpoint, opts, false)
+		err := RegisterInstance(ztsUrl, opts, false)
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
@@ -702,7 +707,7 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 		initialSetup := true
 		for _, svc := range opts.Services {
 			if serviceAlreadyRegistered(opts, svc) {
-				err = refreshSvc(svc, ztsUrl, metaEndpoint, opts)
+				err = refreshSvc(svc, ztsUrl, opts)
 				if err != nil {
 					log.Printf("unable to refresh identity for svc: %q, error: %v", svc.Name, err)
 				}
@@ -710,7 +715,7 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 				if shouldSkipRegister(opts) {
 					log.Fatalf("identity document has expired (30 min timeout). ZTS will not register this instance. Please relaunch or stop and start your instance to refesh its identity document")
 				}
-				err = registerSvc(svc, ztsUrl, metaEndpoint, opts)
+				err = registerSvc(svc, ztsUrl, opts)
 				if err != nil {
 					log.Fatalf("unable to register identity for svc: %q, error: %v", svc.Name, err)
 				}
@@ -736,7 +741,7 @@ func RunAgent(siaCmd, ztsUrl, metaEndpoint string, opts *options.Options) {
 				// this time around and refresh certs next time
 
 				if !initialSetup {
-					err = RefreshInstance(ztsUrl, metaEndpoint, opts)
+					err = RefreshInstance(ztsUrl, opts)
 					if err != nil {
 						failedRefreshCount++
 						if shouldExitRightAway(failedRefreshCount, opts) {
