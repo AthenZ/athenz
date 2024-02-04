@@ -355,12 +355,12 @@ func TestRoleCertificateRequest(test *testing.T) {
 		},
 		Roles: []options.Role{
 			{
-				Name:     "athenz:role.writers",
-				Service:  "hockey",
-				Uid:      util.ExecIdCommand("-u"),
-				Gid:      util.ExecIdCommand("-g"),
-				Filename: roleCertFile,
-				FileMode: 0400,
+				Name:             "athenz:role.writers",
+				Service:          "hockey",
+				Uid:              util.ExecIdCommand("-u"),
+				Gid:              util.ExecIdCommand("-g"),
+				RoleCertFilename: roleCertFile,
+				FileMode:         0400,
 			},
 		},
 		KeyDir:           siaDir,
