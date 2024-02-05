@@ -3,6 +3,13 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as they're requested by our customers.
 
+# Q1 2024
+
+- Integration with Cert-Manager (cont. from Q4)
+- K8S operator for Athenz to manage Athenz resources using CRDs (cont. from Q4)
+- Implement a provider for Github Actions
+- Introduce environment classification for domains (production/staging/etc)
+
 # Q4 2023
 
 - Integration with Cert-Manager (cont. from Q3)
