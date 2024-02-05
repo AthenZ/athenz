@@ -29,7 +29,7 @@ module.exports = {
     moduleDirectories: ['node_modules'],
     reporters: ['default', 'jest-junit'],
     setupFilesAfterEnv: [
-        '@testing-library/jest-dom/extend-expect',
+        '@testing-library/jest-dom',
         '<rootDir>/src/setup-jest-test-framework.js',
     ],
     testEnvironmentOptions: {
