@@ -106,8 +106,8 @@
         "xml-crypto": "2.1.4"
     },
     "devDependencies": {
-        "@babel/core": "7.19.0",
-        "@emotion/babel-plugin": "11.10.2",
+        "@babel/core": "7.23.9",
+        "@emotion/babel-plugin": "11.11.0",
         "@emotion/jest": "11.10.5",
         "@sinonjs/referee": "9.1.1",
         "@testing-library/jest-dom": "5.16.5",
@@ -118,7 +118,7 @@
         "@wdio/mocha-framework": "8.0.13",
         "@wdio/sauce-service": "8.0.13",
         "@wdio/spec-reporter": "8.0.13",
-        "babel-jest": "29.0.3",
+        "babel-jest": "29.7.0",
         "chromedriver": "^120",
         "dotenv": "16.0.2",
         "expect": "29.0.3",
