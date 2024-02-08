@@ -6342,7 +6342,7 @@ public class DBService implements RolesProvider {
                 auditLogRoleSystemMeta(auditDetails, updatedRole, roleName);
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        domainName, auditDetails.toString());
+                        roleName, auditDetails.toString());
 
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
@@ -6418,7 +6418,7 @@ public class DBService implements RolesProvider {
                 auditLogGroupSystemMeta(auditDetails, updatedGroup, groupName);
 
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
-                        domainName, auditDetails.toString());
+                        groupName, auditDetails.toString());
 
                 // add domain change event
 
@@ -6617,7 +6617,7 @@ public class DBService implements RolesProvider {
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
-                        domainName, auditDetails.toString());
+                        roleName, auditDetails.toString());
 
                 // if the role member expiry date or review date has changed then we're going
                 // process all the members in the role and update the expiration and review
@@ -6751,7 +6751,7 @@ public class DBService implements RolesProvider {
                 // audit log the request
 
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
-                        domainName, auditDetails.toString());
+                        groupName, auditDetails.toString());
 
                 // if the group user authority expiration attribute has changed, we're going
                 // process all the members in the group and update the expiration date accordingly
