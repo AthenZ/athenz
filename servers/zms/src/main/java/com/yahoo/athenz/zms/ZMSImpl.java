@@ -157,6 +157,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_ASSERTION_CONDITIONS = "AssertionConditions";
     private static final String TYPE_ASSERTION_CONDITION = "AssertionCondition";
     private static final String TYPE_POLICY_OPTIONS = "PolicyOptions";
+    private static final String TYPE_TAG_KEY = "TagKey";
+    private static final String TYPE_TAG_COMPOUND_VALUE = "TagCompoundValue";
 
     private static final String SERVER_READ_ONLY_MESSAGE = "Server in Maintenance Read-Only mode. Please try your request later";
 
@@ -1413,10 +1415,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("getDomainList: limit must be positive: " + limit, caller);
         }
         if (!StringUtil.isEmpty(tagKey)) {
-            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+            validate(tagKey, TYPE_TAG_KEY, caller);
         }
         if (!StringUtil.isEmpty(tagValue)) {
-            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+            validate(tagValue, TYPE_TAG_COMPOUND_VALUE, caller);
         }
 
         long modTime = 0;
@@ -3671,10 +3673,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         if (!StringUtil.isEmpty(tagKey)) {
-            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+            validate(tagKey, TYPE_TAG_KEY, caller);
         }
         if (!StringUtil.isEmpty(tagValue)) {
-            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+            validate(tagValue, TYPE_TAG_COMPOUND_VALUE, caller);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -6187,10 +6189,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         if (!StringUtil.isEmpty(tagKey)) {
-            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+            validate(tagKey, TYPE_TAG_KEY, caller);
         }
         if (!StringUtil.isEmpty(tagValue)) {
-            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+            validate(tagValue, TYPE_TAG_COMPOUND_VALUE, caller);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -9837,10 +9839,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         validate(domainName, TYPE_DOMAIN_NAME, caller);
         if (!StringUtil.isEmpty(tagKey)) {
-            validate(tagKey, TYPE_COMPOUND_NAME, caller);
+            validate(tagKey, TYPE_TAG_KEY, caller);
         }
         if (!StringUtil.isEmpty(tagValue)) {
-            validate(tagValue, TYPE_COMPOUND_NAME, caller);
+            validate(tagValue, TYPE_TAG_COMPOUND_VALUE, caller);
         }
 
         // for consistent handling of all requests, we're going to convert

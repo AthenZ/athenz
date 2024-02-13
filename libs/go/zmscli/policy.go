@@ -495,7 +495,7 @@ func (cli Zms) ShowPolicies(dn string, tagKey string, tagValue string) (*string,
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
 		publicKeys := true
 		hosts := true
-		Policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &publicKeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		Policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &publicKeys, &hosts, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get Policy list - error: %v", err)
 		}

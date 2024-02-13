@@ -60,8 +60,8 @@ resource ServiceIdentities GET "/domain/{domainName}/services?publickeys={public
     DomainName domainName; //name of the domain
     Bool publickeys (optional, default=false); // return list of public keys in the service
     Bool hosts (optional, default=false); // return list of hosts in the service
-    CompoundName tagKey (optional); //flag to query all services that have a given tagName
-    CompoundName tagValue (optional); //flag to query all services that have a given tag name and value
+    TagKey tagKey (optional); //flag to query all services that have a given tagName
+    TagCompoundValue tagValue (optional); //flag to query all services that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
