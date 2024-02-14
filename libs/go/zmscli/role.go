@@ -667,7 +667,7 @@ func (cli Zms) DeleteRoleTags(dn string, rn, tagKey string, tagValue string) (*s
 func (cli Zms) ShowRoles(dn string, tagKey string, tagValue string) (*string, error) {
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
 		members := true
-		roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 		if err != nil {
 			log.Fatalf("Unable to get role list - error: %v", err)
 		}

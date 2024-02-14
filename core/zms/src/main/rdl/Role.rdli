@@ -24,8 +24,8 @@ resource RoleList GET "/domain/{domainName}/role?limit={limit}&skip={skip}" {
 resource Roles GET "/domain/{domainName}/roles?members={members}&tagKey={tagKey}&tagValue={tagValue}" {
     DomainName domainName; // name of the domain
     Bool members (optional, default=false); // return list of members in the role
-    CompoundName tagKey (optional); //flag to query all roles that have a given tagName
-    CompoundName tagValue (optional); //flag to query all roles that have a given tag name and value
+    TagKey tagKey (optional); //flag to query all roles that have a given tagName
+    TagCompoundValue tagValue (optional); //flag to query all roles that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

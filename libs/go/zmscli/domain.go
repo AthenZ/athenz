@@ -509,7 +509,7 @@ func (cli Zms) LookupDomainById(account, subscription, project, productID string
 }
 
 func (cli Zms) LookupDomainByTag(tagKey string, tagValue string) (*string, error) {
-	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", zms.CompoundName(tagKey), zms.CompoundName(tagValue), "", "", "")
+	res, err := cli.Zms.GetDomainList(nil, "", "", nil, "", nil, "", "", "", "", zms.TagKey(tagKey), zms.TagCompoundValue(tagValue), "", "", "")
 	if err != nil {
 		return nil, err
 	}

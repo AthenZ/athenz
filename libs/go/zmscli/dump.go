@@ -216,7 +216,7 @@ func (cli Zms) dumpRoles(buf *bytes.Buffer, dn string, tagKey string, tagValue s
 	buf.WriteString(indentLevel1)
 	buf.WriteString("roles:\n")
 	members := true
-	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+	roles, err := cli.Zms.GetRoles(zms.DomainName(dn), &members, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get role list - error: %v", err)
 	}
@@ -229,7 +229,7 @@ func (cli Zms) dumpGroups(buf *bytes.Buffer, dn string, tagKey string, tagValue 
 	buf.WriteString(indentLevel1)
 	buf.WriteString("groups:\n")
 	members := true
-	groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+	groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get group list - error: %v", err)
 	}
@@ -358,7 +358,7 @@ func (cli Zms) dumpPolicies(buf *bytes.Buffer, dn string, tagkey string, tagValu
 	buf.WriteString("policies:\n")
 	assertions := true
 	versions := false
-	policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &assertions, &versions, zms.CompoundName(tagkey), zms.CompoundName(tagValue))
+	policies, err := cli.Zms.GetPolicies(zms.DomainName(dn), &assertions, &versions, zms.TagKey(tagkey), zms.TagCompoundValue(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get policy list - error: %v", err)
 	}
@@ -456,7 +456,7 @@ func (cli Zms) dumpObjectList(buf *bytes.Buffer, list []string, dn string, objec
 func (cli Zms) dumpServices(buf *bytes.Buffer, dn string, tagKey string, tagValue string) {
 	publickeys := true
 	hosts := true
-	services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publickeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+	services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publickeys, &hosts, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 	if err != nil {
 		log.Fatalf("Unable to get service list - error: %v", err)
 	}

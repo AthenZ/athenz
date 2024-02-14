@@ -324,7 +324,7 @@ func (client ZMSClient) GetDomain(domain DomainName) (*Domain, error) {
 	}
 }
 
-func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, depth *int32, account string, productNumber *int32, roleMember ResourceName, roleName ResourceName, subscription string, project string, tagKey CompoundName, tagValue CompoundName, businessService string, productId string, modifiedSince string) (*DomainList, error) {
+func (client ZMSClient) GetDomainList(limit *int32, skip string, prefix string, depth *int32, account string, productNumber *int32, roleMember ResourceName, roleName ResourceName, subscription string, project string, tagKey TagKey, tagValue TagCompoundValue, businessService string, productId string, modifiedSince string) (*DomainList, error) {
 	var data *DomainList
 	headers := map[string]string{
 		"If-Modified-Since": modifiedSince,
@@ -1058,7 +1058,7 @@ func (client ZMSClient) GetRoleList(domainName DomainName, limit *int32, skip st
 	}
 }
 
-func (client ZMSClient) GetRoles(domainName DomainName, members *bool, tagKey CompoundName, tagValue CompoundName) (*Roles, error) {
+func (client ZMSClient) GetRoles(domainName DomainName, members *bool, tagKey TagKey, tagValue TagCompoundValue) (*Roles, error) {
 	var data *Roles
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles" + encodeParams(encodeOptionalBoolParam("members", members), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
@@ -1602,7 +1602,7 @@ func (client ZMSClient) PutRoleReview(domainName DomainName, roleName EntityName
 	}
 }
 
-func (client ZMSClient) GetGroups(domainName DomainName, members *bool, tagKey CompoundName, tagValue CompoundName) (*Groups, error) {
+func (client ZMSClient) GetGroups(domainName DomainName, members *bool, tagKey TagKey, tagValue TagCompoundValue) (*Groups, error) {
 	var data *Groups
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/groups" + encodeParams(encodeOptionalBoolParam("members", members), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
@@ -2112,7 +2112,7 @@ func (client ZMSClient) GetPolicyList(domainName DomainName, limit *int32, skip 
 	}
 }
 
-func (client ZMSClient) GetPolicies(domainName DomainName, assertions *bool, includeNonActive *bool, tagKey CompoundName, tagValue CompoundName) (*Policies, error) {
+func (client ZMSClient) GetPolicies(domainName DomainName, assertions *bool, includeNonActive *bool, tagKey TagKey, tagValue TagCompoundValue) (*Policies, error) {
 	var data *Policies
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policies" + encodeParams(encodeOptionalBoolParam("assertions", assertions), encodeOptionalBoolParam("includeNonActive", includeNonActive), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)
@@ -2830,7 +2830,7 @@ func (client ZMSClient) DeleteServiceIdentity(domain DomainName, service SimpleN
 	}
 }
 
-func (client ZMSClient) GetServiceIdentities(domainName DomainName, publickeys *bool, hosts *bool, tagKey CompoundName, tagValue CompoundName) (*ServiceIdentities, error) {
+func (client ZMSClient) GetServiceIdentities(domainName DomainName, publickeys *bool, hosts *bool, tagKey TagKey, tagValue TagCompoundValue) (*ServiceIdentities, error) {
 	var data *ServiceIdentities
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/services" + encodeParams(encodeOptionalBoolParam("publickeys", publickeys), encodeOptionalBoolParam("hosts", hosts), encodeStringParam("tagKey", string(tagKey), ""), encodeStringParam("tagValue", string(tagValue), ""))
 	resp, err := client.httpGet(url, nil)

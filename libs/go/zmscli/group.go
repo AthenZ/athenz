@@ -634,7 +634,7 @@ func (cli Zms) DeleteGroupTags(dn string, gn, tagKey string, tagValue string) (*
 func (cli Zms) ShowGroups(dn, tagKey, tagValue string) (*string, error) {
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
 		members := true
-		groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		groups, err := cli.Zms.GetGroups(zms.DomainName(dn), &members, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 		if err != nil {
 			log.Fatalf("Unable to get group list - error: %v", err)
 		}

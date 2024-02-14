@@ -9,8 +9,8 @@ include "Group.tdl";
 resource Groups GET "/domain/{domainName}/groups?members={members}&tagKey={tagKey}&tagValue={tagValue}" {
     DomainName domainName; // name of the domain
     Bool members (optional, default=false); // return list of members in the group
-    CompoundName tagKey (optional); //flag to query all groups that have a given tagName
-    CompoundName tagValue (optional); //flag to query all groups that have a given tag name and value
+    TagKey tagKey (optional); //flag to query all groups that have a given tagName
+    TagCompoundValue tagValue (optional); //flag to query all groups that have a given tag name and value
     authenticate;
     exceptions {
         ResourceError BAD_REQUEST;

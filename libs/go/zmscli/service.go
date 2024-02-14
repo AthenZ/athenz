@@ -144,7 +144,7 @@ func (cli Zms) ShowServices(dn string, tagKey string, tagValue string) (*string,
 	if cli.OutputFormat == JSONOutputFormat || cli.OutputFormat == YAMLOutputFormat {
 		publicKeys := true
 		hosts := true
-		services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publicKeys, &hosts, zms.CompoundName(tagKey), zms.CompoundName(tagValue))
+		services, err := cli.Zms.GetServiceIdentities(zms.DomainName(dn), &publicKeys, &hosts, zms.TagKey(tagKey), zms.TagCompoundValue(tagValue))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get service list - error: %v", err)
 		}
