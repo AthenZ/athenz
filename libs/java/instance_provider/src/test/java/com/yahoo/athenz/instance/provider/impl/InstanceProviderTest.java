@@ -45,6 +45,7 @@ public class InstanceProviderTest {
         };
 
         provider.setHostnameResolver(null);
+        provider.setAuthorizer(null);
 
         assertEquals(InstanceProvider.Scheme.UNKNOWN, provider.getProviderScheme());
         provider.close();

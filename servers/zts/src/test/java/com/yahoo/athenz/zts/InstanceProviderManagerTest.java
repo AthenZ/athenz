@@ -184,7 +184,7 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech", null);
         assertNull(client);
     }
@@ -196,7 +196,7 @@ public class InstanceProviderManagerTest {
         store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(),
-                null, null, null, null);
+                null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNotNull(client);
         client.close();
@@ -209,7 +209,7 @@ public class InstanceProviderManagerTest {
         store.processSignedDomain(signedDomain, false);
         
         InstanceProviderManager provider = new InstanceProviderManager(store, SSLContext.getDefault(),
-                null, null, null, null);
+                null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather2", null);
         assertNull(client);
     }
@@ -220,7 +220,7 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainClassEndpoint("coretech", "weather", true, true);
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", new HostnameResolver(){});
         assertNotNull(client);
         client.close();
@@ -234,7 +234,8 @@ public class InstanceProviderManagerTest {
 
         PrivateKey privateKey = Mockito.mock(PrivateKey.class);
         ServerPrivateKey serverPrivateKey = new ServerPrivateKey(privateKey, "0");
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, serverPrivateKey, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null,
+                serverPrivateKey, null, null, null);
         InstanceProvider client = provider.getProvider("sys.auth.zts", new HostnameResolver(){});
         assertNotNull(client);
         client.close();
@@ -247,7 +248,7 @@ public class InstanceProviderManagerTest {
         store.processSignedDomain(signedDomain, false);
 
         System.setProperty("athenz.instance.test.class.exception", "true");
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", new HostnameResolver(){});
         assertNull(client);
         System.clearProperty("athenz.instance.test.class.exception");
@@ -259,7 +260,7 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech2.weather", null);
         assertNull(client);
     }
@@ -270,7 +271,7 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, true);
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather2", null);
         assertNull(client);
     }
@@ -281,7 +282,7 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", true, false);
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
@@ -293,7 +294,7 @@ public class InstanceProviderManagerTest {
                 true, true, "http://invalid");
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
@@ -305,7 +306,7 @@ public class InstanceProviderManagerTest {
                 true, true, "://test.athenz.com/");
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
@@ -316,7 +317,7 @@ public class InstanceProviderManagerTest {
         SignedDomain signedDomain = createSignedDomainHttpsEndpoint("coretech", "weather", false, true);
         store.processSignedDomain(signedDomain, false);
         
-        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(store, null, null, null, null, null, null);
         InstanceProvider client = provider.getProvider("coretech.weather", null);
         assertNull(client);
     }
@@ -324,7 +325,7 @@ public class InstanceProviderManagerTest {
     @Test
     public void testGetProviderScheme() throws URISyntaxException {
 
-        InstanceProviderManager provider = new InstanceProviderManager(null, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(null, null, null, null, null, null, null);
 
         URI uri = new URI("https://test.athenz2.com/");
         assertEquals(provider.getProviderScheme(uri), ProviderScheme.HTTPS);
@@ -345,7 +346,7 @@ public class InstanceProviderManagerTest {
     @Test
     public void testGetProviderEndpointScheme() throws URISyntaxException {
         
-        InstanceProviderManager provider = new InstanceProviderManager(null, null, null, null, null, null);
+        InstanceProviderManager provider = new InstanceProviderManager(null, null, null, null, null, null, null);
         URI uri = new URI("https://test.athenz2.com/");
         assertEquals(provider.getProviderEndpointScheme(uri), ProviderScheme.HTTPS);
         
@@ -402,27 +403,32 @@ public class InstanceProviderManagerTest {
     public void testGetClassInstance() {
         HostnameResolver hostnameResolver = new HostnameResolver(){};
 
-        InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null, null);
+        InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null, null, null);
         InstanceProvider provider = providerManager.getClassProvider("unknown.class", "provider", null,  hostnameResolver);
         assertNull(provider);
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", null, hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider",
+                "provider", null, hostnameResolver);
         assertNotNull(provider);
 
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider", "provider", null, hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSECSProvider",
+                "provider", null, hostnameResolver);
         assertNotNull(provider);
 
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider", "provider", null, hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSLambdaProvider",
+                "provider", null, hostnameResolver);
         assertNotNull(provider);
 
         // we should get this from the cache now
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", "provider", null, hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider",
+                "provider", null, hostnameResolver);
         assertNotNull(provider);
         
         // some invalid class name
         
-        provider = providerManager.getClassProvider("com.yahoo.athenz.unknown.class", "provider", null, hostnameResolver);
+        provider = providerManager.getClassProvider("com.yahoo.athenz.unknown.class", "provider",
+                null, hostnameResolver);
         assertNull(provider);
         
         // class name that doesn't implement expected interface
@@ -433,7 +439,7 @@ public class InstanceProviderManagerTest {
     
     @Test
     public void testVerifyProviderEndpoint() {
-        InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null, null);
+        InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null, null, null);
         assertTrue(providerManager.verifyProviderEndpoint("test1.athenz.com"));
         assertTrue(providerManager.verifyProviderEndpoint("test1.athenz2.com"));
         assertFalse(providerManager.verifyProviderEndpoint("test1.athenz3.com"));
@@ -448,7 +454,7 @@ public class InstanceProviderManagerTest {
 
     @Test
     public void testGetProviderEndpoint() throws URISyntaxException {
-        InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null, null);
+        InstanceProviderManager providerManager = new InstanceProviderManager(null, null, null, null, null, null, null);
 
         String providerEndpoint = "https://test.athenz2.com/";
         URI uri = new URI(providerEndpoint);
@@ -472,19 +478,19 @@ public class InstanceProviderManagerTest {
         // when both are specified, the appropriate context is returned
 
         InstanceProviderManager providerManager = new InstanceProviderManager(null, serverContext, clientContext,
-                null, null, null);
+                null, null, null, null);
         assertEquals(providerManager.getSSLContext(true), clientContext);
         assertEquals(providerManager.getSSLContext(false), serverContext);
 
         // if client is only specified then we get that for both values
 
-        providerManager = new InstanceProviderManager(null, null, clientContext, null, null, null);
+        providerManager = new InstanceProviderManager(null, null, clientContext, null, null, null, null);
         assertEquals(providerManager.getSSLContext(true), clientContext);
         assertEquals(providerManager.getSSLContext(false), clientContext);
 
         // if server is only specified then we get that for both values
 
-        providerManager = new InstanceProviderManager(null, serverContext, null, null, null, null);
+        providerManager = new InstanceProviderManager(null, serverContext, null, null, null, null, null);
         assertEquals(providerManager.getSSLContext(true), serverContext);
         assertEquals(providerManager.getSSLContext(false), serverContext);
     }

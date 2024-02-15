@@ -81,6 +81,7 @@ public class TestJwtsSigningKeyResolver {
 
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver("https://localhost:10099", null);
         assertNotNull(resolver);
+        assertEquals(resolver.getJwksUri(), "https://localhost:10099");
 
         resetConfProperty(oldConf);
     }

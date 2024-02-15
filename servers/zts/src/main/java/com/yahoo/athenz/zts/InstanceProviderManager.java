@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import org.eclipse.jetty.util.StringUtil;
@@ -52,6 +53,7 @@ public class InstanceProviderManager {
     private final SSLContext athenzClientSSLContext;
     private final ServerPrivateKey serverPrivateKey;
     private final ZTSHandler ztsHandler;
+    private final Authorizer authorizer;
     List<String> providerEndpoints = Collections.emptyList();
 
     enum ProviderScheme {
@@ -61,13 +63,14 @@ public class InstanceProviderManager {
     }
     
     public InstanceProviderManager(DataStore dataStore, SSLContext athenzServerSSLContext, SSLContext athenzClientSSLContext,
-            ServerPrivateKey serverPrivateKey, KeyStore keyStore, ZTSHandler ztsHandler) {
+            ServerPrivateKey serverPrivateKey, KeyStore keyStore, Authorizer authorizer, ZTSHandler ztsHandler) {
         
         this.dataStore = dataStore;
         this.keyStore = keyStore;
         this.athenzServerSSLContext = athenzServerSSLContext;
         this.athenzClientSSLContext = athenzClientSSLContext;
         this.serverPrivateKey = serverPrivateKey;
+        this.authorizer = authorizer;
         this.ztsHandler = ztsHandler;
 
         providerMap = new ConcurrentHashMap<>();
@@ -172,6 +175,7 @@ public class InstanceProviderManager {
         provider.setHostnameResolver(hostnameResolver);
         provider.setRolesProvider(dataStore);
         provider.setExternalCredentialsProvider(new InstanceExternalCredentialsProvider(providerName, ztsHandler));
+        provider.setAuthorizer(authorizer);
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
         }

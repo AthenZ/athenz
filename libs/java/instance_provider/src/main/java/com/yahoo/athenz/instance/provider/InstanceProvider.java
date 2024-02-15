@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider;
 
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
@@ -133,6 +134,14 @@ public interface InstanceProvider {
      * @param credsProvider the external credentials provider object
      */
     default void setExternalCredentialsProvider(ExternalCredentialsProvider credsProvider) {
+    }
+
+    /**
+     * Set the authorizer object for the provider in case the provider
+     * needs to carry out an authorization check to validate the request
+     * @param authorizer authorizer object
+     */
+    default void setAuthorizer(Authorizer authorizer) {
     }
 
     /**

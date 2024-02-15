@@ -77,7 +77,11 @@ public class JwtsSigningKeyResolver implements SigningKeyResolver {
         lastZtsJwkFetchTime = System.currentTimeMillis();
         loadPublicKeysFromServer();
     }
-    
+
+    public String getJwksUri() {
+        return jwksUri;
+    }
+
     @Override
     public Key resolveSigningKey(JwsHeader jwsHeader, Claims claims) {
         return resolveSigningKey(jwsHeader);

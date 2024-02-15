@@ -77,4 +77,24 @@ public class ValidateTest {
         assertTrue(Validate.domainName("domain-part"));
         assertTrue(Validate.domainName("com-test.gov"));
     }
+
+    @Test
+    public void testSimpleNameValidationInvalid() {
+
+        assertFalse(Validate.simpleName("domain:service%api"));
+        assertFalse(Validate.simpleName("api.service"));
+        assertFalse(Validate.simpleName("service/api"));
+        assertFalse(Validate.simpleName("service+api"));
+        assertFalse(Validate.simpleName(null));
+        assertFalse(Validate.simpleName(""));
+    }
+
+    @Test
+    public void testSimpleNameValidationValid() {
+
+        assertTrue(Validate.simpleName("service"));
+        assertTrue(Validate.simpleName("service001"));
+        assertTrue(Validate.simpleName("service_api"));
+        assertTrue(Validate.simpleName("service-api"));
+    }
 }
