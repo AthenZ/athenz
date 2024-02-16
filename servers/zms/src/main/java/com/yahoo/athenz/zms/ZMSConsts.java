@@ -432,4 +432,11 @@ public final class ZMSConsts {
 
     // ZMS feature flag bits
     public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;
+
+    // Validator object types
+    public static final String TYPE_DOMAIN_NAME      = "DomainName";
+    public static final String TYPE_RESOURCE_NAME    = "ResourceName";
+    public static final String TYPE_ROLE             = "Role";
+    public static final String TYPE_POLICY           = "Policy";
+    public static final String TYPE_SERVICE_IDENTITY = "ServiceIdentity";
 }

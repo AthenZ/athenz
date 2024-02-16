@@ -3349,7 +3349,7 @@ type TemplateParam struct {
 	//
 	// value of the parameter
 	//
-	Value CompoundName `json:"value"`
+	Value string `json:"value"`
 }
 
 // NewTemplateParam - creates an initialized TemplateParam instance, returns a pointer to it
@@ -3390,9 +3390,9 @@ func (self *TemplateParam) Validate() error {
 	if self.Value == "" {
 		return fmt.Errorf("TemplateParam.value is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZMSSchema(), "CompoundName", self.Value)
+		val := rdl.Validate(ZMSSchema(), "String", self.Value)
 		if !val.Valid {
-			return fmt.Errorf("TemplateParam.value does not contain a valid CompoundName (%v)", val.Error)
+			return fmt.Errorf("TemplateParam.value does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil

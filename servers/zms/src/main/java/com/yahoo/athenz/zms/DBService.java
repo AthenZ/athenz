@@ -81,6 +81,8 @@ public class DBService implements RolesProvider {
     public static int AUDIT_TYPE_TEMPLATE = 6;
     public static int AUDIT_TYPE_GROUP    = 7;
 
+    private static final String CALLER_TEMPLATE = "putSolutionTemplate";
+
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
     private static final String TEMPLATE_DOMAIN_NAME = "_domain_";
@@ -4854,6 +4856,11 @@ public class DBService implements RolesProvider {
                     mergeOriginalRoleAndMetaRoleAttributes(originalRole, templateRole);
                 }
 
+                // before processing, make sure to validate the role to make
+                // sure it's valid after all the substitutions
+
+                ZMSUtils.validateObject(zmsConfig.getValidator(), templateRole, ZMSConsts.TYPE_ROLE, CALLER_TEMPLATE);
+
                 // now process the request
 
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
@@ -4864,6 +4871,7 @@ public class DBService implements RolesProvider {
                 }
 
                 // add domain change event
+
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
             }
         }
@@ -5137,10 +5145,19 @@ public class DBService implements RolesProvider {
                 }
                 newAssertion.setResource(resource);
                 newAssertion.setRole(role);
+
+                // validate the assertion and add it to the list
+
+                ZMSUtils.validatePolicyAssertion(zmsConfig.getValidator(), newAssertion, true, CALLER_TEMPLATE);
                 newAssertions.add(newAssertion);
             }
         }
         templatePolicy.setAssertions(newAssertions);
+
+        // before returning, make sure to validate the policy to make
+        // sure it's valid after all the substitutions
+
+        ZMSUtils.validateObject(zmsConfig.getValidator(), templatePolicy, ZMSConsts.TYPE_POLICY, CALLER_TEMPLATE);
         return templatePolicy;
     }
 
@@ -5181,6 +5198,11 @@ public class DBService implements RolesProvider {
             templateServiceIdentity.setHosts(new ArrayList<>(hosts));
         }
 
+        // before returning, make sure to validate the policy to make
+        // sure it's valid after all the substitutions
+
+        ZMSUtils.validateObject(zmsConfig.getValidator(), templateServiceIdentity,
+                ZMSConsts.TYPE_SERVICE_IDENTITY, CALLER_TEMPLATE);
         return templateServiceIdentity;
     }
 

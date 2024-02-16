@@ -19,11 +19,13 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.rdl.Validator;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
@@ -474,4 +476,70 @@ public class ZMSUtils {
     public static <T> List<T> emptyIfNull(final List<T> c) {
         return c == null ? Collections.emptyList() : c;
     }
+
+    public static void validateObject(Validator validator, Object val, String type, String caller) {
+        if (val == null) {
+            throw requestError("Missing or malformed " + type, caller);
+        }
+
+        try {
+            Validator.Result result = validator.validate(val, type);
+            if (!result.valid) {
+                throw requestError("Invalid " + type + " error: " + result.error, caller);
+            }
+        } catch (Exception ex) {
+            LOG.error("Object validation exception", ex);
+            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller);
+        }
+    }
+
+    public static void validatePolicyAssertion(Validator validator, Assertion assertion,
+            boolean validateRoleName, final String caller) {
+
+        // extract the domain name from the resource
+
+        final String resource = assertion.getResource();
+        int idx = resource.indexOf(':');
+        if (idx == -1) {
+            throw ZMSUtils.requestError("Missing domain name from assertion resource: "
+                    + resource, caller);
+        }
+
+        // we need to validate our domain name with special
+        // case of * that is allowed to match any domain
+
+        final String domainName = resource.substring(0, idx);
+        if (!domainName.equals("*")) {
+            validateObject(validator, domainName, ZMSConsts.TYPE_DOMAIN_NAME, caller);
+        }
+
+        // we'll also verify that the resource does not contain
+        // any control characters since those cause issues when
+        // data is serialized/deserialized and signature is generated
+
+        if (StringUtils.containsControlCharacter(resource)) {
+            throw ZMSUtils.requestError("Assertion resource contains control characters: "
+                    + resource, caller);
+        }
+
+        // verify the action is not empty and does not contain
+        // any control characters
+
+        final String action = assertion.getAction();
+        if (action == null || action.isEmpty()) {
+            throw ZMSUtils.requestError("Assertion action cannot be empty", caller);
+        }
+
+        if (StringUtils.containsControlCharacter(action)) {
+            throw ZMSUtils.requestError("Assertion action contains control characters: "
+                    + resource, caller);
+        }
+
+        // validate role name to be a compound type if requested
+
+        if (validateRoleName) {
+            validateObject(validator, assertion.getRole(), ZMSConsts.TYPE_RESOURCE_NAME, caller);
+        }
+    }
+
 }
