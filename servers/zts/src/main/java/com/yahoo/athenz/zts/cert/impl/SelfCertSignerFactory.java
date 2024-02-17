@@ -25,6 +25,7 @@ import com.yahoo.athenz.common.server.cert.CertSignerFactory;
 import com.yahoo.athenz.zts.ZTSConsts;
 
 import java.io.File;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
@@ -62,7 +63,7 @@ public class SelfCertSignerFactory implements CertSignerFactory {
         String csr;
         try {
             csr = Crypto.generateX509CSR(caPrivateKey, csrDn, null);
-        } catch (IllegalArgumentException | OperatorCreationException | IOException ex) {
+        } catch (IllegalArgumentException | OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
             LOGGER.error("Unable to generate X509 CSR for dn: {}, error: {}", csrDn, ex.getMessage());
             return null;
         }
