@@ -40,18 +40,18 @@ type RoleMeta Struct {
     Int32 memberExpiryDays (optional); //all user members in the role will have specified max expiry days
     Int32 tokenExpiryMins (optional); //tokens issued for this role will have specified max timeout in mins
     Int32 certExpiryMins (optional); //certs issued for this role will have specified max timeout in mins
-    SimpleName signAlgorithm (optional); //rsa or ec signing algorithm to be used for tokens
+    String signAlgorithm (optional, x_allowempty="true"); //rsa or ec signing algorithm to be used for tokens
     Int32 serviceExpiryDays (optional); //all services in the role will have specified max expiry days
     Int32 memberReviewDays (optional); //all user members in the role will have specified max review days
     Int32 serviceReviewDays (optional); //all services in the role will have specified max review days
     Bool reviewEnabled (optional, default=false); //Flag indicates whether or not role updates require another review and approval
-    String notifyRoles (optional); //list of roles whose members should be notified for member review/approval
-    String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
-    String userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
+    String notifyRoles (optional, x_allowempty="true"); //list of roles whose members should be notified for member review/approval
+    String userAuthorityFilter (optional, x_allowempty="true"); //membership filtered based on user authority configured attributes
+    String userAuthorityExpiration (optional, x_allowempty="true"); //expiration enforced by a user authority configured attribute
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     Int32 groupReviewDays (optional); //all groups in the domain roles will have specified max review days
     Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values
-    String description (optional); //a description of the role
+    String description (optional, x_allowempty="true"); //a description of the role
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not role updates should be approved by GRC. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
     Bool deleteProtection (optional, default=false); //If true, ask for delete confirmation in audit and review enabled roles.
     Timestamp lastReviewedDate (optional); //last review timestamp of the role

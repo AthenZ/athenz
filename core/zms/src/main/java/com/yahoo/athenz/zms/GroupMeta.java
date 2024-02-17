@@ -21,13 +21,13 @@ public class GroupMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean reviewEnabled;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String notifyRoles;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String userAuthorityFilter;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String userAuthorityExpiration;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

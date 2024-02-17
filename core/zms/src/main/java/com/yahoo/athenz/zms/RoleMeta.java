@@ -27,7 +27,7 @@ public class RoleMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer certExpiryMins;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String signAlgorithm;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -42,13 +42,13 @@ public class RoleMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean reviewEnabled;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String notifyRoles;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String userAuthorityFilter;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String userAuthorityExpiration;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -60,7 +60,7 @@ public class RoleMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, TagValueList> tags;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String description;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

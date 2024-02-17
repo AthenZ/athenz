@@ -18,7 +18,7 @@ type DomainMeta Struct {
     Int32 tokenExpiryMins (optional); //tokens issued for this domain will have specified max timeout in mins
     Int32 serviceCertExpiryMins (optional); //service identity certs issued for this domain will have specified max timeout in mins
     Int32 roleCertExpiryMins (optional); //role certs issued for this domain will have specified max timeout in mins
-    SimpleName signAlgorithm (optional); //rsa or ec signing algorithm to be used for tokens
+    String signAlgorithm (optional, x_allowempty="true"); //rsa or ec signing algorithm to be used for tokens
     Int32 serviceExpiryDays (optional); //all services in the domain roles will have specified max expiry days
     Int32 groupExpiryDays (optional); //all groups in the domain roles will have specified max expiry days
     String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
@@ -31,7 +31,7 @@ type DomainMeta Struct {
     String productId (optional); //associated product id (system attribute - uniqueness check - if enabled)
     Int32 featureFlags (optional); //features enabled per domain (system attribute)
     Map<SimpleName,String> contacts (optional); //list of domain contacts (PE-Owner, Product-Owner, etc), each type can have a single value
-    String environment (optional); //domain environment e.g. production, staging, etc
+    String environment (optional, x_allowempty="true"); //domain environment e.g. production, staging, etc
 }
 
 //A domain is an independent partition of users, roles, and resources.

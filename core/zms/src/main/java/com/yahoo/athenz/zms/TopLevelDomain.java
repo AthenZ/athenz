@@ -52,7 +52,7 @@ public class TopLevelDomain {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer roleCertExpiryMins;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String signAlgorithm;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -91,7 +91,7 @@ public class TopLevelDomain {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Map<String, String> contacts;
     @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String environment;
     public String name;
     public List<String> adminUsers;

@@ -223,7 +223,7 @@ type DomainMeta struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the domain roles will have specified max expiry days
@@ -365,9 +365,9 @@ func (self *DomainMeta) Validate() error {
 		}
 	}
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("DomainMeta.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("DomainMeta.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
@@ -490,7 +490,7 @@ type Domain struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the domain roles will have specified max expiry days
@@ -647,9 +647,9 @@ func (self *Domain) Validate() error {
 		}
 	}
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("Domain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("Domain.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
@@ -1238,7 +1238,7 @@ type RoleMeta struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the role will have specified max expiry days
@@ -1358,9 +1358,9 @@ func (self *RoleMeta) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 func (self *RoleMeta) Validate() error {
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("RoleMeta.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("RoleMeta.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.NotifyRoles != "" {
@@ -1424,7 +1424,7 @@ type Role struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the role will have specified max expiry days
@@ -1575,9 +1575,9 @@ func (self *Role) UnmarshalJSON(b []byte) error {
 // Validate - checks for missing required fields, etc
 func (self *Role) Validate() error {
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("Role.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("Role.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.NotifyRoles != "" {
@@ -3675,7 +3675,7 @@ type TopLevelDomain struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the domain roles will have specified max expiry days
@@ -3835,9 +3835,9 @@ func (self *TopLevelDomain) Validate() error {
 		}
 	}
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("TopLevelDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("TopLevelDomain.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
@@ -3966,7 +3966,7 @@ type SubDomain struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the domain roles will have specified max expiry days
@@ -4131,9 +4131,9 @@ func (self *SubDomain) Validate() error {
 		}
 	}
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("SubDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("SubDomain.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
@@ -4271,7 +4271,7 @@ type UserDomain struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the domain roles will have specified max expiry days
@@ -4423,9 +4423,9 @@ func (self *UserDomain) Validate() error {
 		}
 	}
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("UserDomain.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("UserDomain.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
@@ -6792,7 +6792,7 @@ type DomainData struct {
 	//
 	// rsa or ec signing algorithm to be used for tokens
 	//
-	SignAlgorithm SimpleName `json:"signAlgorithm,omitempty" rdl:"optional" yaml:",omitempty"`
+	SignAlgorithm string `json:"signAlgorithm" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// all services in the domain roles will have specified max expiry days
@@ -6984,9 +6984,9 @@ func (self *DomainData) Validate() error {
 		}
 	}
 	if self.SignAlgorithm != "" {
-		val := rdl.Validate(ZMSSchema(), "SimpleName", self.SignAlgorithm)
+		val := rdl.Validate(ZMSSchema(), "String", self.SignAlgorithm)
 		if !val.Valid {
-			return fmt.Errorf("DomainData.signAlgorithm does not contain a valid SimpleName (%v)", val.Error)
+			return fmt.Errorf("DomainData.signAlgorithm does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.UserAuthorityFilter != "" {
