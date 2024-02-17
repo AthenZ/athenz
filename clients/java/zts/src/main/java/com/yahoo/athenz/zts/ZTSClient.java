@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
@@ -1469,7 +1470,7 @@ public class ZTSClient implements Closeable {
         String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
-        } catch (OperatorCreationException | IOException ex) {
+        } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
 
@@ -1556,7 +1557,7 @@ public class ZTSClient implements Closeable {
         String csr;
         try {
             csr = Crypto.generateX509CSR(privateKey, dn, sanArray);
-        } catch (OperatorCreationException | IOException ex) {
+        } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
 
@@ -2522,7 +2523,7 @@ public class ZTSClient implements Closeable {
         try {
             info.setCsr(Crypto.generateX509CSR(lambdaIdentity.getPrivateKey(),
                     dnBuilder.toString(), sanArray));
-        } catch (OperatorCreationException | IOException ex) {
+        } catch (OperatorCreationException | IOException | NoSuchAlgorithmException ex) {
             throw new ZTSClientException(ResourceException.BAD_REQUEST, ex.getMessage());
         }
         
