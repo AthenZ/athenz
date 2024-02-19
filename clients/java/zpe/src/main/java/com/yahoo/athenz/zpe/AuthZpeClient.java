@@ -283,6 +283,21 @@ public class AuthZpeClient {
         accessSignKeyResolver = new JwtsSigningKeyResolver(serverUrl, sslContext);
     }
 
+     /**
+     * Set the server connection details for the sign key resolver for access
+     * tokens. By default, the resolver is looking for the "athenz.athenz_conf"
+     * system property, parses the athenz.conf file and loads any public keys
+     * defined. The caller can also specify the server URL, the sslcontext and the proxy URL
+     * (if required) for the resolver to call and fetch the public keys that
+     * will be required to verify the token signatures
+     * @param serverUrl server url to fetch json web keys
+     * @param sslContext ssl context to be used when establishing connection
+     * @param proxyUrl if a proxy is required, specify the proxy URL
+     */
+    public static void setAccessTokenSignKeyResolver(final String serverUrl, SSLContext sslContext, final String proxyUrl) {
+        accessSignKeyResolver = new JwtsSigningKeyResolver(serverUrl, sslContext, proxyUrl);
+    }
+
     /**
      * Include the specified public key and id in the access token
      * signing resolver

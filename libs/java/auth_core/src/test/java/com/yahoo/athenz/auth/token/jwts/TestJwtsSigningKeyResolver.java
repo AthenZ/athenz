@@ -88,7 +88,7 @@ public class TestJwtsSigningKeyResolver {
     @Test
     public void testLoadJWKPublicKeysFromServer() {
         System.setProperty(ZTS_PROP_JWK_ATHENZ_CONF, TestJwtsSigningKeyResolver.class.getClassLoader().getResource("jwk/athenz.conf").getPath());
-        JwtsSigningKeyResolver resolver = spy(new JwtsSigningKeyResolver("https://localhost:10099", mock(SSLContext.class)));
+        JwtsSigningKeyResolver resolver = spy(new JwtsSigningKeyResolver("https://localhost:10099", mock(SSLContext.class), "http://localhost:8128"));
         assertNotNull(resolver);
         String ecKeys = "{\n" +
                 "        \"keys\": [\n" +
@@ -102,10 +102,11 @@ public class TestJwtsSigningKeyResolver {
                 "            }\n" +
                 "        ]\n" +
                 "    }";
-        when(resolver.getHttpData(any(), any())).thenReturn(ecKeys);
+        when(resolver.getHttpData(any(), any(), any())).thenReturn(ecKeys);
         resolver.loadPublicKeysFromServer();
         assertNotNull(resolver.getPublicKey("FdFYFzERwC2uCBB46pZQi4GG85LujR8obt-KWRBICVQ"));
         assertNotNull(resolver.getPublicKey("c6e34b18-fb1c-43bb-9de7-7edc8981b14d"));
+        verify(resolver).getHttpData(any(), any(), eq("http://localhost:8128"));
         System.clearProperty(ZTS_PROP_JWK_ATHENZ_CONF);
     }
 }
