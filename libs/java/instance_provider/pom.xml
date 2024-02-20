@@ -30,7 +30,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <code.coverage.min>0.9974</code.coverage.min>
+    <code.coverage.min>0.9976</code.coverage.min>
   </properties>
 
   <dependencyManagement>

@@ -360,7 +360,7 @@ public class ZTSImpl implements KeyStore, ZTSHandler {
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
                 ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore),
-                getServerPrivateKey(keyAlgoForPlugins), this, this);
+                getServerPrivateKey(keyAlgoForPlugins), this, authorizer, this);
 
         // make sure to set the keystore for any instance that requires it
 
