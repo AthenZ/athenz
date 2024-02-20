@@ -94,7 +94,7 @@ public class AuthHistorySyncer {
         return pkeyFactory.create();
     }
         
-    private AuthHistoryFetcher getAuthHistoryFetcher(PrivateKeyStore privateKeyStore, String region) throws Exception {
+    AuthHistoryFetcher getAuthHistoryFetcher(PrivateKeyStore privateKeyStore, String region) throws Exception {
         String authHistoryFetcherFactoryClass = System.getProperty(PROP_AUTH_HISTORY_FETCH_FACTORY_CLASS);
         if (authHistoryFetcherFactoryClass == null) {
             System.out.println("Error: " + PROP_AUTH_HISTORY_FETCH_FACTORY_CLASS + " system property is mandatory");
@@ -110,7 +110,7 @@ public class AuthHistorySyncer {
         }
     }
 
-    private AuthHistorySender getAuthHistorySender(PrivateKeyStore privateKeyStore, String region) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    AuthHistorySender getAuthHistorySender(PrivateKeyStore privateKeyStore, String region) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         String authHistorySenderFactoryClass = System.getProperty(PROP_AUTH_HISTORY_SEND_FACTORY_CLASS, PROP_AUTH_HISTORY_SEND_FACTORY_CLASS_DEFAULT);
         AuthHistorySenderFactory authHistorySenderFactory;
         try {

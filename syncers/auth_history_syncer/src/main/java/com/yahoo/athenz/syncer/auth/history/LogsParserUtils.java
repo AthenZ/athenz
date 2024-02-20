@@ -18,38 +18,68 @@
 
 package com.yahoo.athenz.syncer.auth.history;
 
+import com.yahoo.athenz.auth.util.AthenzUtils;
+
 import java.net.MalformedURLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LogsParserUtils {
+
+    private static class PatternType {
+        public Pattern pattern;
+        public String operation;
+
+        public PatternType(Pattern pattern, final String operation) {
+            this.pattern = pattern;
+            this.operation = operation;
+        }
+    }
+
     private static final String DOMAIN_REGEX = "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*";
 
-    // regex:
-    // /domain/{domainName}/token
-    // /domain/{domainName}/role/{roleName}/token
-    // /access/domain/{domainName}/role/{roleName}/principal/{principal}
-    // /access/domain/{domainName}/principal/{principal}
-    private static final Pattern DOMAIN_PATH_PARAM_PATTERN = Pattern.compile("/domain/(" + DOMAIN_REGEX + ")/(token|role/|principal/)", Pattern.MULTILINE);
+    // regex: /domain/{domainName}/token
+    private static final PatternType ROLE_TOKEN_PATTERN = new PatternType(
+            Pattern.compile("/domain/(" + DOMAIN_REGEX + ")/token", Pattern.MULTILINE), "role-token");
+
+    // regex: /domain/{domainName}/role/{roleName}/token
+    private static final PatternType ROLE_CERT_OLD_PATTERN = new PatternType(
+            Pattern.compile("/domain/(" + DOMAIN_REGEX + ")/role/", Pattern.MULTILINE), "role-cert");
+
+    // regex: /access/domain/{domainName}/role/{roleName}/principal/{principal}
+    private static final PatternType ACCESS_ROLE_PATTERN = new PatternType(
+            Pattern.compile("/access/domain/(" + DOMAIN_REGEX + ")/role/", Pattern.MULTILINE), "access-check");
+
+    // regex: /access/domain/{domainName}/principal/{principal}
+    private static final PatternType ACCESS_PRINCIPAL_PATTERN = new PatternType(
+            Pattern.compile("/access/domain/(" + DOMAIN_REGEX + ")/principal/", Pattern.MULTILINE), "access-check");
 
     // regex: /oauth2/token
-    private static final Pattern OAUTH_TOKEN_PATTERN = Pattern.compile("/oauth2/token.*scope=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE);
+    private static final PatternType OAUTH_TOKEN_PATTERN = new PatternType(
+            Pattern.compile("/oauth2/token.*scope=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE), "access-token");
 
     // regex: (alternate domain for cross-domain trust relation)
     // /access/{action}?domain={domain}
     // /access/{action}/{resource}?domain={domain}
-    private static final Pattern ACCESS_RESOURCE_ALT_DOMAIN_PATTERN = Pattern.compile("/access/.*domain=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE);
+    private static final PatternType ACCESS_RESOURCE_ALT_DOMAIN_PATTERN = new PatternType(
+            Pattern.compile("/access/.*domain=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE), "access-check");
 
     // regex: /access/{action}?resource={domain}:{resource}
-    private static final Pattern ACCESS_RESOURCE_PATTERN_QUERY_PARAM = Pattern.compile("/access/.*resource=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE);
+    private static final PatternType ACCESS_RESOURCE_PATTERN_QUERY_PARAM = new PatternType(
+            Pattern.compile("/access/.*resource=(" + DOMAIN_REGEX + ").*", Pattern.MULTILINE), "access-check");
 
     // regex: /access/{action}/{resource}
-    private static final Pattern ACCESS_RESOURCE_PATTERN = Pattern.compile("/access/.*/(" + DOMAIN_REGEX + "):.*", Pattern.MULTILINE);
+    private static final PatternType ACCESS_RESOURCE_PATTERN = new PatternType(
+            Pattern.compile("/access/.*/(" + DOMAIN_REGEX + "):.*", Pattern.MULTILINE), "access-check");
 
     // regex: /rolecert?roleName={domain}:role.{role}
-    private static final Pattern ROLE_CERT_PATTERN = Pattern.compile("/rolecert.roleName=(" + DOMAIN_REGEX + "):role.*", Pattern.MULTILINE);
+    private static final PatternType ROLE_CERT_PATTERN = new PatternType(
+            Pattern.compile("/rolecert.roleName=(" + DOMAIN_REGEX + "):role.*", Pattern.MULTILINE), "role-cert");
 
-    private static final Pattern[] PATTERNS = {DOMAIN_PATH_PARAM_PATTERN, OAUTH_TOKEN_PATTERN, ACCESS_RESOURCE_ALT_DOMAIN_PATTERN, ACCESS_RESOURCE_PATTERN_QUERY_PARAM, ACCESS_RESOURCE_PATTERN, ROLE_CERT_PATTERN};
+    private static final PatternType[] PATTERNS = {ROLE_TOKEN_PATTERN, ROLE_CERT_OLD_PATTERN,
+            ACCESS_ROLE_PATTERN, ACCESS_PRINCIPAL_PATTERN, OAUTH_TOKEN_PATTERN,
+            ACCESS_RESOURCE_ALT_DOMAIN_PATTERN, ACCESS_RESOURCE_PATTERN_QUERY_PARAM,
+            ACCESS_RESOURCE_PATTERN, ROLE_CERT_PATTERN};
 
     private static final String PROP_TTL = "auth_history_syncer.ttl";
     private static final String PROP_TTL_DEFAULT = "720"; // 30 days
@@ -58,45 +88,34 @@ public class LogsParserUtils {
     private static final long EXPIRY_TIME = 3660 * EXPIRY_HOURS;
 
     public static AuthHistoryDynamoDBRecord getRecordFromLogEvent(String message) throws MalformedURLException {
+
         String[] split = message.split("\\s+");
-        String principalDomain = getPrincipalDomain(split[2]);
-        String principalName = getPrincipalName(split[2]);
-        String endpoint = split[5].substring(1) + " " + split[6];
-        String timestamp = split[3].substring(1);
-        String uriDomain = getDomainFromEndpoint(split[6]);
-        String primaryKey = generatePrimaryKey(uriDomain, principalDomain, principalName);
-        return new AuthHistoryDynamoDBRecord(primaryKey, uriDomain, principalDomain, principalName, endpoint, timestamp, System.currentTimeMillis() / 1000L + EXPIRY_TIME);
+        AuthHistoryDynamoDBRecord record = createRecordObject(split[6]);
+        record.setPrincipalDomain(AthenzUtils.extractPrincipalDomainName(split[2]));
+        record.setPrincipalName(AthenzUtils.extractPrincipalServiceName(split[2]));
+        record.setEndpoint(split[5].substring(1) + " " + split[6]);
+        record.setTimestamp(split[3].substring(1));
+        record.setPrimaryKey(generatePrimaryKey(record.getUriDomain(), record.getPrincipalDomain(),
+                record.getPrincipalName()));
+        record.setTtl(System.currentTimeMillis() / 1000L + EXPIRY_TIME);
+        return record;
     }
 
     public static String generatePrimaryKey(String uriDomain, String principalDomain, String principalName) {
         return uriDomain + ":" + principalDomain + ":" + principalName;
     }
 
-    private static String getDomainFromEndpoint(String endpoint) throws MalformedURLException {
-        for (Pattern pattern : PATTERNS) {
-            Matcher m = pattern.matcher(endpoint);
+    private static AuthHistoryDynamoDBRecord createRecordObject(final String endpoint) throws MalformedURLException {
+        for (PatternType patternType : PATTERNS) {
+            Matcher m = patternType.pattern.matcher(endpoint);
             if (m.find()) {
-                return m.group(1);
+                AuthHistoryDynamoDBRecord record = new AuthHistoryDynamoDBRecord();
+                record.setUriDomain(m.group(1));
+                record.setOperation(patternType.operation);
+                return record;
             }
         }
 
         throw new MalformedURLException("Failed to locate domain at endpoint: " + endpoint);
-    }
-
-
-    private static String getPrincipalDomain(String principal) {
-        int n = principal.lastIndexOf('.');
-        if (n <= 0 || n == principal.length() - 1) {
-            return null;
-        }
-        return principal.substring(0, n);
-    }
-
-    private static String getPrincipalName(String principal) {
-        int n = principal.lastIndexOf('.');
-        if (n <= 0 || n == principal.length() - 1) {
-            return null;
-        }
-        return principal.substring(n + 1);
     }
 }

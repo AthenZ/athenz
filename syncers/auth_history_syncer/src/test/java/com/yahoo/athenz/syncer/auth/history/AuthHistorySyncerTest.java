@@ -91,4 +91,39 @@ public class AuthHistorySyncerTest {
         assertNotNull(privateKeyStore);
         System.clearProperty("auth_history_syncer.private_key_store_factory_class");
     }
+
+    @Test
+    public void testAuthHistorySyncerFailures() {
+        AuthHistorySyncer authHistorySyncer = new AuthHistorySyncer();
+        assertNotNull(authHistorySyncer);
+        AuthHistorySyncer.usage();
+
+        System.setProperty("auth_history_syncer.fetch_factory_class", "unknown-class");
+        try {
+            authHistorySyncer.getAuthHistoryFetcher(null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof ClassNotFoundException);
+        }
+
+        System.setProperty("auth_history_syncer.private_key_store_factory_class", "unknown-class");
+        try {
+            authHistorySyncer.getPrivateKeyStore();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid private key store"));
+        }
+
+        System.setProperty("auth_history_syncer.send_factory_class", "unknown-class");
+        try {
+            authHistorySyncer.getAuthHistorySender(null, null);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex instanceof ClassNotFoundException);
+        }
+
+        System.clearProperty("auth_history_syncer.fetch_factory_class");
+        System.clearProperty("auth_history_syncer.send_factory_class");
+        System.clearProperty("auth_history_syncer.private_key_store_factory_class");
+    }
 }

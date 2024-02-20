@@ -18,10 +18,7 @@
 
 package com.yahoo.athenz.syncer.auth.history.impl;
 
-import com.yahoo.athenz.syncer.auth.history.AuthHistoryDynamoDBRecord;
-import com.yahoo.athenz.syncer.auth.history.AuthHistoryFetcher;
-import com.yahoo.athenz.syncer.auth.history.CloudWatchClientFactory;
-import com.yahoo.athenz.syncer.auth.history.LogsParserUtils;
+import com.yahoo.athenz.syncer.auth.history.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.cloudwatch.model.CloudWatchException;
@@ -35,8 +32,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AwsAuthHistoryFetcher implements AuthHistoryFetcher {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AwsAuthHistoryFetcher.class);
     private final CloudWatchLogsClient cloudWatchLogsClient;
+
+    private final String zmsLogGroup = System.getProperty(AuthHistorySyncerConsts.PROP_CLOUDWATCH_ZMS_LOG_GROUP,
+            "athenz-zms-service-access");
+    private final String ztsLogGroup = System.getProperty(AuthHistorySyncerConsts.PROP_CLOUDWATCH_ZTS_LOG_GROUP,
+            "athenz-zts-service-access");
 
     public AwsAuthHistoryFetcher(CloudWatchClientFactory cloudWatchClientFactory) {
         this.cloudWatchLogsClient = cloudWatchClientFactory.create();
@@ -44,15 +47,19 @@ public class AwsAuthHistoryFetcher implements AuthHistoryFetcher {
 
     /**
      *
-     * @param startTime - the start of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
-     * @param endTime - the end of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
-     * @param useFilterPattern - if true, filter access events in request. False means that all events in the time range will return.
-     * @return - authorization checks and token requests history ready to be pushed to a data store. On error return null.
+     * @param startTime - the start of the time range, expressed as the number of milliseconds
+     *       after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
+     * @param endTime - the end of the time range, expressed as the number of milliseconds
+     *      after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
+     * @param useFilterPattern - if true, filter access events in request. False means that
+     *      all events in the time range will return.
+     * @return - authorization checks and token requests history ready to be pushed to a
+     *      data store. On error return null.
      */
     @Override
     public Set<AuthHistoryDynamoDBRecord> getLogs(Long startTime, Long endTime, boolean useFilterPattern) {
-        Set<AuthHistoryDynamoDBRecord> zmsLogs = getLogs("athenz-zms-service-access", startTime, endTime, useFilterPattern);
-        Set<AuthHistoryDynamoDBRecord> ztsLogs = getLogs("athenz-zts-service-access", startTime, endTime, useFilterPattern);
+        Set<AuthHistoryDynamoDBRecord> zmsLogs = getLogs(zmsLogGroup, startTime, endTime, useFilterPattern);
+        Set<AuthHistoryDynamoDBRecord> ztsLogs = getLogs(ztsLogGroup, startTime, endTime, useFilterPattern);
         Set<AuthHistoryDynamoDBRecord> allRecords = new HashSet<>();
         if (zmsLogs != null && !zmsLogs.isEmpty()) {
             allRecords.addAll(zmsLogs);
@@ -66,13 +73,20 @@ public class AwsAuthHistoryFetcher implements AuthHistoryFetcher {
     /**
      *
      * @param logGroup - Log group name
-     * @param startTime - the start of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
-     * @param endTime - the end of the time range, expressed as the number of milliseconds after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
-     * @param useFilterPattern - if true, filter access events in request. False means that all events in the time range will return.
-     * @return - authorization checks and token requests history ready to be pushed to a data store. On error return null.
+     * @param startTime - the start of the time range, expressed as the number of milliseconds
+     *       after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
+     * @param endTime - the end of the time range, expressed as the number of milliseconds
+     *       after Jan 1, 1970 00:00:00 UTC (for example, 1620940080)
+     * @param useFilterPattern - if true, filter access events in request. False means that
+     *       all events in the time range will return.
+     * @return - authorization checks and token requests history ready to be pushed to a
+     *       data store. On error return null.
      */
     private Set<AuthHistoryDynamoDBRecord> getLogs(String logGroup, Long startTime, Long endTime, boolean useFilterPattern) {
-        LOGGER.info("Getting logs from logGroup {}, startTime(milli): {}, endTime(milli): {}, useFilterPattern: {}", logGroup, startTime, endTime, useFilterPattern);
+
+        LOGGER.info("Getting logs from logGroup {}, startTime(milli): {}, endTime(milli): {}, useFilterPattern: {}",
+                logGroup, startTime, endTime, useFilterPattern);
+
         try {
             String nextToken = null;
             Set<AuthHistoryDynamoDBRecord> filteredEvents = new HashSet<>();

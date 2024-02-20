@@ -33,7 +33,9 @@ public class MockAuthHistoryFetcher implements AuthHistoryFetcher {
             return new HashSet<>();
         }
         Set<AuthHistoryDynamoDBRecord> records = new HashSet<>();
-        AuthHistoryDynamoDBRecord authHistoryDynamoDBRecord = new AuthHistoryDynamoDBRecord("primaryKeyTest", "uriDomainTest", "principalDomainTest", "principalNameTest", "endpointTest", "timestampTest", 0L);
+        AuthHistoryDynamoDBRecord authHistoryDynamoDBRecord = new AuthHistoryDynamoDBRecord("primaryKeyTest",
+                "uriDomainTest", "principalDomainTest", "principalNameTest", "endpointTest",
+                "timestampTest", "access-check", 0L);
         records.add(authHistoryDynamoDBRecord);
         return records;
     }

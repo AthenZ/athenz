@@ -23,12 +23,17 @@ import org.junit.Test;
 import java.net.MalformedURLException;
 
 import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 public class LogsParserUtilsTest {
 
     @Test
     public void testGetRecordFromLogEvent() throws MalformedURLException {
+
+        LogsParserUtils utils = new LogsParserUtils();
+        assertNotNull(utils);
+
         // Test /domain/{domainName}/token
         String message = "98.136.200.210 - user.testprincipal [19/Apr/2022:08:00:45 +0000] \"GET /zms/v1/domain/home.testuser/token HTTP/1.1\" 200 16 \"-\" \"Jersey/2.18 (HttpUrlConnection 1.8.0_302)\" - 2 Auth-X509 TLSv1.2 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
         AuthHistoryDynamoDBRecord recordFromLogEvent = LogsParserUtils.getRecordFromLogEvent(message);
