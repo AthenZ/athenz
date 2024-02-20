@@ -17,6 +17,7 @@ package com.yahoo.athenz.zms;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
+import com.yahoo.rdl.Validator;
 
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class ZMSConfig {
     private List<String> addlUserCheckDomainPrefixList;
     private SolutionTemplates serverSolutionTemplates;
     private Authority userAuthority;
+    private Validator validator;
 
     public String getUserDomain() {
         return userDomain;
@@ -84,5 +86,13 @@ public class ZMSConfig {
 
     public void setUserAuthority(Authority userAuthority) {
         this.userAuthority = userAuthority;
+    }
+
+    public Validator getValidator() {
+        return validator;
+    }
+
+    public void setValidator(Validator validator) {
+        this.validator = validator;
     }
 }

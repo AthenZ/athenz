@@ -64,7 +64,6 @@ import com.yahoo.athenz.zms.store.*;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.UUID;
 import com.yahoo.rdl.*;
-import com.yahoo.rdl.Validator.Result;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -1008,6 +1007,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setServerHostName(serverHostName);
         zmsConfig.setServerSolutionTemplates(serverSolutionTemplates);
         zmsConfig.setUserAuthority(userAuthority);
+        zmsConfig.setValidator(validator);
 
         objectStore = objFactory.create(keyStore);
         dbService = new DBService(objectStore, auditLogger, zmsConfig, auditReferenceValidator, authHistoryStore);
@@ -5512,46 +5512,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validatePolicyAssertion(Assertion assertion, final String roleDomainName, Set<String> roleNamesSet, final String caller) {
+    void validatePolicyAssertion(Assertion assertion, final String roleDomainName, Set<String> roleNamesSet,
+            final String caller) {
 
-        // extract the domain name from the resource
+        // validate the overall structure of the assertion object
 
-        final String resource = assertion.getResource();
-        int idx = resource.indexOf(':');
-        if (idx == -1) {
-            throw ZMSUtils.requestError("Missing domain name from assertion resource: "
-                    + resource, caller);
-        }
-
-        // we need to validate our domain name with special
-        // case of * that is allowed to match any domain
-
-        String domainName = resource.substring(0, idx);
-        if (!domainName.equals("*")) {
-            validate(domainName, TYPE_DOMAIN_NAME, caller);
-        }
-
-        // we'll also verify that the resource does not contain
-        // any control characters since those cause issues when
-        // data is serialized/deserialized and signature is generated
-
-        if (StringUtils.containsControlCharacter(resource)) {
-            throw ZMSUtils.requestError("Assertion resource contains control characters: "
-                    + resource, caller);
-        }
-
-        // verify the action is not empty and does not contain
-        // any control characters
-
-        final String action = assertion.getAction();
-        if (action == null || action.isEmpty()) {
-            throw ZMSUtils.requestError("Assertion action cannot be empty", caller);
-        }
-
-        if (StringUtils.containsControlCharacter(action)) {
-            throw ZMSUtils.requestError("Assertion action contains control characters: "
-                    + resource, caller);
-        }
+        ZMSUtils.validatePolicyAssertion(validator, assertion, false, caller);
 
         // if enabled, we are not going to allow any user to add/update
         // an assertion that the associated role does not exist
@@ -8271,19 +8237,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validate(Object val, String type, String caller) {
-        if (val == null) {
-            throw ZMSUtils.requestError("Missing or malformed " + type, caller);
-        }
-
-        try {
-            Result result = validator.validate(val, type);
-            if (!result.valid) {
-                throw ZMSUtils.requestError("Invalid " + type + " error: " + result.error, caller);
-            }
-        } catch (Exception ex) {
-            LOG.error("Object validation exception", ex);
-            throw ZMSUtils.requestError("Invalid " + type + " error: " + ex.getMessage(), caller);
-        }
+        ZMSUtils.validateObject(validator, val, type, caller);
     }
 
     List<String> validatedAdminUsers(List<String> lst) {

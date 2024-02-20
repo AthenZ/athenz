@@ -34,7 +34,7 @@ type TemplateList Struct {
 
 type TemplateParam Struct {
     SimpleName name; //name of the parameter
-    CompoundName value; //value of the parameter
+    String value; //value of the parameter
 }
 
 //solution template(s) to be applied to a domain

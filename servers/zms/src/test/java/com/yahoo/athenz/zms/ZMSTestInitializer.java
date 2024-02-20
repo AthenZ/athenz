@@ -18,7 +18,13 @@
 
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.Resources;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.util.Base64URL;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
@@ -44,13 +50,14 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
 import java.util.*;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS;
 import static com.yahoo.athenz.zms.ZMSConsts.*;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 public class ZMSTestInitializer {
     public static final String ZMS_PROP_PUBLIC_KEY = "athenz.zms.publickey";
@@ -822,5 +829,17 @@ public class ZMSTestInitializer {
 
     public void deleteTopLevelDomain(final String domainName) {
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef);
+    }
+
+    public DomainData getDomainData(JWSDomain jwsDomain) throws ParseException, JOSEException, JsonProcessingException {
+        assertNotNull(jwsDomain);
+
+        JWSObject jwsObject = new JWSObject(Base64URL.from(jwsDomain.getProtectedHeader()),
+                Base64URL.from(jwsDomain.getPayload()), Base64URL.from(jwsDomain.getSignature()));
+
+        JWSVerifier verifier = new RSASSAVerifier((RSAPublicKey) Crypto.extractPublicKey(zms.privateKey.getKey()));
+        assertTrue(jwsObject.verify(verifier));
+
+        return zms.jsonMapper.readValue(jwsObject.getPayload().toString(), DomainData.class);
     }
 }

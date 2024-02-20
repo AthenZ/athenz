@@ -446,7 +446,7 @@ func init() {
 
 	tTemplateParam := rdl.NewStructTypeBuilder("Struct", "TemplateParam")
 	tTemplateParam.Field("name", "SimpleName", false, nil, "name of the parameter")
-	tTemplateParam.Field("value", "CompoundName", false, nil, "value of the parameter")
+	tTemplateParam.Field("value", "String", false, nil, "value of the parameter")
 	sb.AddType(tTemplateParam.Build())
 
 	tDomainTemplate := rdl.NewStructTypeBuilder("TemplateList", "DomainTemplate")
