@@ -36,19 +36,21 @@ public class AuthHistoryDynamoDBRecord {
     private String principalName;
     private String endpoint;
     private String timestamp;
+    private String operation;
     private long ttl;
 
     public AuthHistoryDynamoDBRecord() {
-
     }
 
-    public AuthHistoryDynamoDBRecord(String primaryKey, String uriDomain, String principalDomain, String principalName, String endpoint, String timestamp, long ttl) {
+    public AuthHistoryDynamoDBRecord(String primaryKey, String uriDomain, String principalDomain,
+            String principalName, String endpoint, String timestamp, String operation, long ttl) {
         this.primaryKey = primaryKey;
         this.uriDomain = uriDomain;
         this.principalDomain = principalDomain;
         this.principalName = principalName;
         this.endpoint = endpoint;
         this.timestamp = timestamp;
+        this.operation = operation;
         this.ttl = ttl;
     }
 
@@ -83,6 +85,10 @@ public class AuthHistoryDynamoDBRecord {
         return timestamp;
     }
 
+    public String getOperation() {
+        return operation;
+    }
+
     // Set methods must exist for @DynamoDbBean successful marshalling
     public void setPrimaryKey(String primaryKey) {
         this.primaryKey = primaryKey;
@@ -102,6 +108,9 @@ public class AuthHistoryDynamoDBRecord {
     public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
     public void setTtl(long ttl) {
         this.ttl = ttl;
     }
@@ -116,11 +125,7 @@ public class AuthHistoryDynamoDBRecord {
         }
 
         AuthHistoryDynamoDBRecord record = (AuthHistoryDynamoDBRecord) o;
-        if (getPrimaryKey() == null ? record.getPrimaryKey() != null : !getPrimaryKey().equals(record.getPrimaryKey())) {
-            return false;
-        }
-
-        return true;
+        return getPrimaryKey() == null ? record.getPrimaryKey() == null : getPrimaryKey().equals(record.getPrimaryKey());
     }
 
     @Override
@@ -137,6 +142,7 @@ public class AuthHistoryDynamoDBRecord {
                 ", principalName='" + principalName + '\'' +
                 ", endpoint='" + endpoint + '\'' +
                 ", timestamp='" + timestamp + '\'' +
+                ", operation='" + operation + '\'' +
                 ", ttl=" + ttl +
                 '}';
     }

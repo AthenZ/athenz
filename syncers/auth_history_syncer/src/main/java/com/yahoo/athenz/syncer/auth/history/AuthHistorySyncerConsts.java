@@ -34,4 +34,7 @@ public class AuthHistorySyncerConsts {
     public static final String PROP_DYNAMODB_EXTERNAL_ID         = "auth_history_syncer.dynamodb_external_id";
     public static final String PROP_DYNAMODB_MIN_EXPIRY_TIME     = "auth_history_syncer.dynamodb_min_expiry_time";
     public static final String PROP_DYNAMODB_MAX_EXPIRY_TIME     = "auth_history_syncer.dynamodb_max_expiry_time";
+
+    public static final String PROP_CLOUDWATCH_ZMS_LOG_GROUP     = "auth_history_syncer.cloudwatch_zms_log_group";
+    public static final String PROP_CLOUDWATCH_ZTS_LOG_GROUP     = "auth_history_syncer.cloudwatch_zts_log_group";
 }
