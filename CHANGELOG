@@ -1,3 +1,25 @@
+Athenz v1.11.52 Release / Feb 21, 2024
+--------------------------------------
+
+#2498 include instance-id as a principal in ssh host certificates on aws ec2
+#2500 UI: upgrade nextjs major version
+#2501 UI: upgrade babel related packages
+#2502 UI: upgrade jest related pkgs
+#2503 UI: upgrade jest related pkgs and package-lock.json
+#2504 UI: upgrade saucelabs and webdriver pkgs
+#2505 update entityName in audit logs for role/group meta calls
+#2507 UI: fix filter by role in domain history
+#2508 UI: upgrade axios and jsdom
+#2509 update tagKey and tagValue type for all ZMS roles
+#2510 GitHub actions service identity provider
+#2511 allow param values to include any string
+#2513 use correct algorithm when generating csr
+#2514 update jetty and go/java dependencies
+#2515 fix rdl for meta string fields so they can be unset
+#2516 update role certificate handling in sia agents
+#2519 store operation type as part of the auth history record
+#2520 UI: Bump ip from 1.1.8 to 1.1.9 in /ui
+
 Athenz v1.11.51 Release / Jan 30, 2024
 --------------------------------------
 
