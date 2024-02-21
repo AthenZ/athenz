@@ -875,7 +875,7 @@ func (cli Zms) SetRoleTokenSignAlgorithm(dn string, rn string, alg string) (*str
 		return nil, err
 	}
 	meta := getRoleMetaObject(role)
-	meta.SignAlgorithm = zms.SimpleName(alg)
+	meta.SignAlgorithm = alg
 
 	err = cli.Zms.PutRoleMeta(zms.DomainName(dn), zms.EntityName(rn), cli.AuditRef, &meta)
 	if err != nil {

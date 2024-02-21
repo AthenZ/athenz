@@ -47,9 +47,9 @@ type GroupMembership Struct {
 type GroupMeta Struct {
     Bool selfServe (optional, default=false); //Flag indicates whether or not group allows self service. Users can add themselves in the group, but it has to be approved by domain admins to be effective.
     Bool reviewEnabled (optional, default=false); //Flag indicates whether or not group updates require another review and approval
-    String notifyRoles (optional); //list of roles whose members should be notified for member review/approval
-    String userAuthorityFilter (optional); //membership filtered based on user authority configured attributes
-    String userAuthorityExpiration (optional); //expiration enforced by a user authority configured attribute
+    String notifyRoles (optional, x_allowempty="true"); //list of roles whose members should be notified for member review/approval
+    String userAuthorityFilter (optional, x_allowempty="true"); //membership filtered based on user authority configured attributes
+    String userAuthorityExpiration (optional, x_allowempty="true"); //expiration enforced by a user authority configured attribute
     Int32 memberExpiryDays (optional); //all user members in the group will have specified max expiry days
     Int32 serviceExpiryDays (optional); //all services in the group will have specified max expiry days
     Map<TagKey,TagValueList> tags (optional); //key-value pair tags, tag might contain multiple values

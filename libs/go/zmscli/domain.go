@@ -957,7 +957,7 @@ func (cli Zms) SetDomainTokenSignAlgorithm(dn string, alg string) (*string, erro
 		return nil, err
 	}
 	meta := getDomainMetaObject(domain)
-	meta.SignAlgorithm = zms.SimpleName(alg)
+	meta.SignAlgorithm = alg
 
 	err = cli.Zms.PutDomainMeta(zms.DomainName(dn), cli.AuditRef, &meta)
 	if err != nil {
