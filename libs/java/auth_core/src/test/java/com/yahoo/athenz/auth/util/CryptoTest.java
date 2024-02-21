@@ -642,9 +642,30 @@ public class CryptoTest {
     }
 
     @Test(dataProvider = "x500Principal")
-    public void testX509CSRrequest(String x500Principal, boolean badRequest) {
+    public void testGenerateX509CSRKeyTypeRSA(String x500Principal, boolean badRequest) {
         PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
         PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        String certRequest = null;
+        GeneralName otherName1 = new GeneralName(GeneralName.otherName, new DERIA5String("role1"));
+        GeneralName otherName2 = new GeneralName(GeneralName.otherName, new DERIA5String("role2"));
+        GeneralName[] sanArray = new GeneralName[]{otherName1, otherName2};
+        try {
+            certRequest = Crypto.generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
+        } catch (Exception e) {
+            if (!badRequest) {
+                fail("Should not have failed to create csr");
+            }
+        }
+        if (!badRequest) {
+            //Now validate the csr
+            Crypto.getPKCS10CertRequest(certRequest);
+        }
+    }
+
+    @Test(dataProvider = "x500Principal")
+    public void testGenerateX509CSRKeyTypeECDSA(String x500Principal, boolean badRequest) {
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         String certRequest = null;
         GeneralName otherName1 = new GeneralName(GeneralName.otherName, new DERIA5String("role1"));
         GeneralName otherName2 = new GeneralName(GeneralName.otherName, new DERIA5String("role2"));

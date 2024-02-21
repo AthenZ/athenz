@@ -1125,8 +1125,8 @@ public class Crypto {
         return convertToPEMFormat(publicKey);
     }
 
-    public static String generateX509CSR(PrivateKey privateKey, String x500Principal,
-                                         GeneralName[] sanArray) throws OperatorCreationException, IOException {
+    public static String generateX509CSR(PrivateKey privateKey, String x500Principal, GeneralName[] sanArray)
+            throws OperatorCreationException, IOException, NoSuchAlgorithmException {
         final PublicKey publicKey = extractPublicKey(privateKey);
         if (publicKey == null) {
             throw new CryptoException("Unable to extract public key from private key");
@@ -1134,8 +1134,8 @@ public class Crypto {
         return generateX509CSR(privateKey, publicKey, x500Principal, sanArray);
     }
 
-    public static String generateX509CSR(PrivateKey privateKey, PublicKey publicKey,
-                                         String x500Principal, GeneralName[] sanArray) throws OperatorCreationException, IOException {
+    public static String generateX509CSR(PrivateKey privateKey, PublicKey publicKey, String x500Principal,
+            GeneralName[] sanArray) throws OperatorCreationException, IOException, NoSuchAlgorithmException {
 
         // Create Distinguished Name
 
@@ -1143,7 +1143,8 @@ public class Crypto {
 
         // Create ContentSigner
 
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(Crypto.RSA_SHA256);
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(
+                getSignatureAlgorithm(privateKey.getAlgorithm(), SHA256));
         ContentSigner signer = csBuilder.build(privateKey);
 
         // Create the CSR
