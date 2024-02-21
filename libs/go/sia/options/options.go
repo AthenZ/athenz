@@ -130,17 +130,18 @@ type AccessProfileConfig struct {
 
 // Role contains role details. Attributes are set based on the config values
 type Role struct {
-	Name            string
-	Service         string
-	SvcKeyFilename  string
-	SvcCertFilename string
-	ExpiryTime      int
-	Filename        string
-	User            string
-	Uid             int
-	Gid             int
-	FileMode        int
-	Threshold       float64
+	Name             string
+	Service          string
+	SvcKeyFilename   string
+	SvcCertFilename  string
+	ExpiryTime       int
+	RoleCertFilename string
+	RoleKeyFilename  string
+	User             string
+	Uid              int
+	Gid              int
+	FileMode         int
+	Threshold        float64
 }
 
 // Service represents service details. Attributes are filled in based on the config values
@@ -776,14 +777,15 @@ func setOptions(config *Config, account *ConfigAccount, profileConfig *AccessPro
 			}
 			roleService := getRoleServiceOwner(r.Service, services)
 			role := Role{
-				Name:            name,
-				Service:         roleService.Name,
-				SvcKeyFilename:  roleService.KeyFilename,
-				SvcCertFilename: roleService.CertFilename,
-				Filename:        r.Filename,
-				ExpiryTime:      r.ExpiryTime,
-				FileMode:        roleService.FileMode,
-				Threshold:       nonZeroValue(r.Threshold, config.Threshold),
+				Name:             name,
+				Service:          roleService.Name,
+				SvcKeyFilename:   roleService.KeyFilename,
+				SvcCertFilename:  roleService.CertFilename,
+				RoleCertFilename: util.GetRoleCertFileName(certDir, r.Filename, name),
+				RoleKeyFilename:  util.GetRoleKeyFileName(keyDir, r.Filename, name, generateRoleKey),
+				ExpiryTime:       r.ExpiryTime,
+				FileMode:         roleService.FileMode,
+				Threshold:        nonZeroValue(r.Threshold, config.Threshold),
 			}
 			role.Uid = roleService.Uid
 			role.Gid = roleService.Gid
@@ -1082,17 +1084,18 @@ func LegacyOptions(opts *Options) *legacy.Options {
 
 	for _, r := range opts.Roles {
 		role := legacy.Role{
-			Name:            r.Name,
-			Service:         r.Service,
-			SvcKeyFilename:  r.SvcKeyFilename,
-			SvcCertFilename: r.SvcCertFilename,
-			ExpiryTime:      r.ExpiryTime,
-			Filename:        r.Filename,
-			User:            r.User,
-			Uid:             r.Uid,
-			Gid:             r.Gid,
-			FileMode:        r.FileMode,
-			Threshold:       r.Threshold,
+			Name:             r.Name,
+			Service:          r.Service,
+			RoleKeyFilename:  r.RoleKeyFilename,
+			RoleCertFilename: r.RoleCertFilename,
+			SvcKeyFilename:   r.SvcKeyFilename,
+			SvcCertFilename:  r.SvcCertFilename,
+			ExpiryTime:       r.ExpiryTime,
+			User:             r.User,
+			Uid:              r.Uid,
+			Gid:              r.Gid,
+			FileMode:         r.FileMode,
+			Threshold:        r.Threshold,
 		}
 		lopts.Roles = append(lopts.Roles, role)
 	}

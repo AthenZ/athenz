@@ -75,9 +75,11 @@ func GetPrevRoleCertDates(certFile string) (*rdl.Timestamp, *rdl.Timestamp, erro
 	return notBefore, notAfter, nil
 }
 
-func RoleKey(rotateKey bool, svcKey string) (*rsa.PrivateKey, error) {
+func RoleKey(rotateKey bool, roleKey, svcKey string) (*rsa.PrivateKey, error) {
 	if rotateKey {
 		return util.GenerateKeyPair(2048)
+	} else if roleKey != "" && util.FileExists(roleKey) {
+		return util.PrivateKeyFromFile(roleKey)
 	} else {
 		return util.PrivateKeyFromFile(svcKey)
 	}
@@ -102,21 +104,16 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 		}
 		client.AddCredentials("User-Agent", opts.Version)
 
-		key, err := util.PrivateKeyFromFile(svcKeyFile)
+		var key *rsa.PrivateKey
+		if opts.GenerateRoleKey {
+			key, err = RoleKey(opts.RotateKey, role.RoleKeyFilename, svcKeyFile)
+		} else {
+			key, err = util.PrivateKeyFromFile(svcKeyFile)
+		}
 		if err != nil {
-			log.Printf("unable to read private key from %s for role %s, err: %v\n", svcKeyFile, role.Name, err)
+			log.Printf("unable to read private key role %s, err: %v\n", role.Name, err)
 			failures += 1
 			continue
-		}
-
-		if opts.GenerateRoleKey {
-			var err error
-			key, err = RoleKey(opts.RotateKey, svcKeyFile)
-			if err != nil {
-				log.Printf("unable to read generate/read key from %s, err: %v\n", role.Filename, err)
-				failures += 1
-				continue
-			}
 		}
 
 		emailDomain := ""
@@ -144,8 +141,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 			roleRequest.ExpiryTime = int64(role.ExpiryTime)
 		}
 
-		certFilePem := util.GetRoleCertFileName(opts.CertDir, role.Filename, role.Name)
-		notBefore, notAfter, _ := GetPrevRoleCertDates(certFilePem)
+		notBefore, notAfter, _ := GetPrevRoleCertDates(role.RoleCertFilename)
 		roleRequest.PrevCertNotBefore = notBefore
 		roleRequest.PrevCertNotAfter = notAfter
 		if notBefore != nil && notAfter != nil {
@@ -162,7 +158,7 @@ func GetRoleCertificates(ztsUrl string, opts *options.Options) (int, int) {
 			continue
 		}
 		roleKeyBytes := util.PrivatePem(key)
-		err = SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), role, opts)
+		err = util.SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), role.RoleKeyFilename, role.RoleCertFilename, svcKeyFile, role.Name, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 		if err != nil {
 			log.Printf("Unable to save role cert key for role %s, err: %v\n", role.Name, err)
 			failures += 1
@@ -375,12 +371,13 @@ func refreshSvc(svc options.Service, ztsUrl string, opts *options.Options) error
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
+	serviceName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
 	svcCertReqOptions := &util.SvcCertReqOptions{
 		Country:           opts.CertCountryName,
 		OrgName:           opts.CertOrgName,
 		Domain:            opts.Domain,
 		Service:           svc.Name,
-		CommonName:        opts.Domain + "." + svc.Name,
+		CommonName:        serviceName,
 		Account:           opts.Account,
 		InstanceId:        opts.InstanceId,
 		InstanceName:      opts.InstanceName,
@@ -438,8 +435,7 @@ func refreshSvc(svc options.Service, ztsUrl string, opts *options.Options) error
 
 	svcKeyBytes := util.PrivatePem(key)
 	svcCertBytes := []byte(ident.X509Certificate)
-	prefix := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
-	err = util.SaveServiceCertKey([]byte(svcKeyBytes), svcCertBytes, keyFile, certFile, prefix, svc.Uid, svc.Gid, svc.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
+	err = util.SaveServiceCertKey([]byte(svcKeyBytes), svcCertBytes, keyFile, certFile, serviceName, svc.Uid, svc.Gid, svc.FileMode, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 	if err != nil {
 		return err
 	}
@@ -490,24 +486,6 @@ func generateSshRequest(opts *options.Options, primaryServiceName, hostname stri
 		}
 	}
 	return sshCertRequest, sshCsr, err
-}
-
-func SaveRoleCertKey(key, cert []byte, role options.Role, opts *options.Options) error {
-	certPrefix := role.Name
-	if role.Filename != "" {
-		certPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
-	}
-	svcKeyFile := ""
-	keyPrefix := fmt.Sprintf("%s.%s", opts.Domain, role.Service)
-	if opts.GenerateRoleKey {
-		keyPrefix = role.Name
-		if role.Filename != "" {
-			keyPrefix = strings.TrimSuffix(role.Filename, ".cert.pem")
-		}
-	} else {
-		svcKeyFile = util.GetSvcKeyFileName(opts.KeyDir, role.SvcKeyFilename, opts.Domain, role.Service)
-	}
-	return util.SaveRoleCertKey(key, cert, svcKeyFile, role.Filename, keyPrefix, certPrefix, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.KeyDir, opts.CertDir, opts.BackupDir, opts.FileDirectUpdate)
 }
 
 func restartSshdService() error {
