@@ -37,6 +37,21 @@ class AppUtils {
             }
         }
     }
+
+    /**
+     * Safely executes a function and returns its result.
+     * If an error occurs during execution, it returns a default value.
+     * @param {Function} fn - The function to execute.
+     * @param {*} defaultValue - The default value to return if an error occurs.
+     * @returns {*} - The result of the function execution or the default value.
+     */
+    static getSafe(fn, defaultValue) {
+        try {
+            return fn();
+        } catch (err) {
+            return defaultValue;
+        }
+    }
 }
 
 export default AppUtils;
