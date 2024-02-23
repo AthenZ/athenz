@@ -79,11 +79,7 @@ class AddPoc extends React.Component {
         };
         meta.contacts[this.props.contactType] = this.state.pocName;
         let domainName = this.props.domain;
-        let auditMsg =
-            'Updating Point of Contact ' +
-            this.state.pocName +
-            ' for domain ' +
-            this.props.domain;
+        let auditMsg = `Updating Point of Contact ${this.state.pocName} for domain ${this.props.domain}`;
         let csrf = this.props.csrf;
         this.api
             .putMeta(domainName, domainName, meta, auditMsg, csrf, 'domain')
