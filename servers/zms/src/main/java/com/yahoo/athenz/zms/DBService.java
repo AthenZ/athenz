@@ -5129,11 +5129,11 @@ public class DBService implements RolesProvider {
         if (assertions != null && !assertions.isEmpty()) {
             for (Assertion assertion : assertions) {
                 Assertion newAssertion = new Assertion();
-                newAssertion.setAction(assertion.getAction());
                 newAssertion.setEffect(assertion.getEffect());
 
                 // process our assertion resource and role for any requested substitutions
 
+                String action = assertion.getAction().replace(TEMPLATE_DOMAIN_NAME, domainName);
                 String resource = assertion.getResource().replace(TEMPLATE_DOMAIN_NAME, domainName);
                 String role = assertion.getRole().replace(TEMPLATE_DOMAIN_NAME, domainName);
                 if (params != null) {
@@ -5141,8 +5141,10 @@ public class DBService implements RolesProvider {
                         final String paramKey = "_" + param.getName() + "_";
                         resource = resource.replace(paramKey, param.getValue());
                         role = role.replace(paramKey, param.getValue());
+                        action = action.replace(paramKey, param.getValue());
                     }
                 }
+                newAssertion.setAction(action);
                 newAssertion.setResource(resource);
                 newAssertion.setRole(role);
 
