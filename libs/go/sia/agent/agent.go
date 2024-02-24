@@ -621,10 +621,11 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 	if err != nil {
 		log.Printf(err.Error())
 	}
-	switch siaCmd {
+	cmd, skipErrors := util.ParseSiaCmd(siaCmd)
+	switch cmd {
 	case "rolecert":
 		count, failures := GetRoleCertificates(ztsUrl, opts)
-		if failures != 0 {
+		if failures != 0 && !skipErrors {
 			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
 		}
 		if count != 0 {
@@ -633,7 +634,7 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 	case "token":
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
-			if err != nil {
+			if err != nil && !skipErrors {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
 			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)
@@ -661,13 +662,13 @@ func RunAgent(siaCmd, ztsUrl string, opts *options.Options) {
 		}
 		log.Printf("identity registered for services: %s\n", svcs)
 		count, failures := GetRoleCertificates(ztsUrl, opts)
-		if failures != 0 {
+		if failures != 0 && !skipErrors {
 			log.Fatalf("unable to fetch %d out of %d requested role certificates\n", failures, count)
 		}
 		util.ExecuteScriptWithoutBlock(opts.RunAfterParts)
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
-			if err != nil {
+			if err != nil && !skipErrors {
 				log.Fatalf("Unable to fetch access tokens, err: %v\n", err)
 			}
 			util.ExecuteScriptWithoutBlock(opts.RunAfterTokensParts)

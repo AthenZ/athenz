@@ -1653,3 +1653,31 @@ func TestGetSvcSpiffeUri(t *testing.T) {
 		})
 	}
 }
+
+func TestParseSiaCmd(test *testing.T) {
+
+	tests := []struct {
+		name       string
+		siaCmd     string
+		cmd        string
+		skipErrors bool
+	}{
+		{"empty-cmd", "", "", false},
+		{"simple-valid-cmd", "init", "init", false},
+		{"simple-unknown-cmd", "operation", "operation", false},
+		{"simple-skip-errors", "init:skip-errors", "init", true},
+		{"multiple-parts", "init:skip-errors:unknown", "init", true},
+		{"multiple-parts-unknown", "init:test:unknown", "init", false},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			cmd, skipErrors := ParseSiaCmd(tt.siaCmd)
+			if tt.cmd != cmd {
+				test.Errorf("%s: invalid cmd returned - expected: %v, received %v", tt.name, tt.cmd, cmd)
+			}
+			if tt.skipErrors != skipErrors {
+				test.Errorf("%s: invalid skipErrors returned - expected: %v, received %v", tt.name, tt.skipErrors, skipErrors)
+			}
+		})
+	}
+}
